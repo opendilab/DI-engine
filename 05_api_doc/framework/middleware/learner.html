@@ -308,77 +308,9 @@
 <h2>learner<a class="headerlink" href="#learner" title="Permalink to this headline">¶</a></h2>
 <section id="offpolicylearner">
 <h3>OffPolicyLearner<a class="headerlink" href="#offpolicylearner" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.framework.middleware.learner.OffPolicyLearner">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.learner.</span></span><span class="sig-name descname"><span class="pre">OffPolicyLearner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/framework/middleware/learner.html#OffPolicyLearner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.learner.OffPolicyLearner" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>The class of the off-policy learner, including data fetching and model training. Use             the <cite>__call__</cite> method to execute the whole learning process.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.middleware.learner.OffPolicyLearner.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">OnlineRLContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/learner.html#OffPolicyLearner.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.learner.OffPolicyLearner.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Output of ctx:</dt><dd><ul class="simple">
-<li><p>train_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Deque</span></code>): The training output in deque.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.middleware.learner.OffPolicyLearner.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/learner.html#OffPolicyLearner.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.learner.OffPolicyLearner.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
-<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy to be trained.</p></li>
-<li><p>buffer_ (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Buffer</span></code>): The replay buffer to store the data for training.</p></li>
-<li><p>reward_model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): Additional reward estimator likes RND, ICM, etc.                 default to None.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="herlearner">
 <h3>HERLearner<a class="headerlink" href="#herlearner" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.framework.middleware.learner.HERLearner">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.learner.</span></span><span class="sig-name descname"><span class="pre">HERLearner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">her_reward_model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/framework/middleware/learner.html#HERLearner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.learner.HERLearner" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>The class of the learner with the Hindsight Experience Replay (HER).             Use the <cite>__call__</cite> method to execute the data featching and training             process.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.middleware.learner.HERLearner.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">OnlineRLContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/learner.html#HERLearner.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.learner.HERLearner.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Output of ctx:</dt><dd><ul class="simple">
-<li><p>train_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Deque</span></code>): The deque of training output.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.middleware.learner.HERLearner.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">her_reward_model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/learner.html#HERLearner.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.learner.HERLearner.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
-<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy to be trained.</p></li>
-<li><p>buffer_ (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Buffer</span></code>): The replay buffer to store the data for training.</p></li>
-<li><p>her_reward_model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HerRewardModel</span></code>): HER reward model.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 </section>
