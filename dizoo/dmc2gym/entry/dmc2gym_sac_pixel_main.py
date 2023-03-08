@@ -1,5 +1,8 @@
+from tensorboardX import SummaryWriter
 from ditk import logging
-from ding.model.template.qac import QACPixel
+import os
+import numpy as np
+from ding.model.template.qac import QAC
 from ding.policy import SACPolicy
 from ding.envs import BaseEnvManagerV2
 from ding.data import DequeBuffer
@@ -11,9 +14,6 @@ from ding.framework.middleware import data_pusher, StepCollector, interaction_ev
 from ding.utils import set_pkg_seed
 from dizoo.dmc2gym.envs.dmc2gym_env import DMC2GymEnv
 from dizoo.dmc2gym.config.dmc2gym_sac_pixel_config import main_config, create_config
-import numpy as np
-from tensorboardX import SummaryWriter
-import os
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
@@ -35,7 +35,8 @@ def main():
 
             set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-            model = QACPixel(**cfg.policy.model)
+            model = QAC(**cfg.policy.model)
+            logging.info(model)
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             policy = SACPolicy(cfg.policy, model=model)
 
@@ -72,8 +73,8 @@ def main():
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             task.use(_add_train_scalar)
-            task.use(CkptSaver(cfg, policy, train_freq=100))
-            task.use(termination_checker(max_env_step=int(5000000)))
+            task.use(CkptSaver(policy, cfg.exp_name, train_freq=int(1e5)))
+            task.use(termination_checker(max_env_step=int(5e6)))
             task.run()
 
 

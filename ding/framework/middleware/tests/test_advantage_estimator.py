@@ -33,7 +33,7 @@ class MockPolicy(Mock):
 
 
 def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, buffer: Optional[Buffer] = None):
-    cfg = EasyDict({'policy': {'collect': {'discount_factor': 0.9, 'gae_lambda': 0.95}}})
+    cfg = EasyDict({'policy': {'collect': {'discount_factor': 0.9, 'gae_lambda': 0.95}, 'cuda': False}})
 
     ctx = OnlineRLContext()
     assert trajectory_end_idx_size <= batch_size
