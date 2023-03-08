@@ -308,9 +308,81 @@
 <h2>collector<a class="headerlink" href="#collector" title="Permalink to this headline">¶</a></h2>
 <section id="stepcollector">
 <h3>StepCollector<a class="headerlink" href="#stepcollector" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.framework.middleware.collector.StepCollector">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.collector.</span></span><span class="sig-name descname"><span class="pre">StepCollector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/framework/middleware/collector.html#StepCollector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.collector.StepCollector" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The class of the collector running by steps, including model inference and transition             process. Use the <cite>__call__</cite> method to execute the whole collection process.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.middleware.collector.StepCollector.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">OnlineRLContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/collector.html#StepCollector.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.collector.StepCollector.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>An encapsulation of inference and rollout middleware. Stop when completing                 the target number of steps.</p>
+</dd>
+<dt>Input of ctx:</dt><dd><ul class="simple">
+<li><p>env_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The env steps which will increase during collection.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.middleware.collector.StepCollector.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_collect_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/collector.html#StepCollector.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.collector.StepCollector.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy to be collected.</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseEnvManager</span></code>): The env for the collection, the BaseEnvManager object or                 its derivatives are supported.</p></li>
+<li><p>random_collect_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The count of samples that will be collected randomly,                 typically used in initial runs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="episodecollector">
 <h3>EpisodeCollector<a class="headerlink" href="#episodecollector" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.framework.middleware.collector.EpisodeCollector">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.collector.</span></span><span class="sig-name descname"><span class="pre">EpisodeCollector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_collect_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/framework/middleware/collector.html#EpisodeCollector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.collector.EpisodeCollector" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The class of the collector running by episodes, including model inference and transition             process. Use the <cite>__call__</cite> method to execute the whole collection process.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.middleware.collector.EpisodeCollector.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">OnlineRLContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/collector.html#EpisodeCollector.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.collector.EpisodeCollector.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>An encapsulation of inference and rollout middleware. Stop when completing the                 target number of episodes.</p>
+</dd>
+<dt>Input of ctx:</dt><dd><ul class="simple">
+<li><p>env_episode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The env env_episode which will increase during collection.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.middleware.collector.EpisodeCollector.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_collect_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/framework/middleware/collector.html#EpisodeCollector.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.collector.EpisodeCollector.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
+<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy</span></code>): The policy to be collected.</p></li>
+<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseEnvManager</span></code>): The env for the collection, the BaseEnvManager object or                 its derivatives are supported.</p></li>
+<li><p>random_collect_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The count of samples that will be collected randomly,                 typically used in initial runs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 </section>

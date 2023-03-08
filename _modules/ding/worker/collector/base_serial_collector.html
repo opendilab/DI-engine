@@ -305,7 +305,7 @@
 <span class="n">INF</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">ISerialCollector</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="ISerialCollector"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.ISerialCollector">[docs]</a><span class="k">class</span> <span class="nc">ISerialCollector</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Abstract baseclass for serial collector.</span>
@@ -315,7 +315,7 @@
 <span class="sd">        envstep</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ISerialCollector.default_config"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.ISerialCollector.default_config">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -326,42 +326,42 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">config</span><span class="p">))</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">cfg_type</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;Dict&#39;</span>
-        <span class="k">return</span> <span class="n">cfg</span>
+        <span class="k">return</span> <span class="n">cfg</span></div>
 
-    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="ISerialCollector.reset_env"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.ISerialCollector.reset_env">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">reset_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset collector&#39;s environment. In some case, we need collector use the same policy to collect \</span>
 <span class="sd">                data in different environments. We can use reset_env to reset the environment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="ISerialCollector.reset_policy"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.ISerialCollector.reset_policy">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">reset_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset collector&#39;s policy. In some case, we need collector work in this same environment but use\</span>
 <span class="sd">                different policy to collect data. We can use reset_policy to reset the policy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="ISerialCollector.reset"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.ISerialCollector.reset">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_policy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset collector&#39;s policy and environment. Use new policy and environment to collect data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="ISerialCollector.collect"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/base_serial_collector.html#ding.worker.collector.base_serial_collector.ISerialCollector.collect">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">per_collect_target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collect the corresponding data according to the specified target and return. \</span>
 <span class="sd">                There are different definitions in episode and sample mode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="nd">@abstractproperty</span>
     <span class="k">def</span> <span class="nf">envstep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -369,7 +369,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the total envstep num.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
 <span class="k">def</span> <span class="nf">create_serial_collector</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ISerialCollector</span><span class="p">:</span>
