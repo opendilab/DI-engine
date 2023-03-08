@@ -1016,14 +1016,14 @@ class RegressionHead(nn.Module):
     """
 
     def __init__(
-            self,
-            input_size: int,
-            output_size: int,
-            layer_num: int = 2,
-            final_tanh: Optional[bool] = False,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            hidden_size: int = None,
+        self,
+        input_size: int,
+        output_size: int,
+        layer_num: int = 2,
+        final_tanh: Optional[bool] = False,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        hidden_size: int = None,
     ) -> None:
         """
         Overview:
@@ -1089,16 +1089,16 @@ class ReparameterizationHead(nn.Module):
     default_bound_type = ['tanh', None]
 
     def __init__(
-        self,
-        input_size: int,
-        output_size: int,
-        layer_num: int = 2,
-        sigma_type: Optional[str] = None,
-        fixed_sigma_value: Optional[float] = 1.0,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None,
-        bound_type: Optional[str] = None,
-        hidden_size: int = None
+            self,
+            input_size: int,
+            output_size: int,
+            layer_num: int = 2,
+            sigma_type: Optional[str] = None,
+            fixed_sigma_value: Optional[float] = 1.0,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
+            bound_type: Optional[str] = None,
+            hidden_size: int = None
     ) -> None:
         """
         Overview:

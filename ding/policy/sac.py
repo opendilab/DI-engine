@@ -248,7 +248,7 @@ class SACDiscretePolicy(Policy):
             if self._twin_critic:
                 # find min one as target q value
                 target_value = (
-                        prob * (torch.min(target_q_value[0], target_q_value[1]) - self._alpha * log_prob.squeeze(-1))
+                    prob * (torch.min(target_q_value[0], target_q_value[1]) - self._alpha * log_prob.squeeze(-1))
                 ).sum(dim=-1)
             else:
                 target_value = (prob * (target_q_value - self._alpha * log_prob.squeeze(-1))).sum(dim=-1)
@@ -970,9 +970,10 @@ class SQILSACPolicy(SACPolicy):
 
         # 4. update q network
         self._optimizer_q.zero_grad()
-        loss_dict['critic_loss'].backward()
         if self._twin_critic:
-            loss_dict['twin_critic_loss'].backward()
+            (loss_dict['critic_loss'] + loss_dict['twin_critic_loss']).backward()
+        else:
+            loss_dict['critic_loss'].backward()
         self._optimizer_q.step()
 
         # 5. evaluate to get action distribution
