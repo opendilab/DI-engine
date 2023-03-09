@@ -175,7 +175,7 @@ def get_instance_env(env: str) -> BaseEnv:
             'env_wrapper': 'atari_default',
         })
         ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
-        #ding_env_atari.enable_save_replay(env + '_log/')
+        ding_env_atari.enable_save_replay(env + '_log/')
         obs = ding_env_atari.reset()
         return ding_env_atari
     else:
