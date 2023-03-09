@@ -100,3 +100,4 @@ jobs:
         run:  |
           docker buildx build -f ./docker/Dockerfile.rpc . -t opendilab/ding:nightly-rpc-base --target=rpc
           docker push opendilab/ding:nightly-rpc-base
+
