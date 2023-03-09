@@ -6,7 +6,7 @@ import treetensor.torch as ttorch
 from copy import deepcopy
 from ding.utils import SequenceType, squeeze
 from ding.model.common import ReparameterizationHead, RegressionHead, MultiHead, \
-    FCEncoder, ConvEncoder, IMPALAConvEncoder
+    FCEncoder, ConvEncoder, IMPALAConvEncoder, PopArtQHead
 from ding.torch_utils import MLP, fc_block
 
 
@@ -57,6 +57,7 @@ class PPOFModel(nn.Module):
         fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
         encoder: Optional[torch.nn.Module] = None,
+        use_popart_head=False,
     ) -> None:
         super(PPOFModel, self).__init__()
         obs_shape = squeeze(obs_shape)
@@ -108,9 +109,15 @@ class PPOFModel(nn.Module):
                 self.critic_encoder = new_encoder(critic_head_hidden_size)
 
         # Head Type
-        self.critic_head = RegressionHead(
-            critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
-        )
+        if not use_popart_head:
+            self.critic_head = RegressionHead(
+                critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
+            )
+        else:
+            self.critic_head = PopArtQHead(
+                critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
+            )
+
         self.action_space = action_space
         assert self.action_space in ['discrete', 'continuous', 'hybrid'], self.action_space
         if self.action_space == 'continuous':
@@ -207,7 +214,7 @@ class PPOFModel(nn.Module):
         else:
             x = self.critic_encoder(x)
         x = self.critic_head(x)
-        return x['pred']
+        return x
 
     def compute_actor_critic(self, x: ttorch.Tensor) -> ttorch.Tensor:
         if self.share_encoder:
@@ -216,15 +223,23 @@ class PPOFModel(nn.Module):
             actor_embedding = self.actor_encoder(x)
             critic_embedding = self.critic_encoder(x)
 
-        value = self.critic_head(critic_embedding)['pred']
+        value = self.critic_head(critic_embedding)
 
         if self.action_space == 'discrete':
             logit = self.actor_head(actor_embedding)
-            return ttorch.as_tensor({'logit': logit, 'value': value})
+            return ttorch.as_tensor({'logit': logit, 'value': value['pred']})
         elif self.action_space == 'continuous':
             x = self.actor_head(actor_embedding)
-            return ttorch.as_tensor({'logit': x, 'value': value})
+            return ttorch.as_tensor({'logit': x, 'value': value['pred']})
         elif self.action_space == 'hybrid':
             action_type = self.actor_head[0](actor_embedding)
             action_args = self.actor_head[1](actor_embedding)
-            return ttorch.as_tensor({'logit': {'action_type': action_type, 'action_args': action_args}, 'value': value})
+            return ttorch.as_tensor(
+                {
+                    'logit': {
+                        'action_type': action_type,
+                        'action_args': action_args
+                    },
+                    'value': value['pred']
+                }
+            )

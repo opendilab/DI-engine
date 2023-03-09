@@ -10,7 +10,7 @@ from torch.optim import AdamW
 
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, gae, gae_data, ppo_error_continuous, \
     get_gae, ppo_policy_error_continuous, ArgmaxSampler, MultinomialSampler, ReparameterizationSampler, MuSampler, \
-    HybridStochasticSampler, HybridDeterminsticSampler
+    HybridStochasticSampler, HybridDeterminsticSampler, value_transform, value_inv_transform, symlog, inv_symlog
 from ding.utils import POLICY_REGISTRY, RunningMeanStd
 
 
@@ -32,7 +32,7 @@ class PPOFPolicy:
         entropy_weight=0.01,
         clip_ratio=0.2,
         adv_norm=True,
-        value_norm=True,
+        value_norm='symlog',
         ppo_param_init=True,
         grad_norm=0.5,
         # collect
@@ -150,23 +150,43 @@ class PPOFPolicy:
             with torch.no_grad():
                 value = self._model.compute_critic(data.obs)
                 next_value = self._model.compute_critic(data.next_obs)
-                if self._cfg.value_norm:
-                    value *= self._running_mean_std.std
-                    next_value *= self._running_mean_std.std
+                reward = data.reward
+
+                assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog']
+
+                if self._cfg.value_norm == 'popart':
+                    unnormalized_value = value['unnormalized_pred']
+                    unnormalized_next_value = value['unnormalized_pred']
+
+                    mu = self._model.critic_head.popart.mu
+                    sigma = self._model.critic_head.popart.sigma
+                    reward = (reward - mu) / sigma
+
+                    value = value['pred']
+                    next_value = next_value['pred']
+                elif self._cfg.value_norm == 'value_rescale':
+                    value = value_inv_transform(value['pred'])
+                    next_value = value_inv_transform(next_value['pred'])
+                elif self._cfg.value_norm == 'symlog':
+                    value = inv_symlog(value['pred'])
+                    next_value = inv_symlog(next_value['pred'])
 
                 traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
-                adv_data = gae_data(value, next_value, data.reward, data.done, traj_flag)
+                adv_data = gae_data(value, next_value, reward, data.done, traj_flag)
                 data.adv = gae(adv_data, self._cfg.discount_factor, self._cfg.gae_lambda)
 
-                unnormalized_returns = value + data.adv
+                unnormalized_returns = value + data.adv  # In popart, this return is normalized
 
-                if self._cfg.value_norm:
-                    data.value = value / self._running_mean_std.std
-                    data.return_ = unnormalized_returns / self._running_mean_std.std
-                    self._running_mean_std.update(unnormalized_returns.cpu().numpy())
-                else:
-                    data.value = value
-                    data.return_ = unnormalized_returns
+                if self._cfg.value_norm == 'popart':
+                    self._model.critic_head.popart.update_parameters((data.reward).unsqueeze(1))
+                elif self._cfg.value_norm == 'value_rescale':
+                    value = value_transform(value)
+                    unnormalized_returns = value_transform(unnormalized_returns)
+                elif self._cfg.value_norm == 'symlog':
+                    value = symlog(value)
+                    unnormalized_returns = symlog(unnormalized_returns)
+                data.value = value
+                data.return_ = unnormalized_returns
 
             # inner training loop
             split_data = ttorch.split(data, self._cfg.batch_size)

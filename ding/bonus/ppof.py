@@ -70,10 +70,23 @@ class PPOF:
             action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape
+        assert self.cfg.value_norm in ['popart', 'value_rescale', 'symlog']
         if model is None:
-            model = PPOFModel(
-                self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
-            )
+            if self.cfg.value_norm != 'popart':
+                model = PPOFModel(
+                    self.env.observation_space.shape,
+                    action_shape,
+                    action_space=self.cfg.action_space,
+                    **self.cfg.model
+                )
+            else:
+                model = PPOFModel(
+                    self.env.observation_space.shape,
+                    action_shape,
+                    action_space=self.cfg.action_space,
+                    use_popart_head=True,
+                    **self.cfg.model
+                )
         self.policy = PPOFPolicy(self.cfg, model=model)
 
     def train(
