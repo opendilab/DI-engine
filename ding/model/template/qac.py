@@ -3,6 +3,7 @@ from easydict import EasyDict
 import numpy as np
 import torch
 import torch.nn as nn
+import copy
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, MultiHead, \
@@ -20,17 +21,19 @@ class QAC(nn.Module):
     mode = ['compute_actor', 'compute_critic']
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType, EasyDict],
-            action_space: str,
-            twin_critic: bool = False,
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType, EasyDict],
+        action_space: str,
+        twin_critic: bool = False,
+        actor_head_hidden_size: int = 64,
+        actor_head_layer_num: int = 1,
+        critic_head_hidden_size: int = 64,
+        critic_head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        encoder_hidden_size_list: Optional[SequenceType] = [32, 64, 256],
+        share_encoder: Optional[bool] = False,
     ) -> None:
         """
         Overview:
@@ -52,16 +55,50 @@ class QAC(nn.Module):
                 after each FC layer, if ``None`` then default set to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
                 see ``ding.torch_utils.network`` for more details.
+            - share_encoder (:obj:`Optional[bool]`): Whether to share encoder between actor and critic.
         """
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.action_space = action_space
-        assert self.action_space in ['regression', 'reparameterization', 'hybrid']
+        assert self.action_space in ['regression', 'reparameterization', 'hybrid'], self.action_space
+
+        # encoder
+        self.share_encoder = share_encoder
+        if np.isscalar(obs_shape) or len(obs_shape) == 1:
+            assert not self.share_encoder, "Vector observation doesn't need share encoder."
+            self.encoder = None
+            self.input_size = obs_shape
+        elif len(obs_shape) == 3:
+
+            def setup_conv_encoder():
+                kernel_size = [3 for _ in range(len(encoder_hidden_size_list))]
+                stride = [2] + [1 for _ in range(len(encoder_hidden_size_list) - 1)]
+                return ConvEncoder(
+                    obs_shape,
+                    encoder_hidden_size_list,
+                    activation=activation,
+                    norm_type=norm_type,
+                    kernel_size=kernel_size,
+                    stride=stride
+                )
+
+            if self.share_encoder:
+                self.encoder = setup_conv_encoder()
+                self.input_size = self.encoder.output_size
+            else:
+                self.encoder = nn.ModuleDict({
+                    'actor': setup_conv_encoder(),
+                    'critic': setup_conv_encoder(),
+                })
+                self.input_size = self.encoder['actor'].output_size
+        else:
+            raise RuntimeError("not support observation shape: {}".format(obs_shape))
+        # head
         if self.action_space == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                nn.Linear(self.input_size, actor_head_hidden_size), activation,
                 RegressionHead(
                     actor_head_hidden_size,
                     action_shape,
@@ -73,7 +110,7 @@ class QAC(nn.Module):
             )
         elif self.action_space == 'reparameterization':  # SAC
             self.actor = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                nn.Linear(self.input_size, actor_head_hidden_size), activation,
                 ReparameterizationHead(
                     actor_head_hidden_size,
                     action_shape,
@@ -89,7 +126,7 @@ class QAC(nn.Module):
             action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
             action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
             actor_action_args = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                nn.Linear(self.input_size, actor_head_hidden_size), activation,
                 RegressionHead(
                     actor_head_hidden_size,
                     action_shape.action_args_shape,
@@ -100,7 +137,7 @@ class QAC(nn.Module):
                 )
             )
             actor_action_type = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                nn.Linear(self.input_size, actor_head_hidden_size), activation,
                 DiscreteHead(
                     actor_head_hidden_size,
                     action_shape.action_type_shape,
@@ -113,9 +150,9 @@ class QAC(nn.Module):
 
         self.twin_critic = twin_critic
         if self.action_space == 'hybrid':
-            critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
+            critic_input_size = self.input_size + action_shape.action_type_shape + action_shape.action_args_shape
         else:
-            critic_input_size = obs_shape + action_shape
+            critic_input_size = self.input_size + action_shape
         if self.twin_critic:
             self.critic = nn.ModuleList()
             for _ in range(2):
@@ -212,6 +249,11 @@ class QAC(nn.Module):
             >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
             >>> actor_outputs['logit'][1].shape == torch.Size([4, 64]) # sigma
         """
+        if self.encoder is not None:
+            if self.share_encoder:
+                obs = self.encoder(obs)
+            else:
+                obs = self.encoder['actor'](obs)
         if self.action_space == 'regression':
             x = self.actor(obs)
             return {'action': x['pred']}
@@ -258,6 +300,11 @@ class QAC(nn.Module):
         """
 
         obs, action = inputs['obs'], inputs['action']
+        if self.encoder is not None:
+            if self.share_encoder:
+                obs = self.encoder(obs)
+            else:
+                obs = self.encoder['critic'](obs)
         assert len(obs.shape) == 2
         if self.action_space == 'hybrid':
             action_type_logit = inputs['logit']

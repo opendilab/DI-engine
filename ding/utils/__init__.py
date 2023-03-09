@@ -1,6 +1,6 @@
 import ding
 from .collection_helper import iter_mapping
-from .compression_helper import get_data_compressor, get_data_decompressor
+from .compression_helper import get_data_compressor, get_data_decompressor, CloudPickleWrapper
 from .default_helper import override, dicts_to_lists, lists_to_dicts, squeeze, default_get, error_wrapper, list_split, \
     LimitedSpaceContainer, deep_merge_dicts, set_pkg_seed, flatten_dict, one_time_warning, split_data_generator, \
     RunningMeanStd, make_key_as_identifier, remove_illegal_item
@@ -29,6 +29,7 @@ from .time_helper import build_time_helper, EasyTimer, WatchDog
 from .type_helper import SequenceType
 from .render_helper import render, fps
 from .fast_copy import fastcopy
+from .bfs_helper import get_vi_sequence
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \

@@ -45,6 +45,7 @@ from dizoo.petting_zoo.config import ptz_simple_spread_qmix_config, ptz_simple_s
 from dizoo.petting_zoo.config import ptz_simple_spread_qtran_config, ptz_simple_spread_qtran_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_vdn_config, ptz_simple_spread_vdn_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_wqmix_config, ptz_simple_spread_wqmix_create_config  # noqa
+from dizoo.classic_control.cartpole.config import cartpole_mdqn_config, cartpole_mdqn_create_config
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -403,6 +404,17 @@ def test_wqmix():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("28. wqmix\n")
+
+
+@pytest.mark.algotest
+def test_mdqn():
+    config = [deepcopy(cartpole_mdqn_config), deepcopy(cartpole_mdqn_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("29. mdqn\n")
 
 
 # @pytest.mark.algotest

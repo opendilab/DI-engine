@@ -4,7 +4,8 @@ from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_
     td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data,\
     dqfd_nstep_td_data, dqfd_nstep_td_error, dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data,\
     v_nstep_td_error, q_nstep_sql_td_error, iqn_nstep_td_data, iqn_nstep_td_error,\
-    fqf_nstep_td_data, fqf_nstep_td_error, qrdqn_nstep_td_data, qrdqn_nstep_td_error, bdq_nstep_td_error
+    fqf_nstep_td_data, fqf_nstep_td_error, qrdqn_nstep_td_data, qrdqn_nstep_td_error, bdq_nstep_td_error,\
+    m_q_1step_td_data, m_q_1step_td_error
 from ding.rl_utils.td import shape_fn_dntd, shape_fn_qntd, shape_fn_td_lambda, shape_fn_qntd_rescale
 
 
@@ -585,3 +586,25 @@ def test_fn_td_lambda():
     assert tmp == reward.shape[0]
     tmp = shape_fn_td_lambda([data], {})
     assert tmp == reward.shape
+
+
+@pytest.mark.unittest
+def test_fn_m_q_1step_td_error():
+    batch_size = 128
+    action_dim = 9
+    q = torch.randn(batch_size, action_dim).requires_grad_(True)
+    target_q_current = torch.randn(batch_size, action_dim).requires_grad_(False)
+    target_q_next = torch.randn(batch_size, action_dim).requires_grad_(False)
+    done = torch.randn(batch_size)
+    action = torch.randint(0, action_dim, size=(batch_size, ))
+    reward = torch.randn(batch_size)
+    data = m_q_1step_td_data(q, target_q_current, target_q_next, action, reward, done, None)
+    loss, td_error_per_sample, action_gap, clip_frac = m_q_1step_td_error(data, 0.99, 0.03, 0.6)
+
+    assert loss.shape == ()
+    assert q.grad is None
+    loss.backward()
+    assert isinstance(q.grad, torch.Tensor)
+    assert clip_frac.mean().item() <= 1
+    assert action_gap.item() > 0
+    assert td_error_per_sample.shape == (batch_size, )

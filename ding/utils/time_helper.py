@@ -105,7 +105,7 @@ class TimeWrapperTime(TimeWrapper):
     def start_time(cls):
         r"""
         Overview:
-            Implement and overide the ``start_time`` method in ``TimeWrapper`` class
+            Implement and override the ``start_time`` method in ``TimeWrapper`` class
         """
         cls.start = time.time()
 
@@ -114,7 +114,7 @@ class TimeWrapperTime(TimeWrapper):
     def end_time(cls):
         r"""
         Overview:
-            Implement and overide the end_time method in ``TimeWrapper`` class
+            Implement and override the end_time method in ``TimeWrapper`` class
 
         Returns:
             - time(:obj:`float`): The time between ``start_time`` and end_time

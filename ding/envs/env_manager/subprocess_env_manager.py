@@ -6,11 +6,11 @@ from ditk import logging
 import platform
 import time
 import copy
+import gymnasium
 import gym
 import traceback
 import torch
 import pickle
-import cloudpickle
 import numpy as np
 import treetensor.numpy as tnp
 import treetensor.torch as ttorch
@@ -20,7 +20,7 @@ from ding.data import ShmBufferContainer, ShmBuffer
 
 from ding.envs.env import BaseEnvTimestep
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier, \
-    remove_illegal_item
+    remove_illegal_item, CloudPickleWrapper
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
 
 
@@ -31,25 +31,6 @@ def is_abnormal_timestep(timestep: namedtuple) -> bool:
         return timestep.info[0].get('abnormal', False) or timestep.info[1].get('abnormal', False)
     else:
         raise TypeError("invalid env timestep type: {}".format(type(timestep.info)))
-
-
-class CloudPickleWrapper:
-    """
-    Overview:
-        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
-    """
-
-    def __init__(self, data: Any) -> None:
-        self.data = data
-
-    def __getstate__(self) -> bytes:
-        return cloudpickle.dumps(self.data)
-
-    def __setstate__(self, data: bytes) -> None:
-        if isinstance(data, (tuple, list, np.ndarray)):  # pickle is faster
-            self.data = pickle.loads(data)
-        else:
-            self.data = cloudpickle.loads(data)
 
 
 @ENV_MANAGER_REGISTRY.register('async_subprocess')
@@ -134,7 +115,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._observation_space
-            if isinstance(obs_space, gym.spaces.Dict):
+            if isinstance(obs_space, (gym.spaces.Dict, gymnasium.spaces.Dict)):
                 # For multi_agent case, such as multiagent_mujoco and petting_zoo mpe.
                 # Now only for the case that each agent in the team have the same obs structure
                 # and corresponding shape.
@@ -844,19 +825,22 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
         else:
             return ttorch.stack([ttorch.tensor(self._ready_obs[i]) for i in self.ready_env])
 
-    def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
+    def step(self, actions: Union[List[tnp.ndarray], tnp.ndarray]) -> List[tnp.ndarray]:
         """
         Overview:
             Execute env step according to input actions. And reset an env if done.
         Arguments:
-            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy
+            - actions (:obj:`Union[List[tnp.ndarray], tnp.ndarray]`): actions came from outer caller like policy.
         Returns:
             - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
                 info, env_id.
         """
-        # zip operation will lead to wrong behaviour if not split data
-        split_action = tnp.split(actions, actions.shape[0])
-        split_action = [s.squeeze(0) for s in split_action]
+        if isinstance(actions, tnp.ndarray):
+            # zip operation will lead to wrong behaviour if not split data
+            split_action = tnp.split(actions, actions.shape[0])
+            split_action = [s.squeeze(0) for s in split_action]
+        else:
+            split_action = actions
         actions = {env_id: a for env_id, a in zip(self.ready_obs_id, split_action)}
         timesteps = super().step(actions)
         new_data = []

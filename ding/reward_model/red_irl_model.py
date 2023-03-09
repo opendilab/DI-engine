@@ -47,6 +47,7 @@ class RedRewardModel(BaseRewardModel):
         # expert_data_path='expert_data.pkl',
         batch_size=64,
         sigma=0.5,
+        clear_buffer_per_iters=1,
     )
 
     def __init__(self, config: Dict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa

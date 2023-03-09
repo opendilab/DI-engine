@@ -1,3 +1,22 @@
+2023.02.16(v0.4.6)
+- env: add metadrive env and related ppo config (#574)
+- env: add acrobot env and related dqn config (#577)
+- env: add carracing in box2d (#575)
+- env: add new gym hybrid viz (#563)
+- env: update cartpole IL config (#578)
+- algo: add BDQ algorithm (#558)
+- algo: add procedure cloning model (#573)
+- feature: add simplified PPOF (PPO × Family) interface (#567) (#568) (#581) (#582)
+- fix: to_device and prev_state bug when using ttorch (#571)
+- fix: py38 and numpy unittest bugs (#565)
+- fix: typo in contrastive_loss.py (#572)
+- fix: dizoo envs pkg installation bugs
+- fix: multi_trainer middleware unittest bug
+- style: add evogym docker (#580)
+- style: fix metaworld docker bug
+- style: fix setuptools high version incompatibility bug
+- style: extend treetensor lowest version
+
 2022.12.13(v0.4.5)
 - env: add beergame supply chain optimization env (#512)
 - env: add env gym_pybullet_drones (#526)
