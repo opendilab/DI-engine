@@ -146,6 +146,6 @@ class DriveEnvWrapper(gym.Wrapper):
     def render(self):
         self.env.render()
 
-    def clone(self):
+    def clone(self, caller: str):
         cfg = copy.deepcopy(self._cfg)
-        return DriveEnvWrapper(self.env.clone(), cfg)
+        return DriveEnvWrapper(self.env.clone(caller), cfg)

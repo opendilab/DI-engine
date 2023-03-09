@@ -3,7 +3,7 @@ import os
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper
+    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
 from ding.policy import PPOFPolicy
 
 
@@ -200,17 +200,20 @@ def get_instance_env(env: str) -> BaseEnv:
         })
         ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
         ding_env_atari.enable_save_replay(env + '_log/')
-        obs = ding_env_atari.reset()
         return ding_env_atari
     elif env == 'minigrid_fourroom':
-        import gymnasium as gym
-        return DingEnvWrapper(gym.make('MiniGrid-FourRooms-v0'), cfg={
-            'env_wrapper': {
+        import gymnasium
+        return DingEnvWrapper(
+            gymnasium.make('MiniGrid-FourRooms-v0'),
+            cfg={
+                'env_wrapper': [
+                    lambda env: GymToGymnasiumWrapper(env),
                     lambda env: FlatObsWrapper(env),
                     lambda env: TimeLimitWrapper(env, max_limit=300),
                     lambda env: EvalEpisodeReturnEnv(env),
+                ]
             }
-        })
+        )
     elif env == 'metadrive':
         from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
         from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper

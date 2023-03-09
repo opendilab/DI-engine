@@ -266,5 +266,5 @@ class GymPybulletDronesEnv(BaseEnv):
         if self._cfg["plot_observation"]:
             self.observation_logger.plot()
 
-    def clone(self) -> 'GymPybulletDronesEnv':
+    def clone(self, caller: str) -> 'GymPybulletDronesEnv':
         return GymPybulletDronesEnv(self.raw_cfg)

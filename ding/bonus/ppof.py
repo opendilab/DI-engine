@@ -4,6 +4,7 @@ from easydict import EasyDict
 from functools import partial
 import os
 import gym
+import gymnasium
 import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
@@ -68,9 +69,9 @@ class PPOF:
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
 
         action_space = self.env.action_space
-        if isinstance(action_space, gym.spaces.Discrete):
-            action_shape = action_space.n
-        elif isinstance(action_space, gym.spaces.Tuple):
+        if isinstance(action_space, (gym.spaces.Discrete, gymnasium.spaces.Discrete)):
+            action_shape = int(action_space.n)
+        elif isinstance(action_space, (gym.spaces.Tuple, gymnasium.spaces.Tuple)):
             action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape

@@ -359,6 +359,6 @@ class MetaDrivePPOOriginEnv(BaseEnv):
             max_distance=36,
         )
 
-    def clone(self):
+    def clone(self, caller: str):
         cfg = copy.deepcopy(self.raw_cfg)
         return MetaDrivePPOOriginEnv(cfg)

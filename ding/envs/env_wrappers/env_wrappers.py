@@ -8,6 +8,7 @@ from collections import deque
 import copy
 import operator
 import gym
+import gymnasium
 import numpy as np
 from torch import float32
 
@@ -1095,6 +1096,7 @@ class FlatObsWrapper(gym.Wrapper):
     """
     Note: only suitable for these envs like minigrid.
     """
+
     def __init__(self, env, maxStrLen=96):
         super().__init__(env)
 
@@ -1107,26 +1109,24 @@ class FlatObsWrapper(gym.Wrapper):
         self.observation_space = gym.spaces.Box(
             low=0,
             high=255,
-            shape=(imgSize + self.numCharCodes * self.maxStrLen,),
-            dtype="uint8",
+            shape=(imgSize + self.numCharCodes * self.maxStrLen, ),
+            dtype="float32",
         )
 
         self.cachedStr: str = None
 
     def observation(self, obs):
+        if isinstance(obs, tuple):  # for compatibility of gymnasium
+            obs = obs[0]
         image = obs["image"]
         mission = obs["mission"]
 
         # Cache the last-encoded mission string
         if mission != self.cachedStr:
-            assert (
-                len(mission) <= self.maxStrLen
-            ), f"mission string too long ({len(mission)} chars)"
+            assert (len(mission) <= self.maxStrLen), f"mission string too long ({len(mission)} chars)"
             mission = mission.lower()
 
-            strArray = np.zeros(
-                shape=(self.maxStrLen, self.numCharCodes), dtype="float32"
-            )
+            strArray = np.zeros(shape=(self.maxStrLen, self.numCharCodes), dtype="float32")
 
             for idx, ch in enumerate(mission):
                 if ch >= "a" and ch <= "z":
@@ -1136,9 +1136,7 @@ class FlatObsWrapper(gym.Wrapper):
                 elif ch == ",":
                     chNo = ord("z") - ord("a") + 2
                 else:
-                    raise ValueError(
-                        f"Character {ch} is not available in mission string."
-                    )
+                    raise ValueError(f"Character {ch} is not available in mission string.")
                 assert chNo < self.numCharCodes, "%s : %d" % (ch, chNo)
                 strArray[idx, chNo] = 1
 
@@ -1157,6 +1155,23 @@ class FlatObsWrapper(gym.Wrapper):
         o, r, d, i = self.env.step(*args, **kwargs)
         o = self.observation(o)
         return o, r, d, i
+
+
+class GymToGymnasiumWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        assert isinstance(env, gymnasium.Env), type(env)
+        super().__init__(env)
+        self._seed = None
+
+    def seed(self, seed):
+        self._seed = seed
+
+    def reset(self):
+        if self.seed is not None:
+            return self.env.reset(seed=self._seed)
+        else:
+            return self.env.reset()
 
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
