@@ -40,6 +40,58 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
+m_q_1step_td_data = namedtuple('m_q_1step_td_data', ['q', 'target_q', 'next_q', 'act', 'reward', 'done', 'weight'])
+
+
+def m_q_1step_td_error(
+        data: namedtuple,
+        gamma: float,
+        tau: float,
+        alpha: float,
+        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
+) -> torch.Tensor:
+    q, target_q, next_q, act, reward, done, weight = data
+    lower_bound = -1
+    assert len(act.shape) == 1, act.shape
+    assert len(reward.shape) == 1, reward.shape
+    batch_range = torch.arange(act.shape[0])
+    if weight is None:
+        weight = torch.ones_like(reward)
+    q_s_a = q[batch_range, act]
+    # calculate muchausen addon
+    # replay_log_policy
+    target_v_s = target_q[batch_range].max(1)[0].unsqueeze(-1)
+
+    logsum = torch.logsumexp((target_q - target_v_s) / tau, 1).unsqueeze(-1)
+    log_pi = target_q - target_v_s - tau * logsum
+    act_get = act.unsqueeze(-1)
+    # same to the last second tau_log_pi_a
+    munchausen_addon = log_pi.gather(1, act_get)
+
+    muchausen_term = alpha * torch.clamp(munchausen_addon, min=lower_bound, max=1)
+
+    # replay_next_log_policy
+    target_v_s_next = next_q[batch_range].max(1)[0].unsqueeze(-1)
+    logsum_next = torch.logsumexp((next_q - target_v_s_next) / tau, 1).unsqueeze(-1)
+    tau_log_pi_next = next_q - target_v_s_next - tau * logsum_next
+    # do stable softmax == replay_next_policy
+    pi_target = F.softmax((next_q - target_v_s_next) / tau)
+    target_q_s_a = (gamma * (pi_target * (next_q - tau_log_pi_next) * (1 - done.unsqueeze(-1))).sum(1)).unsqueeze(-1)
+
+    target_q_s_a = reward.unsqueeze(-1) + muchausen_term + target_q_s_a
+    td_error_per_sample = criterion(q_s_a.unsqueeze(-1), target_q_s_a.detach()).squeeze(-1)
+
+    # calculate action_gap and clipfrac
+    with torch.no_grad():
+        top2_q_s = target_q[batch_range].topk(2, dim=1, largest=True, sorted=True)[0]
+        action_gap = (top2_q_s[:, 0] - top2_q_s[:, 1]).mean()
+
+        clipped = munchausen_addon.gt(1) | munchausen_addon.lt(lower_bound)
+        clipfrac = torch.as_tensor(clipped).float()
+
+    return (td_error_per_sample * weight).mean(), td_error_per_sample, action_gap, clipfrac
+
+
 q_v_1step_td_data = namedtuple('q_v_1step_td_data', ['q', 'v', 'act', 'reward', 'done', 'weight'])
 
 

@@ -5,7 +5,7 @@ import torch
 import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.torch_utils import to_tensor, to_ndarray, to_item
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
 from ding.utils import get_world_size, get_rank
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
@@ -311,4 +311,5 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             dist.broadcast_object_list(objects, src=0)
             stop_flag, return_info = objects
 
+        return_info = to_item(return_info)
         return stop_flag, return_info

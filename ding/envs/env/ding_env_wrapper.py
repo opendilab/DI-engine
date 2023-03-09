@@ -15,7 +15,7 @@ from .default_wrapper import get_default_wrappers
 
 class DingEnvWrapper(BaseEnv):
 
-    def __init__(self, env: gym.Env = None, cfg: dict = None, seed_api: bool = True) -> None:
+    def __init__(self, env: gym.Env = None, cfg: dict = None, seed_api: bool = True, caller: str = 'collector') -> None:
         """
         You can pass in either an env instance, or a config to create an env instance:
             - An env instance: Parameter `env` must not be `None`, but should be the instance.
@@ -25,6 +25,7 @@ class DingEnvWrapper(BaseEnv):
         self._raw_env = env
         self._cfg = cfg
         self._seed_api = seed_api  # some env may disable `env.seed` api
+        self._caller = caller
         if self._cfg is None:
             self._cfg = dict()
         self._cfg = EasyDict(self._cfg)
@@ -36,7 +37,7 @@ class DingEnvWrapper(BaseEnv):
             self._cfg.env_id = None
         if env is not None:
             self._env = env
-            self._wrap_env()
+            self._wrap_env(caller)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._action_space.seed(0)  # default seed
@@ -57,7 +58,7 @@ class DingEnvWrapper(BaseEnv):
     def reset(self) -> None:
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
-            self._wrap_env()
+            self._wrap_env(self._caller)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -149,11 +150,11 @@ class DingEnvWrapper(BaseEnv):
             )
         return random_action
 
-    def _wrap_env(self) -> None:
+    def _wrap_env(self, caller: str = 'collector') -> None:
         # wrapper_cfgs: Union[str, List]
         wrapper_cfgs = self._cfg.env_wrapper
         if isinstance(wrapper_cfgs, str):
-            wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.env_id)
+            wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.env_id, caller)
         # self._wrapper_cfgs: List[Union[Callable, Dict]]
         self._wrapper_cfgs = wrapper_cfgs
         for wrapper in self._wrapper_cfgs:
@@ -197,7 +198,7 @@ class DingEnvWrapper(BaseEnv):
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
 
-    def clone(self) -> BaseEnv:
+    def clone(self, caller: str = 'collector') -> BaseEnv:
         try:
             spec = copy.deepcopy(self._raw_env.spec)
             raw_env = CloudPickleWrapper(self._raw_env)
@@ -205,4 +206,4 @@ class DingEnvWrapper(BaseEnv):
             raw_env.__setattr__('spec', spec)
         except Exception:
             raw_env = self._raw_env
-        return DingEnvWrapper(raw_env, self._cfg, self._seed_api)
+        return DingEnvWrapper(raw_env, self._cfg, self._seed_api, caller)

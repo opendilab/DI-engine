@@ -5,7 +5,8 @@ import copy
 eval_episode_return_wrapper = EasyDict(type='eval_episode_return')
 
 
-def get_default_wrappers(env_wrapper_name: str, env_id: Optional[str] = None) -> List[dict]:
+def get_default_wrappers(env_wrapper_name: str, env_id: Optional[str] = None, caller: str = 'collector') -> List[dict]:
+    assert caller == 'collector' or 'evaluator'
     if env_wrapper_name == 'mujoco_default':
         return [
             EasyDict(type='delay_reward', kwargs=dict(delay_reward_step=3)),
@@ -21,7 +22,8 @@ def get_default_wrappers(env_wrapper_name: str, env_id: Optional[str] = None) ->
                 wrapper_list.append(EasyDict(type='fire_reset'))
         wrapper_list.append(EasyDict(type='warp_frame'))
         wrapper_list.append(EasyDict(type='scaled_float_frame'))
-        wrapper_list.append(EasyDict(type='clip_reward'))
+        if caller == 'collector':
+            wrapper_list.append(EasyDict(type='clip_reward'))
         wrapper_list.append(EasyDict(type='frame_stack', kwargs=dict(n_frames=4)))
         wrapper_list.append(copy.deepcopy(eval_episode_return_wrapper))
         return wrapper_list

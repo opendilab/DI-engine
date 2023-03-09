@@ -5,6 +5,7 @@ from ditk import logging
 import platform
 import time
 import copy
+import gymnasium
 import gym
 import traceback
 import torch
@@ -104,7 +105,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._observation_space
-            if isinstance(obs_space, gym.spaces.Dict):
+            if isinstance(obs_space, (gym.spaces.Dict, gymnasium.spaces.Dict)):
                 # For multi_agent case, such as multiagent_mujoco and petting_zoo mpe.
                 # Now only for the case that each agent in the team have the same obs structure
                 # and corresponding shape.
