@@ -3,8 +3,10 @@
 
 from typing import Union, List, Tuple
 from easydict import EasyDict
+from functools import reduce
 from collections import deque
 import copy
+import operator
 import gym
 import numpy as np
 from torch import float32
@@ -28,6 +30,7 @@ Env Wrapper List:
     - FireResetWrapper: Take fire action at environment reset.
     - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space
         to ``gym.spaces.Dict``.
+    - FlatObsWrapper: Flatten image and language observation into a vector.
 '''
 
 
@@ -1086,6 +1089,74 @@ class TimeLimitWrapper(gym.Wrapper):
             info['time_limit'] = False
         info['time_count'] = self.time_count
         return obs, reward, done, info
+
+
+class FlatObsWrapper(gym.Wrapper):
+    """
+    Note: only suitable for these envs like minigrid.
+    """
+    def __init__(self, env, maxStrLen=96):
+        super().__init__(env)
+
+        self.maxStrLen = maxStrLen
+        self.numCharCodes = 28
+
+        imgSpace = env.observation_space.spaces["image"]
+        imgSize = reduce(operator.mul, imgSpace.shape, 1)
+
+        self.observation_space = gym.spaces.Box(
+            low=0,
+            high=255,
+            shape=(imgSize + self.numCharCodes * self.maxStrLen,),
+            dtype="uint8",
+        )
+
+        self.cachedStr: str = None
+
+    def observation(self, obs):
+        image = obs["image"]
+        mission = obs["mission"]
+
+        # Cache the last-encoded mission string
+        if mission != self.cachedStr:
+            assert (
+                len(mission) <= self.maxStrLen
+            ), f"mission string too long ({len(mission)} chars)"
+            mission = mission.lower()
+
+            strArray = np.zeros(
+                shape=(self.maxStrLen, self.numCharCodes), dtype="float32"
+            )
+
+            for idx, ch in enumerate(mission):
+                if ch >= "a" and ch <= "z":
+                    chNo = ord(ch) - ord("a")
+                elif ch == " ":
+                    chNo = ord("z") - ord("a") + 1
+                elif ch == ",":
+                    chNo = ord("z") - ord("a") + 2
+                else:
+                    raise ValueError(
+                        f"Character {ch} is not available in mission string."
+                    )
+                assert chNo < self.numCharCodes, "%s : %d" % (ch, chNo)
+                strArray[idx, chNo] = 1
+
+            self.cachedStr = mission
+            self.cachedArray = strArray
+
+        obs = np.concatenate((image.flatten(), self.cachedArray.flatten()))
+
+        return obs
+
+    def reset(self, *args, **kwargs):
+        obs = self.env.reset(*args, **kwargs)
+        return self.observation(obs)
+
+    def step(self, *args, **kwargs):
+        o, r, d, i = self.env.step(*args, **kwargs)
+        o = self.observation(o)
+        return o, r, d, i
 
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):

@@ -83,6 +83,7 @@ class PPOF:
             n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
+            reward_model: Optional[str] = None,
             debug: bool = False
     ) -> None:
         if debug:
@@ -91,6 +92,9 @@ class PPOF:
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, context, debug)
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
+        if reward_model is not None:
+            # self.reward_model = create_reward_model(reward_model, self.cfg.reward_model)
+            pass
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))

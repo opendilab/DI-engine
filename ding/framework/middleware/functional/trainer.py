@@ -29,7 +29,8 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
         if ctx.train_data is None:
             return
         train_output = policy.forward(ctx.train_data)
-        if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
+        #if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
+        if True:
             if isinstance(ctx, OnlineRLContext):
                 logging.info(
                     'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(

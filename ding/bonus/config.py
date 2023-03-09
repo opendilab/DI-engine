@@ -3,7 +3,7 @@ import os
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper
+    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper
 from ding.policy import PPOFPolicy
 
 
@@ -80,15 +80,36 @@ def get_instance_config(env: str) -> EasyDict:
             critic_head_hidden_size=256,
             actor_head_hidden_size=256,
         )
-    elif env == 'minigrid_foorroom':
+    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
         cfg.n_sample = 1024
-        cfg.learning_rate = 1e-4
-    elif env == 'metadrive':
-        cfg.n_sample = 3000
+        cfg.batch_size = 128
         cfg.epoch_per_collect = 10
+        cfg.learning_rate = 0.0001
+        cfg.model = dict(
+            encoder_hidden_size_list=[32, 64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
+            critic_head_layer_num=2,
+        )
+    elif env == 'minigrid_fourroom':
+        cfg.n_sample = 3200
+        cfg.batch_size = 320
+        cfg.learning_rate = 3e-4
+        cfg.epoch_per_collect = 10
+        cfg.entropy_weight = 0.001
+    elif env == 'metadrive':
         cfg.learning_rate = 3e-4
         cfg.action_space = 'continuous'
         cfg.entropy_weight = 0.001
+        cfg.n_sample = 3000
+        cfg.epoch_per_collect = 10
+        cfg.learning_rate = 0.0001
+        cfg.model = dict(
+            encoder_hidden_size_list=[32, 64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
+            critic_head_layer_num=2,
+        )
     else:
         raise KeyError("not supported env type: {}".format(env))
     return cfg
@@ -166,6 +187,30 @@ def get_instance_env(env: str) -> BaseEnv:
             },
             seed_api=False,
         )
+    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
+        from dizoo.atari.envs.atari_env import AtariEnv
+        atari_env_list = {
+            'atari_qbert': 'QbertNoFrameskip-v4',
+            'atari_kangaroo': 'KangarooNoFrameskip-v4',
+            'atari_bowling': 'BowlingNoFrameskip-v4'
+        }
+        cfg = EasyDict({
+            'env_id': atari_env_list[env],
+            'env_wrapper': 'atari_default',
+        })
+        ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
+        ding_env_atari.enable_save_replay(env + '_log/')
+        obs = ding_env_atari.reset()
+        return ding_env_atari
+    elif env == 'minigrid_fourroom':
+        import gymnasium as gym
+        return DingEnvWrapper(gym.make('MiniGrid-FourRooms-v0'), cfg={
+            'env_wrapper': {
+                    lambda env: FlatObsWrapper(env),
+                    lambda env: TimeLimitWrapper(env, max_limit=300),
+                    lambda env: EvalEpisodeReturnEnv(env),
+            }
+        })
     elif env == 'metadrive':
         from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
         from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
@@ -178,8 +223,6 @@ def get_instance_env(env: str) -> BaseEnv:
         )
         cfg = EasyDict(cfg)
         return DriveEnvWrapper(MetaDrivePPOOriginEnv(cfg))
-    elif env == 'minigrid_foorroom':
-        raise NotImplementedError
     else:
         raise KeyError("not supported env type: {}".format(env))
 
