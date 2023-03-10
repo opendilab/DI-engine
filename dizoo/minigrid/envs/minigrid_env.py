@@ -4,13 +4,13 @@ from easydict import EasyDict
 import copy
 import os
 import time
-import gym
-import gymnasium
+import gymnasium as gym
 
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from MiniGrid.minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
+from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
+from .minigrid_wrapper import ViewSizeWrapper
 from ding.envs import ObsPlusPrevActRewWrapper
 
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -41,7 +41,10 @@ class MiniGridEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gymnasium.make(self._env_id)  # using the Gymnasium make method
+            if self._save_replay:
+                self._env = gym.make(self._env_id, render_mode="rgb_array")  # using the Gymnasium make method
+            else:
+                self._env = gym.make(self._env_id)
 
             if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
                 # customize the agent field of view size, note this must be an odd number
@@ -56,12 +59,15 @@ class MiniGridEnv(BaseEnv):
             if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
-        self._observation_space = self._env.observation_space
-        # to be compatiable with subprocess env manager
-        if isinstance(self._observation_space, gym.spaces.Dict):
-            self._observation_space['obs'].dtype = np.dtype('float32')
+        if self._flat_obs:
+            self._observation_space = gym.spaces.Box(0, 1, shape=(2835, ), dytpe=np.float32)
         else:
-            self._observation_space.dtype = np.dtype('float32')
+            self._observation_space = self._env.observation_space
+            # to be compatiable with subprocess env manager
+            if isinstance(self._observation_space, gym.spaces.Dict):
+                self._observation_space['obs'].dtype = np.dtype('float32')
+            else:
+                self._observation_space.dtype = np.dtype('float32')
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
@@ -76,7 +82,6 @@ class MiniGridEnv(BaseEnv):
             obs, _ = self._env.reset(seed=self._seed)
         else:
             obs, _ = self._env.reset()
-
         obs = to_ndarray(obs)
         self._current_step = 0
         if self._save_replay:
@@ -99,7 +104,7 @@ class MiniGridEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
-            self._frames.append(self._env.render(mode='rgb_array'))
+            self._frames.append(self._env.render())
         # using the step method of Gymnasium env, return is (observation, reward, terminated, truncated, info)
         obs, rew, done, _, info = self._env.step(action)
         rew = float(rew)

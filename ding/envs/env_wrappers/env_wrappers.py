@@ -3,9 +3,12 @@
 
 from typing import Union, List, Tuple
 from easydict import EasyDict
+from functools import reduce
 from collections import deque
 import copy
+import operator
 import gym
+import gymnasium
 import numpy as np
 from torch import float32
 
@@ -28,6 +31,7 @@ Env Wrapper List:
     - FireResetWrapper: Take fire action at environment reset.
     - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space
         to ``gym.spaces.Dict``.
+    - FlatObsWrapper: Flatten image and language observation into a vector.
 '''
 
 
@@ -1040,6 +1044,134 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
         self.prev_action = action
         self.prev_reward_extrinsic = reward
         return obs, reward, done, info
+
+
+class TransposeWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+        old_space = copy.deepcopy(env.observation_space)
+        new_shape = (old_space.shape[-1], *old_space.shape[:-1])
+        self._observation_space = gym.spaces.Box(
+            low=old_space.low.min(), high=old_space.high.max(), shape=new_shape, dtype=old_space.dtype
+        )
+
+    def _process_obs(self, obs):
+        obs = to_ndarray(obs)
+        obs = np.transpose(obs, (2, 0, 1))
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        return self._process_obs(obs), reward, done, info
+
+    def reset(self):
+        obs = self.env.reset()
+        return self._process_obs(obs)
+
+
+class TimeLimitWrapper(gym.Wrapper):
+
+    def __init__(self, env, max_limit):
+        super().__init__(env)
+        self.max_limit = max_limit
+
+    def reset(self):
+        self.time_count = 0
+        return self.env.reset()
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self.time_count += 1
+        if self.time_count >= self.max_limit:
+            done = True
+            info['time_limit'] = True
+        else:
+            info['time_limit'] = False
+        info['time_count'] = self.time_count
+        return obs, reward, done, info
+
+
+class FlatObsWrapper(gym.Wrapper):
+    """
+    Note: only suitable for these envs like minigrid.
+    """
+
+    def __init__(self, env, maxStrLen=96):
+        super().__init__(env)
+
+        self.maxStrLen = maxStrLen
+        self.numCharCodes = 28
+
+        imgSpace = env.observation_space.spaces["image"]
+        imgSize = reduce(operator.mul, imgSpace.shape, 1)
+
+        self.observation_space = gym.spaces.Box(
+            low=0,
+            high=255,
+            shape=(imgSize + self.numCharCodes * self.maxStrLen, ),
+            dtype="float32",
+        )
+
+        self.cachedStr: str = None
+
+    def observation(self, obs):
+        if isinstance(obs, tuple):  # for compatibility of gymnasium
+            obs = obs[0]
+        image = obs["image"]
+        mission = obs["mission"]
+
+        # Cache the last-encoded mission string
+        if mission != self.cachedStr:
+            assert (len(mission) <= self.maxStrLen), f"mission string too long ({len(mission)} chars)"
+            mission = mission.lower()
+
+            strArray = np.zeros(shape=(self.maxStrLen, self.numCharCodes), dtype="float32")
+
+            for idx, ch in enumerate(mission):
+                if ch >= "a" and ch <= "z":
+                    chNo = ord(ch) - ord("a")
+                elif ch == " ":
+                    chNo = ord("z") - ord("a") + 1
+                elif ch == ",":
+                    chNo = ord("z") - ord("a") + 2
+                else:
+                    raise ValueError(f"Character {ch} is not available in mission string.")
+                assert chNo < self.numCharCodes, "%s : %d" % (ch, chNo)
+                strArray[idx, chNo] = 1
+
+            self.cachedStr = mission
+            self.cachedArray = strArray
+
+        obs = np.concatenate((image.flatten(), self.cachedArray.flatten()))
+
+        return obs
+
+    def reset(self, *args, **kwargs):
+        obs = self.env.reset(*args, **kwargs)
+        return self.observation(obs)
+
+    def step(self, *args, **kwargs):
+        o, r, d, i = self.env.step(*args, **kwargs)
+        o = self.observation(o)
+        return o, r, d, i
+
+
+class GymToGymnasiumWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        assert isinstance(env, gymnasium.Env), type(env)
+        super().__init__(env)
+        self._seed = None
+
+    def seed(self, seed):
+        self._seed = seed
+
+    def reset(self):
+        if self.seed is not None:
+            return self.env.reset(seed=self._seed)
+        else:
+            return self.env.reset()
 
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):

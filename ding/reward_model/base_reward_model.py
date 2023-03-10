@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Dict
 from easydict import EasyDict
+from ditk import logging
+import os
 import copy
 from typing import Any
-from ding.utils import REWARD_MODEL_REGISTRY, import_module
+from ding.utils import REWARD_MODEL_REGISTRY, import_module, save_file
 
 
 class BaseRewardModel(ABC):
@@ -89,6 +92,28 @@ class BaseRewardModel(ABC):
              for k, v in sample.items()} for sample in train_data
         ]
         return train_data_reward_deepcopy
+
+    def state_dict(self) -> Dict:
+        # this method should be overrided by subclass.
+        return {}
+
+    def load_state_dict(self, _state_dict) -> None:
+        # this method should be overrided by subclass.
+        pass
+
+    def save(self, path: str = None, name: str = 'best'):
+        if path is None:
+            path = self.cfg.exp_name
+        path = os.path.join(path, 'reward_model', 'ckpt')
+        if not os.path.exists(path):
+            try:
+                os.makedirs(path)
+            except FileExistsError:
+                pass
+        path = os.path.join(path, 'ckpt_{}.pth.tar'.format(name))
+        state_dict = self.state_dict()
+        save_file(path, state_dict)
+        logging.info('Saved reward model ckpt in {}'.format(path))
 
 
 def create_reward_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> BaseRewardModel:  # noqa

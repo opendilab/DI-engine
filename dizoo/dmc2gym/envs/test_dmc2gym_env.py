@@ -47,3 +47,4 @@ class TestDMC2GymEnv:
                 assert timestep.reward <= env.reward_space.high
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
+

@@ -60,7 +60,7 @@ def main():
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))
             task.use(gae_estimator(cfg, policy.collect_mode))
             task.use(multistep_trainer(cfg, policy.learn_mode))
-            task.use(CkptSaver(cfg, policy, train_freq=100))
+            task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
             task.use(_add_scalar)
             task.use(termination_checker(max_env_step=int(3e6)))
             task.run()
