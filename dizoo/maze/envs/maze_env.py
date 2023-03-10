@@ -116,11 +116,11 @@ class Maze(gym.Env):
 
     def process_states(self, observations, maze_maps):
         """Returns [B, W, W, 3] binary values. Channels are (wall; goal; obs)"""
-        loc = np.eye(self._size * self._size, dtype=np.long)[observations[0] * self._size + observations[1]]
+        loc = np.eye(self._size * self._size, dtype=np.int64)[observations[0] * self._size + observations[1]]
         loc = np.reshape(loc, [self._size, self._size])
-        maze_maps = maze_maps.astype(np.long)
+        maze_maps = maze_maps.astype(np.int64)
 
-        states = np.concatenate([maze_maps, loc[Ellipsis, None]], axis=-1, dtype=np.long)
+        states = np.concatenate([maze_maps, loc[Ellipsis, None]], axis=-1, dtype=np.int64)
         return states
 
     def get_maze_map(self, stacked=True):
