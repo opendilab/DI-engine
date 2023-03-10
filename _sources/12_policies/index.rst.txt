@@ -25,6 +25,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     fqf
     sql
     sqn
+    mdqn
 
 .. toctree::
     :maxdepth: 3

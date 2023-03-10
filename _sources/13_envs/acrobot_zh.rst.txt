@@ -96,10 +96,13 @@ Acrobot 环境每个 episode 的终止条件是遇到以下任何一种情况：
 DI-zoo 可运行代码示例
 =====================
 
-完整的训练配置文件在 `github link <https://github.com/opendilab/DI-engine/tree/main/dizoo/acrobot/config>`_
+
+完整的训练配置文件在 `github
+link <https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/acrobot/config>`__
 内，对于具体的配置文件，例如\ ``acrobot_dqn_config.py``\ ，使用如下的 demo 即可运行：
 
 .. code:: python
+    
 
     from easydict import EasyDict
 
@@ -156,6 +159,7 @@ DI-zoo 可运行代码示例
     if __name__ == "__main__":
         from ding.entry import serial_pipeline
         serial_pipeline((main_config, create_config), seed=0)
+
 
 基准算法性能
 =================

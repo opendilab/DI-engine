@@ -337,7 +337,7 @@
 <span class="n">m_q_1step_td_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;m_q_1step_td_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">,</span> <span class="s1">&#39;target_q&#39;</span><span class="p">,</span> <span class="s1">&#39;next_q&#39;</span><span class="p">,</span> <span class="s1">&#39;act&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">m_q_1step_td_error</span><span class="p">(</span>
+<div class="viewcode-block" id="m_q_1step_td_error"><a class="viewcode-back" href="../../../12_policies/mdqn.html#ding.rl_utils.td.m_q_1step_td_error">[docs]</a><span class="k">def</span> <span class="nf">m_q_1step_td_error</span><span class="p">(</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
         <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">tau</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -383,7 +383,7 @@
         <span class="n">clipped</span> <span class="o">=</span> <span class="n">munchausen_addon</span><span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">munchausen_addon</span><span class="o">.</span><span class="n">lt</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span>
         <span class="n">clipfrac</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">clipped</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span><span class="p">,</span> <span class="n">action_gap</span><span class="p">,</span> <span class="n">clipfrac</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span><span class="p">,</span> <span class="n">action_gap</span><span class="p">,</span> <span class="n">clipfrac</span></div>
 
 
 <span class="n">q_v_1step_td_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;q_v_1step_td_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;act&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">])</span>
