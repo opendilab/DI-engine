@@ -555,10 +555,10 @@ class SACPolicy(Policy):
 
         # Weight Init for the last output layer
         init_w = self._cfg.learn.init_w
-        self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        self._model.actor[-1].mu.weight.data.uniform_(-init_w, init_w)
+        self._model.actor[-1].mu.bias.data.uniform_(-init_w, init_w)
+        self._model.actor[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        self._model.actor[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
         self._optimizer_q = Adam(
             self._model.critic.parameters(),
@@ -665,9 +665,10 @@ class SACPolicy(Policy):
 
         # 4. update q network
         self._optimizer_q.zero_grad()
-        loss_dict['critic_loss'].backward()
         if self._twin_critic:
-            loss_dict['twin_critic_loss'].backward()
+            (loss_dict['critic_loss'] + loss_dict['twin_critic_loss']).backward()
+        else:
+            loss_dict['critic_loss'].backward()
         self._optimizer_q.step()
 
         # 5. evaluate to get action distribution
@@ -969,9 +970,10 @@ class SQILSACPolicy(SACPolicy):
 
         # 4. update q network
         self._optimizer_q.zero_grad()
-        loss_dict['critic_loss'].backward()
         if self._twin_critic:
-            loss_dict['twin_critic_loss'].backward()
+            (loss_dict['critic_loss'] + loss_dict['twin_critic_loss']).backward()
+        else:
+            loss_dict['critic_loss'].backward()
         self._optimizer_q.step()
 
         # 5. evaluate to get action distribution
