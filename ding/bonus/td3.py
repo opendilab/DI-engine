@@ -12,7 +12,7 @@ from ding.framework.middleware import interaction_evaluator_ttorch, CkptSaver, m
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import TD3Policy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
-from ding.config import save_config_py, compile_config
+from ding.config import Config, save_config_py, compile_config
 from ding.model import QAC
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env, get_hybrid_shape
@@ -23,7 +23,7 @@ class TrainingReturn:
     wandb_url: str
 
 
-class TD3:
+class TD3OffPolicyAgent:
     supported_env_list = [
         'hopper',
     ]
@@ -34,16 +34,22 @@ class TD3:
             env: Union[str, BaseEnv],
             seed: int = 0,
             exp_name: str = None,
-            cfg: Optional[EasyDict] = None
+            cfg: Optional[Union[EasyDict, dict, str]] = None,
+            ckpt_path: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in TD3.supported_env_list, "Please use supported envs: {}".format(TD3.supported_env_list)
+            assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(TD3OffPolicyAgent.supported_env_list)
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=TD3.algorithm)
-            elif not isinstance(cfg, EasyDict):
+                cfg = get_instance_config(env, algorithm=TD3OffPolicyAgent.algorithm)
+            elif isinstance(cfg, EasyDict):
+                pass
+            elif isinstance(cfg, dict):
                 cfg = EasyDict(cfg)
+            elif isinstance(cfg, str):
+                cfg = EasyDict(Config.file_to_dict(cfg))
+            
             if exp_name is not None:
                 self.exp_name = exp_name
                 cfg.exp_name = exp_name
@@ -69,10 +75,13 @@ class TD3:
         model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg.policy, model=model)
+        if ckpt_path is not None:
+            self.policy.load_state_dict(torch.load(ckpt_path))
 
     def load_policy(self, policy_state_dict, config):
         self.policy.load_state_dict(policy_state_dict)
         self.policy._cfg = config
+        self.cfg = config
 
     def train(
             self,
@@ -82,6 +91,7 @@ class TD3:
             n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
+            render: bool = False,
             debug: bool = False
     ) -> dict:
         if debug:
@@ -92,11 +102,12 @@ class TD3:
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
         wandb_url_return = []
 
-        self.cfg.policy.logger.record_path = os.path.join(self.exp_name, 'video')
-        evaluator_env.enable_save_replay(replay_path=self.cfg.policy.logger.record_path)
+        if render:
+            self.cfg.policy.logger.record_path = os.path.join(self.exp_name, 'video')
+            evaluator_env.enable_save_replay(replay_path=self.cfg.policy.logger.record_path)
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env, render=True))
+            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env, render=render))
             task.use(
                 StepCollector(
                     self.cfg,
@@ -132,7 +143,7 @@ class TD3:
 
         return TrainingReturn(wandb_url_return[0])
 
-    def deploy(self, ckpt_path: str = None, enable_save_replay: bool = False, debug: bool = False) -> None:
+    def deploy(self, enable_save_replay: bool = False, debug: bool = False) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -140,10 +151,7 @@ class TD3:
         env.seed(self.seed, dynamic_seed=False)
         if enable_save_replay:
             env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
-        if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        self.policy.load_state_dict(state_dict)
+
         forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
 
         # main loop
@@ -162,7 +170,6 @@ class TD3:
     def collect_data(
             self,
             env_num: int = 8,
-            ckpt_path: Optional[str] = None,
             save_data_path: Optional[str] = None,
             n_sample: Optional[int] = None,
             n_episode: Optional[int] = None,
@@ -175,12 +182,9 @@ class TD3:
             raise NotImplementedError
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug)
-        if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
+
         if save_data_path is None:
             save_data_path = os.path.join(self.exp_name, 'demo_data')
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        self.policy.load_state_dict(state_dict)
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
@@ -200,24 +204,19 @@ class TD3:
             env_num: int = 4,
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
-            debug: bool = False,
-            render: bool = False,
-            replay_video_path: str = None,
+            debug: bool = False
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug)
 
-        if replay_video_path is not None:
-            env.enable_save_replay(replay_path=replay_video_path)
-
         evaluate_cfg = self.cfg
         evaluate_cfg.env.n_evaluator_episode = n_evaluator_episode
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env, render=render))
+            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env))
             task.run(max_step=1)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:

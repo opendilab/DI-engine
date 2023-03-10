@@ -12,7 +12,7 @@ from ding.framework.context import Context, OfflineRLContext, OnlineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import tensor_to_list, to_list, to_ndarray, get_shape0
+from ding.torch_utils import to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
 
 
@@ -257,7 +257,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
                 eval_monitor.update_video(env.ready_imgs)
                 eval_monitor.update_output(inference_output)
             output = [v for v in inference_output.values()]
-            action = np.array([to_ndarray(v['action']) for v in output])  # TBD
+            action = [to_ndarray(v['action']) for v in output]  # TBD
             timesteps = env.step(action)
             for timestep in timesteps:
                 env_id = timestep.env_id.item()

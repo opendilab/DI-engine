@@ -67,12 +67,14 @@ class OnlineRLContext(Context):
     last_eval_iter: int = -1
     last_eval_value: int = -np.inf
     eval_output: List = dataclasses.field(default_factory=dict)
+    # wandb
+    wandb_url: str = ""
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,
         # this method is called just after the object initialize its fields.
         # We use this method here to keep the fields needed for each iteration.
-        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter', 'last_eval_value')
+        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter', 'last_eval_value', 'wandb_url')
 
 
 @dataclasses.dataclass
@@ -88,9 +90,11 @@ class OfflineRLContext(Context):
     eval_value: float = -np.inf
     last_eval_iter: int = -1
     eval_output: List = dataclasses.field(default_factory=dict)
+    # wandb
+    wandb_url: str = ""
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,
         # this method is called just after the object initialize its fields.
         # We use this method here to keep the fields needed for each iteration.
-        self.keep('train_iter', 'last_eval_iter')
+        self.keep('train_iter', 'last_eval_iter', 'wandb_url')

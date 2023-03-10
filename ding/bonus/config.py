@@ -113,7 +113,6 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         model=dict(
                             obs_shape=11,
                             action_shape=3,
-                            twin_critic=True,
                             actor_head_hidden_size=256,
                             critic_head_hidden_size=256,
                             action_space='regression',
@@ -125,26 +124,8 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_logger=True,
                             return_logger=False
                         ),
-                        learn=dict(
-                            update_per_collect=1,
-                            batch_size=256,
-                            learning_rate_actor=1e-3,
-                            learning_rate_critic=1e-3,
-                            ignore_done=False,
-                            target_theta=0.005,
-                            discount_factor=0.99,
-                            actor_update_freq=2,
-                            noise=True,
-                            noise_sigma=0.2,
-                            noise_range=dict(
-                                min=-0.5,
-                                max=0.5,
-                            ),
-                        ),
                         collect=dict(
                             n_sample=1,
-                            unroll_len=1,
-                            noise_sigma=0.1,
                         ),
                         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
                     )

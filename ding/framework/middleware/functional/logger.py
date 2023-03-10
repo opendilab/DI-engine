@@ -128,7 +128,6 @@ def wandb_online_logger(
         model: Optional[torch.nn.Module] = None,
         anonymous: bool = False,
         project_name: str = 'default-project',
-        wandb_url_return: List = [],
 ) -> Callable:
     '''
     Overview:
@@ -154,10 +153,8 @@ def wandb_online_logger(
     # Settings can be covered by calling wandb.init() at the top of the script
     if anonymous:
         wandb.init(project=project_name, reinit=True, anonymous="must")
-        wandb_url_return.append(wandb.run.get_project_url())
     else:
         wandb.init(project=project_name, reinit=True)
-        wandb_url_return.append(wandb.run.get_project_url())
     if cfg == 'default':
         cfg = EasyDict(
             dict(
@@ -178,8 +175,15 @@ def wandb_online_logger(
         one_time_warning(
             "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
         )
+    
+    first_plot=True
 
     def _plot(ctx: "OnlineRLContext"):
+        nonlocal first_plot
+        if first_plot:
+            first_plot=False
+            ctx.wandb_url=wandb.run.get_project_url()
+
         info_for_logging = {}
 
         if cfg.plot_logger:

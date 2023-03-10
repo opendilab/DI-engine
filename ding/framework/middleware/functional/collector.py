@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, Callable, List, Tuple, Any
-from easydict import EasyDict
 from functools import reduce
-import numpy as np
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
