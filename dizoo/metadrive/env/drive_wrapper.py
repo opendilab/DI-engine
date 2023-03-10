@@ -1,7 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, NoReturn, List
 from easydict import EasyDict
 from itertools import product
-from typing import NoReturn, Optional, List
 import matplotlib.pyplot as plt
 import gym
 import copy
@@ -87,7 +86,7 @@ class DriveEnvWrapper(gym.Wrapper):
             vehicle_state = obs['vehicle_state']
             birdview = obs['birdview'].transpose((2, 0, 1))
             obs = {'vehicle_state': vehicle_state, 'birdview': birdview}
-        self._final_eval_reward = 0.0
+        self._eval_episode_return = 0.0
         self._arrive_dest = False
         return obs
 
@@ -107,7 +106,7 @@ class DriveEnvWrapper(gym.Wrapper):
         obs, rew, done, info = self.env.step(action)
         if self.show_bird_view:
             draw_multi_channels_top_down_observation(obs, show_time=0.5)
-        self._final_eval_reward += rew
+        self._eval_episode_return += rew
         obs = to_ndarray(obs, dtype=np.float32)
         if isinstance(obs, np.ndarray) and len(obs.shape) == 3:
             obs = obs.transpose((2, 0, 1))
@@ -117,9 +116,12 @@ class DriveEnvWrapper(gym.Wrapper):
             obs = {'vehicle_state': vehicle_state, 'birdview': birdview}
         rew = to_ndarray([rew], dtype=np.float32)
         if done:
-            info['final_eval_reward'] = self._final_eval_reward
-            info['eval_episode_return'] = self._final_eval_reward
+            info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)
+
+    @property
+    def observation_space(self):
+        return gym.spaces.Box(0, 1, shape=(5, 84, 84), dtype=np.float32)
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -143,3 +145,7 @@ class DriveEnvWrapper(gym.Wrapper):
 
     def render(self):
         self.env.render()
+
+    def clone(self, caller: str):
+        cfg = copy.deepcopy(self._cfg)
+        return DriveEnvWrapper(self.env.clone(caller), cfg)

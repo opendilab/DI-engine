@@ -88,7 +88,7 @@ class RocketEnv(BaseEnv):
         random_action = to_ndarray([random_action], dtype=np.int64)
         return random_action
 
-    def clone(self) -> 'RocketEnv':
+    def clone(self, caller: str) -> 'RocketEnv':
         return RocketEnv(copy.deepcopy(self._cfg))
 
     @property

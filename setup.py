@@ -88,6 +88,7 @@ setup(
         'h5py',
         'scikit-learn',
         'hickle',
+        'gymnasium',
     ],
     extras_require={
         'test': [
