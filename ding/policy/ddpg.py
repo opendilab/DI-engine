@@ -470,8 +470,8 @@ class DDPGPolicy(Policy):
         return state_dict
 
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'])
-        self._target_model.load_state_dict(state_dict['target_model'])
+        self._model.load_state_dict(state_dict['model'], map_location=torch.device(self._device))
+        self._target_model.load_state_dict(state_dict['target_model'], map_location=torch.device(self._device))
         if 'learn' in self._enable_field:
-            self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
-            self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
+            self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'], map_location=torch.device(self._device))
+            self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'], map_location=torch.device(self._device))
