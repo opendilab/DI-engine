@@ -117,18 +117,18 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             critic_head_hidden_size=256,
                             action_space='regression',
                         ),
-                        logger=dict(
+                        collect=dict(
+                            n_sample=1,
+                        ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+                    ),
+                    wandb_logger=dict(
                             gradient_logger=True,
                             video_logger=True,
                             plot_logger=True,
                             action_logger=True,
                             return_logger=False
-                        ),
-                        collect=dict(
-                            n_sample=1,
-                        ),
-                        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
-                    )
+                    ),
                 )
             )
         else:

@@ -121,8 +121,8 @@ def offline_logger() -> Callable:
 
 
 def wandb_online_logger(
-        record_path: str,
-        cfg: Union[str, EasyDict] = 'default',
+        record_path: str = None,
+        cfg: Union[dict, EasyDict] = None,
         metric_list: Optional[List[str]] = None,
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
@@ -134,15 +134,18 @@ def wandb_online_logger(
         Wandb visualizer to track the experiment.
     Arguments:
         - record_path (:obj:`str`): The path to save the replay of simulation.
-        - cfg (:obj:`Union[str, EasyDict]`): Config, a dict of following settings:
+        - cfg (:obj:`Union[dict, EasyDict]`): Config, a dict of following settings:
             - gradient_logger: boolean. Whether to track the gradient.
             - plot_logger: boolean. Whether to track the metrics like reward and loss.
-            - action_logger: `q_value` or `action probability`.
+            - video_logger: boolean. Whether to upload the rendering video replay.
+            - action_logger: boolean. `q_value` or `action probability`.
+            - return_logger: boolean. Whether to track the return value.
         - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Policy neural network model.
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
+        - project_name (:obj:`str`): The name of wandb project.
     '''
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
@@ -155,7 +158,7 @@ def wandb_online_logger(
         wandb.init(project=project_name, reinit=True, anonymous="must")
     else:
         wandb.init(project=project_name, reinit=True)
-    if cfg == 'default':
+    if cfg is None:
         cfg = EasyDict(
             dict(
                 gradient_logger=False,
@@ -165,9 +168,15 @@ def wandb_online_logger(
                 return_logger=False,
             )
         )
+    else:
+        if not isinstance(cfg, EasyDict):
+            cfg = EasyDict(cfg)
+        assert tuple(cfg.keys()) == ("gradient_logger","plot_logger","video_logger","action_logger","return_logger")
+        assert all(value in [True, False] for value in cfg.values())
+
     # The visualizer is called to save the replay of the simulation
     # which will be uploaded to wandb later
-    if env is not None:
+    if env is not None and cfg.video_logger is True and record_path is not None:
         env.enable_save_replay(replay_path=record_path)
     if cfg.gradient_logger:
         wandb.watch(model)
@@ -225,10 +234,10 @@ def wandb_online_logger(
                 file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
                 video_path = os.path.join(record_path, file_list[-2])
                 info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
-
-            action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
-            return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
+            
+            
             if cfg.action_logger:
+                action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
                 if all(['logit' in v for v in eval_output]) or hasattr(eval_output, "logit"):
                     if isinstance(eval_output, tnp.ndarray):
                         action_prob = softmax(eval_output.logit)
@@ -257,6 +266,7 @@ def wandb_online_logger(
                         info_for_logging.update({"actions_of_trajectory_{}".format(i): fig})
 
             if cfg.return_logger:
+                return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
                 fig, ax = plt.subplots()
                 ax = plt.gca()
                 ax.set_ylim([0, 1])
@@ -267,7 +277,8 @@ def wandb_online_logger(
                 ani.save(return_path, writer='pillow')
                 info_for_logging.update({"return distribution": wandb.Video(return_path, format="gif")})
 
-        wandb.log(data=info_for_logging, step=ctx.env_step)
+        if bool(info_for_logging):
+            wandb.log(data=info_for_logging, step=ctx.env_step)
         plt.clf()
 
     return _plot

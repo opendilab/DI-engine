@@ -5,21 +5,26 @@ from easydict import EasyDict
 import os
 import gym
 import torch
+import treetensor.torch as ttorch
 from ding.framework import task, OnlineRLContext
-from ding.framework.middleware import interaction_evaluator_ttorch, CkptSaver, multistep_trainer, \
+from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
     OffPolicyLearner, final_ctx_saver
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
-from ding.policy import TD3Policy, single_env_forward_wrapper_ttorch
+from ding.policy import TD3Policy
 from ding.utils import set_pkg_seed
 from ding.config import Config, save_config_py, compile_config
 from ding.model import QAC
 from ding.data import DequeBuffer
-from ding.bonus.config import get_instance_config, get_instance_env, get_hybrid_shape
+from ding.bonus.config import get_instance_config, get_instance_env
 
 
 @dataclass
 class TrainingReturn:
+    '''
+    Attributions
+    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
+    '''
     wandb_url: str
 
 
@@ -35,7 +40,7 @@ class TD3OffPolicyAgent:
             seed: int = 0,
             exp_name: str = None,
             cfg: Optional[Union[EasyDict, dict, str]] = None,
-            ckpt_path: str = None,
+            policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
             assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(TD3OffPolicyAgent.supported_env_list)
@@ -75,8 +80,8 @@ class TD3OffPolicyAgent:
         model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg.policy, model=model)
-        if ckpt_path is not None:
-            self.policy.load_state_dict(torch.load(ckpt_path))
+        if policy_state_dict is not None:
+            self.policy.load_state_dict(policy_state_dict)
 
     def load_policy(self, policy_state_dict, config):
         self.policy.load_state_dict(policy_state_dict)
@@ -91,7 +96,6 @@ class TD3OffPolicyAgent:
             n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
-            render: bool = False,
             debug: bool = False
     ) -> dict:
         if debug:
@@ -100,14 +104,9 @@ class TD3OffPolicyAgent:
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, context, debug)
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
-        wandb_url_return = []
-
-        if render:
-            self.cfg.policy.logger.record_path = os.path.join(self.exp_name, 'video')
-            evaluator_env.enable_save_replay(replay_path=self.cfg.policy.logger.record_path)
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env, render=render))
+            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
             task.use(
                 StepCollector(
                     self.cfg,
@@ -128,31 +127,45 @@ class TD3OffPolicyAgent:
             )
             task.use(
                 wandb_online_logger(
-                    record_path=self.cfg.policy.logger.record_path,
-                    cfg=self.cfg.policy.logger,
                     metric_list=self.policy.monitor_vars(),
                     model=self.policy._model,
                     anonymous=True,
-                    project_name=self.exp_name,
-                    wandb_url_return=wandb_url_return
+                    project_name=self.exp_name
                 )
             )
             task.use(termination_checker(max_env_step=step))
             task.use(final_ctx_saver(name=self.cfg["exp_name"]))
             task.run()
 
-        return TrainingReturn(wandb_url_return[0])
+        return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, debug: bool = False) -> None:
+    def deploy(self, enable_save_replay: bool = False, replay_save_path:str=None, debug: bool = False) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self.env.clone()
         env.seed(self.seed, dynamic_seed=False)
         if enable_save_replay:
-            env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
+            if replay_save_path is None:
+                env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
+            else:
+                env.enable_save_replay(replay_path=replay_save_path)
 
-        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
+        def single_env_forward_wrapper(forward_fn, cuda=True):
+
+            def _forward(obs):
+                # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
+                obs = ttorch.as_tensor(obs).unsqueeze(0)
+                if cuda and torch.cuda.is_available():
+                    obs = obs.cuda()
+                action = forward_fn(obs,mode='compute_actor')["action"]
+                # squeeze means delete batch dim, i.e. (1, A) -> (A, )
+                action = action.squeeze(0).detach().cpu().numpy()
+                return action
+
+            return _forward
+        
+        forward_fn = single_env_forward_wrapper(self.policy._model)
 
         # main loop
         return_ = 0.
