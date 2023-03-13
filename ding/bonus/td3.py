@@ -43,7 +43,9 @@ class TD3OffPolicyAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(TD3OffPolicyAgent.supported_env_list)
+            assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
+                TD3OffPolicyAgent.supported_env_list
+            )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
@@ -54,7 +56,7 @@ class TD3OffPolicyAgent:
                 cfg = EasyDict(cfg)
             elif isinstance(cfg, str):
                 cfg = EasyDict(Config.file_to_dict(cfg))
-            
+
             if exp_name is not None:
                 self.exp_name = exp_name
                 cfg.exp_name = exp_name
@@ -139,7 +141,7 @@ class TD3OffPolicyAgent:
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, replay_save_path:str=None, debug: bool = False) -> None:
+    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -158,13 +160,13 @@ class TD3OffPolicyAgent:
                 obs = ttorch.as_tensor(obs).unsqueeze(0)
                 if cuda and torch.cuda.is_available():
                     obs = obs.cuda()
-                action = forward_fn(obs,mode='compute_actor')["action"]
+                action = forward_fn(obs, mode='compute_actor')["action"]
                 # squeeze means delete batch dim, i.e. (1, A) -> (A, )
                 action = action.squeeze(0).detach().cpu().numpy()
                 return action
 
             return _forward
-        
+
         forward_fn = single_env_forward_wrapper(self.policy._model)
 
         # main loop

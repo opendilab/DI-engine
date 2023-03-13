@@ -171,7 +171,7 @@ def wandb_online_logger(
     else:
         if not isinstance(cfg, EasyDict):
             cfg = EasyDict(cfg)
-        assert tuple(cfg.keys()) == ("gradient_logger","plot_logger","video_logger","action_logger","return_logger")
+        assert tuple(cfg.keys()) == ("gradient_logger", "plot_logger", "video_logger", "action_logger", "return_logger")
         assert all(value in [True, False] for value in cfg.values())
 
     # The visualizer is called to save the replay of the simulation
@@ -184,14 +184,14 @@ def wandb_online_logger(
         one_time_warning(
             "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
         )
-    
-    first_plot=True
+
+    first_plot = True
 
     def _plot(ctx: "OnlineRLContext"):
         nonlocal first_plot
         if first_plot:
-            first_plot=False
-            ctx.wandb_url=wandb.run.get_project_url()
+            first_plot = False
+            ctx.wandb_url = wandb.run.get_project_url()
 
         info_for_logging = {}
 
@@ -234,8 +234,7 @@ def wandb_online_logger(
                 file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
                 video_path = os.path.join(record_path, file_list[-2])
                 info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
-            
-            
+
             if cfg.action_logger:
                 action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
                 if all(['logit' in v for v in eval_output]) or hasattr(eval_output, "logit"):
