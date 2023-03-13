@@ -20,6 +20,10 @@ from .config import get_instance_config, get_instance_env, get_hybrid_shape
 
 @dataclass
 class TrainingReturn:
+    '''
+    Attributions
+    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
+    '''
     wandb_url: str
 
 
