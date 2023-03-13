@@ -3,7 +3,7 @@ import os
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper
+    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
 from ding.policy import PPOFPolicy, TD3Policy
 
 
@@ -19,6 +19,9 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             cfg.learning_rate = 1e-3
             cfg.action_space = 'continuous'
             cfg.n_sample = 1024
+        elif env == 'acrobot':
+            cfg.learning_rate = 1e-4
+            cfg.n_sample = 400
         elif env == 'rocket_landing':
             cfg.n_sample = 2048
             cfg.adv_norm = False
@@ -89,6 +92,25 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                 critic_head_hidden_size=128,
                 critic_head_layer_num=2,
             )
+        elif env == 'minigrid_fourroom':
+            cfg.n_sample = 3200
+            cfg.batch_size = 320
+            cfg.learning_rate = 3e-4
+            cfg.epoch_per_collect = 10
+            cfg.entropy_weight = 0.001
+        elif env == 'metadrive':
+            cfg.learning_rate = 3e-4
+            cfg.action_space = 'continuous'
+            cfg.entropy_weight = 0.001
+            cfg.n_sample = 3000
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 0.0001
+            cfg.model = dict(
+                encoder_hidden_size_list=[32, 64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+                critic_head_layer_num=2,
+            )
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
@@ -146,6 +168,8 @@ def get_instance_env(env: str) -> BaseEnv:
         return DingEnvWrapper(gym.make('LunarLander-v2', continuous=True))
     elif env == 'bipedalwalker':
         return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True})
+    elif env == 'acrobot':
+        return DingEnvWrapper(gym.make('Acrobot-v1'))
     elif env == 'rocket_landing':
         from dizoo.rocket.envs import RocketEnv
         cfg = EasyDict({
@@ -229,8 +253,32 @@ def get_instance_env(env: str) -> BaseEnv:
         })
         ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
         ding_env_atari.enable_save_replay(env + '_log/')
-        obs = ding_env_atari.reset()
         return ding_env_atari
+    elif env == 'minigrid_fourroom':
+        import gymnasium
+        return DingEnvWrapper(
+            gymnasium.make('MiniGrid-FourRooms-v0'),
+            cfg={
+                'env_wrapper': [
+                    lambda env: GymToGymnasiumWrapper(env),
+                    lambda env: FlatObsWrapper(env),
+                    lambda env: TimeLimitWrapper(env, max_limit=300),
+                    lambda env: EvalEpisodeReturnEnv(env),
+                ]
+            }
+        )
+    elif env == 'metadrive':
+        from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
+        from dizoo.metadrive.env.drive_wrapper import DriveEnvWrapper
+        cfg = dict(
+            map='XSOS',
+            horizon=4000,
+            out_of_road_penalty=40.0,
+            crash_vehicle_penalty=40.0,
+            out_of_route_done=True,
+        )
+        cfg = EasyDict(cfg)
+        return DriveEnvWrapper(MetaDrivePPOOriginEnv(cfg))
     else:
         raise KeyError("not supported env type: {}".format(env))
 

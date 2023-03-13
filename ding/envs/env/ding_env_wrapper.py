@@ -1,6 +1,7 @@
 from typing import List, Optional, Union, Dict
 from easydict import EasyDict
 import gym
+import gymnasium
 import copy
 import numpy as np
 import treetensor.numpy as tnp
@@ -22,6 +23,7 @@ class DingEnvWrapper(BaseEnv):
                                Do not support subprocess env manager; Thus usually used in simple env.
             - A config to create an env instance: Parameter `cfg` dict must contain `env_id`.
         """
+        self._env = None
         self._raw_env = env
         self._cfg = cfg
         self._seed_api = seed_api  # some env may disable `env.seed` api
@@ -36,7 +38,6 @@ class DingEnvWrapper(BaseEnv):
         if 'env_id' not in self._cfg:
             self._cfg.env_id = None
         if env is not None:
-            self._init_flag = True
             self._env = env
             self._wrap_env(caller)
             self._observation_space = self._env.observation_space
@@ -45,6 +46,7 @@ class DingEnvWrapper(BaseEnv):
             self._reward_space = gym.spaces.Box(
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
+            self._init_flag = True
         else:
             assert 'env_id' in self._cfg
             self._init_flag = False
@@ -73,17 +75,30 @@ class DingEnvWrapper(BaseEnv):
                 name_prefix='rl-video-{}'.format(id(self))
             )
             self._replay_path = None
-        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-            np_seed = 100 * np.random.randint(1, 1000)
-            if self._seed_api:
-                self._env.seed(self._seed + np_seed)
-            self._action_space.seed(self._seed + np_seed)
-        elif hasattr(self, '_seed'):
-            if self._seed_api:
-                self._env.seed(self._seed)
-            self._action_space.seed(self._seed)
-        obs = self._env.reset()
-        obs = to_ndarray(obs, np.float32)
+        if isinstance(self._env, gym.Env):
+            if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+                np_seed = 100 * np.random.randint(1, 1000)
+                if self._seed_api:
+                    self._env.seed(self._seed + np_seed)
+                self._action_space.seed(self._seed + np_seed)
+            elif hasattr(self, '_seed'):
+                if self._seed_api:
+                    self._env.seed(self._seed)
+                self._action_space.seed(self._seed)
+            obs = self._env.reset()
+        elif isinstance(self._env, gymnasium.Env):
+            if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+                np_seed = 100 * np.random.randint(1, 1000)
+                self._action_space.seed(self._seed + np_seed)
+                obs = self._env.reset(seed=self._seed + np_seed)
+            elif hasattr(self, '_seed'):
+                self._action_space.seed(self._seed)
+                obs = self._env.reset(seed=self._seed)
+            else:
+                obs = self._env.reset()
+        else:
+            raise RuntimeError("not support env type: {}".format(type(self._env)))
+        obs = to_ndarray(obs)
         return obs
 
     # override
@@ -106,7 +121,7 @@ class DingEnvWrapper(BaseEnv):
         if self._cfg.act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
-        obs = to_ndarray(obs, np.float32)
+        obs = to_ndarray(obs)
         rew = to_ndarray([rew], np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
 

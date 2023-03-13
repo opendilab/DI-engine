@@ -5,6 +5,7 @@ from easydict import EasyDict
 from functools import partial
 import os
 import gym
+import gymnasium
 import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
@@ -28,6 +29,7 @@ class PPOF:
         'lunarlander_discrete',
         'lunarlander_continuous',
         'bipedalwalker',
+        'acrobot',
         # ch2: action
         'rocket_landing',
         'drone_fly',
@@ -37,6 +39,9 @@ class PPOF:
         'mario',
         'di_sheep',
         'procgen_bigfish',
+        # ch4: reward
+        'minigrid_fourroom',
+        'metadrive',
         # atari
         'atari_qbert',
         'atari_kangaroo',
@@ -73,9 +78,9 @@ class PPOF:
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
 
         action_space = self.env.action_space
-        if isinstance(action_space, gym.spaces.Discrete):
-            action_shape = action_space.n
-        elif isinstance(action_space, gym.spaces.Tuple):
+        if isinstance(action_space, (gym.spaces.Discrete, gymnasium.spaces.Discrete)):
+            action_shape = int(action_space.n)
+        elif isinstance(action_space, (gym.spaces.Tuple, gymnasium.spaces.Tuple)):
             action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape
@@ -97,6 +102,7 @@ class PPOF:
             n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
+            reward_model: Optional[str] = None,
             debug: bool = False
     ) -> TrainingReturn:
         if debug:
@@ -106,6 +112,10 @@ class PPOF:
         collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
         wandb_url_return = []
+        if reward_model is not None:
+            # self.reward_model = create_reward_model(reward_model, self.cfg.reward_model)
+            pass
+
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
             task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
