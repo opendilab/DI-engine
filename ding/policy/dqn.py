@@ -39,9 +39,9 @@ class DQNPolicy(Policy):
         7  ``nstep``            int      1,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
         8  | ``model.dueling``  bool    True            | dueling head architecture
-        9  | ``model.encoder``  list(int)[32, 64,       | Sequence of ``hidden_size`` of         | default kernel_size 
+        9  | ``model.encoder``  list(int)[32, 64,       | Sequence of ``hidden_size`` of         | default kernel_size
            | ``_hidden_size_list``        64, 128]      | subsequent conv layers and the         | is [8, 4, 3]
-                                                        | final dense layer.                     | default stride is 
+                                                        | final dense layer.                     | default stride is
                                                                                                  | [4, 2 ,1]
         10 | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
@@ -55,14 +55,14 @@ class DQNPolicy(Policy):
         14 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
            | ``update_freq``
         15 | ``learn.target_``  float    0.005          | Frequence of target network update.    | Soft(assign) update
-           | ``theta``                                  | Only one of [target_update_freq, 
+           | ``theta``                                  | Only one of [target_update_freq,
            |                                            | target_theta] should be set
         16 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
            | ``done``                                   | calculation.                           | fake termination env
-        17 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
+        17 ``collect.n_sample`` int     [8, 128]        | The number of training samples of a    | It varies from
                                                         | call of collector.                     | different envs
-        18 ``collect.n_episode``int      8              | The number of training episodes of a   | only one of [n_sample,
-                                                        | call of collector                      | , n_episode] should be
+        18 ``collect.n_episode``int     8               | The number of training episodes of a   | only one of [n_sample
+                                                        | call of collector                      | ,n_episode] should be
                                                                                                  | set
         19 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
            | ``_len``
@@ -117,7 +117,8 @@ class DQNPolicy(Policy):
             # ==============================================================
             # (int) Frequence of target network update. Only one of [target_update_freq, target_theta] should be set
             target_update_freq=100,
-            # (float) : Used for soft update of the target network. Only one of [target_update_freq, target_theta] should be set
+            # (float) : Used for soft update of the target network.
+            # Only one of [target_update_freq, target_theta] should be set
             target_theta=0.005,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
