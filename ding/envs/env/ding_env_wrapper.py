@@ -98,7 +98,7 @@ class DingEnvWrapper(BaseEnv):
                 obs = self._env.reset()
         else:
             raise RuntimeError("not support env type: {}".format(type(self._env)))
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs, dtype=np.float32)
         return obs
 
     # override
@@ -121,7 +121,7 @@ class DingEnvWrapper(BaseEnv):
         if self._cfg.act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
-        obs = to_ndarray(obs)
+        obs = to_ndarray(obs, dtype=np.float32)
         rew = to_ndarray([rew], np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
 
