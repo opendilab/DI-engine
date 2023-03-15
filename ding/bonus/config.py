@@ -122,8 +122,6 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     seed=0,
                     env=dict(
                         env_id='Hopper-v3',
-                        norm_obs=dict(use_norm=False, ),
-                        norm_reward=dict(use_norm=False, ),
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,

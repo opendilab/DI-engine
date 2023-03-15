@@ -1,6 +1,5 @@
 from typing import Any, Dict, Optional
 from easydict import EasyDict
-from typing import Optional
 import matplotlib.pyplot as plt
 import gym
 import copy

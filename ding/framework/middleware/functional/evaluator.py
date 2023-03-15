@@ -307,7 +307,6 @@ def interaction_evaluator_ttorch(
         stop_value: float = np.inf,
         eval_freq: int = 1000,
         render: bool = False,
-        replay_video_path: str = None,
 ) -> Callable:
     """
     Overview:
@@ -315,7 +314,6 @@ def interaction_evaluator_ttorch(
     Arguments:
         - policy (:obj:`Policy`): The policy to be evaluated.
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
-        - render (:obj:`bool`): Whether to render env images and policy logits.
     """
     if task.router.is_active and not task.has_role(task.role.EVALUATOR):
         return task.void()
@@ -323,9 +321,6 @@ def interaction_evaluator_ttorch(
     env.seed(seed, dynamic_seed=False)
     if n_evaluator_episode is None:
         n_evaluator_episode = env.env_num
-
-    if replay_video_path:
-        env.enable_save_replay(replay_path=replay_video_path)
 
     def _evaluate(ctx: "OnlineRLContext"):
         """

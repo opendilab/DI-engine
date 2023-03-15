@@ -39,6 +39,7 @@ class TD3OffPolicyAgent:
             env: Union[str, BaseEnv],
             seed: int = 0,
             exp_name: str = None,
+            model: Optional[torch.nn.Module] = None,
             cfg: Optional[Union[EasyDict, dict, str]] = None,
             policy_state_dict: str = None,
     ) -> None:
@@ -50,24 +51,14 @@ class TD3OffPolicyAgent:
             if cfg is None:
                 # 'It should be default env tuned config'
                 cfg = get_instance_config(env, algorithm=TD3OffPolicyAgent.algorithm)
-            elif isinstance(cfg, EasyDict):
-                pass
-            elif isinstance(cfg, dict):
-                cfg = EasyDict(cfg)
-            elif isinstance(cfg, str):
-                cfg = EasyDict(Config.file_to_dict(cfg))
+            else:
+                assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 
             if exp_name is not None:
-                self.exp_name = exp_name
                 cfg.exp_name = exp_name
-            elif cfg.exp_name is not None:
-                self.exp_name = cfg.exp_name
-            else:
-                self.exp_name = 'default_experiment'
-                cfg.exp_name = self.exp_name
             self.cfg = compile_config(cfg, policy=TD3Policy)
-            if self.cfg.exp_name != self.exp_name:
-                self.exp_name = self.cfg.exp_name
+            self.exp_name = self.cfg.exp_name
+
         elif isinstance(env, BaseEnv):
             self.cfg = compile_config(cfg, policy=TD3Policy)
             raise NotImplementedError
@@ -79,16 +70,12 @@ class TD3OffPolicyAgent:
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
-        model = QAC(**self.cfg.policy.model)
+        if model is None:
+            model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = TD3Policy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
-            self.policy.load_state_dict(policy_state_dict)
-
-    def load_policy(self, policy_state_dict, config):
-        self.policy.load_state_dict(policy_state_dict)
-        self.policy._cfg = config
-        self.cfg = config
+            self.policy.learn_mode.load_state_dict(policy_state_dict)
 
     def train(
             self,
@@ -99,7 +86,7 @@ class TD3OffPolicyAgent:
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
             debug: bool = False
-    ) -> dict:
+    ) -> TrainingReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
@@ -147,11 +134,13 @@ class TD3OffPolicyAgent:
         # define env and policy
         env = self.env.clone()
         env.seed(self.seed, dynamic_seed=False)
-        if enable_save_replay:
-            if replay_save_path is None:
-                env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
-            else:
-                env.enable_save_replay(replay_path=replay_save_path)
+
+        if enable_save_replay and replay_save_path:
+            env.enable_save_replay(replay_path=replay_save_path)
+        elif enable_save_replay:
+            env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
+        else:
+            logging.warning(f'No video would be generated during the deploy.')
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 

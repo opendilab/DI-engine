@@ -58,7 +58,8 @@ class PPOF:
             seed: int = 0,
             exp_name: str = 'default_experiment',
             model: Optional[torch.nn.Module] = None,
-            cfg: Optional[EasyDict] = None
+            cfg: Optional[EasyDict] = None,
+            policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
             assert env in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
@@ -93,10 +94,8 @@ class PPOF:
                 self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
             )
         self.policy = PPOFPolicy(self.cfg, model=model)
-
-    def load_policy(self, policy_state_dict, config):
-        self.policy.load_state_dict(policy_state_dict)
-        self.policy._cfg = config
+        if policy_state_dict is not None:
+            self.policy.load_state_dict(policy_state_dict)
 
     def train(
             self,
@@ -115,7 +114,7 @@ class PPOF:
         # define env and policy
         collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
-        wandb_url_return = []
+
         if reward_model is not None:
             # self.reward_model = create_reward_model(reward_model, self.cfg.reward_model)
             pass
@@ -128,30 +127,31 @@ class PPOF:
             task.use(CkptSaver(self.policy, save_dir=self.exp_name, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
-                    self.exp_name,
                     metric_list=self.policy.monitor_vars(),
+                    model=self.policy._model,
                     anonymous=True,
-                    project_name=self.exp_name,
-                    wandb_url_return=wandb_url_return
+                    project_name=self.exp_name
                 )
             )
             task.use(termination_checker(max_env_step=step))
             task.run()
 
-        return TrainingReturn(wandb_url=wandb_url_return[0])
+        return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, ckpt_path: str = None, enable_save_replay: bool = False, debug: bool = False) -> None:
+    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self.env.clone()
         env.seed(self.seed, dynamic_seed=False)
-        if enable_save_replay:
+
+        if enable_save_replay and replay_save_path:
+            env.enable_save_replay(replay_path=replay_save_path)
+        elif enable_save_replay:
             env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
-        if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        self.policy.load_state_dict(state_dict)
+        else:
+            logging.warning(f'No video would be generated during the deploy.')
+
         forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
 
         # main loop
@@ -170,7 +170,6 @@ class PPOF:
     def collect_data(
             self,
             env_num: int = 8,
-            ckpt_path: Optional[str] = None,
             save_data_path: Optional[str] = None,
             n_sample: Optional[int] = None,
             n_episode: Optional[int] = None,
@@ -183,12 +182,8 @@ class PPOF:
             raise NotImplementedError
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug, 'collector')
-        if ckpt_path is None:
-            ckpt_path = os.path.join(self.exp_name, 'ckpt/eval.pth.tar')
         if save_data_path is None:
             save_data_path = os.path.join(self.exp_name, 'demo_data')
-        state_dict = torch.load(ckpt_path, map_location='cpu')
-        self.policy.load_state_dict(state_dict)
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
@@ -205,8 +200,6 @@ class PPOF:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False,
-            render: bool = False,
-            replay_video_path: str = None,
     ) -> None:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -215,16 +208,12 @@ class PPOF:
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
-            task.use(
-                interaction_evaluator_ttorch(
-                    self.seed,
-                    self.policy,
-                    env,
-                    n_evaluator_episode,
-                    render=render,
-                    replay_video_path=replay_video_path
-                )
-            )
+            task.use(interaction_evaluator_ttorch(
+                self.seed,
+                self.policy,
+                env,
+                n_evaluator_episode,
+            ))
             task.run(max_step=1)
 
     def _setup_env_manager(

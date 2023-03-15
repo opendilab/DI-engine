@@ -284,28 +284,33 @@ def wandb_online_logger(
 
 
 def wandb_offline_logger(
-        record_path: str,
-        datasetpath: str,
-        cfg: Union[str, EasyDict] = 'default',
+        dataset_path: str,
+        record_path: str = None,
+        cfg: Union[dict, EasyDict] = None,
         metric_list: Optional[List[str]] = None,
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
-        anonymous: bool = False
+        anonymous: bool = False,
+        project_name: str = 'default-project',
 ) -> Callable:
     '''
     Overview:
         Wandb visualizer to track the experiment.
     Arguments:
+        - datasetpath (:obj:`str`): The path to save the replay of simulation.
         - record_path (:obj:`str`): The path to save the replay of simulation.
-        - cfg (:obj:`Union[str, EasyDict]`): Config, a dict of following settings:
+        - cfg (:obj:`Union[dict, EasyDict]`): Config, a dict of following settings:
             - gradient_logger: boolean. Whether to track the gradient.
             - plot_logger: boolean. Whether to track the metrics like reward and loss.
-            - action_logger: `q_value` or `action probability`.
+            - video_logger: boolean. Whether to upload the rendering video replay.
+            - action_logger: boolean. `q_value` or `action probability`.
+            - return_logger: boolean. Whether to track the return value.
         - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Policy neural network model.
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
+        - project_name (:obj:`str`): The name of wandb project.
     '''
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
@@ -385,7 +390,7 @@ def wandb_offline_logger(
         wandb.log({"dataset": wandb.Image("dataset.png")})
 
     if cfg.vis_dataset is True:
-        _vis_dataset(datasetpath)
+        _vis_dataset(dataset_path)
 
     def _plot(ctx: "OnlineRLContext"):
         info_for_logging = {}
