@@ -31,7 +31,7 @@ class DQN(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
-            - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
+            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
             - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \

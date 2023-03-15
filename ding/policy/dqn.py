@@ -46,7 +46,7 @@ class DQNPolicy(Policy):
         10 | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        11 | ``learn.multi``    bool     False          | whether to use multi gpu during
+        11 | ``learn.multi``    bool     False          | whether to use multi gpu
            | ``_gpu``
         12 | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
@@ -82,52 +82,59 @@ class DQNPolicy(Policy):
     """
 
     config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='dqn',
-        # (bool) Whether use cuda in policy
+        # (bool) Whether use cuda in policy.
         cuda=False,
-        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy).
         on_policy=False,
-        # (bool) Whether enable priority experience sample
+        # (bool) Whether enable priority experience sample.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        # (float) Discount factor(gamma) for returns
+        # (float) Discount factor(gamma) for returns.
         discount_factor=0.97,
-        # (int) The number of step for calculating target q_value
+        # (int) The number of step for calculating target q_value.
         nstep=1,
         model=dict(
             #(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
-            # (bool) whether enable dueling head
+            # (bool) Whether enable dueling head.
             dueling=True,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu
+            # (bool) Whether to use multi gpu.
             multi_gpu=False,
-            # How many updates(iterations) to train after collector's one collection.
+            # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
-            # (int) How many samples in a training batch
+            # (int) How many samples in a training batch.
             batch_size=64,
-            # (float) The step size of gradient descent
+            # (float) The step size of gradient descent.
             learning_rate=0.001,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
-            # (int) Frequence of target network update. Only one of [target_update_freq, target_theta] should be set
+            # (int) Frequence of target network update.
+            # Only one of [target_update_freq, target_theta] should be set.
             target_update_freq=100,
             # (float) : Used for soft update of the target network.
-            # Only one of [target_update_freq, target_theta] should be set
+            # aka. Interpolation factor in EMA update for target network.
+            # Only one of [target_update_freq, target_theta] should be set.
             target_theta=0.005,
-            # (bool) Whether ignore done(usually for max step termination env)
+            # (bool) Whether ignore done(usually for max step termination env).
+            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
+            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
+            # However, interaction with HalfCheetah always gets done with done is False,
+            # Since we inplace done==True with done==False to keep
+            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
+            # when the episode step is greater than max episode step.
             ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             n_sample=8,
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
         ),
         eval=dict(),
@@ -137,14 +144,17 @@ class DQNPolicy(Policy):
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
-                # (float) Epsilon start value
+                # (float) Epsilon start value.
                 start=0.95,
-                # (float) Epsilon end value
+                # (float) Epsilon end value.
                 end=0.1,
-                # (int) Decay length(env step)
+                # (int) Decay length(env step).
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is good.
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
@@ -209,7 +219,7 @@ class DQNPolicy(Policy):
                 recorded in text log and tensorboard, values are python scalar or a list of scalars.
         ArgumentsKeys:
             - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
-            - optional: ``value_gamma``, ``IS``
+            - optional: ``value_gamma``
         ReturnsKeys:
             - necessary: ``cur_lr``, ``total_loss``, ``priority``
             - optional: ``action_distribution``
