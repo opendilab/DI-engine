@@ -99,6 +99,7 @@ def serial_pipeline_pc_mcts(
         # train
         criterion = torch.nn.CrossEntropyLoss()
         for i, train_data in enumerate(dataloader):
+            train_data['obs'] = train_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.
             learner.train(train_data)
             iter_cnt += 1
             if iter_cnt >= max_iter:
@@ -112,7 +113,6 @@ def serial_pipeline_pc_mcts(
         acces = []
         for _, test_data in enumerate(test_dataloader):
             logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
-
             loss = criterion(logits, test_data['action'].cuda()).item()
             preds = torch.argmax(logits, dim=-1)
             acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
