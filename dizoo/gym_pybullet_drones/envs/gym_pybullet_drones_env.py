@@ -103,7 +103,7 @@ class GymPybulletDronesEnv(BaseEnv):
     }
 
     def __init__(self, cfg: dict = {}) -> None:
-
+        self.raw_cfg = copy.deepcopy(cfg)
         for k, v in self.default_config().items():
             if k not in cfg:
                 cfg[k] = v
@@ -265,3 +265,6 @@ class GymPybulletDronesEnv(BaseEnv):
     def plot_observation_curve(self) -> None:
         if self._cfg["plot_observation"]:
             self.observation_logger.plot()
+
+    def clone(self, caller: str) -> 'GymPybulletDronesEnv':
+        return GymPybulletDronesEnv(self.raw_cfg)

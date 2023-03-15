@@ -15,16 +15,16 @@ from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, \
     eps_greedy_handler, CkptSaver, eps_greedy_masker, sqil_data_pusher, data_pusher
 from ding.utils import set_pkg_seed
-from dizoo.classic_control.cartpole.config.cartpole_trex_dqn_config import main_config, create_config
 from ding.entry import trex_collecting_data
 from ding.reward_model import create_reward_model
+from dizoo.classic_control.cartpole.config.cartpole_trex_dqn_config import main_config, create_config
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
     demo_arg = easydict.EasyDict({'cfg': [main_config, create_config], 'seed': 0})
     trex_collecting_data(demo_arg)
-    cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    cfg = compile_config(main_config, create_cfg=create_config, auto=True, renew_dir=False)
 
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
@@ -51,7 +51,7 @@ def main():
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_, reward_model))
-        task.use(CkptSaver(cfg, policy, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run()
 
 

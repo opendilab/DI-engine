@@ -8,7 +8,7 @@ from functools import partial
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
-from ding.envs import get_vec_env_setting, create_env_manager
+from ding.envs import get_vec_env_setting
 from ding.policy import DDPGPolicy
 from ding.model import QAC
 from ding.utils import set_pkg_seed
@@ -17,24 +17,14 @@ from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_confi
 
 
 def main(main_cfg, create_cfg, seed=0):
-    cfg = compile_config(
-        main_cfg,
-        BaseEnvManager,
-        DDPGPolicy,
-        BaseLearner,
-        SampleSerialCollector,
-        InteractionSerialEvaluator,
-        AdvancedReplayBuffer,
-        create_cfg=create_cfg,
-        save_cfg=True
-    )
-
-    create_cfg.policy.type = create_cfg.policy.type + '_command'
-    env_fn = None
-    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    # Specify evaluation arguments
+    main_cfg.policy.load_path = './ckpt_best.pth.tar'
+    main_cfg.env.replay_path = './'
+    main_cfg.env.evaluator_env_num = 1  # only 1 env for save replay
+    cfg = compile_config(main_cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Create main components: env, policy
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
-    evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
+    evaluator_env = BaseEnvManager([partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg.env.manager)
 
     evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
 

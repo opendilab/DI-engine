@@ -1,16 +1,21 @@
 import pytest
-from easydict import EasyDict
 import torch
+from easydict import EasyDict
+
 from ding.model.template import PDQN
+
+action_args_shape_values = [1, 5]
 
 
 @pytest.mark.unittest
 class TestPQQN:
 
-    def test_dqn(self):
+    @pytest.mark.unittest
+    @pytest.mark.parametrize('action_type_shape', action_args_shape_values)
+    def test_dqn(self, action_type_shape):
         T, B = 3, 4
         obs_shape = (4, )
-        act_shape = EasyDict({'action_type_shape': (3, ), 'action_args_shape': (5, )})
+        act_shape = EasyDict({'action_type_shape': (3, ), 'action_args_shape': (action_type_shape, )})
         if isinstance(obs_shape, int):
             cont_inputs = torch.randn(B, obs_shape)
         else:

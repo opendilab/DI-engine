@@ -36,12 +36,13 @@ pendulum_sqil_sac_config = dict(
             target_theta=0.005,
             discount_factor=0.99,
             auto_alpha=True,
-            value_network=False,
         ),
         collect=dict(
             n_sample=10,
-            model_path='model_path_placeholder',
-            unroll_len=1,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='pendulum_sac_seed0/ckpt/eval.pth.tar',
         ),
         eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),

@@ -14,7 +14,7 @@ from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config, \
-    cartpole_offppo_config, cartpole_offppo_create_config
+    cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
 
 
@@ -53,7 +53,7 @@ class PPOILPolicy(PPOOffPolicy):
 @pytest.mark.unittest
 def test_serial_pipeline_bc_ppo():
     # train expert policy
-    train_config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    train_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     train_config[0].exp_name = 'test_serial_pipeline_bc_ppo'
     expert_policy = serial_pipeline(train_config, seed=0)
 
@@ -61,14 +61,14 @@ def test_serial_pipeline_bc_ppo():
     collect_count = 10000
     expert_data_path = 'expert_data_ppo_bc.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
-    collect_config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    collect_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     collect_config[0].exp_name = 'test_serial_pipeline_bc_ppo_collect'
     collect_demo_data(
         collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
 
     # il training 1
-    il_config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
+    il_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     il_config[0].policy.eval.evaluator.multi_gpu = False
     il_config[0].policy.learn.train_epoch = 20
     il_config[1].policy.type = 'ppo_bc'

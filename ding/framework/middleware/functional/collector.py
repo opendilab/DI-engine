@@ -45,18 +45,18 @@ class TransitionList:
             item.clear()
 
 
-def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
+def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
     """
     Overview:
         The middleware that executes the inference process.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config.
+        - seed (:obj:`int`): Random seed.
         - policy (:obj:`Policy`): The policy to be inferred.
         - env (:obj:`BaseEnvManager`): The env where the inference process is performed. \
             The env.ready_obs (:obj:`tnp.array`) will be used as model input.
     """
 
-    env.seed(cfg.seed)
+    env.seed(seed)
 
     def _inference(ctx: "OnlineRLContext"):
         """
@@ -83,12 +83,11 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
-def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:
+def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:
     """
     Overview:
         The middleware that executes the transition process in the env.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be used during transition.
         - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
                 its derivatives are supported.

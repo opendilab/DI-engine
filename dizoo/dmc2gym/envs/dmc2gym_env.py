@@ -6,11 +6,11 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 import dmc2gym
+from ding.envs import WarpFrameWrapper, ScaledFloatFrameWrapper, ClipRewardWrapper, FrameStackWrapper
 
 
 def dmc2gym_observation_space(dim, minimum=-np.inf, maximum=np.inf, dtype=np.float32) -> Callable:
-
-    def observation_space(from_pixels=True, height=100, width=100, channels_first=True) -> Box:
+    def observation_space(from_pixels=True, height=84, width=84, channels_first=True) -> Box:
         if from_pixels:
             shape = [3, height, width] if channels_first else [height, width, 3]
             return Box(low=0, high=255, shape=shape, dtype=np.uint8)
@@ -29,7 +29,6 @@ def dmc2gym_action_space(dim, minimum=-1, maximum=1, dtype=np.float32) -> Box:
 
 
 def dmc2gym_reward_space(minimum=0, maximum=1, dtype=np.float32) -> Callable:
-
     def reward_space(frame_skip=1) -> Box:
         return Box(
             np.repeat(minimum * frame_skip, 1).astype(dtype),
@@ -40,6 +39,9 @@ def dmc2gym_reward_space(minimum=0, maximum=1, dtype=np.float32) -> Callable:
     return reward_space
 
 
+"""
+default observation, state, action, reward space for dmc2gym env
+"""
 dmc2gym_env_info = {
     "ball_in_cup": {
         "catch": {
@@ -106,12 +108,17 @@ class DMC2GymEnv(BaseEnv):
         assert cfg.task_name in dmc2gym_env_info[
             cfg.domain_name], '{}/{}'.format(cfg.task_name, dmc2gym_env_info[cfg.domain_name].keys())
 
+        # default config for dmc2gym env
         self._cfg = {
-            "frame_skip": 3,
+            "frame_skip": 4,
+            'warp_frame': False,
+            'scale': False,
+            'clip_rewards': False,
+            "frame_stack": 3,
             "from_pixels": True,
             "visualize_reward": False,
-            "height": 100,
-            "width": 100,
+            "height": 84,
+            "width": 84,
             "channels_first": True,
         }
 
@@ -141,8 +148,23 @@ class DMC2GymEnv(BaseEnv):
                 from_pixels=self._cfg["from_pixels"],
                 height=self._cfg["height"],
                 width=self._cfg["width"],
-                frame_skip=self._cfg["frame_skip"]
+                frame_skip=self._cfg["frame_skip"],
+                channels_first=self._cfg["channels_first"],
             )
+
+            # optional env wrapper
+            if self._cfg['warp_frame']:
+                self._env = WarpFrameWrapper(self._env)
+            if self._cfg['scale']:
+                self._env = ScaledFloatFrameWrapper(self._env)
+            if self._cfg['clip_rewards']:
+                self._env = ClipRewardWrapper(self._env)
+            if self._cfg['frame_stack'] > 1:
+                self._env = FrameStackWrapper(self._env, self._cfg['frame_stack'])
+
+            # set the obs, action space of wrapped env
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
 
             if self._replay_path is not None:
                 if gym.version.VERSION > '0.22.0':
@@ -168,10 +190,7 @@ class DMC2GymEnv(BaseEnv):
         self._eval_episode_return = 0
         obs = self._env.reset()
 
-        if self._cfg["from_pixels"]:
-            obs = to_ndarray(obs).astype(np.uint8)
-        else:
-            obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs).astype(np.float32)
 
         return obs
 
@@ -192,12 +211,9 @@ class DMC2GymEnv(BaseEnv):
         if done:
             info['eval_episode_return'] = self._eval_episode_return
 
-        if self._cfg["from_pixels"]:
-            obs = to_ndarray(obs).astype(np.uint8)
-        else:
-            obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs).astype(np.float32)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a array with shape (1,)
 
-        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
@@ -222,4 +238,4 @@ class DMC2GymEnv(BaseEnv):
         return self._reward_space
 
     def __repr__(self) -> str:
-        return "DI-engine Deepmind Control Suite to gym Env: " + self._cfg["domain_name"] + ":" + self._cfg["task_name"]
+        return "DI-engine DeepMind Control Suite to gym Env: " + self._cfg["domain_name"] + ":" + self._cfg["task_name"]

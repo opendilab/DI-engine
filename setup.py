@@ -50,6 +50,7 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
+        'setuptools<=66.1.1',
         'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'numpy>=1.18.0',
@@ -77,8 +78,8 @@ setup(
         'mpire>=2.3.5',
         'pynng',
         'redis',
-        'pettingzoo==1.12.0',
-        'DI-treetensor>=0.4.0',
+        'pettingzoo',
+        'DI-treetensor>=0.3.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
         'wandb',
@@ -87,12 +88,13 @@ setup(
         'h5py',
         'scikit-learn',
         'hickle',
+        'gymnasium',
     ],
     extras_require={
         'test': [
             'gym[box2d]>=0.25.0',
             'opencv-python',  # pypy incompatible
-            'coverage>=5',
+            'coverage>=5,<=7.0.1',
             'mock>=4.0.3',
             'pytest~=7.0.1',  # required by gym>=0.25.0
             'pytest-cov~=3.0.0',
@@ -117,7 +119,7 @@ setup(
         'common_env': [
             'ale-py',  # >=0.7.5',  # atari
             'autorom',
-            'gym[all]>=0.25.0'
+            'gym[all]>=0.25.0',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],
@@ -132,7 +134,7 @@ setup(
             'bsuite',
         ],
         'minigrid_env': [
-            'minigrid',
+            'minigrid>=2.0.0',
         ],
         # 'd4rl_env': [
         #     'd4rl @ git+https://github.com/rail-berkeley/d4rl@master#egg=d4rl',

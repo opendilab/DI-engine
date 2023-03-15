@@ -10,8 +10,6 @@ gym_hybrid_ddpg_config = dict(
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
         stop_value=1.8,
-        save_replay_gif=False,
-        replay_path_gif=None,
     ),
     policy=dict(
         cuda=True,
@@ -70,4 +68,4 @@ create_config = gym_hybrid_ddpg_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c gym_hybrid_ddpg_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+    serial_pipeline([main_config, create_config], seed=0, max_env_step=int(1e7))

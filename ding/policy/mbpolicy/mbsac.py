@@ -98,6 +98,7 @@ class MBSACPolicy(SACPolicy):
             return q_values
 
         self._critic_fn = critic_fn
+        self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict, world_model, envstep) -> Dict[str, Any]:
         # preprocess data
@@ -294,6 +295,7 @@ class STEVESACPolicy(SACPolicy):
             return q_values
 
         self._critic_fn = critic_fn
+        self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict, world_model, envstep) -> Dict[str, Any]:
         # preprocess data

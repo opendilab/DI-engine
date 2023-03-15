@@ -29,7 +29,8 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
         if ctx.train_data is None:
             return
         train_output = policy.forward(ctx.train_data)
-        if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
+        #if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
+        if True:
             if isinstance(ctx, OnlineRLContext):
                 logging.info(
                     'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(
@@ -48,14 +49,15 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     return _train
 
 
-def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
+def multistep_trainer(policy: Policy, log_freq: int) -> Callable:
     """
     Overview:
         The middleware that executes training for a target num of steps.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy specialized for multi-step training.
+        - int (:obj:`int`): The frequency (iteration) of showing log.
     """
+    last_log_iter = -1
 
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
@@ -70,8 +72,10 @@ def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
         if ctx.train_data is None:  # no enough data from data fetcher
             return
-        train_output = policy.forward(ctx.train_data)
-        if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
+        data = ctx.train_data.to(policy._device)
+        train_output = policy.forward(data)
+        nonlocal last_log_iter
+        if ctx.train_iter - last_log_iter >= log_freq:
             loss = np.mean([o['total_loss'] for o in train_output])
             if isinstance(ctx, OfflineRLContext):
                 logging.info('Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, loss))
@@ -79,6 +83,7 @@ def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
                 logging.info(
                     'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(ctx.train_iter, ctx.env_step, loss)
                 )
+            last_log_iter = ctx.train_iter
         ctx.train_iter += len(train_output)
         ctx.train_output = train_output
 

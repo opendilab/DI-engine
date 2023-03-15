@@ -1,7 +1,28 @@
+from typing import Any
 import pickle
+import cloudpickle
 import zlib
 import lz4.block
 import numpy as np
+
+
+class CloudPickleWrapper:
+    """
+    Overview:
+        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)
+    """
+
+    def __init__(self, data: Any) -> None:
+        self.data = data
+
+    def __getstate__(self) -> bytes:
+        return cloudpickle.dumps(self.data)
+
+    def __setstate__(self, data: bytes) -> None:
+        if isinstance(data, (tuple, list, np.ndarray)):  # pickle is faster
+            self.data = pickle.loads(data)
+        else:
+            self.data = cloudpickle.loads(data)
 
 
 def dummy_compressor(data):

@@ -1,19 +1,19 @@
 from typing import Any, List, Union, Optional
 import time
+import os
+import imageio
 import gym
 import copy
 import numpy as np
 from easydict import EasyDict
+from rocket_recycling.rocket import Rocket
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 from ding.envs import ObsPlusPrevActRewWrapper
-from rocket_recycling.rocket import Rocket
-import os
-import imageio
 
 
-@ENV_REGISTRY.register('rocket')
+@ENV_REGISTRY.register('rocket', force_overwrite=True)
 class RocketEnv(BaseEnv):
 
     def __init__(self, cfg: dict = {}) -> None:
@@ -87,6 +87,9 @@ class RocketEnv(BaseEnv):
         random_action = self.action_space.sample()
         random_action = to_ndarray([random_action], dtype=np.int64)
         return random_action
+
+    def clone(self, caller: str) -> 'RocketEnv':
+        return RocketEnv(copy.deepcopy(self._cfg))
 
     @property
     def observation_space(self) -> gym.spaces.Space:
