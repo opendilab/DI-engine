@@ -140,7 +140,7 @@ class TD3OffPolicyAgent:
         elif enable_save_replay:
             env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
         else:
-            logging.warning(f'No video would be generated during the deploy.')
+            logging.warning('No video would be generated during the deploy.')
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
