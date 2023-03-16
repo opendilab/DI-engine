@@ -15,70 +15,70 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('dqn')
 class DQNPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of DQN algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.
 
     Config:
-        == ==================== ======== ============== ======================================== =======================
-        ID Symbol               Type     Default Value  Description                              Other(Shape)
-        == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,
-                                                        | registry ``POLICY_REGISTRY``           | a placeholder
-        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
+        == ===================== ======== ============== ======================================= =======================
+        ID Symbol                Type     Default Value  Description                              Other(Shape)
+        == ===================== ======== ============== ======================================= =======================
+        1  ``type``              str      dqn            | RL policy register name, refer to     | This arg is optional,
+                                                         | registry ``POLICY_REGISTRY``          | a placeholder
+        2  ``cuda``              bool     False          | Whether to use cuda for network       | This arg can be diff-
                                                                                                  | erent from modes
-        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
-                                                        | or off-policy
-        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,
+        3  ``on_policy``         bool     False          | Whether the RL algorithm is on-policy
+                                                         | or off-policy
+        4  ``priority``          bool     False          | Whether use priority(PER)             | Priority sample,
                                                                                                  | update priority
-        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight
-           | ``_weight``                                | to correct biased update. If True,
-                                                        | priority must be True.
-        6  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | May be 1 when sparse
-           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        7  ``nstep``            int      1,             | N-step reward discount sum for target
-                                         [3, 5]         | q_value estimation
-        8  | ``model.dueling``  bool    True            | dueling head architecture
-        9  | ``model.encoder``  list(int)[32, 64,       | Sequence of ``hidden_size`` of         | default kernel_size
-           | ``_hidden_size_list``        64, 128]      | subsequent conv layers and the         | is [8, 4, 3]
-                                                        | final dense layer.                     | default stride is
+        5  | ``priority_IS``     bool     False          | Whether use Importance Sampling
+           | ``_weight``                                 | Weight to correct biased update. If
+                                                         | True, priority must be True.
+        6  | ``discount_``       float    0.97,          | Reward's future discount factor, aka. | May be 1 when sparse
+           | ``factor``                   [0.95, 0.999]  | gamma                                 | reward env
+        7  ``nstep``             int      1,             | N-step reward discount sum for target
+                                          [3, 5]         | q_value estimation
+        8  | ``model.dueling``   bool     True           | dueling head architecture
+        9  | ``model.encoder``   list     [32, 64,       | Sequence of ``hidden_size`` of        | default kernel_size
+           | ``_hidden``         (int)    64, 128]       | subsequent conv layers and the        | is [8, 4, 3]
+           | ``_size_list``                               | final dense layer.                   | default stride is
                                                                                                  | [4, 2 ,1]
-        10 | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
-           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
-                                                        | valid in serial training               | means more off-policy
-        11 | ``learn.multi``    bool     False          | whether to use multi gpu
+        10 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary
+           | ``per_collect``                             | after collector's one collection.     | from envs. Bigger val
+                                                         | Only valid in serial training         | means more off-policy
+        11 | ``learn.multi``     bool     False          | whether to use multi gpu
            | ``_gpu``
-        12 | ``learn.batch_``   int      64             | The number of samples of an iteration
+        12 | ``learn.batch_``    int      64             | The number of samples of an iteration
            | ``size``
-        13 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+        13 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        14 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+        14 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update
            | ``update_freq``
-        15 | ``learn.target_``  float    0.005          | Frequence of target network update.    | Soft(assign) update
-           | ``theta``                                  | Only one of [target_update_freq,
-           |                                            | target_theta] should be set
-        16 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
-           | ``done``                                   | calculation.                           | fake termination env
-        17 ``collect.n_sample`` int     [8, 128]        | The number of training samples of a    | It varies from
-                                                        | call of collector.                     | different envs
-        18 ``collect.n_episode``int     8               | The number of training episodes of a   | only one of [n_sample
-                                                        | call of collector                      | ,n_episode] should be
-                                                                                                 | set
-        19 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+        15 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update
+           | ``theta``                                   | Only one of [target_update_freq,
+           |                                             | target_theta] should be set
+        16 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some
+           | ``done``                                    | calculation.                          | fake termination env
+        17 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from
+                                                         | call of collector.                    | different envs
+        18 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample
+                                                         | call of collector                     | ,n_episode] should
+                                                         |                                       | be set
+        19 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len>1
            | ``_len``
-        20 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
+        20 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support ['exp',
                                                                                                  | 'linear'].
-        21 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]
+        21 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]
            | ``start``
-        22 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]
+        22 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]
            | ``end``
-        23 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set
+        23 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set
            | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
                                                                                                  | value to end value
                                                                                                  | during decay length.
-        == ==================== ======== ============== ======================================== =======================
+        == ===================== ======== ============== ======================================= =======================
     """
 
     config = dict(

@@ -37,10 +37,10 @@ class DQN(nn.Module):
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
                 if ``None`` then default set it to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
-                ``ding.torch_utils.fc_block`` for more details.
+                ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
         """
         super(DQN, self).__init__()
-        # For compatibility: 1, (1, ), [4, 32, 32]
+        # Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         if head_hidden_size is None:
             head_hidden_size = encoder_hidden_size_list[-1]
@@ -75,7 +75,7 @@ class DQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             DQN forward computation graph, input observation tensor to predict q_value.
         Arguments:
