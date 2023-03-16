@@ -359,13 +359,16 @@
     <span class="c1"># eval</span>
     <span class="n">eval_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="n">last_eval_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">last_eval_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="n">eval_output</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1"># wandb</span>
+    <span class="n">wandb_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># This method is called just after __init__ method. Here, concretely speaking,</span>
         <span class="c1"># this method is called just after the object initialize its fields.</span>
         <span class="c1"># We use this method here to keep the fields needed for each iteration.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_value&#39;</span><span class="p">,</span> <span class="s1">&#39;wandb_url&#39;</span><span class="p">)</span>
 
 
 <span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
@@ -381,12 +384,14 @@
     <span class="n">eval_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="n">last_eval_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="n">eval_output</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1"># wandb</span>
+    <span class="n">wandb_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># This method is called just after __init__ method. Here, concretely speaking,</span>
         <span class="c1"># this method is called just after the object initialize its fields.</span>
         <span class="c1"># We use this method here to keep the fields needed for each iteration.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;wandb_url&#39;</span><span class="p">)</span>
 </pre></div>
 
               </article>
