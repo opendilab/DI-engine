@@ -3,7 +3,6 @@ from easydict import EasyDict
 import numpy as np
 import torch
 import torch.nn as nn
-import copy
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, MultiHead, \

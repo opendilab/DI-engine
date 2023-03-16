@@ -11,11 +11,13 @@ def final_ctx_saver(name: str) -> Callable:
 
     def _save(ctx: "Context"):
         if task.finish:
+            # make sure the items to be recorded are all kept in the context
             with open(os.path.join(name, 'result.pkl'), 'wb') as f:
                 final_data = {
                     'total_step': ctx.total_step,
                     'train_iter': ctx.train_iter,
-                    'eval_value': ctx.eval_value,
+                    'last_eval_iter': ctx.last_eval_iter,
+                    'eval_value': ctx.last_eval_value,
                 }
                 if ctx.has_attr('env_step'):
                     final_data['env_step'] = ctx.env_step

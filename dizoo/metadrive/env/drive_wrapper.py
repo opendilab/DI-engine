@@ -1,12 +1,10 @@
-from typing import Any, Dict, Optional, NoReturn, List
+from typing import Any, Dict, Optional
 from easydict import EasyDict
-from itertools import product
 import matplotlib.pyplot as plt
 import gym
 import copy
 import numpy as np
 from ding.envs.env.base_env import BaseEnvTimestep
-from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils.data_helper import to_ndarray
 from ding.utils.default_helper import deep_merge_dicts
 from dizoo.metadrive.env.drive_utils import BaseDriveEnv

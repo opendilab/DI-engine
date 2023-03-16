@@ -121,33 +121,202 @@ def offline_logger() -> Callable:
 
 
 def wandb_online_logger(
-        record_path: str,
-        cfg: Union[str, EasyDict] = 'default',
+        record_path: str = None,
+        cfg: Union[dict, EasyDict] = None,
         metric_list: Optional[List[str]] = None,
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
-        anonymous: bool = False
+        anonymous: bool = False,
+        project_name: str = 'default-project',
 ) -> Callable:
     '''
     Overview:
         Wandb visualizer to track the experiment.
     Arguments:
         - record_path (:obj:`str`): The path to save the replay of simulation.
-        - cfg (:obj:`Union[str, EasyDict]`): Config, a dict of following settings:
+        - cfg (:obj:`Union[dict, EasyDict]`): Config, a dict of following settings:
             - gradient_logger: boolean. Whether to track the gradient.
             - plot_logger: boolean. Whether to track the metrics like reward and loss.
-            - action_logger: `q_value` or `action probability`.
+            - video_logger: boolean. Whether to upload the rendering video replay.
+            - action_logger: boolean. `q_value` or `action probability`.
+            - return_logger: boolean. Whether to track the return value.
         - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Policy neural network model.
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
+        - project_name (:obj:`str`): The name of wandb project.
     '''
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
     if metric_list is None:
-        metric_list = ["q_value", "target q_value", "loss", "lr", "entropy"]
+        metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
+    # Initialize wandb with default settings
+    # Settings can be covered by calling wandb.init() at the top of the script
+    if anonymous:
+        wandb.init(project=project_name, reinit=True, anonymous="must")
+    else:
+        wandb.init(project=project_name, reinit=True)
+    if cfg is None:
+        cfg = EasyDict(
+            dict(
+                gradient_logger=False,
+                plot_logger=True,
+                video_logger=False,
+                action_logger=False,
+                return_logger=False,
+            )
+        )
+    else:
+        if not isinstance(cfg, EasyDict):
+            cfg = EasyDict(cfg)
+        assert tuple(cfg.keys()) == ("gradient_logger", "plot_logger", "video_logger", "action_logger", "return_logger")
+        assert all(value in [True, False] for value in cfg.values())
+
+    # The visualizer is called to save the replay of the simulation
+    # which will be uploaded to wandb later
+    if env is not None and cfg.video_logger is True and record_path is not None:
+        env.enable_save_replay(replay_path=record_path)
+    if cfg.gradient_logger:
+        wandb.watch(model)
+    else:
+        one_time_warning(
+            "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
+        )
+
+    first_plot = True
+
+    def _plot(ctx: "OnlineRLContext"):
+        nonlocal first_plot
+        if first_plot:
+            first_plot = False
+            ctx.wandb_url = wandb.run.get_project_url()
+
+        info_for_logging = {}
+
+        if cfg.plot_logger:
+            for metric in metric_list:
+                if metric in ctx.train_output[0]:
+                    metric_value_list = []
+                    for item in ctx.train_output:
+                        if isinstance(item[metric], torch.Tensor):
+                            metric_value_list.append(item[metric].cpu().detach().numpy())
+                        else:
+                            metric_value_list.append(item[metric])
+                    metric_value = np.mean(metric_value_list)
+                    info_for_logging.update({metric: metric_value})
+        else:
+            one_time_warning(
+                "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
+            )
+
+        if ctx.eval_value != -np.inf:
+            info_for_logging.update(
+                {
+                    "episode return mean": ctx.eval_value,
+                    "train iter": ctx.train_iter,
+                    "env step": ctx.env_step
+                }
+            )
+
+            eval_output = ctx.eval_output['output']
+            episode_return = ctx.eval_output['episode_return']
+            episode_return = np.array(episode_return)
+            if len(episode_return.shape) == 2:
+                episode_return = episode_return.squeeze(1)
+
+            if cfg.video_logger:
+                file_list = []
+                for p in os.listdir(record_path):
+                    if os.path.splitext(p)[-1] == ".mp4":
+                        file_list.append(p)
+                file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
+                video_path = os.path.join(record_path, file_list[-2])
+                info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
+
+            if cfg.action_logger:
+                action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
+                if all(['logit' in v for v in eval_output]) or hasattr(eval_output, "logit"):
+                    if isinstance(eval_output, tnp.ndarray):
+                        action_prob = softmax(eval_output.logit)
+                    else:
+                        action_prob = [softmax(to_ndarray(v['logit'])) for v in eval_output]
+                    fig, ax = plt.subplots()
+                    plt.ylim([-1, 1])
+                    action_dim = len(action_prob[1])
+                    x_range = [str(x + 1) for x in range(action_dim)]
+                    ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
+                    ani = animation.FuncAnimation(
+                        fig, action_prob, fargs=(action_prob, ln), blit=True, save_count=len(action_prob)
+                    )
+                    ani.save(action_path, writer='pillow')
+                    info_for_logging.update({"action": wandb.Video(action_path, format="gif")})
+
+                elif all(['action' in v for v in eval_output[0]]):
+                    for i, action_trajectory in enumerate(eval_output):
+                        fig, ax = plt.subplots()
+                        fig_data = np.array([[i + 1, *v['action']] for i, v in enumerate(action_trajectory)])
+                        steps = fig_data[:, 0]
+                        actions = fig_data[:, 1:]
+                        plt.ylim([-1, 1])
+                        for j in range(actions.shape[1]):
+                            ax.scatter(steps, actions[:, j])
+                        info_for_logging.update({"actions_of_trajectory_{}".format(i): fig})
+
+            if cfg.return_logger:
+                return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
+                fig, ax = plt.subplots()
+                ax = plt.gca()
+                ax.set_ylim([0, 1])
+                hist, x_dim = return_distribution(episode_return)
+                assert len(hist) == len(x_dim)
+                ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
+                ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
+                ani.save(return_path, writer='pillow')
+                info_for_logging.update({"return distribution": wandb.Video(return_path, format="gif")})
+
+        if bool(info_for_logging):
+            wandb.log(data=info_for_logging, step=ctx.env_step)
+        plt.clf()
+
+    return _plot
+
+
+def wandb_offline_logger(
+        dataset_path: str,
+        record_path: str = None,
+        cfg: Union[dict, EasyDict] = None,
+        metric_list: Optional[List[str]] = None,
+        env: Optional[BaseEnvManagerV2] = None,
+        model: Optional[torch.nn.Module] = None,
+        anonymous: bool = False,
+        project_name: str = 'default-project',
+) -> Callable:
+    '''
+    Overview:
+        Wandb visualizer to track the experiment.
+    Arguments:
+        - datasetpath (:obj:`str`): The path to save the replay of simulation.
+        - record_path (:obj:`str`): The path to save the replay of simulation.
+        - cfg (:obj:`Union[dict, EasyDict]`): Config, a dict of following settings:
+            - gradient_logger: boolean. Whether to track the gradient.
+            - plot_logger: boolean. Whether to track the metrics like reward and loss.
+            - video_logger: boolean. Whether to upload the rendering video replay.
+            - action_logger: boolean. `q_value` or `action probability`.
+            - return_logger: boolean. Whether to track the return value.
+        - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
+        - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
+        - model (:obj:`nn.Module`): Policy neural network model.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
+            The anonymous mode allows visualization of data without wandb count.
+        - project_name (:obj:`str`): The name of wandb project.
+    '''
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
+    color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
+    if metric_list is None:
+        metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
     if anonymous:
@@ -168,109 +337,6 @@ def wandb_online_logger(
     # which will be uploaded to wandb later
     if env is not None:
         env.enable_save_replay(replay_path=record_path)
-    if cfg.gradient_logger:
-        wandb.watch(model)
-    else:
-        one_time_warning(
-            "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
-        )
-
-    def _plot(ctx: "OnlineRLContext"):
-        if not cfg.plot_logger:
-            one_time_warning(
-                "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
-            )
-            return
-        for metric in metric_list:
-            if metric in ctx.train_output[0]:
-                metric_value = np.mean([item[metric] for item in ctx.train_output])
-                wandb.log({metric: metric_value})
-
-        if ctx.eval_value != -np.inf:
-            wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter, "env step": ctx.env_step})
-
-            eval_output = ctx.eval_output['output']
-            episode_return = ctx.eval_output['episode_return']
-            episode_return = np.array(episode_return)
-            if len(episode_return.shape) == 2:
-                episode_return = episode_return.squeeze(1)
-
-            if cfg.video_logger:
-                file_list = []
-                for p in os.listdir(record_path):
-                    if os.path.splitext(p)[-1] == ".mp4":
-                        file_list.append(p)
-                file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
-                video_path = os.path.join(record_path, file_list[-2])
-                wandb.log({"video": wandb.Video(video_path, format="mp4")})
-
-            action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
-            return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
-            if cfg.action_logger in ['q_value', 'action probability']:
-                if isinstance(eval_output, tnp.ndarray):
-                    action_prob = softmax(eval_output.logit)
-                else:
-                    action_prob = [softmax(to_ndarray(v['logit'])) for v in eval_output]
-                fig, ax = plt.subplots()
-                plt.ylim([-1, 1])
-                action_dim = len(action_prob[1])
-                x_range = [str(x + 1) for x in range(action_dim)]
-                ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
-                ani = animation.FuncAnimation(
-                    fig, action_prob, fargs=(action_prob, ln), blit=True, save_count=len(action_prob)
-                )
-                ani.save(action_path, writer='pillow')
-                wandb.log({cfg.action_logger: wandb.Video(action_path, format="gif")})
-                plt.clf()
-
-            if cfg.return_logger:
-                fig, ax = plt.subplots()
-                ax = plt.gca()
-                ax.set_ylim([0, 1])
-                hist, x_dim = return_distribution(episode_return)
-                assert len(hist) == len(x_dim)
-                ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
-                ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
-                ani.save(return_path, writer='pillow')
-                wandb.log({"return distribution": wandb.Video(return_path, format="gif")})
-
-    return _plot
-
-
-def wandb_offline_logger(
-        cfg: EasyDict,
-        env: BaseEnvManagerV2,
-        model: torch.nn.Module,
-        datasetpath: str,
-        anonymous: bool = False
-) -> Callable:
-    '''
-    Overview:
-        Wandb visualizer to track the experiment.
-    Arguments:
-        - cfg (:obj:`EasyDict`): Config, a dict of following settings:
-            - record_path: string. The path to save the replay of simulation.
-            - gradient_logger: boolean. Whether to track the gradient.
-            - plot_logger: boolean. Whether to track the metrics like reward and loss.
-            - action_logger: `q_value` or `action probability`.
-        - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
-        - model (:obj:`nn.Module`): Model.
-        - datasetpath (:obj:`str`): The path of offline dataset.
-        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
-            The anonymous mode allows visualization of data without wandb count.
-    '''
-
-    color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
-    metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
-    # Initialize wandb with default settings
-    # Settings can be covered by calling wandb.init() at the top of the script
-    if anonymous:
-        wandb.init(anonymous="must")
-    else:
-        wandb.init()
-    # The visualizer is called to save the replay of the simulation
-    # which will be uploaded to wandb later
-    env.enable_save_replay(replay_path=cfg.record_path)
     if cfg.gradient_logger:
         wandb.watch(model)
     else:
@@ -324,62 +390,93 @@ def wandb_offline_logger(
         wandb.log({"dataset": wandb.Image("dataset.png")})
 
     if cfg.vis_dataset is True:
-        _vis_dataset(datasetpath)
+        _vis_dataset(dataset_path)
 
-    def _plot(ctx: "OfflineRLContext"):
+    def _plot(ctx: "OnlineRLContext"):
+        info_for_logging = {}
+
         if not cfg.plot_logger:
             one_time_warning(
                 "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
             )
             return
         for metric in metric_list:
-            if metric in ctx.train_output:
-                metric_value = ctx.train_output[metric]
-                wandb.log({metric: metric_value})
+            if metric in ctx.train_output[0]:
+                metric_value_list = []
+                for item in ctx.train_output:
+                    if isinstance(item[metric], torch.Tensor):
+                        metric_value_list.append(item[metric].cpu().detach().numpy())
+                    else:
+                        metric_value_list.append(item[metric])
+                metric_value = np.mean(metric_value_list)
+                info_for_logging.update({metric: metric_value})
 
         if ctx.eval_value != -np.inf:
-            wandb.log({"reward": ctx.eval_value, "train iter": ctx.train_iter})
+            info_for_logging.update(
+                {
+                    "episode return mean": ctx.eval_value,
+                    "train iter": ctx.train_iter,
+                    "env step": ctx.env_step
+                }
+            )
 
             eval_output = ctx.eval_output['output']
             episode_return = ctx.eval_output['episode_return']
-            if 'logit' in eval_output[0]:
-                action_value = [to_ndarray(F.softmax(v['logit'], dim=-1)) for v in eval_output]
+            episode_return = np.array(episode_return)
+            if len(episode_return.shape) == 2:
+                episode_return = episode_return.squeeze(1)
 
-            file_list = []
-            for p in os.listdir(cfg.record_path):
-                if os.path.splitext(p)[-1] == ".mp4":
-                    file_list.append(p)
-            file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(cfg.record_path, fn)))
+            if cfg.video_logger:
+                file_list = []
+                for p in os.listdir(record_path):
+                    if os.path.splitext(p)[-1] == ".mp4":
+                        file_list.append(p)
+                file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
+                video_path = os.path.join(record_path, file_list[-2])
+                info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
 
-            video_path = os.path.join(cfg.record_path, file_list[-2])
-            action_path = os.path.join(cfg.record_path, (str(ctx.train_iter) + "_action.gif"))
-            return_path = os.path.join(cfg.record_path, (str(ctx.train_iter) + "_return.gif"))
-            if cfg.action_logger in ['q_value', 'action probability']:
+            action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
+            return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
+            if cfg.action_logger:
+                if all(['logit' in v for v in eval_output]) or hasattr(eval_output, "logit"):
+                    if isinstance(eval_output, tnp.ndarray):
+                        action_prob = softmax(eval_output.logit)
+                    else:
+                        action_prob = [softmax(to_ndarray(v['logit'])) for v in eval_output]
+                    fig, ax = plt.subplots()
+                    plt.ylim([-1, 1])
+                    action_dim = len(action_prob[1])
+                    x_range = [str(x + 1) for x in range(action_dim)]
+                    ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
+                    ani = animation.FuncAnimation(
+                        fig, action_prob, fargs=(action_prob, ln), blit=True, save_count=len(action_prob)
+                    )
+                    ani.save(action_path, writer='pillow')
+                    info_for_logging.update({"action": wandb.Video(action_path, format="gif")})
+
+                elif all(['action' in v for v in eval_output[0]]):
+                    for i, action_trajectory in enumerate(eval_output):
+                        fig, ax = plt.subplots()
+                        fig_data = np.array([[i + 1, *v['action']] for i, v in enumerate(action_trajectory)])
+                        steps = fig_data[:, 0]
+                        actions = fig_data[:, 1:]
+                        plt.ylim([-1, 1])
+                        for j in range(actions.shape[1]):
+                            ax.scatter(steps, actions[:, j])
+                        info_for_logging.update({"actions_of_trajectory_{}".format(i): fig})
+
+            if cfg.return_logger:
                 fig, ax = plt.subplots()
-                plt.ylim([-1, 1])
-                action_dim = len(action_value[0])
-                x_range = [str(x + 1) for x in range(action_dim)]
-                ln = ax.bar(x_range, [0 for x in range(action_dim)], color=color_list[:action_dim])
-                ani = animation.FuncAnimation(
-                    fig, action_prob, fargs=(action_value, ln), blit=True, save_count=len(action_value)
-                )
-                ani.save(action_path, writer='pillow')
-                wandb.log({cfg.action_logger: wandb.Video(action_path, format="gif")})
-                plt.clf()
+                ax = plt.gca()
+                ax.set_ylim([0, 1])
+                hist, x_dim = return_distribution(episode_return)
+                assert len(hist) == len(x_dim)
+                ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
+                ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
+                ani.save(return_path, writer='pillow')
+                info_for_logging.update({"return distribution": wandb.Video(return_path, format="gif")})
 
-            fig, ax = plt.subplots()
-            ax = plt.gca()
-            ax.set_ylim([0, 1])
-            hist, x_dim = return_distribution(episode_return)
-            assert len(hist) == len(x_dim)
-            ln_return = ax.bar(x_dim, hist, width=1, color='r', linewidth=0.7)
-            ani = animation.FuncAnimation(fig, return_prob, fargs=(hist, ln_return), blit=True, save_count=1)
-            ani.save(return_path, writer='pillow')
-            wandb.log(
-                {
-                    "video": wandb.Video(video_path, format="mp4"),
-                    "return distribution": wandb.Video(return_path, format="gif")
-                }
-            )
+        wandb.log(data=info_for_logging, step=ctx.env_step)
+        plt.clf()
 
     return _plot
