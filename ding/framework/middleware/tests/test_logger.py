@@ -192,10 +192,9 @@ class The1DDataClass(Mock):
 
 @pytest.mark.unittest
 def test_wandb_online_logger():
-
+    record_path = './video_qbert_dqn'
     cfg = EasyDict(
         dict(
-            record_path='./video_qbert_dqn',
             gradient_logger=True,
             plot_logger=True,
             action_logger='action probability',
@@ -209,23 +208,39 @@ def test_wandb_online_logger():
     model = TheModelClass()
     wandb.init(config=cfg, anonymous="must")
 
-    def mock_metric_logger(metric_dict):
+    def mock_metric_logger(metric_dict, step):
         metric_list = [
-            "q_value", "target q_value", "loss", "lr", "entropy", "reward", "q value", "video", "q value distribution",
-            "train iter"
+            "q_value",
+            "target q_value",
+            "loss",
+            "lr",
+            "entropy",
+            "reward",
+            "q value",
+            "video",
+            "q value distribution",
+            "train iter",
+            "episode return mean",
+            "env step",
+            "action",
+            "actions_of_trajectory_0",
+            "actions_of_trajectory_1",
+            "actions_of_trajectory_2",
+            "actions_of_trajectory_3",
+            "return distribution",
         ]
-        assert set(metric_dict.keys()) < set(metric_list)
+        assert set(metric_dict.keys()) <= set(metric_list)
 
     def mock_gradient_logger(input_model):
         assert input_model == model
 
     def test_wandb_online_logger_metric():
         with patch.object(wandb, 'log', new=mock_metric_logger):
-            wandb_online_logger(cfg.record_path, cfg, env=env, model=model, anonymous=True)(ctx)
+            wandb_online_logger(record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     def test_wandb_online_logger_gradient():
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_online_logger(cfg.record_path, cfg, env=env, model=model, anonymous=True)(ctx)
+            wandb_online_logger(record_path, cfg, env=env, model=model, anonymous=True)(ctx)
 
     test_wandb_online_logger_metric()
     test_wandb_online_logger_gradient()
@@ -235,16 +250,8 @@ def test_wandb_online_logger():
 # TODO(nyz): fix CI bug when py=3.8.15
 @pytest.mark.tmp
 def test_wandb_offline_logger(mocker):
-
-    cfg = EasyDict(
-        dict(
-            record_path='./video_pendulum_cql',
-            gradient_logger=True,
-            plot_logger=True,
-            action_logger='action probability',
-            vis_dataset=True
-        )
-    )
+    record_path = './video_pendulum_cql'
+    cfg = EasyDict(dict(gradient_logger=True, plot_logger=True, action_logger='action probability', vis_dataset=True))
     env = TheEnvClass()
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]

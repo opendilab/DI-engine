@@ -12,7 +12,7 @@ from ding.framework.context import Context, OfflineRLContext, OnlineRLContext
 from ding.policy import Policy
 from ding.data import Dataset, DataLoader
 from ding.framework import task
-from ding.torch_utils import tensor_to_list, to_list, to_ndarray, get_shape0
+from ding.torch_utils import to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
 
 
@@ -282,7 +282,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return
-        ctx.eval_output = {'reward': episode_return}
+        ctx.last_eval_value = ctx.eval_value
+        ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:
             ctx.eval_output['episode_info'] = episode_info
@@ -305,7 +306,7 @@ def interaction_evaluator_ttorch(
         n_evaluator_episode: Optional[int] = None,
         stop_value: float = np.inf,
         eval_freq: int = 1000,
-        render: bool = False
+        render: bool = False,
 ) -> Callable:
     """
     Overview:
@@ -353,7 +354,7 @@ def interaction_evaluator_ttorch(
             inference_output = inference_output.cpu()
             if render:
                 eval_monitor.update_video(env.ready_imgs)
-                eval_monitor.update_output(inference_output)
+                # eval_monitor.update_output(inference_output)
             action = inference_output.action.numpy()
             timesteps = env.step(action)
             for timestep in timesteps:
@@ -374,6 +375,7 @@ def interaction_evaluator_ttorch(
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return_mean
+        ctx.last_eval_value = ctx.eval_value
         ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()
         if episode_info is not None:

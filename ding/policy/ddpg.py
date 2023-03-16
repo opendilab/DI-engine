@@ -242,20 +242,22 @@ class DDPGPolicy(Policy):
             reward = (reward - reward.mean()) / (reward.std() + 1e-8)
         # current q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
-        q_value_dict = {}
-        if self._twin_critic:
-            q_value_dict['q_value'] = q_value[0].mean()
-            q_value_dict['q_value_twin'] = q_value[1].mean()
-        else:
-            q_value_dict['q_value'] = q_value.mean()
+
         # target q value.
         with torch.no_grad():
             next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
             next_actor_data['obs'] = next_obs
             target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
+
+        q_value_dict = {}
+        target_q_value_dict = {}
+
         if self._twin_critic:
             # TD3: two critic networks
             target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
+            q_value_dict['q_value'] = q_value[0].mean().data.item()
+            q_value_dict['q_value_twin'] = q_value[1].mean().data.item()
+            target_q_value_dict['target q_value'] = target_q_value.mean().data.item()
             # critic network1
             td_data = v_1step_td_data(q_value[0], target_q_value, reward, data['done'], data['weight'])
             critic_loss, td_error_per_sample1 = v_1step_td_error(td_data, self._gamma)
@@ -267,6 +269,8 @@ class DDPGPolicy(Policy):
             td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
         else:
             # DDPG: single critic network
+            q_value_dict['q_value'] = q_value.mean().data.item()
+            target_q_value_dict['target q_value'] = target_q_value.mean().data.item()
             td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
             critic_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
             loss_dict['critic_loss'] = critic_loss
@@ -314,6 +318,7 @@ class DDPGPolicy(Policy):
             'td_error': td_error_per_sample.abs().mean(),
             **loss_dict,
             **q_value_dict,
+            **target_q_value_dict,
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:

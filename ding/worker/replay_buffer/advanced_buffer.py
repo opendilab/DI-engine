@@ -1,7 +1,7 @@
 import os
 import copy
 import time
-from typing import Union, NoReturn, Any, Optional, List, Dict, Tuple
+from typing import Union, Any, Optional, List, Dict, Tuple
 import numpy as np
 import hickle
 
@@ -721,7 +721,7 @@ class AdvancedReplayBuffer(IBuffer):
         return self._beta
 
     @beta.setter
-    def beta(self, beta: float) -> NoReturn:
+    def beta(self, beta: float) -> None:
         self._beta = beta
 
     def state_dict(self) -> dict:

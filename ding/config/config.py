@@ -9,7 +9,7 @@ import tempfile
 import subprocess
 import datetime
 from importlib import import_module
-from typing import Optional, Tuple, NoReturn
+from typing import Optional, Tuple
 from easydict import EasyDict
 from copy import deepcopy
 
@@ -131,7 +131,7 @@ def read_config_yaml(path: str) -> EasyDict:
     return EasyDict(config_)
 
 
-def save_config_yaml(config_: dict, path: str) -> NoReturn:
+def save_config_yaml(config_: dict, path: str) -> None:
     """
     Overview:
         save configuration to path
@@ -144,7 +144,7 @@ def save_config_yaml(config_: dict, path: str) -> NoReturn:
         yaml.safe_dump(json.loads(config_string), f)
 
 
-def save_config_py(config_: dict, path: str) -> NoReturn:
+def save_config_py(config_: dict, path: str) -> None:
     """
     Overview:
         save configuration to python file
@@ -218,7 +218,7 @@ def read_config_with_system(path: str) -> Tuple[dict, dict, dict]:
         raise KeyError("invalid config file suffix: {}".format(suffix))
 
 
-def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: bool = False) -> NoReturn:
+def save_config(config_: dict, path: str, type_: str = 'py', save_formatted: bool = False) -> None:
     """
     Overview:
         save configuration to python file or yaml file
