@@ -114,7 +114,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
-        cfg = TD3Policy.default_config()
+        cfg = EasyDict({"policy":TD3Policy.default_config()})
         if env == 'hopper':
             cfg.update(
                 dict(
@@ -152,7 +152,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'DQN':
-        cfg = DQNPolicy.default_config()
+        cfg = EasyDict({"policy":DQNPolicy.default_config()})
         if env == 'lunarlander_discrete':
             cfg.update(
                 dict(
