@@ -15,99 +15,126 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('dqn')
 class DQNPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of DQN algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.
 
     Config:
-        == ==================== ======== ============== ======================================== =======================
-        ID Symbol               Type     Default Value  Description                              Other(Shape)
-        == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,
-                                                        | registry ``POLICY_REGISTRY``           | a placeholder
-        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
+        == ===================== ======== ============== ======================================= =======================
+        ID Symbol                Type     Default Value  Description                              Other(Shape)
+        == ===================== ======== ============== ======================================= =======================
+        1  ``type``              str      dqn            | RL policy register name, refer to     | This arg is optional,
+                                                         | registry ``POLICY_REGISTRY``          | a placeholder
+        2  ``cuda``              bool     False          | Whether to use cuda for network       | This arg can be diff-
                                                                                                  | erent from modes
-        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
-                                                        | or off-policy
-        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,
+        3  ``on_policy``         bool     False          | Whether the RL algorithm is on-policy
+                                                         | or off-policy
+        4  ``priority``          bool     False          | Whether use priority(PER)             | Priority sample,
                                                                                                  | update priority
-        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight
-           | ``_weight``                                | to correct biased update. If True,
-                                                        | priority must be True.
-        6  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | May be 1 when sparse
-           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        7  ``nstep``            int      1,             | N-step reward discount sum for target
-                                         [3, 5]         | q_value estimation
-        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
-           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
-                                                        | valid in serial training               | means more off-policy
-        9  | ``learn.multi``    bool     False          | whether to use multi gpu during
+        5  | ``priority_IS``     bool     False          | Whether use Importance Sampling
+           | ``_weight``                                 | Weight to correct biased update. If
+                                                         | True, priority must be True.
+        6  | ``discount_``       float    0.97,          | Reward's future discount factor, aka. | May be 1 when sparse
+           | ``factor``                   [0.95, 0.999]  | gamma                                 | reward env
+        7  ``nstep``             int      1,             | N-step reward discount sum for target
+                                          [3, 5]         | q_value estimation
+        8  | ``model.dueling``   bool     True           | dueling head architecture
+        9  | ``model.encoder``   list     [32, 64,       | Sequence of ``hidden_size`` of        | default kernel_size
+           | ``_hidden``         (int)    64, 128]       | subsequent conv layers and the        | is [8, 4, 3]
+           | ``_size_list``                               | final dense layer.                   | default stride is
+                                                                                                 | [4, 2 ,1]
+        10 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary
+           | ``per_collect``                             | after collector's one collection.     | from envs. Bigger val
+                                                         | Only valid in serial training         | means more off-policy
+        11 | ``learn.multi``     bool     False          | whether to use multi gpu
            | ``_gpu``
-        10 | ``learn.batch_``   int      64             | The number of samples of an iteration
+        12 | ``learn.batch_``    int      64             | The number of samples of an iteration
            | ``size``
-        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+        13 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+        14 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update
            | ``update_freq``
-        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
-           | ``done``                                   | calculation.                           | fake termination env
-        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
-                                                        | call of collector.                     | different envs
-        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+        15 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update
+           | ``theta``                                   | Only one of [target_update_freq,
+           |                                             | target_theta] should be set
+        16 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some
+           | ``done``                                    | calculation.                          | fake termination env
+        17 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from
+                                                         | call of collector.                    | different envs
+        18 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample
+                                                         | call of collector                     | ,n_episode] should
+                                                         |                                       | be set
+        19 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len>1
            | ``_len``
-        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
+        20 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support ['exp',
                                                                                                  | 'linear'].
-        17 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]
+        21 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]
            | ``start``
-        18 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]
+        22 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]
            | ``end``
-        19 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set
+        23 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set
            | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
                                                                                                  | value to end value
                                                                                                  | during decay length.
-        == ==================== ======== ============== ======================================== =======================
+        == ===================== ======== ============== ======================================= =======================
     """
 
     config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='dqn',
-        # (bool) Whether use cuda in policy
+        # (bool) Whether use cuda in policy.
         cuda=False,
-        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy).
         on_policy=False,
-        # (bool) Whether enable priority experience sample
+        # (bool) Whether enable priority experience sample.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        # (float) Discount factor(gamma) for returns
+        # (float) Discount factor(gamma) for returns.
         discount_factor=0.97,
-        # (int) The number of step for calculating target q_value
+        # (int) The number of step for calculating target q_value.
         nstep=1,
+        model=dict(
+            #(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
+            encoder_hidden_size_list=[128, 128, 64],
+            # (bool) Whether enable dueling head.
+            dueling=True,
+        ),
         learn=dict(
-            # (bool) Whether to use multi gpu
+            # (bool) Whether to use multi gpu.
             multi_gpu=False,
-            # How many updates(iterations) to train after collector's one collection.
+            # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
-            # (int) How many samples in a training batch
+            # (int) How many samples in a training batch.
             batch_size=64,
-            # (float) The step size of gradient descent
+            # (float) The step size of gradient descent.
             learning_rate=0.001,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
             # (int) Frequence of target network update.
+            # Only one of [target_update_freq, target_theta] should be set.
             target_update_freq=100,
-            # (bool) Whether ignore done(usually for max step termination env)
+            # (float) : Used for soft update of the target network.
+            # aka. Interpolation factor in EMA update for target network.
+            # Only one of [target_update_freq, target_theta] should be set.
+            target_theta=0.005,
+            # (bool) Whether ignore done(usually for max step termination env).
+            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
+            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
+            # However, interaction with HalfCheetah always gets done with done is False,
+            # Since we inplace done==True with done==False to keep
+            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
+            # when the episode step is greater than max episode step.
             ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_sample=8,
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
+            n_sample=8,
+            # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
         ),
         eval=dict(),
@@ -117,14 +144,17 @@ class DQNPolicy(Policy):
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
-                # (float) Epsilon start value
+                # (float) Epsilon start value.
                 start=0.95,
-                # (float) Epsilon end value
+                # (float) Epsilon end value.
                 end=0.1,
-                # (int) Decay length(env step)
+                # (int) Decay length(env step).
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is good.
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
@@ -189,7 +219,7 @@ class DQNPolicy(Policy):
                 recorded in text log and tensorboard, values are python scalar or a list of scalars.
         ArgumentsKeys:
             - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
-            - optional: ``value_gamma``, ``IS``
+            - optional: ``value_gamma``
         ReturnsKeys:
             - necessary: ``cur_lr``, ``total_loss``, ``priority``
             - optional: ``action_distribution``
