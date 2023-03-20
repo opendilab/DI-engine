@@ -131,13 +131,14 @@ class ProcedureCloningMCTS(nn.Module):
         B, T, *_ = hidden_states.shape
         assert T == self.seq_len
         state_embeddings, hidden_state_embeddings = self._compute_embeddings(states, hidden_states)
-        if hidden_state_embeddings:
+        if hidden_state_embeddings is not None:
             h = torch.cat((state_embeddings, hidden_state_embeddings), dim=1)
         else:
             h = state_embeddings
         hidden_state_preds, action_preds = self._compute_transformer(h)
 
-        return hidden_state_preds, action_preds, hidden_state_embeddings.detach() if hidden_state_embeddings else None
+        return hidden_state_preds, action_preds, hidden_state_embeddings.detach() \
+            if hidden_state_embeddings is not None else None
 
     def forward_eval(self, states: torch.Tensor) -> torch.Tensor:
         batch_size = states.shape[0]
