@@ -146,4 +146,7 @@ class ProcedureCloningMCTS(nn.Module):
             hidden_state_embeddings, action_pred = self._compute_transformer(h)
             embedding_mask[0, i, 0] = 1
 
+        h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
+        hidden_state_embeddings, action_pred = self._compute_transformer(h)
+
         return action_pred

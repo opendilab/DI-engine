@@ -101,12 +101,16 @@ class ProcedureCloningPolicyMCTS(Policy):
         self._learn_model.train()
         with self._timer:
             obs, hidden_states, action = data['obs'], data['hidden_states'], data['action']
-            if len(hidden_states) > 0:
+            zero_hidden_len = len(hidden_states) > 0
+            if zero_hidden_len:
                 hidden_states = torch.stack(hidden_states, dim=1).float()
             else:
                 hidden_states = to_device(torch.empty(obs.shape[0], 0, *self._learn_model.hidden_shape), self._device)
             pred_hidden_states, pred_action, target_hidden_states = self._learn_model.forward(obs, hidden_states)
-            hidden_state_loss = self._hidden_state_loss(pred_hidden_states, target_hidden_states)
+            if zero_hidden_len:
+                hidden_state_loss = 0
+            else:
+                hidden_state_loss = self._hidden_state_loss(pred_hidden_states, target_hidden_states)
             action_loss = self._action_loss(pred_action, action)
             loss = hidden_state_loss + action_loss
         forward_time = self._timer.value
