@@ -5,10 +5,10 @@ from ding.model.template import ProcedureCloningMCTS
 
 B = 4
 T = 15
-obs_shape = (64, 64, 3)
-hidden_shape = (9, 9, 64)
-action_dim = 9
-obs_embeddings = 256
+obs_shape = (3, 64, 64)
+hidden_shape = (64, 9, 9)
+action_dim = 6
+obs_embeddings = 512
 
 
 @pytest.mark.unittest

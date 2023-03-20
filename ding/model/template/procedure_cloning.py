@@ -3,49 +3,53 @@ import torch
 import torch.nn as nn
 from ding.utils import MODEL_REGISTRY, SequenceType
 from ding.torch_utils.network.transformer import Attention
-from ding.torch_utils.network.nn_module import fc_block, build_normalization
-from ..common import FCEncoder, ConvEncoder
+from ..common import ConvEncoder
 
 
-class Block(nn.Module):
-
-    def __init__(
-            self, cnn_hidden: int, att_hidden: int, att_heads: int, drop_p: float, max_T: int, n_att: int,
-            feedforward_hidden: int, n_feedforward: int
-    ) -> None:
+class PreNorm(nn.Module):
+    def __init__(self, dim, fn):
         super().__init__()
-        self.n_att = n_att
-        self.n_feedforward = n_feedforward
-        self.attention_layer = []
+        self.norm = nn.LayerNorm(dim)
+        self.fn = fn
 
-        self.norm_layer = [nn.LayerNorm(att_hidden)] * n_att
+    def forward(self, x, **kwargs):
+        return self.fn(self.norm(x), **kwargs)
 
-        self.attention_layer.append(Attention(cnn_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
-        for i in range(n_att - 1):
-            self.attention_layer.append(Attention(att_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
-        self.attention_layer = nn.ModuleList(self.attention_layer)
-        self.att_drop = nn.Dropout(drop_p)
 
-        self.fc_blocks = []
-        self.fc_blocks.append(fc_block(att_hidden, feedforward_hidden, activation=nn.ReLU()))
-        for i in range(n_feedforward - 1):
-            self.fc_blocks.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
-        self.fc_blocks = nn.ModuleList(self.fc_blocks)
+class FeedForward(nn.Module):
+    def __init__(self, dim, hidden_dim, drop_p=0.):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim, hidden_dim),
+            nn.GELU(),
+            nn.Dropout(drop_p),
+            nn.Linear(hidden_dim, dim),
+            nn.Dropout(drop_p)
+        )
 
-        self.norm_layer.extend([nn.LayerNorm(feedforward_hidden)] * n_feedforward)
-        self.norm_layer = nn.ModuleList(self.norm_layer)
+    def forward(self, x):
+        return self.net(x)
 
+
+class Transformer(nn.Module):
+    def __init__(self, n_layer: int, n_attn: int, n_head: int, drop_p: float, max_T: int, n_ffn: int):
+        super().__init__()
+        self.layers = nn.ModuleList([])
+        assert n_attn % n_head == 0
+        dim_head = n_attn // n_head
+        for _ in range(n_layer):
+            self.layers.append(nn.ModuleList([
+                PreNorm(n_attn, Attention(n_attn, dim_head, n_attn, n_head, nn.Dropout(drop_p))),
+                PreNorm(n_attn, FeedForward(n_attn, n_ffn, drop_p=drop_p))
+            ]))
         self.mask = nn.Parameter(
             torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T), requires_grad=False
         )
 
-    def forward(self, x: torch.Tensor):
-        for i in range(self.n_att):
-            x = self.att_drop(self.attention_layer[i](x, self.mask))
-            x = self.norm_layer[i](x)
-        for i in range(self.n_feedforward):
-            x = self.fc_blocks[i](x)
-            x = self.norm_layer[i + self.n_att](x)
+    def forward(self, x):
+        for attn, ff in self.layers:
+            x = attn(x, mask=self.mask) + x
+            x = ff(x) + x
         return x
 
 
@@ -58,20 +62,20 @@ class ProcedureCloningMCTS(nn.Module):
         hidden_shape: SequenceType,
         action_dim: int,
         seq_len: int,
-        cnn_hidden_list: SequenceType = [128, 128, 256, 256, 256],
+        cnn_hidden_list: SequenceType = [128, 256, 512],
+        cnn_kernel_size: SequenceType = [8, 4, 3],
+        cnn_stride: SequenceType = [4, 2, 1],
+        cnn_padding: Optional[SequenceType] = [0, 0, 0],
+        hidden_state_cnn_hidden_list: SequenceType = [128, 256, 512],
+        hidden_state_cnn_kernel_size: SequenceType = [3, 3, 3],
+        hidden_state_cnn_stride: SequenceType = [1, 1, 1],
+        hidden_state_cnn_padding: Optional[SequenceType] = [1, 1, 1],
         cnn_activation: Optional[nn.Module] = nn.ReLU(),
-        cnn_kernel_size: SequenceType = [3, 3, 3, 3, 3],
-        cnn_stride: SequenceType = [1, 1, 1, 1, 1],
-        cnn_padding: Optional[SequenceType] = [1, 1, 1, 1, 1],
-        mlp_hidden_list: SequenceType = [256, 256],
-        mlp_activation: Optional[nn.Module] = nn.ReLU(),
         att_heads: int = 8,
-        att_hidden: int = 128,
-        n_att: int = 4,
-        n_feedforward: int = 2,
-        feedforward_hidden: int = 256,
-        drop_p: float = 0.5,
-        augment: bool = True,
+        att_hidden: int = 512,
+        n_att_layer: int = 4,
+        ffn_hidden: int = 512,
+        drop_p: float = 0.,
     ) -> None:
         super().__init__()
         self.obs_shape = obs_shape
@@ -79,35 +83,20 @@ class ProcedureCloningMCTS(nn.Module):
         self.seq_len = seq_len
         max_T = seq_len + 1
 
-        #Conv Encoder
+        # Conv Encoder
         self.embed_state = ConvEncoder(
             obs_shape, cnn_hidden_list, cnn_activation, cnn_kernel_size, cnn_stride, cnn_padding
         )
         self.embed_hidden = ConvEncoder(
-            hidden_shape, cnn_hidden_list, cnn_activation, cnn_kernel_size, cnn_stride, cnn_padding
+            hidden_shape, hidden_state_cnn_hidden_list, cnn_activation, hidden_state_cnn_kernel_size,
+            hidden_state_cnn_stride, hidden_state_cnn_padding
         )
 
         self.cnn_hidden_list = cnn_hidden_list
-        self.augment = augment
 
-        assert cnn_hidden_list[-1] == mlp_hidden_list[-1]
-        layers = []
-        for i in range(n_att):
-            if i == 0:
-                layers.append(Attention(cnn_hidden_list[-1], att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
-            else:
-                layers.append(Attention(att_hidden, att_hidden, att_hidden, att_heads, nn.Dropout(drop_p)))
-            layers.append(build_normalization('LN')(att_hidden))
-        for i in range(n_feedforward):
-            if i == 0:
-                layers.append(fc_block(att_hidden, feedforward_hidden, activation=nn.ReLU()))
-            else:
-                layers.append(fc_block(feedforward_hidden, feedforward_hidden, activation=nn.ReLU()))
-                self.layernorm2 = build_normalization('LN')(feedforward_hidden)
-
-        self.transformer = Block(
-            cnn_hidden_list[-1], att_hidden, att_heads, drop_p, max_T, n_att, feedforward_hidden, n_feedforward
-        )
+        assert cnn_hidden_list[-1] == att_hidden
+        self.transformer = Transformer(n_layer=n_att_layer, n_attn=att_hidden, n_head=att_heads,
+                                       drop_p=drop_p, max_T=max_T, n_ffn=ffn_hidden)
 
         self.predict_hidden_state = torch.nn.Linear(cnn_hidden_list[-1], cnn_hidden_list[-1])
         self.predict_action = torch.nn.Linear(cnn_hidden_list[-1], action_dim)
