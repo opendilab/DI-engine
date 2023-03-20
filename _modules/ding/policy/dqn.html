@@ -309,99 +309,126 @@
 
 <div class="viewcode-block" id="DQNPolicy"><a class="viewcode-back" href="../../../12_policies/dqn_zh.html#ding.policy.dqn.DQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DQNPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of DQN algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.</span>
 
 <span class="sd">    Config:</span>
-<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
-<span class="sd">        ID Symbol               Type     Default Value  Description                              Other(Shape)</span>
-<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
-<span class="sd">        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,</span>
-<span class="sd">                                                        | registry ``POLICY_REGISTRY``           | a placeholder</span>
-<span class="sd">        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-</span>
+<span class="sd">        == ===================== ======== ============== ======================================= =======================</span>
+<span class="sd">        ID Symbol                Type     Default Value  Description                              Other(Shape)</span>
+<span class="sd">        == ===================== ======== ============== ======================================= =======================</span>
+<span class="sd">        1  ``type``              str      dqn            | RL policy register name, refer to     | This arg is optional,</span>
+<span class="sd">                                                         | registry ``POLICY_REGISTRY``          | a placeholder</span>
+<span class="sd">        2  ``cuda``              bool     False          | Whether to use cuda for network       | This arg can be diff-</span>
 <span class="sd">                                                                                                 | erent from modes</span>
-<span class="sd">        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy</span>
-<span class="sd">                                                        | or off-policy</span>
-<span class="sd">        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,</span>
+<span class="sd">        3  ``on_policy``         bool     False          | Whether the RL algorithm is on-policy</span>
+<span class="sd">                                                         | or off-policy</span>
+<span class="sd">        4  ``priority``          bool     False          | Whether use priority(PER)             | Priority sample,</span>
 <span class="sd">                                                                                                 | update priority</span>
-<span class="sd">        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight</span>
-<span class="sd">           | ``_weight``                                | to correct biased update. If True,</span>
-<span class="sd">                                                        | priority must be True.</span>
-<span class="sd">        6  | ``discount_``      float    0.97,          | Reward&#39;s future discount factor, aka.  | May be 1 when sparse</span>
-<span class="sd">           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env</span>
-<span class="sd">        7  ``nstep``            int      1,             | N-step reward discount sum for target</span>
-<span class="sd">                                         [3, 5]         | q_value estimation</span>
-<span class="sd">        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary</span>
-<span class="sd">           | ``per_collect``                            | after collector&#39;s one collection. Only | from envs. Bigger val</span>
-<span class="sd">                                                        | valid in serial training               | means more off-policy</span>
-<span class="sd">        9  | ``learn.multi``    bool     False          | whether to use multi gpu during</span>
+<span class="sd">        5  | ``priority_IS``     bool     False          | Whether use Importance Sampling</span>
+<span class="sd">           | ``_weight``                                 | Weight to correct biased update. If</span>
+<span class="sd">                                                         | True, priority must be True.</span>
+<span class="sd">        6  | ``discount_``       float    0.97,          | Reward&#39;s future discount factor, aka. | May be 1 when sparse</span>
+<span class="sd">           | ``factor``                   [0.95, 0.999]  | gamma                                 | reward env</span>
+<span class="sd">        7  ``nstep``             int      1,             | N-step reward discount sum for target</span>
+<span class="sd">                                          [3, 5]         | q_value estimation</span>
+<span class="sd">        8  | ``model.dueling``   bool     True           | dueling head architecture</span>
+<span class="sd">        9  | ``model.encoder``   list     [32, 64,       | Sequence of ``hidden_size`` of        | default kernel_size</span>
+<span class="sd">           | ``_hidden``         (int)    64, 128]       | subsequent conv layers and the        | is [8, 4, 3]</span>
+<span class="sd">           | ``_size_list``                               | final dense layer.                   | default stride is</span>
+<span class="sd">                                                                                                 | [4, 2 ,1]</span>
+<span class="sd">        10 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary</span>
+<span class="sd">           | ``per_collect``                             | after collector&#39;s one collection.     | from envs. Bigger val</span>
+<span class="sd">                                                         | Only valid in serial training         | means more off-policy</span>
+<span class="sd">        11 | ``learn.multi``     bool     False          | whether to use multi gpu</span>
 <span class="sd">           | ``_gpu``</span>
-<span class="sd">        10 | ``learn.batch_``   int      64             | The number of samples of an iteration</span>
+<span class="sd">        12 | ``learn.batch_``    int      64             | The number of samples of an iteration</span>
 <span class="sd">           | ``size``</span>
-<span class="sd">        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.</span>
+<span class="sd">        13 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.</span>
 <span class="sd">           | ``_rate``</span>
-<span class="sd">        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update</span>
+<span class="sd">        14 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update</span>
 <span class="sd">           | ``update_freq``</span>
-<span class="sd">        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some</span>
-<span class="sd">           | ``done``                                   | calculation.                           | fake termination env</span>
-<span class="sd">        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from</span>
-<span class="sd">                                                        | call of collector.                     | different envs</span>
-<span class="sd">        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len&gt;1</span>
+<span class="sd">        15 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update</span>
+<span class="sd">           | ``theta``                                   | Only one of [target_update_freq,</span>
+<span class="sd">           |                                             | target_theta] should be set</span>
+<span class="sd">        16 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some</span>
+<span class="sd">           | ``done``                                    | calculation.                          | fake termination env</span>
+<span class="sd">        17 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from</span>
+<span class="sd">                                                         | call of collector.                    | different envs</span>
+<span class="sd">        18 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample</span>
+<span class="sd">                                                         | call of collector                     | ,n_episode] should</span>
+<span class="sd">                                                         |                                       | be set</span>
+<span class="sd">        19 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len&gt;1</span>
 <span class="sd">           | ``_len``</span>
-<span class="sd">        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support [&#39;exp&#39;,</span>
+<span class="sd">        20 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support [&#39;exp&#39;,</span>
 <span class="sd">                                                                                                 | &#39;linear&#39;].</span>
-<span class="sd">        17 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]</span>
+<span class="sd">        21 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]</span>
 <span class="sd">           | ``start``</span>
-<span class="sd">        18 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]</span>
+<span class="sd">        22 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]</span>
 <span class="sd">           | ``end``</span>
-<span class="sd">        19 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set</span>
+<span class="sd">        23 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set</span>
 <span class="sd">           | ``decay``                                                                           | decay=10000 means</span>
 <span class="sd">                                                                                                 | the exploration rate</span>
 <span class="sd">                                                                                                 | decay from start</span>
 <span class="sd">                                                                                                 | value to end value</span>
 <span class="sd">                                                                                                 | during decay length.</span>
-<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">        == ===================== ======== ============== ======================================= =======================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether use cuda in policy</span>
+        <span class="c1"># (bool) Whether use cuda in policy.</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether learning policy is the same as collecting data policy(on-policy)</span>
+        <span class="c1"># (bool) Whether learning policy is the same as collecting data policy(on-policy).</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether enable priority experience sample</span>
+        <span class="c1"># (bool) Whether enable priority experience sample.</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (float) Discount factor(gamma) for returns</span>
+        <span class="c1"># (float) Discount factor(gamma) for returns.</span>
         <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
-        <span class="c1"># (int) The number of step for calculating target q_value</span>
+        <span class="c1"># (int) The number of step for calculating target q_value.</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1">#(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+            <span class="c1"># (bool) Whether enable dueling head.</span>
+            <span class="n">dueling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="c1"># (bool) Whether to use multi gpu.</span>
             <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-            <span class="c1"># (int) How many samples in a training batch</span>
+            <span class="c1"># (int) How many samples in a training batch.</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
-            <span class="c1"># (float) The step size of gradient descent</span>
+            <span class="c1"># (float) The step size of gradient descent.</span>
             <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-            <span class="c1"># ==============================================================</span>
-            <span class="c1"># The following configs are algorithm-specific</span>
-            <span class="c1"># ==============================================================</span>
             <span class="c1"># (int) Frequence of target network update.</span>
+            <span class="c1"># Only one of [target_update_freq, target_theta] should be set.</span>
             <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-            <span class="c1"># (bool) Whether ignore done(usually for max step termination env)</span>
+            <span class="c1"># (float) : Used for soft update of the target network.</span>
+            <span class="c1"># aka. Interpolation factor in EMA update for target network.</span>
+            <span class="c1"># Only one of [target_update_freq, target_theta] should be set.</span>
+            <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether ignore done(usually for max step termination env).</span>
+            <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
+            <span class="c1"># These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.</span>
+            <span class="c1"># However, interaction with HalfCheetah always gets done with done is False,</span>
+            <span class="c1"># Since we inplace done==True with done==False to keep</span>
+            <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
+            <span class="c1"># when the episode step is greater than max episode step.</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="c1"># collect_mode config</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
-            <span class="c1"># n_sample=8,</span>
-            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
+            <span class="c1"># (int) How many training samples collected in one collection procedure.</span>
+            <span class="c1"># Only one of [n_sample, n_episode] shoule be set.</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+            <span class="c1"># (int) Split episodes or trajectories into pieces with length `unroll_len`.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
@@ -411,14 +438,17 @@
             <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="c1"># (str) Decay type. Support [&#39;exp&#39;, &#39;linear&#39;].</span>
                 <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
-                <span class="c1"># (float) Epsilon start value</span>
+                <span class="c1"># (float) Epsilon start value.</span>
                 <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
-                <span class="c1"># (float) Epsilon end value</span>
+                <span class="c1"># (float) Epsilon end value.</span>
                 <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-                <span class="c1"># (int) Decay length(env step)</span>
+                <span class="c1"># (int) Decay length(env step).</span>
                 <span class="n">decay</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
             <span class="p">),</span>
-            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (int) Maximum size of replay buffer. Usually, larger buffer size is good.</span>
+                <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+            <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>
 
@@ -483,7 +513,7 @@
 <span class="sd">                recorded in text log and tensorboard, values are python scalar or a list of scalars.</span>
 <span class="sd">        ArgumentsKeys:</span>
 <span class="sd">            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``</span>
-<span class="sd">            - optional: ``value_gamma``, ``IS``</span>
+<span class="sd">            - optional: ``value_gamma``</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - necessary: ``cur_lr``, ``total_loss``, ``priority``</span>
 <span class="sd">            - optional: ``action_distribution``</span>
