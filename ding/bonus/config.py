@@ -4,7 +4,7 @@ import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
-from ding.policy import PPOFPolicy, TD3Policy
+from ding.policy import PPOFPolicy, TD3Policy, C51Policy
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
@@ -139,6 +139,64 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         ),
                         collect=dict(n_sample=1, ),
                         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        else:
+            raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'C51':
+        cfg = EasyDict({"policy":C51Policy.default_config()})
+        if env == 'lunarlander_discrete':
+            cfg.update(
+                dict(
+                    exp_name='lunarlander_c51',
+                    seed=0,
+                    env=dict(
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        env_id='LunarLander-v2',
+                        n_evaluator_episode=8,
+                        stop_value=200,
+                    ),
+                    policy=dict(
+                        cuda=False,
+                        priority=True,
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=4,
+                            encoder_hidden_size_list=[128, 128, 64],
+                            v_min=-10,
+                            v_max=10,
+                            n_atom=51,
+                        ),
+                        discount_factor=0.97,
+                        nstep=3,
+                        learn=dict(
+                            update_per_collect=3,
+                            batch_size=64,
+                            learning_rate=0.001,
+                            target_update_freq=100,
+                        ),
+                        collect=dict(
+                            n_sample=80,
+                            unroll_len=1,
+                        ),
+                        other=dict(
+                            eps=dict(
+                                type='exp',
+                                start=0.95,
+                                end=0.1,
+                                decay=10000,
+                            ), replay_buffer=dict(replay_buffer_size=20000, )
+                        ),
+                        random_collect_size=0,
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
