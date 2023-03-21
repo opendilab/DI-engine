@@ -843,13 +843,14 @@ prevent this, we can decouple the selection from the evaluation. More concretely
 </section>
 <section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="docutils align-default">
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Benchmark and comparison of dqn algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
+<col style="width: 25%" />
 <col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
+<col style="width: 30%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -860,40 +861,46 @@ prevent this, we can decouple the selection from the evaluation. More concretely
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Pong</p>
-<p>(PongNoFrameskip-v4)</p>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Pong</div>
+<div class="line">(PongNoFrameskip-v4)</div>
+</div>
 </td>
 <td><p>20</p></td>
 <td><img alt="../_images/pong_dqn.png" src="../_images/pong_dqn.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">config_link_p</a></p></td>
-<td><p>Tianshou(20)</p>
-<p>Sb3(20)</p>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">config_link_p</a></p></td>
+<td><div class="line-block">
+<div class="line">Tianshou(20) Sb3(20)</div>
+</div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>Qbert</p>
-<p>(QbertNoFrameskip-v4)</p>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Qbert</div>
+<div class="line">(QbertNoFrameskip-v4)</div>
+</div>
 </td>
 <td><p>17966</p></td>
 <td><img alt="../_images/qbert_dqn.png" src="../_images/qbert_dqn.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_dqn_config.py">config_link_q</a></p></td>
-<td><p>Tianshou(7307)</p>
-<p>Rllib(7968)</p>
-<p>Sb3(9496)</p>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_dqn_config.py">config_link_q</a></p></td>
+<td><div class="line-block">
+<div class="line">Tianshou(7307) Rllib(7968) Sb3(9496)</div>
+</div>
 </td>
 </tr>
-<tr class="row-even"><td><p>SpaceInvaders</p>
-<p>(SpaceInvadersNoFrame
-skip-v4)</p>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">SpaceInvaders</div>
+<div class="line">(SpaceInvadersNoFrameskip-v4)</div>
+</div>
 </td>
 <td><p>2403</p></td>
 <td><img alt="../_images/spaceinvaders_dqn.png" src="../_images/spaceinvaders_dqn.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config.py">config_link_s</a></p></td>
-<td><p>Tianshou(812)</p>
-<p>Rllib(1001)</p>
-<p>Sb3(622)</p>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config.py">config_link_s</a></p></td>
+<td><div class="line-block">
+<div class="line">Tianshou(812) Rllib(1001) Sb3(622)</div>
+</div>
 </td>
 </tr>
 </tbody>

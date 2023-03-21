@@ -129,31 +129,33 @@ DQNPolicy 的默认 config 如下所示：
 ------------------
 
 
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-| environment         |best mean reward | evaluation results                                  | config link              | comparison           |
-+=====================+=================+=====================================================+==========================+======================+
-|                     |                 |                                                     |`config_link_p <https://  |                      |
-|                     |                 |                                                     |github.com/opendilab/     |  Tianshou(20)        |
-|                     |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
-|Pong                 |  20             |.. image:: images/benchmark/pong_dqn.png             |atari/config/serial/      |                      |
-|                     |                 |                                                     |pong/pong_dqn_config      |  Sb3(20)             |
-|(PongNoFrameskip-v4) |                 |                                                     |.py>`_                    |                      |
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_q <https://  |                      |
-|                     |                 |                                                     |github.com/opendilab/     |  Tianshou(7307)      |
-|Qbert                |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
-|                     |  17966          |.. image:: images/benchmark/qbert_dqn.png            |atari/config/serial/      |  Rllib(7968)         |
-|(QbertNoFrameskip-v4)|                 |                                                     |qbert/qbert_dqn_config    |                      |
-|                     |                 |                                                     |.py>`_                    |  Sb3(9496)           |
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_s <https://  |                      |
-|                     |                 |                                                     |github.com/opendilab/     |  Tianshou(812)       |
-|SpaceInvaders        |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
-|                     |  2403           |.. image:: images/benchmark/spaceinvaders_dqn.png    |atari/config/serial/      |  Rllib(1001)         |
-|(SpaceInvadersNoFrame|                 |                                                     |spaceinvaders/space       |                      |
-|skip-v4)             |                 |                                                     |invaders_dqn_config.py>`_ |  Sb3(622)            |
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+.. list-table:: Benchmark and comparison of dqn algorithm
+   :widths: 25 15 30 15 15
+   :header-rows: 1
 
+   * - environment
+     - best mean reward
+     - evaluation results
+     - config link
+     - comparison
+   * - | Pong 
+       | (PongNoFrameskip-v4)
+     - 20
+     - .. image:: images/benchmark/pong_dqn.png
+     - `config_link_p <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py>`_
+     - | Tianshou(20) Sb3(20)
+   * - | Qbert
+       | (QbertNoFrameskip-v4)
+     - 17966
+     - .. image:: images/benchmark/qbert_dqn.png
+     - `config_link_q <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_dqn_config.py>`_
+     - | Tianshou(7307) Rllib(7968) Sb3(9496)
+   * - | SpaceInvaders
+       | (SpaceInvadersNoFrameskip-v4)
+     - 2403
+     - .. image:: images/benchmark/spaceinvaders_dqn.png
+     - `config_link_s <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config.py>`_
+     - | Tianshou(812) Rllib(1001) Sb3(622)
 
 注：
 
