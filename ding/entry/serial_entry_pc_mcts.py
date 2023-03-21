@@ -124,39 +124,40 @@ def serial_pipeline_pc_mcts(
             tb_logger.add_scalar('learner_iter/recurrent_test_loss', sum(losses) / len(losses), learner.train_iter)
             tb_logger.add_scalar('learner_iter/recurrent_test_acc', sum(acces) / len(acces), learner.train_iter)
 
-            # losses = []
-            # acces = []
-            # for _, test_data in enumerate(dataloader):
-            #     logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
-            #     loss = criterion(logits, test_data['action'].cuda()).item()
-            #     preds = torch.argmax(logits, dim=-1)
-            #     acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
-            #
-            #     losses.append(loss)
-            #     acces.append(acc)
-            # tb_logger.add_scalar('learner_iter/recurrent_train_loss', sum(losses) / len(losses), learner.train_iter)
-            # tb_logger.add_scalar('learner_iter/recurrent_train_acc', sum(acces) / len(acces), learner.train_iter)
-
             losses = []
-            mse_losses = []
             acces = []
             for _, test_data in enumerate(dataloader):
-                test_hidden_states = torch.stack(test_data['hidden_states'], dim=1).float().cuda()
-                logits, pred_hidden_states, hidden_state_embeddings = policy._model.test_forward_eval(
-                    test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.,
-                    test_hidden_states
-                )
+                logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
                 loss = criterion(logits, test_data['action'].cuda()).item()
-                mse_loss = hidden_state_criterion(pred_hidden_states, hidden_state_embeddings).item()
                 preds = torch.argmax(logits, dim=-1)
                 acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
 
                 losses.append(loss)
                 acces.append(acc)
-                mse_losses.append(mse_loss)
             tb_logger.add_scalar('learner_iter/recurrent_train_loss', sum(losses) / len(losses), learner.train_iter)
             tb_logger.add_scalar('learner_iter/recurrent_train_acc', sum(acces) / len(acces), learner.train_iter)
-            tb_logger.add_scalar('learner_iter/recurrent_train_mse_loss', sum(mse_losses) / len(mse_losses), learner.train_iter)
+
+            # Test for forward eval function.
+            # losses = []
+            # mse_losses = []
+            # acces = []
+            # for _, test_data in enumerate(dataloader):
+            #     test_hidden_states = torch.stack(test_data['hidden_states'], dim=1).float().cuda()
+            #     logits, pred_hidden_states, hidden_state_embeddings = policy._model.test_forward_eval(
+            #         test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.,
+            #         test_hidden_states
+            #     )
+            #     loss = criterion(logits, test_data['action'].cuda()).item()
+            #     mse_loss = hidden_state_criterion(pred_hidden_states, hidden_state_embeddings).item()
+            #     preds = torch.argmax(logits, dim=-1)
+            #     acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
+            #
+            #     losses.append(loss)
+            #     acces.append(acc)
+            #     mse_losses.append(mse_loss)
+            # tb_logger.add_scalar('learner_iter/recurrent_train_loss', sum(losses) / len(losses), learner.train_iter)
+            # tb_logger.add_scalar('learner_iter/recurrent_train_acc', sum(acces) / len(acces), learner.train_iter)
+            # tb_logger.add_scalar('learner_iter/recurrent_train_mse_loss', sum(mse_losses) / len(mse_losses), learner.train_iter)
     stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))

@@ -110,7 +110,7 @@ class ProcedureCloningPolicyMCTS(Policy):
             if zero_hidden_len:
                 hidden_state_loss = torch.tensor(0.)
             else:
-                hidden_state_loss = self._hidden_state_loss(pred_hidden_states, target_hidden_states)
+                hidden_state_loss = 10 * self._hidden_state_loss(pred_hidden_states, target_hidden_states)
             action_loss = self._action_loss(pred_action, action)
             loss = hidden_state_loss + action_loss
         forward_time = self._timer.value
