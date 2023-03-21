@@ -141,21 +141,42 @@ class ProcedureCloningMCTS(nn.Module):
             if hidden_state_embeddings is not None else None
 
     def forward_eval(self, states: torch.Tensor) -> torch.Tensor:
-        batch_size = states.shape[0]
-        hidden_states = torch.zeros(batch_size, self.seq_len, *self.hidden_shape, dtype=states.dtype).to(states.device)
-        embedding_mask = torch.zeros(1, self.seq_len, 1).to(states.device)
+        with torch.no_grad():
+            batch_size = states.shape[0]
+            hidden_states = torch.zeros(batch_size, self.seq_len, *self.hidden_shape, dtype=states.dtype).to(
+                states.device)
+            embedding_mask = torch.zeros(1, self.seq_len, 1).to(states.device)
 
-        state_embeddings, hidden_state_embeddings = self._compute_embeddings(states, hidden_states)
+            state_embeddings, hidden_state_embeddings = self._compute_embeddings(states, hidden_states)
 
-        for i in range(self.seq_len):
-            h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
+            for i in range(self.seq_len):
+                h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
+                hidden_state_embeddings, action_pred = self._compute_transformer(h)
+                embedding_mask[0, i, 0] = 1
+
+            if self.seq_len > 0:
+                h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
+            else:
+                h = state_embeddings
             hidden_state_embeddings, action_pred = self._compute_transformer(h)
-            embedding_mask[0, i, 0] = 1
-
-        if self.seq_len > 0:
-            h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
-        else:
-            h = state_embeddings
-        hidden_state_embeddings, action_pred = self._compute_transformer(h)
 
         return action_pred
+
+    def test_forward_eval(self, states: torch.Tensor, hidden_states: torch.Tensor) -> Tuple:
+        # Action pred in this function is supposed to be identical in training phase.
+        with torch.no_grad():
+            embedding_mask = torch.zeros(1, self.seq_len, 1).to(states.device)
+            state_embeddings, hidden_state_embeddings = self._compute_embeddings(states, hidden_states)
+
+            for i in range(self.seq_len):
+                h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
+                _, action_pred = self._compute_transformer(h)
+                embedding_mask[0, i, 0] = 1
+
+            if self.seq_len > 0:
+                h = torch.cat((state_embeddings, hidden_state_embeddings * embedding_mask), dim=1)
+            else:
+                h = state_embeddings
+            pred_hidden_state_embeddings, action_pred = self._compute_transformer(h)
+
+        return action_pred, pred_hidden_state_embeddings
