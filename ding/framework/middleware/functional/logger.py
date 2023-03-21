@@ -171,7 +171,8 @@ def wandb_online_logger(
     else:
         if not isinstance(cfg, EasyDict):
             cfg = EasyDict(cfg)
-        assert tuple(cfg.keys()) == ("gradient_logger", "plot_logger", "video_logger", "action_logger", "return_logger")
+        assert set(cfg.keys()
+                   ) == set(["gradient_logger", "plot_logger", "video_logger", "action_logger", "return_logger"])
         assert all(value in [True, False] for value in cfg.values())
 
     # The visualizer is called to save the replay of the simulation
