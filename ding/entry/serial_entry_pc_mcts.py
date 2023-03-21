@@ -55,13 +55,12 @@ def serial_pipeline_pc_mcts(
 ) -> Union['Policy', bool]:  # noqa
     r"""
     Overview:
-        Serial pipeline entry of imitation learning.
+        Serial pipeline entry of procedure cloning with MCTS.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
-        - data_path (:obj:`str`): Path of training data.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
@@ -96,6 +95,7 @@ def serial_pipeline_pc_mcts(
     learner.call_hook('before_run')
     stop = False
     iter_cnt = 0
+    epoch_per_test = 10
     for epoch in range(cfg.policy.learn.train_epoch):
         # train
         criterion = torch.nn.CrossEntropyLoss()
@@ -110,17 +110,33 @@ def serial_pipeline_pc_mcts(
             policy._optimizer.param_groups[0]['lr'] /= 10
         if stop:
             break
-        losses = []
-        acces = []
-        for _, test_data in enumerate(test_dataloader):
-            logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
-            loss = criterion(logits, test_data['action'].cuda()).item()
-            preds = torch.argmax(logits, dim=-1)
-            acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
 
-            losses.append(loss)
-            acces.append(acc)
-        print('Test Finished! Loss: {} acc: {}'.format(sum(losses) / len(losses), sum(acces) / len(acces)))
+        if epoch % epoch_per_test == 0:
+            losses = []
+            acces = []
+            for _, test_data in enumerate(test_dataloader):
+                logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
+                loss = criterion(logits, test_data['action'].cuda()).item()
+                preds = torch.argmax(logits, dim=-1)
+                acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
+
+                losses.append(loss)
+                acces.append(acc)
+            tb_logger.add_scalar('learn_epoch/recurrent_test_loss', sum(losses) / len(losses), epoch)
+            tb_logger.add_scalar('learn_epoch/recurrent_test_acc', sum(acces) / len(acces))
+
+            losses = []
+            acces = []
+            for _, test_data in enumerate(dataloader):
+                logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
+                loss = criterion(logits, test_data['action'].cuda()).item()
+                preds = torch.argmax(logits, dim=-1)
+                acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
+
+                losses.append(loss)
+                acces.append(acc)
+            tb_logger.add_scalar('learn_epoch/recurrent_train_loss', sum(losses) / len(losses), epoch)
+            tb_logger.add_scalar('learn_epoch/recurrent_train_acc', sum(acces) / len(acces))
     stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))
