@@ -94,7 +94,6 @@ def serial_pipeline_pc_mcts(
     # ==========
     learner.call_hook('before_run')
     stop = False
-    iter_cnt = 0
     epoch_per_test = 10
     for epoch in range(cfg.policy.learn.train_epoch):
         # train
@@ -102,8 +101,7 @@ def serial_pipeline_pc_mcts(
         for i, train_data in enumerate(dataloader):
             train_data['obs'] = train_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.
             learner.train(train_data)
-            iter_cnt += 1
-            if iter_cnt >= max_iter:
+            if learner.train_iter >= max_iter:
                 stop = True
                 break
         if epoch % 69 == 0:
@@ -122,8 +120,8 @@ def serial_pipeline_pc_mcts(
 
                 losses.append(loss)
                 acces.append(acc)
-            tb_logger.add_scalar('learn_epoch/recurrent_test_loss', sum(losses) / len(losses), epoch)
-            tb_logger.add_scalar('learn_epoch/recurrent_test_acc', sum(acces) / len(acces))
+            tb_logger.add_scalar('learn_iter/recurrent_test_loss', sum(losses) / len(losses), learner.train_iter)
+            tb_logger.add_scalar('learn_iter/recurrent_test_acc', sum(acces) / len(acces), learner.train_iter)
 
             losses = []
             acces = []
@@ -135,8 +133,8 @@ def serial_pipeline_pc_mcts(
 
                 losses.append(loss)
                 acces.append(acc)
-            tb_logger.add_scalar('learn_epoch/recurrent_train_loss', sum(losses) / len(losses), epoch)
-            tb_logger.add_scalar('learn_epoch/recurrent_train_acc', sum(acces) / len(acces))
+            tb_logger.add_scalar('learn_iter/recurrent_train_loss', sum(losses) / len(losses), learner.train_iter)
+            tb_logger.add_scalar('learn_iter/recurrent_train_acc', sum(acces) / len(acces), learner.train_iter)
     stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))
