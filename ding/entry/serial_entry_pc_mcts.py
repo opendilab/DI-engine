@@ -120,8 +120,8 @@ def serial_pipeline_pc_mcts(
 
                 losses.append(loss)
                 acces.append(acc)
-            tb_logger.add_scalar('learn_iter/recurrent_test_loss', sum(losses) / len(losses), learner.train_iter)
-            tb_logger.add_scalar('learn_iter/recurrent_test_acc', sum(acces) / len(acces), learner.train_iter)
+            tb_logger.add_scalar('learner_iter/recurrent_test_loss', sum(losses) / len(losses), learner.train_iter)
+            tb_logger.add_scalar('learner_iter/recurrent_test_acc', sum(acces) / len(acces), learner.train_iter)
 
             losses = []
             acces = []
@@ -133,8 +133,8 @@ def serial_pipeline_pc_mcts(
 
                 losses.append(loss)
                 acces.append(acc)
-            tb_logger.add_scalar('learn_iter/recurrent_train_loss', sum(losses) / len(losses), learner.train_iter)
-            tb_logger.add_scalar('learn_iter/recurrent_train_acc', sum(acces) / len(acces), learner.train_iter)
+            tb_logger.add_scalar('learner_iter/recurrent_train_loss', sum(losses) / len(losses), learner.train_iter)
+            tb_logger.add_scalar('learner_iter/recurrent_train_acc', sum(acces) / len(acces), learner.train_iter)
     stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
     learner.call_hook('after_run')
     print('final reward is: {}'.format(reward))
