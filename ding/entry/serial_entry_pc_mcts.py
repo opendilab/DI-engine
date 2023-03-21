@@ -142,12 +142,12 @@ def serial_pipeline_pc_mcts(
             acces = []
             for _, test_data in enumerate(dataloader):
                 test_hidden_states = torch.stack(test_data['hidden_states'], dim=1).float().cuda()
-                logits, pred_hidden_states = policy._model.test_forward_eval(
+                logits, pred_hidden_states, hidden_state_embeddings = policy._model.test_forward_eval(
                     test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.,
                     test_hidden_states
                 )
                 loss = criterion(logits, test_data['action'].cuda()).item()
-                mse_loss = hidden_state_criterion(pred_hidden_states, test_hidden_states).item()
+                mse_loss = hidden_state_criterion(pred_hidden_states, hidden_state_embeddings).item()
                 preds = torch.argmax(logits, dim=-1)
                 acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
 

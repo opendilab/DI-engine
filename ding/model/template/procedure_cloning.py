@@ -179,4 +179,4 @@ class ProcedureCloningMCTS(nn.Module):
                 h = state_embeddings
             pred_hidden_state_embeddings, action_pred = self._compute_transformer(h)
 
-        return action_pred, pred_hidden_state_embeddings
+        return action_pred, pred_hidden_state_embeddings, hidden_state_embeddings
