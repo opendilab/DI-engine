@@ -28,7 +28,6 @@ class BehaviourCloningPolicy(Policy):
         continuous=False,
         action_shape=19,
         learn=dict(
-            multi_gpu=False,
             update_per_collect=1,
             batch_size=32,
             learning_rate=1e-5,
@@ -170,7 +169,7 @@ class BehaviourCloningPolicy(Policy):
             loss.backward()
         backward_time = self._timer.value
         with self._timer:
-            if self._cfg.learn.multi_gpu:
+            if self._cfg.multi_gpu:
                 self.sync_gradients(self._learn_model)
         sync_time = self._timer.value
         self._optimizer.step()

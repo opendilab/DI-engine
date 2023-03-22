@@ -58,8 +58,7 @@ class ACERPolicy(Policy):
             grad_clip_type=None,
             # (float) max value when ACER use gradient clip
             clip_value=None,
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow ppo serial pipeline
             update_per_collect=4,

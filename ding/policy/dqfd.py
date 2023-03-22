@@ -83,8 +83,7 @@ class DQFDPolicy(DQNPolicy):
             margin_function=0.8,
             # number of pertraining iterations
             per_train_iter_k=10,
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -231,7 +230,7 @@ class DQFDPolicy(DQNPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 

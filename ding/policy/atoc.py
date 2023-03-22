@@ -43,8 +43,6 @@ class ATOCPolicy(Policy):
             agent_per_group=2,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             # (int) Collect n_sample data, update model n_iteration time
             update_per_collect=5,
             # (int) The number of data for a train iteration

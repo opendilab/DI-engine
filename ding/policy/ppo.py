@@ -44,8 +44,6 @@ class PPOPolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             epoch_per_collect=10,
             batch_size=64,
             learning_rate=3e-4,
@@ -478,8 +476,6 @@ class PPOPGPolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             epoch_per_collect=10,
             batch_size=64,
             learning_rate=3e-4,
@@ -689,8 +685,6 @@ class PPOOffPolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -1013,8 +1007,6 @@ class PPOSTDIMPolicy(PPOPolicy):
             temperature=1.0,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             epoch_per_collect=10,
             batch_size=64,
             learning_rate=3e-4,
@@ -1168,7 +1160,7 @@ class PPOSTDIMPolicy(PPOPolicy):
                 # the BP process of the auxiliary network
                 self._aux_optimizer.zero_grad()
                 aux_loss_learn.backward()
-                if self._cfg.learn.multi_gpu:
+                if self._cfg.multi_gpu:
                     self.sync_gradients(self._aux_model)
                 self._aux_optimizer.step()
 

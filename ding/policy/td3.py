@@ -93,7 +93,7 @@ class TD3Policy(DDPGPolicy):
             twin_critic=True,
         ),
         learn=dict(
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...

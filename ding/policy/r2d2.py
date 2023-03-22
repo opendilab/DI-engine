@@ -86,8 +86,6 @@ class R2D2Policy(Policy):
         # the timestep of burnin operation
         learn_unroll_len=80,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             update_per_collect=1,
             batch_size=64,
             learning_rate=0.0001,

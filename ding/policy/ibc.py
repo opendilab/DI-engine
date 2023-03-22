@@ -39,7 +39,6 @@ class IBCPolicy(BehaviourCloningPolicy):
         learn=dict(
             train_epoch=30,
             batch_size=256,
-            multi_gpu=False,
             optim=dict(
                 learning_rate=1e-5,
                 weight_decay=0.0,
@@ -124,7 +123,7 @@ class IBCPolicy(BehaviourCloningPolicy):
             self._optimizer.zero_grad()
             loss.backward()
             with self._sync_timer:
-                if self._cfg.learn.multi_gpu:
+                if self._cfg.multi_gpu:
                     self.sync_gradients(self._learn_model)
             sync_time = self._sync_timer.value
             self._optimizer.step()
