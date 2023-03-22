@@ -15,7 +15,7 @@ from ding.utils import deep_merge_dicts
 obs_space = 5
 action_space = 3
 
-cfg1 = EasyDict(CQLPolicy.config)
+cfg1 = EasyDict(CQLPolicy.default_config())
 cfg1.model.obs_shape = obs_space
 cfg1.model.action_shape = action_space
 
@@ -23,7 +23,7 @@ cfg2 = copy.deepcopy(cfg1)
 cfg2.learn.auto_alpha = False
 cfg2.learn.log_space = False
 
-cfg3 = EasyDict(CQLDiscretePolicy.config)
+cfg3 = EasyDict(CQLDiscretePolicy.default_config())
 cfg3.model = {}
 cfg3.model.obs_shape = obs_space
 cfg3.model.action_shape = action_space

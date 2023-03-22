@@ -277,14 +277,14 @@ class Policy(ABC):
     def _get_n_sample(self):
         if 'n_sample' in self._cfg:
             return self._cfg.n_sample
-        else:
-            return self._cfg.collect.n_sample
+        else:  # for compatibility
+            return self._cfg.collect.get('n_sample', None)  # for some adpative collecting data case
 
     def _get_n_episode(self):
         if 'n_episode' in self._cfg:
             return self._cfg.n_episode
-        else:
-            return self._cfg.collect.n_episode
+        else:  # for compatibility
+            return self._cfg.collect.get('n_episode', None)  # for some adpative collecting data case
 
     # *************************************** eval function ************************************
 
