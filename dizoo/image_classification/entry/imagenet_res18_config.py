@@ -4,8 +4,8 @@ imagenet_res18_config = dict(
     exp_name='imagenet_res18',
     policy=dict(
         cuda=True,
+        multi_gpu=True,
         learn=dict(
-            multi_gpu=True,
             bp_update_sync=True,
             train_epoch=200,
             batch_size=32,
@@ -28,7 +28,7 @@ imagenet_res18_config = dict(
             eval_data_path='/mnt/lustre/share/images/val',
         ),
         eval=dict(
-            batch_size=32, evaluator=dict(eval_freq=1, multi_gpu=True, stop_value=dict(loss=0.5, acc1=75.0, acc5=95.0))
+            batch_size=32, evaluator=dict(eval_freq=1, stop_value=dict(loss=0.5, acc1=75.0, acc5=95.0))
         ),
     ),
     env=dict(),

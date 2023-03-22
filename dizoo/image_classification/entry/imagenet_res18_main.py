@@ -115,7 +115,7 @@ class ImageClassificationMetric(IMetric):
 
 def main(cfg: dict, seed: int) -> None:
     cfg = compile_config(cfg, seed=seed, policy=ImageClassificationPolicy, evaluator=MetricSerialEvaluator)
-    if cfg.policy.learn.multi_gpu:
+    if cfg.policy.multi_gpu:
         rank, world_size = dist_init()
     else:
         rank, world_size = 0, 1
@@ -127,7 +127,7 @@ def main(cfg: dict, seed: int) -> None:
     policy = ImageClassificationPolicy(cfg.policy, model=model, enable_field=['learn', 'eval'])
     learn_dataset = ImageNetDataset(cfg.policy.collect.learn_data_path, is_training=True)
     eval_dataset = ImageNetDataset(cfg.policy.collect.eval_data_path, is_training=False)
-    if cfg.policy.learn.multi_gpu:
+    if cfg.policy.multi_gpu:
         learn_sampler = DistributedSampler(learn_dataset)
         eval_sampler = DistributedSampler(eval_dataset)
     else:

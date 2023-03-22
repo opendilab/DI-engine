@@ -52,13 +52,6 @@ class MBSACPolicy(SACPolicy):
         )
     )
 
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = copy.deepcopy(cls.config)
-        cfg = EasyDict(deep_merge_dicts(super().config, cfg))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
-
     def _init_learn(self) -> None:
         super()._init_learn()
         self._target_model.requires_grad_(False)
@@ -255,13 +248,6 @@ class STEVESACPolicy(SACPolicy):
             ensemble_size=1,
         )
     )
-
-    @classmethod
-    def default_config(cls: type) -> EasyDict:
-        cfg = copy.deepcopy(cls.config)
-        cfg = EasyDict(deep_merge_dicts(super().config, cfg))
-        cfg.cfg_type = cls.__name__ + 'Dict'
-        return cfg
 
     def _init_learn(self) -> None:
         super()._init_learn()

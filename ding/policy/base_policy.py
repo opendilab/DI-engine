@@ -7,14 +7,24 @@ import copy
 from easydict import EasyDict
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, POLICY_REGISTRY
+from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, deep_merge_dicts, \
+    POLICY_REGISTRY
 
 
 class Policy(ABC):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
+        if cls == Policy:
+            raise RuntimeError
+
+        base_cls = cls.__base__
+        if base_cls == Policy:
+            base_policy_cfg = EasyDict(copy.deepcopy(Policy.config))
+        else:
+            base_policy_cfg = copy.deepcopy(base_cls.default_config())
         cfg = EasyDict(copy.deepcopy(cls.config))
+        cfg = deep_merge_dicts(base_policy_cfg, cfg)
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
 
@@ -53,6 +63,14 @@ class Policy(ABC):
         ]
     )
     total_field = set(['learn', 'collect', 'eval'])
+    config = dict(
+        on_policy=False,
+        cuda=False,
+        multi_gpu=False,
+        bp_update_sync=True,
+        traj_len_inf=False,
+        model=dict(),
+    )
 
     def __init__(
             self,
@@ -73,11 +91,12 @@ class Policy(ABC):
             self._cuda = cfg.cuda and torch.cuda.is_available()
             # now only support multi-gpu for only enable learn mode
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
-                self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
+                multi_gpu = self._cfg.multi_gpu
+                self._rank = get_rank() if multi_gpu else 0
                 if self._cuda:
                     model.cuda()
-                if self._cfg.learn.multi_gpu:
-                    bp_update_sync = self._cfg.learn.get('bp_update_sync', True)
+                if multi_gpu:
+                    bp_update_sync = self._cfg.bp_update_sync
                     self._bp_update_sync = bp_update_sync
                     self._init_multi_gpu_setting(model, bp_update_sync)
             else:
@@ -232,7 +251,11 @@ class Policy(ABC):
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
-        return self._cfg.learn.batch_size
+        # some specifial algorithms use different batch size for different optimization parts.
+        if 'batch_size' in self._cfg:
+            return self._cfg.batch_size
+        else:  # for compatibility
+            return self._cfg.learn.batch_size
 
     # *************************************** collect function ************************************
 
@@ -257,6 +280,18 @@ class Policy(ABC):
 
     def _load_state_dict_collect(self, state_dict: Dict[str, Any]) -> None:
         self._collect_model.load_state_dict(state_dict['model'], strict=True)
+
+    def _get_n_sample(self):
+        if 'n_sample' in self._cfg:
+            return self._cfg.n_sample
+        else:  # for compatibility
+            return self._cfg.collect.get('n_sample', None)  # for some adpative collecting data case
+
+    def _get_n_episode(self):
+        if 'n_episode' in self._cfg:
+            return self._cfg.n_episode
+        else:  # for compatibility
+            return self._cfg.collect.get('n_episode', None)  # for some adpative collecting data case
 
     # *************************************** eval function ************************************
 

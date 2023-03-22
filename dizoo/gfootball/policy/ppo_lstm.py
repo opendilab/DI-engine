@@ -36,8 +36,6 @@ class PPOPolicy(Policy):
         nstep_return=False,
         nstep=3,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...

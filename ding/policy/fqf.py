@@ -59,8 +59,7 @@ class FQFPolicy(DQNPolicy):
         # (int) N-step reward for target q_value estimation
         nstep=1,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -201,7 +200,7 @@ class FQFPolicy(DQNPolicy):
         # ====================
         self._fraction_loss_optimizer.zero_grad()
         fraction_loss.backward(retain_graph=True)
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         with torch.no_grad():
             total_norm_quantiles_proposal = compute_grad_norm(self._model.head.quantiles_proposal)
@@ -212,7 +211,7 @@ class FQFPolicy(DQNPolicy):
         # ====================
         self._quantile_loss_optimizer.zero_grad()
         quantile_loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         with torch.no_grad():
             total_norm_Q = compute_grad_norm(self._model.head.Q)

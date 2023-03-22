@@ -55,8 +55,7 @@ class IMPALAPolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow ppo serial pipeline
             update_per_collect=4,

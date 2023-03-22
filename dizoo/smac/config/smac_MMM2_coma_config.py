@@ -32,7 +32,6 @@ main_config = dict(
             actor_hidden_size_list=[64],
         ),
         learn=dict(
-            multi_gpu=False,
             update_per_collect=20,
             batch_size=32,
             learning_rate=0.0005,

@@ -27,7 +27,6 @@ class ProcedureCloningBFSPolicy(Policy):
         continuous=False,
         max_bfs_steps=100,
         learn=dict(
-            multi_gpu=False,
             update_per_collect=1,
             batch_size=32,
             learning_rate=1e-5,

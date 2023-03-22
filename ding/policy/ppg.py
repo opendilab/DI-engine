@@ -91,8 +91,6 @@ class PPGPolicy(Policy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             actor_epoch_per_collect=1,
             critic_epoch_per_collect=1,
             batch_size=64,
@@ -672,8 +670,6 @@ class PPGOffPolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             update_per_collect=5,
             batch_size=64,
             learning_rate=0.001,

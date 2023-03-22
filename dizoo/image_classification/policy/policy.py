@@ -56,7 +56,7 @@ class ImageClassificationPolicy(Policy):
         backward_time = self._timer.value
 
         with self._timer:
-            if self._cfg.learn.multi_gpu:
+            if self._cfg.multi_gpu:
                 self.sync_gradients(self._learn_model)
         sync_time = self._timer.value
         self._optimizer.step()

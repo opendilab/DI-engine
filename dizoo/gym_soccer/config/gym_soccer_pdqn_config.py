@@ -26,11 +26,6 @@ gym_soccer_pdqn_config = dict(
             ),
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
-            # How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
             update_per_collect=500,  # 10 ~ 500
             batch_size=320,
             learning_rate_dis=3e-4,

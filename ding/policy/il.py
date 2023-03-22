@@ -30,7 +30,7 @@ class ILPolicy(Policy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
-            multi_gpu=False,
+
             # (int) collect n_episode data, train model n_iteration time
             update_per_collect=20,
             # (int) the number of data for a train iteration

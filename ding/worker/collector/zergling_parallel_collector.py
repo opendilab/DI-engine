@@ -78,8 +78,9 @@ class ZerglingParallelCollector(BaseParallelCollector):
     @policy.setter
     def policy(self, _policy: Policy) -> None:
         self._policy = _policy
-        self._n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
-        self._n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+        self._policy_cfg = self._policy.get_attribute('cfg')
+        self._n_sample = _policy.get_attribute('n_sample')
+        self._n_episode = _policy.get_attribute('n_sample')
         assert any(
             [t is None for t in [self._n_sample, self._n_episode]]
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"

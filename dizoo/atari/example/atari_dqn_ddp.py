@@ -18,7 +18,7 @@ from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_c
 def main():
     logging.getLogger().setLevel(logging.INFO)
     main_config.exp_name = 'pong_dqn_seed0_ddp'
-    main_config.policy.learn.multi_gpu = True
+    main_config.policy.multi_gpu = True
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     ding_init(cfg)
     with DistContext():
