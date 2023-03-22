@@ -15,7 +15,14 @@ class Policy(ABC):
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        base_policy_cfg = EasyDict(copy.deepcopy(Policy.config))
+        if cls == Policy:
+            raise RuntimeError
+
+        base_cls = cls.__base__
+        if base_cls == Policy:
+            base_policy_cfg = EasyDict(copy.deepcopy(Policy.config))
+        else:
+            base_policy_cfg = copy.deepcopy(base_cls.default_config())
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg = deep_merge_dicts(base_policy_cfg, cfg)
         cfg.cfg_type = cls.__name__ + 'Dict'
