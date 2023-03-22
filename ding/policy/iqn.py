@@ -58,7 +58,6 @@ class IQNPolicy(DQNPolicy):
         # (int) N-step reward for target q_value estimation
         nstep=1,
         learn=dict(
-
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
