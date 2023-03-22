@@ -340,33 +340,31 @@
 <span class="sd">        10 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary</span>
 <span class="sd">           | ``per_collect``                             | after collector&#39;s one collection.     | from envs. Bigger val</span>
 <span class="sd">                                                         | Only valid in serial training         | means more off-policy</span>
-<span class="sd">        11 | ``learn.multi``     bool     False          | whether to use multi gpu</span>
-<span class="sd">           | ``_gpu``</span>
-<span class="sd">        12 | ``learn.batch_``    int      64             | The number of samples of an iteration</span>
+<span class="sd">        11 | ``learn.batch_``    int      64             | The number of samples of an iteration</span>
 <span class="sd">           | ``size``</span>
-<span class="sd">        13 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.</span>
+<span class="sd">        12 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.</span>
 <span class="sd">           | ``_rate``</span>
-<span class="sd">        14 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update</span>
+<span class="sd">        13 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update</span>
 <span class="sd">           | ``update_freq``</span>
-<span class="sd">        15 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update</span>
+<span class="sd">        14 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update</span>
 <span class="sd">           | ``theta``                                   | Only one of [target_update_freq,</span>
 <span class="sd">           |                                             | target_theta] should be set</span>
-<span class="sd">        16 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some</span>
+<span class="sd">        15 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some</span>
 <span class="sd">           | ``done``                                    | calculation.                          | fake termination env</span>
-<span class="sd">        17 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from</span>
+<span class="sd">        16 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from</span>
 <span class="sd">                                                         | call of collector.                    | different envs</span>
-<span class="sd">        18 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample</span>
+<span class="sd">        17 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample</span>
 <span class="sd">                                                         | call of collector                     | ,n_episode] should</span>
 <span class="sd">                                                         |                                       | be set</span>
-<span class="sd">        19 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len&gt;1</span>
+<span class="sd">        18 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len&gt;1</span>
 <span class="sd">           | ``_len``</span>
-<span class="sd">        20 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support [&#39;exp&#39;,</span>
+<span class="sd">        19 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support [&#39;exp&#39;,</span>
 <span class="sd">                                                                                                 | &#39;linear&#39;].</span>
-<span class="sd">        21 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]</span>
+<span class="sd">        20 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]</span>
 <span class="sd">           | ``start``</span>
-<span class="sd">        22 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]</span>
+<span class="sd">        21 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]</span>
 <span class="sd">           | ``end``</span>
-<span class="sd">        23 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set</span>
+<span class="sd">        22 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set</span>
 <span class="sd">           | ``decay``                                                                           | decay=10000 means</span>
 <span class="sd">                                                                                                 | the exploration rate</span>
 <span class="sd">                                                                                                 | decay from start</span>
@@ -393,12 +391,8 @@
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1">#(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.</span>
             <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
-            <span class="c1"># (bool) Whether enable dueling head.</span>
-            <span class="n">dueling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (bool) Whether to use multi gpu.</span>
-            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
@@ -551,7 +545,7 @@
         <span class="c1"># ====================</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
@@ -746,7 +740,6 @@
 <span class="sd">        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary</span>
 <span class="sd">           | ``per_collect``                            | after collector&#39;s one collection. Only | from envs. Bigger val</span>
 <span class="sd">                                                        | valid in serial training               | means more off-policy</span>
-<span class="sd">        9  | ``learn.multi``    bool     False          | whether to use multi gpu during</span>
 <span class="sd">           | ``_gpu``</span>
 <span class="sd">        10 | ``learn.batch_``   int      64             | The number of samples of an iteration</span>
 <span class="sd">           | ``size``</span>
@@ -793,8 +786,7 @@
         <span class="c1"># (int) The number of step for calculating target q_value</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (bool) Whether to use multi gpu</span>
-            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
             <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
@@ -927,7 +919,7 @@
         <span class="c1"># the BP process of the auxiliary network</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">aux_loss_learn</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
@@ -965,7 +957,7 @@
         <span class="c1"># ====================</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 

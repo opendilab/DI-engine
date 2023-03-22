@@ -474,6 +474,9 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
 </div>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_gpu</span></code></div>
+</div>
 </td>
 <td><p>int</p></td>
 <td><p>1</p></td>
@@ -490,21 +493,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>9</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.multi</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_gpu</span></code></div>
-</div>
-</td>
-<td><p>bool</p></td>
-<td><p>False</p></td>
-<td><div class="line-block">
-<div class="line">whether to use multi gpu during</div>
-</div>
-</td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>10</p></td>
+<tr class="row-even"><td><p>10</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.batch_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">size</span></code></div>
@@ -518,7 +507,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>11</p></td>
+<tr class="row-odd"><td><p>11</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">_rate</span></code></div>
@@ -532,7 +521,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>12</p></td>
+<tr class="row-even"><td><p>12</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
@@ -549,7 +538,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>13</p></td>
+<tr class="row-odd"><td><p>13</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.ignore_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">done</span></code></div>
@@ -568,7 +557,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>14</p></td>
+<tr class="row-even"><td><p>14</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">collect.n_sample</span></code></p></td>
 <td><p>int</p></td>
 <td><p>4</p></td>
@@ -583,7 +572,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>15</p></td>
+<tr class="row-odd"><td><p>15</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">collect.unroll</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">_len</span></code></div>
@@ -600,7 +589,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>16</p></td>
+<tr class="row-even"><td><p>16</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.type</span></code></div>
 </div>
@@ -617,7 +606,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>17</p></td>
+<tr class="row-odd"><td><p>17</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">start</span></code></div>
@@ -634,7 +623,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>18</p></td>
+<tr class="row-even"><td><p>18</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">end</span></code></div>
@@ -651,7 +640,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>19</p></td>
+<tr class="row-odd"><td><p>19</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">decay</span></code></div>
@@ -673,7 +662,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>20</p></td>
+<tr class="row-even"><td><p>20</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">entropy_tau</span></code></div>
 </div>
@@ -686,7 +675,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>21</p></td>
+<tr class="row-odd"><td><p>21</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></div>
 </div>
