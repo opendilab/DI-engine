@@ -61,6 +61,7 @@ class Policy(ABC):
         cuda=False,
         multi_gpu=False,
         bp_update_sync=True,
+        traj_len_inf=False,
         model=dict(),
     )
 
@@ -243,6 +244,7 @@ class Policy(ABC):
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
+        # some specifial algorithms use different batch size for different optimization parts.
         if 'batch_size' in self._cfg:
             return self._cfg.batch_size
         else:  # for compatibility
@@ -271,6 +273,18 @@ class Policy(ABC):
 
     def _load_state_dict_collect(self, state_dict: Dict[str, Any]) -> None:
         self._collect_model.load_state_dict(state_dict['model'], strict=True)
+
+    def _get_n_sample(self):
+        if 'n_sample' in self._cfg:
+            return self._cfg.n_sample
+        else:
+            return self._cfg.collect.n_sample
+
+    def _get_n_episode(self):
+        if 'n_episode' in self._cfg:
+            return self._cfg.n_episode
+        else:
+            return self._cfg.collect.n_episode
 
     # *************************************** eval function ************************************
 

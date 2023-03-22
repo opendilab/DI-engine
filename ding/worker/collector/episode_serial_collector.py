@@ -93,9 +93,10 @@ class EpisodeSerialCollector(ISerialCollector):
         assert hasattr(self, '_env'), "please set env first"
         if _policy is not None:
             self._policy = _policy
-            self._default_n_episode = _policy.get_attribute('cfg').collect.get('n_episode', None)
+            self._policy_cfg = self._policy.get_attribute('cfg')
+            self._default_n_episode = _policy.get_attribute('n_episode')
             self._unroll_len = _policy.get_attribute('unroll_len')
-            self._on_policy = _policy.get_attribute('cfg').on_policy
+            self._on_policy = _policy.get_attribute('on_policy')
             self._traj_len = INF
             self._logger.debug(
                 'Set default n_episode mode(n_episode({}), env_num({}), traj_len({}))'.format(
