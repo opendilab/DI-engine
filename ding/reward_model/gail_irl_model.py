@@ -130,18 +130,33 @@ class GailRewardModel(BaseRewardModel):
            7  | ``hidden_size``     int        128            | Linear model hidden size        |
            8  | ``collect_count``   int        100000         | Expert dataset size             | One entry is a (s,a)
               |                                               |                                 | tuple
+           9  | ``clear_buffer_``   int        1              | clear buffer per fix iters      | make sure replay 
+              | ``per_iters``                                                                   | buffer's data count 
+              |                                                                                 | isn't too few.
+              |                                                                                 | (code work in entry)
            == ====================  ========   =============  ================================= =======================
 
        """
     config = dict(
+        # (str) RL policy register name, refer to registry ``POLICY_REGISTRY``.
         type='gail',
+        # (float) The step size of gradient descent.
         learning_rate=1e-3,
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
+        # (int) How many samples in a training batch.
         batch_size=64,
+        # (int) Size of the input: obs_dim + act_dim
         input_size=4,
+        # (int) Collect steps per iteration
         target_new_data_count=64,
+        # (int) Linear model hidden size
         hidden_size=128,
+        # (int) Expert dataset size
         collect_count=100000,
+        # (int) clear buffer per fix iters
         clear_buffer_per_iters=1,
     )
 
