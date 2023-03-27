@@ -50,6 +50,28 @@ def m_q_1step_td_error(
         alpha: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
+    """
+    Overview:
+        Munchausen td_error for DQN algorithm,support 1 step td error.
+    Arguments:
+        - data (:obj:`m_q_1step_td_data`): the input data, m_q_1step_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - tau (:obj:`float`): Entropy factor for Munchausen DQN
+        - alpha (:obj:`float`): Discount factor for Munchausen term
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`m_q_1step_td_data`): the m_q_1step_td_data containing\
+             ['q', 'target_q', 'next_q', 'act', 'reward', 'done', 'weight']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - target_q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`( , B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    """
     q, target_q, next_q, act, reward, done, weight = data
     lower_bound = -1
     assert len(act.shape) == 1, act.shape
