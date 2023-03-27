@@ -1,17 +1,14 @@
 from typing import List, Dict, Any, Tuple, Union, Optional
 from easydict import EasyDict
 
-import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Independent, Normal
-import copy
 
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
-from ding.utils.data import default_collate, default_decollate
-from ding.model import FCEncoder, ConvEncoder
+from ding.utils import REWARD_MODEL_REGISTRY
+from ding.utils.data import default_collate
 from .base_reward_model import BaseRewardModel
 
 
@@ -38,23 +35,56 @@ class GuidedCostNN(nn.Module):
 
 @REWARD_MODEL_REGISTRY.register('guided_cost')
 class GuidedCostRewardModel(BaseRewardModel):
-    r"""
+    """
     Overview:
         Policy class of Guided cost algorithm.
 
         https://arxiv.org/pdf/1603.00448.pdf
+    Interface:
+        ``estimate``, ``train``, ``collect_data``, ``clear_date``, \
+        ``__init__``,  ``state_dict``, ``load_state_dict``, ``learn``\
+        ``state_dict_reward_model``, ``load_state_dict_reward_model``
+    Config:
+           == ====================  ========   =============  ===================================  =======================
+           ID Symbol                Type       Default Value  Description                          Other(Shape)
+           == ====================  ========   =============  ===================================  =======================
+           1  ``type``              str         guided_cost   | RL policy register name, refer     |
+                                                              | to registry ``POLICY_REGISTRY``    |
+           2  | ``continuous``      bool        True          | Whether action is continuous       |
+           2  | ``learning_rate``   int         0.001         | learning rate for optimizer        |
+           3  | ``update_per_``     int         100           | Number of updates per collect      |
+              | ``collect``                                   |                                    |
+           4  | ``batch_size``      int         64            | Training batch size                |
+           5  | ``hidden_size``     int         128           | Linear model hidden size           |
+           6  | ``action_shape``    int         1             | Action space shape                 | 
+           7  | ``log_every_n`      int         50            | add loss to log every n iteration  |
+              | ``_train``                                    |                                    |
+           8  | ``store_model_``    int         100           | save model every n iteration       |  
+              | ``every_n_train``                                                                  |
+           == ====================  ========   =============  ===================================  =======================
 
     """
 
     config = dict(
+        # (str) RL policy register name, refer to registry ``POLICY_REGISTRY``.
         type='guided_cost',
+        # (float) The step size of gradient descent.
         learning_rate=1e-3,
+        # (int) Action space shape, such as 1.
         action_shape=1,
+        # (bool) Whether action is continuous.
         continuous=True,
+        # (int) How many samples in a training batch. 
         batch_size=64,
+        # (int) Linear model hidden size.
         hidden_size=128,
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
+        # (int) add loss to log every n iteration.
         log_every_n_train=50,
+        # (int) save model every n iteration.
         store_model_every_n_train=100,
     )
 
