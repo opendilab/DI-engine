@@ -159,6 +159,7 @@ class C51Policy(DQNPolicy):
         self._target_model.train()
         # Current q value (main model)
         q_value = self._learn_model.forward(data['obs'])['distribution']
+        logit = self._learn_model.forward(data['obs'])['logit']
         # Target q value
         with torch.no_grad():
             target_q_value = self._target_model.forward(data['next_obs'])['distribution']
@@ -187,6 +188,7 @@ class C51Policy(DQNPolicy):
         # =============
         self._target_model.update(self._learn_model.state_dict())
         return {
+            'logit': logit.mean().item(),
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
@@ -259,4 +261,4 @@ class C51Policy(DQNPolicy):
         return get_train_sample(data, self._unroll_len)
     
     def monitor_vars(self) -> List[str]:
-        return ['cur_lr', 'total_loss', 'priority']
+        return ['logit', 'cur_lr', 'total_loss', 'priority']
