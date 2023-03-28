@@ -31,8 +31,7 @@ class TrexConvEncoder(nn.Module):
             self,
             obs_shape: SequenceType,
             hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
-            activation: Optional[nn.Module] = nn.LeakyReLU(),
-            norm_type: Optional[str] = None
+            activation: Optional[nn.Module] = nn.LeakyReLU()
     ) -> None:
         r"""
         Overview:
@@ -44,9 +43,7 @@ class TrexConvEncoder(nn.Module):
             - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
             - activation (:obj:`nn.Module`):
                 The type of activation to use in the conv ``layers``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`str`):
-                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
+                if ``None`` then default set to ``nn.LeakyReLU()``
         """
         super(TrexConvEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -149,8 +146,8 @@ class TrexRewardModel(BaseRewardModel):
            3  | ``learning_rate``   float       0.00001       | learning rate for optimizer                 |
            4  | ``update_per_``     int         100           | Number of updates per collect               |
               | ``collect``                                   |                                             |
-           4  | ``num_trajs``       int         0             | Number of downsampled full trajectories     |
-           5  | ``num_snippets``    int         6000          | Number of short subtrajectories to sample   |
+           5  | ``num_trajs``       int         0             | Number of downsampled full trajectories     |
+           6  | ``num_snippets``    int         6000          | Number of short subtrajectories to sample   |
            == ====================  ========   =============  ============================================  =======================
     """
     config = dict(

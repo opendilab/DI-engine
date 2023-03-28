@@ -13,15 +13,45 @@ from .trex_reward_model import TrexRewardModel
 
 @REWARD_MODEL_REGISTRY.register('drex')
 class DrexRewardModel(TrexRewardModel):
+    """
+    Overview:
+        The Drex reward model class (https://arxiv.org/pdf/1907.03976.pdf)
+    Interface:
+        ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
+            ``__init__``, ``_train``,
+    Config:
+           == ====================  ========   =============  ============================================  =======================
+           ID Symbol                Type       Default Value  Description                                   Other(Shape)
+           == ====================  ========   =============  ============================================  =======================
+           1  ``type``              str         drex          | Reward model register name, refer           |
+                                                              | to registry ``REWARD_MODEL_REGISTRY``       |
+           3  | ``learning_rate``   float       0.00001       | learning rate for optimizer                 |
+           4  | ``update_per_``     int         100           | Number of updates per collect               |
+              | ``collect``                                   |                                             |
+           5  | ``batch_size``      int         64            | How many samples in a training batch
+           6  | ``hidden_size``     int        128            | Linear model hidden size                    |
+           7  | ``num_trajs``       int         0             | Number of downsampled full trajectories     |
+           8  | ``num_snippets``    int         6000          | Number of short subtrajectories to sample   |
+           == ====================  ========   =============  ============================================  =======================
+    """
     config = dict(
+        # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='drex',
+        # (float) The step size of gradient descent.
         learning_rate=1e-5,
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
+        # (int) How many samples in a training batch.
         batch_size=64,
         target_new_data_count=64,
+        # (int) Linear model hidden size
         hidden_size=128,
-        num_trajs=0,  # number of downsampled full trajectories
-        num_snippets=6000,  # number of short subtrajectories to sample
+        # (int) Number of downsampled full trajectories.
+        num_trajs=0,
+        # (int) Number of short subtrajectories to sample.
+        num_snippets=6000,
     )
 
     bc_cfg = None
