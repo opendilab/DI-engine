@@ -367,6 +367,7 @@ def interaction_evaluator_ttorch(
                     if 'episode_info' in timestep.info:
                         eval_monitor.update_info(env_id, timestep.info.episode_info)
         episode_return = eval_monitor.get_episode_return()
+        episode_return_std = np.std(episode_return)
         episode_return_mean = np.mean(episode_return)
         stop_flag = episode_return_mean >= stop_value and ctx.train_iter > 0
         logging.info(
@@ -376,6 +377,7 @@ def interaction_evaluator_ttorch(
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return_mean
+        ctx.eval_value_std = episode_return_std
         ctx.last_eval_value = ctx.eval_value
         ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()

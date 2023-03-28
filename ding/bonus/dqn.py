@@ -32,7 +32,8 @@ class TrainingReturn:
 class EvalReturn:
     '''
     Attributions
-    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
+    eval_value: The mean of evaluation return.
+    eval_value_std: The standard deviation of evaluation return.
     '''
     eval_value: np.float32
     eval_value_std: np.float32

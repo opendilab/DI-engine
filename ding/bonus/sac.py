@@ -33,7 +33,8 @@ class TrainingReturn:
 class EvalReturn:
     '''
     Attributions
-    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
+    eval_value: The mean of evaluation return.
+    eval_value_std: The standard deviation of evaluation return.
     '''
     eval_value: np.float32
     eval_value_std: np.float32
@@ -220,7 +221,7 @@ class SACOffPolicyAgent:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False
-    ) -> None:
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -233,6 +234,8 @@ class SACOffPolicyAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env))
             task.run(max_step=1)
+
+        return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
         if debug:
