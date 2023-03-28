@@ -41,9 +41,7 @@ main_config = dict(
             discount_factor=0.95,
         ),
         collect=dict(
-            collector=dict(
-                get_train_sample=True,
-            ),
+            collector=dict(get_train_sample=True, ),
             n_episode=32,
             unroll_len=10,
             env_num=collector_env_num,
@@ -60,9 +58,7 @@ main_config = dict(
                 end=0.05,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=15000,
-            ),
+            replay_buffer=dict(replay_buffer_size=15000, ),
         ),
     ),
 )

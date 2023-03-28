@@ -68,4 +68,8 @@ create_config = hopper_bdq_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c hopper_bdq_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0, max_env_step=10000000,)
+    serial_pipeline(
+        [main_config, create_config],
+        seed=0,
+        max_env_step=10000000,
+    )

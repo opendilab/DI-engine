@@ -29,6 +29,7 @@ class TrainingReturn:
     '''
     wandb_url: str
 
+
 @dataclass
 class EvalReturn:
     '''
@@ -38,6 +39,7 @@ class EvalReturn:
     '''
     eval_value: np.float32
     eval_value_std: np.float32
+
 
 class SACOffPolicyAgent:
     supported_env_list = [
@@ -155,7 +157,7 @@ class SACOffPolicyAgent:
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
-            forward_fn=model_wrap(forward_fn, wrapper_name='base').forward
+            forward_fn = model_wrap(forward_fn, wrapper_name='base').forward
 
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
@@ -163,7 +165,7 @@ class SACOffPolicyAgent:
                 if cuda and torch.cuda.is_available():
                     obs = obs.cuda()
                 (mu, sigma) = forward_fn(obs, mode='compute_actor')['logit']
-                action = torch.tanh(mu).detach().cpu().numpy()[0] # deterministic_eval
+                action = torch.tanh(mu).detach().cpu().numpy()[0]  # deterministic_eval
                 return action
 
             return _forward

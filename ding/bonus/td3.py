@@ -28,6 +28,7 @@ class TrainingReturn:
     '''
     wandb_url: str
 
+
 @dataclass
 class EvalReturn:
     '''
@@ -37,6 +38,7 @@ class EvalReturn:
     '''
     eval_value: np.float32
     eval_value_std: np.float32
+
 
 class TD3OffPolicyAgent:
     supported_env_list = [

@@ -120,7 +120,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
-        cfg = EasyDict({"policy":TD3Policy.default_config()})
+        cfg = EasyDict({"policy": TD3Policy.default_config()})
         if env == 'hopper':
             cfg.update(
                 dict(
@@ -183,8 +183,9 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             learning_rate_critic=3e-4,
                             noise_sigma=0.1,
                         ),
-                        collect=dict(n_sample=256,
-                        noise_sigma=0.1,
+                        collect=dict(
+                            n_sample=256,
+                            noise_sigma=0.1,
                         ),
                         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
                     ),
@@ -199,8 +200,8 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             )
         else:
             raise KeyError("not supported env type: {}".format(env))
-    elif algorithm == 'SAC': 
-        cfg = EasyDict({"policy":SACPolicy.default_config()})
+    elif algorithm == 'SAC':
+        cfg = EasyDict({"policy": SACPolicy.default_config()})
         if env == 'hopper':
             cfg.update(
                 dict(
@@ -272,9 +273,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             reparameterization=True,
                             auto_alpha=False,
                         ),
-                        collect=dict(
-                            n_sample=256,
-                        ),
+                        collect=dict(n_sample=256, ),
                         other=dict(replay_buffer=dict(replay_buffer_size=int(1e6), ), ),
                     ),
                     wandb_logger=dict(
@@ -286,12 +285,12 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-    
+
             pass
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'DQN':
-        cfg = EasyDict({"policy":DQNPolicy.default_config()})
+        cfg = EasyDict({"policy": DQNPolicy.default_config()})
         if env == 'lunarlander_discrete':
             cfg.update(
                 dict(
@@ -349,7 +348,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'IMPALA':
-        cfg = EasyDict({"policy":IMPALAPolicy.default_config()})
+        cfg = EasyDict({"policy": IMPALAPolicy.default_config()})
         if env == 'SpaceInvaders':
             cfg.update(
                 dict(
@@ -511,7 +510,8 @@ def get_instance_env(env: str) -> BaseEnv:
             'env_wrapper': 'atari_default',
         })
         return DingEnvWrapper(gym.make("SpaceInvaders-v4"), cfg=cfg)
-    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling', 'atari_breakout','atari_spaceinvader', 'atari_gopher']:
+    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling', 'atari_breakout', 'atari_spaceinvader',
+                 'atari_gopher']:
         from dizoo.atari.envs.atari_env import AtariEnv
         atari_env_list = {
             'atari_qbert': 'QbertNoFrameskip-v4',

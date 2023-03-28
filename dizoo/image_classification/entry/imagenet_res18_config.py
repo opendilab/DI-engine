@@ -27,9 +27,7 @@ imagenet_res18_config = dict(
             learn_data_path='/mnt/lustre/share/images/train',
             eval_data_path='/mnt/lustre/share/images/val',
         ),
-        eval=dict(
-            batch_size=32, evaluator=dict(eval_freq=1, stop_value=dict(loss=0.5, acc1=75.0, acc5=95.0))
-        ),
+        eval=dict(batch_size=32, evaluator=dict(eval_freq=1, stop_value=dict(loss=0.5, acc1=75.0, acc5=95.0))),
     ),
     env=dict(),
 )

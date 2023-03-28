@@ -28,6 +28,7 @@ class TrainingReturn:
     '''
     wandb_url: str
 
+
 @dataclass
 class EvalReturn:
     '''
@@ -37,6 +38,7 @@ class EvalReturn:
     '''
     eval_value: np.float32
     eval_value_std: np.float32
+
 
 class DQNOffpolicyAgent:
     supported_env_list = [
@@ -114,13 +116,7 @@ class DQNOffpolicyAgent:
             #         random_collect_size=self.cfg.policy.random_collect_size
             #     )
             # )
-            task.use(
-                StepCollector(
-                    self.cfg,
-                    self.policy.collect_mode,
-                    collector_env
-                )
-            )
+            task.use(StepCollector(self.cfg, self.policy.collect_mode, collector_env))
             task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
@@ -161,7 +157,7 @@ class DQNOffpolicyAgent:
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
-            forward_fn=model_wrap(forward_fn, wrapper_name='argmax_sample').forward
+            forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
 
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
@@ -174,7 +170,7 @@ class DQNOffpolicyAgent:
                 return action
 
             return _forward
-        
+
         forward_fn = single_env_forward_wrapper(self.policy._model, self.cfg.policy.cuda)
 
         # main loop

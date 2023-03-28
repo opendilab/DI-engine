@@ -10,11 +10,11 @@ from ding.utils import set_pkg_seed
 
 
 def eval(
-    input_cfg: Union[str, Tuple[dict, dict]],
-    seed: int = 0,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    state_dict: Optional[dict] = None,
+        input_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
 ) -> float:
     r"""
     Overview:

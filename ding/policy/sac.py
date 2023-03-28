@@ -822,7 +822,6 @@ class SACPolicy(Policy):
             'td_error',
         ] + twin_critic + alpha_loss
 
-
     def monitor_vars(self) -> List[str]:
         return self._monitor_vars_learn()
 
