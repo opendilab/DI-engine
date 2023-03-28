@@ -52,7 +52,7 @@ def m_q_1step_td_error(
 ) -> torch.Tensor:
     """
     Overview:
-        Munchausen td_error for DQN algorithm,support 1 step td error.
+        Munchausen td_error for DQN algorithm, support 1 step td error.
     Arguments:
         - data (:obj:`m_q_1step_td_data`): the input data, m_q_1step_td_data to calculate loss
         - gamma (:obj:`float`): discount factor

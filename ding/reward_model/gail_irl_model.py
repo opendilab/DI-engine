@@ -3,7 +3,6 @@ import pickle
 import random
 from collections.abc import Iterable
 from easydict import EasyDict
-import numpy as np
 
 import torch
 import torch.nn as nn
@@ -113,28 +112,29 @@ class GailRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``,  ``state_dict``, ``load_state_dict``, ``learn``
     Config:
-           == ====================  ========   =============  ================================= =======================
-           ID Symbol                Type       Default Value  Description                       Other(Shape)
-           == ====================  ========   =============  ================================= =======================
-           1  ``type``              str        gail           | RL policy register name, refer  | this arg is optional,
-                                                              | to registry ``POLICY_REGISTRY`` | a placeholder
-           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset      | Should be a '.pkl'
-              | ``path``                       .pkl           |                                 | file
-           3  | ``update_per_``     int        100            | Number of updates per collect   |
-              | ``collect``                                   |                                 |
-           4  | ``batch_size``      int        64             | Training batch size             |
-           5  | ``input_size``      int                       | Size of the input:              |
-              |                                               | obs_dim + act_dim               |
-           6  | ``target_new_``     int        64             | Collect steps per iteration     |
-              | ``data_count``                                |                                 |
-           7  | ``hidden_size``     int        128            | Linear model hidden size        |
-           8  | ``collect_count``   int        100000         | Expert dataset size             | One entry is a (s,a)
-              |                                               |                                 | tuple
-           9  | ``clear_buffer_``   int        1              | clear buffer per fix iters      | make sure replay 
-              | ``per_iters``                                                                   | buffer's data count 
-              |                                                                                 | isn't too few.
-              |                                                                                 | (code work in entry)
-           == ====================  ========   =============  ================================= =======================
+           == ====================  ========   =============  =================================== =======================
+           ID Symbol                Type       Default Value  Description                         Other(Shape)
+           == ====================  ========   =============  =================================== =======================
+           1  ``type``              str        gail           | RL policy register name, refer    | this arg is optional,
+                                                              | to registry ``POLICY_REGISTRY``   | a placeholder
+           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset        | Should be a '.pkl'
+              | ``path``                       .pkl           |                                   | file
+           3  | ``learning_rate``   float      0.001          | The step size of gradient descent |
+           3  | ``update_per_``     int        100            | Number of updates per collect     |
+              | ``collect``                                   |                                   |
+           4  | ``batch_size``      int        64             | Training batch size               |
+           5  | ``input_size``      int                       | Size of the input:                |
+              |                                               | obs_dim + act_dim                 |
+           6  | ``target_new_``     int        64             | Collect steps per iteration       |
+              | ``data_count``                                |                                   |
+           7  | ``hidden_size``     int        128            | Linear model hidden size          |
+           8  | ``collect_count``   int        100000         | Expert dataset size               | One entry is a (s,a)
+              |                                               |                                   | tuple
+           9  | ``clear_buffer_``   int        1              | clear buffer per fix iters        | make sure replay 
+              | ``per_iters``                                                                     | buffer's data count 
+              |                                                                                   | isn't too few.
+              |                                                                                   | (code work in entry)
+           == ====================  ========   =============  =================================== =======================
 
        """
     config = dict(

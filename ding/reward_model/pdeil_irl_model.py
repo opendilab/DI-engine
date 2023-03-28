@@ -17,15 +17,38 @@ class PdeilRewardModel(BaseRewardModel):
     """
     Overview:
         The Pdeil reward model class
+        Paper link: https://arxiv.org/abs/2112.06746
     Interface:
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``, ``_batch_mn_pdf``
+    Config:
+           == ====================  ========   =============  =======================================  =======================
+           ID Symbol                Type       Default Value  Description                              Other(Shape)
+           == ====================  ========   =============  =======================================  =======================
+           1  ``type``              str          pdeil        | Reward model register name, refer       |
+                                                              | to registry ``REWARD_MODEL_REGISTRY``   |
+           2  | ``discrete_``       bool         False        | Whether the action is discrete          |
+              | ``action``                                    |                                         |
+           3  | ``alpha``           float        0.5          | coefficient for Probability             |
+              |                                               | Density Estimator                       |
+           4  | ``clear_buffer``    int         1             | clear buffer per fix iters              | make sure replay
+                ``_per_iters``                                                                          | buffer's data count
+                                                                                                        | isn't too few.
+                                                                                                        | (code work in entry)
+           == ====================  ========   =============  =======================================  =======================
     """
     config = dict(
+        # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='pdeil',
         # expert_data_path='expert_data.pkl',
+        # (bool) Whether the action is discrete
         discrete_action=False,
+        # (float) coefficient for Probability Density Estimator
+        # alpha + beta = 1, alpha is in [0,1]
+        # when alpha is close to 0, the estimator has high variance and low bias; 
+        # when alpha is close to 1, the estimator has high bias and low variance.
         alpha=0.5,
+        # (int) clear buffer per fix iters
         clear_buffer_per_iters=1,
     )
 

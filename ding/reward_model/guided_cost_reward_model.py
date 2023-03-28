@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
+from typing import List, Dict, Any
 from easydict import EasyDict
 
 import torch
@@ -51,7 +51,7 @@ class GuidedCostRewardModel(BaseRewardModel):
            1  ``type``              str         guided_cost   | Reward model register name, refer        |
                                                               | to registry ``REWARD_MODEL_REGISTRY``    |
            2  | ``continuous``      bool        True          | Whether action is continuous             |
-           3  | ``learning_rate``   int         0.001         | learning rate for optimizer              |
+           3  | ``learning_rate``   float       0.001         | learning rate for optimizer              |
            4  | ``update_per_``     int         100           | Number of updates per collect            |
               | ``collect``                                   |                                          |
            5  | ``batch_size``      int         64            | Training batch size                      |

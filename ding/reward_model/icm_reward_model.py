@@ -5,7 +5,6 @@ import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
@@ -130,7 +129,7 @@ class ICMRewardModel(BaseRewardModel):
         The ICM reward model class (https://arxiv.org/pdf/1705.05363.pdf)
     Interface:
         ``estimate``, ``train``, ``collect_data``, ``clear_data``, \
-            ``__init__``, ``_train``,
+            ``__init__``, ``_train``, ``load_state_dict``, ``state_dict``
     Config:
            == ====================  ========   =============  =======================================  =======================
            ID Symbol                Type       Default Value  Description                              Other(Shape)
@@ -139,7 +138,7 @@ class ICMRewardModel(BaseRewardModel):
                                                               | to registry ``REWARD_MODEL_REGISTRY``   |
            2  | ``intrinsic_``      str         add           | the intrinsic reward type               | including add, new
               | ``reward_type``                               |                                         | , or assign
-           3  | ``learning_rate``   int         0.001         | learning rate for optimizer             |
+           3  | ``learning_rate``   float       0.001         | learning rate for optimizer             |
            4  | ``obs_shape``       Tuple(      6             | the observation shape                   |
                                     [int, 
                                     list])
