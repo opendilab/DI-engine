@@ -4,7 +4,7 @@ from huggingface_ding import push_model_to_hub
 # Instantiate the agent
 agent = PPOF("lunarlander_discrete", exp_name="LunarLander-v2-PPO")
 # Train the agent
-return_ = agent.train(step=int(200000), collector_env_num=4, evaluator_env_num=4)
+return_ = agent.train(step=int(4000000), collector_env_num=4, evaluator_env_num=4)
 # Push model to huggingface hub
 push_model_to_hub(
     agent=agent,
