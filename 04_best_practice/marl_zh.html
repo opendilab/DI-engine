@@ -411,7 +411,7 @@
 <p>因此，本文章将会简要介绍：</p>
 <ul class="simple">
 <li><p>如何在 <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中构建自己的多智能体环境？</p></li>
-<li><p>如何利用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中已有的多智能体强化学习算法 (例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX</a> 与 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO</a> ) 来求解构建好的多智能体问题？</p></li>
+<li><p>如何利用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中已有的多智能体强化学习算法 (例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX代码实现</a> 与 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO代码实现</a> ) 来求解构建好的多智能体问题？</p></li>
 </ul>
 <p>下面大部分情况下将以 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 环境中的 <code class="docutils literal notranslate"><span class="pre">simple</span> <span class="pre">spread</span></code> 为例进行说明：</p>
 <img alt="../_images/mpe_simple_spread.gif" class="align-center" src="../_images/mpe_simple_spread.gif" />
@@ -560,7 +560,7 @@
 </section>
 <section id="di-engine-marl">
 <h1>如何使用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中的 MARL 算法<a class="headerlink" href="#di-engine-marl" title="Permalink to this headline">¶</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中集成了多种多智能体强化学习算法，包括属于 value-based 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py">QTRAN</a> 以及属于 actor-critic 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py">COMA</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO</a> ，具体如下：</p>
+<p><code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中集成了多种多智能体强化学习算法，包括属于 value-based 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX算法</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py">QTRAN算法</a> 以及属于 actor-critic 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py">COMA算法</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO算法</a> ，具体算法 benchmark 如下：</p>
 <table class="colwidths-given docutils align-default" id="id12">
 <caption><span class="caption-text">MARL environments in DI-zoo</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
 <colgroup>

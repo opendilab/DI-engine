@@ -143,14 +143,14 @@ Episodic Memory
 NGU
 ''''''''
 
-In order to solve the aforementioned problem of gradual attenuation of the exploration signal, the paper [5]_ `Never Give Up: Learning Directed Exploration Strategies <https://arxiv.org/abs/2002.06038>`__\  (Never Give Up)
+In order to solve the aforementioned problem of gradual attenuation of the exploration signal, the paper [5]_ `Never Give Up (NGU): Learning Directed Exploration Strategies <https://arxiv.org/abs/2002.06038>`__\  designs NGU algorithm to address this issue on the top of R2D2 [6]_ algorithm.
 The agent adopts a new intrinsic reward generation mechanism that integrates the novelty of 2 dimensions: namely the life-long dimension of the inter-game intrinsic reward and the single-game dimension of the intra-game intrinsic reward , and also proposed to simultaneously learn a set of strategies with different degrees of exploration (directed
-exploratory policies) to collect more abundant samples for training. Among them, the intrinsic reward between games is maintained by maintaining an Episodic that stores the state of the game calculated by calculating the distance between the current state and the k most similar samples in Memory. More details about NGU can be found in the blog [TODO].
+exploratory policies) to collect more abundant samples for training. Among them, the intrinsic reward between games is maintained by maintaining an Episodic that stores the state of the game calculated by calculating the distance between the current state and the k most similar samples in Memory. More details about NGU can be found in the Chinese `blog <https://zhuanlan.zhihu.com/p/551992517>`_ .
 
 Agent57
 ''''''''
 
-Paper [6]_ `Agent57: Outperforming the Atari Human
+Paper [7]_ `Agent57: Outperforming the Atari Human
 Benchmark <https://arxiv.org/abs/2003.13350>`__\  made the following improvements on the basis of NGU:
 
 -  Parameterization of the Q function: The Q network is divided into two parts, and the Q value corresponding to the intrinsic reward and the Q value corresponding to the extrinsic reward are learned respectively.
@@ -208,14 +208,14 @@ References
     Learning directed exploration strategies[J]. arXiv preprint
     arXiv:2002.06038, 2020.
 
-.. [6] Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
+.. [6] Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
+    replay in distributed reinforcement learning[C]//International
+    conference on learning representations. 2018.
+
+.. [7] Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
     Outperforming the atari human benchmark\ `J]. arXiv preprint
     arXiv:2003.13350,
     1.    <https://link.zhihu.com/?target=https%3A//arxiv.org/pdf/2003.13350.pdf>`__
-
-.. [7] Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
-    replay in distributed reinforcement learning[C]//International
-    conference on learning representations. 2018.
 
 .. [8] Adrien Ecoffet, et al. “Go-Explore: a New Approach for
     Hard-Exploration Problems”. arXiv 1901.10995 (2019).

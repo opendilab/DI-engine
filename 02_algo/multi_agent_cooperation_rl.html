@@ -302,7 +302,7 @@
 <h1>Multi-Agent Reinforcement Learning<a class="headerlink" href="#multi-agent-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
 <section id="problem-definition-and-research-motivation">
 <h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
-<p>In many real-world scenarios, people need to control multiple agents that exist at the same time to complete specific tasks, such as traffic control, robot collaboration, autonomous driving, and multiplayer online games. Therefore, the research on reinforcement learning has gradually extended from the field of single agent to multi-agent reinforcement learning (MARL). In recent years, deep reinforcement learning has shown great potential in multi-agent environments and games, such as the sub-environment <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/13_envs/smac.html">SMAC</a> of StarCraft II, the football game <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/13_envs/gfootball.html">Gfootball</a> , and autonomous driving environments such as <a class="reference external" href="https://carla.org/">Carla</a> .</p>
+<p>In many real-world scenarios, people need to control multiple agents that exist at the same time to complete specific tasks, such as traffic control, robot collaboration, autonomous driving, and multiplayer online games. Therefore, the research on reinforcement learning has gradually extended from the field of single agent to multi-agent reinforcement learning (MARL). In recent years, deep reinforcement learning has shown great potential in multi-agent environments and games, such as the sub-environment <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/13_envs/smac.html">SMAC</a> of StarCraft II <a class="footnote-reference brackets" href="#id15" id="id1">7</a> , the football game <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/13_envs/gfootball.html">Gfootball</a> , and autonomous driving environments such as <a class="reference external" href="https://carla.org/">Carla</a> .</p>
 <a class="reference internal image-reference" href="../_images/smac.gif"><img alt="../_images/smac.gif" class="align-center" src="../_images/smac.gif" style="width: 230.0px; height: 132.5px;" /></a>
 <p>In MARL, the policy controls multiple agents to interact with the environment simultaneously, and the goal is still to maximize the cumulative reward. In this case, the state transition function and the reward function of the environment are conditioned on the joint action of all agents rather than the single action of one agent. Therefore, in the process of policy learning, the update of each agent’s policy needs to consider the current policies of other agents.</p>
 <a class="reference internal image-reference" href="../_images/MARL_summary.png"><img alt="../_images/MARL_summary.png" class="align-center" src="../_images/MARL_summary.png" style="width: 260.5px; height: 227.0px;" /></a>
@@ -324,18 +324,18 @@ During the training process, each agent interacts with the environment separatel
 <p>At present, the cooperative tasks in MARL mainly adopt the CTDE paradigm (centralized training and decentralized execution), which mainly include two types of learning methods, Valued-based MARL and Actor-Critic MARL. Please refer to Figure 2 for details:</p>
 <a class="reference internal image-reference" href="../_images/MARL_cooperation_algo.png"><img alt="../_images/MARL_cooperation_algo.png" class="align-center" src="../_images/MARL_cooperation_algo.png" style="width: 384.5px; height: 215.5px;" /></a>
 <p><strong>Valued-based MARL</strong></p>
-<p>For Valued-based MARL, the main idea is the factorization of the joint action-value function <span class="math notranslate nohighlight">\(Q_tot\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution. In order to achieve CTDE, we need to ensure that factorization satisfy the IGM assumption: the a global argmax performed on <span class="math notranslate nohighlight">\(Q_tot\)</span> yields the same result as a set of individual argmax operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>. There are mainly QMIX, WQMIX, QTRAN and other methods:</p>
+<p>For Valued-based MARL, the main idea is the factorization <a class="footnote-reference brackets" href="#id11" id="id2">3</a> of the joint action-value function <span class="math notranslate nohighlight">\(Q_tot\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution. In order to achieve CTDE, we need to ensure that factorization satisfy the IGM assumption: the a global argmax performed on <span class="math notranslate nohighlight">\(Q_tot\)</span> yields the same result as a set of individual argmax operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>. There are mainly QMIX, WQMIX, QTRAN and other methods:</p>
 <ul class="simple">
-<li><p>QMIX: The core of QMIX is to learn a monotonic Q-value mixed network, and the Q-value of each agent is summed by nonlinear transformation to generate <span class="math notranslate nohighlight">\(Q_tot\)</span>. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/qmix.html">QMIX</a> <a class="footnote-reference brackets" href="#id8" id="id1">2</a></p></li>
-<li><p>WQMIX: The core of WQMIX is the same as that of QMIX, and it also learns a Q-value mixed network, but it learns a Q-value mixed network that can break through the monotonicity limit through the weighted projection method. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/wqmix.html">WQMIX</a> <a class="footnote-reference brackets" href="#id7" id="id2">1</a></p></li>
-<li><p>QTRAN: QTRAN breaks through the monotonicity limitation by learning independent action-value networks, hybrid action-value networks, and global state-value networks. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/qtran.html">QTRAN</a> <a class="footnote-reference brackets" href="#id10" id="id3">4</a></p></li>
-<li><p>QPLEX: QPLEX decomposes the joint Q-value <span class="math notranslate nohighlight">\(Q_tot\)</span> and the Q-value of each agent <span class="math notranslate nohighlight">\(Q_i\)</span> using a Dueling structure, respectively. The IGM consistency is transformed into an easy-to-implement advantage function value range constraint, which facilitates the learning of value functions with a linear decomposition structure. For details, please refer to <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id16" id="id4">10</a></p></li>
+<li><p>QMIX: The core of QMIX is to learn a monotonic Q-value mixed network, and the Q-value of each agent is summed by nonlinear transformation to generate <span class="math notranslate nohighlight">\(Q_tot\)</span>. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/qmix.html">QMIX</a> <a class="footnote-reference brackets" href="#id10" id="id3">2</a></p></li>
+<li><p>WQMIX: The core of WQMIX is the same as that of QMIX, and it also learns a Q-value mixed network, but it learns a Q-value mixed network that can break through the monotonicity limit through the weighted projection method. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/wqmix.html">WQMIX</a> <a class="footnote-reference brackets" href="#id9" id="id4">1</a></p></li>
+<li><p>QTRAN: QTRAN breaks through the monotonicity limitation by learning independent action-value networks, hybrid action-value networks, and global state-value networks. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/qtran.html">QTRAN</a> <a class="footnote-reference brackets" href="#id12" id="id5">4</a></p></li>
+<li><p>QPLEX: QPLEX decomposes the joint Q-value <span class="math notranslate nohighlight">\(Q_tot\)</span> and the Q-value of each agent <span class="math notranslate nohighlight">\(Q_i\)</span> using a Dueling structure, respectively. The IGM consistency is transformed into an easy-to-implement advantage function value range constraint, which facilitates the learning of value functions with a linear decomposition structure. For details, please refer to <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id16" id="id6">8</a></p></li>
 </ul>
 <p><strong>Actor-Critic MARL</strong></p>
 <p>For Actor-Critic MARL, the main idea is to use the policy gradient theorem to update the policy networks while learning a fully centralized state-action value function and use it to guide the optimization of decentralized policies.</p>
 <ul class="simple">
-<li><p>COMA: COMA uses counterfactual baselines to address the challenge of credit assignment across multiple agents and a critic network to efficiently compute counterfactual baselines. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/coma.html">COMA</a> <a class="footnote-reference brackets" href="#id11" id="id5">5</a></p></li>
-<li><p>MAPPO: The basic idea of MAPPO is the same as that of PPO, but the input to the Actor network is the Local observation of each agent, and the input to the Critic network is the Agent specific global state of each agent. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/ppo.html">MAPPO</a> <a class="footnote-reference brackets" href="#id12" id="id6">6</a></p></li>
+<li><p>COMA: COMA uses counterfactual baselines to address the challenge of credit assignment across multiple agents and a critic network to efficiently compute counterfactual baselines. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/coma.html">COMA</a> <a class="footnote-reference brackets" href="#id13" id="id7">5</a></p></li>
+<li><p>MAPPO: The basic idea of MAPPO is the same as that of PPO, but the input to the Actor network is the Local observation of each agent, and the input to the Critic network is the Agent specific global state of each agent. For details, please refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/12_policies/ppo.html">MAPPO</a> <a class="footnote-reference brackets" href="#id14" id="id8">6</a></p></li>
 </ul>
 </section>
 <section id="future-study">
@@ -350,34 +350,28 @@ During the training process, each agent interacts with the environment separatel
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <dl class="footnote brackets">
-<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>
 <dd><p>ashid, Tabish, et al. “Weighted qmix: Expanding monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv preprint arXiv:2006.10800 (2020).</p>
 </dd>
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id1">2</a></span></dt>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
 <dd><p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p>
 </dd>
-<dt class="label" id="id9"><span class="brackets">3</span></dt>
+<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id2">3</a></span></dt>
 <dd><p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p>
 </dd>
-<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id3">4</a></span></dt>
+<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id5">4</a></span></dt>
 <dd><p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p>
 </dd>
-<dt class="label" id="id11"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id7">5</a></span></dt>
 <dd><p>Jakob Foerster, Gregory Farquhar, Triantafyllos Afouras, Nantas Nardelli, Shimon Whiteson. Counterfactual Multi-Agent Policy Gradients. In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence, 2018.</p>
 </dd>
-<dt class="label" id="id12"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
+<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id8">6</a></span></dt>
 <dd><p>Yu, C., Velu, A., Vinitsky, E., Wang, Y., Bayen, A., and Wu, Y. The surprising effectiveness of mappo in cooperative, multi-agent games. arXiv preprint arXiv:2103.01955, 2021.</p>
 </dd>
-<dt class="label" id="id13"><span class="brackets">7</span></dt>
-<dd><p>Jayesh K. Gupta, Maxim Egorov, Mykel Kochenderfer. Cooperative multi-agent control using deep reinforcement learning. International Conference on Autonomous Agents and Multiagent Systems, 2017.</p>
-</dd>
-<dt class="label" id="id14"><span class="brackets">8</span></dt>
-<dd><p>Ryan Lowe, Yi Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, Igor Mordatch. Multi-agent actor-critic for mixed cooperative-competitive environments. arXiv preprint arXiv:1706.02275, 2017.</p>
-</dd>
-<dt class="label" id="id15"><span class="brackets">9</span></dt>
+<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id1">7</a></span></dt>
 <dd><p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
 </dd>
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id4">10</a></span></dt>
+<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id6">8</a></span></dt>
 <dd><p>Wang, J., Ren, Z., Liu, T., Yu, Y., and Zhang, C. Qplex: Duplex dueling multi-agent q-learning. arXiv preprint arXiv:2008.01062, 2020.</p>
 </dd>
 </dl>

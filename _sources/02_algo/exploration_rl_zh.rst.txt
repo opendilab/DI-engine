@@ -173,18 +173,15 @@ Episodic Memory
 NGU
 ''''''''
 
-为了解决前述探索信号逐渐衰减的问题，论文 [5]_ `Never Give Up: Learning
-Directed Exploration
-Strategies <https://arxiv.org/abs/2002.06038>`__\ 中提出的 NGU (Never
-Give Up)
-智能体采用一种新的内在奖励产生机制，融合了2个维度的新颖性：即\ **life-long 维度上的局间内在奖励**\ 和\ **单局维度上的局内内在奖励**\ ，此外还提出通过同时学习一组具有不同探索程度的策略 (directed
+为了解决前述探索信号逐渐衰减的问题，论文 [5]_ `Never Give Up: Learning Directed Exploration Strategies <https://arxiv.org/abs/2002.06038>`__\ 基于 R2D2 [6]_ 算法提出了 Never Give Up（NGU）算法。
+这种智能体采用一种新的内在奖励产生机制，融合了2个维度的新颖性：即\ **life-long 维度上的局间内在奖励**\ 和\ **单局维度上的局内内在奖励**\ ，此外还提出通过同时学习一组具有不同探索程度的策略 (directed
 exploratory policies)来采集更为丰富的样本用于训练。其中局间内在奖励是通过维护一个存储本局状态的 Episodic
-Memory, 计算当前状态与 Memory 中与其最相似的k个样本的距离计算得到的。关于 NGU 的更多细节可以参考博客 [TODO]。
+Memory, 计算当前状态与 Memory 中与其最相似的k个样本的距离计算得到的。关于 NGU 的更多细节可以参考 `NGU 中文博客 <https://zhuanlan.zhihu.com/p/551992517>`_ 。
 
 Agent57
 ''''''''
 
-论文 [6]_ `Agent57: Outperforming the Atari Human
+论文 [7]_ `Agent57: Outperforming the Atari Human
 Benchmark <https://arxiv.org/abs/2003.13350>`__\ 在 NGU 的基础上做了如下改进：
 
 -  Q 函数的参数化方式：将 Q 网络分为2部分，分别学习内在奖励对应的 Q 值和外在奖励对应的Q值。
@@ -245,14 +242,14 @@ Go-Explore
     Learning directed exploration strategies[J]. arXiv preprint
     arXiv:2002.06038, 2020.
 
-.. [6] Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
+.. [6] Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
+    replay in distributed reinforcement learning[C]//International
+    conference on learning representations. 2018.
+
+.. [7] Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
     Outperforming the atari human benchmark\ `J]. arXiv preprint
     arXiv:2003.13350,
     2020. <https://link.zhihu.com/?target=https%3A//arxiv.org/pdf/2003.13350.pdf>`__
-
-.. [7] Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
-    replay in distributed reinforcement learning[C]//International
-    conference on learning representations. 2018.
 
 .. [8] Adrien Ecoffet, et al. “Go-Explore: a New Approach for
     Hard-Exploration Problems”. arXiv 1901.10995 (2019).

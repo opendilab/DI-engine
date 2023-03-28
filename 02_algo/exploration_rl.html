@@ -300,13 +300,13 @@
                 
   <section id="exploration-mechanisms-in-reinforcement-learning">
 <h1>Exploration Mechanisms in Reinforcement Learning<a class="headerlink" href="#exploration-mechanisms-in-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
-<p>This article mainly refers to this review on exploration strategies in reinforcement learning <a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">blog</a><a class="footnote-reference brackets" href="#id29" id="id1">14</a> 。</p>
+<p>This article mainly refers to this review on exploration strategies in reinforcement learning <a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">blog</a><a class="footnote-reference brackets" href="#id30" id="id1">14</a> 。</p>
 <section id="problem-definition-and-research-motivation">
 <h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
 <p>Reinforcement learning is to guide the update of the strategy through the reward signal given by the environment, and strive to obtain the maximum cumulative discount reward. But in many real-world environments the rewards are sparse or even non-existent. In this case, how to guide the agent to efficiently explore the state and action space, and then find the optimal strategy to complete the task?</p>
 <p>If the agent becomes greedy after a finite number of steps of training, i.e. chooses only the actions it currently thinks are optimal in a certain state, it may never learn the optimal policy, as it may well have converged to a suboptimal policy , will never reach a state of truly meaningful rewards. This is the so-called exploration and exploitation dilemma.
 In layman’s terms, the so-called exploration: refers to doing things you have never done before in order to expect higher returns; the so-called utilization: refers to doing what you currently know can produce the greatest returns.</p>
-<p>Referring to <a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id24" id="id2">9</a>, exploration mainly includes two difficulties:</p>
+<p>Referring to <a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id25" id="id2">9</a>, exploration mainly includes two difficulties:</p>
 <ul class="simple">
 <li><p>The rewards given by the environment are sparse. The agent needs to make a specific sequence of actions to get a non-zero reward. If only random exploration is used in each step, it is likely that a non-zero reward will not be encountered in the entire learning process. For example, in Montezuma’s Revenge, the agent needs to perform a long sequence of actions to obtain a key or enter a new room, and only then will there be a reward.</p></li>
 <li><p>The rewards given by the environment are misleading. For example, in the Pitfall game, not only are the rewards very sparse, but many actions of the agent will get a negative reward. Before the agent learns how to obtain a positive reward, it may stop in place due to the existence of these negative rewards resulting in a lack of exploration.</p></li>
@@ -375,10 +375,10 @@ Exploration：Exploration is achieved by adding noise to the parameter space of 
 <ul class="simple">
 <li><p><a class="reference external" href="https://arxiv.org/abs/1606.01868">Unifying Count-Based Exploration and Intrinsic
 Motivation</a>
-<a class="footnote-reference brackets" href="#id16" id="id3">1</a> uses a density model to approximate the frequency of state visits and proposes a novel pseudo-count derived from the density model algorithm.</p></li>
+<a class="footnote-reference brackets" href="#id17" id="id3">1</a> uses a density model to approximate the frequency of state visits and proposes a novel pseudo-count derived from the density model algorithm.</p></li>
 <li><p><a class="reference external" href="https://arxiv.org/abs/1611.04717">Exploration: A Study of Count-Based Exploration for Deep
 Reinforcement Learning</a>
-<a class="footnote-reference brackets" href="#id17" id="id4">2</a> proposes to use Locality-Sensitive Hash (LSH ) to convert continuous high-dimensional state data into discrete hash codes. Thus, the statistics of the frequency of occurrence of states become feasible.</p></li>
+<a class="footnote-reference brackets" href="#id18" id="id4">2</a> proposes to use Locality-Sensitive Hash (LSH ) to convert continuous high-dimensional state data into discrete hash codes. Thus, the statistics of the frequency of occurrence of states become feasible.</p></li>
 </ul>
 <p>However, count-based methods for measuring novelty have many obvious limitations:</p>
 <ul class="simple">
@@ -389,22 +389,22 @@ Reinforcement Learning</a>
 <section id="intrinsic-reward-based-on-prediction-error">
 <h4>Intrinsic Reward Based on Prediction Error<a class="headerlink" href="#intrinsic-reward-based-on-prediction-error" title="Permalink to this headline">¶</a></h4>
 <p>Intrinsic reward based on prediction error is <strong>to use the prediction error of a state on a prediction problem (usually a supervised learning problem) to measure novelty</strong>. According to the characteristics of the neural network fitting data set in supervised learning, if the prediction error of the agent in a certain state  <span class="math notranslate nohighlight">\(s\)</span>is larger, it approximately means that the number of previous visits by the agent in the state space near the state  <span class="math notranslate nohighlight">\(s\)</span>is small, so the state <span class="math notranslate nohighlight">\(s\)</span>is more novel.</p>
-<p>Prediction problems are often problems related to the dynamics of the environment, such as the paper <a class="footnote-reference brackets" href="#id18" id="id5">3</a> <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> (ICM) proposed a new Intrinsic Curiosity module based on prediction error. Module, ICM), by using the inverse dynamics model and the forward dynamics model to learn a new feature space on the original problem space, so that the learned feature space only encodes the part that affects the agent’s decision-making, while ignoring the environment noise and other irrelevant interference. Then on this purer feature space, the prediction error of the forward model is used to provide the intrinsic for RL training reward. For more details about ICM, please refer to <a class="reference external" href="https://zhuanlan.zhihu.com/p/473676311">blog</a>.</p>
+<p>Prediction problems are often problems related to the dynamics of the environment, such as the paper <a class="footnote-reference brackets" href="#id19" id="id5">3</a> <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> (ICM) proposed a new Intrinsic Curiosity module based on prediction error. Module, ICM), by using the inverse dynamics model and the forward dynamics model to learn a new feature space on the original problem space, so that the learned feature space only encodes the part that affects the agent’s decision-making, while ignoring the environment noise and other irrelevant interference. Then on this purer feature space, the prediction error of the forward model is used to provide the intrinsic for RL training reward. For more details about ICM, please refer to <a class="reference external" href="https://zhuanlan.zhihu.com/p/473676311">blog</a>.</p>
 <p>But ICM has the following problems:</p>
 <ul class="simple">
 <li><p>On large-scale problems, the complex forward dynamics model of the environment, coupled with the limited capacity of the neural network, leads to large prediction errors when certain regions of the state-action space are visited a large number of times.</p></li>
 <li><p>In some environments, the state transition function of the environment is a random function, such as an environment containing noise-TV properties, and the agent cannot accurately predict the next state through the usual neural network.</p></li>
 </ul>
-<p>In order to alleviate the above problems, the paper <a class="footnote-reference brackets" href="#id19" id="id6">4</a> <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">Exploration by Random Network
+<p>In order to alleviate the above problems, the paper <a class="footnote-reference brackets" href="#id20" id="id6">4</a> <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">Exploration by Random Network
 Distillation</a> proposes the RND algorithm, which is also an exploration method based on the prediction problem, but special, the prediction problem in the RND algorithm is only related to the observation state (observation). The related stochastic distillation problem is not about forward or inverse kinetic models of the environment. Specifically, RND uses two neural networks with the same structure: a target network with fixed random initialization parameters; a predictor network, which is used to output the state encoding given by the target network. Then the RND intrinsic exploration reward is defined as being proportional to the state feature predicted by the predictor network<span class="math notranslate nohighlight">\(\hat{f}( s_t )\)</span>and the state feature of the target network <span class="math notranslate nohighlight">\(f(s_t)\)</span> . For more details about RND, please refer to <a class="reference external" href="https://zhuanlan.zhihu.com/p/473676311">blog</a>.</p>
 </section>
 <section id="intrinsic-rewards-based-on-information-theory">
 <h4>Intrinsic Rewards Based on Information Theory<a class="headerlink" href="#intrinsic-rewards-based-on-information-theory" title="Permalink to this headline">¶</a></h4>
 <p>To encourage exploration, another idea is to design intrinsic rewards based on information theory.
-The paper <a class="footnote-reference brackets" href="#id26" id="id7">11</a> introduced Variational information maximizing exploration (VIME), the core idea is the maximization of information gain about the agent’s belief of environment dynamics, using variational inference in Bayesian neural networks, which can efficiently handle continuous state and action spaces.
-The paper <a class="footnote-reference brackets" href="#id27" id="id8">12</a> proposes the EMI algorithm (Exploration with Mutual Information), which does not learn representations through the usual encoding/decoding raw state or action space, but learns the relationship between states and actions by maximizing the mutual information between related state-action representations.
+The paper <a class="footnote-reference brackets" href="#id27" id="id7">11</a> introduced Variational information maximizing exploration (VIME), the core idea is the maximization of information gain about the agent’s belief of environment dynamics, using variational inference in Bayesian neural networks, which can efficiently handle continuous state and action spaces.
+The paper <a class="footnote-reference brackets" href="#id28" id="id8">12</a> proposes the EMI algorithm (Exploration with Mutual Information), which does not learn representations through the usual encoding/decoding raw state or action space, but learns the relationship between states and actions by maximizing the mutual information between related state-action representations.
 They experimentally verified that the forward prediction signal extracted in such a representation space can guide exploration well.
-In addition, there are also methods such as DIYAN <a class="footnote-reference brackets" href="#id28" id="id9">13</a>, which is based on the objective function of mutual information to learn skill variables, which can automatically learn the distribution of state and skill by setting intrinsic rewards related to mutual information without external rewards， so as to use in subsequent tasks such as hierarchical learning, imitation learning, and exploration.</p>
+In addition, there are also methods such as DIYAN <a class="footnote-reference brackets" href="#id29" id="id9">13</a>, which is based on the objective function of mutual information to learn skill variables, which can automatically learn the distribution of state and skill by setting intrinsic rewards related to mutual information without external rewards， so as to use in subsequent tasks such as hierarchical learning, imitation learning, and exploration.</p>
 </section>
 </section>
 <section id="memory-based-exploration">
@@ -419,13 +419,13 @@ In addition, there are also methods such as DIYAN <a class="footnote-reference b
 <h4>Episodic Memory<a class="headerlink" href="#episodic-memory" title="Permalink to this headline">¶</a></h4>
 <section id="ngu">
 <h5>NGU<a class="headerlink" href="#ngu" title="Permalink to this headline">¶</a></h5>
-<p>In order to solve the aforementioned problem of gradual attenuation of the exploration signal, the paper <a class="footnote-reference brackets" href="#id20" id="id10">5</a> <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a> (Never Give Up)
+<p>In order to solve the aforementioned problem of gradual attenuation of the exploration signal, the paper <a class="footnote-reference brackets" href="#id21" id="id10">5</a> <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up (NGU): Learning Directed Exploration Strategies</a> designs NGU algorithm to address this issue on the top of R2D2 <a class="footnote-reference brackets" href="#id22" id="id11">6</a> algorithm.
 The agent adopts a new intrinsic reward generation mechanism that integrates the novelty of 2 dimensions: namely the life-long dimension of the inter-game intrinsic reward and the single-game dimension of the intra-game intrinsic reward , and also proposed to simultaneously learn a set of strategies with different degrees of exploration (directed
-exploratory policies) to collect more abundant samples for training. Among them, the intrinsic reward between games is maintained by maintaining an Episodic that stores the state of the game calculated by calculating the distance between the current state and the k most similar samples in Memory. More details about NGU can be found in the blog [TODO].</p>
+exploratory policies) to collect more abundant samples for training. Among them, the intrinsic reward between games is maintained by maintaining an Episodic that stores the state of the game calculated by calculating the distance between the current state and the k most similar samples in Memory. More details about NGU can be found in the Chinese <a class="reference external" href="https://zhuanlan.zhihu.com/p/551992517">blog</a> .</p>
 </section>
 <section id="agent57">
 <h5>Agent57<a class="headerlink" href="#agent57" title="Permalink to this headline">¶</a></h5>
-<p>Paper <a class="footnote-reference brackets" href="#id21" id="id11">6</a> <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human
+<p>Paper <a class="footnote-reference brackets" href="#id23" id="id12">7</a> <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human
 Benchmark</a> made the following improvements on the basis of NGU:</p>
 <ul class="simple">
 <li><p>Parameterization of the Q function: The Q network is divided into two parts, and the Q value corresponding to the intrinsic reward and the Q value corresponding to the extrinsic reward are learned respectively.</p></li>
@@ -438,14 +438,14 @@ Benchmark</a> made the following improvements on the basis of NGU:</p>
 <h4>Direct Exploration<a class="headerlink" href="#direct-exploration" title="Permalink to this headline">¶</a></h4>
 <section id="go-explore">
 <h5>Go-Explore<a class="headerlink" href="#go-explore" title="Permalink to this headline">¶</a></h5>
-<p><a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id23" id="id12">8</a> <a class="footnote-reference brackets" href="#id24" id="id13">9</a>  pointed out that there are currently two factors hindering the agent’s exploration: forgetting how to reach a previously visited state (detachment); the agent cannot first return to a certain state, and then start exploration (derailment) from that state. For this reason, the author proposes a simple mechanism of <strong>remembering a state, returning to that state, and exploring</strong>  from that state to deal with the above problem: by maintaining a memory of the states of interest and the trajectory leading to these states, The agent can return (assuming the simulator is deterministic) to these promising states and continue stochastic exploration from there. Novelty is measured by the prediction error of a state on a prediction problem (usually a supervised learning problem)</p>
+<p><a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id24" id="id13">8</a> <a class="footnote-reference brackets" href="#id25" id="id14">9</a>  pointed out that there are currently two factors hindering the agent’s exploration: forgetting how to reach a previously visited state (detachment); the agent cannot first return to a certain state, and then start exploration (derailment) from that state. For this reason, the author proposes a simple mechanism of <strong>remembering a state, returning to that state, and exploring</strong>  from that state to deal with the above problem: by maintaining a memory of the states of interest and the trajectory leading to these states, The agent can return (assuming the simulator is deterministic) to these promising states and continue stochastic exploration from there. Novelty is measured by the prediction error of a state on a prediction problem (usually a supervised learning problem)</p>
 <p>Specifically, first the state is mapped into a short discrete code (called a cell) for storage. If a new state appears or a better/shorter trajectory is found, the memory updates the corresponding state and trajectory. The agent can choose a state to return uniformly and randomly in the memory, or according to some heuristic rules, for example, it can select the returned state according to the related indicators such as the newness, the access count, the count of its neighbors in the memory and so on. Then start exploring in this state. Go-Explore repeats the above process until the task is solved, i.e. at least one successful trajectory is found.</p>
 </section>
 </section>
 </section>
 <section id="other-exploration-mechanisms">
 <h3>Other Exploration Mechanisms<a class="headerlink" href="#other-exploration-mechanisms" title="Permalink to this headline">¶</a></h3>
-<p>In addition to the above exploration mechanism, there are also Q-value-based exploration <a class="footnote-reference brackets" href="#id25" id="id14">10</a> and so on. Interested readers can refer to this review of exploration strategies in reinforcement learning <a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">blog</a><a class="footnote-reference brackets" href="#id29" id="id15">14</a> .</p>
+<p>In addition to the above exploration mechanism, there are also Q-value-based exploration <a class="footnote-reference brackets" href="#id26" id="id15">10</a> and so on. Interested readers can refer to this review of exploration strategies in reinforcement learning <a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">blog</a><a class="footnote-reference brackets" href="#id30" id="id16">14</a> .</p>
 </section>
 </section>
 <section id="future-study">
@@ -460,66 +460,66 @@ Benchmark</a> made the following improvements on the basis of NGU:</p>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <dl class="footnote brackets">
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
+<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
 <dd><p>Marc G. Bellemare, et al. “Unifying Count-Based Exploration and
 Intrinsic Motivation”. NIPS 2016.</p>
 </dd>
-<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
+<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
 <dd><p>Haoran Tang, et al. “#Exploration: A Study of Count-Based
 Exploration for Deep Reinforcement Learning”. NIPS 2017.</p>
 </dd>
-<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id5">3</a></span></dt>
+<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id5">3</a></span></dt>
 <dd><p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration
 by self-supervised prediction[C]//International conference on
 machine learning. PMLR, 2017: 2778-2787</p>
 </dd>
-<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id6">4</a></span></dt>
+<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id6">4</a></span></dt>
 <dd><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network
 distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>.
 arXiv:1810.12894, 2018.</p>
 </dd>
-<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id10">5</a></span></dt>
+<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id10">5</a></span></dt>
 <dd><p>Badia A P, Sprechmann P, Vitvitskyi A, et al. Never give up:
 Learning directed exploration strategies[J]. arXiv preprint
 arXiv:2002.06038, 2020.</p>
 </dd>
-<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id11">6</a></span></dt>
+<dt class="label" id="id22"><span class="brackets"><a class="fn-backref" href="#id11">6</a></span></dt>
+<dd><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
+replay in distributed reinforcement learning[C]//International
+conference on learning representations. 2018.</p>
+</dd>
+<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id12">7</a></span></dt>
 <dd><p>Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
 Outperforming the atari human benchmark<a class="reference external" href="https://link.zhihu.com/?target=https%3A//arxiv.org/pdf/2003.13350.pdf">J]. arXiv preprint
 arXiv:2003.13350,
 1.</a></p>
 </dd>
-<dt class="label" id="id22"><span class="brackets">7</span></dt>
-<dd><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
-replay in distributed reinforcement learning[C]//International
-conference on learning representations. 2018.</p>
-</dd>
-<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id12">8</a></span></dt>
+<dt class="label" id="id24"><span class="brackets"><a class="fn-backref" href="#id13">8</a></span></dt>
 <dd><p>Adrien Ecoffet, et al. “Go-Explore: a New Approach for
 Hard-Exploration Problems”. arXiv 1901.10995 (2019).</p>
 </dd>
-<dt class="label" id="id24"><span class="brackets">9</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id13">2</a>)</span></dt>
+<dt class="label" id="id25"><span class="brackets">9</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id14">2</a>)</span></dt>
 <dd><p>Adrien Ecoffet, et al. “First return then explore”. arXiv 2004.12919
 (2020).</p>
 </dd>
-<dt class="label" id="id25"><span class="brackets"><a class="fn-backref" href="#id14">10</a></span></dt>
+<dt class="label" id="id26"><span class="brackets"><a class="fn-backref" href="#id15">10</a></span></dt>
 <dd><p>Ian Osband, et al. <a class="reference external" href="https://arxiv.org/abs/1602.04621">“Deep Exploration via Bootstrapped
 DQN”</a>. NIPS 2016.</p>
 </dd>
-<dt class="label" id="id26"><span class="brackets"><a class="fn-backref" href="#id7">11</a></span></dt>
+<dt class="label" id="id27"><span class="brackets"><a class="fn-backref" href="#id7">11</a></span></dt>
 <dd><p>Houthooft, Rein, et al. “VIME: Variational information maximizing
 exploration.” Advances in Neural Information Processing Systems.
 2016.</p>
 </dd>
-<dt class="label" id="id27"><span class="brackets"><a class="fn-backref" href="#id8">12</a></span></dt>
+<dt class="label" id="id28"><span class="brackets"><a class="fn-backref" href="#id8">12</a></span></dt>
 <dd><p>Hyoungseok Kim, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“EMI: Exploration with Mutual Information.”</a>. ICML 2019.</p>
 </dd>
-<dt class="label" id="id28"><span class="brackets"><a class="fn-backref" href="#id9">13</a></span></dt>
+<dt class="label" id="id29"><span class="brackets"><a class="fn-backref" href="#id9">13</a></span></dt>
 <dd><p>Benjamin Eysenbach, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“Diversity is all you need: Learning
 skills without a reward
 function.”</a>. ICLR 2019.</p>
 </dd>
-<dt class="label" id="id29"><span class="brackets">14</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id15">2</a>)</span></dt>
+<dt class="label" id="id30"><span class="brackets">14</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id16">2</a>)</span></dt>
 <dd><p><a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">https://lilianweng.github.io/posts/2020-06-07-exploration-drl/</a></p>
 </dd>
 </dl>

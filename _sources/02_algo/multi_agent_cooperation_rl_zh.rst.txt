@@ -6,7 +6,7 @@
 -----------------------------
 
 
-在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 `SMAC <https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/smac_zh.html>`_ , 足球游戏 `Gfootball <https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gfootball_zh.html>`_ , 以及 `Carla <https://carla.org/>`_ 等自动驾驶的环境。
+在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 `SMAC <https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/smac_zh.html>`_ [7]_ , 足球游戏 `Gfootball <https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gfootball_zh.html>`_ , 以及 `Carla <https://carla.org/>`_ 等自动驾驶的环境。
 
 .. image:: images/smac.gif
    :align: center
@@ -47,7 +47,7 @@
 
 **Valued-based MARL**
 
-对于 Valued-based MARL， 主要的思路是将全局的 reward 值分解为可以供各个 agent 学习的局部 reward 值，从而便于智能体的训练。主要有 QMIX， WQMIX， QTRAN 等方法。
+对于 Valued-based MARL， 主要的思路是将全局的 reward 值分解为可以供各个 agent 学习的局部 reward 值 [3]_ ，从而便于智能体的训练。主要有 QMIX， WQMIX， QTRAN 等方法。
 
 - QMIX: QMIX 的核心是学习一个单调性的Q值混合网络，每个智能体的Q值经过非线性变换求和生成 :math:`Q_tot`。具体可以参考 `QMIX <https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qmix.rst>`_ [2]_
 
@@ -55,7 +55,7 @@
 
 - QTRAN: QTRAN 通过学习独立 action-value 网络,混合 action-value 网络，全局 state-value 网络来突破单调性限制。具体可以参考 `QTRAN <https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qtran.rst>`_ [4]_
 
-- QPLEX: QPLEX 通过分别对联合 Q 值 :math:`Q_tot` 和各个 agent 的 Q 值 :math:`Q_i` 使用 Dueling structure 进行分解，将 IGM 一致性转化为易于实现的优势函数取值范围约束，从而方便了具有线性分解结构的值函数的学习。具体可以参考 `QPLEX <https://arxiv.org/abs/2008.01062>`_ [10]_
+- QPLEX: QPLEX 通过分别对联合 Q 值 :math:`Q_tot` 和各个 agent 的 Q 值 :math:`Q_i` 使用 Dueling structure 进行分解，将 IGM 一致性转化为易于实现的优势函数取值范围约束，从而方便了具有线性分解结构的值函数的学习。具体可以参考 `QPLEX <https://arxiv.org/abs/2008.01062>`_ [8]_
 
 **Actor-critic MARL**
 
@@ -91,10 +91,6 @@
 
 .. [6] Yu, C., Velu, A., Vinitsky, E., Wang, Y., Bayen, A., and Wu, Y. The surprising effectiveness of mappo in cooperative, multi-agent games. arXiv preprint arXiv:2103.01955, 2021.
 
-.. [7] Jayesh K. Gupta, Maxim Egorov, Mykel Kochenderfer. Cooperative multi-agent control using deep reinforcement learning. International Conference on Autonomous Agents and Multiagent Systems, 2017.
+.. [7] Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.
 
-.. [8] Ryan Lowe, Yi Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, Igor Mordatch. Multi-agent actor-critic for mixed cooperative-competitive environments. arXiv preprint arXiv:1706.02275, 2017.
-
-.. [9] Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.
-
-.. [10] Wang, J., Ren, Z., Liu, T., Yu, Y., and Zhang, C. Qplex: Duplex dueling multi-agent q-learning. arXiv preprint arXiv:2008.01062, 2020.
+.. [8] Wang, J., Ren, Z., Liu, T., Yu, Y., and Zhang, C. Qplex: Duplex dueling multi-agent q-learning. arXiv preprint arXiv:2008.01062, 2020.

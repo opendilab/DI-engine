@@ -43,7 +43,7 @@
 因此，本文章将会简要介绍：
 
 - 如何在 ``DI-zoo`` 中构建自己的多智能体环境？
-- 如何利用 ``DI-engine`` 中已有的多智能体强化学习算法 (例如 `QMIX <https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py>`_ 与 `MAPPO <https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py>`_ ) 来求解构建好的多智能体问题？
+- 如何利用 ``DI-engine`` 中已有的多智能体强化学习算法 (例如 `QMIX代码实现 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py>`_ 与 `MAPPO代码实现 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py>`_ ) 来求解构建好的多智能体问题？
 
 下面大部分情况下将以 ``PettingZoo`` 环境中的 ``simple spread`` 为例进行说明：
 
@@ -205,7 +205,7 @@
 如何使用 ``DI-engine`` 中的 MARL 算法
 =============================================
 
-``DI-engine`` 中集成了多种多智能体强化学习算法，包括属于 value-based 的 `QMIX <https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py>`_ 、 `QTRAN <https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py>`_ 以及属于 actor-critic 的 `COMA <https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py>`_ 、 `MAPPO <https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py>`_ ，具体如下：
+``DI-engine`` 中集成了多种多智能体强化学习算法，包括属于 value-based 的 `QMIX算法 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py>`_ 、 `QTRAN算法 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py>`_ 以及属于 actor-critic 的 `COMA算法 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py>`_ 、 `MAPPO算法 <https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py>`_ ，具体算法 benchmark 如下：
 
 .. list-table:: MARL environments in DI-zoo
     :widths: 20 20 20 20
