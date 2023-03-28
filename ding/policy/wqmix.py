@@ -57,8 +57,6 @@ class WQMIXPolicy(QMIXPolicy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             update_per_collect=20,
             batch_size=32,
             learning_rate=0.0005,

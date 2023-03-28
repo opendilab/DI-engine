@@ -19,7 +19,7 @@ def main():
     with DistContext():
         rank, world_size = get_rank(), get_world_size()
         main_config.example = 'pong_ppo_seed0_ddp_avgsplit'
-        main_config.policy.learn.multi_gpu = True
+        main_config.policy.multi_gpu = True
         main_config.policy.learn.batch_size = main_config.policy.learn.batch_size // world_size
         main_config.policy.collect.n_sample = main_config.policy.collect.n_sample // world_size
         cfg = compile_config(main_config, create_cfg=create_config, auto=True)

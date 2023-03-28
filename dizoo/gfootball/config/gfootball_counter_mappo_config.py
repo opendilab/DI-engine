@@ -35,8 +35,6 @@ main_config = dict(
             action_shape=19,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             epoch_per_collect=10,
             batch_size=3200,
             learning_rate=5e-4,

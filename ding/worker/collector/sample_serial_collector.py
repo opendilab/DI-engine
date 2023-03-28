@@ -94,8 +94,9 @@ class SampleSerialCollector(ISerialCollector):
         assert hasattr(self, '_env'), "please set env first"
         if _policy is not None:
             self._policy = _policy
-            self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
-            self._traj_len_inf = _policy.get_attribute('cfg').collect.get('traj_len_inf', False)
+            self._policy_cfg = self._policy.get_attribute('cfg')
+            self._default_n_sample = _policy.get_attribute('n_sample')
+            self._traj_len_inf = self._policy_cfg.traj_len_inf
             self._unroll_len = _policy.get_attribute('unroll_len')
             self._on_policy = _policy.get_attribute('on_policy')
             if self._default_n_sample is not None and not self._traj_len_inf:
@@ -259,9 +260,7 @@ class SampleSerialCollector(ISerialCollector):
                         self._reset_stat(env_id)
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
-                    if 'type' in self._policy.get_attribute('cfg') and \
-                            self._policy.get_attribute('cfg').type == 'ngu_command':
-                        # for NGU policy
+                    if self._policy_cfg.type == 'ngu_command':  # for NGU policy
                         transition = self._policy.process_transition(
                             self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
                         )

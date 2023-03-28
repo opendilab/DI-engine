@@ -45,7 +45,6 @@ class BDQPolicy(Policy):
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        9  | ``learn.multi``    bool     False          | whether to use multi gpu during
            | ``_gpu``
         10 | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
@@ -89,8 +88,7 @@ class BDQPolicy(Policy):
         # (int) The number of step for calculating target q_value
         nstep=1,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -224,7 +222,7 @@ class BDQPolicy(Policy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 

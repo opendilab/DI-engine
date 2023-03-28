@@ -83,8 +83,6 @@ class SACDiscretePolicy(Policy):
             twin_critic=True,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu in policy learning.
-            multi_gpu=False,
             # (int) How many updates (iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             update_per_collect=1,
@@ -482,8 +480,6 @@ class SACPolicy(Policy):
             action_space='reparameterization',
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu in policy learning.
-            multi_gpu=False,
             # (int) How many updates (iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             update_per_collect=1,

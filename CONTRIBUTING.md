@@ -1,5 +1,7 @@
-[git guide](https://opendilab.github.io/DI-engine/guide/git_guide.html)
+[Git Guide](https://di-engine-docs.readthedocs.io/en/latest/24_cooperation/git_guide.html)
 
-[doc contribution guide](https://opendilab.github.io/DI-engine/guide/doc_contribution.html)
+[GitHub Cooperation Guide](https://di-engine-docs.readthedocs.io/en/latest/24_cooperation/issue_pr.html)
 
-[code review guide](https://opendilab.github.io/DI-engine/guide/code_comment.html)
+  - [Code Style](https://di-engine-docs.readthedocs.io/en/latest/21_code_style/index.html)
+  - [Unit Test](https://di-engine-docs.readthedocs.io/en/latest/22_test/index.html)
+  - [Code Review](https://di-engine-docs.readthedocs.io/en/latest/24_cooperation/issue_pr.html#pr-s-code-review)

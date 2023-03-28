@@ -85,8 +85,6 @@ class NGUPolicy(Policy):
         # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
         learn_unroll_len=80,  # set this key according to the episode length
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             update_per_collect=1,
             batch_size=64,
             learning_rate=0.0001,

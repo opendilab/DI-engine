@@ -46,33 +46,31 @@ class DQNPolicy(Policy):
         10 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary
            | ``per_collect``                             | after collector's one collection.     | from envs. Bigger val
                                                          | Only valid in serial training         | means more off-policy
-        11 | ``learn.multi``     bool     False          | whether to use multi gpu
-           | ``_gpu``
-        12 | ``learn.batch_``    int      64             | The number of samples of an iteration
+        11 | ``learn.batch_``    int      64             | The number of samples of an iteration
            | ``size``
-        13 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.
+        12 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        14 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update
+        13 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update
            | ``update_freq``
-        15 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update
+        14 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update
            | ``theta``                                   | Only one of [target_update_freq,
            |                                             | target_theta] should be set
-        16 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some
+        15 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some
            | ``done``                                    | calculation.                          | fake termination env
-        17 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from
+        16 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from
                                                          | call of collector.                    | different envs
-        18 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample
+        17 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample
                                                          | call of collector                     | ,n_episode] should
                                                          |                                       | be set
-        19 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len>1
+        18 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len>1
            | ``_len``
-        20 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support ['exp',
+        19 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support ['exp',
                                                                                                  | 'linear'].
-        21 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]
+        20 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]
            | ``start``
-        22 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]
+        21 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]
            | ``end``
-        23 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set
+        22 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set
            | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
@@ -99,12 +97,8 @@ class DQNPolicy(Policy):
         model=dict(
             #(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
-            # (bool) Whether enable dueling head.
-            dueling=True,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu.
-            multi_gpu=False,
             # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -257,7 +251,7 @@ class DQNPolicy(Policy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 
@@ -455,7 +449,6 @@ class DQNSTDIMPolicy(DQNPolicy):
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        9  | ``learn.multi``    bool     False          | whether to use multi gpu during
            | ``_gpu``
         10 | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
@@ -502,8 +495,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         # (int) The number of step for calculating target q_value
         nstep=1,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -636,7 +628,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         # the BP process of the auxiliary network
         self._aux_optimizer.zero_grad()
         aux_loss_learn.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._aux_model)
         self._aux_optimizer.step()
 
@@ -674,7 +666,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 

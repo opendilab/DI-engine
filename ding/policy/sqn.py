@@ -31,7 +31,6 @@ class SQNPolicy(Policy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
-            multi_gpu=False,
             update_per_collect=16,
             batch_size=64,
             learning_rate_q=0.001,

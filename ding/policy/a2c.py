@@ -28,8 +28,7 @@ class A2CPolicy(Policy):
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # (int) for a2c, update_per_collect must be 1.
             update_per_collect=1,  # fixed value, this line should not be modified by users
             batch_size=64,

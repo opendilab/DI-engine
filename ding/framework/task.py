@@ -67,7 +67,7 @@ class VoidMiddleware:
 
 class Task:
     """
-    Tash will manage the execution order of the entire pipeline, register new middleware,
+    Task will manage the execution order of the entire pipeline, register new middleware,
     and generate new context objects.
     """
     role = Role
