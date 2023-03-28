@@ -827,6 +827,10 @@ class SACPolicy(Policy):
         ] + twin_critic + alpha_loss
 
 
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
+
+
 @POLICY_REGISTRY.register('sqil_sac')
 class SQILSACPolicy(SACPolicy):
 

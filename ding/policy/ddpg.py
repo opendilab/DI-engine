@@ -458,13 +458,3 @@ class DDPGPolicy(Policy):
         if self._twin_critic:
             ret += ['critic_twin_loss']
         return ret
-
-    def state_dict(self) -> Dict[str, Any]:
-        state_dict = {
-            'model': self._model.state_dict(),
-            'target_model': self._target_model.state_dict(),
-        }
-        if 'learn' in self._enable_field:
-            state_dict['optimizer_actor'] = self._optimizer_actor.state_dict()
-            state_dict['optimizer_critic'] = self._optimizer_critic.state_dict()
-        return state_dict

@@ -6,15 +6,17 @@ import os
 import gym
 import torch
 import treetensor.torch as ttorch
+import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
     OffPolicyLearner, final_ctx_saver
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
-from ding.policy import TD3Policy
+from ding.policy import SACPolicy
 from ding.utils import set_pkg_seed
 from ding.config import Config, save_config_py, compile_config
 from ding.model import QAC
+from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
 
@@ -27,13 +29,21 @@ class TrainingReturn:
     '''
     wandb_url: str
 
+@dataclass
+class EvalReturn:
+    '''
+    Attributions
+    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
+    '''
+    eval_value: np.float32
+    eval_value_std: np.float32
 
-class TD3OffPolicyAgent:
+class SACOffPolicyAgent:
     supported_env_list = [
         'hopper',
         'lunarlander_continuous',
     ]
-    algorithm = 'TD3'
+    algorithm = 'SAC'
 
     def __init__(
             self,
@@ -45,23 +55,23 @@ class TD3OffPolicyAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
-                TD3OffPolicyAgent.supported_env_list
+            assert env in SACOffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
+                SACOffPolicyAgent.supported_env_list
             )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=TD3OffPolicyAgent.algorithm)
+                cfg = get_instance_config(env, algorithm=SACOffPolicyAgent.algorithm)
             else:
                 assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 
             if exp_name is not None:
                 cfg.exp_name = exp_name
-            self.cfg = compile_config(cfg, policy=TD3Policy)
+            self.cfg = compile_config(cfg, policy=SACPolicy)
             self.exp_name = self.cfg.exp_name
 
         elif isinstance(env, BaseEnv):
-            self.cfg = compile_config(cfg, policy=TD3Policy)
+            self.cfg = compile_config(cfg, policy=SACPolicy)
             raise NotImplementedError
         else:
             raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
@@ -74,7 +84,7 @@ class TD3OffPolicyAgent:
         if model is None:
             model = QAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
-        self.policy = TD3Policy(self.cfg.policy, model=model)
+        self.policy = SACPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
 
@@ -144,14 +154,15 @@ class TD3OffPolicyAgent:
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
+            forward_fn=model_wrap(forward_fn, wrapper_name='base').forward
+
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
                 obs = ttorch.as_tensor(obs).unsqueeze(0)
                 if cuda and torch.cuda.is_available():
                     obs = obs.cuda()
-                action = forward_fn(obs, mode='compute_actor')["action"]
-                # squeeze means delete batch dim, i.e. (1, A) -> (A, )
-                action = action.squeeze(0).detach().cpu().numpy()
+                (mu, sigma) = forward_fn(obs, mode='compute_actor')['logit']
+                action = torch.tanh(mu).detach().cpu().numpy()[0] # deterministic_eval
                 return action
 
             return _forward
@@ -169,7 +180,7 @@ class TD3OffPolicyAgent:
             step += 1
             if done:
                 break
-        logging.info(f'TD3 deploy is finished, final episode return with {step} steps is: {return_}')
+        logging.info(f'SAC deploy is finished, final episode return with {step} steps is: {return_}')
 
     def collect_data(
             self,
@@ -200,7 +211,7 @@ class TD3OffPolicyAgent:
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            f'TD3 collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            f'SAC collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(

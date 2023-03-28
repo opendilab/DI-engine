@@ -5,15 +5,17 @@ from easydict import EasyDict
 import os
 import torch
 import treetensor.torch as ttorch
+import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
-    OffPolicyLearner, final_ctx_saver
+    OffPolicyLearner, final_ctx_saver, nstep_reward_enhancer, eps_greedy_handler
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import DQNPolicy
 from ding.utils import set_pkg_seed
 from ding.config import save_config_py, compile_config
 from ding.model import DQN
+from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
 
@@ -26,6 +28,14 @@ class TrainingReturn:
     '''
     wandb_url: str
 
+@dataclass
+class EvalReturn:
+    '''
+    Attributions
+    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
+    '''
+    eval_value: np.float32
+    eval_value_std: np.float32
 
 class DQNOffpolicyAgent:
     supported_env_list = [
@@ -81,7 +91,6 @@ class DQNOffpolicyAgent:
             step: int = int(1e7),
             collector_env_num: int = 4,
             evaluator_env_num: int = 4,
-            n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
             debug: bool = False
@@ -95,16 +104,24 @@ class DQNOffpolicyAgent:
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
+            task.use(eps_greedy_handler(self.cfg))
+            # task.use(
+            #     StepCollector(
+            #         self.cfg,
+            #         self.policy.collect_mode,
+            #         collector_env,
+            #         random_collect_size=self.cfg.policy.random_collect_size
+            #     )
+            # )
             task.use(
                 StepCollector(
                     self.cfg,
                     self.policy.collect_mode,
-                    collector_env,
-                    random_collect_size=self.cfg.policy.random_collect_size
+                    collector_env
                 )
             )
+            task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
-            task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
             task.use(
                 CkptSaver(
@@ -143,19 +160,21 @@ class DQNOffpolicyAgent:
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
+            forward_fn=model_wrap(forward_fn, wrapper_name='argmax_sample').forward
+
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
                 obs = ttorch.as_tensor(obs).unsqueeze(0)
                 if cuda and torch.cuda.is_available():
                     obs = obs.cuda()
-                action = forward_fn(obs, mode='compute_actor')["action"]
+                action = forward_fn(obs)["action"]
                 # squeeze means delete batch dim, i.e. (1, A) -> (A, )
                 action = action.squeeze(0).detach().cpu().numpy()
                 return action
 
             return _forward
-
-        forward_fn = single_env_forward_wrapper(self.policy._model)
+        
+        forward_fn = single_env_forward_wrapper(self.policy._model, self.cfg.policy.cuda)
 
         # main loop
         return_ = 0.
@@ -168,7 +187,7 @@ class DQNOffpolicyAgent:
             step += 1
             if done:
                 break
-        logging.info(f'TD3 deploy is finished, final episode return with {step} steps is: {return_}')
+        logging.info(f'DQN deploy is finished, final episode return with {step} steps is: {return_}')
 
     def collect_data(
             self,
@@ -199,7 +218,7 @@ class DQNOffpolicyAgent:
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            f'TD3 collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            f'DQN collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(
@@ -208,7 +227,7 @@ class DQNOffpolicyAgent:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False
-    ) -> None:
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -221,6 +240,8 @@ class DQNOffpolicyAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env))
             task.run(max_step=1)
+
+        return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
         if debug:

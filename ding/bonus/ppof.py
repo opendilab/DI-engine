@@ -50,6 +50,8 @@ class PPOF:
         'atari_qbert',
         'atari_kangaroo',
         'atari_bowling',
+        # mujoco
+        'hopper',
     ]
 
     def __init__(
@@ -152,7 +154,7 @@ class PPOF:
         else:
             logging.warning('No video would be generated during the deploy.')
 
-        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
+        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.policy.cuda)
 
         # main loop
         return_ = 0.
