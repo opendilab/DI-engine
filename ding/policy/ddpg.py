@@ -450,3 +450,6 @@ class DDPGPolicy(Policy):
         if self._twin_critic:
             ret += ['critic_twin_loss']
         return ret
+
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
