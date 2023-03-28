@@ -134,11 +134,11 @@ class ICMRewardModel(BaseRewardModel):
            == ====================  ========   =============  =======================================  =======================
            ID Symbol                Type       Default Value  Description                              Other(Shape)
            == ====================  ========   =============  =======================================  =======================
-           1  ``type``              str         guided_cost   | Reward model register name, refer       |
+           1  ``type``              str         icm           | Reward model register name, refer       |
                                                               | to registry ``REWARD_MODEL_REGISTRY``   |
            2  | ``intrinsic_``      str         add           | the intrinsic reward type               | including add, new
               | ``reward_type``                               |                                         | , or assign
-           3  | ``learning_rate``   float       0.001         | learning rate for optimizer             |
+           3  | ``learning_rate``   float       0.001         | The step size of gradient descent       |
            4  | ``obs_shape``       Tuple(      6             | the observation shape                   |
                                     [int, 
                                     list])
@@ -165,31 +165,31 @@ class ICMRewardModel(BaseRewardModel):
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='icm',
-        # (str) the intrinsic reward type, including add, new, or assign
+        # (str) The intrinsic reward type, including add, new, or assign.
         intrinsic_reward_type='add',
-        # (float) learning rate of the optimizer
+        # (float) The step size of gradient descent.
         learning_rate=1e-3,
-        # (Tuple[int, list]), the observation shape,
+        # (Tuple[int, list]), The observation shape.
         obs_shape=6,
-        # (int) the action shape, support discrete action only in this version
+        # (int) The action shape, support discrete action only in this version.
         action_shape=7,
-        # (float) batch size
+        # (float) Batch size.
         batch_size=64,
-        # (list) the MLP layer shape
+        # (list) The MLP layer shape.
         hidden_size_list=[64, 64, 128],
-        # (int) update how many times after each collect
+        # (int) Update how many times after each collect.
         update_per_collect=100,
-        # (float) the importance weight of the forward and reverse loss
+        # (float) The importance weight of the forward and reverse loss.
         reverse_scale=1,
-        # (float) the weight of intrinsic reward
-        # r = intrinsic_reward_weight * r_i + r_e
+        # (float) The weight of intrinsic reward.
+        # r = intrinsic_reward_weight * r_i + r_e.
         intrinsic_reward_weight=0.003,  # 1/300
-        # (bool) Whether to normlize extrinsic reward
-        # normalize the reward to [0, extrinsic_reward_norm_max] 
+        # (bool) Whether to normlize extrinsic reward.
+        # Normalize the reward to [0, extrinsic_reward_norm_max]. 
         extrinsic_reward_norm=True,
-        # (int) the upper bound of the reward normalization
+        # (int) The upper bound of the reward normalization.
         extrinsic_reward_norm_max=1,
-        # (int) clear buffer per fix iters
+        # (int) Clear buffer per fix iters.
         clear_buffer_per_iters=100,
     )
 

@@ -65,20 +65,20 @@ class PwilRewardModel(BaseRewardModel):
         type='pwil',
         # (str) Path to the expert dataset.
         # expert_data_path='expert_data.pkl',
-        # (int) sample data from expert dataset with fixed size
+        # (int) Sample data from expert dataset with fixed size
         sample_size=1000,
         # r = alpha * exp((-beta*T/sqrt(|s_size|+ |a_size|))*c_i)
         # key idea for this reward is to minimize
         # the Wasserstein distance between the state-action distribution
-        # (int) factor alpha
+        # (int) Factor alpha
         alpha=5,
-        # (int) factor beta
+        # (int) Factor beta
         beta=5,
-        #（int）state size
+        #（int）State size
         # s_size=4,
-        # (int) action szize
+        # (int) Action szize
         # a_size=2,
-        # (int) clear buffer per fix iters
+        # (int) Clear buffer per fix iters
         clear_buffer_per_iters=1,
     )
 

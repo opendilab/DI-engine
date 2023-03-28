@@ -156,7 +156,7 @@ class GailRewardModel(BaseRewardModel):
         hidden_size=128,
         # (int) Expert dataset size
         collect_count=100000,
-        # (int) clear buffer per fix iters
+        # (int) Clear buffer per fix iters
         clear_buffer_per_iters=1,
     )
 

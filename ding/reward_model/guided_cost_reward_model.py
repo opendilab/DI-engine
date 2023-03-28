@@ -80,9 +80,9 @@ class GuidedCostRewardModel(BaseRewardModel):
         # Bigger "update_per_collect" means bigger off-policy.
         # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
-        # (int) add loss to log every n iteration.
+        # (int) Add loss to log every n iteration.
         log_every_n_train=50,
-        # (int) save model every n iteration.
+        # (int) Save model every n iteration.
         store_model_every_n_train=100,
     )
 

@@ -64,7 +64,7 @@ class RedRewardModel(BaseRewardModel):
         type='red',
         # (int) Linear model input size.
         # input_size=4,
-        # (int) sample data from expert dataset with fixed size.
+        # (int) Sample data from expert dataset with fixed size.
         sample_size=1000,
         # (int) Linear model hidden size.
         hidden_size=128,
@@ -78,10 +78,10 @@ class RedRewardModel(BaseRewardModel):
         # expert_data_path='expert_data.pkl',
         # (int) How many samples in a training batch.
         batch_size=64,
-        # (float) hyperparameter at estimated score of r(s,a) 
+        # (float) Hyperparameter at estimated score of r(s,a) 
         # r(s,a) = exp(-sigma* L(s,a))
         sigma=0.5,
-        # (int) clear buffer per fix iters
+        # (int) Clear buffer per fix iters
         clear_buffer_per_iters=1,
     )
 
