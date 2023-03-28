@@ -4,11 +4,7 @@ import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
-<<<<<<< HEAD
-from ding.policy import PPOFPolicy, TD3Policy, C51Policy
-=======
-from ding.policy import PPOFPolicy, TD3Policy, SACPolicy, DQNPolicy, IMPALAPolicy
->>>>>>> 1973d01c940fec01980a051081afbdfcfafa8829
+from ding.policy import PPOFPolicy, TD3Policy, SACPolicy, DQNPolicy, IMPALAPolicy, C51Policy
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
@@ -440,25 +436,24 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                     policy=dict(
                         cuda=False,
-                        priority=True,
                         model=dict(
                             obs_shape=8,
                             action_shape=4,
-                            encoder_hidden_size_list=[128, 128, 64],
-                            v_min=-10,
-                            v_max=10,
+                            encoder_hidden_size_list=[512, 64],
+                            v_min=-30,
+                            v_max=30,
                             n_atom=51,
                         ),
-                        discount_factor=0.97,
+                        discount_factor=0.99,
                         nstep=3,
                         learn=dict(
-                            update_per_collect=3,
+                            update_per_collect=10,
                             batch_size=64,
                             learning_rate=0.001,
                             target_update_freq=100,
                         ),
                         collect=dict(
-                            n_sample=80,
+                            n_sample=64,
                             unroll_len=1,
                         ),
                         other=dict(
@@ -466,8 +461,8 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                                 type='exp',
                                 start=0.95,
                                 end=0.1,
-                                decay=10000,
-                            ), replay_buffer=dict(replay_buffer_size=20000, )
+                                decay=50000,
+                            ), replay_buffer=dict(replay_buffer_size=100000, )
                         ),
                         random_collect_size=0,
                     ),

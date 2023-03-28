@@ -3,9 +3,9 @@ from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
 import os
-import gym
 import torch
 import treetensor.torch as ttorch
+import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
@@ -15,6 +15,7 @@ from ding.policy import C51Policy
 from ding.utils import set_pkg_seed
 from ding.config import Config, save_config_py, compile_config
 from ding.model import C51DQN
+from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
 
@@ -26,6 +27,17 @@ class TrainingReturn:
     wandb_url: The weight & biases (wandb) project url of the trainning experiment.
     '''
     wandb_url: str
+
+
+@dataclass
+class EvalReturn:
+    '''
+    Attributions
+    eval_value: The mean of evaluation return.
+    eval_value_std: The standard deviation of evaluation return.
+    '''
+    eval_value: np.float32
+    eval_value_std: np.float32
 
 
 class C51Agent:
@@ -146,36 +158,20 @@ class C51Agent:
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
+            forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
                 obs = ttorch.as_tensor(obs).unsqueeze(0)
                 if cuda and torch.cuda.is_available():
                     obs = obs.cuda()
-                output = forward_fn(obs)
-                assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-                logit = output['logit']
-                assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
-                if isinstance(logit, torch.Tensor):
-                    logit = [logit]
-                if 'action_mask' in output:
-                    mask = output['action_mask']
-                    if isinstance(mask, torch.Tensor):
-                        mask = [mask]
-                    logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
-                action = [l.argmax(dim=-1) for l in logit]
-                if len(action) == 1:
-                    action, logit = action[0], logit[0]
-                #forward_fn.eval()
-                #action = forward_fn(obs)["action"]
-                
+                action = forward_fn(obs)["action"]
                 # squeeze means delete batch dim, i.e. (1, A) -> (A, )
                 action = action.squeeze(0).detach().cpu().numpy()
                 return action
 
             return _forward
 
-        forward_fn = single_env_forward_wrapper(self.policy._model)
-        #forward_fn = single_env_forward_wrapper(self.policy._eval_model)
+        forward_fn = single_env_forward_wrapper(self.policy._model, self.cfg.policy.cuda)
 
         # main loop
         return_ = 0.
@@ -228,7 +224,7 @@ class C51Agent:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False
-    ) -> None:
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -241,6 +237,8 @@ class C51Agent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env))
             task.run(max_step=1)
+
+        return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
         if debug:

@@ -270,7 +270,7 @@ class DQNPolicy(Policy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
-        return ['cur_lr', 'total_loss', 'q_value']
+        return ['cur_lr', 'total_loss', 'q_value', 'target_q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
