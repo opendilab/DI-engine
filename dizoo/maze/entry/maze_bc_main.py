@@ -61,9 +61,7 @@ def get_vi_sequence(env, observation):
         cur_x, cur_y = start_x, start_y
         while cur_x != target_location[0] or cur_y != target_location[1]:
             act = vi_sequence[-1][cur_x, cur_y]
-            track_back.append((
-                torch.FloatTensor(env.process_states([cur_x, cur_y], env.get_maze_map())),
-                act))
+            track_back.append((torch.FloatTensor(env.process_states([cur_x, cur_y], env.get_maze_map())), act))
             if act == 0:
                 cur_x += 1
             elif act == 1:
@@ -89,6 +87,7 @@ class BCDataset(Dataset):
 
 
 def load_bc_dataset(train_seeds=1, test_seeds=1, batch_size=32):
+
     def load_env(seed):
         ccc = easydict.EasyDict({'size': 16})
         e = Maze(ccc)
@@ -111,13 +110,8 @@ def load_bc_dataset(train_seeds=1, test_seeds=1, batch_size=32):
 
         data += track_back
 
-
-    train_data = BCDataset(
-        data_train
-    )
-    test_data = BCDataset(
-        data_test
-    )
+    train_data = BCDataset(data_train)
+    test_data = BCDataset(data_test)
 
     train_dataset = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     test_dataset = DataLoader(test_data, batch_size=batch_size, shuffle=True)

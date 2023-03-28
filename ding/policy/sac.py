@@ -83,8 +83,6 @@ class SACDiscretePolicy(Policy):
             twin_critic=True,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu in policy learning.
-            multi_gpu=False,
             # (int) How many updates (iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             update_per_collect=1,
@@ -482,8 +480,6 @@ class SACPolicy(Policy):
             action_space='reparameterization',
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu in policy learning.
-            multi_gpu=False,
             # (int) How many updates (iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             update_per_collect=1,
@@ -825,6 +821,9 @@ class SACPolicy(Policy):
             'alpha',
             'td_error',
         ] + twin_critic + alpha_loss
+
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
 
 
 @POLICY_REGISTRY.register('sqil_sac')

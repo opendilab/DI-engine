@@ -197,7 +197,7 @@ def test_wandb_online_logger():
         dict(
             gradient_logger=True,
             plot_logger=True,
-            action_logger='action probability',
+            action_logger=True,
             return_logger=True,
             video_logger=True,
         )
@@ -251,7 +251,7 @@ def test_wandb_online_logger():
 @pytest.mark.tmp
 def test_wandb_offline_logger(mocker):
     record_path = './video_pendulum_cql'
-    cfg = EasyDict(dict(gradient_logger=True, plot_logger=True, action_logger='action probability', vis_dataset=True))
+    cfg = EasyDict(dict(gradient_logger=True, plot_logger=True, action_logger=True, vis_dataset=True))
     env = TheEnvClass()
     ctx = OnlineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]

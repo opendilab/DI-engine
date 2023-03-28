@@ -7,6 +7,7 @@ import os
 import gym
 import gymnasium
 import torch
+import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
     wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator
@@ -25,6 +26,17 @@ class TrainingReturn:
     wandb_url: The weight & biases (wandb) project url of the trainning experiment.
     '''
     wandb_url: str
+
+
+@dataclass
+class EvalReturn:
+    '''
+    Attributions
+    eval_value: The mean of evaluation return.
+    eval_value_std: The standard deviation of evaluation return.
+    '''
+    eval_value: np.float32
+    eval_value_std: np.float32
 
 
 class PPOF:
@@ -50,6 +62,8 @@ class PPOF:
         'atari_qbert',
         'atari_kangaroo',
         'atari_bowling',
+        # mujoco
+        'hopper',
     ]
 
     def __init__(
@@ -152,7 +166,7 @@ class PPOF:
         else:
             logging.warning('No video would be generated during the deploy.')
 
-        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
+        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.policy.cuda)
 
         # main loop
         return_ = 0.
@@ -191,7 +205,7 @@ class PPOF:
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            f'PPOF collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            'PPOF collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(
@@ -200,7 +214,7 @@ class PPOF:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False,
-    ) -> None:
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -215,6 +229,8 @@ class PPOF:
                 n_evaluator_episode,
             ))
             task.run(max_step=1)
+
+        return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     def _setup_env_manager(
             self,

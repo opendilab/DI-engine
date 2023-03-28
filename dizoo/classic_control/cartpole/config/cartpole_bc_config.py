@@ -20,7 +20,7 @@ cartpole_bc_config = dict(
             batch_size=64,
             learning_rate=0.01,
             learner=dict(hook=dict(save_ckpt_after_iter=1000)),
-            train_epoch = 20,
+            train_epoch=20,
         ),
         eval=dict(evaluator=dict(eval_freq=40, ))
     ),

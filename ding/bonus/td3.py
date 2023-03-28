@@ -6,6 +6,7 @@ import os
 import gym
 import torch
 import treetensor.torch as ttorch
+import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
@@ -28,9 +29,21 @@ class TrainingReturn:
     wandb_url: str
 
 
+@dataclass
+class EvalReturn:
+    '''
+    Attributions
+    eval_value: The mean of evaluation return.
+    eval_value_std: The standard deviation of evaluation return.
+    '''
+    eval_value: np.float32
+    eval_value_std: np.float32
+
+
 class TD3OffPolicyAgent:
     supported_env_list = [
         'hopper',
+        'lunarlander_continuous',
     ]
     algorithm = 'TD3'
 
@@ -105,7 +118,6 @@ class TD3OffPolicyAgent:
                 )
             )
             task.use(data_pusher(self.cfg, self.buffer_))
-            task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
             task.use(
                 CkptSaver(
@@ -156,7 +168,7 @@ class TD3OffPolicyAgent:
 
             return _forward
 
-        forward_fn = single_env_forward_wrapper(self.policy._model)
+        forward_fn = single_env_forward_wrapper(self.policy._model, self.cfg.policy.cuda)
 
         # main loop
         return_ = 0.
@@ -209,7 +221,7 @@ class TD3OffPolicyAgent:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False
-    ) -> None:
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -222,6 +234,8 @@ class TD3OffPolicyAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, env))
             task.run(max_step=1)
+
+        return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
         if debug:

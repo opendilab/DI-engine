@@ -48,8 +48,6 @@ main_config = dict(
         ),
         # used in state_num of hidden_state
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             epoch_per_collect=5,
             batch_size=3200,
             learning_rate=5e-4,

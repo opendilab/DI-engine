@@ -59,8 +59,7 @@ class DTPolicy(DQNPolicy):
         embed_dim=128,
         dropout_p=0.1,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # batch_size=64,
             learning_rate=1e-4,
             # ==============================================================

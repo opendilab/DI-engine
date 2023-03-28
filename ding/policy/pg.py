@@ -28,8 +28,7 @@ class PGPolicy(Policy):
         # (bool) whether to use deterministic action for evaluation.
         deterministic_eval=True,
         learn=dict(
-            # (bool) whether to use multi gpu
-            multi_gpu=False,
+
             # (int) the number of samples for one update.
             batch_size=64,
             # (float) the step size of one gradient descend.

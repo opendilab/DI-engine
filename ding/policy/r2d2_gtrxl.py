@@ -91,8 +91,6 @@ class R2D2GTrXLPolicy(Policy):
         # (int) training sequence length
         seq_len=20,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             update_per_collect=1,
             batch_size=64,
             learning_rate=0.0001,

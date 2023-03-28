@@ -4,7 +4,11 @@ import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
+<<<<<<< HEAD
 from ding.policy import PPOFPolicy, TD3Policy, C51Policy
+=======
+from ding.policy import PPOFPolicy, TD3Policy, SACPolicy, DQNPolicy, IMPALAPolicy
+>>>>>>> 1973d01c940fec01980a051081afbdfcfafa8829
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
@@ -111,10 +115,16 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                 critic_head_hidden_size=128,
                 critic_head_layer_num=2,
             )
+        elif env in ['hopper']:
+            cfg.action_space = "continuous"
+            cfg.n_sample = 3200
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 3e-4
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
-        cfg = TD3Policy.default_config()
+        cfg = EasyDict({"policy": TD3Policy.default_config()})
         if env == 'hopper':
             cfg.update(
                 dict(
@@ -139,6 +149,269 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         ),
                         collect=dict(n_sample=1, ),
                         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'lunarlander_continuous':
+            cfg.update(
+                dict(
+                    exp_name='LunarLanderContinuous-V2-TD3',
+                    seed=0,
+                    env=dict(
+                        env_id='Hopper-v3',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        act_scale=True,
+                        stop_value=240,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        random_collect_size=25000,
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=2,
+                            action_space='regression',
+                        ),
+                        learn=dict(
+                            update_per_collect=256,
+                            batch_size=256,
+                            learning_rate_actor=3e-4,
+                            learning_rate_critic=3e-4,
+                            noise_sigma=0.1,
+                        ),
+                        collect=dict(
+                            n_sample=256,
+                            noise_sigma=0.1,
+                        ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        else:
+            raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'SAC':
+        cfg = EasyDict({"policy": SACPolicy.default_config()})
+        if env == 'hopper':
+            cfg.update(
+                dict(
+                    exp_name='Hopper-v3-SAC',
+                    seed=0,
+                    env=dict(
+                        env_id='Hopper-v3',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=6000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        random_collect_size=10000,
+                        model=dict(
+                            obs_shape=11,
+                            action_shape=3,
+                            action_space='reparameterization',
+                            actor_head_hidden_size=256,
+                            critic_head_hidden_size=256,
+                        ),
+                        learn=dict(
+                            update_per_collect=1,
+                            batch_size=256,
+                            learning_rate_q=1e-3,
+                            learning_rate_policy=1e-3,
+                            reparameterization=True,
+                            auto_alpha=False,
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'lunarlander_continuous':
+            cfg.update(
+                dict(
+                    exp_name='LunarLander-v2-SAC',
+                    seed=0,
+                    env=dict(
+                        env_id='LunarLanderContinuous-v2',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        act_scale=True,
+                        n_evaluator_episode=8,
+                        stop_value=240,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        random_collect_size=25000,
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=2,
+                            action_space='reparameterization',
+                            actor_head_hidden_size=256,
+                            critic_head_hidden_size=256,
+                        ),
+                        learn=dict(
+                            update_per_collect=256,
+                            batch_size=256,
+                            learning_rate_actor=3e-4,
+                            learning_rate_critic=3e-4,
+                            reparameterization=True,
+                            auto_alpha=False,
+                        ),
+                        collect=dict(n_sample=256, ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=int(1e6), ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+
+            pass
+        else:
+            raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'DQN':
+        cfg = EasyDict({"policy": DQNPolicy.default_config()})
+        if env == 'lunarlander_discrete':
+            cfg.update(
+                dict(
+                    exp_name='LunarLander-v2-DQN',
+                    seed=0,
+                    env=dict(
+                        env_id='LunarLander-v2',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=240,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        random_collect_size=25000,
+                        discount_factor=0.99,
+                        nstep=3,
+                        learn=dict(
+                            update_per_collect=10,
+                            batch_size=64,
+                            learning_rate=0.001,
+                            # Frequency of target network update.
+                            target_update_freq=100,
+                        ),
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=4,
+                            encoder_hidden_size_list=[512, 64],
+                            # Whether to use dueling head.
+                            dueling=True,
+                        ),
+                        collect=dict(
+                            n_sample=64,
+                            unroll_len=1,
+                        ),
+                        other=dict(
+                            eps=dict(
+                                type='exp',
+                                start=0.95,
+                                end=0.1,
+                                decay=50000,
+                            ),
+                            replay_buffer=dict(replay_buffer_size=100000, )
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        else:
+            raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'IMPALA':
+        cfg = EasyDict({"policy": IMPALAPolicy.default_config()})
+        if env == 'SpaceInvaders':
+            cfg.update(
+                dict(
+                    exp_name='SpaceInvaders-v4-IMPALA',
+                    seed=0,
+                    env=dict(
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=10000000000,
+                        env_id='SpaceInvaders-v4',
+                        frame_stack=4,
+                        manager=dict(shared_memory=False, )
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        #unroll_len=32,
+                        random_collect_size=500,
+                        model=dict(
+                            obs_shape=[4, 84, 84],
+                            action_shape=6,
+                            encoder_hidden_size_list=[128, 128, 256, 512],
+                            critic_head_hidden_size=512,
+                            critic_head_layer_num=3,
+                            actor_head_hidden_size=512,
+                            actor_head_layer_num=3,
+                        ),
+                        learn=dict(
+                            # (int) collect n_sample data, train model update_per_collect times
+                            # here we follow impala serial pipeline
+                            update_per_collect=3,  # update_per_collect show be in [1, 10]
+                            # (int) the number of data for a train iteration
+                            batch_size=128,
+                            grad_clip_type='clip_norm',
+                            clip_value=5,
+                            learning_rate=0.0003,
+                            # (float) loss weight of the value network, the weight of policy network is set to 1
+                            value_weight=0.5,
+                            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+                            entropy_weight=0.01,
+                            # (float) discount factor for future reward, defaults int [0, 1]
+                            discount_factor=0.99,
+                            # (float) additional discounting parameter
+                            lambda_=0.95,
+                            # (float) clip ratio of importance weights
+                            rho_clip_ratio=1.0,
+                            # (float) clip ratio of importance weights
+                            c_clip_ratio=1.0,
+                            # (float) clip ratio of importance sampling
+                            rho_pg_clip_ratio=1.0,
+                        ),
+                        collect=dict(
+                            unroll_len=32,
+                            # (int) collect n_sample data, train model n_iteration times
+                            n_sample=16,
+                            collector=dict(collect_print_freq=1000, ),
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=5000, )),
+                        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -288,25 +561,33 @@ def get_instance_env(env: str) -> BaseEnv:
             seed_api=False,
         )
     elif env == 'hopper':
-        from dizoo.mujoco.envs import MujocoEnv
         cfg = EasyDict(
             env_id='Hopper-v3',
             env_wrapper='mujoco_default',
         )
-        return DingEnvWrapper(cfg=cfg)
-    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
+        return DingEnvWrapper(gym.make('Hopper-v3'), cfg=cfg)
+    elif env == "SpaceInvaders":
+        cfg = EasyDict({
+            'env_id': "SpaceInvaders-v4",
+            'env_wrapper': 'atari_default',
+        })
+        return DingEnvWrapper(gym.make("SpaceInvaders-v4"), cfg=cfg)
+    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling', 'atari_breakout', 'atari_spaceinvader',
+                 'atari_gopher']:
         from dizoo.atari.envs.atari_env import AtariEnv
         atari_env_list = {
             'atari_qbert': 'QbertNoFrameskip-v4',
             'atari_kangaroo': 'KangarooNoFrameskip-v4',
-            'atari_bowling': 'BowlingNoFrameskip-v4'
+            'atari_bowling': 'BowlingNoFrameskip-v4',
+            'atari_breakout': 'BreakoutNoFrameskip-v4',
+            'atari_spaceinvader': 'SpaceInvadersNoFrameskip-v4',
+            'atari_gopher': 'GopherNoFrameskip-v4'
         }
         cfg = EasyDict({
             'env_id': atari_env_list[env],
             'env_wrapper': 'atari_default',
         })
         ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
-        ding_env_atari.enable_save_replay(env + '_log/')
         return ding_env_atari
     elif env == 'minigrid_fourroom':
         import gymnasium

@@ -8,9 +8,7 @@ from ding.policy import PPOSTDIMPolicy
 obs_shape = 4
 action_shape = 2
 
-cfg1 = PPOSTDIMPolicy.config
-cfg1["model"] = {}
-cfg1 = EasyDict(PPOSTDIMPolicy.config)
+cfg1 = EasyDict(PPOSTDIMPolicy.default_config())
 cfg1.model.obs_shape = obs_shape
 cfg1.model.action_shape = action_shape
 

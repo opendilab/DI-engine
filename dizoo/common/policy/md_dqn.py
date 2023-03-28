@@ -87,7 +87,7 @@ class MultiDiscreteDQNPolicy(DQNPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 

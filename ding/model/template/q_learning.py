@@ -31,16 +31,16 @@ class DQN(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
-            - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
+            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
             - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
                 if ``None`` then default set it to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
-                ``ding.torch_utils.fc_block`` for more details.
+                ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
         """
         super(DQN, self).__init__()
-        # For compatibility: 1, (1, ), [4, 32, 32]
+        # Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4
         obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         if head_hidden_size is None:
             head_hidden_size = encoder_hidden_size_list[-1]
@@ -75,7 +75,7 @@ class DQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             DQN forward computation graph, input observation tensor to predict q_value.
         Arguments:

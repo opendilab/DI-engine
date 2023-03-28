@@ -90,15 +90,7 @@ class DDPGPolicy(Policy):
         reward_batch_norm=False,
         # (bool) Whether to enable multi-agent training setting
         multi_agent=False,
-        model=dict(
-            # (bool) Whether to use two critic networks or only one.
-            # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
-            # Default True for TD3, False for DDPG.
-            twin_critic=False,
-        ),
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...

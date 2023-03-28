@@ -43,7 +43,6 @@ class PDQNPolicy(Policy):
                                                         | valid in serial training               | means more off-policy
         9  | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
-        10 | ``learn.multi``    bool     False          | whether to use multi gpu during
            | ``_gpu``
         11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
            | ``_rate``
@@ -81,8 +80,7 @@ class PDQNPolicy(Policy):
         discount_factor=0.97,
         nstep=1,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...

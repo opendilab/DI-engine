@@ -14,7 +14,6 @@ from ding.utils import set_pkg_seed
 from dizoo.atari.envs.atari_env import AtariEnv
 from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
-
 logging.getLogger().setLevel(logging.INFO)
 main_config.exp_name = 'pong_dqn_seed0_ditask_dist_ddp'
 

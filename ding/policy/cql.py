@@ -109,8 +109,7 @@ class CQLPolicy(SACPolicy):
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
+
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -192,10 +191,6 @@ class CQLPolicy(SACPolicy):
             ),
         ),
     )
-    r"""
-    Overview:
-        Policy class of SAC algorithm.
-    """
 
     def _init_learn(self) -> None:
         r"""
@@ -258,7 +253,11 @@ class CQLPolicy(SACPolicy):
         self._gamma = self._cfg.learn.discount_factor
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
-            self._target_entropy = self._cfg.learn.get('target_entropy', -np.prod(self._cfg.model.action_shape))
+            if self._cfg.learn.target_entropy is None:
+                assert 'action_shape' in self._cfg.model, "CQL need network model with action_shape variable"
+                self._target_entropy = -np.prod(self._cfg.model.action_shape)
+            else:
+                self._target_entropy = self._cfg.learn.target_entropy
             if self._cfg.learn.log_space:
                 self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
                 self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
@@ -561,8 +560,6 @@ class CQLDiscretePolicy(DQNPolicy):
         # (int) N-step reward for target q_value estimation
         nstep=1,
         learn=dict(
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
@@ -684,7 +681,7 @@ class CQLDiscretePolicy(DQNPolicy):
         # ====================
         self._optimizer.zero_grad()
         loss.backward()
-        if self._cfg.learn.multi_gpu:
+        if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._optimizer.step()
 

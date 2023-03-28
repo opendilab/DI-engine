@@ -15,6 +15,7 @@ spaceinvaders_dqn_config = dict(
     ),
     policy=dict(
         cuda=True,
+        multi_gpu=True,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
@@ -28,7 +29,6 @@ spaceinvaders_dqn_config = dict(
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
-            multi_gpu=True,
         ),
         collect=dict(n_sample=100, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),

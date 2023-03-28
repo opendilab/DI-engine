@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-
 cartpole_balance_ppo_config = dict(
     exp_name='dmc2gym_cartpole_balance_ppo',
     env=dict(

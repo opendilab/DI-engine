@@ -10,6 +10,7 @@ from ding.envs import WarpFrameWrapper, ScaledFloatFrameWrapper, ClipRewardWrapp
 
 
 def dmc2gym_observation_space(dim, minimum=-np.inf, maximum=np.inf, dtype=np.float32) -> Callable:
+
     def observation_space(from_pixels=True, height=84, width=84, channels_first=True) -> Box:
         if from_pixels:
             shape = [3, height, width] if channels_first else [height, width, 3]
@@ -29,6 +30,7 @@ def dmc2gym_action_space(dim, minimum=-1, maximum=1, dtype=np.float32) -> Box:
 
 
 def dmc2gym_reward_space(minimum=0, maximum=1, dtype=np.float32) -> Callable:
+
     def reward_space(frame_skip=1) -> Box:
         return Box(
             np.repeat(minimum * frame_skip, 1).astype(dtype),

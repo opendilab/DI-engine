@@ -2,7 +2,6 @@ from typing import Optional
 import copy
 import os
 
-
 import gym
 import numpy as np
 from easydict import EasyDict

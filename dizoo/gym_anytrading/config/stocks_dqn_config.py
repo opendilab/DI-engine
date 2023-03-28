@@ -78,13 +78,11 @@ stocks_dqn_create_config = dict(
         import_names=['dizoo.gym_anytrading.envs.stocks_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(
-        type='dqn',
-    ),
+    policy=dict(type='dqn', ),
     evaluator=dict(
         type='trading_interaction',
         import_names=['dizoo.gym_anytrading.worker'],
-        ),
+    ),
 )
 stocks_dqn_create_config = EasyDict(stocks_dqn_create_config)
 create_config = stocks_dqn_create_config

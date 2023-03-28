@@ -7,7 +7,6 @@ import evogym.envs
 from dizoo.evogym.envs.viewer import DingEvoViewer
 from evogym.sim import EvoSim
 
-
 if __name__ == '__main__':
     gym.logger.set_level(gym.logger.DEBUG)
     # create a random robot

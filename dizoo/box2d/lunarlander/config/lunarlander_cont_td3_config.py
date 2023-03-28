@@ -12,9 +12,9 @@ lunarlander_td3_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=False,
-        random_collect_size=0,
+        random_collect_size=25000,
         model=dict(
             obs_shape=8,
             action_shape=2,
@@ -23,7 +23,7 @@ lunarlander_td3_config = dict(
         ),
         learn=dict(
             update_per_collect=256,
-            batch_size=128,
+            batch_size=256,
             learning_rate_actor=3e-4,
             learning_rate_critic=3e-4,
             ignore_done=False,
@@ -41,7 +41,7 @@ lunarlander_td3_config = dict(
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=int(1e6), ), ),
     ),
 )
 lunarlander_td3_config = EasyDict(lunarlander_td3_config)

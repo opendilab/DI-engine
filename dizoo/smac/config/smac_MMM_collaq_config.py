@@ -43,7 +43,6 @@ main_config = dict(
             dueling=False,
         ),
         learn=dict(
-            multi_gpu=False,
             update_per_collect=20,
             batch_size=32,
             learning_rate=0.0005,
