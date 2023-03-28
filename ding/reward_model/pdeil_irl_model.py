@@ -16,8 +16,7 @@ from .base_reward_model import BaseRewardModel
 class PdeilRewardModel(BaseRewardModel):
     """
     Overview:
-        The Pdeil reward model class
-        Paper link: https://arxiv.org/abs/2112.06746
+        The Pdeil reward model class (https://arxiv.org/abs/2112.06746) 
     Interface:
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``, ``_batch_mn_pdf``
@@ -27,11 +26,13 @@ class PdeilRewardModel(BaseRewardModel):
            == ====================  ========   =============  =======================================  =======================
            1  ``type``              str          pdeil        | Reward model register name, refer       |
                                                               | to registry ``REWARD_MODEL_REGISTRY``   |
-           2  | ``discrete_``       bool         False        | Whether the action is discrete          |
+           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset              | Should be a '.pkl'
+              | ``path``                       .pkl           |                                         | file
+           3  | ``discrete_``       bool         False        | Whether the action is discrete          |
               | ``action``                                    |                                         |
-           3  | ``alpha``           float        0.5          | coefficient for Probability             |
+           4  | ``alpha``           float        0.5          | coefficient for Probability             |
               |                                               | Density Estimator                       |
-           4  | ``clear_buffer``    int         1             | clear buffer per fix iters              | make sure replay
+           5  | ``clear_buffer``    int         1             | clear buffer per fix iters              | make sure replay
                 ``_per_iters``                                                                          | buffer's data count
                                                                                                         | isn't too few.
                                                                                                         | (code work in entry)
@@ -40,6 +41,7 @@ class PdeilRewardModel(BaseRewardModel):
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='pdeil',
+        # (str) Path to the expert dataset
         # expert_data_path='expert_data.pkl',
         # (bool) Whether the action is discrete
         discrete_action=False,

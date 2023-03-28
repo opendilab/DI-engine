@@ -37,9 +37,7 @@ class GuidedCostNN(nn.Module):
 class GuidedCostRewardModel(BaseRewardModel):
     """
     Overview:
-        Policy class of Guided cost algorithm.
-
-        https://arxiv.org/pdf/1603.00448.pdf
+        Policy class of Guided cost algorithm. (https://arxiv.org/pdf/1603.00448.pdf)
     Interface:
         ``estimate``, ``train``, ``collect_data``, ``clear_date``, \
         ``__init__``,  ``state_dict``, ``load_state_dict``, ``learn``\
