@@ -17,5 +17,6 @@ push_model_to_hub(
     github_doc_env_url="https://di-engine-docs.readthedocs.io/en/latest/13_envs/lunarlander.html",
     installation_guide="pip3 install DI-engine[common_env,fast]",
     usage_file_path="./dizoo/common/td3/lunarlander_td3_download.py",
+    train_file_path="./dizoo/common/td3/lunarlander_td3.py",
     repo_id="OpenDILabCommunity/LunarLander-v2-TD3"
 )
