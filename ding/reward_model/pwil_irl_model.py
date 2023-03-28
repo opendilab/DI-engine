@@ -46,9 +46,12 @@ class PwilRewardModel(BaseRewardModel):
            3  | ``sample_size``     int          1000         | sample data from expert dataset         |
                                                                 with fixed size                         |
            4  | ``alpha``           int          5            | factor alpha                            | r = alpha * exp(
-           5  | ``beta``            int          5            | factor beta                             | (-beta*T/sqrt(
-           6  | ``s_size``          int          4            | state size                              | |s_size|+ |a_size|)
-           7  | ``a_size``          int          2            | action size                             | )*c_i)
+                                                                                                        | (-beta*T/sqrt(
+                                                                                                        | |s_size|+ |a_size|)
+                                                                                                        | )*c_i)
+           5  | ``beta``            int          5            | factor beta                             |
+           6  | ``s_size``          int          4            | state size                              |
+           7  | ``a_size``          int          2            | action size                             |
            8  | ``clear_buffer``    int          1            | clear buffer per fix iters              | make sure replay
                 ``_per_iters``                                                                          | buffer's data count
                                                                                                         | isn't too few.
@@ -60,7 +63,7 @@ class PwilRewardModel(BaseRewardModel):
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='pwil',
-        # (str) Path to the expert dataset
+        # (str) Path to the expert dataset.
         # expert_data_path='expert_data.pkl',
         # (int) sample data from expert dataset with fixed size
         sample_size=1000,
