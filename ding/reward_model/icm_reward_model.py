@@ -177,7 +177,9 @@ class ICMRewardModel(BaseRewardModel):
         batch_size=64,
         # (list) The MLP layer shape.
         hidden_size_list=[64, 64, 128],
-        # (int) Update how many times after each collect.
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
         # (float) The importance weight of the forward and reverse loss.
         reverse_scale=1,

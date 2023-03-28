@@ -100,7 +100,9 @@ class RndRewardModel(BaseRewardModel):
         # If obs.shape == 1,  use MLP layers.
         # If obs.shape == 3,  use conv layer and final dense layer.
         hidden_size_list=[64, 64, 128],
-        # (int) Update how many times after each collect.
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
         # (bool) Observation normalization: transform obs to mean 0, std 1
         obs_norm=True,
