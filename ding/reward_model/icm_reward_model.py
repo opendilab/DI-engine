@@ -27,7 +27,7 @@ def collect_states(iterator: list) -> Tuple[list, list, list]:
 
 
 class ICMNetwork(nn.Module):
-    r"""
+    """
     Intrinsic Curiosity Model (ICM Module)
     Implementation of:
     [1] Curiosity-driven Exploration by Self-supervised Prediction
@@ -131,36 +131,37 @@ class ICMRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``collect_data``, ``clear_data``, \
             ``__init__``, ``_train``, ``load_state_dict``, ``state_dict``
     Config:
-           == ====================  ========   =============  =======================================  =======================
-           ID Symbol                Type       Default Value  Description                              Other(Shape)
-           == ====================  ========   =============  =======================================  =======================
-           1  ``type``              str         icm           | Reward model register name, refer       |
-                                                              | to registry ``REWARD_MODEL_REGISTRY``   |
-           2  | ``intrinsic_``      str         add           | the intrinsic reward type               | including add, new
-              | ``reward_type``                               |                                         | , or assign
-           3  | ``learning_rate``   float       0.001         | The step size of gradient descent       |
-           4  | ``obs_shape``       Tuple(      6             | the observation shape                   |
-                                    [int, 
-                                    list])
-           5  | ``action_shape``    int         7             | the action space shape                  |
-           6  | ``batch_size``      int         64            | Training batch size                     |
-           7  | ``hidden``          list        [64, 64,      | the MLP layer shape                     |
-              | ``_size_list``      (int)       128]          |                                         |
-           8  | ``update_per_``     int         100           | Number of updates per collect           |
-              | ``collect``                                   |                                         |
-           9  | ``reverse_scale``   float       1             | the importance weight of the            |
-                                                              | forward and reverse loss                |
-           10 | ``intrinsic_``      float       0.003         | the weight of intrinsic reward          | r = w*r_i + r_e
-                ``reward_weight``
-           11 | ``extrinsic_``      bool        True          | Whether to normlize extrinsic reward
-                ``reward_norm``
-           12 | ``extrinsic_``      int         1             | the upper bound of the reward
-               ``reward_norm_max``                            | normalization
-           13 | ``clear_buffer``    int         1             | clear buffer per fix iters              | make sure replay
-                ``_per_iters``                                                                          | buffer's data count
-                                                                                                        | isn't too few.
-                                                                                                        | (code work in entry)
-           == ====================  ========   =============  =======================================  =======================
+        == ====================  ========   =============  ====================================  =======================
+        ID Symbol                Type       Default Value  Description                           Other(Shape)
+        == ====================  ========   =============  ====================================  =======================
+        1  ``type``              str         icm           | Reward model register name,         |
+                                                           | refer to registry                   |
+                                                           | ``REWARD_MODEL_REGISTRY``           |
+        2  | ``intrinsic_``      str         add           | the intrinsic reward type           | including add, new
+           | ``reward_type``                               |                                     | , or assign
+        3  | ``learning_rate``   float       0.001         | The step size of gradient descent   |
+        4  | ``obs_shape``       Tuple(      6             | the observation shape               |
+                                 [int,
+                                 list])
+        5  | ``action_shape``    int         7             | the action space shape              |
+        6  | ``batch_size``      int         64            | Training batch size                 |
+        7  | ``hidden``          list        [64, 64,      | the MLP layer shape                 |
+           | ``_size_list``      (int)       128]          |                                     |
+        8  | ``update_per_``     int         100           | Number of updates per collect       |
+           | ``collect``                                   |                                     |
+        9  | ``reverse_scale``   float       1             | the importance weight of the        |
+                                                           | forward and reverse loss            |
+        10 | ``intrinsic_``      float       0.003         | the weight of intrinsic reward      | r = w*r_i + r_e
+             ``reward_weight``
+        11 | ``extrinsic_``      bool        True          | Whether to normlize
+             ``reward_norm``                               | extrinsic reward
+        12 | ``extrinsic_``      int         1             | the upper bound of the reward
+            ``reward_norm_max``                            | normalization
+        13 | ``clear_buffer``    int         1             | clear buffer per fix iters          | make sure replay
+             ``_per_iters``                                                                      | buffer's data count
+                                                                                                 | isn't too few.
+                                                                                                 | (code work in entry)
+        == ====================  ========   =============  ====================================  =======================
     """
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
@@ -187,7 +188,7 @@ class ICMRewardModel(BaseRewardModel):
         # r = intrinsic_reward_weight * r_i + r_e.
         intrinsic_reward_weight=0.003,  # 1/300
         # (bool) Whether to normlize extrinsic reward.
-        # Normalize the reward to [0, extrinsic_reward_norm_max]. 
+        # Normalize the reward to [0, extrinsic_reward_norm_max].
         extrinsic_reward_norm=True,
         # (int) The upper bound of the reward normalization.
         extrinsic_reward_norm_max=1,

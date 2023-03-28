@@ -28,10 +28,10 @@ class TrexConvEncoder(nn.Module):
     """
 
     def __init__(
-            self,
-            obs_shape: SequenceType,
-            hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
-            activation: Optional[nn.Module] = nn.LeakyReLU()
+        self,
+        obs_shape: SequenceType,
+        hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
+        activation: Optional[nn.Module] = nn.LeakyReLU()
     ) -> None:
         r"""
         Overview:
@@ -138,17 +138,17 @@ class TrexRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``,
     Config:
-           == ====================  ========   =============  ============================================  =======================
-           ID Symbol                Type       Default Value  Description                                   Other(Shape)
-           == ====================  ========   =============  ============================================  =======================
-           1  ``type``              str         trex          | Reward model register name, refer           |
-                                                              | to registry ``REWARD_MODEL_REGISTRY``       |
-           3  | ``learning_rate``   float       0.00001       | learning rate for optimizer                 |
-           4  | ``update_per_``     int         100           | Number of updates per collect               |
-              | ``collect``                                   |                                             |
-           5  | ``num_trajs``       int         0             | Number of downsampled full trajectories     |
-           6  | ``num_snippets``    int         6000          | Number of short subtrajectories to sample   |
-           == ====================  ========   =============  ============================================  =======================
+        == ====================  ======   =============  ============================================  =============
+        ID Symbol                Type     Default Value  Description                                   Other(Shape)
+        == ====================  ======   =============  ============================================  =============
+        1  ``type``              str       trex          | Reward model register name, refer           |
+                                                         | to registry ``REWARD_MODEL_REGISTRY``       |
+        3  | ``learning_rate``   float     0.00001       | learning rate for optimizer                 |
+        4  | ``update_per_``     int       100           | Number of updates per collect               |
+           | ``collect``                                 |                                             |
+        5  | ``num_trajs``       int       0             | Number of downsampled full trajectories     |
+        6  | ``num_snippets``    int       6000          | Number of short subtrajectories to sample   |
+        == ====================  ======   =============  ============================================  =============
     """
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.

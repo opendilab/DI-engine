@@ -35,27 +35,26 @@ class RedRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``
     Config:
-           == ====================  ========   =============  =======================================  =======================
-           ID Symbol                Type       Default Value  Description                              Other(Shape)
-           == ====================  ========   =============  =======================================  =======================
-           1  ``type``              str          red          | Reward model register name, refer       |
-                                                              | to registry ``REWARD_MODEL_REGISTRY``   |
-           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset              | Should be a '.pkl'
-              | ``path``                       .pkl           |                                         | file
-           3  | ``sample_size``     int          1000         | sample data from expert dataset         |
-                                                                with fixed size                         |
-        
-           4  | ``sigma``           int          5            | hyperparameter of r(s,a)                | r(s,a) = exp(
-                                                                                                        | -sigma* L(s,a))
-           5  | ``batch_size``      int         64            | Training batch size                     |
-           6  | ``hidden_size``     int         128           | Linear model hidden size                |
-           7  | ``update_per_``     int         100           | Number of updates per collect           |
-              | ``collect``                                   |                                         |
-           8  | ``clear_buffer``    int          1            | clear buffer per fix iters              | make sure replay
-                ``_per_iters``                                                                          | buffer's data count
-                                                                                                        | isn't too few.
-                                                                                                        | (code work in entry)
-           == ====================  ========   =============  =======================================  =======================
+        == ==================  =====   =============  =======================================  =======================
+        ID Symbol              Type    Default Value  Description                              Other(Shape)
+        == ==================  =====   =============  =======================================  =======================
+        1  ``type``             str      red          | Reward model register name, refer       |
+                                                      | to registry ``REWARD_MODEL_REGISTRY``   |
+        2  | ``expert_data_``   str      expert_data  | Path to the expert dataset              | Should be a '.pkl'
+           | ``path``                    .pkl         |                                         | file
+        3  | ``sample_size``    int      1000         | sample data from expert dataset         |
+                                                      | with fixed size                         |
+        4  | ``sigma``          int      5            | hyperparameter of r(s,a)                | r(s,a) = exp(
+                                                                                                | -sigma* L(s,a))
+        5  | ``batch_size``     int      64           | Training batch size                     |
+        6  | ``hidden_size``    int      128          | Linear model hidden size                |
+        7  | ``update_per_``    int      100          | Number of updates per collect           |
+           | ``collect``                              |                                         |
+        8  | ``clear_buffer``   int      1            | clear buffer per fix iters              | make sure replay
+             ``_per_iters``                                                                     | buffer's data count
+                                                                                                | isn't too few.
+                                                                                                | (code work in entry)
+        == ==================  =====   =============  =======================================  =======================
     Properties:
         - online_net (:obj: `SENet`): The reward model, in default initialized once as the training begins.
     """
@@ -68,7 +67,7 @@ class RedRewardModel(BaseRewardModel):
         sample_size=1000,
         # (int) Linear model hidden size.
         hidden_size=128,
-        # (float) The step size of gradient descent. 
+        # (float) The step size of gradient descent.
         learning_rate=1e-3,
         # (int) How many updates(iterations) to train after collector's one collection.
         # Bigger "update_per_collect" means bigger off-policy.
@@ -78,7 +77,7 @@ class RedRewardModel(BaseRewardModel):
         # expert_data_path='expert_data.pkl',
         # (int) How many samples in a training batch.
         batch_size=64,
-        # (float) Hyperparameter at estimated score of r(s,a) 
+        # (float) Hyperparameter at estimated score of r(s,a)
         # r(s,a) = exp(-sigma* L(s,a))
         sigma=0.5,
         # (int) Clear buffer per fix iters

@@ -16,19 +16,21 @@ class DrexRewardModel(TrexRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``,
     Config:
-           == ====================  ========   =============  ============================================  =======================
-           ID Symbol                Type       Default Value  Description                                   Other(Shape)
-           == ====================  ========   =============  ============================================  =======================
-           1  ``type``              str         drex          | Reward model register name, refer           |
-                                                              | to registry ``REWARD_MODEL_REGISTRY``       |
-           3  | ``learning_rate``   float       0.00001       | learning rate for optimizer                 |
-           4  | ``update_per_``     int         100           | Number of updates per collect               |
-              | ``collect``                                   |                                             |
-           5  | ``batch_size``      int         64            | How many samples in a training batch
-           6  | ``hidden_size``     int        128            | Linear model hidden size                    |
-           7  | ``num_trajs``       int         0             | Number of downsampled full trajectories     |
-           8  | ``num_snippets``    int         6000          | Number of short subtrajectories to sample   |
-           == ====================  ========   =============  ============================================  =======================
+        == ====================  ======   =============  =======================================  ===============
+        ID Symbol                Type       Default Value  Description                            Other(Shape)
+        == ====================  ======   =============  =======================================  ===============
+        1  ``type``              str       drex          | Reward model register name, refer      |
+                                                         | to registry ``REWARD_MODEL_REGISTRY``  |
+        3  | ``learning_rate``   float     0.00001       | learning rate for optimizer            |
+        4  | ``update_per_``     int       100           | Number of updates per collect          |
+           | ``collect``                                 |                                        |
+        5  | ``batch_size``      int       64            | How many samples in a training batch   |
+        6  | ``hidden_size``     int       128           | Linear model hidden size               |
+        7  | ``num_trajs``       int       0             | Number of downsampled full             |
+                                                         | trajectories                           |
+        8  | ``num_snippets``    int       6000          | Number of short subtrajectories        |
+                                                         | to sample                              |
+        == ====================  ======   =============  =======================================  ================
     """
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.

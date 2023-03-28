@@ -36,27 +36,27 @@ class PwilRewardModel(BaseRewardModel):
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``, ``_get_state_distance``, ``_get_action_distance``
     Config:
-           == ====================  ========   =============  =======================================  =======================
-           ID Symbol                Type       Default Value  Description                              Other(Shape)
-           == ====================  ========   =============  =======================================  =======================
-           1  ``type``              str          pdwil        | Reward model register name, refer       |
-                                                              | to registry ``REWARD_MODEL_REGISTRY``   |
-           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset              | Should be a '.pkl'
-              | ``path``                       .pkl           |                                         | file
-           3  | ``sample_size``     int          1000         | sample data from expert dataset         |
-                                                                with fixed size                         |
-           4  | ``alpha``           int          5            | factor alpha                            | r = alpha * exp(
-                                                                                                        | (-beta*T/sqrt(
-                                                                                                        | |s_size|+ |a_size|)
-                                                                                                        | )*c_i)
-           5  | ``beta``            int          5            | factor beta                             |
-           6  | ``s_size``          int          4            | state size                              |
-           7  | ``a_size``          int          2            | action size                             |
-           8  | ``clear_buffer``    int          1            | clear buffer per fix iters              | make sure replay
-                ``_per_iters``                                                                          | buffer's data count
-                                                                                                        | isn't too few.
-                                                                                                        | (code work in entry)
-           == ====================  ========   =============  =======================================  =======================
+        == ==================  =====   =============  =======================================  =======================
+        ID Symbol              Type    Default Value  Description                              Other(Shape)
+        == ==================  =====   =============  =======================================  =======================
+        1  ``type``             str     pdwil         | Reward model register name, refer      |
+                                                      | to registry ``REWARD_MODEL_REGISTRY``  |
+        2  | ``expert_data_``   str     expert_data.  | Path to the expert dataset             | Should be a '.pkl'
+           | ``path``                   .pkl          |                                        | file
+        3  | ``sample_size``    int    1000           | sample data from expert dataset        |
+                                                      | with fixed size                        |
+        4  | ``alpha``          int    5              | factor alpha                           | r = alpha * exp(
+                                                                                               | (-beta*T/sqrt(
+                                                                                               | |s_size|+ |a_size|)
+                                                                                               | )*c_i)
+        5  | ``beta``           int    5              | factor beta                            |
+        6  | ``s_size``         int    4              | state size                             |
+        7  | ``a_size``         int    2              | action size                            |
+        8  | ``clear_buffer``   int    1              | clear buffer per fix iters             | make sure replay
+             ``_per_iters``                                                                    | buffer's data count
+                                                                                               | isn't too few.
+                                                                                               | (code work in entry)
+        == ==================  =====   =============  =======================================  =======================
     Properties:
         - reward_table (:obj: `Dict`): In this algorithm, reward model is a dictionary.
     """

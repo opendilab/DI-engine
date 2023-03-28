@@ -60,7 +60,7 @@ def m_q_1step_td_error(
         - alpha (:obj:`float`): Discount factor for Munchausen term
         - criterion (:obj:`torch.nn.modules`): loss function criterion
     Returns:
-        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+        - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
     Shapes:
         - data (:obj:`m_q_1step_td_data`): the m_q_1step_td_data containing\
              ['q', 'target_q', 'next_q', 'act', 'reward', 'done', 'weight']
@@ -121,6 +121,25 @@ def q_v_1step_td_error(
         data: namedtuple, gamma: float, criterion: torch.nn.modules = nn.MSELoss(reduction='none')
 ) -> torch.Tensor:
     # we will use this function in discrete sac algorithm to calculate td error between q and v value.
+    """
+    Overview:
+        td_error between q and v value for SAC algorithm, support 1 step td error.
+    Arguments:
+        - data (:obj:`q_v_1step_td_data`): the input data, q_v_1step_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+        - criterion (:obj:`torch.nn.modules`): loss function criterion
+    Returns:
+        - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`q_v_1step_td_data`): the q_v_1step_td_data containing\
+             ['q', 'v', 'act', 'reward', 'done', 'weight']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - v (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`( , B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    """
     q, v, act, reward, done, weight = data
     if len(act.shape) == 1:
         assert len(reward.shape) == 1, reward.shape
@@ -195,6 +214,25 @@ def dist_1step_td_error(
         v_max: float,
         n_atom: int,
 ) -> torch.Tensor:
+    """
+    Overview:
+        1 step td_error for distributed q-learning based algorithm
+    Arguments:
+        - data (:obj:`dist_1step_td_data`): the input data, dist_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): discount factor
+    Returns:
+        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`dist_1step_td_data`): the dist_1step_td_data containing\
+            ['dist', 'next_n_dist', 'act', 'reward', 'done', 'weight']
+        - dist (:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)` i.e. [batch_size, action_dim, n_atom]
+        - next_dist (:obj:`torch.FloatTensor`): :math:`(B, N, n_atom)`
+        - act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(, B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    """
     dist, next_dist, act, next_act, reward, done, weight = data
     device = reward.device
     assert len(reward.shape) == 1, reward.shape
@@ -285,7 +323,7 @@ def dist_nstep_td_error(
         nstep: int = 1,
         value_gamma: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
-    r"""
+    """
     Overview:
         Multistep (1 step or n step) td_error for distributed q-learning based algorithm, support single\
             agent case and multi agent case.

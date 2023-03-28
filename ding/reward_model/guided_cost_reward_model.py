@@ -43,23 +43,23 @@ class GuidedCostRewardModel(BaseRewardModel):
         ``__init__``,  ``state_dict``, ``load_state_dict``, ``learn``\
         ``state_dict_reward_model``, ``load_state_dict_reward_model``
     Config:
-           == ====================  ========   =============  ========================================  =======================
-           ID Symbol                Type       Default Value  Description                               Other(Shape)
-           == ====================  ========   =============  ========================================  =======================
-           1  ``type``              str         guided_cost   | Reward model register name, refer        |
-                                                              | to registry ``REWARD_MODEL_REGISTRY``    |
-           2  | ``continuous``      bool        True          | Whether action is continuous             |
-           3  | ``learning_rate``   float       0.001         | learning rate for optimizer              |
-           4  | ``update_per_``     int         100           | Number of updates per collect            |
-              | ``collect``                                   |                                          |
-           5  | ``batch_size``      int         64            | Training batch size                      |
-           6  | ``hidden_size``     int         128           | Linear model hidden size                 |
-           7  | ``action_shape``    int         1             | Action space shape                       |
-           8  | ``log_every_n``     int         50            | add loss to log every n iteration        |
-              | ``_train``                                    |                                          |
-           9  | ``store_model_``    int         100           | save model every n iteration             |
-              | ``every_n_train``                                                                        |
-           == ====================  ========   =============  ========================================  =======================
+        == ====================  ========   =============  ========================================  ================
+        ID Symbol                Type       Default Value  Description                               Other(Shape)
+        == ====================  ========   =============  ========================================  ================
+        1  ``type``              str         guided_cost   | Reward model register name, refer        |
+                                                           | to registry ``REWARD_MODEL_REGISTRY``    |
+        2  | ``continuous``      bool        True          | Whether action is continuous             |
+        3  | ``learning_rate``   float       0.001         | learning rate for optimizer              |
+        4  | ``update_per_``     int         100           | Number of updates per collect            |
+           | ``collect``                                   |                                          |
+        5  | ``batch_size``      int         64            | Training batch size                      |
+        6  | ``hidden_size``     int         128           | Linear model hidden size                 |
+        7  | ``action_shape``    int         1             | Action space shape                       |
+        8  | ``log_every_n``     int         50            | add loss to log every n iteration        |
+           | ``_train``                                    |                                          |
+        9  | ``store_model_``    int         100           | save model every n iteration             |
+           | ``every_n_train``                                                                        |
+        == ====================  ========   =============  ========================================  ================
 
     """
 
@@ -72,7 +72,7 @@ class GuidedCostRewardModel(BaseRewardModel):
         action_shape=1,
         # (bool) Whether action is continuous.
         continuous=True,
-        # (int) How many samples in a training batch. 
+        # (int) How many samples in a training batch.
         batch_size=64,
         # (int) Linear model hidden size.
         hidden_size=128,
