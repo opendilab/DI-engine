@@ -19,5 +19,13 @@ def get_lr(it, warmup_epochs, learning_rate, lr_decay_epochs, min_lr):
 
 
 def cos_lr_scheduler(optimizer, learning_rate, warmup_epochs=5, lr_decay_epochs=100, min_lr=6e-5):
-    return LambdaLR(optimizer, partial(get_lr, warmup_epochs=warmup_epochs, lr_decay_epochs=lr_decay_epochs,
-                                       min_lr=min_lr, learning_rate=learning_rate))
+    return LambdaLR(
+        optimizer,
+        partial(
+            get_lr,
+            warmup_epochs=warmup_epochs,
+            lr_decay_epochs=lr_decay_epochs,
+            min_lr=min_lr,
+            learning_rate=learning_rate
+        )
+    )

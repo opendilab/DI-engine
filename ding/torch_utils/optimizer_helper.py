@@ -98,25 +98,25 @@ class Adam(torch.optim.Adam):
     """
 
     def __init__(
-            self,
-            params: Iterable,
-            lr: float = 1e-3,
-            betas: Tuple[float, float] = (0.9, 0.999),
-            eps: float = 1e-8,
-            weight_decay: float = 0,
-            amsgrad: bool = False,
-            optim_type: str = 'adam',
-            grad_clip_type: str = None,
-            clip_value: Union[float, None] = None,
-            clip_coef: float = 5,
-            clip_norm_type: float = 2.0,
-            clip_momentum_timestep: int = 100,
-            grad_norm_type: str = None,
-            grad_ignore_type: str = None,
-            ignore_value: Union[float, None] = None,
-            ignore_coef: float = 5,
-            ignore_norm_type: float = 2.0,
-            ignore_momentum_timestep: int = 100,
+        self,
+        params: Iterable,
+        lr: float = 1e-3,
+        betas: Tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 0,
+        amsgrad: bool = False,
+        optim_type: str = 'adam',
+        grad_clip_type: str = None,
+        clip_value: Union[float, None] = None,
+        clip_coef: float = 5,
+        clip_norm_type: float = 2.0,
+        clip_momentum_timestep: int = 100,
+        grad_norm_type: str = None,
+        grad_ignore_type: str = None,
+        ignore_value: Union[float, None] = None,
+        ignore_coef: float = 5,
+        ignore_norm_type: float = 2.0,
+        ignore_momentum_timestep: int = 100,
     ):
         r"""
         Overview:
@@ -378,25 +378,25 @@ class RMSprop(torch.optim.RMSprop):
     """
 
     def __init__(
-            self,
-            params: Iterable,
-            lr: float = 1e-2,
-            alpha: float = 0.99,
-            eps: float = 1e-8,
-            weight_decay: float = 0,
-            momentum: float = 0,
-            centered: bool = False,
-            grad_clip_type: str = None,
-            clip_value: Union[float, None] = None,
-            clip_coef: float = 5,
-            clip_norm_type: float = 2.0,
-            clip_momentum_timestep: int = 100,
-            grad_norm_type: str = None,
-            grad_ignore_type: str = None,
-            ignore_value: Union[float, None] = None,
-            ignore_coef: float = 5,
-            ignore_norm_type: float = 2.0,
-            ignore_momentum_timestep: int = 100,
+        self,
+        params: Iterable,
+        lr: float = 1e-2,
+        alpha: float = 0.99,
+        eps: float = 1e-8,
+        weight_decay: float = 0,
+        momentum: float = 0,
+        centered: bool = False,
+        grad_clip_type: str = None,
+        clip_value: Union[float, None] = None,
+        clip_coef: float = 5,
+        clip_norm_type: float = 2.0,
+        clip_momentum_timestep: int = 100,
+        grad_norm_type: str = None,
+        grad_ignore_type: str = None,
+        ignore_value: Union[float, None] = None,
+        ignore_coef: float = 5,
+        ignore_norm_type: float = 2.0,
+        ignore_momentum_timestep: int = 100,
     ):
         r"""
         Overview:
@@ -744,7 +744,7 @@ def configure_weight_decay(model, weight_decay):
     # separate out all parameters to those that will and won't experience regularizing weight decay
     decay = set()
     no_decay = set()
-    whitelist_weight_modules = (torch.nn.Linear,)
+    whitelist_weight_modules = (torch.nn.Linear, )
     blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
     for mn, m in model.named_modules():
         for pn, p in m.named_parameters():
@@ -769,15 +769,21 @@ def configure_weight_decay(model, weight_decay):
     param_dict = {pn: p for pn, p in model.named_parameters()}
     inter_params = decay & no_decay
     union_params = decay | no_decay
-    assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params),)
+    assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
     assert len(
         param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
                                                 % (str(param_dict.keys() - union_params),)
 
     # create the pytorch optimizer object
     optim_groups = [
-        {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": weight_decay},
-        {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
+        {
+            "params": [param_dict[pn] for pn in sorted(list(decay))],
+            "weight_decay": weight_decay
+        },
+        {
+            "params": [param_dict[pn] for pn in sorted(list(no_decay))],
+            "weight_decay": 0.0
+        },
     ]
 
     return optim_groups

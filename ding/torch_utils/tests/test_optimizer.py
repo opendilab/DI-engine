@@ -183,10 +183,7 @@ class TestPCGrad:
 class TestWeightDecay:
 
     def test_wd(self):
-        net = nn.Sequential(
-            nn.Linear(3, 4),
-            nn.LayerNorm(4)
-        )
+        net = nn.Sequential(nn.Linear(3, 4), nn.LayerNorm(4))
         x = torch.randn(1, 3)
         group_params = configure_weight_decay(model=net, weight_decay=1e-4)
         assert group_params[0]['weight_decay'] == 1e-4
@@ -198,4 +195,3 @@ class TestWeightDecay:
         y = torch.sum(net(x))
         y.backward()
         opt.step()
-
