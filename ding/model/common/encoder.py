@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Union, List
 from functools import reduce
 import operator
 import math
@@ -73,6 +73,7 @@ class ConvEncoder(nn.Module):
         self.main = nn.Sequential(*layers)
 
         flatten_size = self._get_flatten_size()
+        self.output_size = hidden_size_list[-1]
         self.mid = nn.Linear(flatten_size, hidden_size_list[-1])
 
     def _get_flatten_size(self) -> int:
@@ -170,8 +171,11 @@ class FCEncoder(nn.Module):
 
 
 class StructEncoder(nn.Module):
-    # TODO(nyz)
-    pass
+
+    def __init__(self, obs_shape: Dict[str, Union[int, List[int]]]) -> None:
+        super(StructEncoder, self).__init__()
+        # TODO concrete implementation
+        raise NotImplementedError
 
 
 class IMPALACnnResidualBlock(nn.Module):

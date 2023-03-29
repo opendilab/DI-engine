@@ -29,6 +29,7 @@ class MujocoEnv(BaseEnv):
         replay_path=None,
         save_replay_gif=False,
         replay_path_gif=None,
+        action_bins_per_branch=None,
     )
 
     def __init__(self, cfg: dict) -> None:
@@ -39,6 +40,25 @@ class MujocoEnv(BaseEnv):
         self._replay_path = None
         self._replay_path_gif = cfg.replay_path_gif
         self._save_replay_gif = cfg.save_replay_gif
+        self._action_bins_per_branch = cfg.action_bins_per_branch
+
+    def map_action(self, action: Union[np.ndarray, list]) -> Union[np.ndarray, list]:
+        """
+        Overview:
+            Map the discretized action index to the action in the original action space.
+        Arguments:
+            - action (:obj:`np.ndarray or list`): The discretized action index. \
+                The value ranges is {0, 1, ..., self._action_bins_per_branch - 1}.
+        Returns:
+            - outputs (:obj:`list`): The action in the original action space. \
+                The value ranges is [-1, 1].
+        Examples:
+            >>> inputs = [2, 0, 4]
+            >>> self._action_bins_per_branch = 5
+            >>> outputs = map_action(inputs)
+            >>> assert isinstance(outputs, list) and outputs == [0.0, -1.0, 1.0]
+        """
+        return [2 * x / (self._action_bins_per_branch - 1) - 1 for x in action]
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -80,6 +100,8 @@ class MujocoEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
+        if self._action_bins_per_branch:
+            action = self.map_action(action)
         action = to_ndarray(action)
         if self._save_replay_gif:
             self._frames.append(self._env.render(mode='rgb_array'))

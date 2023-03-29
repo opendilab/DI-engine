@@ -31,6 +31,7 @@ cartpole_c51_config = dict(
             n_sample=80,
             unroll_len=1,
         ),
+        eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(
             eps=dict(
                 type='exp',

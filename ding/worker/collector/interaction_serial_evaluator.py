@@ -5,7 +5,7 @@ import torch
 import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.torch_utils import to_tensor, to_ndarray, to_item
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
 from ding.utils import get_world_size, get_rank
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
@@ -251,7 +251,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             eval_monitor.update_reward(env_id, reward)
                             return_info.append(t.info)
                             self._logger.info(
-                                "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
+                                "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
                                     env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                                 )
                             )
@@ -301,7 +301,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             stop_flag = episode_return >= self._stop_value and train_iter > 0
             if stop_flag:
                 self._logger.info(
-                    "[DI-engine serial pipeline] " + "Current episode_return: {} is greater than stop_value: {}".
+                    "[DI-engine serial pipeline] " + "Current episode_return: {:.4f} is greater than stop_value: {}".
                     format(episode_return, self._stop_value) + ", so your RL agent is converged, you can refer to " +
                     "'log/evaluator/evaluator_logger.txt' for details."
                 )
@@ -311,4 +311,5 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             dist.broadcast_object_list(objects, src=0)
             stop_flag, return_info = objects
 
+        return_info = to_item(return_info)
         return stop_flag, return_info

@@ -1,5 +1,5 @@
 # general
-from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN
+from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ
 from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
 from .vac import VAC
@@ -22,3 +22,4 @@ from .maqac import MAQAC, ContinuousMAQAC
 from .madqn import MADQN
 from .vae import VanillaVAE
 from .decision_transformer import DecisionTransformer
+from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS

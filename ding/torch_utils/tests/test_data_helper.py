@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import treetensor.torch as ttorch
 
 from ding.torch_utils import CudaFetcher, to_device, to_dtype, to_tensor, to_ndarray, to_list, \
-    tensor_to_list, same_shape, build_log_buffer, get_tensor_data, get_shape0
+    tensor_to_list, same_shape, build_log_buffer, get_tensor_data, get_shape0, to_item
 from ding.utils import EasyTimer
 
 
@@ -113,6 +113,33 @@ class TestDataFunction:
         transformed_list = to_list(setup_data_dict)
         with pytest.raises(TypeError):
             to_ndarray(EasyTimer())
+
+    def test_to_item(self):
+        data = {
+            'tensor': torch.randn(1),
+            'list': [True, False, torch.randn(1)],
+            'tuple': (4, 5, 6),
+            'bool': True,
+            'int': 10,
+            'float': 10.,
+            'array': np.random.randn(1),
+            'str': "asdf",
+            'none': None,
+        }
+        assert not np.isscalar(data['tensor'])
+        assert not np.isscalar(data['array'])
+        assert not np.isscalar(data['list'][-1])
+        new_data = to_item(data)
+        assert np.isscalar(new_data['tensor'])
+        assert np.isscalar(new_data['array'])
+        assert np.isscalar(new_data['list'][-1])
+
+        data = ttorch.randn({'a': 1})
+        new_data = to_item(data)
+        assert np.isscalar(new_data.a)
+
+        with pytest.raises(ValueError):
+            to_item(torch.randn(4))
 
     def test_same_shape(self):
         tlist = [torch.randn(3, 5) for i in range(5)]

@@ -133,3 +133,40 @@ class TestMAQAC:
         value = model(data, mode='compute_critic')['q_value']
         assert value.shape == (B, agent_num, action_shape)
         self.output_check(model.critic, value, action_shape)
+
+
+B = 4
+embedding_size = 64
+action_shape_args = [(6, ), 1]
+args = list(product(*[action_shape_args, [True, False], [True, False]]))
+
+
+@pytest.mark.unittest
+@pytest.mark.parametrize('action_shape, twin, share_encoder', args)
+class TestQACPixel:
+
+    def test_qacpixel(self, action_shape, twin, share_encoder):
+        inputs = {'obs': torch.randn(B, 3, 84, 84), 'action': torch.randn(B, squeeze(action_shape))}
+        model = QAC(
+            obs_shape=(3, 84, 84),
+            action_shape=action_shape,
+            action_space='reparameterization',
+            critic_head_hidden_size=embedding_size,
+            actor_head_hidden_size=embedding_size,
+            twin_critic=twin,
+            share_encoder=share_encoder,
+            encoder_hidden_size_list=[32, 32, 64],
+        )
+        # compute_q
+        q = model(inputs, mode='compute_critic')['q_value']
+        if twin:
+            q = torch.min(q[0], q[1])
+        is_differentiable(q.sum(), model.critic)
+
+        # compute_action
+        print(model)
+        (mu, sigma) = model(inputs['obs'], mode='compute_actor')['logit']
+        action_shape = squeeze(action_shape)
+        assert mu.shape == (B, action_shape)
+        assert sigma.shape == (B, action_shape)
+        is_differentiable(mu.sum() + sigma.sum(), model.actor)

@@ -49,7 +49,7 @@ def main():
             task.use(data_pusher(cfg, buffer_))
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             if rank == 0:
-                task.use(CkptSaver(cfg, policy, train_freq=1000))
+                task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
                 task.use(online_logger(record_train_iter=True))
             task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()

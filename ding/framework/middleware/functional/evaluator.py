@@ -1,4 +1,4 @@
-from typing import Callable, Any, List, Union
+from typing import Callable, Any, List, Union, Optional
 from abc import ABC, abstractmethod
 from collections import deque
 from ditk import logging
@@ -291,6 +291,98 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             ctx.eval_output['output'] = eval_monitor.get_episode_output()
         else:
             ctx.eval_output['output'] = output  # for compatibility
+
+        if stop_flag:
+            task.finish = True
+
+    return _evaluate
+
+
+def interaction_evaluator_ttorch(
+        seed: int,
+        policy: Policy,
+        env: BaseEnvManager,
+        n_evaluator_episode: Optional[int] = None,
+        stop_value: float = np.inf,
+        eval_freq: int = 1000,
+        render: bool = False
+) -> Callable:
+    """
+    Overview:
+        The middleware that executes the evaluation with ttorch data.
+    Arguments:
+        - policy (:obj:`Policy`): The policy to be evaluated.
+        - env (:obj:`BaseEnvManager`): The env for the evaluation.
+        - render (:obj:`bool`): Whether to render env images and policy logits.
+    """
+    if task.router.is_active and not task.has_role(task.role.EVALUATOR):
+        return task.void()
+
+    env.seed(seed, dynamic_seed=False)
+    if n_evaluator_episode is None:
+        n_evaluator_episode = env.env_num
+
+    def _evaluate(ctx: "OnlineRLContext"):
+        """
+        Overview:
+            - The evaluation will be executed if the task begins and enough train_iter passed \
+                since last evaluation.
+        Input of ctx:
+            - last_eval_iter (:obj:`int`): Last evaluation iteration.
+            - train_iter (:obj:`int`): Current train iteration.
+        Output of ctx:
+            - eval_value (:obj:`float`): The average reward in the current evaluation.
+        """
+
+        # evaluation will be executed if the task begins or enough train_iter after last evaluation
+        if ctx.last_eval_iter != -1 and (ctx.train_iter - ctx.last_eval_iter < eval_freq):
+            return
+
+        if env.closed:
+            env.launch()
+        else:
+            env.reset()
+        policy.reset()
+        device = policy._device
+        eval_monitor = VectorEvalMonitor(env.env_num, n_evaluator_episode)
+
+        while not eval_monitor.is_finished():
+            obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
+            obs = obs.to(device)
+            inference_output = policy.eval(obs)
+            inference_output = inference_output.cpu()
+            if render:
+                eval_monitor.update_video(env.ready_imgs)
+                eval_monitor.update_output(inference_output)
+            action = inference_output.action.numpy()
+            timesteps = env.step(action)
+            for timestep in timesteps:
+                env_id = timestep.env_id.item()
+                if timestep.done:
+                    policy.reset([env_id])
+                    reward = timestep.info.eval_episode_return
+                    eval_monitor.update_reward(env_id, reward)
+                    if 'episode_info' in timestep.info:
+                        eval_monitor.update_info(env_id, timestep.info.episode_info)
+        episode_return = eval_monitor.get_episode_return()
+        episode_return_mean = np.mean(episode_return)
+        stop_flag = episode_return_mean >= stop_value and ctx.train_iter > 0
+        logging.info(
+            'Evaluation: Train Iter({})\tEnv Step({})\tMean Episode Return({:.3f})'.format(
+                ctx.train_iter, ctx.env_step, episode_return_mean
+            )
+        )
+        ctx.last_eval_iter = ctx.train_iter
+        ctx.eval_value = episode_return_mean
+        ctx.eval_output = {'episode_return': episode_return}
+        episode_info = eval_monitor.get_episode_info()
+        if episode_info is not None:
+            ctx.eval_output['episode_info'] = episode_info
+        if render:
+            ctx.eval_output['replay_video'] = eval_monitor.get_episode_video()
+            ctx.eval_output['output'] = eval_monitor.get_episode_output()
+        else:
+            ctx.eval_output['output'] = inference_output.numpy()  # for compatibility
 
         if stop_flag:
             task.finish = True
