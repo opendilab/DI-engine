@@ -9,7 +9,7 @@ cfg = EasyDict(Config.file_to_dict("policy_config.py"))
 # Instantiate the agent
 agent = DQNOffpolicyAgent(
     env="lunarlander_discrete",
-    exp_name="Lunarlander-v2-DQN-test",
+    exp_name="Lunarlander-v2-DQN",
     cfg=cfg.exp_config,
     policy_state_dict=policy_state_dict
 )
