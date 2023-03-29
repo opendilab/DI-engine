@@ -166,7 +166,7 @@ class PPOF:
         else:
             logging.warning('No video would be generated during the deploy.')
 
-        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.policy.cuda)
+        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.cuda)
 
         # main loop
         return_ = 0.
