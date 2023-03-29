@@ -16,7 +16,8 @@ push_model_to_hub(
     github_doc_model_url="https://di-engine-docs.readthedocs.io/en/latest/12_policies/dqn.html",
     github_doc_env_url="https://di-engine-docs.readthedocs.io/en/latest/13_envs/lunarlander.html",
     installation_guide="pip3 install DI-engine[common_env,fast]",
-    usage_file_path="./dizoo/common/dqn/lunarlander_dqn_download.py",
-    train_file_path="./dizoo/common/dqn/lunarlander_dqn.py",
+    usage_file_by_git_clone="./dizoo/common/dqn/lunarlander_dqn_deploy.py",
+    usage_file_by_huggingface_ding="./dizoo/common/dqn/lunarlander_dqn_download.py",
+    train_file="./dizoo/common/dqn/lunarlander_dqn.py",
     repo_id="OpenDILabCommunity/Lunarlander-v2-DQN"
 )

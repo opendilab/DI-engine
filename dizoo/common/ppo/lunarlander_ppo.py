@@ -16,7 +16,8 @@ push_model_to_hub(
     github_doc_model_url="https://di-engine-docs.readthedocs.io/en/latest/12_policies/ppo.html",
     github_doc_env_url="https://di-engine-docs.readthedocs.io/en/latest/13_envs/lunarlander.html",
     installation_guide="pip3 install DI-engine[common_env,fast]",
-    usage_file_path="./dizoo/common/ppo/lunarlander_ppo_download.py",
-    train_file_path="./dizoo/common/ppo/lunarlander_ppo.py",
+    usage_file_by_git_clone="./dizoo/common/ppo/lunarlander_ppo_deploy.py",
+    usage_file_by_huggingface_ding="./dizoo/common/ppo/lunarlander_ppo_download.py",
+    train_file="./dizoo/common/ppo/lunarlander_ppo.py",
     repo_id="OpenDILabCommunity/LunarLander-v2-PPO"
 )

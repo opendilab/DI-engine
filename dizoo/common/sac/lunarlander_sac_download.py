@@ -5,7 +5,10 @@ from huggingface_ding import pull_model_from_hub
 policy_state_dict, cfg = pull_model_from_hub(repo_id="OpenDILabCommunity/LunarLander-v2-SAC")
 # Instantiate the agent
 agent = SACOffPolicyAgent(
-    env="lunarlander_continuous", exp_name="lunarlander-sac", cfg=cfg.exp_config, policy_state_dict=policy_state_dict
+    env="lunarlander_continuous",
+    exp_name="LunarLander-v2-SAC",
+    cfg=cfg.exp_config,
+    policy_state_dict=policy_state_dict
 )
 # Continue training
 agent.train(step=5000)
