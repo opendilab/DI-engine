@@ -722,6 +722,7 @@ class SACPolicy(Policy):
             'td_error': td_error_per_sample.detach().mean().item(),
             'alpha': self._alpha.item(),
             'target_q_value': target_q_value.detach().mean().item(),
+            'transformed_log_prob': log_prob.mean().item(),
             **loss_dict
         }
 
@@ -820,6 +821,7 @@ class SACPolicy(Policy):
             'target_q_value',
             'alpha',
             'td_error',
+            'transformed_log_prob',
         ] + twin_critic + alpha_loss
 
     def monitor_vars(self) -> List[str]:
