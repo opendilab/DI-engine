@@ -394,10 +394,10 @@
 <dt>Config:</dt><dd><table class="docutils align-default">
 <colgroup>
 <col style="width: 2%" />
-<col style="width: 20%" />
+<col style="width: 19%" />
 <col style="width: 7%" />
 <col style="width: 13%" />
-<col style="width: 36%" />
+<col style="width: 37%" />
 <col style="width: 21%" />
 </colgroup>
 <thead>
@@ -473,9 +473,9 @@
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><div class="line-block">
-<div class="line">Whether use Importance Sampling</div>
-<div class="line">Weight to correct biased update. If</div>
-<div class="line">True, priority must be True.</div>
+<div class="line">Whether use Importance Sampling Weight</div>
+<div class="line">to correct biased update. If True,</div>
+<div class="line">priority must be True.</div>
 </div>
 </td>
 <td></td>
@@ -514,44 +514,6 @@
 </tr>
 <tr class="row-odd"><td><p>8</p></td>
 <td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">model.dueling</span></code></div>
-</div>
-</td>
-<td><p>bool</p></td>
-<td><p>True</p></td>
-<td><div class="line-block">
-<div class="line">dueling head architecture</div>
-</div>
-</td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>9</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">model.encoder</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_hidden</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_size_list</span></code></div>
-</div>
-</td>
-<td><p>list
-(int)</p></td>
-<td><p>[32, 64,
-64, 128]</p></td>
-<td><div class="line-block">
-<div class="line">Sequence of <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> of</div>
-<div class="line">subsequent conv layers and the
-| final dense layer.</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">default kernel_size</div>
-<div class="line">is [8, 4, 3]</div>
-<div class="line">default stride is</div>
-<div class="line">[4, 2 ,1]</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>10</p></td>
-<td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
 </div>
@@ -560,8 +522,8 @@
 <td><p>3</p></td>
 <td><div class="line-block">
 <div class="line">How many updates(iterations) to train</div>
-<div class="line">after collector’s one collection.</div>
-<div class="line">Only valid in serial training</div>
+<div class="line">after collector’s one collection. Only</div>
+<div class="line">valid in serial training</div>
 </div>
 </td>
 <td><div class="line-block">
@@ -571,7 +533,21 @@
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>11</p></td>
+<tr class="row-even"><td><p>9</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.multi</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_gpu</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">whether to use multi gpu during</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.batch_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">size</span></code></div>
@@ -585,7 +561,7 @@
 </td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>12</p></td>
+<tr class="row-even"><td><p>11</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">_rate</span></code></div>
@@ -599,7 +575,7 @@
 </td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>13</p></td>
+<tr class="row-odd"><td><p>12</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
@@ -616,27 +592,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>14</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">theta</span></code></div>
-<div class="line"><br /></div>
-</div>
-</td>
-<td><p>float</p></td>
-<td><p>0.005</p></td>
-<td><div class="line-block">
-<div class="line">Frequence of target network update.</div>
-<div class="line">Only one of [target_update_freq,</div>
-<div class="line">target_theta] should be set</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">Soft(assign) update</div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>15</p></td>
+<tr class="row-even"><td><p>13</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.ignore_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">done</span></code></div>
@@ -655,7 +611,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>16</p></td>
+<tr class="row-odd"><td><p>14</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">collect.n_sample</span></code></p></td>
 <td><p>int</p></td>
 <td><p>[8, 128]</p></td>
@@ -670,24 +626,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>17</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">collect.n_episode</span></code></p></td>
-<td><p>int</p></td>
-<td><p>8</p></td>
-<td><div class="line-block">
-<div class="line">The number of training episodes of a</div>
-<div class="line">call of collector</div>
-<div class="line"><br /></div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">only one of [n_sample</div>
-<div class="line">,n_episode] should</div>
-<div class="line">be set</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>18</p></td>
+<tr class="row-even"><td><p>15</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">collect.unroll</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">_len</span></code></div>
@@ -704,7 +643,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>19</p></td>
+<tr class="row-odd"><td><p>16</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.type</span></code></div>
 </div>
@@ -721,7 +660,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>20</p></td>
+<tr class="row-even"><td><p>17</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">start</span></code></div>
@@ -738,7 +677,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>21</p></td>
+<tr class="row-odd"><td><p>18</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">end</span></code></div>
@@ -755,7 +694,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>22</p></td>
+<tr class="row-even"><td><p>19</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">decay</span></code></div>

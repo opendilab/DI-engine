@@ -322,7 +322,8 @@
         <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-
+            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="c1"># (int) for a2c, update_per_collect must be 1.</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># fixed value, this line should not be modified by users</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>

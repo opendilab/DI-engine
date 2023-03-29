@@ -353,7 +353,8 @@
         <span class="c1"># (int) N-step reward for target q_value estimation</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-
+            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
@@ -494,7 +495,7 @@
         <span class="c1"># ====================</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_loss_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">fraction_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">retain_graph</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">total_norm_quantiles_proposal</span> <span class="o">=</span> <span class="n">compute_grad_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">quantiles_proposal</span><span class="p">)</span>
@@ -505,7 +506,7 @@
         <span class="c1"># ====================</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_quantile_loss_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">quantile_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
             <span class="n">total_norm_Q</span> <span class="o">=</span> <span class="n">compute_grad_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>

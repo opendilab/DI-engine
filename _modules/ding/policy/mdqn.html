@@ -333,6 +333,7 @@
 <span class="sd">        8  | ``learn.update``   int      1              | How many updates(iterations) to train  | This args can be vary</span>
 <span class="sd">           | ``per_collect``                            | after collector&#39;s one collection. Only | from envs. Bigger val</span>
 <span class="sd">                                                        | valid in serial training               | means more off-policy</span>
+<span class="sd">        9  | ``learn.multi``    bool     False          | whether to use multi gpu during</span>
 <span class="sd">           | ``_gpu``</span>
 <span class="sd">        10 | ``learn.batch_``   int      32             | The number of samples of an iteration</span>
 <span class="sd">           | ``size``</span>
@@ -382,7 +383,8 @@
         <span class="c1"># (int) The number of step for calculating target q_value</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-
+            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
@@ -513,7 +515,7 @@
         <span class="c1"># ====================</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
         <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 

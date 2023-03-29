@@ -306,7 +306,7 @@
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
 <span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
 <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span><span class="p">,</span> <span class="n">get_shape0</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">tensor_to_list</span><span class="p">,</span> <span class="n">to_list</span><span class="p">,</span> <span class="n">to_ndarray</span><span class="p">,</span> <span class="n">get_shape0</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">lists_to_dicts</span>
 
 
@@ -576,8 +576,7 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not supported ctx type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">ctx</span><span class="p">)))</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="n">episode_return</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_value</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;episode_return&#39;</span><span class="p">:</span> <span class="n">episode_return</span><span class="p">}</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">episode_return</span><span class="p">}</span>
         <span class="n">episode_info</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_info</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">episode_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span><span class="p">[</span><span class="s1">&#39;episode_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">episode_info</span>
@@ -600,7 +599,7 @@
         <span class="n">n_evaluator_episode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">stop_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
         <span class="n">eval_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-        <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -648,7 +647,7 @@
             <span class="n">inference_output</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">render</span><span class="p">:</span>
                 <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_video</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_imgs</span><span class="p">)</span>
-                <span class="c1"># eval_monitor.update_output(inference_output)</span>
+                <span class="n">eval_monitor</span><span class="o">.</span><span class="n">update_output</span><span class="p">(</span><span class="n">inference_output</span><span class="p">)</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">inference_output</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">timesteps</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="p">:</span>
@@ -669,7 +668,6 @@
         <span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="n">episode_return_mean</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">last_eval_value</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">eval_value</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">eval_output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;episode_return&#39;</span><span class="p">:</span> <span class="n">episode_return</span><span class="p">}</span>
         <span class="n">episode_info</span> <span class="o">=</span> <span class="n">eval_monitor</span><span class="o">.</span><span class="n">get_episode_info</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">episode_info</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
