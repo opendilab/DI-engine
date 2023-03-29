@@ -1,7 +1,6 @@
 import torch
 import math
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
-from torch._six import inf
 from typing import Union, Iterable, Tuple, Callable
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +9,8 @@ import pdb
 import numpy as np
 import copy
 import random
+
+inf = math.inf
 
 
 def calculate_grad_norm(model: torch.nn.Module, norm_type=2) -> float:
@@ -97,25 +98,25 @@ class Adam(torch.optim.Adam):
     """
 
     def __init__(
-        self,
-        params: Iterable,
-        lr: float = 1e-3,
-        betas: Tuple[float, float] = (0.9, 0.999),
-        eps: float = 1e-8,
-        weight_decay: float = 0,
-        amsgrad: bool = False,
-        optim_type: str = 'adam',
-        grad_clip_type: str = None,
-        clip_value: Union[float, None] = None,
-        clip_coef: float = 5,
-        clip_norm_type: float = 2.0,
-        clip_momentum_timestep: int = 100,
-        grad_norm_type: str = None,
-        grad_ignore_type: str = None,
-        ignore_value: Union[float, None] = None,
-        ignore_coef: float = 5,
-        ignore_norm_type: float = 2.0,
-        ignore_momentum_timestep: int = 100,
+            self,
+            params: Iterable,
+            lr: float = 1e-3,
+            betas: Tuple[float, float] = (0.9, 0.999),
+            eps: float = 1e-8,
+            weight_decay: float = 0,
+            amsgrad: bool = False,
+            optim_type: str = 'adam',
+            grad_clip_type: str = None,
+            clip_value: Union[float, None] = None,
+            clip_coef: float = 5,
+            clip_norm_type: float = 2.0,
+            clip_momentum_timestep: int = 100,
+            grad_norm_type: str = None,
+            grad_ignore_type: str = None,
+            ignore_value: Union[float, None] = None,
+            ignore_coef: float = 5,
+            ignore_norm_type: float = 2.0,
+            ignore_momentum_timestep: int = 100,
     ):
         r"""
         Overview:
@@ -193,10 +194,10 @@ class Adam(torch.optim.Adam):
         # others
         if torch.__version__ < "1.12.0":
             state['step'] = 0
-            #TODO
-            #wait torch upgrad to 1.4, 1.3.1 didn't support memory format state['step'] = 0
+            # TODO
+            # wait torch upgrad to 1.4, 1.3.1 didn't support memory format state['step'] = 0
         else:
-            state['step'] = torch.zeros((1, ), dtype=torch.float, device=p.device) \
+            state['step'] = torch.zeros((1,), dtype=torch.float, device=p.device) \
                 if self.defaults['capturable'] else torch.tensor(0.)
 
         state['exp_avg'] = torch.zeros_like(p.data)
@@ -235,7 +236,7 @@ class Adam(torch.optim.Adam):
                     if len(state) == 0:
                         self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
-                    #should we use same beta group?
+                    # should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
                     state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
@@ -259,7 +260,7 @@ class Adam(torch.optim.Adam):
                     if len(state) == 0:
                         self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
-                    #should we use same beta group?
+                    # should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
                     state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
@@ -267,7 +268,7 @@ class Adam(torch.optim.Adam):
                     param_norm = grad.norm(self._clip_norm_type)
                     total_norm += param_norm.item() ** self._clip_norm_type
 
-                    #sum momentum_norm
+                    # sum momentum_norm
                     momentum = ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                                 self._clip_coef).norm(self._clip_norm_type)
                     total_momentum_norm += momentum.item() ** self._clip_norm_type
@@ -294,7 +295,7 @@ class Adam(torch.optim.Adam):
                     if len(state) == 0:
                         self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
-                    #should we use same beta group?
+                    # should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
                     state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
@@ -326,7 +327,7 @@ class Adam(torch.optim.Adam):
                     if len(state) == 0:
                         self._state_init(p, group['amsgrad'])
                     grad = p.grad.data
-                    #should we use same beta group?
+                    # should we use same beta group?
                     beta1, beta2 = group['betas']
                     bias_correction2 = 1 - beta2 ** state['step']
                     state['thre_exp_avg_sq'].mul_(beta2).addcmul_(1 - beta2, grad, grad)
@@ -334,7 +335,7 @@ class Adam(torch.optim.Adam):
                     param_norm = grad.norm(self._ignore_norm_type)
                     total_norm += param_norm.item() ** self._ignore_norm_type
 
-                    #sum momentum_norm
+                    # sum momentum_norm
                     momentum = ((state['thre_exp_avg_sq'].sqrt() / math.sqrt(bias_correction2)) *
                                 self._ignore_coef).norm(self._ignore_norm_type)
                     total_momentum_norm += momentum.item() ** self._ignore_norm_type
@@ -348,7 +349,7 @@ class Adam(torch.optim.Adam):
                         for p in group['params']:
                             p.grad.zero_()
 
-        #Adam optim type
+        # Adam optim type
         if self._optim_type == 'adamw':
             for group in self.param_groups:
                 for p in group['params']:
@@ -377,25 +378,25 @@ class RMSprop(torch.optim.RMSprop):
     """
 
     def __init__(
-        self,
-        params: Iterable,
-        lr: float = 1e-2,
-        alpha: float = 0.99,
-        eps: float = 1e-8,
-        weight_decay: float = 0,
-        momentum: float = 0,
-        centered: bool = False,
-        grad_clip_type: str = None,
-        clip_value: Union[float, None] = None,
-        clip_coef: float = 5,
-        clip_norm_type: float = 2.0,
-        clip_momentum_timestep: int = 100,
-        grad_norm_type: str = None,
-        grad_ignore_type: str = None,
-        ignore_value: Union[float, None] = None,
-        ignore_coef: float = 5,
-        ignore_norm_type: float = 2.0,
-        ignore_momentum_timestep: int = 100,
+            self,
+            params: Iterable,
+            lr: float = 1e-2,
+            alpha: float = 0.99,
+            eps: float = 1e-8,
+            weight_decay: float = 0,
+            momentum: float = 0,
+            centered: bool = False,
+            grad_clip_type: str = None,
+            clip_value: Union[float, None] = None,
+            clip_coef: float = 5,
+            clip_norm_type: float = 2.0,
+            clip_momentum_timestep: int = 100,
+            grad_norm_type: str = None,
+            grad_ignore_type: str = None,
+            ignore_value: Union[float, None] = None,
+            ignore_coef: float = 5,
+            ignore_norm_type: float = 2.0,
+            ignore_momentum_timestep: int = 100,
     ):
         r"""
         Overview:
@@ -517,7 +518,7 @@ class RMSprop(torch.optim.RMSprop):
                     param_norm = grad.norm(self._clip_norm_type)
                     total_norm += param_norm.item() ** self._clip_norm_type
 
-                    #sum momentum_norm
+                    # sum momentum_norm
                     momentum = (state['thre_square_avg'].sqrt() * self._clip_coef).norm(self._clip_norm_type)
                     total_momentum_norm += momentum.item() ** self._clip_norm_type
                     step = min(step, state['step'])
@@ -578,7 +579,7 @@ class RMSprop(torch.optim.RMSprop):
                     param_norm = grad.norm(self._ignore_norm_type)
                     total_norm += param_norm.item() ** self._ignore_norm_type
 
-                    #sum momentum_norm
+                    # sum momentum_norm
                     momentum = (state['thre_square_avg'].sqrt() * self._ignore_coef).norm(self._ignore_norm_type)
                     total_momentum_norm += momentum.item() ** self._ignore_norm_type
                     step = min(step, state['step'])
@@ -730,3 +731,53 @@ class PCGrad():
                 grad.append(p.grad.clone())
                 has_grad.append(torch.ones_like(p).to(p.device))
         return grad, shape, has_grad
+
+
+def configure_weight_decay(model, weight_decay):
+    """
+        This long function is unfortunately doing something very simple and is being very defensive:
+        We are separating out all parameters of the model into two buckets: those that will experience
+        weight decay for regularization and those that won't (biases, and layernorm/embedding weights).
+        We are then returning the PyTorch optimizer object.
+        """
+
+    # separate out all parameters to those that will and won't experience regularizing weight decay
+    decay = set()
+    no_decay = set()
+    whitelist_weight_modules = (torch.nn.Linear,)
+    blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
+    for mn, m in model.named_modules():
+        for pn, p in m.named_parameters():
+            fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name
+            # random note: because named_modules and named_parameters are recursive
+            # we will see the same tensors p many many times. but doing it this way
+            # allows us to know which parent module any tensor p belongs to...
+            if pn.endswith('bias'):
+                # all biases will not be decayed
+                no_decay.add(fpn)
+            elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
+                # weights of whitelist modules will be weight decayed
+                decay.add(fpn)
+            elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
+                # weights of blacklist modules will NOT be weight decayed
+                no_decay.add(fpn)
+            else:
+                decay.add(fpn)
+
+    decay = decay - no_decay
+    # validate that we considered every parameter
+    param_dict = {pn: p for pn, p in model.named_parameters()}
+    inter_params = decay & no_decay
+    union_params = decay | no_decay
+    assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params),)
+    assert len(
+        param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
+                                                % (str(param_dict.keys() - union_params),)
+
+    # create the pytorch optimizer object
+    optim_groups = [
+        {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": weight_decay},
+        {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
+    ]
+
+    return optim_groups

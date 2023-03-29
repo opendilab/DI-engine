@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -72,6 +74,15 @@ class Swish(nn.Module):
         return x
 
 
+class GELU(nn.Module):
+
+    def __init__(self):
+        super(GELU, self).__init__()
+    
+    def forward(self, x):
+        return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
+
+
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     r"""
     Overview:
@@ -86,7 +97,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)
     else:
         inplace = False
-    act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU(), 'swish': Swish()}
+    act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU(), 'swish': Swish(), 'gelu': GELU()}
     if activation in act_func.keys():
         return act_func[activation]
     else:
