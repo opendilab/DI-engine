@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Normal, Independent
 
-from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
+from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP, conv1d_block
 from ding.rl_utils import beta_function_map
 from ding.utils import lists_to_dicts, SequenceType
 
@@ -1243,6 +1243,53 @@ class MultiHead(nn.Module):
         """
         return lists_to_dicts([m(x) for m in self.pred])
 
+class EnsembleHead(nn.Module):
+    """
+        Overview:
+            The ``EnsembleHead`` used to output action Q-value for Q-ensemble. \
+            Input is a (:obj:`torch.Tensor`) of shape ''(B, N * Ensemble_num, 1)'' and returns a (:obj:`Dict`) containing \
+            output ``pred``.
+        Interfaces:
+            ``__init__``, ``forward``.
+    """
+    def __init__(self, input_size: int,
+                 output_size: int,
+                 hidden_size: int,
+                 layer_nun: int,
+                 ensemble_num: int,
+                 activation: Optional[nn.Module] = nn.ReLU(),
+                 norm_type: Optional[str] = None) -> None:
+        super(EnsembleHead,self).__init__()
+        d = input_size
+        layers = []
+        for _ in range(layer_nun):
+            layers.append(conv1d_block(d * ensemble_num, hidden_size * ensemble_num, kernel_size=1, 
+                                       stride=1, groups=ensemble_num, activation=activation, norm_type=norm_type))
+            d = hidden_size
+        layers.append(conv1d_block(hidden_size * ensemble_num, output_size * ensemble_num, kernel_size=1, 
+                                   stride=1, groups=ensemble_num, activation=None, norm_type=None))
+        self.pred = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        """
+        Overview:
+            Use encoded embedding tensor to run MLP with ``EnsembleHead`` and return the prediction dictionary.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keyword ``pred`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N * Ensemble_num, 1)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - pred: :math:`(B, M * Ensemble_num, 1)`, where ``M = output_size``.
+        Examples:
+            >>> head = EnsembleHead(64 * 10, 64 * 10)
+            >>> inputs = torch.randn(4, 64 * 10, 1) `
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['pred'].shape == torch.Size([10, 64 * 10])
+        """
+        x = self.pred(x).squeeze()
+        return {'pred': x}
 
 def independent_normal_dist(logits: Union[List, Dict]) -> torch.distributions.Distribution:
     if isinstance(logits, (list, tuple)):
@@ -1268,4 +1315,5 @@ head_cls_map = {
     'reparameterization': ReparameterizationHead,
     # multi
     'multi': MultiHead,
+    'ensemble': EnsembleHead,
 }
