@@ -119,7 +119,6 @@ class C51Agent:
             )
             task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
-            task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
             task.use(
                 CkptSaver(
