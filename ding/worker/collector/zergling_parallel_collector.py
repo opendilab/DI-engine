@@ -80,8 +80,8 @@ class ZerglingParallelCollector(BaseParallelCollector):
         self._policy = _policy
         self._policy_cfg = self._policy.get_attribute('cfg')
         self._n_sample = _policy.get_attribute('n_sample')
-        self._n_episode = _policy.get_attribute('n_sample')
-        assert any(
+        self._n_episode = _policy.get_attribute('n_episode')
+        assert not all(
             [t is None for t in [self._n_sample, self._n_episode]]
         ), "n_episode/n_sample in policy cfg can't be not None at the same time"
         # TODO(nyz) the same definition of traj_len in serial and parallel
