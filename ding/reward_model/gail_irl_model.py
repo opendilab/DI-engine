@@ -147,15 +147,15 @@ class GailRewardModel(BaseRewardModel):
         update_per_collect=100,
         # (int) How many samples in a training batch.
         batch_size=64,
-        # (int) Size of the input: obs_dim + act_dim
+        # (int) Size of the input: obs_dim + act_dim.
         input_size=4,
-        # (int) Collect steps per iteration
+        # (int) Collect steps per iteration.
         target_new_data_count=64,
-        # (int) Linear model hidden size
+        # (int) Linear model hidden size.
         hidden_size=128,
-        # (int) Expert dataset size
+        # (int) Expert dataset size.
         collect_count=100000,
-        # (int) Clear buffer per fix iters
+        # (int) Clear buffer per fix iters.
         clear_buffer_per_iters=1,
     )
 

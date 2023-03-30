@@ -77,10 +77,10 @@ class RedRewardModel(BaseRewardModel):
         # expert_data_path='expert_data.pkl',
         # (int) How many samples in a training batch.
         batch_size=64,
-        # (float) Hyperparameter at estimated score of r(s,a)
+        # (float) Hyperparameter at estimated score of r(s,a).
         # r(s,a) = exp(-sigma* L(s,a))
         sigma=0.5,
-        # (int) Clear buffer per fix iters
+        # (int) Clear buffer per fix iters.
         clear_buffer_per_iters=1,
     )
 

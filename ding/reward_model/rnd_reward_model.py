@@ -104,11 +104,11 @@ class RndRewardModel(BaseRewardModel):
         # Bigger "update_per_collect" means bigger off-policy.
         # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
-        # (bool) Observation normalization: transform obs to mean 0, std 1
+        # (bool) Observation normalization: transform obs to mean 0, std 1.
         obs_norm=True,
-        # (int) Min clip value for observation normalization
+        # (int) Min clip value for observation normalization.
         obs_norm_clamp_min=-1,
-        # (int) Max clip value for observation normalization
+        # (int) Max clip value for observation normalization.
         obs_norm_clamp_max=1,
         # Means the relative weight of RND intrinsic_reward.
         # (float) The weight of intrinsic reward

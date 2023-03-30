@@ -41,16 +41,16 @@ class PdeilRewardModel(BaseRewardModel):
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='pdeil',
-        # (str) Path to the expert dataset
+        # (str) Path to the expert dataset.
         # expert_data_path='expert_data.pkl',
-        # (bool) Whether the action is discrete
+        # (bool) Whether the action is discrete.
         discrete_action=False,
-        # (float) Coefficient for Probability Density Estimator
+        # (float) Coefficient for Probability Density Estimator.
         # alpha + beta = 1, alpha is in [0,1]
         # when alpha is close to 0, the estimator has high variance and low bias;
         # when alpha is close to 1, the estimator has high bias and low variance.
         alpha=0.5,
-        # (int) Clear buffer per fix iters
+        # (int) Clear buffer per fix iters.
         clear_buffer_per_iters=1,
     )
 

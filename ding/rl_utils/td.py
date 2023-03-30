@@ -54,11 +54,11 @@ def m_q_1step_td_error(
     Overview:
         Munchausen td_error for DQN algorithm, support 1 step td error.
     Arguments:
-        - data (:obj:`m_q_1step_td_data`): the input data, m_q_1step_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`m_q_1step_td_data`): The input data, m_q_1step_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - tau (:obj:`float`): Entropy factor for Munchausen DQN
         - alpha (:obj:`float`): Discount factor for Munchausen term
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
     Returns:
         - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
     Shapes:
@@ -125,9 +125,9 @@ def q_v_1step_td_error(
     Overview:
         td_error between q and v value for SAC algorithm, support 1 step td error.
     Arguments:
-        - data (:obj:`q_v_1step_td_data`): the input data, q_v_1step_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - data (:obj:`q_v_1step_td_data`): The input data, q_v_1step_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
     Returns:
         - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
     Shapes:
@@ -218,8 +218,8 @@ def dist_1step_td_error(
     Overview:
         1 step td_error for distributed q-learning based algorithm
     Arguments:
-        - data (:obj:`dist_1step_td_data`): the input data, dist_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`dist_1step_td_data`): The input data, dist_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
@@ -328,8 +328,8 @@ def dist_nstep_td_error(
         Multistep (1 step or n step) td_error for distributed q-learning based algorithm, support single\
             agent case and multi agent case.
     Arguments:
-        - data (:obj:`dist_nstep_td_data`): the input data, dist_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`dist_nstep_td_data`): The input data, dist_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
@@ -456,13 +456,13 @@ def v_nstep_td_error(
     Overview:
         Multistep (n step) td_error for distributed value based algorithm
     Arguments:
-        - data (:obj:`dist_nstep_td_data`): the input data, v_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`dist_nstep_td_data`): The input data, v_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
-        - data (:obj:`dist_nstep_td_data`): the v_nstep_td_data containing\
+        - data (:obj:`dist_nstep_td_data`): The v_nstep_td_data containing\
             ['v', 'next_n_v', 'reward', 'done', 'weight', 'value_gamma']
         - v (:obj:`torch.FloatTensor`): :math:`(B, )` i.e. [batch_size, ]
         - next_v (:obj:`torch.FloatTensor`): :math:`(B, )`
@@ -521,17 +521,17 @@ def q_nstep_td_error(
     Overview:
         Multistep (1 step or n step) td_error for q-learning based algorithm
     Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - cum_reward (:obj:`bool`): Whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): Gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
         - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
@@ -585,17 +585,17 @@ def bdq_nstep_td_error(
                     TD-error = \frac{1}{D} * (y_d - Q_d(s, a_d))^2
                     Loss = mean(TD-error)
     Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - cum_reward (:obj:`bool`): Whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): Gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
         - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, D, N)` i.e. [batch_size, branch_num, action_bins_per_branch]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, D, N)`
@@ -660,18 +660,18 @@ def q_nstep_td_error_with_rescale(
     Overview:
         Multistep (1 step or n step) td_error with value rescaling
     Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - trans_fn (:obj:`Callable`): value transfrom function, default to value_transform\
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+        - trans_fn (:obj:`Callable`): Value transfrom function, default to value_transform\
             (refer to rl_utils/value_rescale.py)
-        - inv_trans_fn (:obj:`Callable`): value inverse transfrom function, default to value_inv_transform\
+        - inv_trans_fn (:obj:`Callable`): Value inverse transfrom function, default to value_inv_transform\
             (refer to rl_utils/value_rescale.py)
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
         ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
@@ -713,11 +713,11 @@ def dqfd_nstep_td_error(
     Overview:
         Multistep n step td_error + 1 step td_error + supervised margin loss or dqfd
     Arguments:
-        - data (:obj:`dqfd_nstep_td_data`): the input data, dqfd_nstep_td_data to calculate loss
+        - data (:obj:`dqfd_nstep_td_data`): The input data, dqfd_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - cum_reward (:obj:`bool`): Whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): Gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 10
     Returns:
         - loss (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error + supervised margin loss, 0-dim tensor
@@ -811,18 +811,18 @@ def dqfd_nstep_td_error_with_rescale(
     Overview:
         Multistep n step td_error + 1 step td_error + supervised margin loss or dqfd
     Arguments:
-        - data (:obj:`dqfd_nstep_td_data`): the input data, dqfd_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - data (:obj:`dqfd_nstep_td_data`): The input data, dqfd_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - cum_reward (:obj:`bool`): Whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): Gamma discount value for target q_value
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 10
     Returns:
         - loss (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error + supervised margin loss, 0-dim tensor
         - td_error_per_sample (:obj:`torch.Tensor`): Multistep n step td_error + 1 step td_error\
             + supervised margin loss, 1-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'next_n_action', 'reward', 'done', 'weight'\
                 , 'new_n_q_one_step', 'next_n_action_one_step', 'is_expert']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
@@ -915,13 +915,13 @@ def qrdqn_nstep_td_error(
     Overview:
         Multistep (1 step or n step) td_error with in QRDQN
     Arguments:
-        - data (:obj:`iqn_nstep_td_data`): the input data, iqn_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`iqn_nstep_td_data`): The input data, iqn_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
         ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(tau, B, N)` i.e. [tau x batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(tau', B, N)`
@@ -985,18 +985,18 @@ def q_nstep_sql_td_error(
     Overview:
         Multistep (1 step or n step) td_error for q-learning based algorithm
     Arguments:
-        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_sql_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`q_nstep_td_data`): The input data, q_nstep_sql_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - Alpha (:obj:｀float`): A parameter to weight entropy term in a policy equation
-        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data
-        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target soft_q_value
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
+        - cum_reward (:obj:`bool`): Whether to use cumulative nstep reward, which is figured out when collecting data
+        - value_gamma (:obj:`torch.Tensor`): Gamma discount value for target soft_q_value
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
         - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
             ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`
@@ -1053,15 +1053,15 @@ def iqn_nstep_td_error(
             referenced paper Implicit Quantile Networks for Distributional Reinforcement Learning \
             <https://arxiv.org/pdf/1806.06923.pdf>
     Arguments:
-        - data (:obj:`iqn_nstep_td_data`): the input data, iqn_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`iqn_nstep_td_data`): The input data, iqn_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - beta_function (:obj:`Callable`): the risk function
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+        - beta_function (:obj:`Callable`): The risk function
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
         ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(tau, B, N)` i.e. [tau x batch_size, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(tau', B, N)`
@@ -1148,15 +1148,15 @@ def fqf_nstep_td_error(
             referenced paper Fully Parameterized Quantile Function for Distributional Reinforcement Learning \
             <https://arxiv.org/pdf/1911.02140.pdf>
     Arguments:
-        - data (:obj:`fqf_nstep_td_data`): the input data, fqf_nstep_td_data to calculate loss
-        - gamma (:obj:`float`): discount factor
+        - data (:obj:`fqf_nstep_td_data`): The input data, fqf_nstep_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
-        - criterion (:obj:`torch.nn.modules`): loss function criterion
-        - beta_function (:obj:`Callable`): the risk function
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+        - beta_function (:obj:`Callable`): The risk function
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
         ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, tau, N)` i.e. [batch_size, tau, action_dim]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, tau', N)`
@@ -1307,8 +1307,8 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
         (*including the terminal state*, values[terminal] should also be 0)
     Arguments:
         - data (:obj:`namedtuple`): td_lambda input data with fields ['value', 'reward', 'weight']
-        - gamma (:obj:`float`): constant discount factor gamma, should be in [0, 1], defaults to 0.9
-        - lambda (:obj:`float`): constant lambda, should be in [0, 1], defaults to 0.8
+        - gamma (:obj:`float`): Constant discount factor gamma, should be in [0, 1], defaults to 0.9
+        - lambda (:obj:`float`): Constant lambda, should be in [0, 1], defaults to 0.8
     Returns:
         - loss (:obj:`torch.Tensor`): Computed MSE loss, averaged over the batch
     Shapes:
@@ -1343,13 +1343,13 @@ def generalized_lambda_returns(
     Arguments:
         - bootstrap_values (:obj:`torch.Tensor` or :obj:`float`):
           estimation of the value at step 0 to *T*, of size [T_traj+1, batchsize]
-        - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
+        - rewards (:obj:`torch.Tensor`): The returns from 0 to T-1, of size [T_traj, batchsize]
         - gammas (:obj:`torch.Tensor` or :obj:`float`):
-          discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
-        - lambda (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
+          Discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
+        - lambda (:obj:`torch.Tensor` or :obj:`float`): Determining the mix of bootstrapping
           vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]
         - done (:obj:`torch.Tensor` or :obj:`float`):
-          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
+          Whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
     Returns:
         - return (:obj:`torch.Tensor`): Computed lambda return value
           for each state from 0 to T-1, of size [T_traj, batchsize]
@@ -1382,14 +1382,14 @@ def multistep_forward_view(
 
         Assuming the first dim of input tensors correspond to the index in batch
     Arguments:
-        - bootstrap_values (:obj:`torch.Tensor`): estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
-        - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
-        - gammas (:obj:`torch.Tensor`): discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
-        - lambda (:obj:`torch.Tensor`): determining the mix of bootstrapping vs further accumulation of \
+        - bootstrap_values (:obj:`torch.Tensor`): Estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
+        - rewards (:obj:`torch.Tensor`): The returns from 0 to T-1, of size [T_traj, batchsize]
+        - gammas (:obj:`torch.Tensor`): Discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
+        - lambda (:obj:`torch.Tensor`): Determining the mix of bootstrapping vs further accumulation of \
             multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored \
             and effectively set to 0, as there is no information about future rewards.
         - done (:obj:`torch.Tensor` or :obj:`float`):
-          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
+          Whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
     Returns:
         - ret (:obj:`torch.Tensor`): Computed lambda return value \
             for each state from 0 to T-1, of size [T_traj, batchsize]

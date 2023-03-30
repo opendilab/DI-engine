@@ -43,7 +43,6 @@ class DrexRewardModel(TrexRewardModel):
         update_per_collect=100,
         # (int) How many samples in a training batch.
         batch_size=64,
-        target_new_data_count=64,
         # (int) Linear model hidden size
         hidden_size=128,
         # (int) Number of downsampled full trajectories.

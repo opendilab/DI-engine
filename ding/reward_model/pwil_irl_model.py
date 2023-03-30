@@ -39,7 +39,7 @@ class PwilRewardModel(BaseRewardModel):
         == ==================  =====   =============  =======================================  =======================
         ID Symbol              Type    Default Value  Description                              Other(Shape)
         == ==================  =====   =============  =======================================  =======================
-        1  ``type``             str     pdwil         | Reward model register name, refer      |
+        1  ``type``             str     pwil          | Reward model register name, refer      |
                                                       | to registry ``REWARD_MODEL_REGISTRY``  |
         2  | ``expert_data_``   str     expert_data.  | Path to the expert dataset             | Should be a '.pkl'
            | ``path``                   .pkl          |                                        | file
@@ -65,20 +65,20 @@ class PwilRewardModel(BaseRewardModel):
         type='pwil',
         # (str) Path to the expert dataset.
         # expert_data_path='expert_data.pkl',
-        # (int) Sample data from expert dataset with fixed size
+        # (int) Sample data from expert dataset with fixed size.
         sample_size=1000,
         # r = alpha * exp((-beta*T/sqrt(|s_size|+ |a_size|))*c_i)
-        # key idea for this reward is to minimize
-        # the Wasserstein distance between the state-action distribution
-        # (int) Factor alpha
+        # key idea for this reward is to minimize.
+        # the Wasserstein distance between the state-action distribution.
+        # (int) Factor alpha.
         alpha=5,
-        # (int) Factor beta
+        # (int) Factor beta.
         beta=5,
-        #（int）State size
+        #（int）State size.
         # s_size=4,
-        # (int) Action szize
+        # (int) Action size.
         # a_size=2,
-        # (int) Clear buffer per fix iters
+        # (int) Clear buffer per fix iters.
         clear_buffer_per_iters=1,
     )
 
