@@ -1,4 +1,4 @@
-from ding.bonus import TD3OffPolicyAgent
+from ding.bonus import TD3Agent
 from ding.config import Config
 from easydict import EasyDict
 import torch
@@ -7,7 +7,7 @@ import torch
 policy_state_dict = torch.load("pytorch_model.bin", map_location=torch.device("cpu"))
 cfg = EasyDict(Config.file_to_dict("policy_config.py"))
 # Instantiate the agent
-agent = TD3OffPolicyAgent(
+agent = TD3Agent(
     env="lunarlander_continuous",
     exp_name="LunarLander-v2-TD3",
     cfg=cfg.exp_config,

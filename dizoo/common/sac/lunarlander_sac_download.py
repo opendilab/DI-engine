@@ -1,10 +1,10 @@
-from ding.bonus import SACOffPolicyAgent
+from ding.bonus import SACAgent
 from huggingface_ding import pull_model_from_hub
 
 # Pull model from Hugggingface hub
 policy_state_dict, cfg = pull_model_from_hub(repo_id="OpenDILabCommunity/LunarLander-v2-SAC")
 # Instantiate the agent
-agent = SACOffPolicyAgent(
+agent = SACAgent(
     env="lunarlander_continuous",
     exp_name="LunarLander-v2-SAC",
     cfg=cfg.exp_config,

@@ -1,4 +1,4 @@
-from ding.bonus import DDPGOffPolicyAgent
+from ding.bonus import DDPGAgent
 from ding.config import Config
 from easydict import EasyDict
 import torch
@@ -7,7 +7,7 @@ import torch
 policy_state_dict = torch.load("pytorch_model.bin", map_location=torch.device("cpu"))
 cfg = EasyDict(Config.file_to_dict("policy_config.py"))
 # Instantiate the agent
-agent = DDPGOffPolicyAgent(
+agent = DDPGAgent(
     env="lunarlander_continuous",
     exp_name="LunarLander-v2-DDPG",
     cfg=cfg.exp_config,

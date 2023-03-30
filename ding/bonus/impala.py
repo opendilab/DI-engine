@@ -41,7 +41,7 @@ class EvalReturn:
     eval_value_std: np.float32
 
 
-class IMPALAOffPolicyAgent:
+class IMPALAAgent:
     supported_env_list = [
         'SpaceInvaders',
     ]
@@ -57,13 +57,13 @@ class IMPALAOffPolicyAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in IMPALAOffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
-                IMPALAOffPolicyAgent.supported_env_list
+            assert env in IMPALAAgent.supported_env_list, "Please use supported envs: {}".format(
+                IMPALAAgent.supported_env_list
             )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=IMPALAOffPolicyAgent.algorithm)
+                cfg = get_instance_config(env, algorithm=IMPALAAgent.algorithm)
             else:
                 assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 

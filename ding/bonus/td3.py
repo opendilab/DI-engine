@@ -40,7 +40,7 @@ class EvalReturn:
     eval_value_std: np.float32
 
 
-class TD3OffPolicyAgent:
+class TD3Agent:
     supported_env_list = [
         'hopper',
         'lunarlander_continuous',
@@ -57,13 +57,13 @@ class TD3OffPolicyAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
-                TD3OffPolicyAgent.supported_env_list
+            assert env in TD3Agent.supported_env_list, "Please use supported envs: {}".format(
+                TD3Agent.supported_env_list
             )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=TD3OffPolicyAgent.algorithm)
+                cfg = get_instance_config(env, algorithm=TD3Agent.algorithm)
             else:
                 assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 

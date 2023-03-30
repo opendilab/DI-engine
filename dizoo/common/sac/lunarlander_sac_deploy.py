@@ -1,4 +1,4 @@
-from ding.bonus import SACOffPolicyAgent
+from ding.bonus import SACAgent
 from ding.config import Config
 from easydict import EasyDict
 import torch
@@ -7,7 +7,7 @@ import torch
 policy_state_dict = torch.load("pytorch_model.bin", map_location=torch.device("cpu"))
 cfg = EasyDict(Config.file_to_dict("policy_config.py"))
 # Instantiate the agent
-agent = SACOffPolicyAgent(
+agent = SACAgent(
     env="lunarlander_continuous", exp_name="lunarlander-sac", cfg=cfg.exp_config, policy_state_dict=policy_state_dict
 )
 # Continue training

@@ -41,7 +41,7 @@ class EvalReturn:
     eval_value_std: np.float32
 
 
-class SACOffPolicyAgent:
+class SACAgent:
     supported_env_list = [
         'hopper',
         'lunarlander_continuous',
@@ -58,13 +58,13 @@ class SACOffPolicyAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in SACOffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
-                SACOffPolicyAgent.supported_env_list
+            assert env in SACAgent.supported_env_list, "Please use supported envs: {}".format(
+                SACAgent.supported_env_list
             )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=SACOffPolicyAgent.algorithm)
+                cfg = get_instance_config(env, algorithm=SACAgent.algorithm)
             else:
                 assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 
