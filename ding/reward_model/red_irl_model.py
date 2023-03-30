@@ -50,7 +50,7 @@ class RedRewardModel(BaseRewardModel):
         6  | ``hidden_size``    int      128          | Linear model hidden size                |
         7  | ``update_per_``    int      100          | Number of updates per collect           |
            | ``collect``                              |                                         |
-        8  | ``clear_buffer``   int      1            | clear buffer per fix iters              | make sure replay
+        8  | ``clear_buffer``   int      1            | clear buffer per fixed iters            | make sure replay
              ``_per_iters``                                                                     | buffer's data count
                                                                                                 | isn't too few.
                                                                                                 | (code work in entry)
@@ -80,7 +80,7 @@ class RedRewardModel(BaseRewardModel):
         # (float) Hyperparameter at estimated score of r(s,a).
         # r(s,a) = exp(-sigma* L(s,a))
         sigma=0.5,
-        # (int) Clear buffer per fix iters.
+        # (int) Clear buffer per fixed iters.
         clear_buffer_per_iters=1,
     )
 

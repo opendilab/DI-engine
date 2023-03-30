@@ -32,7 +32,7 @@ class PdeilRewardModel(BaseRewardModel):
            | ``action``                                 |                                        |
         4  | ``alpha``           float     0.5          | coefficient for Probability            |
            |                                            | Density Estimator                      |
-        5  | ``clear_buffer``    int      1             | clear buffer per fix iters             | make sure replay
+        5  | ``clear_buffer``    int      1             | clear buffer per fixed iters           | make sure replay
             ``_per_iters``                                                                       | buffer's data count
                                                                                                  | isn't too few.
                                                                                                  | (code work in entry)
@@ -50,7 +50,7 @@ class PdeilRewardModel(BaseRewardModel):
         # when alpha is close to 0, the estimator has high variance and low bias;
         # when alpha is close to 1, the estimator has high bias and low variance.
         alpha=0.5,
-        # (int) Clear buffer per fix iters.
+        # (int) Clear buffer per fixed iters.
         clear_buffer_per_iters=1,
     )
 

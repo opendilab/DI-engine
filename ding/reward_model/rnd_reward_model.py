@@ -81,10 +81,6 @@ class RndRewardModel(BaseRewardModel):
              ``reward_norm``
         12 | ``extrinsic_``      int      1            | the upper bound of the reward
             ``reward_norm_max``                        | normalization
-        13 | ``clear_buffer``    int      1            | clear buffer per fix iters             | make sure replay
-             ``_per_iters``                                                                     | buffer's data count
-                                                                                                | isn't too few.
-                                                                                                | (code work in entry)
         == ====================  =====  =============  =======================================  =======================
     """
     config = dict(

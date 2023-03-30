@@ -130,7 +130,7 @@ class GailRewardModel(BaseRewardModel):
         8  | ``hidden_size``     int        128            | Linear model hidden size          |
         9  | ``collect_count``   int        100000         | Expert dataset size               | One entry is a (s,a)
            |                                               |                                   | tuple
-        10 | ``clear_buffer_``   int        1              | clear buffer per fix iters        | make sure replay
+        10 | ``clear_buffer_``   int        1              | clear buffer per fixed iters      | make sure replay
            | ``per_iters``                                                                     | buffer's data count
            |                                                                                   | isn't too few.
            |                                                                                   | (code work in entry)
@@ -155,7 +155,7 @@ class GailRewardModel(BaseRewardModel):
         hidden_size=128,
         # (int) Expert dataset size.
         collect_count=100000,
-        # (int) Clear buffer per fix iters.
+        # (int) Clear buffer per fixed iters.
         clear_buffer_per_iters=1,
     )
 

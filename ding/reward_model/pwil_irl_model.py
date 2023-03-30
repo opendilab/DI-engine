@@ -52,7 +52,7 @@ class PwilRewardModel(BaseRewardModel):
         5  | ``beta``           int    5              | factor beta                            |
         6  | ``s_size``         int    4              | state size                             |
         7  | ``a_size``         int    2              | action size                            |
-        8  | ``clear_buffer``   int    1              | clear buffer per fix iters             | make sure replay
+        8  | ``clear_buffer``   int    1              | clear buffer per fixed iters           | make sure replay
              ``_per_iters``                                                                    | buffer's data count
                                                                                                | isn't too few.
                                                                                                | (code work in entry)
@@ -78,7 +78,7 @@ class PwilRewardModel(BaseRewardModel):
         # s_size=4,
         # (int) Action size.
         # a_size=2,
-        # (int) Clear buffer per fix iters.
+        # (int) Clear buffer per fixed iters.
         clear_buffer_per_iters=1,
     )
 

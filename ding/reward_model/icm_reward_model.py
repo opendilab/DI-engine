@@ -157,7 +157,7 @@ class ICMRewardModel(BaseRewardModel):
              ``reward_norm``                               | extrinsic reward
         12 | ``extrinsic_``      int         1             | the upper bound of the reward
             ``reward_norm_max``                            | normalization
-        13 | ``clear_buffer``    int         1             | clear buffer per fix iters          | make sure replay
+        13 | ``clear_buffer``    int         1             | clear buffer per fixed iters        | make sure replay
              ``_per_iters``                                                                      | buffer's data count
                                                                                                  | isn't too few.
                                                                                                  | (code work in entry)
@@ -192,7 +192,7 @@ class ICMRewardModel(BaseRewardModel):
         extrinsic_reward_norm=True,
         # (int) The upper bound of the reward normalization.
         extrinsic_reward_norm_max=1,
-        # (int) Clear buffer per fix iters.
+        # (int) Clear buffer per fixed iters.
         clear_buffer_per_iters=100,
     )
 
