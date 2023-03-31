@@ -1,29 +1,31 @@
 from pettingzoo.mpe import simple_spread_v2
-import numpy as np
 
-# 创建simple_spread_v2环境
+# Create a simple_spread_v2 environment
 env = simple_spread_v2.parallel_env(N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False)
 
-# 重置环境并获取初始状态
+# Reset the environment and get the initial observation
 obs = env.reset()
 
-# 打印智能体数量和动作空间
-print("="*40)
-print("number of agents:", env.num_agents)
-print("action spaces: ", env.action_spaces)
-print("observation spaces: ", env.observation_spaces)
+# Print the number of agents and action spaces
+print("=" * 40)
+print("Number of agents:", env.num_agents)
+print("Observation spaces: ", env.observation_spaces)
+print("Action spaces: ", env.action_spaces)
 
-print("action space shape of agent_0:", env.action_space('agent_0').shape)
+# Print the shape of the Observation/action space of all possible_agents
+for agent in env.possible_agents:
+    print(f"Observation space shape of {agent}:", env.action_space(agent).shape)
+    print(f"Action space shape of {agent}:", env.action_space(agent).shape)
 
-print("="*40)
-# 循环进行10个步骤
+print("=" * 40)
+# Run 10 steps
 for i in range(10):
-    # 针对每个智能体，随机选择一个动作并执行
+    # Randomly choose an action for each agent and execute
     actions = {}
     for agent in env.possible_agents:
         actions.update({agent: env.action_space(agent).sample()})
     obs, rew, done, trunc, info = env.step(actions)
     print("Step:", i, "Reward:", rew)
 
-# 关闭环境
+# Close the environment
 env.close()
