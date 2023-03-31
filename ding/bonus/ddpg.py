@@ -42,6 +42,7 @@ class EvalReturn:
 
 class DDPGAgent:
     supported_env_list = [
+        'hopper',
         'lunarlander_continuous',
     ]
     algorithm = 'DDPG'
