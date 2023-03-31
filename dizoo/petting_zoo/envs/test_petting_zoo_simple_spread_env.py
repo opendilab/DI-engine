@@ -4,7 +4,7 @@ from ding.utils import import_module
 from easydict import EasyDict
 import pytest
 
-from dizoo.petting_zoo.envs.petting_zoo_env import PettingZooEnv
+from dizoo.petting_zoo.envs.petting_zoo_simple_spread_env import PettingZooEnv
 
 
 @pytest.mark.envtest
