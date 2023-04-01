@@ -1,8 +1,6 @@
 import os
 
-import gym
 import torch
-from easydict import EasyDict
 from pettingzoo.mpe import simple_spread_v2
 from tensorboardX import SummaryWriter
 
@@ -32,9 +30,13 @@ def main(cfg, seed=0):
     # =================================================================================
     # NOTE: now DingEnvWrapper is only support single-agent environments
     # Regarding the support of the multi-agent environment, we will develop it later, thank you for your patience.
+    # You can use both "ptz_simple_spread_mappo_eval_config.py" and "ptz_simple_spread_mappo_eval_config_v2.py"
+    # in the same path, which implement the same functionality of loading a pre-trained mappo model and evaluating its performance.
     # ==================================================================================
     evaluator_env = BaseEnvManager(
-        env_fn=[lambda: DingEnvWrapper(simple_spread_v2.parallel_env(N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False)) for _ in range(cfg.env.evaluator_env_num)],
+        env_fn=[lambda: DingEnvWrapper(
+            simple_spread_v2.parallel_env(N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False)) for _ in
+                range(cfg.env.evaluator_env_num)],
         cfg=cfg.env.manager
     )
 

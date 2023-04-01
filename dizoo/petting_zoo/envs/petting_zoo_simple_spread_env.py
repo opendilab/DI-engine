@@ -1,16 +1,17 @@
-from typing import Any, List, Union, Optional, Dict
+import os
+from functools import reduce
+from typing import List, Optional, Dict
+
 import gymnasium as gym
 import numpy as np
-import pettingzoo
-from functools import reduce
-
-from ding.envs import BaseEnv, BaseEnvTimestep, FrameStackWrapper
-from ding.torch_utils import to_ndarray, to_list
-from ding.envs.common.common_function import affine_transform
-from ding.utils import ENV_REGISTRY, import_module
-from pettingzoo.utils.conversions import parallel_wrapper_fn
 from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
 from pettingzoo.mpe.simple_spread.simple_spread import Scenario
+from pettingzoo.utils.conversions import parallel_wrapper_fn
+
+from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.envs.common.common_function import affine_transform
+from ding.torch_utils import to_ndarray
+from ding.utils import ENV_REGISTRY
 
 
 @ENV_REGISTRY.register('petting_zoo')
@@ -21,6 +22,18 @@ class PettingZooEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
+        self._save_replay = cfg.get('save_replay', False)
+        self._human_replay = cfg.get('human_replay', False)
+        self._replay_path = cfg.get('replay_path', './video')
+        self._save_replay_count = 0
+        if self._save_replay:
+            self.render_mode = "rgb_array"
+        else:
+            self.render_mode = None
+
+        if self._human_replay:
+            self.render_mode = 'human'
+
         self._replay_path = None
         self._env_family = self._cfg.env_family
         self._env_id = self._cfg.env_id
@@ -49,16 +62,12 @@ class PettingZooEnv(BaseEnv):
             parallel_env = parallel_wrapper_fn(_env)
             # init env
             self._env = parallel_env(
-                N=self._cfg.n_agent, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
+                N=self._cfg.n_agent, render_mode=self.render_mode, continuous_actions=self._continuous_actions, max_cycles=self._max_cycles
             )
         # dynamic seed reduces training speed greatly
         # if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
         #     np_seed = 100 * np.random.randint(1, 1000)
         #     self._env.seed(self._seed + np_seed)
-        if self._replay_path is not None:
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-            )
         if hasattr(self, '_seed'):
             obs = self._env.reset(seed=self._seed)
         else:
@@ -71,7 +80,7 @@ class PettingZooEnv(BaseEnv):
             if isinstance(single_agent_obs_space, gym.spaces.Box):
                 self._action_dim = single_agent_obs_space.shape
             elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
-                self._action_dim = (single_agent_obs_space.n, )
+                self._action_dim = (single_agent_obs_space.n,)
             else:
                 raise Exception('Only support `Box` or `Discrete` obs space for single agent.')
 
@@ -140,7 +149,7 @@ class PettingZooEnv(BaseEnv):
 
             self._reward_space = gym.spaces.Dict(
                 {
-                    agent: gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
+                    agent: gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1,), dtype=np.float32)
                     for agent in self._agents
                 }
             )
@@ -149,6 +158,8 @@ class PettingZooEnv(BaseEnv):
         self._eval_episode_return = 0.
         self._step_count = 0
         obs_n = self._process_obs(obs)
+        if self._save_replay:
+            self._frames = []
         return obs_n
 
     def close(self) -> None:
@@ -165,6 +176,8 @@ class PettingZooEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
+        if self._save_replay:
+            self._frames.append(self._env.render())
         self._step_count += 1
         assert isinstance(action, np.ndarray), type(action)
         action = self._process_action(action)
@@ -200,6 +213,13 @@ class PettingZooEnv(BaseEnv):
         #     self._eval_episode_return[agent] += rew[agent]
         if done_n:  # or reduce(lambda x, y: x and y, done.values())
             info['eval_episode_return'] = self._eval_episode_return
+            # TODO: why  ERROR    Env 0 step has exceeded max retries(1)
+            # if self._save_replay:
+            #     path = os.path.join(
+            #         self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
+            #     )
+            #     self.display_frames_as_gif(self._frames, path)
+            #     self._save_replay_count += 1
         # for agent in rew:
         #     rew[agent] = to_ndarray([rew[agent]])
         return BaseEnvTimestep(obs_n, rew_n, done_n, info)
@@ -207,7 +227,22 @@ class PettingZooEnv(BaseEnv):
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
+        self._save_replay = True
         self._replay_path = replay_path
+        self._save_replay_count = 0
+
+    @staticmethod
+    def display_frames_as_gif(frames: list, path: str) -> None:
+        from matplotlib import animation
+        import matplotlib.pyplot as plt
+        patch = plt.imshow(frames[0])
+        plt.axis('off')
+
+        def animate(i):
+            patch.set_data(frames[i])
+
+        anim = animation.FuncAnimation(plt.gcf(), animate, frames=len(frames), interval=5)
+        anim.save(path, writer='imagemagick', fps=20)
 
     def _process_obs(self, obs: 'torch.Tensor') -> np.ndarray:  # noqa
         obs = np.array([obs[agent] for agent in self._agents]).astype(np.float32)
@@ -278,7 +313,7 @@ class PettingZooEnv(BaseEnv):
         dict_action = {}
         for i, agent in enumerate(self._agents):
             agent_action = action[i]
-            if agent_action.shape == (1, ):
+            if agent_action.shape == (1,):
                 agent_action = agent_action.squeeze()  # 0-dim array
             dict_action[agent] = agent_action
         return dict_action
@@ -314,11 +349,12 @@ class PettingZooEnv(BaseEnv):
 
 class simple_spread_raw_env(SimpleEnv):
 
-    def __init__(self, N=3, local_ratio=0.5, max_cycles=25, continuous_actions=False):
+    def __init__(self, N=3, local_ratio=0.5, max_cycles=25, render_mode=None, continuous_actions=False):
         assert 0. <= local_ratio <= 1., "local_ratio is a proportion. Must be between 0 and 1."
         scenario = Scenario()
         world = scenario.make_world(N)
-        super().__init__(scenario, world, max_cycles, continuous_actions=continuous_actions, local_ratio=local_ratio)
+        super().__init__(scenario, world, max_cycles, render_mode=render_mode, continuous_actions=continuous_actions,
+                         local_ratio=local_ratio)
         self.metadata['name'] = "simple_spread_v2"
 
     def _execute_world_step(self):
