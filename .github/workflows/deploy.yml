@@ -3,7 +3,8 @@ name: deploy  # deploy docker
 on:
   push:
     branches: [main, '*deploy*', '*docker*']
-
+  pull_request:
+    branches: [main, '*docker*']
 jobs:
   docker_base:
     runs-on: ubuntu-latest
@@ -386,6 +387,29 @@ jobs:
         run:  |
           docker buildx build -f ./docker/Dockerfile.env . -t opendilab/ding:nightly-dmc2gym --target=dmc2gym
           docker push opendilab/ding:nightly-dmc2gym
+
+  docker_rpc:
+    runs-on: ubuntu-latest
+    needs: docker_base
+    if: "contains(github.event.head_commit.message, 'test rpc')"
+    strategy:
+      matrix:
+        platform: [linux/amd64]
+        # python-version: [3.6, 3.7, 3.8]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERIO_USERNAME }}
+          password: ${{ secrets.DOCKERIO_PASSWORD }}
+
+      - name: Build and push
+        id: docker_build
+        run:  |
+          docker buildx build -f ./docker/Dockerfile.rpc . -t opendilab/ding:nightly-rpc-base --target=base
+          docker push opendilab/ding:nightly-rpc-base
 
   docker_evogym:
     runs-on: ubuntu-latest
