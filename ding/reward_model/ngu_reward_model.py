@@ -1,6 +1,6 @@
 import copy
 import random
-from typing import Union, Tuple, Any, Dict, List
+from typing import Union, Tuple, Dict, List
 
 import numpy as np
 import torch
