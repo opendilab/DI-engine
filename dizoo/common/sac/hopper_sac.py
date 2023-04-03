@@ -7,7 +7,7 @@ agent = SACAgent(env="hopper", exp_name="Hopper-v3-SAC")
 return_ = agent.train(step=int(10000000), collector_env_num=4, evaluator_env_num=4, debug=False)
 # Push model to huggingface hub
 push_model_to_hub(
-    agent=agent,
+    agent=agent.best,
     env_name="OpenAI/Gym/MuJoCo",
     task_name="Hopper-v3",
     algo_name="SAC",

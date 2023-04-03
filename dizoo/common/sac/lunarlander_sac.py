@@ -7,7 +7,7 @@ agent = SACAgent("lunarlander_continuous", exp_name="LunarLander-v2-SAC")
 return_ = agent.train(step=int(4000000), collector_env_num=8, evaluator_env_num=8)
 # Push model to huggingface hub
 push_model_to_hub(
-    agent=agent,
+    agent=agent.best,
     env_name="OpenAI/Gym/Box2d",
     task_name="LunarLander-v2",
     algo_name="SAC",
