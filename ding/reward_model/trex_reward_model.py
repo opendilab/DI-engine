@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from copy import deepcopy
 from typing import Tuple, Optional, List, Dict
 from easydict import EasyDict
@@ -8,18 +7,11 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torch.distributions import Normal, Independent
-from torch.distributions.categorical import Categorical
 
 from ding.utils import REWARD_MODEL_REGISTRY
-from ding.model.template.q_learning import DQN
-from ding.model.template.vac import VAC
-from ding.model.template.qac import QAC
 from ding.utils import SequenceType
 from ding.model.common import FCEncoder
-from ding.utils.data import offline_data_save_type
 from ding.utils import build_logger
 from ding.utils.data import default_collate
 
@@ -36,11 +28,10 @@ class TrexConvEncoder(nn.Module):
     """
 
     def __init__(
-            self,
-            obs_shape: SequenceType,
-            hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
-            activation: Optional[nn.Module] = nn.LeakyReLU(),
-            norm_type: Optional[str] = None
+        self,
+        obs_shape: SequenceType,
+        hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
+        activation: Optional[nn.Module] = nn.LeakyReLU()
     ) -> None:
         r"""
         Overview:
@@ -52,9 +43,7 @@ class TrexConvEncoder(nn.Module):
             - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
             - activation (:obj:`nn.Module`):
                 The type of activation to use in the conv ``layers``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`str`):
-                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
+                if ``None`` then default set to ``nn.LeakyReLU()``
         """
         super(TrexConvEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -148,13 +137,32 @@ class TrexRewardModel(BaseRewardModel):
     Interface:
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
             ``__init__``, ``_train``,
+    Config:
+        == ====================  ======   =============  ============================================  =============
+        ID Symbol                Type     Default Value  Description                                   Other(Shape)
+        == ====================  ======   =============  ============================================  =============
+        1  ``type``              str       trex          | Reward model register name, refer           |
+                                                         | to registry ``REWARD_MODEL_REGISTRY``       |
+        3  | ``learning_rate``   float     0.00001       | learning rate for optimizer                 |
+        4  | ``update_per_``     int       100           | Number of updates per collect               |
+           | ``collect``                                 |                                             |
+        5  | ``num_trajs``       int       0             | Number of downsampled full trajectories     |
+        6  | ``num_snippets``    int       6000          | Number of short subtrajectories to sample   |
+        == ====================  ======   =============  ============================================  =============
     """
     config = dict(
+        # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='trex',
+        # (float) The step size of gradient descent.
         learning_rate=1e-5,
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
-        num_trajs=0,  # number of downsampled full trajectories
-        num_snippets=6000,  # number of short subtrajectories to sample
+        # (int) Number of downsampled full trajectories.
+        num_trajs=0,
+        # (int) Number of short subtrajectories to sample.
+        num_snippets=6000,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
