@@ -157,15 +157,20 @@ class C51Policy(DQNPolicy):
         self._learn_model.train()
         self._target_model.train()
         # Current q value (main model)
-        q_value = self._learn_model.forward(data['obs'])['distribution']
+        output = self._learn_model.forward(data['obs'])
+        q_value = output['logit']
+        q_value_dist = output['distribution']
         # Target q value
         with torch.no_grad():
-            target_q_value = self._target_model.forward(data['next_obs'])['distribution']
+            target_output = self._target_model.forward(data['next_obs'])
+            target_q_value_dist = target_output['distribution']
+            target_q_value = target_output['logit']
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
 
         data_n = dist_nstep_td_data(
-            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+            q_value_dist, target_q_value_dist, data['action'], target_q_action, data['reward'], data['done'],
+            data['weight']
         )
         value_gamma = data.get('value_gamma')
         loss, td_error_per_sample = dist_nstep_td_error(
@@ -188,10 +193,15 @@ class C51Policy(DQNPolicy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            'q_value': q_value.mean().item(),
+            'target_q_value': target_q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'total_loss', 'q_value', 'target_q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {

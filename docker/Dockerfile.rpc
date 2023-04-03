@@ -1,0 +1,23 @@
+FROM snsao/pytorch:tensorpipe-fix as base
+
+WORKDIR /ding
+
+RUN apt update \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make wget locales dnsutils -y \
+    && apt clean \
+    && rm -rf /var/cache/apt/* \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+ENV LANG        en_US.UTF-8
+ENV LANGUAGE    en_US:UTF-8
+ENV LC_ALL      en_US.UTF-8
+
+ADD setup.py setup.py
+ADD dizoo dizoo
+ADD ding ding
+ADD README.md README.md
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
+    && python3 -m pip install --no-cache-dir .[fast,test]
