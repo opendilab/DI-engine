@@ -4,7 +4,7 @@ import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
-from ding.policy import PPOFPolicy, TD3Policy, DDPGPolicy, SACPolicy, DQNPolicy, IMPALAPolicy
+from ding.policy import PPOFPolicy, A2CPolicy ,TD3Policy, DDPGPolicy, SACPolicy, DQNPolicy, IMPALAPolicy
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
@@ -117,6 +117,48 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             cfg.batch_size = 320
             cfg.epoch_per_collect = 10
             cfg.learning_rate = 3e-4
+        else:
+            raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'A2C':
+        cfg = EasyDict({"policy": A2CPolicy.default_config()})
+        if env == 'lunarlander_discrete':
+            cfg.update(
+                dict(
+                    exp_name='LunarLander-v2-A2C',
+                    env=dict(
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        env_id='LunarLander-v2',
+                        n_evaluator_episode=8,
+                        stop_value=240,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=4,
+                        ),
+                        learn=dict(
+                            batch_size=160,
+                            learning_rate=3e-4,
+                            entropy_weight=0.001,
+                            adv_norm=True,
+                        ),
+                        collect=dict(
+                            n_sample=320,
+                            discount_factor=0.99,
+                            gae_lambda=0.95,
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':

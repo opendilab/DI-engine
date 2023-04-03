@@ -198,7 +198,12 @@ def wandb_online_logger(
 
         if cfg.plot_logger:
             for metric in metric_list:
-                if len(ctx.train_output)>0 and metric in ctx.train_output[0]:
+                if isinstance(ctx.train_output, Dict) and metric in ctx.train_output:
+                    if isinstance(ctx.train_output[metric], torch.Tensor):
+                        info_for_logging.update({metric: ctx.train_output[metric].cpu().detach().numpy()})
+                    else:
+                        info_for_logging.update({metric: ctx.train_output[metric]})
+                elif isinstance(ctx.train_output, List) and len(ctx.train_output)>0 and metric in ctx.train_output[0]:
                     metric_value_list = []
                     for item in ctx.train_output:
                         if isinstance(item[metric], torch.Tensor):
