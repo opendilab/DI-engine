@@ -292,8 +292,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.reward_model.trex_reward_model</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
@@ -302,18 +301,11 @@
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 <span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
-<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">Independent</span>
-<span class="kn">from</span> <span class="nn">torch.distributions.categorical</span> <span class="kn">import</span> <span class="n">Categorical</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">REWARD_MODEL_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">ding.model.template.q_learning</span> <span class="kn">import</span> <span class="n">DQN</span>
-<span class="kn">from</span> <span class="nn">ding.model.template.vac</span> <span class="kn">import</span> <span class="n">VAC</span>
-<span class="kn">from</span> <span class="nn">ding.model.template.qac</span> <span class="kn">import</span> <span class="n">QAC</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span>
 <span class="kn">from</span> <span class="nn">ding.model.common</span> <span class="kn">import</span> <span class="n">FCEncoder</span>
-<span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">offline_data_save_type</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">build_logger</span>
 <span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span>
 
@@ -330,11 +322,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">obs_shape</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span>
-            <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-            <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">(),</span>
-            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span>
+        <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">()</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -346,9 +337,7 @@
 <span class="sd">            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``</span>
 <span class="sd">            - activation (:obj:`nn.Module`):</span>
 <span class="sd">                The type of activation to use in the conv ``layers``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`str`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details</span>
+<span class="sd">                if ``None`` then default set to ``nn.LeakyReLU()``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TrexConvEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
@@ -442,13 +431,32 @@
 <span class="sd">    Interface:</span>
 <span class="sd">        ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \</span>
 <span class="sd">            ``__init__``, ``_train``,</span>
+<span class="sd">    Config:</span>
+<span class="sd">        == ====================  ======   =============  ============================================  =============</span>
+<span class="sd">        ID Symbol                Type     Default Value  Description                                   Other(Shape)</span>
+<span class="sd">        == ====================  ======   =============  ============================================  =============</span>
+<span class="sd">        1  ``type``              str       trex          | Reward model register name, refer           |</span>
+<span class="sd">                                                         | to registry ``REWARD_MODEL_REGISTRY``       |</span>
+<span class="sd">        3  | ``learning_rate``   float     0.00001       | learning rate for optimizer                 |</span>
+<span class="sd">        4  | ``update_per_``     int       100           | Number of updates per collect               |</span>
+<span class="sd">           | ``collect``                                 |                                             |</span>
+<span class="sd">        5  | ``num_trajs``       int       0             | Number of downsampled full trajectories     |</span>
+<span class="sd">        6  | ``num_snippets``    int       6000          | Number of short subtrajectories to sample   |</span>
+<span class="sd">        == ====================  ======   =============  ============================================  =============</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;trex&#39;</span><span class="p">,</span>
+        <span class="c1"># (float) The step size of gradient descent.</span>
         <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+        <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
+        <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
+        <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
         <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-        <span class="n">num_trajs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># number of downsampled full trajectories</span>
-        <span class="n">num_snippets</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span>  <span class="c1"># number of short subtrajectories to sample</span>
+        <span class="c1"># (int) Number of downsampled full trajectories.</span>
+        <span class="n">num_trajs</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="c1"># (int) Number of short subtrajectories to sample.</span>
+        <span class="n">num_snippets</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>

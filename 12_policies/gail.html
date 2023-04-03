@@ -392,7 +392,7 @@ estimation.</p>
 <col style="width: 20%" />
 <col style="width: 8%" />
 <col style="width: 13%" />
-<col style="width: 33%" />
+<col style="width: 35%" />
 <col style="width: 23%" />
 </colgroup>
 <thead>
@@ -442,6 +442,22 @@ estimation.</p>
 </tr>
 <tr class="row-even"><td><p>3</p></td>
 <td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learning_rate</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.001</p></td>
+<td><div class="line-block">
+<div class="line">The step size of gradient descent</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">update_per_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">collect</span></code></div>
 </div>
@@ -459,7 +475,7 @@ estimation.</p>
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>4</p></td>
+<tr class="row-even"><td><p>5</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">batch_size</span></code></div>
 </div>
@@ -475,7 +491,7 @@ estimation.</p>
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>5</p></td>
+<tr class="row-odd"><td><p>6</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">input_size</span></code></div>
 <div class="line"><br /></div>
@@ -494,7 +510,7 @@ estimation.</p>
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>6</p></td>
+<tr class="row-even"><td><p>7</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">target_new_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">data_count</span></code></div>
@@ -513,7 +529,7 @@ estimation.</p>
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>7</p></td>
+<tr class="row-odd"><td><p>8</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></div>
 </div>
@@ -529,7 +545,7 @@ estimation.</p>
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>8</p></td>
+<tr class="row-even"><td><p>9</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">collect_count</span></code></div>
 <div class="line"><br /></div>
@@ -545,6 +561,28 @@ estimation.</p>
 <td><div class="line-block">
 <div class="line">One entry is a (s,a)</div>
 <div class="line">tuple</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">clear_buffer_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">per_iters</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">clear buffer per fixed iters</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">make sure replay</div>
+<div class="line">buffer’s data count</div>
+<div class="line">isn’t too few.</div>
+<div class="line">(code work in entry)</div>
 </div>
 </td>
 </tr>

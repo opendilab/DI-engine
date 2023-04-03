@@ -762,11 +762,11 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 <dt>Overview:</dt><dd><p>Multistep n step td_error + 1 step td_error + supervised margin loss or dqfd</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dqfd_nstep_td_data</span></code>): the input data, dqfd_nstep_td_data to calculate loss</p></li>
-<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): discount factor</p></li>
-<li><p>cum_reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to use cumulative nstep reward, which is figured out when collecting data</p></li>
-<li><p>value_gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): gamma discount value for target q_value</p></li>
-<li><p>criterion (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.modules</span></code>): loss function criterion</p></li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dqfd_nstep_td_data</span></code>): The input data, dqfd_nstep_td_data to calculate loss</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Discount factor</p></li>
+<li><p>cum_reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use cumulative nstep reward, which is figured out when collecting data</p></li>
+<li><p>value_gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Gamma discount value for target q_value</p></li>
+<li><p>criterion (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.modules</span></code>): Loss function criterion</p></li>
 <li><p>nstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): nstep num, default set to 10</p></li>
 </ul>
 </dd>
@@ -776,7 +776,7 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): the q_nstep_td_data containing            [‘q’, ‘next_n_q’, ‘action’, ‘next_n_action’, ‘reward’, ‘done’, ‘weight’                , ‘new_n_q_one_step’, ‘next_n_action_one_step’, ‘is_expert’]</p></li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): The q_nstep_td_data containing            [‘q’, ‘next_n_q’, ‘action’, ‘next_n_action’, ‘reward’, ‘done’, ‘weight’                , ‘new_n_q_one_step’, ‘next_n_action_one_step’, ‘is_expert’]</p></li>
 <li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
 <li><p>next_n_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
 <li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>

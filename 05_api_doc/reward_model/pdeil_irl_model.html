@@ -309,10 +309,125 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.reward_model.pdeil_irl_model.PdeilRewardModel">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.pdeil_irl_model.</span></span><span class="sig-name descname"><span class="pre">PdeilRewardModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/reward_model/pdeil_irl_model.html#PdeilRewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.pdeil_irl_model.PdeilRewardModel" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>The Pdeil reward model class</p>
+<dd><dl>
+<dt>Overview:</dt><dd><p>The Pdeil reward model class (<a class="reference external" href="https://arxiv.org/abs/2112.06746">https://arxiv.org/abs/2112.06746</a>)</p>
 </dd>
 <dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">estimate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, <code class="docutils literal notranslate"><span class="pre">load_expert_data</span></code>, <code class="docutils literal notranslate"><span class="pre">collect_data</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_date</span></code>,             <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">_train</span></code>, <code class="docutils literal notranslate"><span class="pre">_batch_mn_pdf</span></code></p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 20%" />
+<col style="width: 5%" />
+<col style="width: 13%" />
+<col style="width: 38%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>pdeil</p></td>
+<td><div class="line-block">
+<div class="line">Reward model register name, refer</div>
+<div class="line">to registry <code class="docutils literal notranslate"><span class="pre">REWARD_MODEL_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">expert_data_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">path</span></code></div>
+</div>
+</td>
+<td><p>str</p></td>
+<td><p>expert_data.
+.pkl</p></td>
+<td><div class="line-block">
+<div class="line">Path to the expert dataset</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Should be a ‘.pkl’</div>
+<div class="line">file</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">discrete_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">action</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the action is discrete</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.5</p></td>
+<td><div class="line-block">
+<div class="line">coefficient for Probability</div>
+<div class="line">Density Estimator</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">clear_buffer</span></code>
+<code class="docutils literal notranslate"><span class="pre">_per_iters</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">clear buffer per fixed iters</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">make sure replay</div>
+<div class="line">buffer’s data count</div>
+<div class="line">isn’t too few.</div>
+<div class="line">(code work in entry)</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
 </dd>
 </dl>
 <dl class="py method">

@@ -292,20 +292,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.reward_model.guided_cost_reward_model</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 
-<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 <span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Independent</span><span class="p">,</span> <span class="n">Normal</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">REWARD_MODEL_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
-<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">REWARD_MODEL_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span>
 <span class="kn">from</span> <span class="nn">.base_reward_model</span> <span class="kn">import</span> <span class="n">BaseRewardModel</span>
 
 
@@ -332,23 +329,54 @@
 
 <div class="viewcode-block" id="GuidedCostRewardModel"><a class="viewcode-back" href="../../../12_policies/guided_cost_zh.html#ding.reward_model.guided_cost_reward_model.GuidedCostRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;guided_cost&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GuidedCostRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Policy class of Guided cost algorithm.</span>
-
-<span class="sd">        https://arxiv.org/pdf/1603.00448.pdf</span>
+<span class="sd">        Policy class of Guided cost algorithm. (https://arxiv.org/pdf/1603.00448.pdf)</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``estimate``, ``train``, ``collect_data``, ``clear_date``, \</span>
+<span class="sd">        ``__init__``,  ``state_dict``, ``load_state_dict``, ``learn``\</span>
+<span class="sd">        ``state_dict_reward_model``, ``load_state_dict_reward_model``</span>
+<span class="sd">    Config:</span>
+<span class="sd">        == ====================  ========   =============  ========================================  ================</span>
+<span class="sd">        ID Symbol                Type       Default Value  Description                               Other(Shape)</span>
+<span class="sd">        == ====================  ========   =============  ========================================  ================</span>
+<span class="sd">        1  ``type``              str         guided_cost   | Reward model register name, refer        |</span>
+<span class="sd">                                                           | to registry ``REWARD_MODEL_REGISTRY``    |</span>
+<span class="sd">        2  | ``continuous``      bool        True          | Whether action is continuous             |</span>
+<span class="sd">        3  | ``learning_rate``   float       0.001         | learning rate for optimizer              |</span>
+<span class="sd">        4  | ``update_per_``     int         100           | Number of updates per collect            |</span>
+<span class="sd">           | ``collect``                                   |                                          |</span>
+<span class="sd">        5  | ``batch_size``      int         64            | Training batch size                      |</span>
+<span class="sd">        6  | ``hidden_size``     int         128           | Linear model hidden size                 |</span>
+<span class="sd">        7  | ``action_shape``    int         1             | Action space shape                       |</span>
+<span class="sd">        8  | ``log_every_n``     int         50            | add loss to log every n iteration        |</span>
+<span class="sd">           | ``_train``                                    |                                          |</span>
+<span class="sd">        9  | ``store_model_``    int         100           | save model every n iteration             |</span>
+<span class="sd">           | ``every_n_train``                                                                        |</span>
+<span class="sd">        == ====================  ========   =============  ========================================  ================</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;guided_cost&#39;</span><span class="p">,</span>
+        <span class="c1"># (float) The step size of gradient descent.</span>
         <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+        <span class="c1"># (int) Action space shape, such as 1.</span>
         <span class="n">action_shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether action is continuous.</span>
         <span class="n">continuous</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (int) How many samples in a training batch.</span>
         <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+        <span class="c1"># (int) Linear model hidden size.</span>
         <span class="n">hidden_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+        <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
+        <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
+        <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
         <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="c1"># (int) Add loss to log every n iteration.</span>
         <span class="n">log_every_n_train</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="c1"># (int) Save model every n iteration.</span>
         <span class="n">store_model_every_n_train</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="p">)</span>
 

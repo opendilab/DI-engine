@@ -310,16 +310,41 @@
 <span class="k">class</span> <span class="nc">PdeilRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The Pdeil reward model class</span>
+<span class="sd">        The Pdeil reward model class (https://arxiv.org/abs/2112.06746)</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \</span>
 <span class="sd">            ``__init__``, ``_train``, ``_batch_mn_pdf``</span>
+<span class="sd">    Config:</span>
+<span class="sd">        == ====================  =====   =============  =======================================  =======================</span>
+<span class="sd">        ID Symbol                Type    Default Value  Description                              Other(Shape)</span>
+<span class="sd">        == ====================  =====   =============  =======================================  =======================</span>
+<span class="sd">        1  ``type``              str       pdeil        | Reward model register name, refer      |</span>
+<span class="sd">                                                        | to registry ``REWARD_MODEL_REGISTRY``  |</span>
+<span class="sd">        2  | ``expert_data_``    str     expert_data.   | Path to the expert dataset             | Should be a &#39;.pkl&#39;</span>
+<span class="sd">           | ``path``                    .pkl           |                                        | file</span>
+<span class="sd">        3  | ``discrete_``       bool      False        | Whether the action is discrete         |</span>
+<span class="sd">           | ``action``                                 |                                        |</span>
+<span class="sd">        4  | ``alpha``           float     0.5          | coefficient for Probability            |</span>
+<span class="sd">           |                                            | Density Estimator                      |</span>
+<span class="sd">        5  | ``clear_buffer``    int      1             | clear buffer per fixed iters           | make sure replay</span>
+<span class="sd">            ``_per_iters``                                                                       | buffer&#39;s data count</span>
+<span class="sd">                                                                                                 | isn&#39;t too few.</span>
+<span class="sd">                                                                                                 | (code work in entry)</span>
+<span class="sd">        == ====================  =====   =============  =======================================  =======================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;pdeil&#39;</span><span class="p">,</span>
+        <span class="c1"># (str) Path to the expert dataset.</span>
         <span class="c1"># expert_data_path=&#39;expert_data.pkl&#39;,</span>
+        <span class="c1"># (bool) Whether the action is discrete.</span>
         <span class="n">discrete_action</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (float) Coefficient for Probability Density Estimator.</span>
+        <span class="c1"># alpha + beta = 1, alpha is in [0,1]</span>
+        <span class="c1"># when alpha is close to 0, the estimator has high variance and low bias;</span>
+        <span class="c1"># when alpha is close to 1, the estimator has high bias and low variance.</span>
         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="c1"># (int) Clear buffer per fixed iters.</span>
         <span class="n">clear_buffer_per_iters</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span>
 

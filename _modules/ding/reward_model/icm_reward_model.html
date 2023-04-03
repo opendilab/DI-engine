@@ -299,7 +299,6 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">REWARD_MODEL_REGISTRY</span>
 <span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span>
@@ -322,7 +321,7 @@
 
 
 <span class="k">class</span> <span class="nc">ICMNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Intrinsic Curiosity Model (ICM Module)</span>
 <span class="sd">    Implementation of:</span>
 <span class="sd">    [1] Curiosity-driven Exploration by Self-supervised Prediction</span>
@@ -424,30 +423,70 @@
 <span class="sd">        The ICM reward model class (https://arxiv.org/pdf/1705.05363.pdf)</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``estimate``, ``train``, ``collect_data``, ``clear_data``, \</span>
-<span class="sd">            ``__init__``, ``_train``,</span>
+<span class="sd">            ``__init__``, ``_train``, ``load_state_dict``, ``state_dict``</span>
+<span class="sd">    Config:</span>
+<span class="sd">        == ====================  ========   =============  ====================================  =======================</span>
+<span class="sd">        ID Symbol                Type       Default Value  Description                           Other(Shape)</span>
+<span class="sd">        == ====================  ========   =============  ====================================  =======================</span>
+<span class="sd">        1  ``type``              str         icm           | Reward model register name,         |</span>
+<span class="sd">                                                           | refer to registry                   |</span>
+<span class="sd">                                                           | ``REWARD_MODEL_REGISTRY``           |</span>
+<span class="sd">        2  | ``intrinsic_``      str         add           | the intrinsic reward type           | including add, new</span>
+<span class="sd">           | ``reward_type``                               |                                     | , or assign</span>
+<span class="sd">        3  | ``learning_rate``   float       0.001         | The step size of gradient descent   |</span>
+<span class="sd">        4  | ``obs_shape``       Tuple(      6             | the observation shape               |</span>
+<span class="sd">                                 [int,</span>
+<span class="sd">                                 list])</span>
+<span class="sd">        5  | ``action_shape``    int         7             | the action space shape              |</span>
+<span class="sd">        6  | ``batch_size``      int         64            | Training batch size                 |</span>
+<span class="sd">        7  | ``hidden``          list        [64, 64,      | the MLP layer shape                 |</span>
+<span class="sd">           | ``_size_list``      (int)       128]          |                                     |</span>
+<span class="sd">        8  | ``update_per_``     int         100           | Number of updates per collect       |</span>
+<span class="sd">           | ``collect``                                   |                                     |</span>
+<span class="sd">        9  | ``reverse_scale``   float       1             | the importance weight of the        |</span>
+<span class="sd">                                                           | forward and reverse loss            |</span>
+<span class="sd">        10 | ``intrinsic_``      float       0.003         | the weight of intrinsic reward      | r = w*r_i + r_e</span>
+<span class="sd">             ``reward_weight``</span>
+<span class="sd">        11 | ``extrinsic_``      bool        True          | Whether to normlize</span>
+<span class="sd">             ``reward_norm``                               | extrinsic reward</span>
+<span class="sd">        12 | ``extrinsic_``      int         1             | the upper bound of the reward</span>
+<span class="sd">            ``reward_norm_max``                            | normalization</span>
+<span class="sd">        13 | ``clear_buffer``    int         1             | clear buffer per fixed iters        | make sure replay</span>
+<span class="sd">             ``_per_iters``                                                                      | buffer&#39;s data count</span>
+<span class="sd">                                                                                                 | isn&#39;t too few.</span>
+<span class="sd">                                                                                                 | (code work in entry)</span>
+<span class="sd">        == ====================  ========   =============  ====================================  =======================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-        <span class="c1"># (str) the type of the exploration method</span>
+        <span class="c1"># (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;icm&#39;</span><span class="p">,</span>
-        <span class="c1"># (str) the intrinsic reward type, including add, new, or assign</span>
+        <span class="c1"># (str) The intrinsic reward type, including add, new, or assign.</span>
         <span class="n">intrinsic_reward_type</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">,</span>
-        <span class="c1"># (float) learning rate of the optimizer</span>
+        <span class="c1"># (float) The step size of gradient descent.</span>
         <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
-        <span class="c1"># (Tuple[int, list]), the observation shape,</span>
+        <span class="c1"># (Tuple[int, list]), The observation shape.</span>
         <span class="n">obs_shape</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-        <span class="c1"># (int) the action shape, support discrete action only in this version</span>
+        <span class="c1"># (int) The action shape, support discrete action only in this version.</span>
         <span class="n">action_shape</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-        <span class="c1"># (float) batch size</span>
+        <span class="c1"># (float) Batch size.</span>
         <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
-        <span class="c1"># (list) the MLP layer shape</span>
+        <span class="c1"># (list) The MLP layer shape.</span>
         <span class="n">hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>
-        <span class="c1"># (int) update how many times after each collect</span>
+        <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
+        <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
+        <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
         <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-        <span class="c1"># (float) the importance weight of the forward and reverse loss</span>
+        <span class="c1"># (float) The importance weight of the forward and reverse loss.</span>
         <span class="n">reverse_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># (float) The weight of intrinsic reward.</span>
+        <span class="c1"># r = intrinsic_reward_weight * r_i + r_e.</span>
         <span class="n">intrinsic_reward_weight</span><span class="o">=</span><span class="mf">0.003</span><span class="p">,</span>  <span class="c1"># 1/300</span>
+        <span class="c1"># (bool) Whether to normlize extrinsic reward.</span>
+        <span class="c1"># Normalize the reward to [0, extrinsic_reward_norm_max].</span>
         <span class="n">extrinsic_reward_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (int) The upper bound of the reward normalization.</span>
         <span class="n">extrinsic_reward_norm_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># (int) Clear buffer per fixed iters.</span>
         <span class="n">clear_buffer_per_iters</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="p">)</span>
 
