@@ -2,11 +2,11 @@ from ding.bonus import TD3Agent
 from huggingface_ding import pull_model_from_hub
 
 # Pull model from Hugggingface hub
-policy_state_dict, cfg = pull_model_from_hub(repo_id="OpenDILabCommunity/LunarLander-v2-TD3")
+policy_state_dict, cfg = pull_model_from_hub(repo_id="OpenDILabCommunity/Hopper-v3-TD3")
 # Instantiate the agent
 agent = TD3Agent(
-    env="lunarlander_continuous",
-    exp_name="LunarLander-v2-TD3",
+    env="hopper",
+    exp_name="Hopper-v3-TD3",
     cfg=cfg.exp_config,
     policy_state_dict=policy_state_dict
 )

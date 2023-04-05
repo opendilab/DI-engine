@@ -5,7 +5,7 @@ from huggingface_ding import pull_model_from_hub
 policy_state_dict, cfg = pull_model_from_hub(repo_id="OpenDILabCommunity/LunarLander-v2-PPO")
 # Instantiate the agent
 agent = PPOF(
-    env="lunarlander_discrete", exp_name="lunarlander-ppo", cfg=cfg.exp_config, policy_state_dict=policy_state_dict
+    env="lunarlander_discrete", exp_name="LunarLander-v2-PPO", cfg=cfg.exp_config, policy_state_dict=policy_state_dict
 )
 # Continue training
 agent.train(step=5000)

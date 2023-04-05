@@ -274,3 +274,6 @@ class A2CPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']
+
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()

@@ -1,8 +1,11 @@
 from ding.bonus import TD3Agent
-from huggingface_ding import pull_model_from_hub
+from ding.config import Config
+from easydict import EasyDict
+import torch
 
-# Pull model from Hugggingface hub
-policy_state_dict, cfg = pull_model_from_hub(repo_id="OpenDILabCommunity/LunarLander-v2-TD3")
+# Pull model from files which are git cloned from huggingface
+policy_state_dict = torch.load("pytorch_model.bin", map_location=torch.device("cpu"))
+cfg = EasyDict(Config.file_to_dict("policy_config.py"))
 # Instantiate the agent
 agent = TD3Agent(
     env="lunarlander_continuous",

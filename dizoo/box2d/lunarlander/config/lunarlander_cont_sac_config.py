@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-lunarlander_td3_config = dict(
-    exp_name='lunarlander_cont_td3_seed0',
+lunarlander_sac_config = dict(
+    exp_name='lunarlander_cont_sac_seed0',
     env=dict(
         env_id='LunarLanderContinuous-v2',
         collector_env_num=4,
@@ -12,50 +12,42 @@ lunarlander_td3_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=8,
             action_shape=2,
             twin_critic=True,
-            action_space='regression',
+            action_space='reparameterization',
         ),
         learn=dict(
             update_per_collect=256,
-            batch_size=256,
-            learning_rate_actor=3e-4,
-            learning_rate_critic=1e-3,
-            actor_update_freq=2,
-            noise=True,
-            noise_sigma=0.1,
-            noise_range=dict(
-                min=-0.5,
-                max=0.5,
-            ),
+            batch_size=128,
+            learning_rate_q=1e-3,
+            learning_rate_policy=3e-4,
+            learning_rate_alpha=3e-4,
+            auto_alpha=True,
         ),
-        collect=dict(
-            n_sample=256,
-            noise_sigma=0.1,
-        ),
+        collect=dict(n_sample=256, ),
         eval=dict(evaluator=dict(eval_freq=1000, ), ),
         other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
     ),
 )
-lunarlander_td3_config = EasyDict(lunarlander_td3_config)
-main_config = lunarlander_td3_config
+lunarlander_sac_config = EasyDict(lunarlander_sac_config)
+main_config = lunarlander_sac_config
 
-lunarlander_td3_create_config = dict(
+lunarlander_sac_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='td3'),
+    policy=dict(type='sac'),
 )
-lunarlander_td3_create_config = EasyDict(lunarlander_td3_create_config)
-create_config = lunarlander_td3_create_config
+lunarlander_sac_create_config = EasyDict(lunarlander_sac_create_config)
+create_config = lunarlander_sac_create_config
 
 if __name__ == '__main__':
-    # or you can enter `ding -m serial -c lunarlander_cont_td3_config.py -s 0`
+    # or you can enter `ding -m serial -c lunarlander_cont_sac_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

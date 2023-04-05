@@ -8,14 +8,15 @@ import torch
 import treetensor.torch as ttorch
 import numpy as np
 from ding.framework import task, OnlineRLContext
-from ding.framework.middleware import CkptSaver, trainer, \
-    wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, \
-    gae_estimator, final_ctx_saver
+from ding.framework.middleware import CkptSaver, multistep_trainer, \
+    wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
+    OffPolicyLearner, final_ctx_saver
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
-from ding.policy import A2CPolicy
+from ding.policy import DDPGPolicy
 from ding.utils import set_pkg_seed
 from ding.config import Config, save_config_py, compile_config
-from ding.model import VAC
+from ding.model import QAC
+from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
 
 
@@ -39,11 +40,12 @@ class EvalReturn:
     eval_value_std: np.float32
 
 
-class A2CAgent:
+class DDPGAgent:
     supported_env_list = [
-        'lunarlander_discrete',
+        'hopper',
+        'lunarlander_continuous',
     ]
-    algorithm = 'A2C'
+    algorithm = 'DDPG'
 
     def __init__(
             self,
@@ -55,23 +57,23 @@ class A2CAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in A2CAgent.supported_env_list, "Please use supported envs: {}".format(
-                A2CAgent.supported_env_list
+            assert env in DDPGAgent.supported_env_list, "Please use supported envs: {}".format(
+                DDPGAgent.supported_env_list
             )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=A2CAgent.algorithm)
+                cfg = get_instance_config(env, algorithm=DDPGAgent.algorithm)
             else:
                 assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 
             if exp_name is not None:
                 cfg.exp_name = exp_name
-            self.cfg = compile_config(cfg, policy=A2CPolicy)
+            self.cfg = compile_config(cfg, policy=DDPGPolicy)
             self.exp_name = self.cfg.exp_name
 
         elif isinstance(env, BaseEnv):
-            self.cfg = compile_config(cfg, policy=A2CPolicy)
+            self.cfg = compile_config(cfg, policy=DDPGPolicy)
             raise NotImplementedError
         else:
             raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
@@ -82,12 +84,12 @@ class A2CAgent:
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         if model is None:
-            model = VAC(**self.cfg.policy.model)
-        self.policy = A2CPolicy(self.cfg.policy, model=model)
+            model = QAC(**self.cfg.policy.model)
+        self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
+        self.policy = DDPGPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
         self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
-        self.device=self.policy._device
 
     def train(
             self,
@@ -112,11 +114,12 @@ class A2CAgent:
                 StepCollector(
                     self.cfg,
                     self.policy.collect_mode,
-                    collector_env
+                    collector_env,
+                    random_collect_size=self.cfg.policy.random_collect_size
                 )
             )
-            task.use(gae_estimator(self.cfg, self.policy.collect_mode))
-            task.use(trainer(self.cfg, self.policy.learn_mode, self.device))
+            task.use(data_pusher(self.cfg, self.buffer_))
+            task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
             task.use(
                 CkptSaver(
                     policy=self.policy,
@@ -179,7 +182,7 @@ class A2CAgent:
             step += 1
             if done:
                 break
-        logging.info(f'A2C deploy is finished, final episode return with {step} steps is: {return_}')
+        logging.info(f'DDPG deploy is finished, final episode return with {step} steps is: {return_}')
 
     def collect_data(
             self,
@@ -210,7 +213,7 @@ class A2CAgent:
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            f'A2C collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            f'DDPG collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(

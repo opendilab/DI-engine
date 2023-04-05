@@ -4,7 +4,7 @@ import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
-from ding.policy import PPOFPolicy, TD3Policy, SACPolicy, DQNPolicy, IMPALAPolicy, C51Policy
+from ding.policy import PPOFPolicy, A2CPolicy ,TD3Policy, DDPGPolicy, SACPolicy, DQNPolicy, IMPALAPolicy, C51Policy
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
@@ -119,12 +119,54 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             cfg.learning_rate = 3e-4
         else:
             raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'A2C':
+        cfg = EasyDict({"policy": A2CPolicy.default_config()})
+        if env == 'lunarlander_discrete':
+            cfg.update(
+                dict(
+                    exp_name='LunarLander-v2-A2C',
+                    env=dict(
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        env_id='LunarLander-v2',
+                        n_evaluator_episode=8,
+                        stop_value=240,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=4,
+                        ),
+                        learn=dict(
+                            batch_size=160,
+                            learning_rate=3e-4,
+                            entropy_weight=0.001,
+                            adv_norm=True,
+                        ),
+                        collect=dict(
+                            n_sample=320,
+                            discount_factor=0.99,
+                            gae_lambda=0.95,
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        else:
+            raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
         cfg = EasyDict({"policy": TD3Policy.default_config()})
         if env == 'hopper':
             cfg.update(
                 dict(
-                    exp_name='hopper_td3',
+                    exp_name='Hopper-v3-TD3',
                     seed=0,
                     env=dict(
                         env_id='Hopper-v3',
@@ -161,8 +203,8 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     exp_name='LunarLanderContinuous-V2-TD3',
                     seed=0,
                     env=dict(
-                        env_id='Hopper-v3',
-                        collector_env_num=8,
+                        env_id='LunarLanderContinuous-v2',
+                        collector_env_num=4,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         act_scale=True,
@@ -170,7 +212,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                     policy=dict(
                         cuda=True,
-                        random_collect_size=25000,
+                        random_collect_size=10000,
                         model=dict(
                             obs_shape=8,
                             action_shape=2,
@@ -180,14 +222,128 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             update_per_collect=256,
                             batch_size=256,
                             learning_rate_actor=3e-4,
-                            learning_rate_critic=3e-4,
+                            learning_rate_critic=1e-3,
+                            noise=True,
                             noise_sigma=0.1,
+                            noise_range=dict(
+                                min=-0.5,
+                                max=0.5,
+                            ),
                         ),
                         collect=dict(
                             n_sample=256,
                             noise_sigma=0.1,
                         ),
+                        eval=dict(evaluator=dict(eval_freq=1000, ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        else:
+            raise KeyError("not supported env type: {}".format(env))
+    elif algorithm == 'DDPG':
+        cfg = EasyDict({"policy": DDPGPolicy.default_config()})
+        if env == 'hopper':
+            cfg.update(
+                dict(
+                    exp_name='Hopper-v3-DDPG',
+                    seed=0,
+                    env=dict(
+                        env_id='Hopper-v3',
+                        norm_obs=dict(use_norm=False, ),
+                        norm_reward=dict(use_norm=False, ),
+                        collector_env_num=1,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=6000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        random_collect_size=25000,
+                        model=dict(
+                            obs_shape=11,
+                            action_shape=3,
+                            twin_critic=False,
+                            actor_head_hidden_size=256,
+                            critic_head_hidden_size=256,
+                            action_space='regression',
+                        ),
+                        learn=dict(
+                            update_per_collect=1,
+                            batch_size=256,
+                            learning_rate_actor=1e-3,
+                            learning_rate_critic=1e-3,
+                            ignore_done=False,
+                            target_theta=0.005,
+                            discount_factor=0.99,
+                            actor_update_freq=1,
+                            noise=False,
+                        ),
+                        collect=dict(
+                            n_sample=1,
+                            unroll_len=1,
+                            noise_sigma=0.1,
+                        ),
                         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+                    )
+                )
+            )
+        elif env == 'lunarlander_continuous':
+            cfg.update(
+                dict(
+                    exp_name='LunarLanderContinuous-V2-DDPG',
+                    seed=0,
+                    env=dict(
+                        env_id='LunarLanderContinuous-v2',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        act_scale=True,
+                        stop_value=240,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        random_collect_size=0,
+                        model=dict(
+                            obs_shape=8,
+                            action_shape=2,
+                            twin_critic=True,
+                            action_space='regression',
+                        ),
+                        learn=dict(
+                            update_per_collect=2,
+                            batch_size=128,
+                            learning_rate_actor=0.001,
+                            learning_rate_critic=0.001,
+                            ignore_done=False,  # TODO(pu)
+                            # (int) When critic network updates once, how many times will actor network update.
+                            # Delayed Policy Updates in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
+                            # Default 1 for DDPG, 2 for TD3.
+                            actor_update_freq=1,
+                            # (bool) Whether to add noise on target network's action.
+                            # Target Policy Smoothing Regularization in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
+                            # Default True for TD3, False for DDPG.
+                            noise=False,
+                            noise_sigma=0.1,
+                            noise_range=dict(
+                                min=-0.5,
+                                max=0.5,
+                            ),
+                        ),
+                        collect=dict(
+                            n_sample=48,
+                            noise_sigma=0.1,
+                            collector=dict(collect_print_freq=1000, ),
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=100, ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -359,7 +515,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     seed=0,
                     env=dict(
                         env_id='LunarLanderContinuous-v2',
-                        collector_env_num=8,
+                        collector_env_num=4,
                         evaluator_env_num=8,
                         act_scale=True,
                         n_evaluator_episode=8,
@@ -367,24 +523,24 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                     policy=dict(
                         cuda=True,
-                        random_collect_size=25000,
+                        random_collect_size=10000,
                         model=dict(
                             obs_shape=8,
                             action_shape=2,
                             action_space='reparameterization',
-                            actor_head_hidden_size=256,
-                            critic_head_hidden_size=256,
+                            twin_critic=True,
                         ),
                         learn=dict(
                             update_per_collect=256,
-                            batch_size=256,
-                            learning_rate_actor=3e-4,
-                            learning_rate_critic=3e-4,
-                            reparameterization=True,
-                            auto_alpha=False,
+                            batch_size=128,
+                            learning_rate_q=1e-3,
+                            learning_rate_policy=3e-4,
+                            learning_rate_alpha=3e-4,
+                            auto_alpha=True,
                         ),
                         collect=dict(n_sample=256, ),
-                        other=dict(replay_buffer=dict(replay_buffer_size=int(1e6), ), ),
+                        eval=dict(evaluator=dict(eval_freq=1000, ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,

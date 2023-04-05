@@ -40,7 +40,7 @@ class EvalReturn:
     eval_value_std: np.float32
 
 
-class TD3OffPolicyAgent:
+class TD3Agent:
     supported_env_list = [
         'hopper',
         'lunarlander_continuous',
@@ -57,13 +57,13 @@ class TD3OffPolicyAgent:
             policy_state_dict: str = None,
     ) -> None:
         if isinstance(env, str):
-            assert env in TD3OffPolicyAgent.supported_env_list, "Please use supported envs: {}".format(
-                TD3OffPolicyAgent.supported_env_list
+            assert env in TD3Agent.supported_env_list, "Please use supported envs: {}".format(
+                TD3Agent.supported_env_list
             )
             self.env = get_instance_env(env)
             if cfg is None:
                 # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=TD3OffPolicyAgent.algorithm)
+                cfg = get_instance_config(env, algorithm=TD3Agent.algorithm)
             else:
                 assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
 
@@ -89,6 +89,7 @@ class TD3OffPolicyAgent:
         self.policy = TD3Policy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
+        self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
 
     def train(
             self,
@@ -122,7 +123,7 @@ class TD3OffPolicyAgent:
             task.use(
                 CkptSaver(
                     policy=self.policy,
-                    save_dir=os.path.join(self.cfg["exp_name"], "model"),
+                    save_dir=self.model_save_dir,
                     train_freq=n_iter_save_ckpt
                 )
             )
@@ -247,3 +248,11 @@ class TD3OffPolicyAgent:
             if context is not None:
                 manager_cfg.context = context
         return env_cls([self.env.clone for _ in range(env_num)], manager_cfg)
+
+    @property
+    def best(self):
+        best_model_file_path=os.path.join(self.model_save_dir, "eval.pth.tar")
+        if os.path.exists(best_model_file_path):
+            policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
+            self.policy.learn_mode.load_state_dict(policy_state_dict)
+        return self

@@ -104,7 +104,7 @@ def context_exchanger_with_storage_loader_main():
                 shutil.rmtree(tempdir)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_context_exchanger_with_storage_loader():
     Parallel.runner(n_parallel_workers=2)(context_exchanger_with_storage_loader_main)
 
@@ -218,6 +218,6 @@ def model_exchanger_main_with_model_loader():
                 shutil.rmtree(tempdir)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_model_exchanger_with_model_loader():
     Parallel.runner(n_parallel_workers=2, startup_interval=0)(model_exchanger_main_with_model_loader)
