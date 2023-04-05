@@ -32,8 +32,9 @@ cfg = [
     {
         'type': 'red',
         'sample_size': 5000,
-        'input_size': 5,
-        'hidden_size': 64,
+        'obs_shape': 4,
+        'action_shape': 1,
+        'hidden_size_list': [64, 1],
         'update_per_collect': 200,
         'batch_size': 128,
     },

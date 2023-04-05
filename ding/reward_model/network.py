@@ -9,7 +9,9 @@ from ding.model import FCEncoder, ConvEncoder
 from ding.torch_utils.data_helper import to_tensor
 import numpy as np
 
+
 class FeatureNetwork(nn.Module):
+
     def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
         super(FeatureNetwork, self).__init__()
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
@@ -21,10 +23,11 @@ class FeatureNetwork(nn.Module):
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
                 format(obs_shape)
             )
-    
+
     def forward(self, obs: torch.Tensor) -> torch.Tensor:
         feature_output = self.feature(obs)
         return feature_output
+
 
 class RndNetwork(nn.Module):
 
@@ -41,8 +44,10 @@ class RndNetwork(nn.Module):
         with torch.no_grad():
             target_feature = self.target(obs)
         return predict_feature, target_feature
-    
+
+
 class RedNetwork(RndNetwork):
+
     def __init__(self, obs_shape: int, action_shape: int, hidden_size_list: SequenceType) -> None:
         # RED network does not support high dimension obs
-        super().__init__(obs_shape+action_shape, hidden_size_list)
+        super().__init__(obs_shape + action_shape, hidden_size_list)
