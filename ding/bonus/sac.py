@@ -44,6 +44,8 @@ class EvalReturn:
 class SACOffPolicyAgent:
     supported_env_list = [
         'hopper',
+        'HalfCheetah',
+        'Walker2d',
         'lunarlander_continuous',
     ]
     algorithm = 'SAC'
