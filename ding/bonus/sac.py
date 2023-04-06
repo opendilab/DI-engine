@@ -90,7 +90,7 @@ class SACAgent:
         self.policy = SACPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
-        self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
+        self.model_save_dir=os.path.join(self.exp_name, "model")
 
     def train(
             self,
