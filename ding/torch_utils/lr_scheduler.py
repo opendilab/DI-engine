@@ -19,9 +19,13 @@ def get_lr_ratio(epoch: int, warmup_epochs: int, learning_rate: float, lr_decay_
     return (min_lr + coefficient * (learning_rate - min_lr)) / learning_rate
 
 
-def cos_lr_scheduler(optimizer: torch.optim.Optimizer,
-                     learning_rate: float, warmup_epochs: float = 5, lr_decay_epochs: float = 100,
-                     min_lr: float = 6e-5) -> torch.optim.lr_scheduler.LambdaLR:
+def cos_lr_scheduler(
+        optimizer: torch.optim.Optimizer,
+        learning_rate: float,
+        warmup_epochs: float = 5,
+        lr_decay_epochs: float = 100,
+        min_lr: float = 6e-5
+) -> torch.optim.lr_scheduler.LambdaLR:
     return LambdaLR(
         optimizer,
         partial(
