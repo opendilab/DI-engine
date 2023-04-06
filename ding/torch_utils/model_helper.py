@@ -1,4 +1,7 @@
-def get_num_params(model):
+import torch
+
+
+def get_num_params(model: torch.nn.Module) -> int:
     """
     Return the number of parameters in the model.
     """
