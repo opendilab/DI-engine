@@ -1,4 +1,4 @@
-from typing import Union, Tuple, List, Dict
+from typing import Union, Tuple, List, Dict, Optional
 from easydict import EasyDict
 
 import torch
@@ -10,14 +10,19 @@ from ding.torch_utils.data_helper import to_tensor
 import numpy as np
 
 
-class FeatureNetwork(nn.Module):
+class RepresentationNetwork(nn.Module):
 
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
-        super(FeatureNetwork, self).__init__()
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            hidden_size_list: SequenceType,
+            activation: Optional[nn.Module] = nn.ReLU()
+    ) -> None:
+        super(RepresentationNetwork, self).__init__()
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.feature = FCEncoder(obs_shape, hidden_size_list)
+            self.feature = FCEncoder(obs_shape, hidden_size_list, activation=activation)
         elif len(obs_shape) == 3:
-            self.feature = ConvEncoder(obs_shape, hidden_size_list)
+            self.feature = ConvEncoder(obs_shape, hidden_size_list, activation=activation)
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
@@ -33,8 +38,8 @@ class RndNetwork(nn.Module):
 
     def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
         super(RndNetwork, self).__init__()
-        self.target = FeatureNetwork(obs_shape, hidden_size_list)
-        self.predictor = FeatureNetwork(obs_shape, hidden_size_list)
+        self.target = RepresentationNetwork(obs_shape, hidden_size_list)
+        self.predictor = RepresentationNetwork(obs_shape, hidden_size_list)
 
         for param in self.target.parameters():
             param.requires_grad = False

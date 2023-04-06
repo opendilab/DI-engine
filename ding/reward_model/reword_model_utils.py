@@ -5,9 +5,11 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 
+from ding.torch_utils import one_hot
+
 
 def concat_state_action_pairs(
-        data: list, action_size: Optional[int] = None, one_hot: Optional[bool] = False
+        data: list, action_size: Optional[int] = None, one_hot_: Optional[bool] = False
 ) -> torch.Tensor:
     """
     Overview:
@@ -20,12 +22,15 @@ def concat_state_action_pairs(
     states_data = []
     actions_data = []
     #check data(dict) has key obs and action
-    assert isinstance(data, Iterable)
-    assert "obs" in data[0] and "action" in data[0]
+    assert isinstance(data, Iterable), "data should be Iterable"
+    assert "obs" in data[0] and "action" in data[0], "data member must contain key 'obs' and 'action' "
     for item in data:
-        states_data.append(item['obs'].flatten())  # to allow 3d obs and actions concatenation
-        if one_hot and action_size:
-            action = torch.Tensor([int(i == item['action']) for i in range(action_size)])
+        states_data.append(item['obs'].flatten())
+        if one_hot_ and action_size:
+            new_action = torch.Tensor([int(i == item['action']) for i in range(action_size)])
+            print(new_action.shape)
+            action = one_hot(torch.Tensor(item['action']), action_size).squeeze(dim=0)
+            print(action.shape)
             actions_data.append(action)
         else:
             actions_data.append(item['action'])

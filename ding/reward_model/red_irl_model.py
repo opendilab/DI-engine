@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from ding.utils import REWARD_MODEL_REGISTRY, one_time_warning
 from .base_reward_model import BaseRewardModel
 from .network import RedNetwork
+from .gail_irl_model import concat_state_action_pairs_one_hot
 from .reword_model_utils import concat_state_action_pairs
 
 
@@ -116,6 +117,10 @@ class RedRewardModel(BaseRewardModel):
         """
         sample_batch = random.sample(self.expert_data, self.cfg.batch_size)
         states_actions_tensor = concat_state_action_pairs(sample_batch)
+        states_actions_tensor_one = concat_state_action_pairs(sample_batch, action_size=5, one_hot_=True)
+        states_actions_tensor_one_hot = concat_state_action_pairs_one_hot(sample_batch, 5)
+        states_actions_tensor_one_hot = torch.stack(states_actions_tensor_one_hot)
+        assert states_actions_tensor_one.equal(states_actions_tensor_one_hot)
         states_actions_tensor = states_actions_tensor.to(self.device)
         predict_feature, target_feature = self.reward_model(states_actions_tensor)
         loss = F.mse_loss(predict_feature, target_feature.detach())
