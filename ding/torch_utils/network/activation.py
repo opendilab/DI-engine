@@ -82,6 +82,7 @@ class GELU(nn.Module):
     Interfaces:
         forward
     """
+
     def __init__(self):
         super(GELU, self).__init__()
 
