@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>高性能RPC框架 &mdash; DI-engine 0.1.0 documentation</title>
+  <title>配置文件系统 &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="最佳实践" href="../04_best_practice/index_zh.html" />
-  <link rel="prev" title="配置文件系统" href="config_zh.html" />
+  <link rel="next" title="高性能RPC框架" href="rpc_zh.html" />
+  <link rel="prev" title="分布式" href="distributed_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -268,13 +268,13 @@
         
           <li><a href="index_zh.html">系统设计</a> &gt;</li>
         
-      <li>高性能RPC框架</li>
+      <li>配置文件系统</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/03_system/rpc_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/03_system/config_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -298,417 +298,134 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="rpc">
-<h1>高性能RPC框架<a class="headerlink" href="#rpc" title="Permalink to this headline">¶</a></h1>
+  <section id="id1">
+<h1>配置文件系统<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<section id="id1">
-<h2>简介<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>DI-engine 集成了 <a class="reference external" href="https://pytorch.org/docs/stable/rpc.html">torch.distributed.rpc</a>  模块， torchrpc 专注于高性能 P2P 的 RPC 通信，其可以自动选择最佳的通信策略（ NVLINK ，共享内存， RDMA 或是 TCP ），并且支持 <a class="reference external" href="https://docs.nvidia.com/cuda/gpudirect-rdma/">GPU direct RDMA</a> 技术。
-如果您的集群配备有 InfiniBand/RoCE 网络，则非常建议您使用 torchrpc 作为 DI-engine 的消息队列通信实现；即使没有， torchrpc 实现的多线程 TCP-RPC 通信性能也要优于过去 DI-engine 基于 NNG 的消息队列实现。</p>
-<a class="reference internal image-reference" href="../_images/rpc.png"><img alt="../_images/rpc.png" class="align-center" src="../_images/rpc.png" style="width: 600px;" /></a>
-<section id="nccl">
-<h3>为什么不是NCCL<a class="headerlink" href="#nccl" title="Permalink to this headline">¶</a></h3>
-<p>NCCL 作为广泛使用的高性能集合通信库，其专注于诸如 AllReduce 等集合通信范式，但却不擅长进行任意消息类型的高性能P2P通信，而 torchrpc 填补了这一空白。
-下表给出了其和 NCCL 的一些对比：</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 39%" />
-<col style="width: 28%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>对比</p></th>
-<th class="head"><p>NCCL</p></th>
-<th class="head"><p>torchrpc</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>支持GPU数据的RDMA-P2P</p></td>
-<td><p>True</p></td>
-<td><p>True</p></td>
-</tr>
-<tr class="row-odd"><td><p>支持CPU数据的RDMA-P2P</p></td>
-<td><p>False</p></td>
-<td><p>True</p></td>
-</tr>
-<tr class="row-even"><td><p>支持传输的对象类型</p></td>
-<td><p>只支持tensor</p></td>
-<td><p>任意python对象</p></td>
-</tr>
-<tr class="row-odd"><td><p>适用场景</p></td>
-<td><p>集合通讯</p></td>
-<td><p>点对点通信</p></td>
-</tr>
-</tbody>
-</table>
-</section>
 <section id="id2">
-<h3>性能测试<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>测试环境：配备有 A100-80GB GPU 和 200G 的 Infiniband 网卡的K8S集群</p>
-<section id="p2p">
-<h4>跨节点 P2P 测试<a class="headerlink" href="#p2p" title="Permalink to this headline">¶</a></h4>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 12%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>test
-case(unit:ms)</p></th>
-<th class="head"><p>20
-.00
-KB</p></th>
-<th class="head"><p>1
-.25
-MB</p></th>
-<th class="head"><p>10
-.00
-MB</p></th>
-<th class="head"><p>40
-.00
-M</p></th>
-<th class="head"><p>64
-0.00
-M</p></th>
-<th class="head"><p>1.
-25GB</p></th>
-<th class="head"><p>2.50
-GB</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>nng-TCP</p></td>
-<td><p>5.7
-353</p></td>
-<td><p>9.6
-782</p></td>
-<td><p>3
-0.5
-187</p></td>
-<td><p>17
-2.9
-719</p></td>
-<td><p>3
-450.
-7418</p></td>
-<td><p>7
-083.
-6372</p></td>
-<td><p>14072
-.1213</p></td>
-</tr>
-<tr class="row-odd"><td><p>nccl-TCP</p></td>
-<td><p>0.0
-826</p></td>
-<td><p>1.
-321</p></td>
-<td><p>3
-1.7
-813</p></td>
-<td><p>12
-8.0
-672</p></td>
-<td><p>125
-9.72</p></td>
-<td><p>2
-477.
-2957</p></td>
-<td><p>5157
-.7578</p></td>
-</tr>
-<tr class="row-even"><td><p>nccl-IB</p></td>
-<td><p>0.0
-928</p></td>
-<td><p>0.5
-618</p></td>
-<td><p>2.1
-134</p></td>
-<td><p>7.1
-768</p></td>
-<td><p>120
-.131</p></td>
-<td><p>260.
-2628</p></td>
-<td><p>518
-.8091</p></td>
-</tr>
-<tr class="row-odd"><td><p>nccl-GDR
-(PXN&lt;-&gt;PXN)</p></td>
-<td><p>0.5
-541</p></td>
-<td><p>45.
-601</p></td>
-<td><p>9.3
-636</p></td>
-<td><p>1
-9.3
-071</p></td>
-<td><p>10
-8.11</p></td>
-<td><p>280.
-0556</p></td>
-<td><p>527
-.9732</p></td>
-</tr>
-<tr class="row-even"><td><p>torchrpc-TCP</p></td>
-<td><p>5.6
-691</p></td>
-<td><p>5.4
-707</p></td>
-<td><p>1
-4.0
-155</p></td>
-<td><p>3
-9.4
-443</p></td>
-<td><p>580
-.333</p></td>
-<td><p>1
-154.
-0793</p></td>
-<td><p>2297
-.3776</p></td>
-</tr>
-<tr class="row-odd"><td><p>torchrpc-IB</p></td>
-<td><p>2
-1.3
-884</p></td>
-<td><p>4.4
-093</p></td>
-<td><p>5.9
-105</p></td>
-<td><p>2
-2.3
-012</p></td>
-<td><p>130
-.249</p></td>
-<td><p>236.
-8084</p></td>
-<td><p>477
-.2389</p></td>
-</tr>
-<tr class="row-even"><td><p>torchrpc-GDR
-(PXN&lt;-&gt;PXN)</p></td>
-<td><p>2
-0.5
-018</p></td>
-<td><p>2
-3.2
-081</p></td>
-<td><p>1
-5.6
-427</p></td>
-<td><p>7.
-535
-7*</p></td>
-<td><p>48.
-7812</p></td>
-<td><p>77.
-2657</p></td>
-<td><p>143
-.4112</p></td>
-</tr>
-</tbody>
-</table>
+<h2>简介<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>配置文件系统是机器学习算法工具中的重要组成部分，而由于强化学习的复杂性，相关任务中包含的配置字段相比一般任务则会更加复杂。为了应对这个问题，DI-engine 基于“约定大于配置”（Convention over Configuration，简称为CoC）的思想，设计了一套基本原则和相关工具，具体包括:</p>
+<ul class="simple">
+<li><p>Python 配置原则</p></li>
+<li><p>配置编译原则</p></li>
+<li><p>默认配置与用户配置</p></li>
+<li><p>强化学习任务核心配置字段分类</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>关于约定大于配置思想，进一步地了解可以参考中文博客 <a class="reference external" href="https://zhuanlan.zhihu.com/p/540714858">设计杂谈(0x02)——约定大于配置</a></p>
+</div>
 </section>
 <section id="id3">
-<h4>节点内 P2P 测试<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 27%" />
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 11%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>test
-case(unit:ms)</p></th>
-<th class="head"><p>1.25
-KB</p></th>
-<th class="head"><p>20.00
-KB</p></th>
-<th class="head"><p>1.25
-MB</p></th>
-<th class="head"><p>10.00
-MB</p></th>
-<th class="head"><p>4
-0.00
-M</p></th>
-<th class="head"><p>6
-40.00
-M</p></th>
-<th class="head"><p>1
-.25GB</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>shm</p></td>
-<td><p>0.
-3605</p></td>
-<td><p>0.352</p></td>
-<td><p>0.
-9924</p></td>
-<td><p>7
-.1229</p></td>
-<td><p>47.
-9575</p></td>
-<td><p>798
-.8635</p></td>
-<td><p>154
-8.782</p></td>
-</tr>
-<tr class="row-odd"><td><p>nccl-nvlink</p></td>
-<td><p>0.
-1969</p></td>
-<td><p>0
-.1104</p></td>
-<td><p>0.
-2162</p></td>
-<td><p>0
-.3285</p></td>
-<td><p>0.
-4532</p></td>
-<td><p>3
-.3166</p></td>
-<td><p>5
-.3828</p></td>
-</tr>
-<tr class="row-even"><td><p>cud
-a-shared-tensor</p></td>
-<td><p>0.
-5307</p></td>
-<td><p>0.578</p></td>
-<td><p>0.
-9643</p></td>
-<td><p>0
-.5908</p></td>
-<td><p>1.
-2449</p></td>
-<td><p>5
-.3707</p></td>
-<td><p>9.686</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="atari">
-<h4>Atari 训练任务测试<a class="headerlink" href="#atari" title="Permalink to this headline">¶</a></h4>
-<p>测试代码： dizoo/atari/example/atari_dqn_dist_rdma.py</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>memory: “32Gi”</p></li>
-<li><p>cpu:  16</p></li>
-<li><p>gpu: A100</p></li>
-</ul>
-</div></blockquote>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 49%" />
-<col style="width: 51%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>test case(unit:s)</p></th>
-<th class="head"><p>100 epoch avg time</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>TCP-nng</p></td>
-<td><p>127.64</p></td>
-</tr>
-<tr class="row-odd"><td><p>torchrpc-CP</p></td>
-<td><p>29.3906</p></td>
-</tr>
-<tr class="row-even"><td><p>torchrpc-IB</p></td>
-<td><p>28.7763</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-</section>
+<h2>基本原则<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>整体示意图如下：</p>
+<img alt="../_images/config.png" class="align-center" src="../_images/config.png" />
+<section id="python">
+<h3>Python 配置原则<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+<p>由于大部分机器学习程序都极为重视编程的灵活性和易用性，因此 DI-engine 中使用 Python 文件（即使用多级dict）来作为默认配置文件，便于兼容各种特殊需求。之前使用 yaml 和 json 的用户，也可以非常简单地迁移到 Python 配置。
+不过，对于非核心模块之外的部分，例如强化学习模拟环境中的通信接口，使用原生的配置也可，并无特殊限制。</p>
 </section>
 <section id="id4">
-<h2>使用<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<p>cli-ditask 引入了新的命令行参数：</p>
-<ul>
-<li><p>–mq_type ：引入了 cuda 和 torchrpc:cpu 选项：</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>cuda ：使用 torchrpc ，需要设置 device_map ，如果集群配置了 GPU direct RDMA 则可以自动使用。</p></li>
-<li><p>torchrpc:cpu ：使用 torchrpc ，但不设置 device_map 。 GPU数据会被拷贝到内存进行通信。</p></li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>–init-method ：init_rpc的初始化入口（如果选择 torchrpc 作为后端则为必填项），同 <a class="reference external" href="https://pytorch.org/docs/stable/rpc.html#torch.distributed.rpc.init_rpc">torch.distributed.init_process_group</a> 中的 init-method 参数。</p></li>
-<li><p>–local-cuda-devices ：设置当前进程可用GPU设备（可选，只有在 mq_type 为 cuda 有效，默认为所有可见设备），用逗号分隔的 int 列表。</p></li>
-<li><p>–cuda-device-map ：用于设置 torchrpc 的 <a class="reference external" href="https://pytorch.org/tutorials/recipes/cuda_rpc.html">device_map</a>，（可选，只有在 mq_type 为 cuda 有效，默认会映射全部可用 GPU ，使得各 GPU 之间可以 P2P ），格式如下：</p>
-<blockquote>
-<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Format:
-&lt;Peer<span class="w"> </span>Node<span class="w"> </span>ID&gt;_&lt;Local<span class="w"> </span>GPU<span class="w"> </span>Local<span class="w"> </span>Rank&gt;_&lt;Peer<span class="w"> </span>GPU<span class="w"> </span>Local<span class="w"> </span>Rank&gt;,<span class="o">[</span>...<span class="o">]</span>
-example:
---cuda-device-map<span class="o">=</span>1_0_1,2_0_2,0_0_0
-</pre></div>
+<h3>配置编译原则<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>对于整个训练程序，DI-engine 以 <code class="docutils literal notranslate"><span class="pre">compile_config</span></code>, <code class="docutils literal notranslate"><span class="pre">get_instance_cfg</span></code> 等类似的工具函数为分界线，在分界线之前，用户可通过使用默认配置，代码中修改配置，命令行输入配置等多种手段自定义所需的配置内容，
+但在分界线之后，所有的配置文件将被固定，后续不允许任何改动，训练程序也将依照此时的配置创建相应的功能模块和训练 pipeline。这种规则即为配置编译原则，即分界线之前为配置的编译生成期，而之后则会配置的运行使用期。
+另外，在工具函数中，也会将最终生成的配置文件导出存储在实验目录文件夹下（一般命名为 <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> ），用户可通过这个文件来检查配置文件设定的有效性，或是直接使用该文件复现原来的实验。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>一般来说，实验完成后会在以 <code class="docutils literal notranslate"><span class="pre">exp_name</span></code> 配置字段命名的路径文件夹存储相关信息，其中宏观配置信息文件为 <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> ，经过格式转换直接可以用于训练的配置文件为 <code class="docutils literal notranslate"><span class="pre">formatted_total_config.py</span></code> ，用户可以
+直接从这个文件中 import 相应的 <code class="docutils literal notranslate"><span class="pre">main_config</span></code> 和 <code class="docutils literal notranslate"><span class="pre">create_config</span></code> 传递给训练入口函数，从而开启实验。</p>
 </div>
-</div></blockquote>
-</li>
-</ul>
-<p>一个具体的例子：</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">INIT_METHOD</span><span class="o">=</span><span class="s2">&quot;tcp://XX.XX.XX.XX:12345&quot;</span>
-
-<span class="c1"># learner 位于节点 0 ，使用 GPU0 ，并建立和节点1的GPU0间的P2P映射</span>
-ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--main<span class="w"> </span>atari_dqn_dist_rdma.main<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--parallel-workers<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--labels<span class="w"> </span>learner<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--mq-type<span class="w"> </span>torchrpc:cuda<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--init-method<span class="o">=</span><span class="si">${</span><span class="nv">INIT_METHOD</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--cuda-device-map<span class="w"> </span>1_0_0<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--node-ids<span class="w"> </span><span class="m">0</span>
-
-<span class="c1"># collector 位于节点 1 ，使用 GPU0 ，并建立和节点0的GPU0间的P2P映射</span>
-ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--main<span class="w"> </span>atari_dqn_dist_rdma.main<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--parallel-workers<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--labels<span class="w"> </span>collector<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--mq-type<span class="w"> </span>torchrpc<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--init-method<span class="o">=</span><span class="si">${</span><span class="nv">INIT_METHOD</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--global_rank<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--attach-to<span class="w"> </span>0_0_0<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--node-ids<span class="w"> </span><span class="m">1</span>
-</pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>为了保证配置编译原则的有效性，使用者尽量不要在模块代码中使用例如 <code class="docutils literal notranslate"><span class="pre">cfg.get('field_xxx',</span> <span class="pre">'xxx')</span></code> 这样的操作，这样的操作会破坏编译原则，并且无法记录和追踪相应的修改。</p>
 </div>
 </section>
 <section id="id5">
-<h2>注意事项<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<p>如果您在K8S或其他容器集群环境下使用 DI-engine ，请使用 opendilab 提供的镜像，或参照此处的 <a class="reference external" href="https://github.com/SolenoidWGT/DI-engine/blob/p2p-rpc-dockerfile/docker/Dockerfile.rpc">Dockerfile</a> 。否则 torchrpc 可能无法正常工作。</p>
-<section id="ib">
-<h3>多IB设备<a class="headerlink" href="#ib" title="Permalink to this headline">¶</a></h3>
-<p>如果您的集群环境有多张 HCA 设备，torchrpc 可能不会正常工作，这一问题是由 torchrpc 底层的 <a class="reference external" href="https://github.com/pytorch/tensorpipe">tensorpip</a> 代码缺陷导致的，我们在 opendilab 的镜像中修复了这一问题。如果您无法使用我们的镜像，请保证您机器上的 HCA 的端口都处于可用状态。</p>
+<h3>默认配置与用户配置<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>另一方面，由于强化学习训练程序环境 MDP 建模设置，算法调优设置，训练系统效率设置等多方面的配置内容，往往会产生大量可修改的配置文件字段。但不同的配置字段有着不同的使用频率，甚至说在大部分情况下，多数配置字段
+都是不需要用户修改的，因此，DI-engine 中引入了默认配置的概念，即强化学习中的核心概念（例如 Policy，Env，Buffer）往往都具有自己的默认配置（default config），完整的定义和解释说明都可以在相应类的定义中找到。具体
+使用时，用户只需要指定当前情况必须要修改或添加的配置字段即可，而在上文提到的分界线函数中（例如 <code class="docutils literal notranslate"><span class="pre">compile_config</span></code> ），会将默认配置和用户配置进行编译融合，构成最终的配置文件，具体融合的规则如下：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>默认配置中有，用户配置中没有的字段，使用默认值</p></li>
+<li><p>默认配置中没有，用户配置中有的字段，使用用户指定值</p></li>
+<li><p>默认配置和用户配置中同时存在的字段，使用用户指定值</p></li>
+</ul>
+</div></blockquote>
 </section>
 <section id="id6">
-<h3>容器环境<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
-<p>torchrpc 无法判断自己是否处于容器环境，我们的opendilab的镜像增加了容器环境的判断功能，避免 torchrpc 在容器环境下进行 GPU 设备映射导致的初始化错误。</p>
+<h3>强化学习任务核心配置字段分类<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>整体来说，DI-engine 中的强化学习任务所需的配置字段主要分类两大类：</p>
+<ul class="simple">
+<li><p>第一类是在训练 pipeline 中被各个 worker/middleware 共享的对象，例如算法策略（Policy），环境（Env），奖励模型（Reward Model），数据队列（Buffer）等等，它们各自拥有自己的默认配置。在整体配置文件中，它们也
+保持平级关系并行放置，每个对象所有配置字段的含义可以参考相应类的定义，类变量 <code class="docutils literal notranslate"><span class="pre">config</span></code> 和类方法 <code class="docutils literal notranslate"><span class="pre">default_config</span></code> 指明了默认配置的内容和调用方法。</p></li>
+<li><p>第二类是在训练 pipeline 中具体执行各类任务的 worker/middleware，例如学习器（Learner），数据收集器（Collector）等等，他们一般对应的参数较少，可在训练入口函数中直接指定相关参数值，或是依附在整体配置文件的全局
+区域中，具体实现并无特殊要求，保持代码清晰易用即可。</p></li>
+</ul>
+<p>不过，在主体配置 <code class="docutils literal notranslate"><span class="pre">main_config</span></code> 之外，还存在帮助快速创建训练入口的创建配置 <code class="docutils literal notranslate"><span class="pre">create_config</span></code> ，这部分创建配置仅在 <code class="docutils literal notranslate"><span class="pre">serial_pipeline_xxx</span></code> 系列快速训练入口中使用，如果是自定义训练入口函数的用户可选择忽略。创建
+配置中需要指定相应的类别名（type）和引入模块所需的路径（import_names）。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>由于历史版本原因，在 Policy 字段中还定义了许多子域，例如 learn，collect，eval，other 等等，在最新版本的 DI-engine (&gt;=0.4.7) 中已经去除了对于这些定义的强制依赖，使用或不使用这些结构均可，只要在策略中将配置
+字段和相应的生效代码段对应起来即可。</p>
+</div>
 </section>
-<section id="fork">
-<h3>和fork()混合使用<a class="headerlink" href="#fork" title="Permalink to this headline">¶</a></h3>
-<p>torchrpc 没有考虑到进程混合使用 RDMA 和 fork 的情况。如果在使用 RDMA 时没有进行相应的初始化措施，使用 fork 会出现严重问题， <a class="reference external" href="https://www.rdmamojo.com/2012/05/24/ibv_fork_init/">请参考</a>。
-因此，如果您在 IB/RoCE 网络环境下使用 torchrpc，并需要配合 fork 混合使用，请指定环境变量 <cite>IBV_FORK_SAFE=1</cite> 和 <cite>RDMAV_FORK_SAFE=1</cite>。</p>
+<section id="id7">
+<h3>其他工具<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine 还提供了一些关于配置文件存储，格式化的相关工具，具体信息可以参考代码 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/config">ding/config</a></p>
+</section>
 </section>
 <section id="id8">
-<h3>反馈<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<p>因为目前 tensorpipe 不会有活跃的开发计划， 如果您遇到和 torchrpc 有关的问题或 bug ， 您可以在 DI-engine 社区中提 issue 。
-同时我们正在积极和 tensorpipe 社区沟通并跟踪上述问题的修复情况，如果有任何修复我们会第一时间进行更新。</p>
-</section>
+<h2>配置文件示例解析<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>下方是一个具体的 DI-engine 中的配置示例，其含义是在 CartPole 环境上训练 DQN 智能体（即快速上手文档中用到的例子），具体配置内容和相关字段解释如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+
+<span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;cartpole_dqn_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">195</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">cartpole_dqn_config</span>
+<span class="n">cartpole_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;cartpole&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.classic_control.cartpole.envs.cartpole_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_dqn_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">cartpole_dqn_create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>整个配置文件可分为两部分，<code class="docutils literal notranslate"><span class="pre">main_config</span></code> 和 <code class="docutils literal notranslate"><span class="pre">create_config</span></code> ，主体配置（main_config) 中包含实验名（exp_name），环境（env）和策略（policy）三部分，分别指定了跟当前任务最相关，以及最常修改的部分配置字段。
+而创建配置中则指定了环境、环境管理器和策略的类型，从而使得可以直接使用下方的快速训练入口 <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> 运行这个配置文件。如果是使用 task/middleware 方式自定义训练入口，则直接加载这份配置文件即可。</p>
 </section>
 </section>
 
@@ -720,12 +437,12 @@ ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w">
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="../04_best_practice/index_zh.html" class="btn btn-neutral float-right" title="最佳实践" accesskey="n"
+    <a href="rpc_zh.html" class="btn btn-neutral float-right" title="高性能RPC框架" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="config_zh.html" class="btn btn-neutral" title="配置文件系统" accesskey="p"
+    <a href="distributed_zh.html" class="btn btn-neutral" title="分布式" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -755,25 +472,17 @@ ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w">
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">高性能RPC框架</a><ul>
-<li><a class="reference internal" href="#id1">简介</a><ul>
-<li><a class="reference internal" href="#nccl">为什么不是NCCL</a></li>
-<li><a class="reference internal" href="#id2">性能测试</a><ul>
-<li><a class="reference internal" href="#p2p">跨节点 P2P 测试</a></li>
-<li><a class="reference internal" href="#id3">节点内 P2P 测试</a></li>
-<li><a class="reference internal" href="#atari">Atari 训练任务测试</a></li>
+<li><a class="reference internal" href="#">配置文件系统</a><ul>
+<li><a class="reference internal" href="#id2">简介</a></li>
+<li><a class="reference internal" href="#id3">基本原则</a><ul>
+<li><a class="reference internal" href="#python">Python 配置原则</a></li>
+<li><a class="reference internal" href="#id4">配置编译原则</a></li>
+<li><a class="reference internal" href="#id5">默认配置与用户配置</a></li>
+<li><a class="reference internal" href="#id6">强化学习任务核心配置字段分类</a></li>
+<li><a class="reference internal" href="#id7">其他工具</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id4">使用</a></li>
-<li><a class="reference internal" href="#id5">注意事项</a><ul>
-<li><a class="reference internal" href="#ib">多IB设备</a></li>
-<li><a class="reference internal" href="#id6">容器环境</a></li>
-<li><a class="reference internal" href="#fork">和fork()混合使用</a></li>
-<li><a class="reference internal" href="#id8">反馈</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#id8">配置文件示例解析</a></li>
 </ul>
 </li>
 </ul>

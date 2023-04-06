@@ -295,8 +295,7 @@
 <span></span><span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">torch.nn.utils</span> <span class="kn">import</span> <span class="n">clip_grad_norm_</span><span class="p">,</span> <span class="n">clip_grad_value_</span>
-<span class="kn">from</span> <span class="nn">torch._six</span> <span class="kn">import</span> <span class="n">inf</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 <span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
@@ -304,6 +303,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">random</span>
+
+<span class="n">inf</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
 
 
 <span class="k">def</span> <span class="nf">calculate_grad_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -487,10 +488,10 @@
         <span class="c1"># others</span>
         <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;1.12.0&quot;</span><span class="p">:</span>
             <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="c1">#TODO</span>
-            <span class="c1">#wait torch upgrad to 1.4, 1.3.1 didn&#39;t support memory format state[&#39;step&#39;] = 0</span>
+            <span class="c1"># TODO</span>
+            <span class="c1"># wait torch upgrad to 1.4, 1.3.1 didn&#39;t support memory format state[&#39;step&#39;] = 0</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> \
+            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> \
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;capturable&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
 
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;exp_avg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
@@ -529,7 +530,7 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_state_init</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;amsgrad&#39;</span><span class="p">])</span>
                     <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
-                    <span class="c1">#should we use same beta group?</span>
+                    <span class="c1"># should we use same beta group?</span>
                     <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;betas&#39;</span><span class="p">]</span>
                     <span class="n">bias_correction2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span> <span class="o">**</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span>
                     <span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta2</span><span class="p">)</span><span class="o">.</span><span class="n">addcmul_</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span>
@@ -553,7 +554,7 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_state_init</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;amsgrad&#39;</span><span class="p">])</span>
                     <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
-                    <span class="c1">#should we use same beta group?</span>
+                    <span class="c1"># should we use same beta group?</span>
                     <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;betas&#39;</span><span class="p">]</span>
                     <span class="n">bias_correction2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span> <span class="o">**</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span>
                     <span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta2</span><span class="p">)</span><span class="o">.</span><span class="n">addcmul_</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span>
@@ -561,7 +562,7 @@
                     <span class="n">param_norm</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span><span class="p">)</span>
                     <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span>
 
-                    <span class="c1">#sum momentum_norm</span>
+                    <span class="c1"># sum momentum_norm</span>
                     <span class="n">momentum</span> <span class="o">=</span> <span class="p">((</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bias_correction2</span><span class="p">))</span> <span class="o">*</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">_clip_coef</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span><span class="p">)</span>
                     <span class="n">total_momentum_norm</span> <span class="o">+=</span> <span class="n">momentum</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span>
@@ -588,7 +589,7 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_state_init</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;amsgrad&#39;</span><span class="p">])</span>
                     <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
-                    <span class="c1">#should we use same beta group?</span>
+                    <span class="c1"># should we use same beta group?</span>
                     <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;betas&#39;</span><span class="p">]</span>
                     <span class="n">bias_correction2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span> <span class="o">**</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span>
                     <span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta2</span><span class="p">)</span><span class="o">.</span><span class="n">addcmul_</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span>
@@ -620,7 +621,7 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_state_init</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;amsgrad&#39;</span><span class="p">])</span>
                     <span class="n">grad</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span>
-                    <span class="c1">#should we use same beta group?</span>
+                    <span class="c1"># should we use same beta group?</span>
                     <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;betas&#39;</span><span class="p">]</span>
                     <span class="n">bias_correction2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span> <span class="o">**</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span>
                     <span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mul_</span><span class="p">(</span><span class="n">beta2</span><span class="p">)</span><span class="o">.</span><span class="n">addcmul_</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">grad</span><span class="p">)</span>
@@ -628,7 +629,7 @@
                     <span class="n">param_norm</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span><span class="p">)</span>
                     <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span>
 
-                    <span class="c1">#sum momentum_norm</span>
+                    <span class="c1"># sum momentum_norm</span>
                     <span class="n">momentum</span> <span class="o">=</span> <span class="p">((</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bias_correction2</span><span class="p">))</span> <span class="o">*</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_coef</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span><span class="p">)</span>
                     <span class="n">total_momentum_norm</span> <span class="o">+=</span> <span class="n">momentum</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span>
@@ -642,7 +643,7 @@
                         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]:</span>
                             <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
 
-        <span class="c1">#Adam optim type</span>
+        <span class="c1"># Adam optim type</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim_type</span> <span class="o">==</span> <span class="s1">&#39;adamw&#39;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]:</span>
@@ -811,7 +812,7 @@
                     <span class="n">param_norm</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span><span class="p">)</span>
                     <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span>
 
-                    <span class="c1">#sum momentum_norm</span>
+                    <span class="c1"># sum momentum_norm</span>
                     <span class="n">momentum</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_square_avg&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_coef</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span><span class="p">)</span>
                     <span class="n">total_momentum_norm</span> <span class="o">+=</span> <span class="n">momentum</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span>
                     <span class="n">step</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">])</span>
@@ -872,7 +873,7 @@
                     <span class="n">param_norm</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span><span class="p">)</span>
                     <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span>
 
-                    <span class="c1">#sum momentum_norm</span>
+                    <span class="c1"># sum momentum_norm</span>
                     <span class="n">momentum</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_square_avg&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sqrt</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_coef</span><span class="p">)</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span><span class="p">)</span>
                     <span class="n">total_momentum_norm</span> <span class="o">+=</span> <span class="n">momentum</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_norm_type</span>
                     <span class="n">step</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">])</span>
@@ -1024,6 +1025,61 @@
                 <span class="n">grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
                 <span class="n">has_grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">grad</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">has_grad</span>
+
+
+<span class="k">def</span> <span class="nf">configure_weight_decay</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">weight_decay</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Separating out all parameters of the model into two buckets: those that will experience</span>
+<span class="sd">    weight decay for regularization and those that won&#39;t (biases, and layer-norm or embedding weights).</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - model (:obj:`nn.Module`): the given PyTorch model.</span>
+<span class="sd">        - weight_decay (:obj:`float`): weight decay value for optimizer.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - optim groups (:obj:`List`): the parameter groups to be set in the latter optimizer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">decay</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">no_decay</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">whitelist_weight_modules</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">blacklist_weight_modules</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">mn</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">pn</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="n">fpn</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mn</span><span class="p">,</span> <span class="n">pn</span><span class="p">)</span> <span class="k">if</span> <span class="n">mn</span> <span class="k">else</span> <span class="n">pn</span>  <span class="c1"># full param name</span>
+            <span class="c1"># Because named_modules and named_parameters are recursive</span>
+            <span class="c1"># we will see the same tensors p many times. But doing it this way</span>
+            <span class="c1"># allows us to know which parent module any tensor p belongs to.</span>
+            <span class="k">if</span> <span class="n">pn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;bias&#39;</span><span class="p">):</span>
+                <span class="c1"># all biases will not be decayed</span>
+                <span class="n">no_decay</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fpn</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">pn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">whitelist_weight_modules</span><span class="p">):</span>
+                <span class="c1"># weights of whitelist modules will be weight decayed</span>
+                <span class="n">decay</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fpn</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">pn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">blacklist_weight_modules</span><span class="p">):</span>
+                <span class="c1"># weights of blacklist modules will NOT be weight decayed</span>
+                <span class="n">no_decay</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fpn</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">decay</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fpn</span><span class="p">)</span>
+
+    <span class="n">decay</span> <span class="o">=</span> <span class="n">decay</span> <span class="o">-</span> <span class="n">no_decay</span>
+    <span class="c1"># validate that we considered every parameter</span>
+    <span class="n">param_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">pn</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">pn</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">()}</span>
+    <span class="n">union_params</span> <span class="o">=</span> <span class="n">decay</span> <span class="o">|</span> <span class="n">no_decay</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span>
+        <span class="n">param_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="n">union_params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;parameters </span><span class="si">%s</span><span class="s2"> were not separated into either decay/no_decay set!&quot;</span> \
+                                                <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">param_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="n">union_params</span><span class="p">),)</span>
+
+    <span class="n">optim_groups</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">param_dict</span><span class="p">[</span><span class="n">pn</span><span class="p">]</span> <span class="k">for</span> <span class="n">pn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">decay</span><span class="p">))],</span>
+            <span class="s2">&quot;weight_decay&quot;</span><span class="p">:</span> <span class="n">weight_decay</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">param_dict</span><span class="p">[</span><span class="n">pn</span><span class="p">]</span> <span class="k">for</span> <span class="n">pn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">no_decay</span><span class="p">))],</span>
+            <span class="s2">&quot;weight_decay&quot;</span><span class="p">:</span> <span class="mf">0.0</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">optim_groups</span>
 </pre></div>
 
               </article>
