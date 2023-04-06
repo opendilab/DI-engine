@@ -8,6 +8,7 @@ from ding.utils import SequenceType, squeeze
 
 from ding.utils import MODEL_REGISTRY
 
+
 @MODEL_REGISTRY.register('edac')
 class Q_ensemble(nn.Module):
     r"""
@@ -79,7 +80,6 @@ class Q_ensemble(nn.Module):
                 norm_type=norm_type
             )
         )
-
 
     def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
         """
@@ -167,14 +167,14 @@ class Q_ensemble(nn.Module):
         x = torch.cat([obs, action], dim=-1)
         if len(obs.shape) < 3:
             # [batch_size,dim] -> [batch_size,Ensemble_num * dim,1]
-            x = x.repeat(1,self.ensemble_num).unsqueeze(-1)
+            x = x.repeat(1, self.ensemble_num).unsqueeze(-1)
         else:
             # [Ensemble_num,batch_size,dim] -> [batch_size,Ensemble_num,dim] -> [batch_size,Ensemble_num * dim, 1]
-            x = x.transpose(0,1)
+            x = x.transpose(0, 1)
             batch_size = obs.shape[1]
-            x = x.reshape(batch_size,-1,1)
+            x = x.reshape(batch_size, -1, 1)
         # [Ensemble_num,batch_size,1]
         x = self.critic(x)['pred']
         # [batch_size,1*Ensemble_num] -> [Ensemble_num,batch_size]
-        x = x.permute(1,0)
+        x = x.permute(1, 0)
         return {'q_value': x}

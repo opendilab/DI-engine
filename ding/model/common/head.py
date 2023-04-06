@@ -1243,6 +1243,7 @@ class MultiHead(nn.Module):
         """
         return lists_to_dicts([m(x) for m in self.pred])
 
+
 class EnsembleHead(nn.Module):
     """
         Overview:
@@ -1252,22 +1253,44 @@ class EnsembleHead(nn.Module):
         Interfaces:
             ``__init__``, ``forward``.
     """
-    def __init__(self, input_size: int,
-                 output_size: int,
-                 hidden_size: int,
-                 layer_nun: int,
-                 ensemble_num: int,
-                 activation: Optional[nn.Module] = nn.ReLU(),
-                 norm_type: Optional[str] = None) -> None:
-        super(EnsembleHead,self).__init__()
+
+    def __init__(
+            self,
+            input_size: int,
+            output_size: int,
+            hidden_size: int,
+            layer_nun: int,
+            ensemble_num: int,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        super(EnsembleHead, self).__init__()
         d = input_size
         layers = []
         for _ in range(layer_nun):
-            layers.append(conv1d_block(d * ensemble_num, hidden_size * ensemble_num, kernel_size=1, 
-                                       stride=1, groups=ensemble_num, activation=activation, norm_type=norm_type))
+            layers.append(
+                conv1d_block(
+                    d * ensemble_num,
+                    hidden_size * ensemble_num,
+                    kernel_size=1,
+                    stride=1,
+                    groups=ensemble_num,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
             d = hidden_size
-        layers.append(conv1d_block(hidden_size * ensemble_num, output_size * ensemble_num, kernel_size=1, 
-                                   stride=1, groups=ensemble_num, activation=None, norm_type=None))
+        layers.append(
+            conv1d_block(
+                hidden_size * ensemble_num,
+                output_size * ensemble_num,
+                kernel_size=1,
+                stride=1,
+                groups=ensemble_num,
+                activation=None,
+                norm_type=None
+            )
+        )
         self.pred = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> Dict:
@@ -1290,6 +1313,7 @@ class EnsembleHead(nn.Module):
         """
         x = self.pred(x).squeeze()
         return {'pred': x}
+
 
 def independent_normal_dist(logits: Union[List, Dict]) -> torch.distributions.Distribution:
     if isinstance(logits, (list, tuple)):

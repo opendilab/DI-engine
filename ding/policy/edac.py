@@ -15,6 +15,7 @@ from .sac import SACPolicy
 from .dqn import DQNPolicy
 from .common_utils import default_preprocess_learn
 
+
 @POLICY_REGISTRY.register('edac')
 class EDACPolicy(SACPolicy):
     """
@@ -94,17 +95,13 @@ class EDACPolicy(SACPolicy):
             multi_gpu=False,
             update_per_collect=1,
             batch_size=256,
-
             learning_rate_q=3e-4,
             learning_rate_policy=3e-4,
             learning_rate_value=3e-4,
-
             learning_rate_alpha=3e-4,
             target_theta=0.005,
             discount_factor=0.99,
-
             alpha=1,
-
             auto_alpha=True,
             # (bool type) log_space: Determine whether to use auto `\alpha` in log space.
             log_space=True,
@@ -244,7 +241,7 @@ class EDACPolicy(SACPolicy):
             target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
             # the value of a policy according to the maximum entropy objective
 
-            target_q_value,_ = torch.min(target_q_value,dim=0)
+            target_q_value, _ = torch.min(target_q_value, dim=0)
             if self._with_q_entropy:
                 target_q_value -= self._alpha * next_log_prob.squeeze(-1)
             target_q_value = self._gamma * (1 - done) * target_q_value + reward
@@ -252,29 +249,32 @@ class EDACPolicy(SACPolicy):
         weight = data['weight']
         if weight is None:
             weight = torch.ones_like(q_value)
-        td_error_per_sample = nn.MSELoss(reduction='none')(q_value,target_q_value).mean(dim=1).sum()
+        td_error_per_sample = nn.MSELoss(reduction='none')(q_value, target_q_value).mean(dim=1).sum()
         loss_dict['critic_loss'] = (td_error_per_sample * weight).mean()
-
 
         if self._eta > 0:
             # [batch_size,dim] -> [Ensemble_num,batch_size,dim]
-            pre_obs = obs.unsqueeze(0).repeat_interleave(self._cfg.model.ensemble_num,dim=0)
-            pre_acs = acs.unsqueeze(0).repeat_interleave(self._cfg.model.ensemble_num,dim=0).requires_grad_(True)
+            pre_obs = obs.unsqueeze(0).repeat_interleave(self._cfg.model.ensemble_num, dim=0)
+            pre_acs = acs.unsqueeze(0).repeat_interleave(self._cfg.model.ensemble_num, dim=0).requires_grad_(True)
 
             # [Ensemble_num,batch_size]
-            q_pred_tile = self._learn_model.forward({'obs':pre_obs,'action':pre_acs}, mode='compute_critic')['q_value'].requires_grad_(True)
+            q_pred_tile = self._learn_model.forward({
+                'obs': pre_obs,
+                'action': pre_acs
+            }, mode='compute_critic')['q_value'].requires_grad_(True)
 
-            q_pred_grads = torch.autograd.grad(q_pred_tile.sum(),pre_acs,retain_graph=True,create_graph=True)[0]
-            q_pred_grads = q_pred_grads / (torch.norm(q_pred_grads,p=2,dim=2).unsqueeze(-1) + 1e-10)
+            q_pred_grads = torch.autograd.grad(q_pred_tile.sum(), pre_acs, retain_graph=True, create_graph=True)[0]
+            q_pred_grads = q_pred_grads / (torch.norm(q_pred_grads, p=2, dim=2).unsqueeze(-1) + 1e-10)
             # [Ensemble_num,batch_size,act_dim] -> [batch_size,Ensemble_num,act_dim]
-            q_pred_grads = q_pred_grads.transpose(0,1)
+            q_pred_grads = q_pred_grads.transpose(0, 1)
 
-            q_pred_grads = q_pred_grads @ q_pred_grads.permute(0,2,1)
-            masks = torch.eye(self._cfg.model.ensemble_num,device=obs.device).unsqueeze(dim=0).repeat(q_pred_grads.size(0),1,1) 
+            q_pred_grads = q_pred_grads @ q_pred_grads.permute(0, 2, 1)
+            masks = torch.eye(
+                self._cfg.model.ensemble_num, device=obs.device
+            ).unsqueeze(dim=0).repeat(q_pred_grads.size(0), 1, 1)
             q_pred_grads = (1 - masks) * q_pred_grads
-            grad_loss = torch.mean(torch.sum(q_pred_grads,dim=(1,2))) / (self._cfg.model.ensemble_num - 1)
-            loss_dict['critic_loss'] += grad_loss
-
+            grad_loss = torch.mean(torch.sum(q_pred_grads, dim=(1, 2))) / (self._cfg.model.ensemble_num - 1)
+            loss_dict['critic_loss'] += grad_loss * self._eta
 
         self._optimizer_q.zero_grad()
         loss_dict['critic_loss'].backward()
@@ -290,7 +290,7 @@ class EDACPolicy(SACPolicy):
 
         eval_data = {'obs': obs, 'action': action}
         new_q_value = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
-        new_q_value,_ = torch.min(new_q_value,dim=0)
+        new_q_value, _ = torch.min(new_q_value, dim=0)
 
         # 8. compute policy loss
         policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()

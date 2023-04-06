@@ -11,9 +11,6 @@ from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver,
 from ding.utils import set_pkg_seed
 from dizoo.d4rl.envs import D4RLEnv
 from dizoo.d4rl.config.halfcheetah_medium_edac_config import main_config,create_config
-# from dizoo.d4rl.config.halfcheetah_medium_expert_edac_config import main_config,create_config
-# from dizoo.d4rl.config.hopper_medium_expert_edac_config import main_config,create_config
-# from dizoo.d4rl.config.hopper_medium_edac_config import main_config,create_config
 
 
 def main():
