@@ -735,15 +735,15 @@ class PCGrad():
 
 def configure_weight_decay(model: nn.Module, weight_decay: float) -> List:
     r"""
-        Overview:
-            Separating out all parameters of the model into two buckets: those that will experience
-        weight decay for regularization and those that won't (biases, and layer-norm or embedding weights).
-        Arguments:
-            - model (:obj:`nn.Module`): the given PyTorch model.
-            - weight_decay (:obj:`float`): weight decay value for optimizer.
-        Returns:
-            - optim groups (:obj:`List`): the parameter groups to be set in the latter optimizer.
-        """
+    Overview:
+        Separating out all parameters of the model into two buckets: those that will experience
+    weight decay for regularization and those that won't (biases, and layer-norm or embedding weights).
+    Arguments:
+        - model (:obj:`nn.Module`): the given PyTorch model.
+        - weight_decay (:obj:`float`): weight decay value for optimizer.
+    Returns:
+        - optim groups (:obj:`List`): the parameter groups to be set in the latter optimizer.
+    """
     decay = set()
     no_decay = set()
     whitelist_weight_modules = (torch.nn.Linear, )
