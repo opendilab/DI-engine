@@ -75,7 +75,13 @@ class Swish(nn.Module):
 
 
 class GELU(nn.Module):
-
+    r"""
+    Overview:
+        Gaussian Error Linear Units (GELU) activation function, which is widely used in NLP models like GPT, BERT.
+        The original paper can be viewed in: <link https://arxiv.org/pdf/1606.08415.pdf link>
+    Interfaces:
+        forward
+    """
     def __init__(self):
         super(GELU, self).__init__()
 
@@ -88,7 +94,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     Overview:
         Return the activation module according to the given type.
     Arguments:
-        - actvation (:obj:`str`): the type of activation module, now supports ['relu', 'glu', 'prelu']
+        - activation (:obj:`str`): the type of activation module, now supports ['relu', 'glu', 'prelu']
         - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default ``None``
     Returns:
         - act_func (:obj:`nn.module`): the corresponding activation module

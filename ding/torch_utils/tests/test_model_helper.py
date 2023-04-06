@@ -14,3 +14,6 @@ class TestModelHelper:
         """
         net = torch.nn.Linear(3, 4, bias=False)
         assert get_num_params(net) == 12
+
+        net = torch.nn.Conv2d(3, 3, kernel_size=3, bias=False)
+        assert get_num_params(net) == 81

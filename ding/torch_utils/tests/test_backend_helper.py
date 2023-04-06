@@ -4,7 +4,7 @@ import torch
 from ding.torch_utils.backend_helper import enable_tf32
 
 
-@pytest.mark.unittest
+@pytest.mark.cudatest
 class TestBackendHelper:
 
     def test_tf32(self):

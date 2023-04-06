@@ -1,7 +1,7 @@
 import torch
 import math
 from torch.nn.utils import clip_grad_norm_, clip_grad_value_
-from typing import Union, Iterable, Tuple, Callable
+from typing import Union, Iterable, Tuple, Callable, List
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -733,15 +733,17 @@ class PCGrad():
         return grad, shape, has_grad
 
 
-def configure_weight_decay(model, weight_decay):
-    """
-        This long function is unfortunately doing something very simple and is being very defensive:
-        We are separating out all parameters of the model into two buckets: those that will experience
-        weight decay for regularization and those that won't (biases, and layernorm/embedding weights).
-        We are then returning the PyTorch optimizer object.
+def configure_weight_decay(model: nn.Module, weight_decay: float) -> List:
+    r"""
+        Overview:
+            Separating out all parameters of the model into two buckets: those that will experience
+        weight decay for regularization and those that won't (biases, and layer-norm or embedding weights).
+        Arguments:
+            - model (:obj:`nn.Module`): the given PyTorch model.
+            - weight_decay (:obj:`float`): weight decay value for optimizer.
+        Returns:
+            - optim groups (:obj:`List`): the parameter groups to be set in the latter optimizer.
         """
-
-    # separate out all parameters to those that will and won't experience regularizing weight decay
     decay = set()
     no_decay = set()
     whitelist_weight_modules = (torch.nn.Linear, )
@@ -749,9 +751,9 @@ def configure_weight_decay(model, weight_decay):
     for mn, m in model.named_modules():
         for pn, p in m.named_parameters():
             fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name
-            # random note: because named_modules and named_parameters are recursive
-            # we will see the same tensors p many many times. but doing it this way
-            # allows us to know which parent module any tensor p belongs to...
+            # Because named_modules and named_parameters are recursive
+            # we will see the same tensors p many times. But doing it this way
+            # allows us to know which parent module any tensor p belongs to.
             if pn.endswith('bias'):
                 # all biases will not be decayed
                 no_decay.add(fpn)
@@ -767,13 +769,11 @@ def configure_weight_decay(model, weight_decay):
     decay = decay - no_decay
     # validate that we considered every parameter
     param_dict = {pn: p for pn, p in model.named_parameters()}
-    inter_params = decay & no_decay
     union_params = decay | no_decay
     assert len(
         param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
                                                 % (str(param_dict.keys() - union_params),)
 
-    # create the pytorch optimizer object
     optim_groups = [
         {
             "params": [param_dict[pn] for pn in sorted(list(decay))],
