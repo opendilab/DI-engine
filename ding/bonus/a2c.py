@@ -88,7 +88,6 @@ class A2CAgent:
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
         self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
-        self.device=self.policy._device
 
     def train(
             self,
@@ -117,7 +116,7 @@ class A2CAgent:
                 )
             )
             task.use(gae_estimator(self.cfg, self.policy.collect_mode))
-            task.use(trainer(self.cfg, self.policy.learn_mode, self.device))
+            task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(
                 CkptSaver(
                     policy=self.policy,
