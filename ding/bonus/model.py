@@ -6,7 +6,7 @@ import treetensor.torch as ttorch
 from copy import deepcopy
 from ding.utils import SequenceType, squeeze
 from ding.model.common import ReparameterizationHead, RegressionHead, MultiHead, \
-    FCEncoder, ConvEncoder, IMPALAConvEncoder, PopArtQHead
+    FCEncoder, ConvEncoder, IMPALAConvEncoder, PopArtVHead
 from ding.torch_utils import MLP, fc_block
 
 
@@ -57,7 +57,7 @@ class PPOFModel(nn.Module):
         fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
         encoder: Optional[torch.nn.Module] = None,
-        use_popart_head=False,
+        popart_head=False,
     ) -> None:
         super(PPOFModel, self).__init__()
         obs_shape = squeeze(obs_shape)
@@ -109,12 +109,12 @@ class PPOFModel(nn.Module):
                 self.critic_encoder = new_encoder(critic_head_hidden_size)
 
         # Head Type
-        if not use_popart_head:
+        if not popart_head:
             self.critic_head = RegressionHead(
                 critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
             )
         else:
-            self.critic_head = PopArtQHead(
+            self.critic_head = PopArtVHead(
                 critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
             )
 

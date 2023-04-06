@@ -1170,10 +1170,10 @@ class ReparameterizationHead(nn.Module):
         return {'mu': mu, 'sigma': sigma}
 
 
-class PopArtQHead(nn.Module):
+class PopArtVHead(nn.Module):
     """
         Overview:
-            The ``PopArtQHead`` used to output discrete actions logit with the last layer as popart. \
+            The ``PopArtVHead`` used to output discrete actions logit with the last layer as popart. \
             Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
             output ``logit``.
         Interfaces:
@@ -1191,9 +1191,9 @@ class PopArtQHead(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the ``PopArtQHead`` layers according to the provided arguments.
+            Init the ``PopArtVHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``PopArtQHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``PopArtVHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
             - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
@@ -1203,7 +1203,7 @@ class PopArtQHead(nn.Module):
             - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
                 Default ``False``.
         """
-        super(PopArtQHead, self).__init__()
+        super(PopArtVHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
         self.popart = PopArt(hidden_size, output_size)
         self.Q = nn.Sequential(
@@ -1221,7 +1221,7 @@ class PopArtQHead(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         """
         Overview:
-            Use encoded embedding tensor to run MLP with ``PopArtQHead`` and return the prediction dictionary.
+            Use encoded embedding tensor to run MLP with ``PopArtVHead`` and return the prediction dictionary.
         Arguments:
             - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
@@ -1230,7 +1230,7 @@ class PopArtQHead(nn.Module):
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
         Examples:
-            >>> head = PopArtQHead(64, 64)
+            >>> head = PopArtVHead(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = head(inputs)
             >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 64])
@@ -1329,7 +1329,7 @@ head_cls_map = {
     # continuous
     'regression': RegressionHead,
     'reparameterization': ReparameterizationHead,
-    'popart': PopArtQHead,
+    'popart': PopArtVHead,
     # multi
     'multi': MultiHead,
 }
