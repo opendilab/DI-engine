@@ -16,4 +16,6 @@ class TestBackendHelper:
         net = torch.nn.Linear(3, 4)
         x = torch.randn(1, 3)
         y = torch.sum(net(x))
+        net.zero_grad()
         y.backward()
+        assert net.weight.grad is not None

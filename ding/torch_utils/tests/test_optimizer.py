@@ -104,21 +104,21 @@ def try_optim_with(tname, t, optim_t):
     return weight
 
 
-# @pytest.mark.unittest
-# class TestAdam:
-#
-#     def test_naive(self):
-#         support_type = {
-#             'optim': ['adam', 'adamw'],
-#             'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm', 'clip_momentum_norm'],
-#             'grad_norm': [None],
-#             'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm', 'ignore_momentum_norm'],
-#         }
-#
-#         for optim_t in support_type['optim']:
-#             for tname in ['grad_clip', 'grad_ignore']:
-#                 for t in support_type[tname]:
-#                     try_optim_with(tname=tname, t=t, optim_t=optim_t)
+@pytest.mark.unittest
+class TestAdam:
+
+    def test_naive(self):
+        support_type = {
+            'optim': ['adam', 'adamw'],
+            'grad_clip': [None, 'clip_momentum', 'clip_value', 'clip_norm', 'clip_momentum_norm'],
+            'grad_norm': [None],
+            'grad_ignore': [None, 'ignore_momentum', 'ignore_value', 'ignore_norm', 'ignore_momentum_norm'],
+        }
+
+        for optim_t in support_type['optim']:
+            for tname in ['grad_clip', 'grad_ignore']:
+                for t in support_type[tname]:
+                    try_optim_with(tname=tname, t=t, optim_t=optim_t)
 
 
 @pytest.mark.unittest
