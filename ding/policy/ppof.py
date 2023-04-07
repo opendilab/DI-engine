@@ -148,11 +148,14 @@ class PPOFPolicy:
         for epoch in range(self._cfg.epoch_per_collect):
             # recompute adv
             with torch.no_grad():
+                # get the value dictionary
+                # In popart, the dictionary has two keys: 'pred' and 'unnormalized_pred'
                 value = self._model.compute_critic(data.obs)
                 next_value = self._model.compute_critic(data.next_obs)
                 reward = data.reward
 
-                assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog']
+                assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog'],\
+                    'Not supported value normalization! Value normalization supported: popart, value rescale, symlog'
 
                 if self._cfg.value_norm == 'popart':
                     unnormalized_value = value['unnormalized_pred']

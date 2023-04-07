@@ -14,6 +14,9 @@ class TestPopArt:
         input = torch.rand((batch_size, input_features)).requires_grad_(True)
         model = PopArt(input_features, output_features)
         output = model(input)
+        loss = output['pred'].mean()
+        loss.backward()
+        assert isinstance(input.grad, torch.Tensor)
 
         # validate the shape of parameters and outputs
         assert output['pred'].shape == (batch_size, output_features)

@@ -1221,11 +1221,13 @@ class PopArtVHead(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         """
         Overview:
-            Use encoded embedding tensor to run MLP with ``PopArtVHead`` and return the prediction dictionary.
+            Use encoded embedding tensor to run MLP with ``PopArtVHead`` and return the normalized prediction and \
+                the unnormalized prediction dictionary.
         Arguments:
             - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`).
+            - outputs (:obj:`Dict`): Dict containing keyword ``pred`` (:obj:`torch.Tensor`) \
+                and ``unnormalized_pred`` (:obj:`torch.Tensor`).
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
@@ -1233,7 +1235,8 @@ class PopArtVHead(nn.Module):
             >>> head = PopArtVHead(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = head(inputs)
-            >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 64])
+            >>> assert isinstance(outputs, dict) and outputs['pred'].shape == torch.Size([4, 64]) and \
+                    outputs['unnormalized_pred'].shape == torch.Size([4, 64])
         """
         x = self.Q(x)
         return x
