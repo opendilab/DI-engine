@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from ding.torch_utils.optimizer_helper import Adam, RMSprop, calculate_grad_norm, \
-    calculate_grad_norm_without_bias_two_norm, PCGrad
+    calculate_grad_norm_without_bias_two_norm, PCGrad, configure_weight_decay
 import pytest
 import time
 
@@ -177,3 +177,21 @@ class TestPCGrad:
         pc_adam.pc_backward([loss1, loss2])
         for p in net.parameters():
             assert isinstance(p, torch.Tensor)
+
+
+@pytest.mark.unittest
+class TestWeightDecay:
+
+    def test_wd(self):
+        net = nn.Sequential(nn.Linear(3, 4), nn.LayerNorm(4))
+        x = torch.randn(1, 3)
+        group_params = configure_weight_decay(model=net, weight_decay=1e-4)
+        assert group_params[0]['weight_decay'] == 1e-4
+        assert group_params[1]['weight_decay'] == 0
+        assert len(group_params[0]['params']) == 1
+        assert len(group_params[1]['params']) == 3
+        opt = Adam(group_params, lr=1e-2)
+        opt.zero_grad()
+        y = torch.sum(net(x))
+        y.backward()
+        opt.step()
