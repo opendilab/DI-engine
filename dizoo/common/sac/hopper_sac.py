@@ -15,8 +15,7 @@ push_model_to_hub(
     github_repo_url="https://github.com/opendilab/DI-engine",
     github_doc_model_url="https://di-engine-docs.readthedocs.io/en/latest/12_policies/sac.html",
     github_doc_env_url="https://di-engine-docs.readthedocs.io/en/latest/13_envs/mujoco.html",
-    installation_guide=
-'''
+    installation_guide='''
 sudo apt update -y \
     && sudo apt install -y \
     build-essential \
@@ -44,4 +43,3 @@ pip3 install DI-engine[common_env]
     train_file="./dizoo/common/sac/hopper_sac.py",
     repo_id="OpenDILabCommunity/Hopper-v3-SAC"
 )
-

@@ -8,10 +8,7 @@ policy_state_dict = torch.load("pytorch_model.bin", map_location=torch.device("c
 cfg = EasyDict(Config.file_to_dict("policy_config.py"))
 # Instantiate the agent
 agent = DQNAgent(
-    env="lunarlander_discrete",
-    exp_name="Lunarlander-v2-DQN",
-    cfg=cfg.exp_config,
-    policy_state_dict=policy_state_dict
+    env="lunarlander_discrete", exp_name="Lunarlander-v2-DQN", cfg=cfg.exp_config, policy_state_dict=policy_state_dict
 )
 # Continue training
 agent.train(step=5000)

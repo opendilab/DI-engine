@@ -4,7 +4,7 @@ import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
     EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
-from ding.policy import PPOFPolicy, A2CPolicy ,TD3Policy, DDPGPolicy, SACPolicy, DQNPolicy, IMPALAPolicy
+from ding.policy import PPOFPolicy, A2CPolicy, TD3Policy, DDPGPolicy, SACPolicy, DQNPolicy, IMPALAPolicy
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
