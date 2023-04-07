@@ -93,7 +93,7 @@ class PopArt(nn.Module):
         self.v = batch_v
         self.sigma = batch_std
         # Update weight and bias with mean and standard deviation to preserve unnormalised outputs
-        self.weight.data = (self.weight.t() * old_std / self.sigma).t()
-        self.bias.data = (old_std * self.bias + old_mu - self.mu) / self.sigma
+        self.weight.data = (self.weight.data.t() * old_std / self.sigma).t()
+        self.bias.data = (old_std * self.bias.data + old_mu - self.mu) / self.sigma
 
         return {'new_mean': batch_mean, 'new_std': batch_std}
