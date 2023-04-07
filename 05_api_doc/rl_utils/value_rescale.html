@@ -307,22 +307,49 @@
 <section id="module-ding.rl_utils.value_rescale.value_transform">
 <span id="value-transform"></span><h3>value_transform<a class="headerlink" href="#module-ding.rl_utils.value_rescale.value_transform" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
-<dt>Overview:</dt><dd><dl class="field-list simple">
-<dt class="field-odd">math</dt>
-<dd class="field-odd"><p><cite>h(x) = sign(x)(sqrt{(abs(x)+1)} - 1) + eps * x</cite> .</p>
+<dt>Overview:</dt><dd><p>A function to reduce the scale of the action-value function.
+:math: <cite>h(x) = sign(x)(sqrt{(abs(x)+1)} - 1) + eps * x</cite> .</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) The input tensor to be normalized.</p></li>
+<li><dl class="simple">
+<dt>eps: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) The coefficient of the additive regularization term </dt><dd><p>to ensure h^{-1} is Lipschitz continuous</p>
 </dd>
 </dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Normalized tensor.</p></li>
+</ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>Observe and Look Further: Achieving Consistent Performance on Atari</dt><dd><p>(<a class="reference external" href="https://arxiv.org/abs/1805.11593">https://arxiv.org/abs/1805.11593</a>)</p>
+</dd>
+</dl>
+</div>
 </section>
 <section id="module-ding.rl_utils.value_rescale.value_inv_transform">
 <span id="value-inv-transform"></span><h3>value_inv_transform<a class="headerlink" href="#module-ding.rl_utils.value_rescale.value_inv_transform" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
-<dt>Overview:</dt><dd><dl class="field-list simple">
-<dt class="field-odd">math</dt>
-<dd class="field-odd"><p><cite>h^{-1}(x) = sign(x)({(frac{sqrt{1+4eps(|x|+1+eps)}-1}{2eps})}^2-1)</cite> .</p>
+<dt>Overview:</dt><dd><p>The inverse form of value rescale.
+:math: <cite>h^{-1}(x) = sign(x)({(frac{sqrt{1+4eps(|x|+1+eps)}-1}{2eps})}^2-1)</cite> .</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) The input tensor to be unnormalized.</p></li>
+<li><dl class="simple">
+<dt>eps: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) The coefficient of the additive regularization term </dt><dd><p>to ensure h^{-1} is Lipschitz continuous</p>
 </dd>
 </dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Unnormalized tensor.</p></li>
+</ul>
 </dd>
 </dl>
 </section>

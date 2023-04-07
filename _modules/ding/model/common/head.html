@@ -300,7 +300,7 @@
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 <span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">Independent</span>
 
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">fc_block</span><span class="p">,</span> <span class="n">noise_block</span><span class="p">,</span> <span class="n">NoiseLinearLayer</span><span class="p">,</span> <span class="n">MLP</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">fc_block</span><span class="p">,</span> <span class="n">noise_block</span><span class="p">,</span> <span class="n">NoiseLinearLayer</span><span class="p">,</span> <span class="n">MLP</span><span class="p">,</span> <span class="n">PopArt</span>
 <span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">beta_function_map</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">lists_to_dicts</span><span class="p">,</span> <span class="n">SequenceType</span>
 
@@ -1470,6 +1470,78 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">mu</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">sigma</span><span class="p">}</span></div></div>
 
 
+<span class="k">class</span> <span class="nc">PopArtVHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The ``PopArtVHead`` used to output discrete actions logit with the last layer as popart. \</span>
+<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
+<span class="sd">            output ``logit``.</span>
+<span class="sd">        Interfaces:</span>
+<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the ``PopArtVHead`` layers according to the provided arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``PopArtVHead``.</span>
+<span class="sd">            - output_size (:obj:`int`): The number of outputs.</span>
+<span class="sd">            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \</span>
+<span class="sd">                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.</span>
+<span class="sd">            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \</span>
+<span class="sd">                for more details. Default ``None``.</span>
+<span class="sd">            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks&#39; MLP. \</span>
+<span class="sd">                Default ``False``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PopArtVHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">NoiseLinearLayer</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">popart</span> <span class="o">=</span> <span class="n">PopArt</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">MLP</span><span class="p">(</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">layer_num</span><span class="p">,</span>
+                <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+            <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">popart</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use encoded embedding tensor to run MLP with ``PopArtVHead`` and return the normalized prediction and \</span>
+<span class="sd">                the unnormalized prediction dictionary.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Tensor containing input embedding.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keyword ``pred`` (:obj:`torch.Tensor`) \</span>
+<span class="sd">                and ``unnormalized_pred`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
+<span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; head = PopArtVHead(64, 64)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = head(inputs)</span>
+<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict) and outputs[&#39;pred&#39;].shape == torch.Size([4, 64]) and \</span>
+<span class="sd">                    outputs[&#39;unnormalized_pred&#39;].shape == torch.Size([4, 64])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+
 <span class="k">class</span> <span class="nc">AttentionPolicyHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1560,6 +1632,7 @@
     <span class="c1"># continuous</span>
     <span class="s1">&#39;regression&#39;</span><span class="p">:</span> <span class="n">RegressionHead</span><span class="p">,</span>
     <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span> <span class="n">ReparameterizationHead</span><span class="p">,</span>
+    <span class="s1">&#39;popart&#39;</span><span class="p">:</span> <span class="n">PopArtVHead</span><span class="p">,</span>
     <span class="c1"># multi</span>
     <span class="s1">&#39;multi&#39;</span><span class="p">:</span> <span class="n">MultiHead</span><span class="p">,</span>
 <span class="p">}</span>
