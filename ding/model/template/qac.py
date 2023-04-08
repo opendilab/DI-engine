@@ -611,6 +611,7 @@ class Q_ensemble(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.ensemble_num = ensemble_num
+        self.share_encoder = share_encoder
 
         if np.isscalar(obs_shape) or len(obs_shape) == 1:
             assert not self.share_encoder, "Vector observation doesn't need share encoder."
@@ -643,7 +644,7 @@ class Q_ensemble(nn.Module):
             raise RuntimeError("not support observation shape: {}".format(obs_shape))
         
         self.actor = nn.Sequential(
-            nn.Linear(obs_shape, actor_head_hidden_size), activation,
+            nn.Linear(self.input_size, actor_head_hidden_size), activation,
             ReparameterizationHead(
                 actor_head_hidden_size,
                 action_shape,
@@ -654,7 +655,7 @@ class Q_ensemble(nn.Module):
             )
         )
 
-        critic_input_size = obs_shape + action_shape
+        critic_input_size = self.input_size + action_shape
         self.critic = nn.Sequential(
             EnsembleHead(
                 critic_input_size,
