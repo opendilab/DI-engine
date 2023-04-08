@@ -583,6 +583,8 @@ class Q_ensemble(nn.Module):
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
+            encoder_hidden_size_list: Optional[SequenceType] = [32, 64, 256],
+            share_encoder: Optional[bool] = False,
             **kwargs
     ) -> None:
         """
@@ -609,6 +611,37 @@ class Q_ensemble(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.ensemble_num = ensemble_num
+
+        if np.isscalar(obs_shape) or len(obs_shape) == 1:
+            assert not self.share_encoder, "Vector observation doesn't need share encoder."
+            self.encoder = None
+            self.input_size = obs_shape
+        elif len(obs_shape) == 3:
+
+            def setup_conv_encoder():
+                kernel_size = [3 for _ in range(len(encoder_hidden_size_list))]
+                stride = [2] + [1 for _ in range(len(encoder_hidden_size_list) - 1)]
+                return ConvEncoder(
+                    obs_shape,
+                    encoder_hidden_size_list,
+                    activation=activation,
+                    norm_type=norm_type,
+                    kernel_size=kernel_size,
+                    stride=stride
+                )
+
+            if self.share_encoder:
+                self.encoder = setup_conv_encoder()
+                self.input_size = self.encoder.output_size
+            else:
+                self.encoder = nn.ModuleDict({
+                    'actor': setup_conv_encoder(),
+                    'critic': setup_conv_encoder(),
+                })
+                self.input_size = self.encoder['actor'].output_size
+        else:
+            raise RuntimeError("not support observation shape: {}".format(obs_shape))
+        
         self.actor = nn.Sequential(
             nn.Linear(obs_shape, actor_head_hidden_size), activation,
             ReparameterizationHead(
@@ -686,6 +719,11 @@ class Q_ensemble(nn.Module):
             >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
             >>> actor_outputs['logit'][1].shape == torch.Size([4, 64]) # sigma
         """
+        if self.encoder is not None:
+            if self.share_encoder:
+                obs = self.encoder(obs)
+            else:
+                obs = self.encoder['actor'](obs)
         x = self.actor(obs)
         return {'logit': [x['mu'], x['sigma']]}
 
@@ -715,6 +753,11 @@ class Q_ensemble(nn.Module):
         """
 
         obs, action = inputs['obs'], inputs['action']
+        if self.encoder is not None:
+            if self.share_encoder:
+                obs = self.encoder(obs)
+            else:
+                obs = self.encoder['critic'](obs)
         if len(action.shape) == 1:  # (B, ) -> (B, 1)
             action = action.unsqueeze(1)
         x = torch.cat([obs, action], dim=-1)
