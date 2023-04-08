@@ -612,6 +612,7 @@ class Q_ensemble(nn.Module):
         self.action_shape = action_shape
         self.ensemble_num = ensemble_num
         self.share_encoder = share_encoder
+        encoder_hidden_size_list = encoder_hidden_size_list * ensemble_num
 
         if np.isscalar(obs_shape) or len(obs_shape) == 1:
             assert not self.share_encoder, "Vector observation doesn't need share encoder."
