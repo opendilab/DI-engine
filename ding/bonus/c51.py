@@ -88,13 +88,13 @@ class C51Agent:
         self.policy = C51Policy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
+        self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
 
     def train(
             self,
             step: int = int(1e7),
             collector_env_num: int = 4,
             evaluator_env_num: int = 4,
-            n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
             debug: bool = False
@@ -113,8 +113,7 @@ class C51Agent:
                 StepCollector(
                     self.cfg,
                     self.policy.collect_mode,
-                    collector_env,
-                    random_collect_size=self.cfg.policy.random_collect_size
+                    collector_env
                 )
             )
             task.use(nstep_reward_enhancer(self.cfg))
@@ -123,7 +122,7 @@ class C51Agent:
             task.use(
                 CkptSaver(
                     policy=self.policy,
-                    save_dir=os.path.join(self.cfg["exp_name"], "model"),
+                    save_dir=self.model_save_dir,
                     train_freq=n_iter_save_ckpt
                 )
             )
@@ -249,3 +248,11 @@ class C51Agent:
             if context is not None:
                 manager_cfg.context = context
         return env_cls([self.env.clone for _ in range(env_num)], manager_cfg)
+
+    @property
+    def best(self):
+        best_model_file_path=os.path.join(self.model_save_dir, "eval.pth.tar")
+        if os.path.exists(best_model_file_path):
+            policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
+            self.policy.learn_mode.load_state_dict(policy_state_dict)
+        return self
