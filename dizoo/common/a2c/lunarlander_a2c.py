@@ -4,7 +4,7 @@ from huggingface_ding import push_model_to_hub
 # Instantiate the agent
 agent = A2CAgent(env="lunarlander_discrete", exp_name="Lunarlander-v2-A2C")
 # Train the agent
-return_ = agent.train(step=int(4000000), collector_env_num=8, evaluator_env_num=8, debug=False)
+return_ = agent.train(step=int(20000000), collector_env_num=8, evaluator_env_num=8, debug=False)
 # Push model to huggingface hub
 push_model_to_hub(
     agent=agent.best,

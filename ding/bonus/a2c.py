@@ -16,6 +16,7 @@ from ding.policy import A2CPolicy
 from ding.utils import set_pkg_seed
 from ding.config import Config, save_config_py, compile_config
 from ding.model import VAC
+from ding.model import model_wrap
 from ding.bonus.config import get_instance_config, get_instance_env
 
 
@@ -86,8 +87,7 @@ class A2CAgent:
         self.policy = A2CPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
-        self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
-        self.device=self.policy._device
+        self.model_save_dir = os.path.join(self.exp_name, "model")
 
     def train(
             self,
@@ -108,22 +108,10 @@ class A2CAgent:
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
-            task.use(
-                StepCollector(
-                    self.cfg,
-                    self.policy.collect_mode,
-                    collector_env
-                )
-            )
+            task.use(StepCollector(self.cfg, self.policy.collect_mode, collector_env))
             task.use(gae_estimator(self.cfg, self.policy.collect_mode))
-            task.use(trainer(self.cfg, self.policy.learn_mode, self.device))
-            task.use(
-                CkptSaver(
-                    policy=self.policy,
-                    save_dir=self.model_save_dir,
-                    train_freq=n_iter_save_ckpt
-                )
-            )
+            task.use(trainer(self.cfg, self.policy.learn_mode))
+            task.use(CkptSaver(policy=self.policy, save_dir=self.model_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
@@ -153,6 +141,8 @@ class A2CAgent:
             logging.warning('No video would be generated during the deploy.')
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
+
+            forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
 
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
@@ -248,7 +238,7 @@ class A2CAgent:
 
     @property
     def best(self):
-        best_model_file_path=os.path.join(self.model_save_dir, "eval.pth.tar")
+        best_model_file_path = os.path.join(self.model_save_dir, "eval.pth.tar")
         if os.path.exists(best_model_file_path):
             policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
             self.policy.learn_mode.load_state_dict(policy_state_dict)

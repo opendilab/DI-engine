@@ -316,6 +316,7 @@ def interaction_evaluator_ttorch(
     Arguments:
         - policy (:obj:`Policy`): The policy to be evaluated.
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
+        - render (:obj:`bool`): Whether to render env images and policy logits.
     """
     if task.router.is_active and not task.has_role(task.role.EVALUATOR):
         return task.void()

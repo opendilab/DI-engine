@@ -6,7 +6,7 @@ from ding.policy import Policy
 from ding.framework import task, OfflineRLContext, OnlineRLContext
 
 
-def trainer(cfg: EasyDict, policy: Policy, device:str='cpu') -> Callable:
+def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     """
     Overview:
         The middleware that executes a single training process.
@@ -28,8 +28,7 @@ def trainer(cfg: EasyDict, policy: Policy, device:str='cpu') -> Callable:
 
         if ctx.train_data is None:
             return
-        data = ctx.train_data.to(device)
-        train_output = policy.forward(data)
+        train_output = policy.forward(ctx.train_data)
         #if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
         if True:
             if isinstance(ctx, OnlineRLContext):

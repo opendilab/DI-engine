@@ -103,14 +103,29 @@ class PPOF:
             action_shape = get_hybrid_shape(action_space)
         else:
             action_shape = action_space.shape
+
+        # Three types of value normalization is supported currently
+        assert self.cfg.value_norm in ['popart', 'value_rescale', 'symlog']
         if model is None:
-            model = PPOFModel(
-                self.env.observation_space.shape, action_shape, action_space=self.cfg.action_space, **self.cfg.model
-            )
+            if self.cfg.value_norm != 'popart':
+                model = PPOFModel(
+                    self.env.observation_space.shape,
+                    action_shape,
+                    action_space=self.cfg.action_space,
+                    **self.cfg.model
+                )
+            else:
+                model = PPOFModel(
+                    self.env.observation_space.shape,
+                    action_shape,
+                    action_space=self.cfg.action_space,
+                    popart_head=True,
+                    **self.cfg.model
+                )
         self.policy = PPOFPolicy(self.cfg, model=model)
         if policy_state_dict is not None:
             self.policy.load_state_dict(policy_state_dict)
-        self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
+        self.model_save_dir = os.path.join(self.exp_name, "model")
 
     def train(
             self,
@@ -253,7 +268,7 @@ class PPOF:
 
     @property
     def best(self):
-        best_model_file_path=os.path.join(self.model_save_dir, "eval.pth.tar")
+        best_model_file_path = os.path.join(self.model_save_dir, "eval.pth.tar")
         if os.path.exists(best_model_file_path):
             policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
             self.policy.learn_mode.load_state_dict(policy_state_dict)
