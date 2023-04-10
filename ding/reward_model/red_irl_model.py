@@ -88,7 +88,7 @@ class RedRewardModel(BaseRewardModel):
         self.device = device
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.tb_logger = tb_logger
-        self.reward_model = RedNetwork(config.obs_shape, config.action_shape, config.hidden_size_list)
+        self.reward_model = RedNetwork(config.obs_shape, config.action_shape, config.hidden_size_list, config.sigma)
         self.reward_model.to(self.device)
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.train_once_flag = False
@@ -117,13 +117,9 @@ class RedRewardModel(BaseRewardModel):
         """
         sample_batch = random.sample(self.expert_data, self.cfg.batch_size)
         states_actions_tensor = concat_state_action_pairs(sample_batch)
-        states_actions_tensor_one = concat_state_action_pairs(sample_batch, action_size=5, one_hot_=True)
-        states_actions_tensor_one_hot = concat_state_action_pairs_one_hot(sample_batch, 5)
-        states_actions_tensor_one_hot = torch.stack(states_actions_tensor_one_hot)
-        assert states_actions_tensor_one.equal(states_actions_tensor_one_hot)
         states_actions_tensor = states_actions_tensor.to(self.device)
-        predict_feature, target_feature = self.reward_model(states_actions_tensor)
-        loss = F.mse_loss(predict_feature, target_feature.detach())
+        loss = self.reward_model.learn(states_actions_tensor)
+        # loss = F.mse_loss(predict_feature, target_feature.detach())
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
@@ -159,10 +155,7 @@ class RedRewardModel(BaseRewardModel):
         train_data_augmented = self.reward_deepcopy(data)
         states_actions_tensor = concat_state_action_pairs(train_data_augmented)
         states_actions_tensor = states_actions_tensor.to(self.device)
-        with torch.no_grad():
-            predict_feature, target_feature = self.reward_model(states_actions_tensor)
-            mse = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            r = torch.exp(-self.cfg.sigma * mse)
+        r = self.reward_model.forward(states_actions_tensor)
         for item, rew in zip(train_data_augmented, r):
             item['reward'] = rew
         return train_data_augmented

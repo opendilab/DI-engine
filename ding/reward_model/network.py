@@ -3,6 +3,7 @@ from easydict import EasyDict
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
@@ -25,7 +26,7 @@ class RepresentationNetwork(nn.Module):
             self.feature = ConvEncoder(obs_shape, hidden_size_list, activation=activation)
         else:
             raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
+                "not support obs_shape for pre-defined encoder: {}, please customize your own Representation Network".
                 format(obs_shape)
             )
 
@@ -44,15 +45,39 @@ class RndNetwork(nn.Module):
         for param in self.target.parameters():
             param.requires_grad = False
 
-    def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, obs: torch.Tensor) -> torch.Tensor:
+        with torch.no_grad():
+            predict_feature = self.predictor(obs)
+            target_feature = self.target(obs)
+            reward = F.mse_loss(predict_feature, target_feature.detach())
+            reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
+        return reward
+
+    def learn(self, obs: torch.Tensor) -> torch.Tensor:
         predict_feature = self.predictor(obs)
         with torch.no_grad():
             target_feature = self.target(obs)
-        return predict_feature, target_feature
+        loss = F.mse_loss(predict_feature, target_feature.detach())
+        return loss
 
 
 class RedNetwork(RndNetwork):
 
-    def __init__(self, obs_shape: int, action_shape: int, hidden_size_list: SequenceType) -> None:
+    def __init__(
+            self,
+            obs_shape: int,
+            action_shape: int,
+            hidden_size_list: SequenceType,
+            sigma: Optional[float] = 0.5
+    ) -> None:
         # RED network does not support high dimension obs
         super().__init__(obs_shape + action_shape, hidden_size_list)
+        self.sigma = sigma
+
+    def forward(self, obs: torch.Tensor) -> torch.Tensor:
+        with torch.no_grad():
+            predict_feature = self.predictor(obs)
+            target_feature = self.target(obs)
+            reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
+            reward = torch.exp(-self.sigma * reward)
+        return reward
