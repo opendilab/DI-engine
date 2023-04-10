@@ -18,6 +18,7 @@ from .a2c import A2CPolicy
 from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
 from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
+from .edac import EDACPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
 from .r2d2 import R2D2Policy
@@ -47,6 +48,8 @@ from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
 
 from .pc import ProcedureCloningBFSPolicy
+
+from .bcq import BCQPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy
