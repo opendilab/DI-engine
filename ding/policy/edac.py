@@ -20,7 +20,7 @@ from .common_utils import default_preprocess_learn
 class EDACPolicy(SACPolicy):
     """
        Overview:
-           Policy class of EDAC algorithm.
+           Policy class of EDAC algorithm. https://arxiv.org/pdf/2110.01548.pdf
 
        Config:
            == ====================  ========    =============  ================================= =======================
@@ -68,7 +68,8 @@ class EDACPolicy(SACPolicy):
            == ====================  ========    =============  ================================= =======================
     """
     config = dict(
-        type='sac',
+        # (str) RL policy register name
+        type='edac',
         cuda=False,
         on_policy=False,
         multi_agent=False,
@@ -79,7 +80,7 @@ class EDACPolicy(SACPolicy):
             # (bool type) ensemble_num:num of Q-network.
             ensemble_num=10,
             # (bool type) value_network: Determine whether to use value network as the
-            # original SAC paper (arXiv 1801.01290).
+            # original EDAC paper (arXiv 2110.01548).
             # using value_network needs to set learning_rate_value, learning_rate_q,
             # and learning_rate_policy in `cfg.policy.learn`.
             # Default to False.
@@ -144,63 +145,9 @@ class EDACPolicy(SACPolicy):
             Learn mode init method. Called by ``self.__init__``.
             Init q, value and policy's optimizers, algorithm config, main and target models.
         """
-        # Init
-        self._priority = self._cfg.priority
-        self._priority_IS_weight = self._cfg.priority_IS_weight
+        # EDAC special implementation
         self._eta = self._cfg.learn.eta
-        self._with_q_entropy = self._cfg.learn.with_q_entropy
-        self._value_network = False
 
-        self._optimizer_q = Adam(
-            self._model.critic.parameters(),
-            lr=self._cfg.learn.learning_rate_q,
-        )
-        self._optimizer_policy = Adam(
-            self._model.actor.parameters(),
-            lr=self._cfg.learn.learning_rate_policy,
-        )
-
-        self._gamma = self._cfg.learn.discount_factor
-
-        init_w = self._cfg.learn.init_w
-        self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
-
-        if self._cfg.learn.auto_alpha:
-            self._target_entropy = -np.prod(self._cfg.model.action_shape)
-            if self._cfg.learn.log_space:
-                self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
-                self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
-                self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
-                assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
-                self._alpha = self._log_alpha.detach().exp()
-                self._auto_alpha = True
-                self._log_space = True
-            else:
-                self._alpha = torch.FloatTensor([self._cfg.learn.alpha]).to(self._device).requires_grad_()
-                self._alpha_optim = torch.optim.Adam([self._alpha], lr=self._cfg.learn.learning_rate_alpha)
-                self._auto_alpha = True
-                self._log_space = False
-        else:
-            self._alpha = torch.tensor(
-                [self._cfg.learn.alpha], requires_grad=False, device=self._device, dtype=torch.float32
-            )
-            self._auto_alpha = False
-
-        self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='momentum',
-            update_kwargs={'theta': self._cfg.learn.target_theta}
-        )
-        self._learn_model = model_wrap(self._model, wrapper_name='base')
-        self._learn_model.reset()
-        self._target_model.reset()
-
-        self._forward_learn_cnt = 0
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         loss_dict = {}
@@ -252,6 +199,7 @@ class EDACPolicy(SACPolicy):
         td_error_per_sample = nn.MSELoss(reduction='none')(q_value, target_q_value).mean(dim=1).sum()
         loss_dict['critic_loss'] = (td_error_per_sample * weight).mean()
 
+        # penalty term of EDAC
         if self._eta > 0:
             # [batch_size,dim] -> [Ensemble_num,batch_size,dim]
             pre_obs = obs.unsqueeze(0).repeat_interleave(self._cfg.model.ensemble_num, dim=0)

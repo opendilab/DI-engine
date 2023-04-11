@@ -36,7 +36,6 @@ main_config = dict(
         ),
         collect=dict(data_type='d4rl', ),
         eval=dict(evaluator=dict(eval_freq=500, )),
-        other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
     ),
     seed = 123,
 )
@@ -54,7 +53,6 @@ create_config = dict(
         type='edac',
         import_names=['ding.policy.edac'],
     ),
-    replay_buffer=dict(type='naive', ),
 )
 create_config = EasyDict(create_config)
 create_config = create_config

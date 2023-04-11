@@ -33,7 +33,7 @@ def main():
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(offline_data_fetcher(cfg, dataset))
         task.use(trainer(cfg, policy.learn_mode))
-        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=1e4))
         task.use(offline_logger())
         task.run()
 

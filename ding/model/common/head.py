@@ -1318,12 +1318,12 @@ class MultiHead(nn.Module):
 
 class EnsembleHead(nn.Module):
     """
-        Overview:
-            The ``EnsembleHead`` used to output action Q-value for Q-ensemble. \
-            Input is a (:obj:`torch.Tensor`) of shape ''(B, N * Ensemble_num, 1)'' and returns a (:obj:`Dict`) containing \
-            output ``pred``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``EnsembleHead`` used to output action Q-value for Q-ensemble. \
+        Input is a (:obj:`torch.Tensor`) of shape ''(B, N * Ensemble_num, 1)'' and returns a (:obj:`Dict`) containing \
+        output ``pred``.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -1331,7 +1331,7 @@ class EnsembleHead(nn.Module):
             input_size: int,
             output_size: int,
             hidden_size: int,
-            layer_nun: int,
+            layer_num: int,
             ensemble_num: int,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
@@ -1339,7 +1339,7 @@ class EnsembleHead(nn.Module):
         super(EnsembleHead, self).__init__()
         d = input_size
         layers = []
-        for _ in range(layer_nun):
+        for _ in range(layer_num):
             layers.append(
                 conv1d_block(
                     d * ensemble_num,
@@ -1352,6 +1352,8 @@ class EnsembleHead(nn.Module):
                 )
             )
             d = hidden_size
+
+        # Adding activation for last layer will lead to train fail
         layers.append(
             conv1d_block(
                 hidden_size * ensemble_num,
