@@ -238,7 +238,7 @@ class A2CAgent:
 
     @property
     def best(self):
-        best_model_file_path = os.path.join(self.model_save_dir, "eval.pth.tar")
+        best_model_file_path = os.path.join(self.model_save_dir, "ckpt", "eval.pth.tar")
         if os.path.exists(best_model_file_path):
             policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
             self.policy.learn_mode.load_state_dict(policy_state_dict)
