@@ -1,3 +1,35 @@
+2023.04.11(v0.4.7)
+- env: add dmc2gym env support and baseline (#451)
+- env: update pettingzoo to the latest version (#597)
+- env: polish icm/rnd+onppo config bugs and add app_door_to_key env (#564)
+- env: add lunarlander continuous TD3/SAC config
+- env: polish lunarlander discrete C51 config
+- algo: add Procedure Cloning (PC) imitation learning algorithm (#514)
+- algo: add Munchausen Reinforcement Learning (MDQN) algorithm (#590)
+- algo: add reward/value norm methods: popart & value rescale & symlog (#605)
+- algo: polish reward model config and training pipeline (#624)
+- algo: add PPOF reward space demo support (#608)
+- algo: add PPOF Atari demo support (#589)
+- algo: polish dqn default config and env examples (#611)
+- algo: polish comment and clean code about SAC
+- feature: add language model (e.g. GPT) training utils (#625)
+- feature: remove policy cfg sub fields requirements (#620)
+- feature: add full wandb support (#579)
+- fix: confusing shallow copy operation about next_obs (#641)
+- fix: unsqueeze action_args in PDQN when shape is 1 (#599)
+- fix: evaluator return_info tensor type bug (#592)
+- fix: deque buffer wrapper PER bug (#586)
+- fix: reward model save method compatibility bug
+- fix: logger assertion and unittest bug
+- fix: bfs test py3.9 compatibility bug
+- fix: zergling collector unittest bug
+- style: add DI-engine torch-rpc p2p communication docker (#628)
+- style: add D4RL docker (#591)
+- style: correct typo in task (#617)
+- style: correct typo in time_helper (#602)
+- style: polish readme and add treetensor example
+- style: update contributing doc
+
 2023.02.16(v0.4.6)
 - env: add metadrive env and related ppo config (#574)
 - env: add acrobot env and related dqn config (#577)
