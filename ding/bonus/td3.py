@@ -43,6 +43,8 @@ class EvalReturn:
 class TD3Agent:
     supported_env_list = [
         'hopper',
+        'HalfCheetah',
+        'Walker2d',
         'lunarlander_continuous',
     ]
     algorithm = 'TD3'
