@@ -1,11 +1,14 @@
 from typing import Union, Optional, List, Any, Tuple
 from collections.abc import Iterable
+from easydict import EasyDict
 
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
 
 from ding.torch_utils import one_hot
+from ding.utils import RunningMeanStd
+from ding.torch_utils.data_helper import to_tensor
 
 
 def concat_state_action_pairs(
@@ -40,3 +43,43 @@ def concat_state_action_pairs(
     states_actions_tensor: torch.Tensor = torch.cat([states_tensor, actions_tensor], dim=1)
 
     return states_actions_tensor
+
+
+def combine_intrinsic_exterinsic_reward(
+        train_data_augmented: Any, rnd_reward: List[torch.Tensor], config: EasyDict
+) -> Any:
+    for item, rnd_rew in zip(train_data_augmented, rnd_reward):
+        if config.intrinsic_reward_type == 'add':
+            if config.extrinsic_reward_norm:
+                item['reward'
+                     ] = item['reward'] / config.extrinsic_reward_norm_max + rnd_rew * config.intrinsic_reward_weight
+            else:
+                item['reward'] = item['reward'] + rnd_rew * config.intrinsic_reward_weight
+        elif config.intrinsic_reward_type == 'new':
+            item['intrinsic_reward'] = rnd_rew
+            if config.extrinsic_reward_norm:
+                item['reward'] = item['reward'] / config.extrinsic_reward_norm_max
+        elif config.intrinsic_reward_type == 'assign':
+            item['reward'] = rnd_rew
+
+    return item
+
+
+def collect_states(iterator) -> List:
+    res = []
+    for item in iterator:
+        state = item['obs']
+        res.append(state)
+    return res
+
+
+def obs_norm(
+        train_data: torch.Tensor, running_mean_std_rnd_obs: RunningMeanStd, config: EasyDict, device: str
+) -> torch.Tensor:
+    # Note: observation normalization: transform obs to mean 0, std 1, move norm obs to specific device
+    running_mean_std_rnd_obs.update(train_data.cpu().numpy())
+    train_data = (train_data - to_tensor(running_mean_std_rnd_obs.mean
+                                         ).to(device)) / to_tensor(running_mean_std_rnd_obs.std).to(device)
+    train_data = torch.clamp(train_data, min=config.obs_norm_clamp_min, max=config.obs_norm_clamp_max)
+
+    return train_data

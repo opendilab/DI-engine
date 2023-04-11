@@ -49,7 +49,7 @@ class RndNetwork(nn.Module):
         with torch.no_grad():
             predict_feature = self.predictor(obs)
             target_feature = self.target(obs)
-            reward = F.mse_loss(predict_feature, target_feature.detach())
+            reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
             reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
         return reward
 
