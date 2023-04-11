@@ -108,11 +108,11 @@ class GailNetwork(nn.Module):
             self.fc = nn.Linear(hidden_size_list[0], 1)
             self.image_input = False
         elif len(obs_shape) == 3:
+            self.action_size = action_shape
+            self.obs_size = obs_shape
             self.feature = RepresentationNetwork(obs_shape, hidden_size_list, activation, kernel_size, stride)
             self.fc = nn.Linear(64 + self.action_size, 1)
             self.image_input = True
-            self.action_size = action_shape
-            self.obs_size = obs_shape
 
     def learn(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> torch.Tensor:
         out_1: torch.Tensor = self.forward(train_data)

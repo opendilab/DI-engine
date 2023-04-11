@@ -60,8 +60,10 @@ class GailRewardModel(BaseRewardModel):
         update_per_collect=100,
         # (int) How many samples in a training batch.
         batch_size=64,
-        # (int) Size of the input: obs_dim + act_dim.
+        # (int) Size of the input: obs_dim.
         input_size=4,
+        # Size of the input: act_dim.
+        # action_size=6,
         # (int) Collect steps per iteration.
         target_new_data_count=64,
         # (int) Linear model hidden size.
@@ -93,7 +95,7 @@ class GailRewardModel(BaseRewardModel):
         elif len(obs_shape) == 3:
             action_shape = self.cfg.action_size
             self.reward_model = GailNetwork(
-                obs_shape, [16, 16, 16, 16, 64], [7, 5, 3, 3], [3, 2, 2, 1], nn.LeakyReLU(), action_shape
+                obs_shape, [16, 16, 16, 16, 64], [7, 5, 3, 3], [3, 2, 2, 1], nn.LeakyReLU(), action_shape=action_shape
             )
             self.concat_state_action_pairs = partial(concat_state_action_pairs, action_size=action_shape, one_hot_=True)
         self.reward_model.to(self.device)

@@ -133,8 +133,8 @@ class RndRewardModel(BaseRewardModel):
         if self.cfg.obs_norm:
             obs = obs_norm(obs, self._running_mean_std_rnd_obs, self.cfg, self.device)
 
+        rnd_reward = self.reward_model.forward(obs)
         with torch.no_grad():
-            rnd_reward = self.reward_model.forward(obs)
             # save the rnd_reward statistics into tb_logger
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', rnd_reward.max(), self.estimate_cnt_rnd)
