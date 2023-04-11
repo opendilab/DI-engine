@@ -10,7 +10,6 @@ import torch.nn.functional as F
 from ding.utils import REWARD_MODEL_REGISTRY, one_time_warning
 from .base_reward_model import BaseRewardModel
 from .network import RedNetwork
-from .gail_irl_model import concat_state_action_pairs_one_hot
 from .reword_model_utils import concat_state_action_pairs
 
 

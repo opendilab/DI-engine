@@ -30,10 +30,7 @@ def concat_state_action_pairs(
     for item in data:
         states_data.append(item['obs'].flatten())
         if one_hot_ and action_size:
-            new_action = torch.Tensor([int(i == item['action']) for i in range(action_size)])
-            print(new_action.shape)
             action = one_hot(torch.Tensor(item['action']), action_size).squeeze(dim=0)
-            print(action.shape)
             actions_data.append(action)
         else:
             actions_data.append(item['action'])

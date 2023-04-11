@@ -10,97 +10,10 @@ import torch.optim as optim
 
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
+from .reword_model_utils import concat_state_action_pairs
+from .network import GailNetwork
 import torch.nn.functional as F
 from functools import partial
-
-
-def concat_state_action_pairs(iterator):
-    """
-    Overview:
-        Concatenate state and action pairs from input.
-    Arguments:
-        - iterator (:obj:`Iterable`): Iterables with at least ``obs`` and ``action`` tensor keys.
-    Returns:
-        - res (:obj:`Torch.tensor`): State and action pairs.
-    """
-    assert isinstance(iterator, Iterable)
-    res = []
-    for item in iterator:
-        state = item['obs'].flatten()  # to allow 3d obs and actions concatenation
-        action = item['action']
-        s_a = torch.cat([state, action.float()], dim=-1)
-        res.append(s_a)
-    return res
-
-
-def concat_state_action_pairs_one_hot(iterator, action_size: int):
-    """
-    Overview:
-        Concatenate state and action pairs from input. Action values are one-hot encoded
-    Arguments:
-        - iterator (:obj:`Iterable`): Iterables with at least ``obs`` and ``action`` tensor keys.
-    Returns:
-        - res (:obj:`Torch.tensor`): State and action pairs.
-    """
-    assert isinstance(iterator, Iterable)
-    res = []
-    for item in iterator:
-        state = item['obs'].flatten()  # to allow 3d obs and actions concatenation
-        action = item['action']
-        action = torch.Tensor([int(i == action) for i in range(action_size)])
-        s_a = torch.cat([state, action], dim=-1)
-        res.append(s_a)
-    return res
-
-
-class RewardModelNetwork(nn.Module):
-
-    def __init__(self, input_size: int, hidden_size: int, output_size: int) -> None:
-        super(RewardModelNetwork, self).__init__()
-        self.l1 = nn.Linear(input_size, hidden_size)
-        self.l2 = nn.Linear(hidden_size, output_size)
-        self.a1 = nn.Tanh()
-        self.a2 = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = x
-        out = self.l1(out)
-        out = self.a1(out)
-        out = self.l2(out)
-        out = self.a2(out)
-        return out
-
-
-class AtariRewardModelNetwork(nn.Module):
-
-    def __init__(self, input_size: int, action_size: int) -> None:
-        super(AtariRewardModelNetwork, self).__init__()
-        self.input_size = input_size
-        self.action_size = action_size
-        self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
-        self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
-        self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
-        self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
-        self.fc1 = nn.Linear(784, 64)
-        self.fc2 = nn.Linear(64 + self.action_size, 1)  # here we add 1 to take consideration of the action concat
-        self.a = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # input: x = [B, 4 x 84 x 84 + self.action_size], last element is action
-        actions = x[:, -self.action_size:]  # [B, self.action_size]
-        # get observations
-        x = x[:, :-self.action_size]
-        x = x.reshape([-1] + self.input_size)  # [B, 4, 84, 84]
-        x = F.leaky_relu(self.conv1(x))
-        x = F.leaky_relu(self.conv2(x))
-        x = F.leaky_relu(self.conv3(x))
-        x = F.leaky_relu(self.conv4(x))
-        x = x.reshape(-1, 784)
-        x = F.leaky_relu(self.fc1(x))
-        x = torch.cat([x, actions], dim=-1)
-        x = self.fc2(x)
-        r = self.a(x)
-        return r
 
 
 @REWARD_MODEL_REGISTRY.register('gail')
@@ -175,12 +88,14 @@ class GailRewardModel(BaseRewardModel):
         self.tb_logger = tb_logger
         obs_shape = config.input_size
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.reward_model = RewardModelNetwork(config.input_size, config.hidden_size, 1)
+            self.reward_model = GailNetwork(obs_shape, [config.hidden_size], nn.Tanh())
             self.concat_state_action_pairs = concat_state_action_pairs
         elif len(obs_shape) == 3:
             action_shape = self.cfg.action_size
-            self.reward_model = AtariRewardModelNetwork(config.input_size, action_shape)
-            self.concat_state_action_pairs = partial(concat_state_action_pairs_one_hot, action_size=action_shape)
+            self.reward_model = GailNetwork(
+                obs_shape, [16, 16, 16, 16, 64], [7, 5, 3, 3], [3, 2, 2, 1], nn.LeakyReLU(), action_shape
+            )
+            self.concat_state_action_pairs = partial(concat_state_action_pairs, action_size=action_shape, one_hot_=True)
         self.reward_model.to(self.device)
         self.expert_data = []
         self.train_data = []
@@ -201,6 +116,7 @@ class GailRewardModel(BaseRewardModel):
         with open(self.cfg.data_path + '/expert_data.pkl', 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
         self.expert_data = self.concat_state_action_pairs(self.expert_data_loader)
+        self.expert_data = torch.unbind(self.expert_data, dim=0)
 
     def state_dict(self) -> Dict[str, Any]:
         return {
@@ -210,23 +126,20 @@ class GailRewardModel(BaseRewardModel):
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
         self.reward_model.load_state_dict(state_dict['model'])
 
-    def learn(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> float:
+    def _train(self) -> float:
         """
         Overview:
-            Helper function for ``train`` which calculates loss for train data and expert data.
-        Arguments:
-            - train_data (:obj:`torch.Tensor`): Data used for training
-            - expert_data (:obj:`torch.Tensor`): Expert data
+            Helper function for ``train`` which caclulates loss for train data and expert data.
         Returns:
-            - Combined loss calculated of reward model from using ``train_data`` and ``expert_data``.
+            - Combined loss calculated of reward model from using ``states_actions_tensor``.
         """
-        # calculate loss, here are some hyper-param
-        out_1: torch.Tensor = self.reward_model(train_data)
-        loss_1: torch.Tensor = torch.log(out_1 + 1e-8).mean()
-        out_2: torch.Tensor = self.reward_model(expert_data)
-        loss_2: torch.Tensor = torch.log(1 - out_2 + 1e-8).mean()
-        # log(x) with 0<x<1 is negative, so to reduce this loss we have to minimize the opposite
-        loss: torch.Tensor = -(loss_1 + loss_2)
+        # sample train and expert data
+        sample_expert_data: list = random.sample(self.expert_data, self.cfg.batch_size)
+        sample_train_data: list = random.sample(self.train_data, self.cfg.batch_size)
+        sample_expert_data = torch.stack(sample_expert_data).to(self.device)
+        sample_train_data = torch.stack(sample_train_data).to(self.device)
+
+        loss = self.reward_model.learn(sample_train_data, sample_expert_data)
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
@@ -242,11 +155,7 @@ class GailRewardModel(BaseRewardModel):
             - This is a side effect function which updates the reward model and increment the train iteration count.
         """
         for _ in range(self.cfg.update_per_collect):
-            sample_expert_data: list = random.sample(self.expert_data, self.cfg.batch_size)
-            sample_train_data: list = random.sample(self.train_data, self.cfg.batch_size)
-            sample_expert_data = torch.stack(sample_expert_data).to(self.device)
-            sample_train_data = torch.stack(sample_train_data).to(self.device)
-            loss = self.learn(sample_train_data, sample_expert_data)
+            loss = self._train()
             self.tb_logger.add_scalar('reward_model/gail_loss', loss, self.train_iter)
             self.train_iter += 1
 
@@ -264,9 +173,9 @@ class GailRewardModel(BaseRewardModel):
         # otherwise the reward of data in the replay buffer will be incorrectly modified.
         train_data_augmented = self.reward_deepcopy(data)
         res = self.concat_state_action_pairs(train_data_augmented)
-        res = torch.stack(res).to(self.device)
+        res = res.to(self.device)
         with torch.no_grad():
-            reward = self.reward_model(res).squeeze(-1).cpu()
+            reward = self.reward_model.forward(res).squeeze(-1).cpu()
         reward = torch.chunk(reward, reward.shape[0], dim=0)
         for item, rew in zip(train_data_augmented, reward):
             item['reward'] = -torch.log(rew + 1e-8)
@@ -282,7 +191,9 @@ class GailRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the data attribute in ``self``
         """
-        self.train_data.extend(self.concat_state_action_pairs(data))
+        data = self.concat_state_action_pairs(data)
+        data = torch.unbind(data, dim=0)
+        self.train_data.extend(data)
 
     def clear_data(self) -> None:
         """
