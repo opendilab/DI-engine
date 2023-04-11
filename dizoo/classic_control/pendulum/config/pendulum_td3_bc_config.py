@@ -6,7 +6,7 @@ pendulum_td3_bc_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         norm_obs=dict(
-            use_norm=True,
+            use_norm=True, 
             offline_stats=dict(use_offline_stats=True, ),
         ),
         # (bool) Scale output action into legal range.

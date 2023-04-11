@@ -12,7 +12,7 @@ lunarlander_td3_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=8,
@@ -22,7 +22,7 @@ lunarlander_td3_config = dict(
         ),
         learn=dict(
             update_per_collect=256,
-            batch_size=256,
+            batch_size=128,
             learning_rate_actor=3e-4,
             learning_rate_critic=1e-3,
             actor_update_freq=2,

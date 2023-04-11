@@ -29,14 +29,17 @@ carracing_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=100,
         ),
-        collect=dict(n_sample=64, ),
+        collect=dict(
+            n_sample=64,
+        ),
         other=dict(
             eps=dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
                 decay=50000,
-            ), replay_buffer=dict(replay_buffer_size=100000, )
+            ),
+            replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
 )

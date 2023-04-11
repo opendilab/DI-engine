@@ -34,7 +34,9 @@ ant_sac_default_config = dict(
             target_theta=0.005,
             discount_factor=0.99,
         ),
-        collect=dict(n_sample=400, ),
+        collect=dict(
+            n_sample=400,
+        ),
         eval=dict(evaluator=dict(eval_freq=500, )),
         other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
     ),

@@ -27,7 +27,7 @@ main_config = dict(
             obs_shape=108,
             global_obs_shape=263,
             action_shape=15,
-            hidden_size_list=[256, 256],
+            hidden_size_list=[256,256],
         ),
         learn=dict(
             update_per_collect=40,
@@ -38,7 +38,9 @@ main_config = dict(
             discount_factor=0.95,
         ),
         collect=dict(
-            collector=dict(get_train_sample=True, ),
+            collector=dict(
+                get_train_sample=True,
+            ),
             n_episode=32,
             unroll_len=20,
             env_num=collector_env_num,
@@ -51,7 +53,9 @@ main_config = dict(
                 end=0.05,
                 decay=50000,
             ),
-            replay_buffer=dict(replay_buffer_size=20000, ),
+            replay_buffer=dict(
+                replay_buffer_size=20000,
+            ),
         ),
     ),
 )
@@ -81,6 +85,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train(args)
+
 
 
 def train(args):

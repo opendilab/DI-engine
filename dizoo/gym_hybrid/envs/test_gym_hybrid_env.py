@@ -8,17 +8,7 @@ from easydict import EasyDict
 class TestGymHybridEnv:
 
     def test_naive(self):
-        env = GymHybridEnv(
-            EasyDict(
-                {
-                    'env_id': 'Moving-v0',
-                    'act_scale': False,
-                    'save_replay_gif': False,
-                    'replay_path_gif': None,
-                    'replay_path': None
-                }
-            )
-        )
+        env = GymHybridEnv(EasyDict({'env_id': 'Moving-v0', 'act_scale': False, 'save_replay_gif': False, 'replay_path_gif': None, 'replay_path': None}))
         env.enable_save_replay('./video')
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314

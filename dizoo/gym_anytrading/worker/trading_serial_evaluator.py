@@ -32,13 +32,13 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
     )
 
     def __init__(
-            self,
-            cfg: dict,
-            env: BaseEnvManager = None,
-            policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'evaluator',
+        self,
+        cfg: dict,
+        env: BaseEnvManager = None,
+        policy: namedtuple = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -49,12 +49,12 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
         super().__init__(cfg, env, policy, tb_logger, exp_name, instance_name)
 
     def eval(
-            self,
-            save_ckpt_fn: Callable = None,
-            train_iter: int = -1,
-            envstep: int = -1,
-            n_episode: Optional[int] = None,
-            force_render: bool = False,
+        self,
+        save_ckpt_fn: Callable = None,
+        train_iter: int = -1,
+        envstep: int = -1,
+        n_episode: Optional[int] = None,
+        force_render: bool = False,
     ) -> Tuple[bool, dict]:
         '''
         Overview:
