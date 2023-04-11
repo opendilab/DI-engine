@@ -145,6 +145,7 @@ class EDACPolicy(SACPolicy):
             Learn mode init method. Called by ``self.__init__``.
             Init q, value and policy's optimizers, algorithm config, main and target models.
         """
+        super()._init_learn()
         # EDAC special implementation
         self._eta = self._cfg.learn.eta
 
