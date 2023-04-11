@@ -22,6 +22,7 @@ halfcheetah_bdq_config = dict(
             action_bins_per_branch=2,  # mean the action shape is 6, 2 discrete actions for each action dimension
             encoder_hidden_size_list=[256, 256, 128],
         ),
+        
         learn=dict(
             batch_size=512,
             learning_rate=3e-4,
@@ -64,8 +65,4 @@ create_config = halfcheetah_bdq_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c halfcheetah_onbdq_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline(
-        (main_config, create_config),
-        seed=0,
-        max_env_step=10000000,
-    )
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=10000000,)

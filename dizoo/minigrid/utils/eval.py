@@ -8,11 +8,11 @@ from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 
 
 def eval(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        replay_path: Optional[str] = './video',
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    replay_path: Optional[str] = './video',
 ) -> float:
     r"""
     Overview:

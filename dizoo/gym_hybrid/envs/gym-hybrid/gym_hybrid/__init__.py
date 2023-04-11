@@ -3,6 +3,7 @@ from gym_hybrid.environments import MovingEnv
 from gym_hybrid.environments import SlidingEnv
 from gym_hybrid.environments import HardMoveEnv
 
+
 register(
     id='Moving-v0',
     entry_point='gym_hybrid:MovingEnv',

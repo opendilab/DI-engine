@@ -13,15 +13,16 @@ main_config = dict(
     ),
     policy=dict(
         cuda=cuda,
-        model=dict(obs_shape=3, action_shape=1, stochastic_optim=dict(
-            type='mcmc',
-            cuda=cuda,
-        )),
+        model=dict(
+            obs_shape=3,
+            action_shape=1,
+            stochastic_optim=dict(type='mcmc', cuda=cuda,)
+        ),
         learn=dict(
             multi_gpu=multi_gpu,
             train_epoch=15,
             batch_size=256,
-            optim=dict(learning_rate=1e-5, ),
+            optim=dict(learning_rate=1e-5,),
             learner=dict(hook=dict(log_show_after_iter=1000)),
         ),
         collect=dict(
@@ -29,7 +30,7 @@ main_config = dict(
             data_path='./pendulum_sac_data_generation/expert_demos.hdf5',
             collector_logit=False,
         ),
-        eval=dict(evaluator=dict(eval_freq=-1, )),
+        eval=dict(evaluator=dict(eval_freq=-1,)),
     ),
 )
 pendulum_ibc_config = EasyDict(main_config)
