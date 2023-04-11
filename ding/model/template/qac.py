@@ -6,7 +6,7 @@ import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder, EnsembleHead
+    FCEncoder, ConvEncoder
 
 
 @MODEL_REGISTRY.register('qac')
