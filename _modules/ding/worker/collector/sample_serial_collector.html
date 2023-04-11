@@ -341,7 +341,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span> <span class="o">=</span> <span class="n">exp_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_print_freq</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">collect_print_freq</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">deepcopy_obs</span>  <span class="c1"># avoid shallow copy, e.g., ovelap of s_t and s_t+1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">deepcopy_obs</span>  <span class="c1"># whether to deepcopy each data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_transform_obs</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">transform_obs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
@@ -582,7 +582,8 @@
                         <span class="c1"># sequence sample of length &lt;burnin + learn_unroll_len&gt; (please refer to r2d2.py).</span>
 
                         <span class="c1"># Episode is done or traj_buffer(maxlen=traj_len) is full.</span>
-                        <span class="n">transitions</span> <span class="o">=</span> <span class="n">to_tensor_transitions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">])</span>
+                        <span class="c1"># indicate whether to shallow copy next obs, i.e., overlap of s_t and s_t+1</span>
+                        <span class="n">transitions</span> <span class="o">=</span> <span class="n">to_tensor_transitions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span><span class="p">)</span>
                         <span class="n">train_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">)</span>
                         <span class="n">return_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">train_sample</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_total_train_sample_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_sample</span><span class="p">)</span>

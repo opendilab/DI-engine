@@ -503,20 +503,21 @@
 <section id="module-ding.worker.collector.base_serial_collector.to_tensor_transitions">
 <span id="to-tensor-transitions"></span><h3>to_tensor_transitions<a class="headerlink" href="#module-ding.worker.collector.base_serial_collector.to_tensor_transitions" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
-<dt>Overview:</dt><dd><p>transitions collected data to tensor.</p>
+<dt>Overview:</dt><dd><p>Transform ths original transition return from env to tensor format.</p>
 </dd>
 <dt>Argument:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): the data that will be transited to tensor.</p></li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): The data that will be transformed to tensor.</p></li>
+<li><p>shallow_copy_next_obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to shallow copy next_obs. Default: True.</p></li>
 </ul>
 </dd>
 <dt>Return:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): the data that can be transited to tensor.</p></li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): The transformed tensor-like data.</p></li>
 </ul>
 </dd>
 </dl>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>In order to save memory, If there are next_obs in the passed data, we do special             treatment on next_obs so that the next_obs of each state in the data fragment is             the next state’s obs and the next_obs of the last state is its own next_obs,             and we make transform_scalar is False.</p>
+<p>In order to save memory, If there are next_obs in the passed data, we do special         treatment on next_obs so that the next_obs of each state in the data fragment is         the next state’s obs and the next_obs of the last state is its own next_obsself.         Besides, we set transform_scalar to False to avoid the extra <code class="docutils literal notranslate"><span class="pre">.item()</span></code> operation.</p>
 </div>
 </section>
 </section>

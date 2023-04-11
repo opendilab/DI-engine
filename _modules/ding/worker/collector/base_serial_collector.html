@@ -491,30 +491,35 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">to_tensor_transitions</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">to_tensor_transitions</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">shallow_copy_next_obs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        transitions collected data to tensor.</span>
+<span class="sd">        Transform ths original transition return from env to tensor format.</span>
 <span class="sd">    Argument:</span>
-<span class="sd">        - data (:obj:`List[Dict[str, Any]]`): the data that will be transited to tensor.</span>
+<span class="sd">        - data (:obj:`List[Dict[str, Any]]`): The data that will be transformed to tensor.</span>
+<span class="sd">        - shallow_copy_next_obs (:obj:`bool`): Whether to shallow copy next_obs. Default: True.</span>
 <span class="sd">    Return:</span>
-<span class="sd">        - data (:obj:`List[Dict[str, Any]]`): the data that can be transited to tensor.</span>
+<span class="sd">        - data (:obj:`List[Dict[str, Any]]`): The transformed tensor-like data.</span>
 
 <span class="sd">    .. tip::</span>
 <span class="sd">        In order to save memory, If there are next_obs in the passed data, we do special \</span>
-<span class="sd">            treatment on next_obs so that the next_obs of each state in the data fragment is \</span>
-<span class="sd">            the next state&#39;s obs and the next_obs of the last state is its own next_obs, \</span>
-<span class="sd">            and we make transform_scalar is False.</span>
+<span class="sd">        treatment on next_obs so that the next_obs of each state in the data fragment is \</span>
+<span class="sd">        the next state&#39;s obs and the next_obs of the last state is its own next_obsself. \</span>
+<span class="sd">        Besides, we set transform_scalar to False to avoid the extra ``.item()`` operation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;next_obs&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># for save memory of next_obs</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
-        <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># to_tensor will assign the separate memory to next_obs, if shallow_copy_next_obs is True,</span>
+        <span class="c1"># we can add ignore_keys to avoid this data copy for saving memory of next_obs.</span>
+        <span class="k">if</span> <span class="n">shallow_copy_next_obs</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">transform_scalar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
 </pre></div>
 
