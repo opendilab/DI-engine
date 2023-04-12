@@ -13,5 +13,5 @@ from .rnd_reward_model import RndRewardModel
 from .guided_cost_reward_model import GuidedCostRewardModel
 from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel
 from .icm_reward_model import ICMRewardModel
-from .network import RepresentationNetwork, RndNetwork, RedNetwork
-from .reword_model_utils import concat_state_action_pairs
+from .network import RepresentationNetwork, RNDNetwork, REDNetwork, GAILNetwork
+from .reword_model_utils import concat_state_action_pairs, combine_intrinsic_exterinsic_reward, obs_norm, collect_states

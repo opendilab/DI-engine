@@ -8,7 +8,7 @@ import torch.optim as optim
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 from .reword_model_utils import combine_intrinsic_exterinsic_reward, collect_states, obs_norm
-from .network import RndNetwork
+from .network import RNDNetwork
 from ding.utils import RunningMeanStd
 from ding.torch_utils.data_helper import to_tensor
 import numpy as np
@@ -92,7 +92,7 @@ class RndRewardModel(BaseRewardModel):
             from tensorboardX import SummaryWriter
             tb_logger = SummaryWriter('rnd_reward_model')
         self.tb_logger = tb_logger
-        self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
+        self.reward_model = RNDNetwork(config.obs_shape, config.hidden_size_list)
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
@@ -151,7 +151,7 @@ class RndRewardModel(BaseRewardModel):
         # rewards = torch.stack([data[i]['reward'] for i in range(len(data))])
         # rewards = (rewards - torch.min(rewards)) / (torch.max(rewards) - torch.min(rewards))
 
-        item = combine_intrinsic_exterinsic_reward(train_data_augmented, rnd_reward, self.cfg)
+        train_data_augmented = combine_intrinsic_exterinsic_reward(train_data_augmented, rnd_reward, self.cfg)
 
         # save the augmented_reward statistics into tb_logger
         rew = [item['reward'].cpu().numpy() for item in train_data_augmented]

@@ -43,23 +43,23 @@ def concat_state_action_pairs(
 
 
 def combine_intrinsic_exterinsic_reward(
-        train_data_augmented: Any, rnd_reward: List[torch.Tensor], config: EasyDict
+        train_data_augmented: Any, intrinsic_reward: List[torch.Tensor], config: EasyDict
 ) -> Any:
-    for item, rnd_rew in zip(train_data_augmented, rnd_reward):
+    for item, in_rew in zip(train_data_augmented, intrinsic_reward):
         if config.intrinsic_reward_type == 'add':
             if config.extrinsic_reward_norm:
                 item['reward'
-                     ] = item['reward'] / config.extrinsic_reward_norm_max + rnd_rew * config.intrinsic_reward_weight
+                     ] = item['reward'] / config.extrinsic_reward_norm_max + in_rew * config.intrinsic_reward_weight
             else:
-                item['reward'] = item['reward'] + rnd_rew * config.intrinsic_reward_weight
+                item['reward'] = item['reward'] + in_rew * config.intrinsic_reward_weight
         elif config.intrinsic_reward_type == 'new':
-            item['intrinsic_reward'] = rnd_rew
+            item['intrinsic_reward'] = in_rew
             if config.extrinsic_reward_norm:
                 item['reward'] = item['reward'] / config.extrinsic_reward_norm_max
         elif config.intrinsic_reward_type == 'assign':
-            item['reward'] = rnd_rew
+            item['reward'] = in_rew
 
-    return item
+    return train_data_augmented
 
 
 def collect_states(iterator) -> List:

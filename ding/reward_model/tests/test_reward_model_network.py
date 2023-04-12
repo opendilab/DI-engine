@@ -5,7 +5,7 @@ import pytest
 import torch.optim as optim
 import torch.nn.functional as F
 
-from ding.reward_model.network import RepresentationNetwork, RndNetwork, RedNetwork
+from ding.reward_model.network import RepresentationNetwork
 
 
 @pytest.mark.unittest

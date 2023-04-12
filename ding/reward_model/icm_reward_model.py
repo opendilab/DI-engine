@@ -6,10 +6,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
-from ding.model import FCEncoder, ConvEncoder
-from ding.torch_utils import one_hot
+from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
+from .network import ICMNetwork
+from .reword_model_utils import combine_intrinsic_exterinsic_reward
 
 
 def collect_states(iterator: list) -> Tuple[list, list, list]:
@@ -24,102 +24,6 @@ def collect_states(iterator: list) -> Tuple[list, list, list]:
         next_states.append(next_state)
         actions.append(action)
     return states, next_states, actions
-
-
-class ICMNetwork(nn.Module):
-    """
-    Intrinsic Curiosity Model (ICM Module)
-    Implementation of:
-    [1] Curiosity-driven Exploration by Self-supervised Prediction
-    Pathak, Agrawal, Efros, and Darrell - UC Berkeley - ICML 2017.
-    https://arxiv.org/pdf/1705.05363.pdf
-    [2] Code implementation reference:
-    https://github.com/pathak22/noreward-rl
-    https://github.com/jcwleo/curiosity-driven-exploration-pytorch
-
-    1) Embedding observations into a latent space
-    2) Predicting the action logit given two consecutive embedded observations
-    3) Predicting the next embedded obs, given the embeded former observation and action
-    """
-
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType, action_shape: int) -> None:
-        super(ICMNetwork, self).__init__()
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.feature = FCEncoder(obs_shape, hidden_size_list)
-        elif len(obs_shape) == 3:
-            self.feature = ConvEncoder(obs_shape, hidden_size_list)
-        else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own ICM model".
-                format(obs_shape)
-            )
-        self.action_shape = action_shape
-        feature_output = hidden_size_list[-1]
-        self.inverse_net = nn.Sequential(nn.Linear(feature_output * 2, 512), nn.ReLU(), nn.Linear(512, action_shape))
-        self.residual = nn.ModuleList(
-            [
-                nn.Sequential(
-                    nn.Linear(action_shape + 512, 512),
-                    nn.LeakyReLU(),
-                    nn.Linear(512, 512),
-                ) for _ in range(8)
-            ]
-        )
-        self.forward_net_1 = nn.Sequential(nn.Linear(action_shape + feature_output, 512), nn.LeakyReLU())
-        self.forward_net_2 = nn.Linear(action_shape + 512, feature_output)
-
-    def forward(self, state: torch.Tensor, next_state: torch.Tensor,
-                action_long: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        r"""
-        Overview:
-            Use observation, next_observation and action to genearte ICM module
-            Parameter updates with ICMNetwork forward setup.
-        Arguments:
-            - state (:obj:`torch.Tensor`):
-                The current state batch
-            - next_state (:obj:`torch.Tensor`):
-                The next state batch
-            - action_long (:obj:`torch.Tensor`):
-                The action batch
-        Returns:
-            - real_next_state_feature (:obj:`torch.Tensor`):
-                Run with the encoder. Return the real next_state's embedded feature.
-            - pred_next_state_feature (:obj:`torch.Tensor`):
-                Run with the encoder and residual network. Return the predicted next_state's embedded feature.
-            - pred_action_logit (:obj:`torch.Tensor`):
-                Run with the encoder. Return the predicted action logit.
-        Shapes:
-            - state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is ''obs_shape''
-            - next_state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is ''obs_shape''
-            - action_long (:obj:`torch.Tensor`): :math:`(B)`, where B is the batch size''
-            - real_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size
-              and M is embedded feature size
-            - pred_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size
-              and M is embedded feature size
-            - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size
-              and A is the ''action_shape''
-        """
-        action = one_hot(action_long, num=self.action_shape)
-        encode_state = self.feature(state)
-        encode_next_state = self.feature(next_state)
-        # get pred action logit
-        concat_state = torch.cat((encode_state, encode_next_state), 1)
-        pred_action_logit = self.inverse_net(concat_state)
-        # ---------------------
-
-        # get pred next state
-        pred_next_state_feature_orig = torch.cat((encode_state, action), 1)
-        pred_next_state_feature_orig = self.forward_net_1(pred_next_state_feature_orig)
-
-        # residual
-        for i in range(4):
-            pred_next_state_feature = self.residual[i * 2](torch.cat((pred_next_state_feature_orig, action), 1))
-            pred_next_state_feature_orig = self.residual[i * 2 + 1](
-                torch.cat((pred_next_state_feature, action), 1)
-            ) + pred_next_state_feature_orig
-        pred_next_state_feature = self.forward_net_2(torch.cat((pred_next_state_feature_orig, action), 1))
-        real_next_state_feature = encode_next_state
-        return real_next_state_feature, pred_next_state_feature, pred_action_logit
 
 
 @REWARD_MODEL_REGISTRY.register('icm')
@@ -211,15 +115,11 @@ class ICMRewardModel(BaseRewardModel):
         self.train_next_states = []
         self.train_actions = []
         self.opt = optim.Adam(self.reward_model.parameters(), config.learning_rate)
-        self.ce = nn.CrossEntropyLoss(reduction="mean")
-        self.forward_mse = nn.MSELoss(reduction='none')
         self.reverse_scale = config.reverse_scale
-        self.res = nn.Softmax(dim=-1)
         self.estimate_cnt_icm = 0
         self.train_cnt_icm = 0
 
-    def _train(self) -> None:
-        self.train_cnt_icm += 1
+    def _train(self) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, float]:
         train_data_list = [i for i in range(0, len(self.train_states))]
         train_data_index = random.sample(train_data_list, self.cfg.batch_size)
         data_states: list = [self.train_states[i] for i in train_data_index]
@@ -229,26 +129,23 @@ class ICMRewardModel(BaseRewardModel):
         data_actions: list = [self.train_actions[i] for i in train_data_index]
         data_actions: torch.Tensor = torch.cat(data_actions).to(self.device)
 
-        real_next_state_feature, pred_next_state_feature, pred_action_logit = self.reward_model(
-            data_states, data_next_states, data_actions
-        )
-        inverse_loss = self.ce(pred_action_logit, data_actions.long())
-        forward_loss = self.forward_mse(pred_next_state_feature, real_next_state_feature.detach()).mean()
-        self.tb_logger.add_scalar('icm_reward/forward_loss', forward_loss, self.train_cnt_icm)
-        self.tb_logger.add_scalar('icm_reward/inverse_loss', inverse_loss, self.train_cnt_icm)
-        action = torch.argmax(self.res(pred_action_logit), -1)
-        accuracy = torch.sum(action == data_actions.squeeze(-1)).item() / data_actions.shape[0]
-        self.tb_logger.add_scalar('icm_reward/action_accuracy', accuracy, self.train_cnt_icm)
+        inverse_loss, forward_loss, accuracy = self.reward_model.learn(data_states, data_next_states, data_actions)
         loss = self.reverse_scale * inverse_loss + forward_loss
-        self.tb_logger.add_scalar('icm_reward/total_loss', loss, self.train_cnt_icm)
-        loss = self.reverse_scale * inverse_loss + forward_loss
+
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
 
+        return loss, inverse_loss, forward_loss, accuracy
+
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
-            self._train()
+            loss, inverse_loss, forward_loss, accuracy = self._train()
+            self.tb_logger.add_scalar('icm_reward/total_loss', loss, self.train_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/forward_loss', forward_loss, self.train_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/inverse_loss', inverse_loss, self.train_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/action_accuracy', accuracy, self.train_cnt_icm)
+            self.train_cnt_icm += 1
 
     def estimate(self, data: list) -> List[Dict]:
         # NOTE: deepcopy reward part of data is very important,
@@ -259,33 +156,15 @@ class ICMRewardModel(BaseRewardModel):
         next_states = torch.stack(next_states).to(self.device)
         actions = torch.cat(actions).to(self.device)
         with torch.no_grad():
-            real_next_state_feature, pred_next_state_feature, _ = self.reward_model(states, next_states, actions)
-            raw_icm_reward = self.forward_mse(real_next_state_feature, pred_next_state_feature).mean(dim=1)
+            raw_icm_reward = self.reward_model.forward(states, next_states, actions)
             self.estimate_cnt_icm += 1
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_max', raw_icm_reward.max(), self.estimate_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_mean', raw_icm_reward.mean(), self.estimate_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_min', raw_icm_reward.min(), self.estimate_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_std', raw_icm_reward.std(), self.estimate_cnt_icm)
             icm_reward = (raw_icm_reward - raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
-            self.tb_logger.add_scalar('icm_reward/icm_reward_max', icm_reward.max(), self.estimate_cnt_icm)
-            self.tb_logger.add_scalar('icm_reward/icm_reward_mean', icm_reward.mean(), self.estimate_cnt_icm)
-            self.tb_logger.add_scalar('icm_reward/icm_reward_min', icm_reward.min(), self.estimate_cnt_icm)
-            self.tb_logger.add_scalar('icm_reward/icm_reward_std', icm_reward.std(), self.estimate_cnt_icm)
-            icm_reward = (raw_icm_reward - raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
             icm_reward = icm_reward.to(self.device)
-        for item, icm_rew in zip(train_data_augmented, icm_reward):
-            if self.intrinsic_reward_type == 'add':
-                if self.cfg.extrinsic_reward_norm:
-                    item['reward'] = item[
-                        'reward'] / self.cfg.extrinsic_reward_norm_max + icm_rew * self.cfg.intrinsic_reward_weight
-                else:
-                    item['reward'] = item['reward'] + icm_rew * self.cfg.intrinsic_reward_weight
-            elif self.intrinsic_reward_type == 'new':
-                item['intrinsic_reward'] = icm_rew
-                if self.cfg.extrinsic_reward_norm:
-                    item['reward'] = item['reward'] / self.cfg.extrinsic_reward_norm_max
-            elif self.intrinsic_reward_type == 'assign':
-                item['reward'] = icm_rew
+        train_data_augmented = combine_intrinsic_exterinsic_reward(train_data_augmented, icm_reward, self.cfg)
 
         return train_data_augmented
 

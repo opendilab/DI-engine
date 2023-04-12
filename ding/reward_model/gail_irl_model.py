@@ -11,7 +11,7 @@ import torch.optim as optim
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 from .reword_model_utils import concat_state_action_pairs
-from .network import GailNetwork
+from .network import GAILNetwork
 import torch.nn.functional as F
 from functools import partial
 
@@ -90,11 +90,11 @@ class GailRewardModel(BaseRewardModel):
         self.tb_logger = tb_logger
         obs_shape = config.input_size
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.reward_model = GailNetwork(obs_shape, [config.hidden_size], nn.Tanh())
+            self.reward_model = GAILNetwork(obs_shape, [config.hidden_size], nn.Tanh())
             self.concat_state_action_pairs = concat_state_action_pairs
         elif len(obs_shape) == 3:
             action_shape = self.cfg.action_size
-            self.reward_model = GailNetwork(
+            self.reward_model = GAILNetwork(
                 obs_shape, [16, 16, 16, 16, 64], [7, 5, 3, 3], [3, 2, 2, 1], nn.LeakyReLU(), action_shape=action_shape
             )
             self.concat_state_action_pairs = partial(concat_state_action_pairs, action_size=action_shape, one_hot_=True)

@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from ding.utils import REWARD_MODEL_REGISTRY, one_time_warning
 from .base_reward_model import BaseRewardModel
-from .network import RedNetwork
+from .network import REDNetwork
 from .reword_model_utils import concat_state_action_pairs
 
 
@@ -87,7 +87,7 @@ class RedRewardModel(BaseRewardModel):
         self.device = device
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.tb_logger = tb_logger
-        self.reward_model = RedNetwork(config.obs_shape, config.action_shape, config.hidden_size_list, config.sigma)
+        self.reward_model = REDNetwork(config.obs_shape, config.action_shape, config.hidden_size_list, config.sigma)
         self.reward_model.to(self.device)
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.train_once_flag = False
