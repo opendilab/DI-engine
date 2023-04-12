@@ -1,6 +1,8 @@
 from typing import Union, Optional, Dict, Callable, List
-import torch
-import torch.nn as nn
+# import torch
+# import torch.nn as nn
+import oneflow as torch
+import oneflow.nn as nn
 
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze

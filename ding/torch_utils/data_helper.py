@@ -7,7 +7,8 @@ from threading import Thread
 from queue import Queue
 
 import numpy as np
-import torch
+# import torch
+import oneflow as torch
 import treetensor.torch as ttorch
 
 

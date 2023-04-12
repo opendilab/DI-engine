@@ -1,7 +1,8 @@
 from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
-import torch
+# import torch
+import oneflow as torch
 
 from ding.torch_utils import Adam, to_device, ContrastiveLoss
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample
@@ -259,8 +260,9 @@ class DQNPolicy(Policy):
         # after update
         # =============
         self._target_model.update(self._learn_model.state_dict())
+        print(self._optimizer.state_dict()['param_groups'][0])
         return {
-            'cur_lr': self._optimizer.defaults['lr'],
+            'cur_lr': self._optimizer.state_dict()['param_groups'][0]['_options']['lr'],
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
             'target_q_value': target_q_value.mean().item(),

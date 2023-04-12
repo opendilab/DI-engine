@@ -1,10 +1,15 @@
-import torch
+# import torch
+import oneflow as torch
 import math
-from torch.nn.utils import clip_grad_norm_, clip_grad_value_
+# from torch.nn.utils import clip_grad_norm_, clip_grad_value_
+from oneflow.nn.utils import clip_grad_norm_, clip_grad_value_
 from typing import Union, Iterable, Tuple, Callable, List
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
+# import torch.nn as nn
+import oneflow.nn as nn
+# import torch.nn.functional as F
+import oneflow.nn.functional as F
+# import torch.optim as optim
+import oneflow.optim as optim
 import pdb
 import numpy as np
 import copy
@@ -215,6 +220,7 @@ class Adam(torch.optim.Adam):
             - closure (:obj:`callable`): A closure that reevaluates the model and returns the loss, default set to None
         """
         # clipping
+        print(self.param_groups)
         new_params = [
             t for group in self.param_groups for t in group['params'] if t.requires_grad and t.grad is not None
         ]

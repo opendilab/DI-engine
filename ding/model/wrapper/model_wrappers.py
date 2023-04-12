@@ -1,8 +1,10 @@
 from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
 import numpy as np
-import torch
-import torch.nn.functional as F
+# import torch
+# import torch.nn.functional as F
+import oneflow as torch
+import oneflow.nn.functional as F
 from torch.distributions import Categorical, Independent, Normal
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator

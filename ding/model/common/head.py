@@ -1,10 +1,14 @@
 from typing import Optional, Dict, Union, List
 
 import math
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.distributions import Normal, Independent
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
+# from torch.distributions import Normal, Independent
+import oneflow as  torch
+import oneflow.nn as nn
+import oneflow.nn.functional as F
+# from oneflow.distributions import Normal, Independent
 
 from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP, PopArt
 from ding.rl_utils import beta_function_map

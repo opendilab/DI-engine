@@ -2,9 +2,12 @@ from typing import Optional, Dict, Union, List
 from functools import reduce
 import operator
 import math
-import torch
-import torch.nn as nn
-from torch.nn import functional as F
+# import torch
+# import torch.nn as nn
+# from torch.nn import functional as F
+import oneflow as torch
+import oneflow.nn as nn
+from oneflow.nn import functional as F
 
 from ding.torch_utils import ResFCBlock, ResBlock, Flatten, normed_linear, normed_conv2d
 from ding.utils import SequenceType

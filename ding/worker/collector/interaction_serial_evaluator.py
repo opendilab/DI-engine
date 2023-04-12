@@ -1,8 +1,10 @@
 from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
-import torch
-import torch.distributed as dist
+# import torch
+# import torch.distributed as dist
+import oneflow as torch
+import oneflow.distributed as dist
 
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, to_item

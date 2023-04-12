@@ -1,8 +1,12 @@
 import math
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
+import oneflow as torch
+import oneflow.nn as nn
+import oneflow.nn.functional as F
+# from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
+from oneflow.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
 from typing import Union, Tuple, List, Callable
 from ding.compatibility import torch_ge_131
 

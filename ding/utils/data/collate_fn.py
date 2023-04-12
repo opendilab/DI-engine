@@ -1,7 +1,8 @@
 from collections.abc import Sequence, Mapping
 from typing import List, Dict, Union, Any
 
-import torch
+# import torch
+import oneflow as torch
 import treetensor.torch as ttorch
 import re
 import collections.abc as container_abcs
@@ -81,10 +82,12 @@ def default_collate(batch: Sequence,
             out = elem.new(storage)
         if elem.shape == (1, ) and cat_1dim:
             # reshape (B, 1) -> (B)
-            return torch.cat(batch, 0, out=out)
+            # return torch.cat(batch, 0, out=out)
+            return torch.cat(batch, 0)
             # return torch.stack(batch, 0, out=out)
         else:
-            return torch.stack(batch, 0, out=out)
+            # return torch.stack(batch, 0, out=out)
+            return torch.stack(batch, 0)
     elif isinstance(elem, ttorch.Tensor):
         return ttorch_collate(batch, json=True)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \

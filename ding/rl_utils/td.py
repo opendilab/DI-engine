@@ -3,9 +3,12 @@ import numpy as np
 from collections import namedtuple
 from typing import Union, Optional, Callable
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+# import torch
+# import torch.nn as nn
+# import torch.nn.functional as F
+import oneflow as torch
+import oneflow.nn as nn
+import oneflow.nn.functional as F
 
 from ding.hpc_rl import hpc_wrapper
 from ding.rl_utils.value_rescale import value_transform, value_inv_transform
