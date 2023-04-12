@@ -58,7 +58,6 @@ def combine_intrinsic_exterinsic_reward(
                 item['reward'] = item['reward'] / config.extrinsic_reward_norm_max
         elif config.intrinsic_reward_type == 'assign':
             item['reward'] = in_rew
-
     return train_data_augmented
 
 
