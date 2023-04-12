@@ -48,5 +48,7 @@ from .ibc import IBCPolicy
 
 from .pc import ProcedureCloningBFSPolicy
 
+from .bcq import BCQPolicy
+
 # new-type policy
 from .ppof import PPOFPolicy
