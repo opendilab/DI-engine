@@ -221,7 +221,7 @@ class PPOF:
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            'PPOF collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            f'PPOF collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(

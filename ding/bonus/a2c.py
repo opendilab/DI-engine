@@ -121,7 +121,7 @@ class A2CAgent:
                 )
             )
             task.use(termination_checker(max_env_step=step))
-            task.use(final_ctx_saver(name=self.cfg["exp_name"]))
+            task.use(final_ctx_saver(name=self.exp_name))
             task.run()
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
