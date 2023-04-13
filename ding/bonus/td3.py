@@ -69,7 +69,7 @@ class TD3Agent:
         self.policy = TD3Policy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
-        self.model_save_dir = os.path.join(self.exp_name, "ckpt")
+        self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
             self,
