@@ -32,19 +32,11 @@ class BCQPolicy(Policy):
         nstep=1,
         model=dict(
             # (List) Hidden list for actor network head.
-<<<<<<< HEAD
             actor_head_hidden_size=[400,300],
             
 
             # (List) Hidden list for critic network head.
             critic_head_hidden_size=[400,300],
-=======
-            actor_head_hidden_size=[400,400,300],
-            
-
-            # (List) Hidden list for critic network head.
-            critic_head_hidden_size=[400,400,300],
->>>>>>> 985def776aece702d7f77b8a8fc026daf8e7dff1
             # Max perturbation hyper-parameter for BCQ
             phi=0.05,
         ),
