@@ -15,7 +15,7 @@ hopper_gail_sac_config = dict(
     ),
     reward_model=dict(
         input_size=obs_shape + act_shape,
-        hidden_size=256,
+        hidden_size_list=[256],
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
