@@ -5,7 +5,6 @@ from easydict import EasyDict
 import os
 import torch
 import treetensor.torch as ttorch
-import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \

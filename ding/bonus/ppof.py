@@ -7,7 +7,6 @@ import os
 import gym
 import gymnasium
 import torch
-import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
     wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator
