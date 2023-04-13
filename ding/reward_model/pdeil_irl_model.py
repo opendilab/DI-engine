@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import pickle
+from ditk import logging
 from typing import List, Dict
 import scipy.stats as stats
 try:
@@ -163,7 +164,7 @@ class PdeilRewardModel(BaseRewardModel):
         s = torch.stack([item['obs'] for item in train_data_augmented], dim=0)
         a = torch.stack([item['action'] for item in train_data_augmented], dim=0)
         if self.p_u_s is None:
-            print("you need to train you reward model first")
+            logging.warning("you need to train you reward model first")
             for item in train_data_augmented:
                 item['reward'].zero_()
         else:
