@@ -18,26 +18,7 @@ from ding.model import DQN
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
-
-
-@dataclass
-class TrainingReturn:
-    '''
-    Attributions
-    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
-    '''
-    wandb_url: str
-
-
-@dataclass
-class EvalReturn:
-    '''
-    Attributions
-    eval_value: The mean of evaluation return.
-    eval_value_std: The standard deviation of evaluation return.
-    '''
-    eval_value: np.float32
-    eval_value_std: np.float32
+from ding.bonus.common import TrainingReturn, EvalReturn
 
 
 class DQNAgent:
@@ -88,7 +69,7 @@ class DQNAgent:
         self.policy = DQNPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
-        self.model_save_dir = os.path.join(self.exp_name, "model")
+        self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
             self,
@@ -121,7 +102,7 @@ class DQNAgent:
             task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(CkptSaver(policy=self.policy, save_dir=self.model_save_dir, train_freq=n_iter_save_ckpt))
+            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
@@ -248,7 +229,8 @@ class DQNAgent:
 
     @property
     def best(self):
-        best_model_file_path = os.path.join(self.model_save_dir, "ckpt", "eval.pth.tar")
+        best_model_file_path = os.path.join(self.checkpoint_save_dir, "eval.pth.tar")
+        # Load best model if it exists
         if os.path.exists(best_model_file_path):
             policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
             self.policy.learn_mode.load_state_dict(policy_state_dict)

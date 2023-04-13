@@ -17,26 +17,7 @@ from ding.utils import set_pkg_seed
 from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
-
-
-@dataclass
-class TrainingReturn:
-    '''
-    Attributions
-    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
-    '''
-    wandb_url: str
-
-
-@dataclass
-class EvalReturn:
-    '''
-    Attributions
-    eval_value: The mean of evaluation return.
-    eval_value_std: The standard deviation of evaluation return.
-    '''
-    eval_value: np.float32
-    eval_value_std: np.float32
+from ding.bonus.common import TrainingReturn, EvalReturn
 
 
 class PPOF:
@@ -125,7 +106,7 @@ class PPOF:
         self.policy = PPOFPolicy(self.cfg, model=model)
         if policy_state_dict is not None:
             self.policy.load_state_dict(policy_state_dict)
-        self.model_save_dir = os.path.join(self.exp_name, "model")
+        self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
             self,
@@ -154,7 +135,7 @@ class PPOF:
             task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
             task.use(ppof_adv_estimator(self.policy))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
-            task.use(CkptSaver(self.policy, save_dir=self.model_save_dir, train_freq=n_iter_save_ckpt))
+            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
@@ -268,7 +249,8 @@ class PPOF:
 
     @property
     def best(self):
-        best_model_file_path = os.path.join(self.model_save_dir, "ckpt", "eval.pth.tar")
+        best_model_file_path = os.path.join(self.checkpoint_save_dir, "eval.pth.tar")
+        # Load best model if it exists
         if os.path.exists(best_model_file_path):
             policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
             self.policy.learn_mode.load_state_dict(policy_state_dict)
