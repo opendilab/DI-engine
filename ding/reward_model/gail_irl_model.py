@@ -40,10 +40,15 @@ class GailRewardModel(BaseRewardModel):
            |                                               | obs_dim + act_dim                 |
         7  | ``target_new_``     int        64             | Collect steps per iteration       |
            | ``data_count``                                |                                   |
-        8  | ``hidden_size``     int        128            | Linear model hidden size          |
-        9  | ``collect_count``   int        100000         | Expert dataset size               | One entry is a (s,a)
+        8  | ``hidden_size``     list(      [32,32,64]     | Sequence of ``hidden_size``       |
+           | ``_list``           int)                      | of reward network.                |
+        9  | ``kernel_size``     list(      [5,3]          | kernel size list                  | only used in image
+           |                     int)                      |                                   | input
+        10 | ``stride``          list(                     | stride size list                  | only used in image
+           |                     int)                      |                                   | input
+        11 | ``collect_count``   int        100000         | Expert dataset size               | One entry is a (s,a)
            |                                               |                                   | tuple
-        10 | ``clear_buffer_``   int        1              | clear buffer per fixed iters      | make sure replay
+        12 | ``clear_buffer_``   int        1              | clear buffer per fixed iters      | make sure replay
            | ``per_iters``                                                                     | buffer's data count
            |                                                                                   | isn't too few.
            |                                                                                   | (code work in entry)
@@ -66,8 +71,13 @@ class GailRewardModel(BaseRewardModel):
         # action_size=6,
         # (int) Collect steps per iteration.
         target_new_data_count=64,
-        # (int) Linear model hidden size.
-        hidden_size=128,
+        # (list(int)) Sequence of ``hidden_size`` of reward network.
+        # if the input is vector, hidden_Size_list = [hidden_size]
+        hidden_size_list=[16, 16, 16, 16, 64],
+        # (list(int)) kernel size list, used for image input, size should be len(hidden_size_list) - 1
+        kernel_size=[7, 5, 3, 3],
+        # (list(int)) stride size list, used for image input, size should be len(hidden_size_list) - 1
+        stride=[3, 2, 2, 1],
         # (int) Expert dataset size.
         collect_count=100000,
         # (int) Clear buffer per fixed iters.
@@ -90,12 +100,17 @@ class GailRewardModel(BaseRewardModel):
         self.tb_logger = tb_logger
         obs_shape = config.input_size
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.reward_model = GAILNetwork(obs_shape, [config.hidden_size], nn.Tanh())
+            self.reward_model = GAILNetwork(obs_shape, config.hidden_size_list, nn.Tanh())
             self.concat_state_action_pairs = concat_state_action_pairs
         elif len(obs_shape) == 3:
             action_shape = self.cfg.action_size
             self.reward_model = GAILNetwork(
-                obs_shape, [16, 16, 16, 16, 64], [7, 5, 3, 3], [3, 2, 2, 1], nn.LeakyReLU(), action_shape=action_shape
+                obs_shape,
+                config.hidden_size_list,
+                config.kernel_size,
+                config.stride,
+                nn.LeakyReLU(),
+                action_shape=action_shape
             )
             self.concat_state_action_pairs = partial(concat_state_action_pairs, action_size=action_shape, one_hot_=True)
         self.reward_model.to(self.device)

@@ -20,7 +20,7 @@ cfg = [
     {
         'type': 'gail',
         'input_size': 5,
-        'hidden_size': 64,
+        'hidden_size_list': [64],
         'batch_size': 64,
     },
     {

@@ -23,7 +23,7 @@ action_space = 3
 
 cfg1 = dict(
     input_size=obs_space_1d + 1,
-    hidden_size=64,
+    hidden_size_list=[64],
     batch_size=5,
     learning_rate=1e-3,
     update_per_collect=2,
@@ -32,7 +32,9 @@ cfg1 = dict(
 
 cfg2 = dict(
     input_size=obs_space_3d,
-    hidden_size=64,
+    hidden_size_list=[16, 16, 16, 16, 64],
+    kernel_size=[7, 5, 3, 3],
+    stride=[3, 2, 2, 1],
     batch_size=5,
     learning_rate=1e-3,
     update_per_collect=2,
