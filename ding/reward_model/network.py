@@ -4,11 +4,13 @@ from easydict import EasyDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions import Independent, Normal
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
 from ding.torch_utils.data_helper import to_tensor
 from ding.torch_utils import one_hot
+from ding.utils.data import default_collate
 from .reword_model_utils import concat_state_action_pairs
 from functools import partial
 
@@ -105,7 +107,6 @@ class GAILNetwork(nn.Module):
         self.act = nn.Sigmoid()
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.feature = RepresentationNetwork(obs_shape, hidden_size_list, activation)
-            self.concat_state_action_pairs = concat_state_action_pairs
             self.fc = nn.Linear(hidden_size_list[0], 1)
             self.image_input = False
         elif len(obs_shape) == 3:
@@ -247,3 +248,34 @@ class ICMNetwork(nn.Module):
             reward = F.mse_loss(real_next_state_feature, pred_next_state_feature, reduction="none").mean(dim=1)
 
         return reward
+
+
+class GCLNetwork(nn.Module):
+
+    def __init__(
+            self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType, output_size: int,
+            action_shape: int
+    ) -> None:
+        super(GCLNetwork, self).__init__()
+        self.feature = RepresentationNetwork(obs_shape, hidden_size_list)
+        self.fc = nn.Linear(hidden_size_list[-1], output_size)
+        self.action_shape = action_shape
+
+    def forward(self, data: torch.Tensor) -> torch.Tensor:
+        reward = self.feature(data)
+        reward = self.fc(reward)
+
+        return reward
+
+    def learn(self, expert_demo: torch.Tensor, samp: torch.Tensor) -> torch.Tensor:
+        cost_demo = self.forward(
+            torch.cat([expert_demo['obs'], expert_demo['action'].float().reshape(-1, self.action_shape)], dim=-1)
+        )
+        cost_samp = self.forward(
+            torch.cat([samp['obs'], samp['action'].float().reshape(-1, self.action_shape)], dim=-1)
+        )
+        prob = samp['prob'].unsqueeze(-1)
+        loss_IOC = torch.mean(cost_demo) + \
+            torch.log(torch.mean(torch.exp(-cost_samp)/(prob+1e-7)))
+
+        return loss_IOC

@@ -10,6 +10,7 @@ from torch.distributions import Independent, Normal
 from ding.utils import REWARD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from .base_reward_model import BaseRewardModel
+from .network import GCLNetwork
 
 
 class GuidedCostNN(nn.Module):
@@ -89,11 +90,14 @@ class GuidedCostRewardModel(BaseRewardModel):
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(GuidedCostRewardModel, self).__init__()
         self.cfg = config
-        self.action_shape = self.cfg.action_shape
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = GuidedCostNN(config.input_size, config.hidden_size)
+        self.reward_model = GCLNetwork(
+            config.input_size, [config.hidden_size, config.hidden_size],
+            output_size=1,
+            action_shape=config.action_shape
+        )
         self.reward_model.to(self.device)
         self.opt = optim.Adam(self.reward_model.parameters(), lr=config.learning_rate)
 
@@ -118,16 +122,7 @@ class GuidedCostRewardModel(BaseRewardModel):
         samp.extend(expert_demo)
         expert_demo = default_collate(expert_demo)
         samp = default_collate(samp)
-        cost_demo = self.reward_model(
-            torch.cat([expert_demo['obs'], expert_demo['action'].float().reshape(-1, self.action_shape)], dim=-1)
-        )
-        cost_samp = self.reward_model(
-            torch.cat([samp['obs'], samp['action'].float().reshape(-1, self.action_shape)], dim=-1)
-        )
-
-        prob = samp['prob'].unsqueeze(-1)
-        loss_IOC = torch.mean(cost_demo) + \
-            torch.log(torch.mean(torch.exp(-cost_samp)/(prob+1e-7)))
+        loss_IOC = self.reward_model.learn(expert_demo, samp)
         # UPDATING THE COST FUNCTION
         self.opt.zero_grad()
         loss_IOC.backward()
@@ -142,7 +137,7 @@ class GuidedCostRewardModel(BaseRewardModel):
         train_data_augmented = data
         for i in range(len(train_data_augmented)):
             with torch.no_grad():
-                reward = self.reward_model(
+                reward = self.reward_model.forward(
                     torch.cat([train_data_augmented[i]['obs'], train_data_augmented[i]['action'].float()]).unsqueeze(0)
                 ).squeeze(0)
                 train_data_augmented[i]['reward'] = -reward
