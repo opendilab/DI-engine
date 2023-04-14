@@ -12,8 +12,6 @@ from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import ca
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
      cartpole_ppo_offpolicy_create_config
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
-from ding.reward_model.trex_reward_model import TrexConvEncoder
-from ding.torch_utils import is_differentiable
 
 
 @pytest.mark.unittest
