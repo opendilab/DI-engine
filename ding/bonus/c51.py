@@ -5,7 +5,6 @@ from easydict import EasyDict
 import os
 import torch
 import treetensor.torch as ttorch
-import numpy as np
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, multistep_trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
@@ -13,31 +12,12 @@ from ding.framework.middleware import CkptSaver, multistep_trainer, \
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import C51Policy
 from ding.utils import set_pkg_seed
-from ding.config import Config, save_config_py, compile_config
+from ding.config import save_config_py, compile_config
 from ding.model import C51DQN
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
-
-
-@dataclass
-class TrainingReturn:
-    '''
-    Attributions
-    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
-    '''
-    wandb_url: str
-
-
-@dataclass
-class EvalReturn:
-    '''
-    Attributions
-    eval_value: The mean of evaluation return.
-    eval_value_std: The standard deviation of evaluation return.
-    '''
-    eval_value: np.float32
-    eval_value_std: np.float32
+from ding.bonus.common import TrainingReturn, EvalReturn
 
 
 class C51Agent:
@@ -88,7 +68,7 @@ class C51Agent:
         self.policy = C51Policy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
             self.policy.learn_mode.load_state_dict(policy_state_dict)
-        self.model_save_dir=os.path.join(self.cfg["exp_name"], "model")
+        self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
             self,
@@ -122,7 +102,7 @@ class C51Agent:
             task.use(
                 CkptSaver(
                     policy=self.policy,
-                    save_dir=self.model_save_dir,
+                    save_dir=self.checkpoint_save_dir,
                     train_freq=n_iter_save_ckpt
                 )
             )
@@ -135,7 +115,7 @@ class C51Agent:
                 )
             )
             task.use(termination_checker(max_env_step=step))
-            task.use(final_ctx_saver(name=self.cfg["exp_name"]))
+            task.use(final_ctx_saver(name=self.exp_name))
             task.run()
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
@@ -251,7 +231,8 @@ class C51Agent:
 
     @property
     def best(self):
-        best_model_file_path=os.path.join(self.model_save_dir, "eval.pth.tar")
+        best_model_file_path = os.path.join(self.checkpoint_save_dir, "eval.pth.tar")
+        # Load best model if it exists
         if os.path.exists(best_model_file_path):
             policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
             self.policy.learn_mode.load_state_dict(policy_state_dict)
