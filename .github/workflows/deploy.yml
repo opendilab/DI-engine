@@ -3,8 +3,6 @@ name: deploy  # deploy docker
 on:
   push:
     branches: [main, '*deploy*', '*docker*']
-  pull_request:
-    branches: [main, '*docker*']
 jobs:
   docker_base:
     runs-on: ubuntu-latest

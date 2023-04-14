@@ -47,7 +47,7 @@ class SampleSerialCollector(ISerialCollector):
         self._exp_name = exp_name
         self._instance_name = instance_name
         self._collect_print_freq = cfg.collect_print_freq
-        self._deepcopy_obs = cfg.deepcopy_obs  # avoid shallow copy, e.g., ovelap of s_t and s_t+1
+        self._deepcopy_obs = cfg.deepcopy_obs  # whether to deepcopy each data
         self._transform_obs = cfg.transform_obs
         self._cfg = cfg
         self._timer = EasyTimer()
@@ -288,7 +288,8 @@ class SampleSerialCollector(ISerialCollector):
                         # sequence sample of length <burnin + learn_unroll_len> (please refer to r2d2.py).
 
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
-                        transitions = to_tensor_transitions(self._traj_buffer[env_id])
+                        # indicate whether to shallow copy next obs, i.e., overlap of s_t and s_t+1
+                        transitions = to_tensor_transitions(self._traj_buffer[env_id], not self._deepcopy_obs)
                         train_sample = self._policy.get_train_sample(transitions)
                         return_data.extend(train_sample)
                         self._total_train_sample_count += len(train_sample)

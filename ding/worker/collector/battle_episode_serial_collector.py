@@ -260,7 +260,9 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                         self._traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
                         if timestep.done:
-                            transitions = to_tensor_transitions(self._traj_buffer[env_id][policy_id])
+                            transitions = to_tensor_transitions(
+                                self._traj_buffer[env_id][policy_id], not self._deepcopy_obs
+                            )
                             if self._cfg.get_train_sample:
                                 train_sample = self._policy[policy_id].get_train_sample(transitions)
                                 return_data[policy_id].extend(train_sample)
