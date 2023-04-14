@@ -16,6 +16,7 @@ from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from ding.framework.event_loop import EventLoop
 from functools import wraps
+from ding.utils.prof import init_profiler
 
 
 def enable_async(func: Callable) -> Callable:
@@ -201,19 +202,22 @@ class Task:
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if len(self._middleware) == 0:
             return
-        for i in range(max_step):
-            for fn in self._middleware:
-                self.forward(fn)
-            # Sync should be called before backward, otherwise it is possible
-            # that some generators have not been pushed to backward_stack.
-            self.sync()
-            self.backward()
-            self.sync()
-            if i == max_step - 1:
-                self.finish = True
-            if self.finish:
-                break
-            self.renew()
+        profiler = init_profiler(enable=True, trace_path="/mnt/petrelfs/wangguoteng.p/DI_prof")
+        with profiler:
+            for i in range(max_step):
+                for fn in self._middleware:
+                    self.forward(fn)
+                # Sync should be called before backward, otherwise it is possible
+                # that some generators have not been pushed to backward_stack.
+                self.sync()
+                self.backward()
+                self.sync()
+                if i == max_step - 1:
+                    self.finish = True
+                if self.finish:
+                    break
+                self.renew()
+                profiler.step()
 
     def wrap(self, fn: Callable, lock: Union[bool, Lock] = False) -> Callable:
         """

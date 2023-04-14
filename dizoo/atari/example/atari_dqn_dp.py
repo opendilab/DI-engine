@@ -46,7 +46,7 @@ def main():
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.use(termination_checker(max_env_step=int(1e7)))
-        task.run()
+        task.run(max_step=100)
 
 
 if __name__ == "__main__":
