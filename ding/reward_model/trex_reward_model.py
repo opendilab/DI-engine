@@ -214,7 +214,7 @@ class TrexRewardModel(BaseRewardModel):
             return cum_loss
         # if not os.path.exists(os.path.join(self.cfg.exp_name, 'ckpt_reward_model')):
         #     os.makedirs(os.path.join(self.cfg.exp_name, 'ckpt_reward_model'))
-        # torch.save(self.reward_model.state_dict(), os.path.join(self.cfg.exp_name, 
+        # torch.save(self.reward_model.state_dict(), os.path.join(self.cfg.exp_name,
         # 'ckpt_reward_model/latest.pth.tar'))
         # logging.info("finished training")
 
