@@ -1,6 +1,4 @@
 from time import sleep, time
-from dataclasses import fields
-from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
 from ding.framework import task
 from ding.utils.lock_helper import LockContext, LockContextType
@@ -9,7 +7,7 @@ from ding.utils.design_helper import SingletonMetaclass
 
 class BarrierRuntime(metaclass=SingletonMetaclass):
 
-    def __init__(self, node_id: int, world_size: int = 128):
+    def __init__(self, node_id: int, max_world_size: int = 100):
         """
         Overview:
             'BarrierRuntime' is a singleton class. In addition, it must be initialized before the
@@ -18,11 +16,12 @@ class BarrierRuntime(metaclass=SingletonMetaclass):
             a message means deadlock.
         Arguments:
             - node_id (int): Process ID.
-            - world_size (int, optional): The maximum total number of processes that can be
-                synchronized，the defalut value is 128.
+            - max_world_size (int, optional): The maximum total number of processes that can be
+                synchronized, the defalut value is 100.
         """
         self.node_id = node_id
         self._has_detected = False
+        self._range_len = len(str(max_world_size)) + 1
 
         self._barrier_epoch = 0
         self._barrier_recv_peers_buff = dict()
@@ -44,7 +43,7 @@ class BarrierRuntime(metaclass=SingletonMetaclass):
             self._connected_peers[peer_id] = time()
 
     def _add_barrier_req(self, msg):
-        peer, epoch = BarrierRuntime._unpickle_barrier_tag(msg)
+        peer, epoch = self._unpickle_barrier_tag(msg)
         logging.debug("Node:[{}] recv barrier request from node:{}, epoch:{}".format(self.node_id, peer, epoch))
         with self._barrier_lock:
             if peer not in self._barrier_recv_peers:
@@ -56,12 +55,11 @@ class BarrierRuntime(metaclass=SingletonMetaclass):
         with self._barrier_lock:
             self._barrier_ack_peers.append(peer)
 
-    @staticmethod
-    def _unpickle_barrier_tag(msg):
-        return msg % 100, msg // 100
+    def _unpickle_barrier_tag(self, msg):
+        return msg % self._range_len, msg // self._range_len
 
     def pickle_barrier_tag(self):
-        return int(self._barrier_epoch * 100 + self.node_id)
+        return int(self._barrier_epoch * self._range_len + self.node_id)
 
     def reset_all_peers(self):
         with self._barrier_lock:
