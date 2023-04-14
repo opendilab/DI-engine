@@ -10,12 +10,13 @@ FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
 PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR}/entry/tests/test_serial_entry.py ${DING_DIR}/entry/tests/test_serial_entry_onpolicy.py)
 
 # Workers command
-WORKERS         ?= 2
+WORKERS         ?= 1
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
 # Duration command
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
+
 
 docs:
 	$(MAKE) -C ${DING_DIR}/docs html
@@ -57,11 +58,20 @@ benchmark:
 		--durations=0 \
 		-sv -m benchmark
 
+multiprocesstest:
+	pytest ${TEST_DIR} \
+		--cov-report=xml \
+		--cov-report term-missing \
+		--cov=${COV_DIR} \
+		${DURATIONS_COMMAND} \
+		${WORKERS_COMMAND} \
+		-sv -m multiprocesstest
+
 test: unittest  # just for compatibility, can be changed later
 
 cpu_test: unittest algotest benchmark
 
-all_test: unittest algotest cudatest benchmark
+all_test: unittest algotest cudatest benchmark multiprocesstest
 
 format:
 	yapf --in-place --recursive -p --verbose --style .style.yapf ${FORMAT_DIR}

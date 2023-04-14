@@ -38,8 +38,12 @@ class StepCollector:
         self.policy = policy
         self.random_collect_size = random_collect_size
         self._transitions = TransitionList(self.env.env_num)
+        if hasattr(cfg, "env") and hasattr(cfg.env, "manager"):
+            use_cuda_shared_memory = cfg.env.manager.cuda_shared_memory
+        else:
+            use_cuda_shared_memory = False
         self._inferencer = task.wrap(inferencer(cfg.seed, policy, env))
-        self._rolloutor = task.wrap(rolloutor(policy, env, self._transitions))
+        self._rolloutor = task.wrap(rolloutor(policy, env, self._transitions, use_cuda_shared_memory))
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """

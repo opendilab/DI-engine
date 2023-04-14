@@ -1,7 +1,7 @@
 import uuid
 from ditk import logging
 from time import sleep
-from typing import Tuple
+from typing import Tuple, Optional
 
 import redis
 from ding.framework.message_queue.mq import MQ
@@ -34,7 +34,7 @@ class RedisMQ(MQ):
         data = self._id + b"::" + data
         self._client.publish(topic, data)
 
-    def subscribe(self, topic: str) -> None:
+    def subscribe(self, topic: str, fn: Optional[callable] = None, is_once: Optional[bool] = False) -> None:
         self._sub.subscribe(topic)
 
     def unsubscribe(self, topic: str) -> None:

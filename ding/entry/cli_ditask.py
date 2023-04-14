@@ -57,12 +57,33 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 )
 @click.option("--platform-spec", type=str, help="Platform specific configure.")
 @click.option("--platform", type=str, help="Platform type: slurm, k8s.")
-@click.option("--mq-type", type=str, default="nng", help="Class type of message queue, i.e. nng, redis.")
+@click.option(
+    "--mq-type", type=str, default="nng", help="Class type of message queue, i.e. nng, redis, cuda, torchrpc:cpu."
+)
 @click.option("--redis-host", type=str, help="Redis host.")
 @click.option("--redis-port", type=int, help="Redis port.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
 @click.option("--startup-interval", type=int, default=1, help="Start up interval between each task.")
 @click.option("--local_rank", type=int, default=0, help="Compatibility with PyTorch DDP")
+@click.option(
+    "--init-method",
+    type=str,
+    help="[Torchrpc]: Init method both for init_rpc and init_process_group, please refer to pytorch init_method"
+)
+@click.option(
+    "--local-cuda-devices",
+    type=str,
+    help='''[Torchrpc]: [Optional] Specifies the device ranks of the GPUs used by the local process, a comma-separated
+    list of integers.'''
+)
+@click.option(
+    "--cuda-device-map",
+    type=str,
+    help='''[Torchrpc]: [Optional] Specify device mapping.
+    Ref:<https://pytorch.org/docs/stable/rpc.html#torch.distributed.rpc.TensorPipeRpcBackendOptions.set_device_map>
+    Format: --cuda-device-map=<Peer node id>_<Local GPU rank>_<Peer GPU rank>,[...]
+    '''
+)
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
 
@@ -107,9 +128,12 @@ def _cli_ditask(
     redis_host: str,
     redis_port: int,
     startup_interval: int,
+    init_method: str = None,
     local_rank: int = 0,
     platform: str = None,
     platform_spec: str = None,
+    local_cuda_devices: str = None,
+    cuda_device_map: str = None
 ):
     # Parse entry point
     all_args = locals()
@@ -145,6 +169,18 @@ def _cli_ditask(
     if node_ids and not isinstance(node_ids, int):
         node_ids = node_ids.split(",")
         node_ids = list(map(lambda i: int(i), node_ids))
+    use_cuda = False
+    if mq_type == "cuda":
+        mq_type, use_cuda = "torchrpc", True
+    if mq_type == "torchrpc:cpu":
+        mq_type, use_cuda = "torchrpc", False
+    if local_cuda_devices:
+        local_cuda_devices = local_cuda_devices.split(",")
+        local_cuda_devices = list(map(lambda s: s.strip(), local_cuda_devices))
+    if cuda_device_map:
+        cuda_device_map = cuda_device_map.split(",")
+        cuda_device_map = list(map(lambda s: s.strip(), cuda_device_map))
+
     Parallel.runner(
         n_parallel_workers=parallel_workers,
         ports=ports,
@@ -157,5 +193,9 @@ def _cli_ditask(
         mq_type=mq_type,
         redis_host=redis_host,
         redis_port=redis_port,
-        startup_interval=startup_interval
+        init_method=init_method,
+        startup_interval=startup_interval,
+        use_cuda=use_cuda,
+        local_cuda_devices=local_cuda_devices,
+        cuda_device_map=cuda_device_map
     )(main_func)

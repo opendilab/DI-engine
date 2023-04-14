@@ -2,8 +2,10 @@ from time import sleep, time
 from dataclasses import fields
 from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
 from ditk import logging
-from ding.framework import task
+from ding.framework import task, MQType
 from ding.data import StorageLoader, Storage, ModelLoader
+from ding.utils import LockContext, LockContextType
+
 if TYPE_CHECKING:
     from ding.framework.context import Context
     from torch.nn import Module
@@ -33,9 +35,15 @@ class ContextExchanger:
         self._event_name = "context_exchanger_{role}"
         self._skip_n_iter = skip_n_iter
         self._storage_loader = storage_loader
+
+        # Both nng and torchrpc use background threads to trigger the receiver's recv action,
+        # there is a race condition between the listen thread and the polling thread.
+        self._put_lock = LockContext(LockContextType.THREAD_LOCK)
+        self._bypass_eventloop = task.router.mq_type == MQType.RPC
+
         for role in task.role:  # Only subscribe to other roles
             if not task.has_role(role):
-                task.on(self._event_name.format(role=role), self.put)
+                task.on(self._event_name.format(role=role), self.put, bypass_eventloop=self._bypass_eventloop)
         if storage_loader:
             task.once("finish", lambda _: storage_loader.shutdown())
 
@@ -62,7 +70,12 @@ class ContextExchanger:
             if self._storage_loader and task.has_role(task.role.COLLECTOR):
                 payload = self._storage_loader.save(payload)
             for role in task.roles:
-                task.emit(self._event_name.format(role=role), payload, only_remote=True)
+                task.emit(
+                    self._event_name.format(role=role),
+                    payload,
+                    only_remote=True,
+                    bypass_eventloop=self._bypass_eventloop
+                )
 
     def __del__(self):
         if self._storage_loader:
@@ -76,12 +89,13 @@ class ContextExchanger:
         """
 
         def callback(payload: Dict):
-            for key, item in payload.items():
-                fn_name = "_put_{}".format(key)
-                if hasattr(self, fn_name):
-                    getattr(self, fn_name)(item)
-                else:
-                    logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
+            with self._put_lock:
+                for key, item in payload.items():
+                    fn_name = "_put_{}".format(key)
+                    if hasattr(self, fn_name):
+                        getattr(self, fn_name)(item)
+                    else:
+                        logging.warning("Receive unexpected key ({}) in context exchanger".format(key))
 
         if isinstance(payload, Storage):
             assert self._storage_loader is not None, "Storage loader is not defined when data is a storage object."
@@ -106,26 +120,36 @@ class ContextExchanger:
         return payload
 
     def merge(self, ctx: "Context"):
+        # Dict's assignment is not an atomic operation, even if len(self._state)
+        # is not 0, the value corresponding to the key maybe empty.
+        ready = 0
         if task.has_role(task.role.LEARNER):
             # Learner should always wait for trajs.
             # TODO: Automaticlly wait based on properties, not roles.
-            while len(self._state) == 0:
-                sleep(0.01)
+            while ready == 0:
+                with self._put_lock:
+                    ready = len(self._state)
+                if ready == 0:
+                    sleep(0.01)
         elif ctx.total_step >= self._skip_n_iter:
             start = time()
-            while len(self._state) == 0:
-                if time() - start > 60:
-                    logging.warning("Timeout when waiting for new context! Node id: {}".format(task.router.node_id))
-                    break
-                sleep(0.01)
+            while ready == 0:
+                with self._put_lock:
+                    ready = len(self._state)
+                if ready == 0:
+                    if time() - start > 60:
+                        logging.warning("Timeout when waiting for new context! Node id: {}".format(task.router.node_id))
+                        break
+                    sleep(0.01)
 
-        for k, v in self._state.items():
-            if not task.has_role(task.role.COLLECTOR) and k.startswith('increment_'):
-                pure_k = k.split('increment_')[-1]
-                setattr(ctx, pure_k, getattr(ctx, pure_k) + v)
-            else:
-                setattr(ctx, k, v)
-        self._state = {}
+        with self._put_lock:
+            for k, v in self._state.items():
+                if not task.has_role(task.role.COLLECTOR) and k.startswith('increment_'):
+                    pure_k = k.split('increment_')[-1]
+                    setattr(ctx, pure_k, getattr(ctx, pure_k) + v)
+                else:
+                    setattr(ctx, k, v)
+            self._state = {}
 
     # Handle each attibute of context
     def _put_trajectories(self, traj: List[Any]):
@@ -211,8 +235,9 @@ class ModelExchanger:
         self._event_name = "model_exchanger"
         self._state_dict_cache: Optional[Union[object, Storage]] = None
         self._is_learner = task.has_role(task.role.LEARNER)
+        self._bypass_eventloop = task.router.mq_type == MQType.RPC
         if not self._is_learner:
-            task.on(self._event_name, self._cache_state_dict)
+            task.on(self._event_name, self._cache_state_dict, bypass_eventloop=self._bypass_eventloop)
         if model_loader:
             task.once("finish", lambda _: model_loader.shutdown())
 
@@ -278,11 +303,13 @@ class ModelExchanger:
         if self._model_loader:
             self._model_loader.save(self._send_callback)
         else:
-            task.emit(self._event_name, self._model.state_dict(), only_remote=True)
+            task.emit(
+                self._event_name, self._model.state_dict(), only_remote=True, bypass_eventloop=self._bypass_eventloop
+            )
 
     def _send_callback(self, storage: Storage):
         if task.running:
-            task.emit(self._event_name, storage, only_remote=True)
+            task.emit(self._event_name, storage, only_remote=True, bypass_eventloop=self._bypass_eventloop)
 
     def __del__(self):
         if self._model_loader:

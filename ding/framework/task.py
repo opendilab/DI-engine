@@ -13,7 +13,7 @@ from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Op
 import inspect
 
 from ding.framework.context import Context
-from ding.framework.parallel import Parallel
+from ding.framework.parallel import Parallel, MQType
 from ding.framework.event_loop import EventLoop
 from functools import wraps
 
@@ -201,6 +201,7 @@ class Task:
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if len(self._middleware) == 0:
             return
+        start_time = 0
         for i in range(max_step):
             for fn in self._middleware:
                 self.forward(fn)
@@ -214,6 +215,11 @@ class Task:
             if self.finish:
                 break
             self.renew()
+
+            if i == 0:
+                # Skip the first round of timing
+                start_time = time.time()
+        return start_time
 
     def wrap(self, fn: Callable, lock: Union[bool, Lock] = False) -> Callable:
         """
@@ -424,7 +430,15 @@ class Task:
         t = self._async_loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
-    def emit(self, event: str, *args, only_remote: bool = False, only_local: bool = False, **kwargs) -> None:
+    def emit(
+            self,
+            event: str,
+            *args,
+            only_remote: bool = False,
+            only_local: bool = False,
+            bypass_eventloop: bool = False,
+            **kwargs
+    ) -> None:
         """
         Overview:
             Emit an event, call listeners.
@@ -432,43 +446,66 @@ class Task:
             - event (:obj:`str`): Event name.
             - only_remote (:obj:`bool`): Only broadcast the event to the connected nodes, default is False.
             - only_local (:obj:`bool`): Only emit local event, default is False.
+            - bypass_eventloop (:obj:`bool`): Whether to select to bypass eventloop of Task() and Parallel(),
+                this parameter can only be True when torchrpc is used as the communication backend. If use torchrpc,
+                the invoked of the callback is triggered by the torchrpc's backend thread.
             - args (:obj:`any`): Rest arguments for listeners.
         """
         # Check if need to broadcast event to connected nodes, default is True
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
-        if only_local:
-            self._event_loop.emit(event, *args, **kwargs)
-        elif only_remote:
+        if bypass_eventloop:
             if self.router.is_active:
-                self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
+                self.router.emit(self._wrap_event_name(event), *args, **kwargs)
         else:
-            if self.router.is_active:
-                self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
+            if only_local:
+                self._event_loop.emit(event, *args, **kwargs)
+            elif only_remote:
+                if self.router.is_active:
+                    self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
+            else:
+                if self.router.is_active:
+                    self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
             self._event_loop.emit(event, *args, **kwargs)
 
-    def on(self, event: str, fn: Callable) -> None:
+    def on(self, event: str, fn: Callable, bypass_eventloop: Optional[bool] = False) -> None:
         """
         Overview:
             Subscribe to an event, execute this function every time the event is emitted.
         Arguments:
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
+            - bypass_eventloop (:obj:`bool`): Same as the bypass_eventloop arg in Task.emit.
         """
-        self._event_loop.on(event, fn)
-        if self.router.is_active:
-            self.router.on(self._wrap_event_name(event), self._event_loop.emit)
+        if bypass_eventloop:
+            if self.router.mq_type == MQType.RPC:
+                if self.router.is_active:
+                    self.router.on(self._wrap_event_name(event), fn)
+            else:
+                raise RuntimeError("Only message queue implemented by torchrpc allows bypass eventloop")
+        else:
+            self._event_loop.on(event, fn)
+            if self.router.is_active:
+                self.router.on(self._wrap_event_name(event), self._event_loop.emit)
 
-    def once(self, event: str, fn: Callable) -> None:
+    def once(self, event: str, fn: Callable, bypass_eventloop: Optional[bool] = False) -> None:
         """
         Overview:
             Subscribe to an event, execute this function only once when the event is emitted.
         Arguments:
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
+             - bypass_eventloop (:obj:`bool`): Same as the bypass_eventloop arg in Task.emit.
         """
-        self._event_loop.once(event, fn)
-        if self.router.is_active:
-            self.router.on(self._wrap_event_name(event), self._event_loop.emit)
+        if bypass_eventloop:
+            if self.router.mq_type == MQType.RPC:
+                if self.router.is_active:
+                    self.router.once(self._wrap_event_name(event), fn)
+            else:
+                raise RuntimeError("Only message queue implemented by torchrpc allows bypass eventloop")
+        else:
+            self._event_loop.once(event, fn)
+            if self.router.is_active:
+                self.router.on(self._wrap_event_name(event), self._event_loop.emit)
 
     def off(self, event: str, fn: Optional[Callable] = None) -> None:
         """

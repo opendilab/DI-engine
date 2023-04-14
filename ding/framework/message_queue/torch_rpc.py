@@ -1,0 +1,391 @@
+from ding.framework.message_queue.mq import MQ
+from ding.utils import MQ_REGISTRY
+from ditk import logging
+from ding.utils import LockContext, LockContextType
+
+from typing import List, Optional, Tuple, Dict, Any, Union, Callable
+from threading import Thread
+from enum import Enum
+
+from torch.distributed import rpc
+
+import os
+import time
+import queue
+import torch
+import platform
+
+if platform.system().lower() != 'windows':
+    from torch.distributed.rpc import TensorPipeRpcBackendOptions
+
+DEFAULT_DEVICE_MAP_NUMS = 12
+
+
+# About RPCEvent:
+# RPCEvent stores events that are not related to RL train logic.
+# Private events use "int" to represent topic in order to reduce overhead, because the
+# order and content of these events are hard-coded. The user-defined topic is uniquely
+# identified by a string, because we cannot guarantee the order in which each process
+# registers the same topic.
+#
+# There are four types of private events:
+# 1. "CLINET_REGISTER_STUB": Responsible for the connect.
+# 2. "CUSTOM_FUNCRION_RPC":  Responsible for RPC which using provided RPC methods
+#       The remote function must be given with the positional parameter "custom_method".
+#       "custom_method" must be picklable, otherwise use subscribe() to register topic
+#       and corresponding method on the client side in advance.
+# 3. "NOTIFY_SHUTDOWN":      Responsible for the disconnect info from other process.
+# 4. "REQUIRE_SHUTDOWN":     Responsible for the disconnect request which was asked for.
+class RPCEvent(int, Enum):
+    CLINET_REGISTER_STUB = 1
+    CUSTOM_FUNCRION_RPC = 2
+    NOTIFY_SHUTDOWN = 3
+    REQUIRE_SHUTDOWN = 4
+
+
+class DeviceMap:
+
+    def __init__(
+            self,
+            our_name: str,
+            peer_name_list: List[str] = None,
+            our_device_list: List[int] = None,
+            peer_device_list: List[int] = None
+    ) -> None:
+        """
+        Overview:
+            Mapping management for gpu devices.
+        Arguments:
+            - peer_name_list (List[str], optional): remote processes unique rpc name.
+            - our_device_list (List[int], optional): local processes device rank.
+            - peer_device_list (List[int], optional): remote processes device rank.
+        """
+
+        self.peer_name_list = peer_name_list or []
+        self.our_device_list = our_device_list or []
+        self.peer_device_list = peer_device_list or []
+
+        assert len(self.peer_name_list) == len(self.peer_name_list)
+        assert len(self.peer_device_list) == len(self.peer_device_list)
+
+        self.our_name = str(our_name)
+
+    def __str__(self):
+        info = ""
+        for i in range(len(self.peer_name_list)):
+            info += "{} : GPU-{} --> {} : GPU-{};{}".format(
+                self.our_name, str(self.our_device_list[i]), str(self.peer_name_list[i]), str(self.peer_device_list[i]),
+                "\n" if i != len(self.peer_name_list) - 1 else ""
+            )
+        return info
+
+    def set_device(self, option) -> None:
+        """
+        Overview:
+            Initialize TensorPipeRpcBackendOptions according to the GPU mapping
+            set by the user.
+        Arguments:
+            - option (class TensorPipeRpcBackendOptions)
+        """
+        for i in range(len(self.peer_name_list)):
+            option.set_device_map(self.peer_name_list[i], {self.our_device_list[i]: self.peer_device_list[i]})
+
+
+@MQ_REGISTRY.register("torchrpc")
+class TORCHRPCMQ(MQ):
+
+    def __init__(
+            self,
+            rpc_name: str,
+            init_method: str,
+            remote_parallel_entrance: Callable,
+            global_rank: int = 0,
+            attach_to: Optional[List[str]] = None,
+            device_maps: Optional[DeviceMap] = None,
+            async_rpc: Optional[bool] = True,
+            async_backend_polling: Optional[bool] = False,
+            use_cuda: Optional[bool] = False,
+            cuda_device: Optional[int] = None,
+            channels: Optional[List[str]] = None,
+            **kwargs
+    ) -> None:
+        """
+        Overview:
+            Connect distributed processes with torch.distributed.rpc
+        Arguments:
+            - rpc_name (str): Globally unique name for rpc
+            - init_method (str): URL specifying how to initialize the process group.
+            - remote_parallel_entrance (Callable): Get the entry function of the remote Parallel()
+                struct. This function must ensure that the remote method call can find the corresponding
+                TORCHRPCMQ struct locally.
+            - attach_to (Optional[List[str]], optional): The ranks want to connect to, comma-separated ranks.
+            - global_rank (int, optional): Globally unique id.
+            - device_maps (DeviceMap, optional): Used for torch rpc init device_maps.
+            - async_rpc (Optional[bool]): Whether to use asynchronous rpc, the default is false.
+            - async_backend_polling (Optional[bool]): Whether to enable background threads to poll future objects
+                generated by asynchronous RPCs.
+            - use_cuda (Optional[bool]): Whether there will be data on the GPU side involved in the communication,
+                if true, torchrpc will set the device map.
+            - cuda_device (Optional[int]): An optional list of local devices, the default is all visible devices.
+            - channels (Optional[List[str]]): Channels contain the communication methods used by tensorpipe when
+                transmitting tensor, including the following possible values: "basic", "cma", "mpt_uv", "cuda_ipc",
+                "cuda_gdr", "cuda_xth".
+        """
+        self.name = rpc_name
+        self.global_rank = global_rank
+
+        self._running = False
+        self.remote_parallel_entrance = remote_parallel_entrance
+
+        self._peer_set = set(attach_to if attach_to else [])
+        self._peer_set_lock = LockContext(type_=LockContextType.THREAD_LOCK)
+
+        if platform.system().lower() != 'windows':
+            self.rpc_backend_options = TensorPipeRpcBackendOptions(
+                num_worker_threads=16, rpc_timeout=30, init_method=init_method, _channels=channels
+            )
+        else:
+            raise WindowsError("TensorPipe does not support Windows yet!")
+
+        if use_cuda:
+            assert torch.cuda.is_available()
+            assert device_maps
+            assert cuda_device is not None
+
+            self._device_maps = device_maps
+            self._device_maps.set_device(self.rpc_backend_options)
+            self.rpc_backend_options.set_devices([cuda_device])
+        else:
+            self._device_maps = None
+
+        self._rpc_events = {
+            RPCEvent.CLINET_REGISTER_STUB: self.accept_rpc_connect,
+            RPCEvent.CUSTOM_FUNCRION_RPC: self.call_custom_rpc_method,
+            RPCEvent.NOTIFY_SHUTDOWN: self.notify_shutdown,
+            RPCEvent.REQUIRE_SHUTDOWN: self.stop
+        }
+
+        self._async = async_rpc
+        self._async_backend_polling = async_rpc and async_backend_polling
+        if self._async_backend_polling:
+            self.async_future_queue = queue.Queue()
+            # Using threads to poll performance suffers due to the presence of Python GIL locks.
+            self.polling_thread = Thread(target=self._backend_polling, name="backend_polling", daemon=True)
+
+        logging.debug(
+            "Torchrpc info: process name:\"{}\", node_id:[{}], attach_to[{}], init_method:{}.".format(
+                self.name, self.global_rank, self._peer_set, init_method
+            )
+        )
+
+    def show_device_maps(self):
+        if self._device_maps:
+            logging.info("{}".format(self._device_maps))
+        else:
+            logging.info("Not set device map!")
+
+    def subscribe(self, topic: Union[int, str], fn: Optional[Callable] = None, is_once: Optional[bool] = False) -> None:
+        if fn is None:
+            raise RuntimeError("The Torchrpc subscription topic must be provided with a callback function.")
+        if topic not in self._rpc_events:
+
+            def once_callback(*args, **kwargs):
+                fn(*args, **kwargs)
+                self.unsubscribe(topic)
+
+            self._rpc_events[topic] = fn if not is_once else once_callback
+
+    def unsubscribe(self, topic: Union[int, str]) -> None:
+        if topic in self._rpc_events:
+            self._rpc_events.pop(topic)
+
+    def rpc_event_router(self, topic: Union[int, str], *args, **kwargs) -> Any:
+        """
+        Overview:
+            Entry function called after all remote methods reach the target process.
+        Arguments:
+            - topic (Union[int, str]): Recevied topic.
+        """
+        if topic not in self._rpc_events:
+            logging.warning("{} Torchrpc topic \"{}\" is not registered.".format(self.name, topic))
+            return
+
+        return (self._rpc_events[topic])(*args, **kwargs)
+
+    def listen(self) -> None:
+        # If device_map is not specified, init_rpc will block until all processes
+        # smaller than the current rank call init_rpc. If device_map is specified,
+        # then init_rpc blocks until all processes present in device_map call init_rpc.
+        rpc.init_rpc(name=self.name, rank=self.global_rank, rpc_backend_options=self.rpc_backend_options)
+
+        # Wait for all processes rendezvous before starting subsequent steps
+        for i, peer in enumerate(self._peer_set):
+            while True:
+                try:
+                    self._do_rpc(peer, RPCEvent.CLINET_REGISTER_STUB, self.name, self.global_rank)
+                except Exception as e:
+                    logging.debug(
+                        "\"{}\" try to rendezvous with \"{}\" error, because \"{}\"".format(self.name, peer, e)
+                    )
+                    time.sleep(0.5)
+                    continue
+                else:
+                    logging.debug("\"{}\" irendezvous with \"{}\" success!".format(self.name, peer))
+                    break
+
+        if self._async_backend_polling:
+            self.polling_thread.start()
+        self._running = True
+
+        logging.debug("\"{}\" Torchrpc backend init success.".format(self.name))
+
+    def publish(self, topic: Union[int, str], *args, **kwargs) -> Any:
+        if self._running:
+            timeout_list = []
+
+            if len(self._peer_set) == 0:
+                logging.warning("No peer available to communicate with")
+                return
+
+            with self._peer_set_lock:
+                for peer in self._peer_set:
+                    if not self._running:
+                        break
+                    try:
+                        re = self._do_rpc(peer, topic, *args, **kwargs)
+                    except RuntimeError as e:
+                        logging.error("Publish topic \"{}\" to peer \"{}\" has error: \"{}\"!".format(topic, peer, e))
+                        timeout_list.append(peer)
+
+                for timeout_peer in timeout_list:
+                    self._peer_set.remove(timeout_peer)
+
+            return re
+
+    def accept_rpc_connect(self, peer_name: str, peer_rank: int) -> None:
+        """
+        Overview:
+            Receive the link signal sent by the peer.
+        Arguments:
+            - peer_name (str)
+            - peer_rank (int):
+        """
+        with self._peer_set_lock:
+            if peer_name not in self._peer_set:
+                self._peer_set.add(peer_name)
+
+        return
+
+    def call_custom_rpc_method(self, *args, **kwargs) -> Any:
+        """
+        Overview:
+            If the upper-level module wants to pass in a custom rpc method,
+            it will be called remotly by this function.
+        """
+        fn = kwargs.pop('custom_method')
+        return fn(*args, **kwargs)
+
+    def notify_shutdown(self, peer_name: str, *args, **kwargs) -> None:
+        """
+        Overview:
+            Receive the exit signal sent by the peer.
+        Arguments:
+            - peer_name (str)
+        """
+        with self._peer_set_lock:
+            if peer_name in self._peer_set:
+                logging.info("\"{}\" recv shutdown info from \"{}\".".format(self.name, peer_name))
+                self._peer_set.remove(peer_name)
+
+    def recv(self):
+        raise NotImplementedError
+
+    def stop(self) -> None:
+        if self._running:
+            with self._peer_set_lock:
+                for peer in self._peer_set:
+                    try:
+                        self._do_rpc(peer, RPCEvent.NOTIFY_SHUTDOWN, self.name)
+                    except RuntimeError as e:
+                        continue
+
+            if self._async_backend_polling:
+                while self.async_future_queue.qsize() > 0:
+                    time.sleep(0.05)
+                    continue
+
+                self.polling_thread.join(timeout=1)
+                self.polling_thread = None
+
+            self._running = False
+
+            # Set graceful=False, we do not wait for other RPC processes to reach this method.
+            rpc.shutdown(graceful=False)
+
+        logging.info("\"{}\" Torchrpc backend is stopped.".format(self.name))
+
+    def require_to_shutdown(self, peer_name: str):
+        """
+        Overview:
+            Request the remote torch rpc message queue to be stopped.
+        Arguments:
+            - peer_name (str): Remote torch rpc message's name
+        """
+        try:
+            re = self._do_rpc(peer_name, RPCEvent.REQUIRE_SHUTDOWN)
+            if self._async and not self._async_backend_polling:
+                re.wait()
+        except RuntimeError as e:
+            logging.warning("Torchrpc polling_thread error: \"{}\".".format(e))
+
+    def _rendezvous_until_world_size(self, world_size) -> None:
+        while True:
+            all_worker_info = rpc._get_current_rpc_agent().get_worker_infos()
+            if len(all_worker_info) != world_size:
+                time.sleep(0.5)
+            else:
+                break
+
+    def _do_rpc(self, peer: str, topic: Union[int, str] = Optional[None], *arg, **kwargs) -> Union[None, Any]:
+        """
+        Overview:
+            Where the actual RPC communication takes place
+        Arguments:
+            - peer (str): [The rpc name of the peer]
+            - topic (int): [The topic passed by upstream]
+        """
+        arg = [topic] + list(arg)
+
+        if self._async:
+            future = rpc.rpc_async(peer, self.remote_parallel_entrance, args=arg, kwargs=kwargs)
+            if not self._async_backend_polling:
+                return future
+            else:
+                self.async_future_queue.put(future)
+                return None
+        else:
+            return rpc.rpc_sync(peer, self.remote_parallel_entrance, args=arg, kwargs=kwargs)
+
+    def _backend_polling(self) -> None:
+        while True:
+            if not self._running:
+                break
+
+            future = self.async_future_queue.get()
+            try:
+                if not future.done():
+                    time.sleep(0.05)
+                future.wait()
+            except RuntimeError as e:
+                logging.warning("Torchrpc polling thread catch RuntimeError: \"{}\".".format(e))
+
+    def wait_for_shutdown(self):
+        """
+        Overview:
+            The thread calling this method will block until mq receives a request for shutdown.
+        """
+        while True:
+            if not self._running:
+                break
+            else:
+                time.sleep(0.5)

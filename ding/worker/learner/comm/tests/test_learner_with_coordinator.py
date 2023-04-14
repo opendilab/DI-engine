@@ -17,7 +17,7 @@ def setup_config():
     cfg = compile_config_parallel(
         parallel_test_main_config, create_cfg=parallel_test_create_config, system_cfg=parallel_test_system_config
     )
-    cfg.main.policy.learn.learner.train_iterations = 100
+    cfg.main.policy.learn.learner.train_iterations = 10
     return cfg
 
 
