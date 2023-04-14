@@ -253,7 +253,7 @@ class EpisodeSerialCollector(ISerialCollector):
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done:
-                        transitions = to_tensor_transitions(self._traj_buffer[env_id])
+                        transitions = to_tensor_transitions(self._traj_buffer[env_id], not self._deepcopy_obs)
                         if self._cfg.reward_shaping:
                             self._env.reward_shaping(env_id, transitions)
                         if self._cfg.get_train_sample:
