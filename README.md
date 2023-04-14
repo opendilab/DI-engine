@@ -32,7 +32,7 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2023.02.17 DI-engine-v0.4.6
+Updated on 2023.04.11 DI-engine-v0.4.7
 
 
 ## Introduction to DI-engine
@@ -135,12 +135,16 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 <summary>(Click for Details)</summary>
 
 - base: opendilab/ding:nightly
+- rpc: opendilab/ding:nightly-rpc
 - atari: opendilab/ding:nightly-atari
 - mujoco: opendilab/ding:nightly-mujoco
 - dmc: opendilab/ding:nightly-dmc2gym
 - metaworld: opendilab/ding:nightly-metaworld
 - smac: opendilab/ding:nightly-smac
 - grf: opendilab/ding:nightly-grf
+- cityflow: opendilab/ding:nightly-cityflow
+- evogym: opendilab/ding:nightly-evogym
+- d4rl: opendilab/ding:nightly-d4rl
 </details>
 
 The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
