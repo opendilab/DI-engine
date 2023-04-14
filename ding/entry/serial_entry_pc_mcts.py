@@ -29,13 +29,14 @@ class MCTSPCDataset(Dataset):
         Assume the trajectory is: o1, h2, h3, h4
         """
         hidden_states = list(reversed(self.hidden_states[idx + 1:idx + self.seq_len + 1]))
+        actions = list(reversed(self.actions[idx: idx + self.seq_len]))
         if self.hidden_state_noise > 0:
             for i in range(len(hidden_states)):
                 hidden_states[i] += self.hidden_state_noise * torch.randn_like(hidden_states[i])
         return {
             'obs': self.observations[idx],
             'hidden_states': hidden_states,
-            'action': self.actions[idx]
+            'action': actions
         }
 
     def __len__(self):

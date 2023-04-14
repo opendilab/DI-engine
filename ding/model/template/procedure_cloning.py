@@ -120,7 +120,7 @@ class ProcedureCloningMCTS(nn.Module):
         h = h.reshape(B, T, self.cnn_hidden_list[-1])
 
         hidden_state_preds = self.predict_hidden_state(h[:, 0:-1, ...])
-        action_preds = self.predict_action(h[:, -1, :])
+        action_preds = self.predict_action(h[:, 1:, :])
         return hidden_state_preds, action_preds
 
     def forward(self, states: torch.Tensor, hidden_states: torch.Tensor) \
@@ -160,7 +160,7 @@ class ProcedureCloningMCTS(nn.Module):
                 h = state_embeddings
             hidden_state_embeddings, action_pred = self._compute_transformer(h)
 
-        return action_pred
+        return action_pred[:, -1, :]
 
     def test_forward_eval(self, states: torch.Tensor, hidden_states: torch.Tensor) -> Tuple:
         # Action pred in this function is supposed to be identical in training phase.

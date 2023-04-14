@@ -28,3 +28,6 @@ def test_procedure_cloning():
 
     action_eval = model.forward_eval(inputs['states'])
     assert action_eval.shape == (B, action_dim)
+
+    hidden_state_preds_new, _, _ = model(inputs['states'], torch.zeros_like(inputs['hidden_states']))
+    assert torch.sum(torch.abs(hidden_state_preds_new[:, 0, :] - hidden_state_preds[:, 0, :])).item() < 1e-9

@@ -17,6 +17,23 @@ from ding.rl_utils import get_nstep_return_data, get_train_sample
 from ding.utils import POLICY_REGISTRY
 
 
+class BatchCELoss(nn.Module):
+    def __init__(self, seq, mask):
+        super(BatchCELoss, self).__init__()
+        self.ce = nn.CrossEntropyLoss()
+        self.mask = mask
+        self.seq = seq
+        self.masked_ratio = 0
+
+    def forward(self, pred_y, target_y):
+        if not self.seq:
+            return self.ce(pred_y[:, -1, :], target_y[:, -1])
+        losses = 0
+        for i in range(target_y.shape[1]):
+            losses += self.ce(pred_y[:, i, :], target_y[:, i])
+        return losses
+
+
 @POLICY_REGISTRY.register('pc_mcts')
 class ProcedureCloningPolicyMCTS(Policy):
     config = dict(
@@ -94,7 +111,7 @@ class ProcedureCloningPolicyMCTS(Policy):
 
         # self._hidden_state_loss = nn.MSELoss()
         self._hidden_state_loss = nn.L1Loss()
-        self._action_loss = nn.CrossEntropyLoss()
+        self._action_loss = BatchCELoss(seq=self.config.seq_action, mask=self.config.mask_seq_action)
 
     def _forward_learn(self, data):
         if self._cuda:
