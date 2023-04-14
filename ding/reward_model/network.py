@@ -97,8 +97,8 @@ class GAILNetwork(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             hidden_size_list: SequenceType,
-            kernel_size: Optional[SequenceType] = [8, 4, 3],
-            stride: Optional[SequenceType] = [4, 2, 1],
+            kernel_size: Optional[SequenceType] = None,
+            stride: Optional[SequenceType] = None,
             activation: Optional[nn.Module] = nn.ReLU(),
             action_shape: Optional[int] = None
     ) -> None:
@@ -279,3 +279,48 @@ class GCLNetwork(nn.Module):
             torch.log(torch.mean(torch.exp(-cost_samp)/(prob+1e-7)))
 
         return loss_IOC
+
+
+class TREXNetwork(nn.Module):
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            hidden_size_list: SequenceType,
+            kernel_size: Optional[SequenceType] = None,
+            stride: Optional[SequenceType] = None,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            l1_reg: Optional[float] = 0,
+    ) -> None:
+        super(TREXNetwork, self).__init__()
+        self.input_size = obs_shape
+        self.l1_reg = l1_reg
+        self.output_size = hidden_size_list[-1]
+        hidden_size_list = hidden_size_list[:-1]
+        self.feature = RepresentationNetwork(obs_shape, hidden_size_list, activation, kernel_size, stride)
+        self.act = activation
+        self.fc = nn.Linear(hidden_size_list[-1], self.output_size)
+
+    def forward(self, data: torch.Tensor) -> torch.Tensor:
+        reward = self.feature(data)
+        if isinstance(self.input_size, int) is False and len(self.input_size) == 3:
+            reward = self.act(reward)
+        reward = self.fc(reward)
+        return reward
+
+    def learn(self, traj_i: torch.Tensor, traj_j: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        outputs, total_abs_reward = self.get_outputs_abs_reward(traj_i, traj_j)
+        outputs = outputs.unsqueeze(0)
+        loss = F.cross_entropy(outputs, labels) + self.l1_reg * total_abs_reward
+        return loss
+
+    def get_outputs_abs_reward(self, traj_i: torch.Tensor, traj_j: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        reward_i = self.forward(traj_i)
+        reward_j = self.forward(traj_j)
+
+        cum_r_i = torch.sum(reward_i)
+        cum_r_j = torch.sum(reward_j)
+        outputs = torch.cat((cum_r_i.unsqueeze(0), cum_r_j.unsqueeze(0)), 0)
+        total_abs_reward = torch.sum(torch.abs(reward_i)) + torch.sum(torch.abs(reward_j))
+
+        return outputs, total_abs_reward

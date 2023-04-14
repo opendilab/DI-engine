@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import Tuple, Optional, List, Dict
 from easydict import EasyDict
+from ditk import logging
 import pickle
 import os
 import numpy as np
@@ -17,116 +18,7 @@ from ding.utils.data import default_collate
 
 from .base_reward_model import BaseRewardModel
 from .reword_model_utils import collect_states
-
-
-class TrexConvEncoder(nn.Module):
-    r"""
-    Overview:
-        The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.
-    Interfaces:
-        ``__init__``, ``forward``
-    """
-
-    def __init__(
-        self,
-        obs_shape: SequenceType,
-        hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
-        activation: Optional[nn.Module] = nn.LeakyReLU()
-    ) -> None:
-        r"""
-        Overview:
-            Init the Trex Convolution Encoder according to arguments. TrexConvEncoder is different \
-                from the ConvEncoder in model.common.encoder, their stride and kernel size parameters \
-                are different
-        Arguments:
-            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``
-            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
-            - activation (:obj:`nn.Module`):
-                The type of activation to use in the conv ``layers``,
-                if ``None`` then default set to ``nn.LeakyReLU()``
-        """
-        super(TrexConvEncoder, self).__init__()
-        self.obs_shape = obs_shape
-        self.act = activation
-        self.hidden_size_list = hidden_size_list
-
-        layers = []
-        kernel_size = [7, 5, 3, 3]
-        stride = [3, 2, 1, 1]
-        input_size = obs_shape[0]  # in_channel
-        for i in range(len(kernel_size)):
-            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i]))
-            layers.append(self.act)
-            input_size = hidden_size_list[i]
-        layers.append(nn.Flatten())
-        self.main = nn.Sequential(*layers)
-
-        flatten_size = self._get_flatten_size()
-        self.mid = nn.Sequential(
-            nn.Linear(flatten_size, hidden_size_list[-2]), self.act,
-            nn.Linear(hidden_size_list[-2], hidden_size_list[-1])
-        )
-
-    def _get_flatten_size(self) -> int:
-        r"""
-        Overview:
-            Get the encoding size after ``self.main`` to get the number of ``in-features`` to feed to ``nn.Linear``.
-        Arguments:
-            - x (:obj:`torch.Tensor`): Encoded Tensor after ``self.main``
-        Returns:
-            - outputs (:obj:`torch.Tensor`): Size int, also number of in-feature
-        """
-        test_data = torch.randn(1, *self.obs_shape)
-        with torch.no_grad():
-            output = self.main(test_data)
-        return output.shape[1]
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
-        Overview:
-            Return embedding tensor of the env observation
-        Arguments:
-            - x (:obj:`torch.Tensor`): Env raw observation
-        Returns:
-            - outputs (:obj:`torch.Tensor`): Embedding tensor
-        """
-        x = self.main(x)
-        x = self.mid(x)
-        return x
-
-
-class TrexModel(nn.Module):
-
-    def __init__(self, obs_shape):
-        super(TrexModel, self).__init__()
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.encoder = nn.Sequential(FCEncoder(obs_shape, [512, 64]), nn.Linear(64, 1))
-        # Conv Encoder
-        elif len(obs_shape) == 3:
-            self.encoder = TrexConvEncoder(obs_shape)
-        else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own Trex model".
-                format(obs_shape)
-            )
-
-    def cum_return(self, traj: torch.Tensor, mode: str = 'sum') -> Tuple[torch.Tensor, torch.Tensor]:
-        '''calculate cumulative return of trajectory'''
-        r = self.encoder(traj)
-        if mode == 'sum':
-            sum_rewards = torch.sum(r)
-            sum_abs_rewards = torch.sum(torch.abs(r))
-            return sum_rewards, sum_abs_rewards
-        elif mode == 'batch':
-            return r, torch.abs(r)
-        else:
-            raise KeyError("not support mode: {}, please choose mode=sum or mode=batch".format(mode))
-
-    def forward(self, traj_i: torch.Tensor, traj_j: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        '''compute cumulative return for each trajectory and return logits'''
-        cum_r_i, abs_r_i = self.cum_return(traj_i)
-        cum_r_j, abs_r_j = self.cum_return(traj_j)
-        return torch.cat((cum_r_i.unsqueeze(0), cum_r_j.unsqueeze(0)), 0), abs_r_i + abs_r_j
+from .network import TREXNetwork
 
 
 @REWARD_MODEL_REGISTRY.register('trex')
@@ -179,7 +71,11 @@ class TrexRewardModel(BaseRewardModel):
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = TrexModel(self.cfg.policy.model.obs_shape)
+        kernel_size = config.reward_model.kernel_size if 'kernel_size' in config else None
+        stride = config.reward_model.stride if 'stride' in config else None
+        self.reward_model = TREXNetwork(
+            self.cfg.policy.model.obs_shape, config.reward_model.hidden_size_list, kernel_size, stride
+        )
         self.reward_model.to(self.device)
         self.pre_expert_data = []
         self.train_data = []
@@ -216,8 +112,8 @@ class TrexRewardModel(BaseRewardModel):
             self.learning_returns = pickle.load(f)
 
         self.create_training_data()
-        self._logger.info("num_training_obs: {}".format(len(self.training_obs)))
-        self._logger.info("num_labels: {}".format(len(self.training_labels)))
+        logging.info("num_training_obs: {}".format(len(self.training_obs)))
+        logging.info("num_labels: {}".format(len(self.training_labels)))
 
     def create_training_data(self):
         num_trajs = self.num_trajs
@@ -229,10 +125,10 @@ class TrexRewardModel(BaseRewardModel):
         for i in range(len(self.pre_expert_data)):
             demo_lengths.append([len(d) for d in self.pre_expert_data[i]])
 
-        self._logger.info("demo_lengths: {}".format(demo_lengths))
+        logging.info("demo_lengths: {}".format(demo_lengths))
         max_snippet_length = min(np.min(demo_lengths), max_snippet_length)
-        self._logger.info("min snippet length: {}".format(min_snippet_length))
-        self._logger.info("max snippet length: {}".format(max_snippet_length))
+        logging.info("min snippet length: {}".format(min_snippet_length))
+        logging.info("max snippet length: {}".format(max_snippet_length))
 
         # collect training data
         max_traj_length = 0
@@ -285,57 +181,56 @@ class TrexRewardModel(BaseRewardModel):
             label = int(bi <= bj)
             self.training_obs.append((traj_i, traj_j))
             self.training_labels.append(label)
-        self._logger.info(("maximum traj length: {}".format(max_traj_length)))
+        logging.info(("maximum traj length: {}".format(max_traj_length)))
         return self.training_obs, self.training_labels
 
-    def _train(self):
+    def _train(self, training_obs: Tuple, training_labels: Tuple) -> float:
         # check if gpu available
         device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # Assume that we are on a CUDA machine, then this should print a CUDA device:
-        self._logger.info("device: {}".format(device))
+        logging.info("device: {}".format(device))
+        cum_loss = 0.0
+        for i in range(len(training_labels)):
+
+            # traj_i, traj_j has the same length, however, they change as i increases
+            traj_i, traj_j = training_obs[i]  # traj_i is a list of array generated by env.step
+            traj_i = np.array(traj_i)
+            traj_j = np.array(traj_j)
+            traj_i = torch.from_numpy(traj_i).float().to(device)
+            traj_j = torch.from_numpy(traj_j).float().to(device)
+
+            # training_labels[i] is a boolean integer: 0 or 1
+            labels = torch.tensor([training_labels[i]]).to(device)
+
+            # forward + backward + zero out gradient + optimize
+            loss = self.reward_model.learn(traj_i, traj_j, labels)
+            self.opt.zero_grad()
+            loss.backward()
+            self.opt.step()
+
+            # print stats to see if learning
+            item_loss = loss.item()
+            cum_loss += item_loss
+            return cum_loss
+        # if not os.path.exists(os.path.join(self.cfg.exp_name, 'ckpt_reward_model')):
+        #     os.makedirs(os.path.join(self.cfg.exp_name, 'ckpt_reward_model'))
+        # torch.save(self.reward_model.state_dict(), os.path.join(self.cfg.exp_name, 'ckpt_reward_model/latest.pth.tar'))
+        # logging.info("finished training")
+
+    def train(self):
+        # check if gpu available
+        device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # Assume that we are on a CUDA machine, then this should print a CUDA device:
+        logging.info("device: {}".format(device))
         training_inputs, training_outputs = self.training_obs, self.training_labels
-        loss_criterion = nn.CrossEntropyLoss()
 
         cum_loss = 0.0
         training_data = list(zip(training_inputs, training_outputs))
-        for epoch in range(self.cfg.reward_model.update_per_collect):  # todo
+        for epoch in range(self.cfg.reward_model.update_per_collect):
             np.random.shuffle(training_data)
             training_obs, training_labels = zip(*training_data)
-            for i in range(len(training_labels)):
-
-                # traj_i, traj_j has the same length, however, they change as i increases
-                traj_i, traj_j = training_obs[i]  # traj_i is a list of array generated by env.step
-                traj_i = np.array(traj_i)
-                traj_j = np.array(traj_j)
-                traj_i = torch.from_numpy(traj_i).float().to(device)
-                traj_j = torch.from_numpy(traj_j).float().to(device)
-
-                # training_labels[i] is a boolean integer: 0 or 1
-                labels = torch.tensor([training_labels[i]]).to(device)
-
-                # forward + backward + zero out gradient + optimize
-                outputs, abs_rewards = self.reward_model.forward(traj_i, traj_j)
-                outputs = outputs.unsqueeze(0)
-                loss = loss_criterion(outputs, labels) + self.l1_reg * abs_rewards
-                self.opt.zero_grad()
-                loss.backward()
-                self.opt.step()
-
-                # print stats to see if learning
-                item_loss = loss.item()
-                cum_loss += item_loss
-                if i % 100 == 99:
-                    self._logger.info("[epoch {}:{}] loss {}".format(epoch, i, cum_loss))
-                    self._logger.info("abs_returns: {}".format(abs_rewards))
-                    cum_loss = 0.0
-                    self._logger.info("check pointing")
-        if not os.path.exists(os.path.join(self.cfg.exp_name, 'ckpt_reward_model')):
-            os.makedirs(os.path.join(self.cfg.exp_name, 'ckpt_reward_model'))
-        torch.save(self.reward_model.state_dict(), os.path.join(self.cfg.exp_name, 'ckpt_reward_model/latest.pth.tar'))
-        self._logger.info("finished training")
-
-    def train(self):
-        self._train()
+            cum_loss = self._train(training_obs, training_labels)
+            logging.info("[epoch {}] loss {}".format(epoch, cum_loss))
         # print out predicted cumulative returns and actual returns
         sorted_returns = sorted(self.learning_returns, key=lambda s: s[0])
         demonstrations = [
@@ -344,7 +239,7 @@ class TrexRewardModel(BaseRewardModel):
         with torch.no_grad():
             pred_returns = [self.predict_traj_return(self.reward_model, traj[0]) for traj in demonstrations]
         for i, p in enumerate(pred_returns):
-            self._logger.info("{} {} {}".format(i, p, sorted_returns[i][0]))
+            logging.info("{} {} {}".format(i, p, sorted_returns[i][0]))
         info = {
             "demo_length": [len(d[0]) for d in self.pre_expert_data],
             "min_snippet_length": self.min_snippet_length,
@@ -353,18 +248,14 @@ class TrexRewardModel(BaseRewardModel):
             "lem_num_labels": len(self.training_labels),
             "accuracy": self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels),
         }
-        self._logger.info(
-            "accuracy and comparison:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
-        )
+        logging.info("accuracy and comparison:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
 
     def predict_traj_return(self, net, traj):
         device = self.device
         # torch.set_printoptions(precision=20)
         # torch.use_deterministic_algorithms(True)
         with torch.no_grad():
-            rewards_from_obs = net.cum_return(
-                torch.from_numpy(np.array(traj)).float().to(device), mode='batch'
-            )[0].squeeze().tolist()
+            rewards_from_obs = net.forward(torch.from_numpy(np.array(traj)).float().to(device)).squeeze().tolist()
             # rewards_from_obs1 = net.cum_return(torch.from_numpy(np.array([traj[0]])).float().to(device))[0].item()
             # different precision
         return sum(rewards_from_obs)  # rewards_from_obs is a list of floats
@@ -383,7 +274,7 @@ class TrexRewardModel(BaseRewardModel):
                 traj_j = torch.from_numpy(traj_j).float().to(device)
 
                 #forward to get logits
-                outputs, abs_return = reward_network.forward(traj_i, traj_j)
+                outputs, abs_return = reward_network.get_outputs_abs_reward(traj_i, traj_j)
                 _, pred_label = torch.max(outputs, 0)
                 if pred_label.item() == label:
                     num_correct += 1.
@@ -412,7 +303,7 @@ class TrexRewardModel(BaseRewardModel):
         res = collect_states(train_data_augmented)
         res = torch.stack(res).to(self.device)
         with torch.no_grad():
-            sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
+            sum_rewards = self.reward_model.forward(res)
 
         for item, rew in zip(train_data_augmented, sum_rewards):  # TODO optimise this loop as well ?
             item['reward'] = rew

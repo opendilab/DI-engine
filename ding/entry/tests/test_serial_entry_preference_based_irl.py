@@ -39,24 +39,3 @@ def test_serial_pipeline_trex():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf test_serial_pipeline_trex*')
-
-
-B = 4
-C, H, W = 3, 128, 128
-
-
-@pytest.mark.unittest
-class TestEncoder:
-
-    def output_check(self, model, outputs):
-        loss = outputs.sum()
-        is_differentiable(loss, model)
-
-    def test_conv_encoder(self):
-        inputs = torch.randn(B, C, H, W)
-        model = TrexConvEncoder((C, H, W))
-        print(model)
-        outputs = model(inputs)
-        self.output_check(model, outputs)
-        print(outputs.shape)
-        assert outputs.shape == (B, 1)

@@ -79,7 +79,7 @@ def serial_pipeline_preference_based_irl(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
 
-    reward_model = create_reward_model(cfg_bak, policy.collect_mode.get_attribute('device'), tb_logger)
+    reward_model = create_reward_model(cfg, policy.collect_mode.get_attribute('device'), tb_logger)
     reward_model.train()
     # ==========
     # Main loop
