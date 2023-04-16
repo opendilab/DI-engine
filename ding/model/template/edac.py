@@ -39,7 +39,7 @@ class Q_ensemble(nn.Module):
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's shape, such as 128, (156, ).
             - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's shape, such as 4, (3, ), \
                 EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
-            - ensemble_num (:obj:`bool`): Q-net numble.
+            - ensemble_num (:obj:`int`): Q-net numble.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.
             - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
                 for actor head.
