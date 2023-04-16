@@ -29,7 +29,7 @@ The target Q value used in MDQN is:
    \hat{q}_{\mathrm{m} \text {-dqn }}\left(r_t, s_{t+1}\right)=r_t+\alpha \tau \ln \pi_{\bar{\theta}}\left(a_t \mid s_t\right)+\gamma \sum_{a^{\prime} \in A} \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\left(q_{\bar{\theta}}\left(s_{t+1}, a^{\prime}\right)-\tau \ln \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\right)
    
 
-For the log policy  :math:`\alpha \tau \ln \pi_{\bar{\theta}}\left(a_t \mid s_t\right)`  we used the following formula to calculate 
+For the log-policy  :math:`\alpha \tau \ln \pi_{\bar{\theta}}\left(a_t \mid s_t\right)`  we used the following formula to calculate 
 
 .. math::
 

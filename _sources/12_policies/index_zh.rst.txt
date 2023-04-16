@@ -18,7 +18,7 @@
     :caption: Q-学习
 
     dqn_zh
-
+    mdqn_zh
 .. toctree::
     :maxdepth: 3
     :caption: 探索

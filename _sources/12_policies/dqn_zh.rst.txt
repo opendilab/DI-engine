@@ -7,7 +7,7 @@ DQN
 
 快速了解
 -------------
-1. DQN 是一个 **无模型（model-free)** 且 **基于值函数（value-based）** 的强化学习算法。
+1. DQN 是一个 **无模型（model-free）** 且 **基于值函数（value-based）** 的强化学习算法。
 
 2. DQN 只支持 **离散（discrete）** 动作空间。
 

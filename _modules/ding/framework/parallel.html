@@ -350,6 +350,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">listen</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;mq_listener&quot;</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">mq_type</span> <span class="o">=</span> <span class="n">mq_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">barrier_runtime</span> <span class="o">=</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">get_barrier_runtime</span><span class="p">()(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Parallel.runner"><a class="viewcode-back" href="../../../05_api_doc/framework/parallel.html#ding.framework.parallel.Parallel.runner">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">runner</span><span class="p">(</span>
             <span class="bp">cls</span><span class="p">,</span>
@@ -666,6 +669,18 @@
             <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ip</span>
 
+    <span class="k">def</span> <span class="nf">get_attch_to_len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the length of the &#39;attach_to&#39; list of message queue.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: the length of the self._mq.attach_to. Returns 0 if self._mq is not initialized</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="p">,</span> <span class="s1">&#39;attach_to&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">attach_to</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Parallel&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span>
 
@@ -682,7 +697,13 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_barrier_runtime</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="c1"># We get the BarrierRuntime object in the closure to avoid circular import.</span>
+        <span class="kn">from</span> <span class="nn">ding.framework.middleware.barrier</span> <span class="kn">import</span> <span class="n">BarrierRuntime</span>
+        <span class="k">return</span> <span class="n">BarrierRuntime</span></div>
 </pre></div>
 
               </article>
