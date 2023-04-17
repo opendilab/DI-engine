@@ -28,12 +28,12 @@ class BatchCELoss(nn.Module):
 
     def forward(self, pred_y, target_y):
         if not self.seq:
-            return self.ce(pred_y[:, -1, :], target_y[:, -1])
+            return self.ce(pred_y[:, -1, :], target_y[:, -1]), 1
         if not self.mask:
             losses = 0
             for i in range(target_y.shape[1]):
                 losses += self.ce(pred_y[:, i, :], target_y[:, i])
-            return losses
+            return losses, target_y.shape[1]
         else:
             eqs = []
             losses = 0
@@ -50,8 +50,8 @@ class BatchCELoss(nn.Module):
                 cnt += torch.sum(eqs[-1])
                 # Update eqs
                 eqs.append((torch.argmax(pred_y[:, i, :], dim=-1) == target_y[:, i]))
-                eqs[-1] = eqs[-1] and eqs[-2]
-            return losses / cnt
+                eqs[-1] = eqs[-1] & eqs[-2]
+            return losses / cnt, cnt / target_y.shape[0]
 
 
 @POLICY_REGISTRY.register('pc_mcts')
@@ -149,7 +149,7 @@ class ProcedureCloningPolicyMCTS(Policy):
                 hidden_state_loss = torch.tensor(0.)
             else:
                 hidden_state_loss = self._hidden_state_loss(pred_hidden_states, target_hidden_states)
-            action_loss = self._action_loss(pred_action, action)
+            action_loss, action_number = self._action_loss(pred_action, action)
             loss = hidden_state_loss + action_loss
         forward_time = self._timer.value
 
@@ -173,12 +173,13 @@ class ProcedureCloningPolicyMCTS(Policy):
             'action_loss': action_loss.item(),
             'forward_time': forward_time,
             'backward_time': backward_time,
+            'action_number': action_number,
             'sync_time': sync_time,
         }
 
     def _monitor_vars_learn(self):
         return ['cur_lr', 'total_loss', 'hidden_state_loss', 'action_loss',
-                'forward_time', 'backward_time', 'sync_time']
+                'forward_time', 'backward_time', 'sync_time', 'action_number']
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
