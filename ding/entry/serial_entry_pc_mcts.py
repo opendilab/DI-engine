@@ -29,7 +29,7 @@ class MCTSPCDataset(Dataset):
         Assume the trajectory is: o1, h2, h3, h4
         """
         hidden_states = list(reversed(self.hidden_states[idx + 1:idx + self.seq_len + 1]))
-        actions = list(reversed(self.actions[idx: idx + self.seq_len]))
+        actions = torch.tensor(list(reversed(self.actions[idx: idx + self.seq_len])))
         if self.hidden_state_noise > 0:
             for i in range(len(hidden_states)):
                 hidden_states[i] += self.hidden_state_noise * torch.randn_like(hidden_states[i])
@@ -124,9 +124,9 @@ def serial_pipeline_pc_mcts(
             acces = []
             for _, test_data in enumerate(test_dataloader):
                 logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
-                loss = criterion(logits, test_data['action'].cuda()).item()
+                loss = criterion(logits, test_data['action'][:, -1].cuda()).item()
                 preds = torch.argmax(logits, dim=-1)
-                acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
+                acc = torch.sum((preds == test_data['action'][:, -1].cuda())).item() / preds.shape[0]
 
                 losses.append(loss)
                 acces.append(acc)
@@ -137,9 +137,9 @@ def serial_pipeline_pc_mcts(
             acces = []
             for _, test_data in enumerate(dataloader):
                 logits = policy._model.forward_eval(test_data['obs'].permute(0, 3, 1, 2).float().cuda() / 255.)
-                loss = criterion(logits, test_data['action'].cuda()).item()
+                loss = criterion(logits, test_data['action'][:, -1].cuda()).item()
                 preds = torch.argmax(logits, dim=-1)
-                acc = torch.sum((preds == test_data['action'].cuda())).item() / preds.shape[0]
+                acc = torch.sum((preds == test_data['action'][:, -1].cuda())).item() / preds.shape[0]
 
                 losses.append(loss)
                 acces.append(acc)

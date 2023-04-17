@@ -21,6 +21,7 @@ class BatchCELoss(nn.Module):
     def __init__(self, seq, mask):
         super(BatchCELoss, self).__init__()
         self.ce = nn.CrossEntropyLoss()
+        self.nce = nn.CrossEntropyLoss(reduction='none')
         self.mask = mask
         self.seq = seq
         self.masked_ratio = 0
@@ -28,10 +29,29 @@ class BatchCELoss(nn.Module):
     def forward(self, pred_y, target_y):
         if not self.seq:
             return self.ce(pred_y[:, -1, :], target_y[:, -1])
-        losses = 0
-        for i in range(target_y.shape[1]):
-            losses += self.ce(pred_y[:, i, :], target_y[:, i])
-        return losses
+        if not self.mask:
+            losses = 0
+            for i in range(target_y.shape[1]):
+                losses += self.ce(pred_y[:, i, :], target_y[:, i])
+            return losses
+        else:
+            eqs = []
+            losses = 0
+            cnt = 0
+
+            cur_loss = self.nce(pred_y[:, 0, :], target_y[:, 0])
+            losses += torch.sum(cur_loss)
+            cnt += target_y.shape[0]
+            eqs.append((torch.argmax(pred_y[:, 0, :], dim=-1) == target_y[:, 0]))
+
+            for i in range(1, target_y.shape[1]):
+                cur_loss = self.nce(pred_y[:, i, :], target_y[:, i])
+                losses += torch.sum(cur_loss * eqs[-1])
+                cnt += torch.sum(eqs[-1])
+                # Update eqs
+                eqs.append((torch.argmax(pred_y[:, i, :], dim=-1) == target_y[:, i]))
+                eqs[-1] = eqs[-1] and eqs[-2]
+            return losses / cnt
 
 
 @POLICY_REGISTRY.register('pc_mcts')
@@ -111,7 +131,7 @@ class ProcedureCloningPolicyMCTS(Policy):
 
         # self._hidden_state_loss = nn.MSELoss()
         self._hidden_state_loss = nn.L1Loss()
-        self._action_loss = BatchCELoss(seq=self.config.seq_action, mask=self.config.mask_seq_action)
+        self._action_loss = BatchCELoss(seq=self._cfg.seq_action, mask=self._cfg.mask_seq_action)
 
     def _forward_learn(self, data):
         if self._cuda:

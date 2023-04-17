@@ -51,10 +51,11 @@ qbert_pc_mcts_config = dict(
             seq_len=seq_len,
         ),
         learn=dict(
-            batch_size=64,
-            learning_rate=0.01,
+            batch_size=32,
+            learning_rate=5e-4,
             learner=dict(hook=dict(save_ckpt_after_iter=1000)),
-            train_epoch=20,
+            train_epoch=100,
+            hidden_state_noise=0,
         ),
         eval=dict(evaluator=dict(eval_freq=40, ))
     ),
