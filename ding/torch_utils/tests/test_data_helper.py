@@ -139,7 +139,10 @@ class TestDataFunction:
         assert np.isscalar(new_data.a)
 
         with pytest.raises(ValueError):
-            to_item(torch.randn(4))
+            to_item({'a': torch.randn(4), 'b': torch.rand(1)}, ignore_error=False)
+        output = to_item({'a': torch.randn(4), 'b': torch.rand(1)}, ignore_error=True)
+        assert 'a' not in output
+        assert 'b' in output
 
     def test_same_shape(self):
         tlist = [torch.randn(3, 5) for i in range(5)]
