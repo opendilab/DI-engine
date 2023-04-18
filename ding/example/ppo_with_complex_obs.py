@@ -3,32 +3,21 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
-
 import gym
 from gym import spaces
-
 from ditk import logging
-from functools import partial
-from tensorboardX import SummaryWriter
-from copy import deepcopy
-
-from ding.envs import get_vec_env_setting, create_env_manager, DingEnvWrapper, EvalEpisodeReturnEnv, \
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, \
     BaseEnvManagerV2
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
-from ding.config import read_config, compile_config
-from ding.policy import create_policy, PolicyFactory
+from ding.config import compile_config
 from ding.policy import PPOPolicy
-from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.model import VAC
-
 from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
     gae_estimator, online_logger
-
 from easydict import EasyDict
+
 
 my_env_ppo_config = dict(
     exp_name='my_env_ppo_seed0',
@@ -66,10 +55,6 @@ my_env_ppo_config = dict(
 my_env_ppo_config = EasyDict(my_env_ppo_config)
 main_config = my_env_ppo_config
 my_env_ppo_create_config = dict(
-    # env=dict(
-    #     type='my_env',
-    #     import_names=['dizoo.classic_control.my_env.envs.my_env_env'],
-    # ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo'),
 )
