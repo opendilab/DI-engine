@@ -282,12 +282,14 @@ def tensor_to_list(item):
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def to_item(data):
+def to_item(data: Any, ignore_error: bool = True) -> Any:
     """
     Overview:
         Transform data into python native scalar (i.e. data item), keep other data types unchanged.
     Arguments:
         - data (:obj:`Any`): The data that needs to be transformed.
+        - ignore_error (:obj:`bool`): Whether to ignore the error when the data type is not supported. That is to \
+            say, only the data can be transformed into a python native scalar will be returned.
     Returns:
         - data (:obj:`Any`): Transformed data.
     """
@@ -302,7 +304,16 @@ def to_item(data):
     elif isinstance(data, list) or isinstance(data, tuple):
         return [to_item(d) for d in data]
     elif isinstance(data, dict):
-        return {k: to_item(v) for k, v in data.items()}
+        new_data = {}
+        for k, v in data.items():
+            if ignore_error:
+                try:
+                    new_data[k] = to_item(v)
+                except ValueError:
+                    pass
+            else:
+                new_data[k] = to_item(v)
+        return new_data
     else:
         raise TypeError("not support data type: {}".format(data))
 
