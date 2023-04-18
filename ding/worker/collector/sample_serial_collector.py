@@ -236,9 +236,9 @@ class SampleSerialCollector(ISerialCollector):
                 # Get current env obs.
                 obs = self._env.ready_obs
                 # Policy forward.
+                self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
-                self._obs_pool.update(obs)
                 policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.

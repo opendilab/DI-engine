@@ -119,7 +119,7 @@ def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList) 
         # TODO abnormal env step
         for i, timestep in enumerate(timesteps):
             transition = policy.process_transition(ctx.obs[i], ctx.inference_output[i], timestep)
-            transition = ttorch.as_tensor(transition)  # TBD
+            transition = ttorch.as_tensor(transition).to(dtype=ttorch.float32)  # TBD
             transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
             transition.env_data_id = ttorch.as_tensor([env_episode_id[timestep.env_id]])
             transitions.append(timestep.env_id, transition)
