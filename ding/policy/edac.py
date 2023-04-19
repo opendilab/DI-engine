@@ -148,6 +148,8 @@ class EDACPolicy(SACPolicy):
         super()._init_learn()
         # EDAC special implementation
         self._eta = self._cfg.learn.eta
+        self._with_q_entropy = self._cfg.learn.with_q_entropy
+        self._forward_learn_cnt = 0
 
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
