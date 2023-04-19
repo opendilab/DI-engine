@@ -46,6 +46,7 @@ Environments:
    gym_hybrid
    gym_soccer
    evogym
+   metadrive
 
    image_cls
 

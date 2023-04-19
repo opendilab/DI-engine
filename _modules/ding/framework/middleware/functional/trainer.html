@@ -294,6 +294,7 @@
   <h1>Source code for ding.framework.middleware.functional.trainer</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
@@ -322,6 +323,9 @@
 
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">train_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="p">)</span>
         <span class="c1">#if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:</span>
         <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
@@ -366,7 +370,14 @@
 
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># no enough data from data fetcher</span>
             <span class="k">return</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="s2">&quot;_device&quot;</span><span class="p">):</span>  <span class="c1"># For ppof policy</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="s2">&quot;get_attribute&quot;</span><span class="p">):</span>  <span class="c1"># For other policy</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s2">&quot;device&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Policy should have attribution &#39;_device&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">train_output</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">nonlocal</span> <span class="n">last_log_iter</span>
         <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">-</span> <span class="n">last_log_iter</span> <span class="o">&gt;=</span> <span class="n">log_freq</span><span class="p">:</span>

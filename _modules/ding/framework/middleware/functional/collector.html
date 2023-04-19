@@ -364,8 +364,9 @@
         <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
             <span class="n">env</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
 
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_obs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">ready_obs</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">ttorch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="c1"># TODO mask necessary rollout</span>
 
         <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">get_shape0</span><span class="p">(</span><span class="n">obs</span><span class="p">))}</span>  <span class="c1"># TBD</span>
