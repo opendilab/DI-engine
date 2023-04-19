@@ -5,6 +5,37 @@ import random
 from functools import lru_cache  # in python3.9, we can change to cache
 import numpy as np
 import torch
+import treetensor.torch as ttorch
+
+
+def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]) -> int:
+    """
+    Overview:
+        Get shape[0] of data's torch tensor or treetensor
+    Arguments:
+        - data (:obj:`Union[List,Dict,torch.Tensor,ttorch.Tensor]`): data to be analysed
+    Returns:
+        - shape[0] (:obj:`int`): first dimension length of data, usually the batchsize.
+    """
+    if isinstance(data, list) or isinstance(data, tuple):
+        return get_shape0(data[0])
+    elif isinstance(data, dict):
+        for k, v in data.items():
+            return get_shape0(v)
+    elif isinstance(data, torch.Tensor):
+        return data.shape[0]
+    elif isinstance(data, ttorch.Tensor):
+
+        def fn(t):
+            item = list(t.values())[0]
+            if np.isscalar(item[0]):
+                return item[0]
+            else:
+                return fn(item)
+
+        return fn(data.shape)
+    else:
+        raise TypeError("Error in getting shape0, not support type: {}".format(data))
 
 
 def lists_to_dicts(
@@ -430,7 +461,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
         elif k in ['prev_state', 'prev_actor_state', 'prev_critic_state']:
             length.append(len(v))
         elif isinstance(v, list) or isinstance(v, tuple):
-            length.append(len(v[0]))
+            length.append(get_shape0(v[0]))
         elif isinstance(v, dict):
             length.append(len(v[list(v.keys())[0]]))
         else:
