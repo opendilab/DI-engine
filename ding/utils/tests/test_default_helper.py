@@ -39,10 +39,6 @@ class TestDefaultHelper():
         with pytest.raises(Exception) as e_info:
             assert get_shape0(d) == 4
 
-
-@pytest.mark.unittest
-class TestDefaultHelper():
-
     def test_lists_to_dicts(self):
         set_pkg_seed(12)
         with pytest.raises(ValueError):
