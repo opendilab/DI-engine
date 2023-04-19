@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, Union
+from typing import TYPE_CHECKING, Callable, Union, List, Dict
 from easydict import EasyDict
 import treetensor.torch as ttorch
 from ditk import logging
@@ -19,8 +19,8 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Input of ctx:
-            - train_data (:obj:`Dict`): The data used to update the network. It will train only if \
-                the data is not empty.
+            - train_data (:obj:`Union[List[Dict], Dict[str, List[Dict]]]`): The data used to update the network. \
+                It will train only if the data is not empty.
             - train_iter: (:obj:`int`): The training iteration count. The log will be printed once \
                 it reachs certain values.
         Output of ctx:
@@ -29,10 +29,18 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
         if ctx.train_data is None:
             return
-        data = ctx.train_data
-        data['obs'] = data['obs'].to(dtype=ttorch.float32)
-        data['next_obs'] = data['next_obs'].to(dtype=ttorch.float32)
-        train_output = policy.forward(ctx.train_data)
+        elif isinstance(ctx.train_data, List):
+            train_data = ctx.train_data
+            for i in range(len(train_data)):
+                train_data[i]['obs'] = train_data[i]['obs'].to(dtype=ttorch.float32)
+                train_data[i]['next_obs'] = train_data[i]['next_obs'].to(dtype=ttorch.float32)
+        elif isinstance(ctx.train_data, Dict):
+            train_data = ctx.train_data
+            train_data['obs'] = train_data['obs'].to(dtype=ttorch.float32)
+            train_data['next_obs'] = train_data['next_obs'].to(dtype=ttorch.float32)
+        else:
+            raise ValueError("ctx.train_data must be of type List[Dict] or Dict[str, List[Dict].")
+        train_output = policy.forward(train_data)
         #if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
         if True:
             if isinstance(ctx, OnlineRLContext):
