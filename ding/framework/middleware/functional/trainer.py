@@ -34,7 +34,7 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
             for i in range(len(train_data)):
                 train_data[i]['obs'] = train_data[i]['obs'].to(dtype=ttorch.float32)
                 train_data[i]['next_obs'] = train_data[i]['next_obs'].to(dtype=ttorch.float32)
-        elif isinstance(ctx.train_data, Dict):
+        elif isinstance(ctx.train_data, Dict) or isinstance(ctx.train_data, ttorch.Tensor):
             train_data = ctx.train_data
             train_data['obs'] = train_data['obs'].to(dtype=ttorch.float32)
             train_data['next_obs'] = train_data['next_obs'].to(dtype=ttorch.float32)
