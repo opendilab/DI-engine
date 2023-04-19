@@ -8,12 +8,14 @@ import torch
 import treetensor.torch as ttorch
 
 
-def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]):
+def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]) -> int:
     """
     Overview:
         Get shape[0] of data's torch tensor or treetensor
     Arguments:
         - data (:obj:`Union[List,Dict,torch.Tensor,ttorch.Tensor]`): data to be analysed
+    Returns:
+        - shape[0] (:obj:`int`): first dimension length of data, usually the batchsize.
     """
     if isinstance(data, list) or isinstance(data, tuple):
         return get_shape0(data[0])
