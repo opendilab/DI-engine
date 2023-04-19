@@ -121,7 +121,6 @@ class Encoder(nn.Module):
         self.fc_net_1_k1 = nn.Sequential(nn.Linear(1, 8), nn.ReLU())
         self.fc_net_1_k2 = nn.Sequential(nn.Linear(1, 8), nn.ReLU())
         self.fc_net_1 = nn.Sequential(nn.Linear(16, 32), nn.ReLU())
-        
         """
         Implementation of transformer_encoder refers to Vision Transformer (ViT) code:
             https://arxiv.org/abs/2010.11929
