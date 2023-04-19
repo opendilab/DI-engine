@@ -8,9 +8,12 @@ import torch
 import treetensor.torch as ttorch
 
 
-def get_shape0(data):
+def get_shape0(data: Union[List, Dict, torch.Tensor, ttorch.Tensor]):
     """
-    Get shape[0] of data's torch tensor or treetensor
+    Overview:
+        Get shape[0] of data's torch tensor or treetensor
+    Arguments:
+        - data (:obj:`Union[List,Dict,torch.Tensor,ttorch.Tensor]`): data to be analysed
     """
     if isinstance(data, list) or isinstance(data, tuple):
         return get_shape0(data[0])

@@ -22,25 +22,22 @@ class TestDefaultHelper():
                 'd': torch.randn(4)
             },
         }
-        a_false = {
+        b = [a, a]
+        c = (a, a)
+        d = {
             'a': {
-                'b': torch.randn(3, 4)
+                'b': ["a", "b", "c", "d"]
             },
             'c': {
-                'd': torch.randn(3)
+                'd': torch.randn(4)
             },
         }
-        b = [a, a]
-        b_false = [a_false, a_false]
-        c = (a, a)
-        c_false = (a_false, a_false)
         a = ttorch.as_tensor(a)
         assert get_shape0(a) == 4
         assert get_shape0(b) == 4
         assert get_shape0(c) == 4
-        assert get_shape0(a_false) not in [1, 2, 4]
-        assert get_shape0(b_false) not in [1, 2, 4]
-        assert get_shape0(c_false) not in [1, 2, 4]
+        with pytest.raises(Exception) as e_info:
+            assert get_shape0(d) == 4
 
 
 @pytest.mark.unittest
