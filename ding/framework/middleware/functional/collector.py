@@ -70,8 +70,9 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
         if env.closed:
             env.launch()
 
-        obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
+        obs = ttorch.as_tensor(env.ready_obs)
         ctx.obs = obs
+        obs = obs.to(dtype=ttorch.float32)
         # TODO mask necessary rollout
 
         obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
@@ -119,7 +120,7 @@ def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList) 
         # TODO abnormal env step
         for i, timestep in enumerate(timesteps):
             transition = policy.process_transition(ctx.obs[i], ctx.inference_output[i], timestep)
-            transition = ttorch.as_tensor(transition).to(dtype=ttorch.float32)  # TBD
+            transition = ttorch.as_tensor(transition)  # TBD
             transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
             transition.env_data_id = ttorch.as_tensor([env_episode_id[timestep.env_id]])
             transitions.append(timestep.env_id, transition)

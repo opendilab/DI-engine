@@ -45,8 +45,8 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         with torch.no_grad():
             if cfg.policy.cuda:
                 data = data.cuda()
-            value = model.forward(data.obs, mode='compute_critic')['value']
-            next_value = model.forward(data.next_obs, mode='compute_critic')['value']
+            value = model.forward(data.obs.to(dtype=ttorch.float32), mode='compute_critic')['value']
+            next_value = model.forward(data.next_obs.to(dtype=ttorch.float32), mode='compute_critic')['value']
             data.value = value
 
         traj_flag = data.done.clone()

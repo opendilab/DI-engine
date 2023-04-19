@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Callable, Union
 from easydict import EasyDict
+import treetensor.torch as ttorch
 from ditk import logging
 import numpy as np
 from ding.policy import Policy
@@ -28,6 +29,9 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
         if ctx.train_data is None:
             return
+        data = ctx.train_data
+        data['obs'] = data['obs'].to(dtype=ttorch.float32)
+        data['next_obs'] = data['next_obs'].to(dtype=ttorch.float32)
         train_output = policy.forward(ctx.train_data)
         #if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
         if True:
@@ -78,6 +82,8 @@ def multistep_trainer(policy: Policy, log_freq: int) -> Callable:
             data = ctx.train_data.to(policy.get_attribute("device"))
         else:
             assert AttributeError("Policy should have attribution '_device'.")
+        data['obs'] = data['obs'].to(dtype=ttorch.float32)
+        data['next_obs'] = data['next_obs'].to(dtype=ttorch.float32)
         train_output = policy.forward(data)
         nonlocal last_log_iter
         if ctx.train_iter - last_log_iter >= log_freq:

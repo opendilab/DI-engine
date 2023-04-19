@@ -22,12 +22,25 @@ class TestDefaultHelper():
                 'd': torch.randn(4)
             },
         }
+        a_false = {
+            'a': {
+                'b': torch.randn(3, 4)
+            },
+            'c': {
+                'd': torch.randn(3)
+            },
+        }
         b = [a, a]
+        b_false = [a_false, a_false]
         c = (a, a)
+        c_false = (a_false, a_false)
         a = ttorch.as_tensor(a)
         assert get_shape0(a) == 4
         assert get_shape0(b) == 4
         assert get_shape0(c) == 4
+        assert get_shape0(a_false) not in [1, 2, 4]
+        assert get_shape0(b_false) not in [1, 2, 4]
+        assert get_shape0(c_false) not in [1, 2, 4]
 
 
 @pytest.mark.unittest

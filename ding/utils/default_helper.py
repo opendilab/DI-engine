@@ -9,9 +9,9 @@ import treetensor.torch as ttorch
 
 
 def get_shape0(data):
-    '''
+    """
     Get shape[0] of data's torch tensor or treetensor
-    '''
+    """
     if isinstance(data, list) or isinstance(data, tuple):
         return get_shape0(data[0])
     elif isinstance(data, dict):

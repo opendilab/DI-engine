@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Any, Tuple
+from typing import Dict
 import os
 import torch
 import torch.nn as nn
@@ -17,7 +17,6 @@ from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, \
     gae_estimator, online_logger
 from easydict import EasyDict
-
 
 my_env_ppo_config = dict(
     exp_name='my_env_ppo_seed0',
@@ -74,15 +73,15 @@ class MyEnv(gym.Env):
         self.observation_space = spaces.Dict(
             (
                 {
-                    '0': spaces.Dict(
+                    'key_0': spaces.Dict(
                         {
                             'k1': spaces.Box(low=0, high=np.inf, shape=(1, ), dtype=np.float32),
                             'k2': spaces.Box(low=-1, high=1, shape=(1, ), dtype=np.float32),
                         }
                     ),
-                    '1': spaces.Box(low=-np.inf, high=np.inf, shape=(seq_len, feature_dim), dtype=np.float32),
-                    '2': spaces.Box(low=0, high=255, shape=image_size, dtype=np.uint8),
-                    '3': spaces.Box(low=0, high=np.array([np.inf, 3]), shape=(2, ), dtype=np.float32)
+                    'key_1': spaces.Box(low=-np.inf, high=np.inf, shape=(seq_len, feature_dim), dtype=np.float32),
+                    'key_2': spaces.Box(low=0, high=255, shape=image_size, dtype=np.uint8),
+                    'key_3': spaces.Box(low=0, high=np.array([np.inf, 3]), shape=(2, ), dtype=np.float32)
                 }
             )
         )
@@ -122,7 +121,11 @@ class Encoder(nn.Module):
         self.fc_net_1_k1 = nn.Sequential(nn.Linear(1, 8), nn.ReLU())
         self.fc_net_1_k2 = nn.Sequential(nn.Linear(1, 8), nn.ReLU())
         self.fc_net_1 = nn.Sequential(nn.Linear(16, 32), nn.ReLU())
-
+        '''
+        Implementation of transformer_encoder refers to Vision Transformer (ViT) code:
+            https://arxiv.org/abs/2010.11929
+            https://pytorch.org/vision/main/_modules/torchvision/models/vision_transformer.html
+        '''
         self.class_token = nn.Parameter(torch.zeros(1, 1, feature_dim))
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_dim, nhead=2, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=1)
@@ -135,12 +138,12 @@ class Encoder(nn.Module):
 
         self.fc_net_2 = nn.Sequential(nn.Linear(2, 16), nn.ReLU(), nn.Linear(16, 32), nn.ReLU(), nn.Flatten())
 
-    def forward(self, inputs: dict):
+    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         # Unpack the input tuple
-        dict_input = inputs['0']  # dict{key:(B)}
-        transformer_input = inputs['1']  # (B, seq_len, feature_dim)
-        conv_input = inputs['2']  # (B, H, W, 3)
-        fc_input = inputs['3']  # (B, X)
+        dict_input = inputs['key_0']  # dict{key:(B)}
+        transformer_input = inputs['key_1']  # (B, seq_len, feature_dim)
+        conv_input = inputs['key_2']  # (B, H, W, 3)
+        fc_input = inputs['key_3']  # (B, X)
 
         B = fc_input.shape[0]
 
@@ -157,7 +160,7 @@ class Encoder(nn.Module):
         transformer_output = self.transformer_encoder(torch.cat([batch_class_token, transformer_input], dim=1))
         transformer_output = transformer_output[:, 0]
 
-        conv_output = self.conv_fc_net(self.conv_net(conv_input.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
+        conv_output = self.conv_fc_net(self.conv_net(conv_input.permute(0, 3, 1, 2)))
         fc_output = self.fc_net_2(fc_input)
 
         # Concatenate the outputs along the feature dimension
