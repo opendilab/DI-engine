@@ -764,7 +764,7 @@
     <span class="c1"># assert len(set(length)) == 1, &quot;data values must have the same length: {}&quot;.format(length)</span>
     <span class="c1"># if continuous action, data[&#39;logit&#39;] is list of length 2</span>
     <span class="n">length</span> <span class="o">=</span> <span class="n">length</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="n">split_size</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">split_size</span> <span class="o">&lt;=</span> <span class="n">length</span>
+    <span class="k">assert</span> <span class="n">split_size</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">split_size</span> <span class="o">&lt;=</span> <span class="n">length</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">split_size</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">length</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
