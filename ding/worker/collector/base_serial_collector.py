@@ -197,28 +197,33 @@ class TrajBuffer(list):
         super().append(data)
 
 
-def to_tensor_transitions(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def to_tensor_transitions(data: List[Dict[str, Any]], shallow_copy_next_obs: bool = True) -> List[Dict[str, Any]]:
     """
     Overview:
-        transitions collected data to tensor.
+        Transform ths original transition return from env to tensor format.
     Argument:
-        - data (:obj:`List[Dict[str, Any]]`): the data that will be transited to tensor.
+        - data (:obj:`List[Dict[str, Any]]`): The data that will be transformed to tensor.
+        - shallow_copy_next_obs (:obj:`bool`): Whether to shallow copy next_obs. Default: True.
     Return:
-        - data (:obj:`List[Dict[str, Any]]`): the data that can be transited to tensor.
+        - data (:obj:`List[Dict[str, Any]]`): The transformed tensor-like data.
 
     .. tip::
         In order to save memory, If there are next_obs in the passed data, we do special \
-            treatment on next_obs so that the next_obs of each state in the data fragment is \
-            the next state's obs and the next_obs of the last state is its own next_obs, \
-            and we make transform_scalar is False.
+        treatment on next_obs so that the next_obs of each state in the data fragment is \
+        the next state's obs and the next_obs of the last state is its own next_obsself. \
+        Besides, we set transform_scalar to False to avoid the extra ``.item()`` operation.
     """
     if 'next_obs' not in data[0]:
         return to_tensor(data, transform_scalar=False)
     else:
-        # for save memory of next_obs
-        data = to_tensor(data, transform_scalar=False)
-        data = to_tensor(data, ignore_keys=['next_obs'], transform_scalar=False)
-        for i in range(len(data) - 1):
-            data[i]['next_obs'] = data[i + 1]['obs']
-        data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'], transform_scalar=False)
+        # to_tensor will assign the separate memory to next_obs, if shallow_copy_next_obs is True,
+        # we can add ignore_keys to avoid this data copy for saving memory of next_obs.
+        if shallow_copy_next_obs:
+            data = to_tensor(data, ignore_keys=['next_obs'], transform_scalar=False)
+            for i in range(len(data) - 1):
+                data[i]['next_obs'] = data[i + 1]['obs']
+            data[-1]['next_obs'] = to_tensor(data[-1]['next_obs'], transform_scalar=False)
+            return data
+        else:
+            data = to_tensor(data, transform_scalar=False)
         return data

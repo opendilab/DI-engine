@@ -1,4 +1,4 @@
-from typing import Union, Tuple, List, Dict, Any
+from typing import Union, Tuple, List, Dict
 from easydict import EasyDict
 
 import random
@@ -50,19 +50,70 @@ class RndNetwork(nn.Module):
 
 @REWARD_MODEL_REGISTRY.register('rnd')
 class RndRewardModel(BaseRewardModel):
+    """
+    Overview:
+        The RND reward model class (https://arxiv.org/abs/1810.12894v1)
+    Interface:
+        ``estimate``, ``train``, ``collect_data``, ``clear_data``, \
+            ``__init__``, ``_train``, ``load_state_dict``, ``state_dict``
+    Config:
+        == ====================  =====  =============  =======================================  =======================
+        ID Symbol                Type   Default Value  Description                              Other(Shape)
+        == ====================  =====  =============  =======================================  =======================
+        1   ``type``              str     rnd          | Reward model register name, refer      |
+                                                       | to registry ``REWARD_MODEL_REGISTRY``  |
+        2  | ``intrinsic_``      str      add          | the intrinsic reward type              | including add, new
+           | ``reward_type``                           |                                        | , or assign
+        3  | ``learning_rate``   float    0.001        | The step size of gradient descent      |
+        4  | ``batch_size``      int      64           | Training batch size                    |
+        5  | ``hidden``          list     [64, 64,     | the MLP layer shape                    |
+           | ``_size_list``      (int)    128]         |                                        |
+        6  | ``update_per_``     int      100          | Number of updates per collect          |
+           | ``collect``                               |                                        |
+        7  | ``obs_norm``        bool     True         | Observation normalization              |
+        8  | ``obs_norm_``       int      0            | min clip value for obs normalization   |
+           | ``clamp_min``
+        9  | ``obs_norm_``       int      1            | max clip value for obs normalization   |
+           | ``clamp_max``
+        10 | ``intrinsic_``      float    0.01         | the weight of intrinsic reward         | r = w*r_i + r_e
+             ``reward_weight``
+        11 | ``extrinsic_``      bool     True         | Whether to normlize extrinsic reward
+             ``reward_norm``
+        12 | ``extrinsic_``      int      1            | the upper bound of the reward
+            ``reward_norm_max``                        | normalization
+        == ====================  =====  =============  =======================================  =======================
+    """
     config = dict(
+        # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='rnd',
+        # (str) The intrinsic reward type, including add, new, or assign.
         intrinsic_reward_type='add',
+        # (float) The step size of gradient descent.
         learning_rate=1e-3,
+        # (float) Batch size.
         batch_size=64,
+        # (list(int)) Sequence of ``hidden_size`` of reward network.
+        # If obs.shape == 1,  use MLP layers.
+        # If obs.shape == 3,  use conv layer and final dense layer.
         hidden_size_list=[64, 64, 128],
+        # (int) How many updates(iterations) to train after collector's one collection.
+        # Bigger "update_per_collect" means bigger off-policy.
+        # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
+        # (bool) Observation normalization: transform obs to mean 0, std 1.
         obs_norm=True,
+        # (int) Min clip value for observation normalization.
         obs_norm_clamp_min=-1,
+        # (int) Max clip value for observation normalization.
         obs_norm_clamp_max=1,
-        # means the relative weight of RND intrinsic_reward.
+        # Means the relative weight of RND intrinsic_reward.
+        # (float) The weight of intrinsic reward
+        # r = intrinsic_reward_weight * r_i + r_e.
         intrinsic_reward_weight=0.01,
+        # (bool) Whether to normlize extrinsic reward.
+        # Normalize the reward to [0, extrinsic_reward_norm_max].
         extrinsic_reward_norm=True,
+        # (int) The upper bound of the reward normalization.
         extrinsic_reward_norm_max=1,
     )
 
