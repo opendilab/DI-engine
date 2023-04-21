@@ -10,6 +10,7 @@ from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.model import FCEncoder, ConvEncoder
 from ding.torch_utils.data_helper import to_tensor
 from ding.torch_utils import one_hot
+from ding.utils import RunningMeanStd
 from ding.utils.data import default_collate
 from .reword_model_utils import concat_state_action_pairs
 from functools import partial
@@ -53,12 +54,13 @@ class RNDNetwork(nn.Module):
         for param in self.target.parameters():
             param.requires_grad = False
 
-    def forward(self, obs: torch.Tensor) -> torch.Tensor:
+    def forward(self, obs: torch.Tensor, norm: Optional[bool] = True) -> torch.Tensor:
         with torch.no_grad():
             predict_feature = self.predictor(obs)
             target_feature = self.target(obs)
             reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
+            if norm:
+                reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
         return reward
 
     def learn(self, obs: torch.Tensor) -> torch.Tensor:
@@ -324,3 +326,109 @@ class TREXNetwork(nn.Module):
         total_abs_reward = torch.sum(torch.abs(reward_i)) + torch.sum(torch.abs(reward_j))
 
         return outputs, total_abs_reward
+
+
+class InverseNetwork(nn.Module):
+
+    def __init__(
+            self, obs_shape: Union[int, SequenceType], action_shape: int, hidden_size_list: SequenceType, device: str
+    ) -> None:
+        super(InverseNetwork, self).__init__()
+        self._running_mean_std_episodic_dist = RunningMeanStd(epsilon=1e-4)
+        self.embedding_net = RepresentationNetwork(obs_shape, hidden_size_list)
+        self.obs_shape = obs_shape
+        self.device = device
+        self.inverse_net = nn.Sequential(
+            nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
+        )
+
+    def _compute_intrinsic_reward(
+            self,
+            episodic_memory: List,
+            current_controllable_state: torch.Tensor,
+            k=10,
+            kernel_cluster_distance=0.008,
+            kernel_epsilon=0.0001,
+            c=0.001,
+            siminarity_max=8,
+    ) -> torch.Tensor:
+        # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
+        state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
+        self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())
+        state_dist = state_dist / (self._running_mean_std_episodic_dist.mean + 1e-11)
+
+        state_dist = torch.clamp(state_dist - kernel_cluster_distance, min=0, max=None)
+        kernel = kernel_epsilon / (state_dist + kernel_epsilon)
+        s = torch.sqrt(torch.clamp(torch.sum(kernel), min=0, max=None)) + c
+
+        if s > siminarity_max:
+            print('s > siminarity_max:', s.max(), s.min())
+            return torch.tensor(0)  # NOTE
+        return 1 / s
+        # average value 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30
+
+    def forward(self, obs: list, is_null: list) -> Tuple[torch.Tensor, torch.Tensor]:
+        batch_size = len(obs)
+        seq_length = len(obs[0])
+
+        # stack episode dim
+        obs = [torch.stack(episode_obs, dim=0) for episode_obs in obs]
+
+        # stack batch dim
+        # way 0
+        if isinstance(self.obs_shape, int):
+            obs = torch.stack(obs, dim=0).view(batch_size * seq_length, self.obs_shape).to(self.device)
+        else:  # len(self.cfg.obs_shape) == 3 for image obs
+            obs = torch.stack(obs, dim=0).view(batch_size * seq_length, *self.obs_shape).to(self.device)
+        # way 2
+        # obs = torch.cat(obs, 0)
+
+        with torch.no_grad():
+            cur_obs_embedding = self.embedding_net(obs)
+            cur_obs_embedding = cur_obs_embedding.view(batch_size, seq_length, -1)
+            episodic_reward = [[] for _ in range(batch_size)]
+            null_cnt = 0  # the number of null transitions in the whole minibatch
+            for i in range(batch_size):
+                for j in range(seq_length):
+                    if j < 10:
+                        # if self._running_mean_std_episodic_reward.mean is not None:
+                        #     episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
+                        # else:
+                        episodic_reward[i].append(torch.tensor(0.).to(self.device))
+                    elif j:
+                        episodic_memory = cur_obs_embedding[i][:j]
+                        reward = self._compute_intrinsic_reward(episodic_memory,
+                                                                cur_obs_embedding[i][j]).to(self.device)
+                        episodic_reward[i].append(reward)
+
+                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:
+                    # TODO(pu): if have null padding, the episodic_reward should be 0
+                    null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
+                    # add the number of null transitions in i'th sequence in batch
+                    null_cnt = null_cnt + seq_length - null_start_index
+                    for k in range(null_start_index, seq_length):
+                        episodic_reward[i][k] = torch.tensor(0).to(self.device)
+                        # episodic_reward[i][null_start_index:-1]=[torch.tensor(0).to(self.device)
+                        # for i in range(seq_length-null_start_index)]
+
+            # list(list(tensor)) -> tensor
+            tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
+            # stack batch dim
+            episodic_reward = torch.stack(tmp, dim=0)  # TODO(pu): image case
+            episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
+
+            episodic_reward_real_mean = sum(episodic_reward) / (
+                batch_size * seq_length - null_cnt
+            )  # TODO(pu): recompute mean
+
+            return episodic_reward, episodic_reward_real_mean
+
+    def learn(self, inputs: Dict) -> torch.Tensor:
+        # obs: torch.Tensor, next_obs: torch.Tensor, action: torch.Tensor
+        cur_obs_embedding = self.embedding_net(inputs['obs'])
+        next_obs_embedding = self.embedding_net(inputs['next_obs'])
+        # get pred action
+        obs_plus_next_obs = torch.cat([cur_obs_embedding, next_obs_embedding], dim=-1)
+        pred_action_logits = self.inverse_net(obs_plus_next_obs)
+        loss = F.cross_entropy(pred_action_logits, inputs['action'].squeeze(-1))
+        return loss
