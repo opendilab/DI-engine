@@ -56,23 +56,37 @@ class TestNnModule:
 
         # Test case 2: MLP with dropout and normalization
         for norm_type in ["LN", "BN", None]:
-            model = MLP(in_channels, hidden_channels, out_channels, layer_num,
-                        use_dropout=True, dropout_probability=0.5, norm_type=norm_type)
+            model = MLP(
+                in_channels,
+                hidden_channels,
+                out_channels,
+                layer_num,
+                use_dropout=True,
+                dropout_probability=0.5,
+                norm_type=norm_type
+            )
             output_tensor = self.run_model(input_tensor, model)
             assert output_tensor.shape == (batch_size, out_channels)
 
         for act in [torch.nn.LeakyReLU(), torch.nn.ReLU(), torch.nn.Sigmoid(), None]:
             for norm_type in ["LN", "BN", None]:
                 # Test case 3: MLP without last linear layer initialized to 0
-                model = MLP(in_channels, hidden_channels, out_channels, layer_num,
-                            norm_type=norm_type, output_activation=act)
+                model = MLP(
+                    in_channels, hidden_channels, out_channels, layer_num, norm_type=norm_type, output_activation=act
+                )
                 output_tensor = self.run_model(input_tensor, model)
                 assert output_tensor.shape == (batch_size, out_channels)
 
                 # Test case 4: MLP with last linear layer initialized to 0
-                model = MLP(in_channels, hidden_channels, out_channels, layer_num, norm_type=norm_type,
-                            output_activation=act,
-                            last_linear_layer_weight_bias_init_zero=True)
+                model = MLP(
+                    in_channels,
+                    hidden_channels,
+                    out_channels,
+                    layer_num,
+                    norm_type=norm_type,
+                    output_activation=act,
+                    last_linear_layer_weight_bias_init_zero=True
+                )
                 output_tensor = self.run_model(input_tensor, model)
                 assert output_tensor.shape == (batch_size, out_channels)
                 last_linear_layer = None
