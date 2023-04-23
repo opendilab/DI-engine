@@ -382,7 +382,7 @@ def MLP(
 
     if last_linear_layer_weight_bias_init_zero:
         # Locate the last linear layer and initialize its weights and biases to 0.
-        for idx, layer in enumerate(reversed(block)):
+        for _, layer in enumerate(reversed(block)):
             if isinstance(layer, nn.Linear):
                 nn.init.zeros_(layer.weight)
                 nn.init.zeros_(layer.bias)
