@@ -4,6 +4,15 @@ from ding.torch_utils import build_activation, build_normalization
 from ding.torch_utils.network.nn_module import MLP, conv1d_block, conv2d_block, fc_block, deconv2d_block, \
     ChannelShuffle, one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten, \
     normed_linear, normed_conv2d
+import torch
+import torch.nn as nn
+from typing import Callable
+from torch.nn import Sequential
+from torch.testing import assert_allclose
+
+def sequential_pack(layers):
+    return Sequential(*layers)
+
 
 batch_size = 2
 in_channels = 2
@@ -44,20 +53,37 @@ class TestNnModule:
             weight_init_(weight, 'xxx')
 
     def test_mlp(self):
-        input = torch.rand(batch_size, in_channels).requires_grad_(True)
-        block = MLP(
-            in_channels=in_channels,
-            hidden_channels=hidden_channels,
-            out_channels=out_channels,
-            layer_num=2,
-            activation=torch.nn.ReLU(inplace=True),
-            norm_type='BN',
-            output_activation=torch.nn.Identity(),
-            output_norm_type=None,
-            last_linear_layer_init_zero=True
-        )
-        output = self.run_model(input, block)
-        assert output.shape == (batch_size, out_channels)
+        # Test case 1: Simple MLP without dropout, normalization, or output activation
+        layer_num = 3
+        model = MLP(in_channels, hidden_channels, out_channels, layer_num)
+        input_tensor = torch.rand(batch_size, in_channels).requires_grad_(True)
+        output_tensor = self.run_model(input_tensor, model)
+        assert output_tensor.shape == (batch_size, out_channels)
+
+        # Test case 2: MLP with dropout and batch normalization
+        model = MLP(in_channels, hidden_channels, out_channels, layer_num,
+                    use_dropout=True, dropout_probability=0.5, norm_type="BN")
+        output_tensor = self.run_model(input_tensor, model)
+        assert output_tensor.shape == (batch_size, out_channels)
+
+        # Test case 3: MLP with layer normalization and custom output activation
+        model = MLP(in_channels, hidden_channels, out_channels, layer_num,
+                    norm_type="LN", output_activation=nn.Sigmoid())
+        output_tensor = self.run_model(input_tensor, model)
+        assert output_tensor.shape == (batch_size, out_channels)
+
+        # Test case 4: MLP with last linear layer initialized to 0
+        model = MLP(in_channels, hidden_channels, out_channels, layer_num,
+                    last_linear_layer_weight_bias_init_zero=True)
+        output_tensor = self.run_model(input_tensor, model)
+        assert output_tensor.shape == (batch_size, out_channels)
+        last_linear_layer = None
+        for layer in reversed(model):
+            if isinstance(layer, nn.Linear):
+                last_linear_layer = layer
+                break
+        assert_allclose(last_linear_layer.weight, torch.zeros_like(last_linear_layer.weight))
+        assert_allclose(last_linear_layer.bias, torch.zeros_like(last_linear_layer.bias))
 
     def test_conv1d_block(self):
         length = 2
