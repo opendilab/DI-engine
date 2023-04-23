@@ -382,11 +382,9 @@ class IBCCommandModePolicy(IBCPolicy, DummyCommandModePolicy):
     pass
 
 
-
 @POLICY_REGISTRY.register('bcq_command')
 class BCQCommandModelPolicy(BCQPolicy, DummyCommandModePolicy):
     pass
-
 
 
 @POLICY_REGISTRY.register('bc_command')

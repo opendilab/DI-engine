@@ -68,8 +68,8 @@ class BCQ(nn.Module):
     def forward(self, inputs: Dict[str, torch.Tensor], mode: str) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            The unique execution (forward) method of QAC method, and one can indicate different modes to implement \
-            different computation graph, including ``compute_actor`` and ``compute_critic`` in QAC.
+            The unique execution (forward) method of BCQ method, and one can indicate different modes to implement \
+            different computation graph, including ``compute_actor`` and ``compute_critic`` in BCQ.
         Mode compute_actor:
             Arguments:
                 - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.

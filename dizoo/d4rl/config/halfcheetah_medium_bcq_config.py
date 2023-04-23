@@ -15,8 +15,8 @@ main_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            actor_head_hidden_size=[400,300],
-            critic_head_hidden_size=[400,300],
+            actor_head_hidden_size=[400, 300],
+            critic_head_hidden_size=[400, 300],
             phi=0.05,
         ),
         learn=dict(
@@ -33,7 +33,7 @@ main_config = dict(
         eval=dict(evaluator=dict(eval_freq=500, )),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
     ),
-    seed = 123,
+    seed=123,
 )
 
 main_config = EasyDict(main_config)
