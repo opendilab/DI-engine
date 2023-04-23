@@ -26,7 +26,7 @@ class BCQ(nn.Module):
     ) -> None:
         """
         Overview:
-            Initialize QMIX neural network, i.e. agent Q network and mixer.
+            Initialize neural network, i.e. agent Q network and actor.
         Arguments:
             - obs_shape (:obj:`int`): the dimension of observation state
             - action_shape (:obj:`int`): the dimension of action shape
