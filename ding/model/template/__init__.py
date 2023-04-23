@@ -23,4 +23,4 @@ from .madqn import MADQN
 from .vae import VanillaVAE
 from .decision_transformer import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
-from .edac import Q_ensemble
+from .edac import QACEnsemble

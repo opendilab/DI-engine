@@ -10,7 +10,7 @@ from ding.utils import MODEL_REGISTRY
 
 
 @MODEL_REGISTRY.register('edac')
-class Q_ensemble(nn.Module):
+class QACEnsemble(nn.Module):
     r"""
     Overview:
         The QAC network with ensemble, which is used in EDAC.
@@ -51,7 +51,7 @@ class Q_ensemble(nn.Module):
             - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
                 see ``ding.torch_utils.network`` for more details.
         """
-        super(Q_ensemble, self).__init__()
+        super(QACEnsemble, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
@@ -69,17 +69,16 @@ class Q_ensemble(nn.Module):
         )
 
         critic_input_size = obs_shape + action_shape
-        self.critic = nn.Sequential(
-            EnsembleHead(
-                critic_input_size,
-                1,
-                critic_head_hidden_size,
-                critic_head_layer_num,
-                self.ensemble_num,
-                activation=activation,
-                norm_type=norm_type
-            )
-        )
+        self.critic = EnsembleHead(
+                        critic_input_size,
+                        1,
+                        critic_head_hidden_size,
+                        critic_head_layer_num,
+                        self.ensemble_num,
+                        activation=activation,
+                        norm_type=norm_type
+                    )
+            
 
     def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
         """
@@ -127,7 +126,7 @@ class Q_ensemble(nn.Module):
             - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \
                 ``action_shape.action_args_shape``.
         Examples:
-            >>> model = EDAC(64, 64,)
+            >>> model = QACEnsemble(64, 64,)
             >>> obs = torch.randn(4, 64)
             >>> actor_outputs = model(obs,'compute_actor')
             >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
