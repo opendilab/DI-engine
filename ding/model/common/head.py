@@ -1385,7 +1385,7 @@ class EnsembleHead(nn.Module):
             >>> assert isinstance(outputs, dict)
             >>> assert outputs['pred'].shape == torch.Size([10, 64 * 10])
         """
-        x = self.pred(x).squeeze()
+        x = self.pred(x).squeeze(-1)
         return {'pred': x}
 
 

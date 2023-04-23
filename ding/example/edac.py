@@ -1,6 +1,6 @@
 import gym
 from ditk import logging
-from ding.model import Q_ensemble
+from ding.model import QACEnsemble
 from ding.policy import EDACPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import create_dataset
@@ -27,7 +27,7 @@ def main():
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         dataset = create_dataset(cfg)
-        model = Q_ensemble(**cfg.policy.model)
+        model = QACEnsemble(**cfg.policy.model)
         policy = EDACPolicy(cfg.policy, model=model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
