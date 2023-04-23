@@ -1320,7 +1320,7 @@ class EnsembleHead(nn.Module):
     """
     Overview:
         The ``EnsembleHead`` used to output action Q-value for Q-ensemble. \
-        Input is a (:obj:`torch.Tensor`) of shape ''(B, N * Ensemble_num, 1)'' and returns a (:obj:`Dict`) containing \
+        Input is a (:obj:`torch.Tensor`) of shape ''(B, N * ensemble_num, 1)'' and returns a (:obj:`Dict`) containing \
         output ``pred``.
     Interfaces:
         ``__init__``, ``forward``.
@@ -1376,8 +1376,8 @@ class EnsembleHead(nn.Module):
         Returns:
             - outputs (:obj:`Dict`): Dict containing keyword ``pred`` (:obj:`torch.Tensor`).
         Shapes:
-            - x: :math:`(B, N * Ensemble_num, 1)`, where ``B = batch_size`` and ``N = hidden_size``.
-            - pred: :math:`(B, M * Ensemble_num, 1)`, where ``M = output_size``.
+            - x: :math:`(B, N * ensemble_num, 1)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - pred: :math:`(B, M * ensemble_num, 1)`, where ``M = output_size``.
         Examples:
             >>> head = EnsembleHead(64 * 10, 64 * 10)
             >>> inputs = torch.randn(4, 64 * 10, 1) `
