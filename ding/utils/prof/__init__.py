@@ -1,2 +1,1 @@
-from .di_profiler import init_profiler
-from .sys_metric_tracker import MetricTracker
+from .di_profiler import get_profiler

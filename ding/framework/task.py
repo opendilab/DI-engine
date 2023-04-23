@@ -16,7 +16,7 @@ from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from ding.framework.event_loop import EventLoop
 from functools import wraps
-from ding.utils.prof import init_profiler
+from ding.utils.prof import get_profiler
 
 
 def enable_async(func: Callable) -> Callable:
@@ -78,11 +78,11 @@ class Task:
         self._finish = False
 
     def start(
-            self,
-            async_mode: bool = False,
-            n_async_workers: int = 3,
-            ctx: Optional[Context] = None,
-            labels: Optional[Set[str]] = None
+        self,
+        async_mode: bool = False,
+        n_async_workers: int = 3,
+        ctx: Optional[Context] = None,
+        labels: Optional[Set[str]] = None
     ) -> "Task":
         # This flag can be modified by external or associated processes
         self._finish = False
@@ -202,7 +202,7 @@ class Task:
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if len(self._middleware) == 0:
             return
-        profiler = init_profiler(enable=True, trace_path="/mnt/petrelfs/wangguoteng.p/DI_prof")
+        profiler = get_profiler(enable=True, trace_path="/mnt/petrelfs/wangguoteng.p/DI_prof")
         with profiler:
             for i in range(max_step):
                 for fn in self._middleware:

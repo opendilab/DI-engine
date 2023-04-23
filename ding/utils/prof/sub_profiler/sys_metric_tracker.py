@@ -12,6 +12,7 @@ from elasticsearch import Elasticsearch
 
 ES_INDEX = "colossalai_monitor"
 
+
 class MetricTracker(Thread):
     """
     Track resource usage during task training.
@@ -22,7 +23,7 @@ class MetricTracker(Thread):
 
     """
 
-    def __init__(self, es_server_address: str, interval: float = 15, logger = None):
+    def __init__(self, es_server_address: str, interval: float = 15, logger=None):
         super(MetricTracker, self).__init__()
         self.elastic_search = Elasticsearch(hosts=[es_server_address], request_timeout=30)
         self.stopped = False
@@ -135,7 +136,7 @@ class MetricTracker(Thread):
                 except Exception as error:  # pylint: disable=broad-except
                     # logger.error(message=error)
                     return False
-                
+
                 es_util.put_metric_to_elastic_search(self.elastic_search, metric_dict)
             except ValueError:
                 continue
