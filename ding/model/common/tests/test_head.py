@@ -87,7 +87,7 @@ class TestHead:
 
     def test_ensemble(self):
         inputs = torch.randn(B, embedding_dim * 3, 1)
-        model = EnsembleHead(embedding_dim, action_shape, 3, 3,3)
+        model = EnsembleHead(embedding_dim, action_shape, 3, 3, 3)
         outputs = model(inputs)['pred']
         self.output_check(model, outputs)
         assert outputs.shape == (B, action_shape * 3, 1)

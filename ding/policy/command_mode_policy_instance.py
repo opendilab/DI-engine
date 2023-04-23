@@ -381,6 +381,7 @@ class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
 class IBCCommandModePolicy(IBCPolicy, DummyCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('edac_command')
 class EDACCommandModelPolicy(EDACPolicy, DummyCommandModePolicy):
     pass

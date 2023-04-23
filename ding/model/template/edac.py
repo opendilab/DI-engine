@@ -70,15 +70,14 @@ class QACEnsemble(nn.Module):
 
         critic_input_size = obs_shape + action_shape
         self.critic = EnsembleHead(
-                        critic_input_size,
-                        1,
-                        critic_head_hidden_size,
-                        critic_head_layer_num,
-                        self.ensemble_num,
-                        activation=activation,
-                        norm_type=norm_type
-                    )
-            
+            critic_input_size,
+            1,
+            critic_head_hidden_size,
+            critic_head_layer_num,
+            self.ensemble_num,
+            activation=activation,
+            norm_type=norm_type
+        )
 
     def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
         """

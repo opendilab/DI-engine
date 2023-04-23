@@ -37,7 +37,7 @@ main_config = dict(
         collect=dict(data_type='d4rl', ),
         eval=dict(evaluator=dict(eval_freq=500, )),
     ),
-    seed = 123,
+    seed=123,
 )
 
 main_config = EasyDict(main_config)

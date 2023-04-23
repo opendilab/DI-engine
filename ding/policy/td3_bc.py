@@ -240,9 +240,8 @@ class TD3BCPolicy(DDPGPolicy):
         # target q value.
         with torch.no_grad():
             next_action = self._target_model.forward(next_obs, mode='compute_actor')['action']
-            noise = (
-				torch.randn_like(next_action) * self.noise_sigma
-			).clamp(self.noise_range['min'], self.noise_range['max'])
+            noise = (torch.randn_like(next_action) *
+                     self.noise_sigma).clamp(self.noise_range['min'], self.noise_range['max'])
             next_action = (next_action + noise).clamp(-1, 1)
             next_data = {'obs': next_obs, 'action': next_action}
             target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
