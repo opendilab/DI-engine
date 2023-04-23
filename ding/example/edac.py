@@ -10,7 +10,7 @@ from ding.framework.context import OfflineRLContext
 from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger
 from ding.utils import set_pkg_seed
 from dizoo.d4rl.envs import D4RLEnv
-from dizoo.d4rl.config.halfcheetah_medium_edac_config import main_config,create_config
+from dizoo.d4rl.config.halfcheetah_medium_edac_config import main_config, create_config
 
 
 def main():
