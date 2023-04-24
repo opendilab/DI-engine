@@ -560,3 +560,4 @@ class DiscreteQAC(nn.Module):
         else:
             x = self.critic(inputs['obs'])['logit']
         return {'q_value': x}
+    
