@@ -196,8 +196,8 @@ class BCQPolicy(Policy):
             target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
             # the value of a policy according to the maximum entropy objective
             # find min one as target q value
-            target_q_value = self.lmbda * torch.min(target_q_value[0],target_q_value[1]) \
-                + (1 - self.lmbda) * torch.max(target_q_value[0],target_q_value[1])
+            target_q_value = self.lmbda * torch.min(target_q_value[0], target_q_value[1]) \
+                + (1 - self.lmbda) * torch.max(target_q_value[0], target_q_value[1])
             target_q_value = target_q_value.reshape(batch_size, -1).max(1)[0].reshape(-1, 1)
 
         q_data0 = v_1step_td_data(q_value[0], target_q_value, reward, done, data['weight'])
