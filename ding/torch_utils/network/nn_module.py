@@ -333,8 +333,8 @@ def MLP(
         - norm_type (:obj:`str`): type of the normalization.
         - use_dropout (:obj:`bool`): whether to use dropout in the fully-connected block.
         - dropout_probability (:obj:`float`): probability of an element to be zeroed in the dropout. Default: 0.5.
-        - output_activation (:obj:`nn.Module`): the optional activation function in the last layer.
-        - output_norm_type (:obj:`str`): type of the normalization in the last layer.
+        - output_activation (:obj:`nn.Module`): the activation function in the last layer. Default: None.
+        - output_norm_type (:obj:`str`): the type of the normalization in the last layer. Default: None.
         - last_linear_layer_weight_bias_init_zero (:obj:`bool`): zero initialization for the last linear layer
             (including w and b), which can provide stable zero outputs in the beginning.
     Returns:
@@ -365,20 +365,17 @@ def MLP(
     in_channels = channels[-2]
     out_channels = channels[-1]
     block.append(layer_fn(in_channels, out_channels))
-    if output_activation is None and output_norm_type is None:
-        #  the last layer use the same norm and activation as front layers
-        if norm_type is not None:
-            block.append(build_normalization(norm_type, dim=1)(out_channels))
-        if activation is not None:
-            block.append(activation)
-    else:
-        #  the last layer use the specific norm and activation
-        if output_norm_type is not None:
-            block.append(build_normalization(output_norm_type, dim=1)(out_channels))
-        if output_activation is not None:
-            block.append(output_activation)
-    if use_dropout:
-        block.append(nn.Dropout(dropout_probability))
+
+    if output_norm_type is not None and output_activation is not None:
+        # the last layer use the user specified output_norm and output_activation
+        block.append(build_normalization(output_norm_type, dim=1)(out_channels))
+        block.append(output_activation)
+    elif output_activation is not None and output_norm_type is None:
+        # the last layer use the user specified output_activation
+        block.append(output_activation)
+    elif output_activation is None and output_norm_type is not None:
+        # the last layer use the user specified output_norm
+        block.append(build_normalization(output_norm_type, dim=1)(out_channels))
 
     if last_linear_layer_weight_bias_init_zero:
         # Locate the last linear layer and initialize its weights and biases to 0.
