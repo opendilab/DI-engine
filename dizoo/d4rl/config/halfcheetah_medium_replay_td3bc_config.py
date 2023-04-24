@@ -7,7 +7,7 @@ main_config = dict(
     env=dict(
         env_id='halfcheetah-medium-replay-v2',
         norm_obs=dict(
-            use_norm=True, 
+            use_norm=True,
             offline_stats=dict(use_offline_stats=True, ),
         ),
         collector_env_num=1,
