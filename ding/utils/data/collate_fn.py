@@ -4,11 +4,11 @@ from typing import List, Dict, Union, Any
 import torch
 import treetensor.torch as ttorch
 import re
-from torch._six import string_classes
 import collections.abc as container_abcs
 from ding.compatibility import torch_ge_131
 
 int_classes = int
+string_classes = (str, bytes)
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
 
 default_collate_err_msg_format = (

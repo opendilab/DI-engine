@@ -276,7 +276,9 @@ class BattleSampleSerialCollector(ISerialCollector):
                         self._traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
                         if timestep.done or len(self._traj_buffer[env_id][policy_id]) == self._traj_len:
-                            transitions = to_tensor_transitions(self._traj_buffer[env_id][policy_id])
+                            transitions = to_tensor_transitions(
+                                self._traj_buffer[env_id][policy_id], not self._deepcopy_obs
+                            )
                             train_sample = self._policy[policy_id].get_train_sample(transitions)
                             return_data[policy_id].extend(train_sample)
                             self._total_train_sample_count += len(train_sample)
