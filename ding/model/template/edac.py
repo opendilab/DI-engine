@@ -140,7 +140,8 @@ class QACEnsemble(nn.Module):
             The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic
             output, such as ``q_value``.
         Arguments:
-            - inputs (:obj:`Dict[str, torch.Tensor]`): Dict strcture of input data, including ``obs`` and ``action`` tensor
+            - inputs (:obj:`Dict[str, torch.Tensor]`): Dict strcture of input data, including ``obs`` and \
+                  ``action`` tensor
         Returns:
             - outputs (:obj:`Dict[str, torch.Tensor]`): Critic output, such as ``q_value``.
         ArgumentsKeys:
@@ -149,8 +150,10 @@ class QACEnsemble(nn.Module):
         ReturnKeys:
             - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
         Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)` or '(Ensemble_num, B, N1)', where B is batch size and N1 is ``obs_shape``.
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)` or '(Ensemble_num, B, N2)', where B is batch size and N4 is ``action_shape``.
+            - obs (:obj:`torch.Tensor`): :math:`(B, N1)` or '(Ensemble_num, B, N1)', where B is batch size and N1 is \
+                  ``obs_shape``.
+            - action (:obj:`torch.Tensor`): :math:`(B, N2)` or '(Ensemble_num, B, N2)', where B is batch size and N4 \
+                  is ``action_shape``.
             - q_value (:obj:`torch.Tensor`): :math:`(Ensemble_num, B)`, where B is batch size.
         Examples:
             >>> inputs = {'obs': torch.randn(4, 8), 'action': torch.randn(4, 1)}
