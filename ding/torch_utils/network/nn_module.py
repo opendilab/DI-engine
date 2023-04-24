@@ -367,8 +367,8 @@ def MLP(
     out_channels = channels[-1]
     block.append(layer_fn(in_channels, out_channels))
     """
-    In the final layer of a neural network, the output normalization and activation functions are typically determined 
-    based on user specifications. These specifications depend on the problem at hand and the desired properties of 
+    In the final layer of a neural network, the output normalization and activation functions are typically determined
+    based on user specifications. These specifications depend on the problem at hand and the desired properties of
     the model's output.
     """
     if output_norm_type is not None and output_activation is not None:
