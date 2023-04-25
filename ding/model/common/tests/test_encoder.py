@@ -23,10 +23,16 @@ class TestEncoder:
         outputs = model(inputs)
         self.output_check(model, outputs)
         assert outputs.shape == (B, 128)
-    
+
     def test_dreamer_conv_encoder(self):
         inputs = torch.randn(B, C, H, W)
-        model = ConvEncoder((C, H, W), hidden_size_list=[32, 64, 128, 256, 128], activation=torch.nn.SiLU(), kernel_size=[4, 4, 4, 4], layer_norm=True)
+        model = ConvEncoder(
+            (C, H, W),
+            hidden_size_list=[32, 64, 128, 256, 128],
+            activation=torch.nn.SiLU(),
+            kernel_size=[4, 4, 4, 4],
+            layer_norm=True
+        )
         print(model)
         outputs = model(inputs)
         self.output_check(model, outputs)
@@ -55,6 +61,7 @@ class TestEncoder:
         outputs = model(inputs)
         self.output_check(model, outputs)
         assert outputs.shape == (B, 256)
+
 
 a = TestEncoder()
 a.test_dreamer_conv_encoder()

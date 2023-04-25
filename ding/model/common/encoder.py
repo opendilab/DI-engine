@@ -66,18 +66,29 @@ class ConvEncoder(nn.Module):
         input_size = obs_shape[0]  # in_channel
         for i in range(len(kernel_size)):
             if layer_norm:
-                layers.append(Conv2dSame(in_channels=input_size, out_channels=hidden_size_list[i], kernel_size=(kernel_size[i], kernel_size[i]), stride=(2, 2), bias=False,))
+                layers.append(
+                    Conv2dSame(
+                        in_channels=input_size,
+                        out_channels=hidden_size_list[i],
+                        kernel_size=(kernel_size[i], kernel_size[i]),
+                        stride=(2, 2),
+                        bias=False,
+                    )
+                )
                 layers.append(DreamerLayerNorm(hidden_size_list[i]))
                 layers.append(self.act)
             else:
                 layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
                 layers.append(self.act)
             input_size = hidden_size_list[i]
-        if len(self.hidden_size_list) >= len(kernel_size)+2:
-            assert self.hidden_size_list[len(kernel_size)-1] == self.hidden_size_list[len(kernel_size)], "Please indicate the same hidden size between conv and res block"
-        assert len(set(hidden_size_list[len(kernel_size):-1])) <= 1, "Please indicate the same hidden size for res block parts"
+        if len(self.hidden_size_list) >= len(kernel_size) + 2:
+            assert self.hidden_size_list[len(kernel_size) - 1] == self.hidden_size_list[
+                len(kernel_size)], "Please indicate the same hidden size between conv and res block"
+        assert len(
+            set(hidden_size_list[len(kernel_size):-1])
+        ) <= 1, "Please indicate the same hidden size for res block parts"
         for i in range(len(kernel_size), len(self.hidden_size_list) - 1):
-            layers.append(ResBlock(self.hidden_size_list[i-1], activation=self.act, norm_type=norm_type))
+            layers.append(ResBlock(self.hidden_size_list[i - 1], activation=self.act, norm_type=norm_type))
         layers.append(Flatten())
         self.main = nn.Sequential(*layers)
 
@@ -318,22 +329,17 @@ class IMPALAConvEncoder(nn.Module):
 
 
 class Conv2dSame(torch.nn.Conv2d):
+
     def calc_same_pad(self, i, k, s, d):
         return max((math.ceil(i / s) - 1) * s + (k - 1) * d + 1 - i, 0)
 
     def forward(self, x):
         ih, iw = x.size()[-2:]
-        pad_h = self.calc_same_pad(
-            i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0]
-        )
-        pad_w = self.calc_same_pad(
-            i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1]
-        )
+        pad_h = self.calc_same_pad(i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0])
+        pad_w = self.calc_same_pad(i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1])
 
         if pad_h > 0 or pad_w > 0:
-            x = F.pad(
-                x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2]
-            )
+            x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
 
         ret = F.conv2d(
             x,
@@ -348,6 +354,7 @@ class Conv2dSame(torch.nn.Conv2d):
 
 
 class DreamerLayerNorm(nn.Module):
+
     def __init__(self, ch, eps=1e-03):
         super(DreamerLayerNorm, self).__init__()
         self.norm = torch.nn.LayerNorm(ch, eps=eps)
