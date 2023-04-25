@@ -525,15 +525,24 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <li><p>hidden_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the hidden tensor.</p></li>
 <li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor.</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of layers.</p></li>
-<li><p>layer_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): layer function.</p></li>
-<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function.</p></li>
-<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization.</p></li>
-<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to use dropout in the fully-connected block.</p></li>
-<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): probability of an element to be zeroed in the dropout. Default: 0.5.</p></li>
-<li><p>output_activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function in the last layer.</p></li>
-<li><p>output_norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization in the last layer.</p></li>
+<li><p>layer_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Layer function.</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): The optional activation function.</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The type of the normalization.</p></li>
+<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use dropout in the fully-connected block.</p></li>
+<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The probability of an element to be zeroed in the dropout. Default: 0.5.</p></li>
 <li><dl class="simple">
-<dt>last_linear_layer_init_zero (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): zero initialization for the last linear layer (including w and b),</dt><dd><p>which can provide stable zero outputs in the beginning.</p>
+<dt>output_activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use activation in the output layer. If True,</dt><dd><p>we use the same activation as front layers. Default: True.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>output_norm (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use normalization in the output layer. If True,</dt><dd><p>we use the same normalization as front layers. Default: True.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>last_linear_layer_init_zero (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use zero initializations for the last linear layer</dt><dd><p>(including w and b), which can provide stable zero outputs in the beginning,
+usually used in the policy network in RL settings.</p>
 </dd>
 </dl>
 </li>
