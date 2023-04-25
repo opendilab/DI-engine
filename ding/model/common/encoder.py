@@ -35,6 +35,7 @@ class ConvEncoder(nn.Module):
             kernel_size: SequenceType = [8, 4, 3],
             stride: SequenceType = [4, 2, 1],
             padding: Optional[SequenceType] = None,
+            layer_norm: Optional[bool] = False,
             norm_type: Optional[str] = None
     ) -> None:
         """
@@ -50,6 +51,7 @@ class ConvEncoder(nn.Module):
             - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.
             - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \
                 See ``nn.Conv2d`` for more details. Default is ``None``.
+            - layer_norm (:obj:`bool`): Whether to use ``DreamerLayerNorm``.
             - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResBlock`` \
                 for more details. Default is ``None``.
         """
@@ -63,17 +65,24 @@ class ConvEncoder(nn.Module):
         layers = []
         input_size = obs_shape[0]  # in_channel
         for i in range(len(kernel_size)):
-            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
-            layers.append(self.act)
+            if layer_norm:
+                layers.append(Conv2dSame(in_channels=input_size, out_channels=hidden_size_list[i], kernel_size=(kernel_size[i], kernel_size[i]), stride=(2, 2), bias=False,))
+                layers.append(DreamerLayerNorm(hidden_size_list[i]))
+                layers.append(self.act)
+            else:
+                layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
+                layers.append(self.act)
             input_size = hidden_size_list[i]
-        assert len(set(hidden_size_list[3:-1])) <= 1, "Please indicate the same hidden size for res block parts"
-        for i in range(3, len(self.hidden_size_list) - 1):
-            layers.append(ResBlock(self.hidden_size_list[i], activation=self.act, norm_type=norm_type))
+        if len(self.hidden_size_list) >= len(kernel_size)+2:
+            assert self.hidden_size_list[len(kernel_size)-1] == self.hidden_size_list[len(kernel_size)], "Please indicate the same hidden size between conv and res block"
+        assert len(set(hidden_size_list[len(kernel_size):-1])) <= 1, "Please indicate the same hidden size for res block parts"
+        for i in range(len(kernel_size), len(self.hidden_size_list) - 1):
+            layers.append(ResBlock(self.hidden_size_list[i-1], activation=self.act, norm_type=norm_type))
         layers.append(Flatten())
         self.main = nn.Sequential(*layers)
 
         flatten_size = self._get_flatten_size()
-        self.output_size = hidden_size_list[-1]
+        self.output_size = hidden_size_list[-1]  # outside to use
         self.mid = nn.Linear(flatten_size, hidden_size_list[-1])
 
     def _get_flatten_size(self) -> int:
@@ -305,4 +314,46 @@ class IMPALAConvEncoder(nn.Module):
         x = self.dense(x)
         if self.final_relu:
             x = torch.relu(x)
+        return x
+
+
+class Conv2dSame(torch.nn.Conv2d):
+    def calc_same_pad(self, i, k, s, d):
+        return max((math.ceil(i / s) - 1) * s + (k - 1) * d + 1 - i, 0)
+
+    def forward(self, x):
+        ih, iw = x.size()[-2:]
+        pad_h = self.calc_same_pad(
+            i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0]
+        )
+        pad_w = self.calc_same_pad(
+            i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1]
+        )
+
+        if pad_h > 0 or pad_w > 0:
+            x = F.pad(
+                x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2]
+            )
+
+        ret = F.conv2d(
+            x,
+            self.weight,
+            self.bias,
+            self.stride,
+            self.padding,
+            self.dilation,
+            self.groups,
+        )
+        return ret
+
+
+class DreamerLayerNorm(nn.Module):
+    def __init__(self, ch, eps=1e-03):
+        super(DreamerLayerNorm, self).__init__()
+        self.norm = torch.nn.LayerNorm(ch, eps=eps)
+
+    def forward(self, x):
+        x = x.permute(0, 2, 3, 1)
+        x = self.norm(x)
+        x = x.permute(0, 3, 1, 2)
         return x
