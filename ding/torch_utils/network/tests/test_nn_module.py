@@ -49,53 +49,45 @@ class TestNnModule:
         layer_num = 3
         input_tensor = torch.rand(batch_size, in_channels).requires_grad_(True)
 
-        # Test case 1: Simple MLP without dropout, normalization, or output activation.
-        model = MLP(in_channels, hidden_channels, out_channels, layer_num)
-        output_tensor = self.run_model(input_tensor, model)
-        assert output_tensor.shape == (batch_size, out_channels)
+        for output_activation in [True, False]:
+            for output_norm in [True, False]:
+                for activation in [torch.nn.ReLU(), torch.nn.LeakyReLU(), torch.nn.Tanh(), None]:
+                    for norm_type in ["LN", "BN", None]:
+                        # Test case 1: MLP without last linear layer initialized to 0.
+                        model = MLP(
+                            in_channels,
+                            hidden_channels,
+                            out_channels,
+                            layer_num,
+                            activation=activation,
+                            norm_type=norm_type,
+                            output_activation=output_activation,
+                            output_norm=output_norm
+                        )
+                        output_tensor = self.run_model(input_tensor, model)
+                        assert output_tensor.shape == (batch_size, out_channels)
 
-        # Test case 2: MLP with dropout and normalization.
-        for norm_type in ["LN", "BN", None]:
-            model = MLP(
-                in_channels,
-                hidden_channels,
-                out_channels,
-                layer_num,
-                use_dropout=True,
-                dropout_probability=0.5,
-                norm_type=norm_type
-            )
-            output_tensor = self.run_model(input_tensor, model)
-            assert output_tensor.shape == (batch_size, out_channels)
-
-        for act in [torch.nn.LeakyReLU(), torch.nn.ReLU(), torch.nn.Sigmoid(), None]:
-            for norm_type in ["LN", "BN", None]:
-                # Test case 3: MLP without last linear layer initialized to 0.
-                model = MLP(
-                    in_channels, hidden_channels, out_channels, layer_num, norm_type=norm_type, output_activation=act
-                )
-                output_tensor = self.run_model(input_tensor, model)
-                assert output_tensor.shape == (batch_size, out_channels)
-
-                # Test case 4: MLP with last linear layer initialized to 0.
-                model = MLP(
-                    in_channels,
-                    hidden_channels,
-                    out_channels,
-                    layer_num,
-                    norm_type=norm_type,
-                    output_activation=act,
-                    last_linear_layer_init_zero=True
-                )
-                output_tensor = self.run_model(input_tensor, model)
-                assert output_tensor.shape == (batch_size, out_channels)
-                last_linear_layer = None
-                for layer in reversed(model):
-                    if isinstance(layer, torch.nn.Linear):
-                        last_linear_layer = layer
-                        break
-                assert_allclose(last_linear_layer.weight, torch.zeros_like(last_linear_layer.weight))
-                assert_allclose(last_linear_layer.bias, torch.zeros_like(last_linear_layer.bias))
+                        # Test case 2: MLP with last linear layer initialized to 0.
+                        model = MLP(
+                            in_channels,
+                            hidden_channels,
+                            out_channels,
+                            layer_num,
+                            activation=activation,
+                            norm_type=norm_type,
+                            output_activation=output_activation,
+                            output_norm=output_norm,
+                            last_linear_layer_init_zero=True
+                        )
+                        output_tensor = self.run_model(input_tensor, model)
+                        assert output_tensor.shape == (batch_size, out_channels)
+                        last_linear_layer = None
+                        for layer in reversed(model):
+                            if isinstance(layer, torch.nn.Linear):
+                                last_linear_layer = layer
+                                break
+                        assert_allclose(last_linear_layer.weight, torch.zeros_like(last_linear_layer.weight))
+                        assert_allclose(last_linear_layer.bias, torch.zeros_like(last_linear_layer.bias))
 
     def test_conv1d_block(self):
         length = 2
