@@ -49,7 +49,6 @@ from .ibc import IBCPolicy
 
 from .pc import ProcedureCloningBFSPolicy
 
-from .edac import EDACPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy

@@ -36,8 +36,8 @@ class EDACPolicy(SACPolicy):
               | ``embedding_size``                             | network.                        |
            5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |
               | ``embedding_size``                             | network.                        |
-           6  | ``model.emsemble_`` int         10             | Number of Q-ensemble network    | 
-              | ``num``                                        |                                 | 
+           6  | ``model.emsemble_`` int         10             | Number of Q-ensemble network    |
+              | ``num``                                        |                                 |
               |                                                |                                 | is False.
            7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
               | ``_rate_q``                                    | network.                        | model.value_network
