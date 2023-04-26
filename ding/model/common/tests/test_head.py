@@ -90,4 +90,4 @@ class TestHead:
         model = EnsembleHead(embedding_dim, action_shape, 3, 3, 3)
         outputs = model(inputs)['pred']
         self.output_check(model, outputs)
-        assert outputs.shape == (B, action_shape * 3, 1)
+        assert outputs.shape == (B, action_shape * 3)
