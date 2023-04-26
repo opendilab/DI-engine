@@ -24,6 +24,8 @@ def serial_pipeline_reward_model_offpolicy(
         model: Optional[torch.nn.Module] = None,
         max_train_iter: Optional[int] = int(1e10),
         max_env_step: Optional[int] = int(1e10),
+        cooptrain_reward: Optional[bool] = True,
+        pretrain_reward: Optional[bool] = False,
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -78,6 +80,8 @@ def serial_pipeline_reward_model_offpolicy(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
     reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
+    if pretrain_reward:
+        reward_model.train()
 
     # ==========
     # Main loop
@@ -108,8 +112,9 @@ def serial_pipeline_reward_model_offpolicy(
             # collect data for reward_model training
             reward_model.collect_data(new_data)
             replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        # update reward_model
-        reward_model.train()
+        # update reward_model, when you want to train reward_model inloop
+        if cooptrain_reward:
+            reward_model.train()
         # clear buffer per fix iters to make sure replay buffer's data count isn't too few.
         if count % cfg.reward_model.clear_buffer_per_iters == 0:
             reward_model.clear_data()
