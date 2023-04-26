@@ -71,26 +71,24 @@ class TrexRewardModel(BaseRewardModel):
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
-        kernel_size = config.reward_model.kernel_size if 'kernel_size' in config else None
-        stride = config.reward_model.stride if 'stride' in config else None
-        self.reward_model = TREXNetwork(
-            self.cfg.policy.model.obs_shape, config.reward_model.hidden_size_list, kernel_size, stride
-        )
+        kernel_size = config.kernel_size if 'kernel_size' in config else None
+        stride = config.stride if 'stride' in config else None
+        self.reward_model = TREXNetwork(self.cfg.obs_shape, config.hidden_size_list, kernel_size, stride)
         self.reward_model.to(self.device)
         self.pre_expert_data = []
         self.train_data = []
         self.expert_data_loader = None
-        self.opt = optim.Adam(self.reward_model.parameters(), config.reward_model.learning_rate)
+        self.opt = optim.Adam(self.reward_model.parameters(), config.learning_rate)
         self.train_iter = 0
         self.learning_returns = []
         self.training_obs = []
         self.training_labels = []
-        self.num_trajs = self.cfg.reward_model.num_trajs
-        self.num_snippets = self.cfg.reward_model.num_snippets
+        self.num_trajs = self.cfg.num_trajs
+        self.num_snippets = self.cfg.num_snippets
         # minimum number of short subtrajectories to sample
-        self.min_snippet_length = config.reward_model.min_snippet_length
+        self.min_snippet_length = config.min_snippet_length
         # maximum number of short subtrajectories to sample
-        self.max_snippet_length = config.reward_model.max_snippet_length
+        self.max_snippet_length = config.max_snippet_length
         self.l1_reg = 0
         self.data_for_save = {}
         self._logger, self._tb_logger = build_logger(
@@ -227,7 +225,7 @@ class TrexRewardModel(BaseRewardModel):
 
         cum_loss = 0.0
         training_data = list(zip(training_inputs, training_outputs))
-        for epoch in range(self.cfg.reward_model.update_per_collect):
+        for epoch in range(self.cfg.update_per_collect):
             np.random.shuffle(training_data)
             training_obs, training_labels = zip(*training_data)
             cum_loss = self._train(training_obs, training_labels)

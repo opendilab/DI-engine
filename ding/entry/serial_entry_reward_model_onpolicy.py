@@ -18,14 +18,14 @@ from .utils import random_collect
 
 
 def serial_pipeline_reward_model_onpolicy(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        max_train_iter: Optional[int] = int(1e10),
-        max_env_step: Optional[int] = int(1e10),
-        cooptrain_reward: Optional[bool] = True,
-        pretrain_reward: Optional[bool] = False,
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    max_train_iter: Optional[int] = int(1e10),
+    max_env_step: Optional[int] = int(1e10),
+    cooptrain_reward: Optional[bool] = True,
+    pretrain_reward: Optional[bool] = False,
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -114,7 +114,7 @@ def serial_pipeline_reward_model_onpolicy(
         # update reward_model
         if cooptrain_reward:
             reward_model.train()
-        if count % cfg.reward_model.clear_buffer_per_iters == 0:
+        if hasattr(cfg.reward_model, 'clear_buffer_per_iters') and count % cfg.reward_model.clear_buffer_per_iters == 0:
             reward_model.clear_data()
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
