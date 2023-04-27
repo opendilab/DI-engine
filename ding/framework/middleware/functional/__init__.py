@@ -9,7 +9,7 @@ from .ctx_helper import final_ctx_saver
 
 # algorithm
 from .explorer import eps_greedy_handler, eps_greedy_masker
-from .advantage_estimator import gae_estimator, ppof_adv_estimator
+from .advantage_estimator import gae_estimator, ppof_adv_estimator, pg_estimator
 from .enhancer import reward_estimator, her_data_enhancer, nstep_reward_enhancer
 
 from .timer import epoch_timer

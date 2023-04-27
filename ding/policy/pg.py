@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
+import treetensor as ttorch
 
 from ding.rl_utils import get_gae_with_default_last_value, get_train_sample
 from ding.torch_utils import Adam, to_device
@@ -169,16 +170,26 @@ class PGPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        assert data[-1]['done'] is True, "PG needs a complete epsiode"
+        assert data[-1]['done'] == True, "PG needs a complete epsiode"
 
         if self._cfg.learn.ignore_done:
             raise NotImplementedError
 
         R = 0.
-        for i in reversed(range(len(data))):
-            R = self._gamma * R + data[i]['reward']
-            data[i]['return'] = R
-        return get_train_sample(data, self._unroll_len)
+        if isinstance(data, list):
+            for i in reversed(range(len(data))):
+                R = self._gamma * R + data[i]['reward']
+                data[i]['return'] = R
+            return get_train_sample(data, self._unroll_len)
+        elif isinstance(data, ttorch.Tensor):
+            data_size = data['done'].shape[0]
+            data['return'] = ttorch.Tensor([0.0 for i in range(data_size)])
+            for i in reversed(range(data_size)):
+                R = self._gamma * R + data['reward'][i]
+                data['return'][i] = R
+            return get_train_sample(data, self._unroll_len)
+        else:
+            raise ValueError
 
     def _init_eval(self) -> None:
         pass
@@ -207,3 +218,6 @@ class PGPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'entropy_loss', 'return_abs_max', 'grad_norm']
+
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
