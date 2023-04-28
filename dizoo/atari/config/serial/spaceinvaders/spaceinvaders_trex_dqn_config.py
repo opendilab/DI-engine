@@ -15,6 +15,7 @@ spaceinvaders_trex_dqn_config = dict(
     ),
     reward_model=dict(
         type='trex',
+        exp_name='spaceinvaders_trex_dqn_seed0',
         min_snippet_length=50,
         max_snippet_length=100,
         checkpoint_min=10000,
@@ -28,17 +29,10 @@ spaceinvaders_trex_dqn_config = dict(
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name``.
         # For example, if you want to use dqn to generate demos, you can use ``spaceinvaders_dqn``
-        expert_model_path='model_path_placeholder',
-        # path to save reward model
-        # Users should add their own model path here.
-        # Absolute path is recommended.
-        # For example, if you use ``spaceinvaders_drex``, then the reward model will be saved in this directory.
-        reward_model_path='model_path_placeholder + ./spaceinvaders.params',
-        # path to save generated observations.
-        # Users should add their own model path here.
-        # Absolute path is recommended.
-        # For example, if you use ``spaceinvaders_drex``, then all the generated data will be saved in this directory.
-        offline_data_path='data_path_placeholder',
+        expert_model_path='spaceinvaders_dqn_seed0',
+        hidden_size_list=[512, 64, 1],
+        obs_shape=[4, 84, 84],
+        action_shape=6,
     ),
     policy=dict(
         cuda=True,
@@ -78,6 +72,7 @@ spaceinvaders_trex_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='trex'),
 )
 spaceinvaders_trex_dqn_create_config = EasyDict(spaceinvaders_trex_dqn_create_config)
 create_config = spaceinvaders_trex_dqn_create_config
@@ -89,7 +84,7 @@ if __name__ == '__main__':
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_trex
+    from ding.entry import serial_pipeline_reward_model_offpolicy
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
@@ -97,4 +92,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_trex([main_config, create_config])
+    serial_pipeline_reward_model_offpolicy([main_config, create_config], pretrain_reward=True, cooptrain_reward=False)

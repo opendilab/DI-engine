@@ -21,7 +21,7 @@ qbert_trex_dqn_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
+        expert_model_path='qbert_dqn_seed0',
         hidden_size_list=[512, 64, 1],
         obs_shape=[4, 84, 84],
         action_shape=6,
@@ -64,6 +64,7 @@ qbert_trex_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='trex'),
 )
 qbert_trex_dqn_create_config = EasyDict(qbert_trex_dqn_create_config)
 create_config = qbert_trex_dqn_create_config
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_reward_model_trex
+    from ding.entry import serial_pipeline_reward_model_offpolicy
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
@@ -85,4 +86,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex((main_config, create_config))
+    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward=True, cooptrain_reward=False)

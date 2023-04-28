@@ -26,7 +26,7 @@ lunarlander_trex_dqn_config = dict(
         # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-        expert_model_path='model_path_placeholder',
+        expert_model_path='lunarlander_dqn_seed0',
         hidden_size_list=[512, 64, 1],
         obs_shape=8,
         action_shape=4,
@@ -85,6 +85,7 @@ lunarlander_trex_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='trex'),
 )
 lunarlander_trex_dqn_create_config = EasyDict(lunarlander_trex_dqn_create_config)
 create_config = lunarlander_trex_dqn_create_config
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_trex
+    from ding.entry import serial_pipeline_reward_model_offpolicy
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
@@ -104,4 +105,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_trex([main_config, create_config])
+    serial_pipeline_reward_model_offpolicy([main_config, create_config], pretrain_reward=True, cooptrain_reward=False)

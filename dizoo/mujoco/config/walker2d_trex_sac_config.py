@@ -12,6 +12,8 @@ walker2d_trex_sac_config = dict(
         stop_value=6000,
     ),
     reward_model=dict(
+        type='trex',
+        exp_name='walker2d_trex_sac_seed0',
         learning_rate=1e-5,
         min_snippet_length=30,
         max_snippet_length=100,
@@ -23,14 +25,10 @@ walker2d_trex_sac_config = dict(
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
-        expert_model_path='model_path_placeholder',
-        # Path where to store the reward model
-        reward_model_path='data_path_placeholder + /Walker2d.params',
-        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
-        # Absolute path is recommended.
-        # In DI-engine, it is usually located in ``exp_name`` directory
-        # See ding/entry/application_entry_trex_collect_data.py to collect the data
-        data_path='data_path_placeholder',
+        expert_model_path='walker2d_sac_seed0',
+        hidden_size_list=[512, 64, 1],
+        obs_shape=17,
+        action_shape=6,
     ),
     policy=dict(
         cuda=True,
@@ -91,7 +89,7 @@ if __name__ == '__main__':
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_trex
+    from ding.entry import serial_pipeline_reward_model_offpolicy
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
@@ -99,4 +97,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_trex([main_config, create_config])
+    serial_pipeline_reward_model_offpolicy([main_config, create_config],pretrain_reward=True, cooptrain_reward=False)

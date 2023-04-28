@@ -10,6 +10,7 @@ cartpole_trex_dqn_config = dict(
     ),
     reward_model=dict(
         type='trex',
+        exp_name='cartpole_trex_dqn_seed0',
         min_snippet_length=5,
         max_snippet_length=100,
         checkpoint_min=0,
@@ -61,6 +62,7 @@ cartpole_trex_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    reward_model=dict(type='trex'),
 )
 cartpole_trex_dqn_create_config = EasyDict(cartpole_trex_dqn_create_config)
 create_config = cartpole_trex_dqn_create_config
@@ -69,10 +71,12 @@ if __name__ == "__main__":
     # Users should first run ``cartpole_dqn_config.py`` to save models (or checkpoints).
     # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
     # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
+    # example of running this file:
+    # python cartpole_trex_dqn_config.py --cfg cartpole_trex_dqn_config.py --seed 0 --device cpu 
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_reward_model_trex
+    from ding.entry import serial_pipeline_reward_model_offpolicy
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
@@ -80,4 +84,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex((main_config, create_config))
+    serial_pipeline_reward_model_offpolicy((main_config, create_config),pretrain_reward=True, cooptrain_reward=False)
