@@ -26,6 +26,7 @@ class SACAgent:
         'hopper',
         'lunarlander_continuous',
         'bipedalwalker',
+        'pendulum',
     ]
     algorithm = 'SAC'
 
