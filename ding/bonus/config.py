@@ -546,10 +546,10 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     seed=0,
                     env=dict(
                         collector_env_num=10,
-                        evaluator_env_num=5,
+                        evaluator_env_num=8,
                         # (bool) Scale output action into legal range.
                         act_scale=True,
-                        n_evaluator_episode=5,
+                        n_evaluator_episode=8,
                         stop_value=-250,
                     ),
                     policy=dict(
