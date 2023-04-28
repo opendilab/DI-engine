@@ -14,6 +14,7 @@ lunarlander_trex_dqn_config = dict(
     ),
     reward_model=dict(
         type='trex',
+        exp_name='lunarlander_trex_dqn_seed0',
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=1000,
@@ -26,13 +27,9 @@ lunarlander_trex_dqn_config = dict(
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         expert_model_path='model_path_placeholder',
-        # Path where to store the reward model
-        reward_model_path='data_path_placeholder + /lunarlander.params',
-        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
-        # Absolute path is recommended.
-        # In DI-engine, it is usually located in ``exp_name`` directory
-        # e.g. 'exp_name/expert_data.pkl'
-        data_path='data_path_placeholder',
+        hidden_size_list=[512, 64, 1],
+        obs_shape=8,
+        action_shape=4,
     ),
     policy=dict(
         # Whether to use cuda for network.

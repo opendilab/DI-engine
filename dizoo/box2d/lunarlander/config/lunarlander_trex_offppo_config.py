@@ -11,6 +11,7 @@ lunarlander_trex_ppo_config = dict(
     ),
     reward_model=dict(
         type='trex',
+        exp_name='lunarlander_trex_offppo_seed0',
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=1000,
@@ -23,13 +24,9 @@ lunarlander_trex_ppo_config = dict(
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
         expert_model_path='model_path_placeholder',
-        # Path where to store the reward model
-        reward_model_path='data_path_placeholder + /lunarlander.params',
-        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
-        # Absolute path is recommended.
-        # In DI-engine, it is usually located in ``exp_name`` directory
-        # See ding/entry/application_entry_trex_collect_data.py to collect the data
-        data_path='data_path_placeholder',
+        hidden_size_list=[512, 64, 1],
+        obs_shape=8,
+        action_shape=4,
     ),
     policy=dict(
         cuda=True,
