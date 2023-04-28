@@ -13,6 +13,7 @@ qbert_trex_ppo_config = dict(
     ),
     reward_model=dict(
         type='trex',
+        exp_name='qbert_trex_offppo_seed0',
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=0,
@@ -21,8 +22,9 @@ qbert_trex_ppo_config = dict(
         learning_rate=1e-5,
         update_per_collect=1,
         expert_model_path='abs model path',
-        reward_model_path='abs data path + ./qbert.params',
-        offline_data_path='abs data path',
+        hidden_size_list=[512, 64, 1],
+        obs_shape=[4, 84, 84],
+        action_shape=6,
     ),
     policy=dict(
         cuda=True,

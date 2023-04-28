@@ -48,7 +48,6 @@ cfg = [
         'learning_rate': 1e-5,
         'update_per_collect': 1,
         'expert_model_path': 'cartpole_ppo_offpolicy_seed0',
-        'data_path': 'abs data path',
         'hidden_size_list': [512, 64, 1],
         'obs_shape': 4,
         'action_shape': 2,

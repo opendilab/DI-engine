@@ -20,6 +20,9 @@ cartpole_trex_dqn_config = dict(
         num_trajs=6,
         num_snippets=6000,
         expert_model_path='cartpole_dqn_seed0',  # expert model experiment directory path
+        hidden_size_list=[512, 64, 1],
+        obs_shape=4,
+        action_shape=2,
     ),
     policy=dict(
         cuda=False,

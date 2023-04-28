@@ -80,6 +80,7 @@ class TrexRewardModel(BaseRewardModel):
         self.expert_data_loader = None
         self.opt = optim.Adam(self.reward_model.parameters(), config.learning_rate)
         self.train_iter = 0
+        self.estimate_iter = 0
         self.learning_returns = []
         self.training_obs = []
         self.training_labels = []
@@ -229,7 +230,9 @@ class TrexRewardModel(BaseRewardModel):
             np.random.shuffle(training_data)
             training_obs, training_labels = zip(*training_data)
             cum_loss = self._train(training_obs, training_labels)
+            self.train_iter += 1
             logging.info("[epoch {}] loss {}".format(epoch, cum_loss))
+            self.tb_logger.add_scalar("trex_reward/train_loss_iteration", cum_loss, self.train_iter)
         # print out predicted cumulative returns and actual returns
         sorted_returns = sorted(self.learning_returns, key=lambda s: s[0])
         demonstrations = [
@@ -303,6 +306,10 @@ class TrexRewardModel(BaseRewardModel):
         res = torch.stack(res).to(self.device)
         with torch.no_grad():
             sum_rewards = self.reward_model.forward(res)
+            self.tb_logger.add_scalar("trex_reward/estimate_reward_mean", sum_rewards.mean().item(), self.train_iter)
+            self.tb_logger.add_scalar("trex_reward/estimate_reward_std", sum_rewards.std().item(), self.train_iter)
+            self.tb_logger.add_scalar("trex_reward/estimate_reward_max", sum_rewards.max().item(), self.train_iter)
+            self.tb_logger.add_scalar("trex_reward/estimate_reward_min", sum_rewards.min().item(), self.train_iter)
 
         for item, rew in zip(train_data_augmented, sum_rewards):  # TODO optimise this loop as well ?
             item['reward'] = rew
