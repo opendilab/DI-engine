@@ -26,6 +26,8 @@ class TD3Agent:
         'HalfCheetah',
         'Walker2d',
         'lunarlander_continuous',
+        'bipedalwalker',
+        'pendulum',
     ]
     algorithm = 'TD3'
 

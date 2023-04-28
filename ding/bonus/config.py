@@ -1233,7 +1233,7 @@ def get_instance_env(env: str) -> BaseEnv:
     elif env == 'bipedalwalker':
         return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True})
     elif env == 'pendulum':
-        return DingEnvWrapper(gym.make('Pendulum-v1'))
+        return DingEnvWrapper(gym.make('Pendulum-v1'), cfg={'act_scale': True})
     elif env == 'acrobot':
         return DingEnvWrapper(gym.make('Acrobot-v1'))
     elif env == 'rocket_landing':

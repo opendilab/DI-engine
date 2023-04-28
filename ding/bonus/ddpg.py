@@ -26,6 +26,8 @@ class DDPGAgent:
         'HalfCheetah',
         'Walker2d',
         'lunarlander_continuous',
+        'bipedalwalker',
+        'pendulum',
     ]
     algorithm = 'DDPG'
 
