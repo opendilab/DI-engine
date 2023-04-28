@@ -25,6 +25,7 @@ class SACAgent:
     supported_env_list = [
         'hopper',
         'lunarlander_continuous',
+        'bipedalwalker',
     ]
     algorithm = 'SAC'
 

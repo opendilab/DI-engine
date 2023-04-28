@@ -119,16 +119,23 @@ class PGAgent:
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
-            forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
-
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
                 obs = ttorch.as_tensor(obs).unsqueeze(0)
                 if cuda and torch.cuda.is_available():
                     obs = obs.cuda()
-                action = forward_fn(obs, mode='compute_actor')["action"]
+                output = forward_fn(obs)
+                if self.policy._cfg.deterministic_eval:
+                    if self.policy._cfg.action_space == 'discrete':
+                        output['action'] = output['logit'].argmax(dim=-1)
+                    elif self.policy._cfg.action_space == 'continuous':
+                        output['action'] = output['logit']['mu']
+                    else:
+                        raise KeyError("invalid action_space: {}".format(self.policy._cfg.action_space))
+                else:
+                    output['action'] = output['dist'].sample()
                 # squeeze means delete batch dim, i.e. (1, A) -> (A, )
-                action = action.squeeze(0).detach().cpu().numpy()
+                action = output['action'].squeeze(0).detach().cpu().numpy()
                 return action
 
             return _forward

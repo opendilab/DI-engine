@@ -485,8 +485,109 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-
-            pass
+        elif env == 'bipedalwalker':
+            cfg.update(
+                dict(
+                    exp_name='BipedalWalker-v3-SAC',
+                    seed=0,
+                    env=dict(
+                        env_id='BipedalWalker-v3',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        # (bool) Scale output action into legal range.
+                        act_scale=True,
+                        n_evaluator_episode=8,
+                        stop_value=300,
+                        rew_clip=True,
+                    ),
+                    policy=dict(
+                        cuda=False,
+                        priority=False,
+                        random_collect_size=1000,
+                        model=dict(
+                            obs_shape=24,
+                            action_shape=4,
+                            twin_critic=True,
+                            action_space='reparameterization',
+                            actor_head_hidden_size=128,
+                            critic_head_hidden_size=128,
+                        ),
+                        learn=dict(
+                            update_per_collect=1,
+                            batch_size=128,
+                            learning_rate_q=0.001,
+                            learning_rate_policy=0.001,
+                            learning_rate_alpha=0.0003,
+                            ignore_done=True,
+                            target_theta=0.005,
+                            discount_factor=0.99,
+                            auto_alpha=True,
+                            value_network=False,
+                        ),
+                        collect=dict(
+                            n_sample=128,
+                            unroll_len=1,
+                        ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'pendulum':
+            cfg.update(
+                dict(
+                    exp_name='Pendulum-v1-SAC',
+                    seed=0,
+                    env=dict(
+                        collector_env_num=10,
+                        evaluator_env_num=5,
+                        # (bool) Scale output action into legal range.
+                        act_scale=True,
+                        n_evaluator_episode=5,
+                        stop_value=-250,
+                    ),
+                    policy=dict(
+                        cuda=False,
+                        priority=False,
+                        random_collect_size=1000,
+                        model=dict(
+                            obs_shape=3,
+                            action_shape=1,
+                            twin_critic=True,
+                            action_space='reparameterization',
+                            actor_head_hidden_size=128,
+                            critic_head_hidden_size=128,
+                        ),
+                        learn=dict(
+                            update_per_collect=1,
+                            batch_size=128,
+                            learning_rate_q=0.001,
+                            learning_rate_policy=0.001,
+                            learning_rate_alpha=0.0003,
+                            ignore_done=True,
+                            target_theta=0.005,
+                            discount_factor=0.99,
+                            auto_alpha=True,
+                        ),
+                        collect=dict(n_sample=10, ),
+                        eval=dict(evaluator=dict(eval_freq=100, )),
+                        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'DQN':
@@ -560,6 +661,8 @@ def get_instance_env(env: str) -> BaseEnv:
         return DingEnvWrapper(gym.make('LunarLander-v2', continuous=True))
     elif env == 'bipedalwalker':
         return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True})
+    elif env == 'pendulum':
+        return DingEnvWrapper(gym.make('Pendulum-v1'))
     elif env == 'acrobot':
         return DingEnvWrapper(gym.make('Acrobot-v1'))
     elif env == 'rocket_landing':
