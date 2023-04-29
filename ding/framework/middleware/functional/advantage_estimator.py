@@ -79,3 +79,16 @@ def ppof_adv_estimator(policy: Policy) -> Callable:
         ctx.train_data = data
 
     return _estimator
+
+
+def pg_estimator(policy: Policy) -> Callable:
+
+    def _estimator(ctx: "OnlineRLContext"):
+        train_data = []
+        for episode in ctx.episodes:
+            data = ttorch_collate(episode)
+            data = policy.get_train_sample(data)
+            train_data.append(data)
+        ctx.train_data = ttorch.cat(train_data, dim=0)
+
+    return _estimator

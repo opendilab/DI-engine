@@ -470,7 +470,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
     # assert len(set(length)) == 1, "data values must have the same length: {}".format(length)
     # if continuous action, data['logit'] is list of length 2
     length = length[0]
-    assert split_size >= 1 and split_size <= length, f'{split_size}_{length}'
+    assert split_size >= 1
     if shuffle:
         indices = np.random.permutation(length)
     else:
