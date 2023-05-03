@@ -20,7 +20,10 @@ cartpole_dqn_gail_config = dict(
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         # If collect_data is True, we will use this expert_model_path to collect expert data first, rather than we
         # will load data directly from user-defined data_path
-        expert_model_path='model_path_placeholder',
+        # data_path is the path to store expert policy data, which is used to train reward model
+        # so in general, data_path is the same as expert exp name
+        expert_model_path='cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar',
+        data_path='cartpole_dqn_seed0',
         collect_count=1000,
     ),
     policy=dict(
@@ -68,13 +71,22 @@ if __name__ == "__main__":
     # or you can enter `ding -m serial_gail -c cartpole_dqn_gail_config.py -s 0`
     # then input the config you used to generate your expert model in the path mentioned above
     # e.g. cartpole_dqn_config.py
-    from ding.entry import serial_pipeline_gail
+    from ding.entry import serial_pipeline_reward_model_offpolicy, collect_demo_data
     from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
+
+    # set expert config from policy config in dizoo
+    expert_cfg = (cartpole_dqn_config, cartpole_dqn_create_config)
     expert_main_config = cartpole_dqn_config
-    expert_create_config = cartpole_dqn_create_config
-    serial_pipeline_gail(
-        (main_config, create_config), (expert_main_config, expert_create_config),
-        max_env_step=1000000,
+    expert_data_path = main_config.reward_model.data_path + '/expert_data.pkl'
+
+    # collect expert data
+    collect_demo_data(
+        expert_cfg,
         seed=0,
-        collect_data=True
+        state_dict_path=main_config.reward_model.expert_model_path,
+        expert_data_path=expert_data_path,
+        collect_count=main_config.reward_model.collect_count
     )
+
+    # train reward model
+    serial_pipeline_reward_model_offpolicy((main_config, create_config))
