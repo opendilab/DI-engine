@@ -13,27 +13,6 @@ from .base_reward_model import BaseRewardModel
 from .network import GCLNetwork
 
 
-class GuidedCostNN(nn.Module):
-
-    def __init__(
-        self,
-        input_size,
-        hidden_size=128,
-        output_size=1,
-    ):
-        super(GuidedCostNN, self).__init__()
-        self.net = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, output_size),
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-
 @REWARD_MODEL_REGISTRY.register('guided_cost')
 class GuidedCostRewardModel(BaseRewardModel):
     """
