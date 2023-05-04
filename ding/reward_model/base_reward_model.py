@@ -60,7 +60,7 @@ class BaseRewardModel(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def clear_data(self) -> None:
+    def clear_data(self, iter: int) -> None:
         """
         Overview:
             Clearing training data. \

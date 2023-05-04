@@ -164,8 +164,12 @@ class RndRewardModel(BaseRewardModel):
     def collect_data(self, data: list) -> None:
         self.train_obs.extend(collect_states(data))
 
-    def clear_data(self) -> None:
-        self.train_obs.clear()
+    def clear_data(self, iter: int) -> None:
+        assert hasattr(
+            self.cfg, 'clear_buffer_per_iters'
+        ), "Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.clear_buffer_per_iters == 0:
+            self.train_obs.clear()
 
     def state_dict(self) -> Dict:
         return self.reward_model.state_dict()

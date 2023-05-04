@@ -212,10 +212,14 @@ class GailRewardModel(BaseRewardModel):
         data = torch.unbind(data, dim=0)
         self.train_data.extend(data)
 
-    def clear_data(self) -> None:
+    def clear_data(self, iter: int) -> None:
         """
         Overview:
             Clearing training data. \
             This is a side effect function which clears the data attribute in ``self``
         """
-        self.train_data.clear()
+        assert hasattr(
+            self.cfg, 'clear_buffer_per_iters'
+        ), "Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.clear_buffer_per_iters == 0:
+            self.train_data.clear()

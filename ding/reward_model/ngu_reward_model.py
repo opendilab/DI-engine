@@ -1,5 +1,6 @@
 import copy
 import random
+from typing import Any
 
 import numpy as np
 import torch
@@ -408,3 +409,92 @@ class EpisodicNGURewardModel(BaseRewardModel):
                                     int(data[i]['beta'][j])]
 
         return data, estimate_cnt
+
+
+@REWARD_MODEL_REGISTRY.register('ngu-reward')
+class NGURewardModel(BaseRewardModel):
+    r"""
+    Overview:
+        The unifying reward for ngu which combined rnd-ngu and episodic
+        The corresponding paper is `never give up: learning directed exploration strategies`.
+    """
+    config = dict(
+        type='ngu-reward',
+        policy_nstep=5,
+        collect_env_num=8,
+        rnd_reward_model=dict(
+            intrinsic_reward_type='add',
+            learning_rate=5e-4,
+            obs_shape=4,
+            action_shape=2,
+            batch_size=128,  # transitions
+            update_per_collect=10,
+            only_use_last_five_frames_for_icm_rnd=False,
+            clear_buffer_per_iters=10,
+            nstep=5,
+            hidden_size_list=[128, 128, 64],
+            type='rnd-ngu',
+        ),
+        episodic_reward_model=dict(
+            last_nonzero_reward_rescale=False,
+            last_nonzero_reward_weight=1,
+            intrinsic_reward_type='add',
+            learning_rate=5e-4,
+            obs_shape=4,
+            action_shape=2,
+            batch_size=128,  # transitions
+            update_per_collect=10,
+            only_use_last_five_frames_for_icm_rnd=False,
+            clear_buffer_per_iters=10,
+            nstep=5,
+            hidden_size_list=[128, 128, 64],
+            type='episodic',
+        ),
+    )
+
+    def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:
+        super(NGURewardModel).__init__()
+        self.cfg = config
+        self.tb_logger = tb_logger
+        self.estimate_cnt = 0
+        self.rnd_reward_model = RndNGURewardModel(config.rnd_reward_model, device, tb_logger)
+        self.episodic_reward_model = EpisodicNGURewardModel(config.episodic_reward_model, device, tb_logger)
+
+    def train(self) -> None:
+        self.rnd_reward_model.train()
+        self.episodic_reward_model.train()
+
+    def estimate(self, data: list) -> dict:
+
+        # estimate reward
+        rnd_reward = self.rnd_reward_model.estimate(data)
+        episodic_reward = self.episodic_reward_model.estimate(data)
+
+        # combine reward
+        train_data_augumented, self.estimate_cnt = self.episodic_reward_model.fusion_reward(
+            data,
+            episodic_reward,
+            rnd_reward,
+            nstep=self.cfg.policy_nstep,
+            collector_env_num=self.cfg.collect_env_num,
+            tb_logger=self.tb_logger,
+            estimate_cnt=self.estimate_cnt
+        )
+
+        return train_data_augumented
+
+    def collect_data(self, data) -> None:
+        self.rnd_reward_model.collect_data(data)
+        self.episodic_reward_model.collect_data(data)
+
+    def clear_data(self, iter: int) -> None:
+        assert hasattr(
+            self.cfg.rnd_reward_model, 'clear_buffer_per_iters'
+        ), "RND Reward Model does not have clear_buffer_per_iters, Clear failed"
+        assert hasattr(
+            self.cfg.episodic_reward_model, 'clear_buffer_per_iters'
+        ), "Episodic Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+            self.rnd_reward_model.clear_data()
+        if iter % self.cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+            self.episodic_reward_model.clear_data()

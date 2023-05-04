@@ -10,6 +10,7 @@ from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import ca
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rnd_onppo_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppo_icm_config import cartpole_ppo_icm_config, cartpole_ppo_icm_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_ngu_config import cartpole_ngu_config, cartpole_ngu_create_config
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model_offpolicy, \
     serial_pipeline_reward_model_onpolicy
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
@@ -112,6 +113,15 @@ def test_rnd():
 @pytest.mark.unittest
 def test_icm():
     config = [deepcopy(cartpole_ppo_icm_config), deepcopy(cartpole_ppo_icm_create_config)]
+    try:
+        serial_pipeline_reward_model_offpolicy(config, seed=0, max_train_iter=2)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_ngu():
+    config = [deepcopy(cartpole_ngu_config), deepcopy(cartpole_ngu_create_config)]
     try:
         serial_pipeline_reward_model_offpolicy(config, seed=0, max_train_iter=2)
     except Exception:

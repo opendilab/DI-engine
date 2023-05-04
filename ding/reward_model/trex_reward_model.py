@@ -327,11 +327,12 @@ class TrexRewardModel(BaseRewardModel):
         """
         pass
 
-    def clear_data(self) -> None:
+    def clear_data(self, iter: int) -> None:
         """
         Overview:
             Clearing training data. \
             This is a side effect function which clears the data attribute in ``self``
         """
-        self.training_obs.clear()
-        self.training_labels.clear()
+        if hasattr(self.cfg, 'clear_buffer_per_iters') and iter % self.cfg.clear_buffer_per_iters == 0:
+            self.training_obs.clear()
+            self.training_labels.clear()

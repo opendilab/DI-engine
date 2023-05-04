@@ -431,7 +431,7 @@ class NGUPolicy(Policy):
         # epsilon=0.4, alpha=9
         self.eps = {i: 0.4 ** (1 + 8 * i / (self._cfg.collect.env_num - 1)) for i in range(self._cfg.collect.env_num)}
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: dict, eps: Optional[float]) -> dict:
         r"""
         Overview:
             Collect output according to eps_greedy plugin

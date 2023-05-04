@@ -175,11 +175,15 @@ class ICMRewardModel(BaseRewardModel):
         self.train_next_states.extend(next_states)
         self.train_actions.extend(actions)
 
-    def clear_data(self) -> None:
-        self.train_data.clear()
-        self.train_states.clear()
-        self.train_next_states.clear()
-        self.train_actions.clear()
+    def clear_data(self, iter: int) -> None:
+        assert hasattr(
+            self.cfg, 'clear_buffer_per_iters'
+        ), "Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.clear_buffer_per_iters == 0:
+            self.train_data.clear()
+            self.train_states.clear()
+            self.train_next_states.clear()
+            self.train_actions.clear()
 
     def state_dict(self) -> Dict:
         return self.reward_model.state_dict()

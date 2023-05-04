@@ -114,8 +114,7 @@ def serial_pipeline_reward_model_onpolicy(
         # update reward_model
         if cooptrain_reward:
             reward_model.train()
-        if hasattr(cfg.reward_model, 'clear_buffer_per_iters') and count % cfg.reward_model.clear_buffer_per_iters == 0:
-            reward_model.clear_data()
+            reward_model.clear_data(iter=count)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.

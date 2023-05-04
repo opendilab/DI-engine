@@ -168,7 +168,7 @@ class RedRewardModel(BaseRewardModel):
         # if online_net is trained continuously, there should be some implementations in collect_data method
         pass
 
-    def clear_data(self):
+    def clear_data(self, iter: int):
         """
         Overview:
             Collecting clearing data, not implemented if reward model (i.e. online_net) is only trained ones, \
