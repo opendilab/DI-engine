@@ -38,20 +38,6 @@ cfg = [
         'hidden_size_list': [64, 1],
         'update_per_collect': 200,
         'batch_size': 128,
-    }, {
-        'type': 'trex',
-        'exp_name': 'cartpole_trex_offppo_seed0',
-        'min_snippet_length': 5,
-        'max_snippet_length': 100,
-        'checkpoint_min': 0,
-        'checkpoint_max': 6,
-        'checkpoint_step': 6,
-        'learning_rate': 1e-5,
-        'update_per_collect': 1,
-        'expert_model_path': 'cartpole_ppo_offpolicy_seed0',
-        'hidden_size_list': [512, 64, 1],
-        'obs_shape': 4,
-        'action_shape': 2,
     }
 ]
 
@@ -67,15 +53,9 @@ def test_irl(reward_model_config):
     expert_data_path = 'expert_data.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
     config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
-    if reward_model_config.type == 'trex':
-        trex_config = [deepcopy(cartpole_trex_offppo_config), deepcopy(cartpole_trex_offppo_create_config)]
-        trex_config[0].reward_model = reward_model_config
-        args = EasyDict({'cfg': deepcopy(trex_config), 'seed': 0, 'device': 'cpu'})
-        trex_collecting_data(args=args)
-    else:
-        collect_demo_data(
-            config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
-        )
+    collect_demo_data(
+        config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
+    )
     # irl + rl training
     cp_cartpole_dqn_config = deepcopy(cartpole_dqn_config)
     cp_cartpole_dqn_create_config = deepcopy(cartpole_dqn_create_config)
@@ -88,9 +68,6 @@ def test_irl(reward_model_config):
     cp_cartpole_dqn_config.policy.collect.n_sample = 128
     cooptrain_reward = True
     pretrain_reward = False
-    if reward_model_config.type == 'trex':
-        cooptrain_reward = False
-        pretrain_reward = True
     serial_pipeline_reward_model_offpolicy(
         (cp_cartpole_dqn_config, cp_cartpole_dqn_create_config),
         seed=0,
@@ -126,3 +103,31 @@ def test_ngu():
         serial_pipeline_reward_model_offpolicy(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_trex():
+    exp_name = 'test_serial_pipeline_trex_expert'
+    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
+    config[0].exp_name = exp_name
+    expert_policy = serial_pipeline(config, seed=0)
+
+    exp_name = 'test_serial_pipeline_trex_collect'
+    config = [deepcopy(cartpole_trex_offppo_config), deepcopy(cartpole_trex_offppo_create_config)]
+    config[0].exp_name = exp_name
+    config[0].reward_model.exp_name = exp_name
+    config[0].reward_model.expert_model_path = 'test_serial_pipeline_trex_expert'
+    config[0].reward_model.checkpoint_max = 100
+    config[0].reward_model.checkpoint_step = 100
+    config[0].reward_model.num_snippets = 100
+    args = EasyDict({'cfg': deepcopy(config), 'seed': 0, 'device': 'cpu'})
+    trex_collecting_data(args=args)
+    try:
+        serial_pipeline_reward_model_offpolicy(
+            config, seed=0, max_train_iter=1, pretrain_reward=True, cooptrain_reward=False
+        )
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf test_serial_pipeline_trex*')

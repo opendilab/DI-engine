@@ -1,11 +1,8 @@
 from typing import Dict, List
 import pickle
 import random
-from collections.abc import Iterable
 
-import torch
 import torch.optim as optim
-import torch.nn.functional as F
 
 from ding.utils import REWARD_MODEL_REGISTRY, one_time_warning
 from .base_reward_model import BaseRewardModel

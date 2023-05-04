@@ -11,7 +11,7 @@ from .her_reward_model import HerRewardModel
 # exploration
 from .rnd_reward_model import RndRewardModel
 from .guided_cost_reward_model import GuidedCostRewardModel
-from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel
+from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel, NGURewardModel
 from .icm_reward_model import ICMRewardModel
 from .network import RepresentationNetwork, RNDNetwork, REDNetwork, GAILNetwork, ICMNetwork, GCLNetwork, TREXNetwork
 from .reword_model_utils import concat_state_action_pairs, combine_intrinsic_exterinsic_reward, obs_norm, collect_states

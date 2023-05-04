@@ -28,6 +28,7 @@ cfg1 = dict(
     learning_rate=1e-3,
     update_per_collect=2,
     data_path=expert_data_path_1d,
+    clear_buffer_per_iters=1,
 ),
 
 cfg2 = dict(
@@ -40,6 +41,7 @@ cfg2 = dict(
     update_per_collect=2,
     data_path=expert_data_path_3d,
     action_size=action_space,
+    clear_buffer_per_iters=1,
 ),
 
 # create fake expert dataset
@@ -77,7 +79,7 @@ def test_dataset_1d(cfg):
         policy.train()
     train_data_augmented = policy.estimate(data)
     assert 'reward' in train_data_augmented[0].keys()
-    policy.clear_data()
+    policy.clear_data(iter=1)
     assert len(policy.train_data) == 0
     os.popen('rm -rf {}'.format(expert_data_path_1d))
 
@@ -101,6 +103,6 @@ def test_dataset_3d(cfg):
         policy.train()
     train_data_augmented = policy.estimate(data)
     assert 'reward' in train_data_augmented[0].keys()
-    policy.clear_data()
+    policy.clear_data(iter=1)
     assert len(policy.train_data) == 0
     os.popen('rm -rf {}'.format(expert_data_path_3d))
