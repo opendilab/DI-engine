@@ -1,6 +1,7 @@
 import copy
 from easydict import EasyDict
 import pickle
+import numpy as np
 
 from ding.utils import REWARD_MODEL_REGISTRY
 
@@ -77,11 +78,26 @@ class DrexRewardModel(TrexRewardModel):
         """
         super(DrexRewardModel, self).load_expert_data()
 
-        with open(self.cfg.reward_model.offline_data_path + '/suboptimal_data.pkl', 'rb') as f:
+        with open(self.cfg.offline_data_path + '/suboptimal_data.pkl', 'rb') as f:
             self.demo_data = pickle.load(f)
 
     def train(self):
-        self._train()
+        # check if gpu available
+        device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # Assume that we are on a CUDA machine, then this should print a CUDA device:
+        self._logger.info("device: {}".format(device))
+        training_inputs, training_outputs = self.training_obs, self.training_labels
+
+        cum_loss = 0.0
+        training_data = list(zip(training_inputs, training_outputs))
+        for epoch in range(self.cfg.update_per_collect):
+            np.random.shuffle(training_data)
+            training_obs, training_labels = zip(*training_data)
+            cum_loss = self._train(training_obs, training_labels)
+            self.train_iter += 1
+            self._logger.info("[epoch {}] loss {}".format(epoch, cum_loss))
+            self.tb_logger.add_scalar("drex_reward/train_loss_iteration", cum_loss, self.train_iter)
+
         return_dict = self.pred_data(self.demo_data)
         res, pred_returns = return_dict['real'], return_dict['pred']
         self._logger.info("real: " + str(res))

@@ -453,7 +453,7 @@ class NGURewardModel(BaseRewardModel):
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:
-        super(NGURewardModel).__init__()
+        super(NGURewardModel, self).__init__()
         self.cfg = config
         self.tb_logger = tb_logger
         self.estimate_cnt = 0

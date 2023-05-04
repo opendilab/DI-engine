@@ -70,5 +70,5 @@ def test_drex_collecting_data():
     args.cfg[0].bc_iteration = 1000  # for unittest
     args.cfg[1].policy.type = 'bc'
     drex_collecting_data(args=args)
-    os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
-    os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))
+    #os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
+    #os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))
