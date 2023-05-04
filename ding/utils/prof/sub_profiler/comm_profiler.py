@@ -338,12 +338,11 @@ def reduce(
     async_op: bool = False,
     profiler: v2CommProfiler = None
 ):
-
+    comm_vol = 1.0 * tensor.element_size() * tensor.numel()
     if async_op:
         print(f"{profiler.id_str}: skip async reduce, comm_vol: {comm_vol}")
         return torch_reduce(tensor, dst, op, group, async_op)
 
-    comm_vol = 1.0 * tensor.element_size() * tensor.numel()
     s = time.time()
     torch_reduce(tensor, dst, op, group, async_op)
     total_cuda_time = (time.time() - s) * (1000 ** 2)  # change it to us
@@ -363,15 +362,17 @@ def all_gather(
     profiler: v2CommProfiler = None
 ):
 
-    if async_op:
-        print(f"{profiler.id_str}: skip async all_gather, comm_vol: {comm_vol}")
-        return torch_all_gather(tensor_list, tensor, group, async_op)
     comm_size = dist.get_world_size(group)
     correction = (comm_size - 1) / comm_size
     comm_vol = 0
     for ten in tensor_list:
         comm_vol += ten.element_size() * ten.numel()
     comm_vol *= correction
+
+    if async_op:
+        print(f"{profiler.id_str}: skip async all_gather, comm_vol: {comm_vol}")
+        return torch_all_gather(tensor_list, tensor, group, async_op)
+
     s = time.time()
     torch_all_gather(tensor_list, tensor, group, async_op)
     total_cuda_time = (time.time() - s) * (1000 ** 2)  # change it to us

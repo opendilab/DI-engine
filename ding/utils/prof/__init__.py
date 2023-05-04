@@ -1,1 +1,1 @@
-from .di_profiler import get_profiler
+from .di_profiler import get_profiler, ProfileType

@@ -1,9 +1,10 @@
 import torch
 from enum import Enum
-from sub_profiler.comm_profiler import v2CommProfiler
-from sub_profiler.layer_profiler import LayerProfile
-from sub_profiler.mem_profiler import MemHook
-from sub_profiler.sys_metric_tracker import MetricTracker
+from ding.utils.prof.sub_profiler.comm_profiler import v2CommProfiler
+from ding.utils.prof.sub_profiler.layer_profiler import LayerProfile
+from ding.utils.prof.sub_profiler.layer_profiler_v2 import LayerProfileV2
+from ding.utils.prof.sub_profiler.mem_profiler import MemHook
+from ding.utils.prof.sub_profiler.sys_metric_tracker import MetricTracker
 # import torch.autograd.profiler
 
 
@@ -12,7 +13,7 @@ class DummyProfile:
     def __init__(self, *args, **kwargs) -> None:
         pass
 
-    def __enter__(self):
+    def __enter__(self, *args, **kwargs):
         return self
 
     def __exit__(self, a, b, c):
@@ -29,6 +30,8 @@ class ProfileType(Enum):
     MEM = 'MEM'
     TORCH = 'Torch'
 
+
+LAYER_PRODILER_CONFIG = {}
 
 # NAME_DICT = {ProfileType.DUMMY: DummyProfile,
 #              ProfileType.COMM: v2CommProfiler,
@@ -53,7 +56,8 @@ def get_profiler(enable: ProfileType, trace_path=None):
     elif enable == ProfileType.COMM:
         profiler = v2CommProfiler(enable_profile=True, fire_step=3)
     elif enable == ProfileType.LAYER:
-        profiler = LayerProfile
+        profiler = LayerProfileV2
+        # profiler = LayerProfile
     elif enable == ProfileType.MEM:
         profiler = MemHook
 

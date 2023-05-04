@@ -137,7 +137,7 @@ class MetricTracker(Thread):
                     # logger.error(message=error)
                     return False
 
-                es_util.put_metric_to_elastic_search(self.elastic_search, metric_dict)
+                # es_util.put_metric_to_elastic_search(self.elastic_search, metric_dict)
             except ValueError:
                 continue
 

@@ -137,7 +137,7 @@ class ProfilerContext(object):
         if not log_dir.exists():
             log_dir.mkdir(parents=True, exist_ok=True)
         for prof in self.profilers:
-            log_file = log_dir.joinpath(f"{prof.name}_rank_{gpc.get_global_rank()}.log")
+            log_file = log_dir.joinpath(f"{prof.name}.log")
             prof.to_file(log_file)
 
     def show(self):
