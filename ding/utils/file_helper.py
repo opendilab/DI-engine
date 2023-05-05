@@ -3,6 +3,8 @@ from ditk import logging
 import os
 import pickle
 import time
+import shutil
+import tempfile
 from functools import lru_cache
 from typing import Union
 
@@ -295,6 +297,32 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
     return data
 
 
+def torch_save(data: object, path: str) -> None:
+    r"""
+    Overview:
+        torch save data to file of path, and will wait if disk is full.
+    Arguments:
+        - data (:obj:`object`): The data to save
+        - path (:obj:`str`): The path of file to save to
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # save the data to the temporary directory
+        tmp_path = f"{tmpdir}/data.pt"
+        torch.save(data, tmp_path)
+
+        # move the file to the desired path
+        while True:
+            try:
+                shutil.move(tmp_path, path)
+                break  # if successful, break out of the loop
+            except OSError as e:
+                if e.errno == 28:  # "No space left on device" error
+                    print("Disk full, waiting for space to be released...")
+                    time.sleep(60)  # wait for a minute and try again
+                else:
+                    raise e  # re-raise any other IOError exceptions
+
+
 def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> None:
     r"""
     Overview:
@@ -318,11 +346,11 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
     elif fs_type == 'normal':
         if use_lock:
             with get_file_lock(path, 'write'):
-                torch.save(data, path)
+                torch_save(data, path)
         else:
-            torch.save(data, path)
+            torch_save(data, path)
     elif fs_type == 'mc':
-        torch.save(data, path)
+        torch_save(data, path)
         read_from_mc(path, flush=True)
 
 
