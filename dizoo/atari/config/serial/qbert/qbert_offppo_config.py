@@ -7,7 +7,7 @@ qbert_offppo_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='Qbert-v4',
+        env_id='QbertNoFrameskip-v4',
         #'ALE/Qbert-v5' is available. But special setting is needed after gym make.
         frame_stack=4
     ),
