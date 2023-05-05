@@ -24,6 +24,7 @@ cartpole_dqn_config = dict(
             update_per_collect=5,
             batch_size=64,
             learning_rate=0.001,
+            learner=dict(hook=dict(save_ckpt_after_iter=100)),
         ),
         collect=dict(n_sample=8),
         eval=dict(evaluator=dict(eval_freq=40, )),
