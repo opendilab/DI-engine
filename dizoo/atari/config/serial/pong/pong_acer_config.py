@@ -6,7 +6,7 @@ pong_acer_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
-        env_id='Pong-v4',
+        env_id='PongNoFrameskip-v4',
         #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),

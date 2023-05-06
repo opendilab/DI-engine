@@ -7,7 +7,7 @@ enduro_rainbow_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='Enduro-v4',
+        env_id='EnduroNoFrameskip-v4',
         #'ALE/Enduro-v5' is available. But special setting is needed after gym make.
         frame_stack=4
     ),
