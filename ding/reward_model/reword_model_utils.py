@@ -45,6 +45,16 @@ def concat_state_action_pairs(
 def combine_intrinsic_exterinsic_reward(
         train_data_augmented: Any, intrinsic_reward: List[torch.Tensor], config: EasyDict
 ) -> Any:
+    """
+    Overview:
+        Concatenate intrinsic and extrinsic reward.
+    Arguments:
+        - train_data_augmented (:obj:`List`): List with at least ``reward`` keys.
+        - intrinsic_reward(:obj:`List`): List which each item is the intrinsic reward
+        - config:(:obj:EasyDict) : self.config which must include intrinsic_reward_type
+    Returns:
+        - train_data_augmented (:obj:`List`): List with at least ``reward`` keys.
+    """
     for item, in_rew in zip(train_data_augmented, intrinsic_reward):
         if config.intrinsic_reward_type == 'add':
             if config.extrinsic_reward_norm:
@@ -62,6 +72,14 @@ def combine_intrinsic_exterinsic_reward(
 
 
 def collect_states(iterator) -> List:
+    """
+    Overview:
+        collect state from data list(dict)
+    Arguments:
+        - iterator(:obj:`List`): List with at least ``obs`` keys.
+    Returns:
+        - res (:obj:`List`): List of obs.
+    """
     res = []
     for item in iterator:
         state = item['obs']
@@ -70,12 +88,21 @@ def collect_states(iterator) -> List:
 
 
 def obs_norm(
-        train_data: torch.Tensor, running_mean_std_rnd_obs: RunningMeanStd, config: EasyDict, device: str
+        train_data: torch.Tensor, running_mean_std_obs: RunningMeanStd, config: EasyDict, device: str
 ) -> torch.Tensor:
-    # Note: observation normalization: transform obs to mean 0, std 1, move norm obs to specific device
-    running_mean_std_rnd_obs.update(train_data.cpu().numpy())
-    train_data = (train_data - to_tensor(running_mean_std_rnd_obs.mean
-                                         ).to(device)) / to_tensor(running_mean_std_rnd_obs.std).to(device)
+    """
+    Overview:
+       transform obs to mean 0, std 1, move norm obs to the specific device
+    Arguments:
+        - train_data (:obj:`Tensor`): Tensor of obs
+        - running_mean_std_obs(:obj:RunningMeanStd): RunningMeanStd for obs
+        - config:(:obj:EasyDict) : self.config which must include obs_norm_clamp_max, obs_norm_clamp_min
+    Returns:
+        - train_data (:obj: Tensor`): Tensor of norm obs
+    """
+    running_mean_std_obs.update(train_data.cpu().numpy())
+    train_data = (train_data - to_tensor(running_mean_std_obs.mean).to(device)) / to_tensor(running_mean_std_obs.std
+                                                                                            ).to(device)
     train_data = torch.clamp(train_data, min=config.obs_norm_clamp_min, max=config.obs_norm_clamp_max)
 
     return train_data
