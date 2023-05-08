@@ -9,7 +9,7 @@ pong_r2d2_gtrxl_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=20,
-        env_id='Pong-v4',
+        env_id='PongNoFrameskip-v4',
         #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
