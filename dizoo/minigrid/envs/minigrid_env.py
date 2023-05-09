@@ -59,7 +59,12 @@ class MiniGridEnv(BaseEnv):
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if self._flat_obs:
-            self._observation_space = gym.spaces.Box(0, 1, shape=(2835, ), dtype=np.float32)
+            if type(self._env.observation_space) == gym.spaces.Dict:
+                obs_space = self._env.observation_space
+                obs_space['obs'] = gym.spaces.Box(0, 1, shape=(2835, ), dtype=np.float32)
+                self._observation_space = obs_space
+            else:
+                self._observation_space = gym.spaces.Box(0, 1, shape=(2835, ), dtype=np.float32)
         else:
             self._observation_space = self._env.observation_space
             # to be compatiable with subprocess env manager
