@@ -92,23 +92,11 @@ class C51Agent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
             task.use(eps_greedy_handler(self.cfg))
-            task.use(
-                StepCollector(
-                    self.cfg,
-                    self.policy.collect_mode,
-                    collector_env
-                )
-            )
+            task.use(StepCollector(self.cfg, self.policy.collect_mode, collector_env))
             task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(
-                CkptSaver(
-                    policy=self.policy,
-                    save_dir=self.checkpoint_save_dir,
-                    train_freq=n_iter_save_ckpt
-                )
-            )
+            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
@@ -140,6 +128,7 @@ class C51Agent:
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
             forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
+
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
                 obs = ttorch.as_tensor(obs).unsqueeze(0)
