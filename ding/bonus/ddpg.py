@@ -23,7 +23,11 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class DDPGAgent:
     supported_env_list = [
         'hopper',
+        'HalfCheetah',
+        'Walker2d',
         'lunarlander_continuous',
+        'bipedalwalker',
+        'pendulum',
     ]
     algorithm = 'DDPG'
 

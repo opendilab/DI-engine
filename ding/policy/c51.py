@@ -199,7 +199,7 @@ class C51Policy(DQNPolicy):
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
-
+    
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss', 'q_value', 'target_q_value']
 
@@ -266,3 +266,6 @@ class C51Policy(DQNPolicy):
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
+    
+    def monitor_vars(self) -> List[str]:
+        return ['cur_lr', 'total_loss', 'q_value', 'target_q_value']
