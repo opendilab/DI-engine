@@ -4,7 +4,7 @@ collector_env_num = 8
 evaluator_env_num = 8
 nstep = 5
 minigrid_ppo_ngu_config = dict(
-    exp_name='minigrid_doorkey_ngu_seed0',
+    exp_name='minigrid_fourroom_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -12,7 +12,7 @@ minigrid_ppo_ngu_config = dict(
         # typical MiniGrid env id:
         # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
         # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
-        env_id='MiniGrid-DoorKey-16x16-v0',
+        env_id='MiniGrid-FourRooms-v0',
         obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
         max_step=300,
         stop_value=0.96,
@@ -50,7 +50,7 @@ minigrid_ppo_ngu_config = dict(
             last_nonzero_reward_weight=100,
             intrinsic_reward_type='add',
             learning_rate=5e-4,
-            obs_shape=2739,
+            obs_shape=2835,
             action_shape=7,
             batch_size=320,  # transitions
             update_per_collect=10,  # 32*100/64=50
@@ -73,7 +73,7 @@ minigrid_ppo_ngu_config = dict(
         # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
         learn_unroll_len=298,  # set this key according to the episode length
         model=dict(
-            obs_shape=2739,
+            obs_shape=2835,
             action_shape=7,
             encoder_hidden_size_list=[128, 128, 512],
             collector_env_num=collector_env_num,
@@ -91,7 +91,7 @@ minigrid_ppo_ngu_config = dict(
             # we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
             # In each collect phase, we collect a total of <n_sample> sequence samples.
-            n_sample=32,
+            n_sample=64,
             traj_len_inf=True,
             env_num=collector_env_num,
         ),
@@ -120,7 +120,7 @@ minigrid_ppo_ngu_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ngu'),
     reward_model=dict(type='ngu-reward'),
 )
@@ -130,4 +130,4 @@ create_config = minigrid_ppo_ngu_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_ngu -c minigrid_ngu_config.py -s 0`
     from ding.entry import serial_pipeline_reward_model_offpolicy
-    serial_pipeline_reward_model_offpolicy([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_offpolicy([main_config, create_config], seed=0, max_env_step=int(1e7))

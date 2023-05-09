@@ -10,8 +10,7 @@ import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
 from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
-from .minigrid_wrapper import ViewSizeWrapper
-from ding.envs import ObsPlusPrevActRewWrapper
+from .minigrid_wrapper import ViewSizeWrapper, ObsPlusPrevActRewWrapper
 
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
