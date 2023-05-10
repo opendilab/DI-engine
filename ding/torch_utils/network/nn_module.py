@@ -116,23 +116,25 @@ def conv2d_block(
         pad_type: str = 'zero',
         activation: nn.Module = None,
         norm_type: str = None,
+        num_groups_for_gn: int = 1,
         bias: bool = True
 ) -> nn.Sequential:
     r"""
     Overview:
         Create a 2-dim convolution layer with activation and normalization.
     Arguments:
-        - in_channels (:obj:`int`): Number of channels in the input tensor
-        - out_channels (:obj:`int`): Number of channels in the output tensor
-        - kernel_size (:obj:`int`): Size of the convolving kernel
-        - stride (:obj:`int`): Stride of the convolution
-        - padding (:obj:`int`): Zero-padding added to both sides of the input
-        - dilation (:obj:`int`): Spacing between kernel elements
-        - groups (:obj:`int`): Number of blocked connections from input channels to output channels
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None
-        - activation (:obj:`nn.Module`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
-        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. default set to True
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - kernel_size (:obj:`int`): Size of the convolving kernel.
+        - stride (:obj:`int`): Stride of the convolution.
+        - padding (:obj:`int`): Zero-padding added to both sides of the input.
+        - dilation (:obj:`int`): Spacing between kernel elements.
+        - groups (:obj:`int`): Number of blocked connections from input channels to output channels.
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None.
+        - activation (:obj:`nn.Module`): the optional activation function.
+        - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'LN', 'IN', 'GN', 'SyncBN'].
+        - num_groups_for_gn (:obj:`int`): Number of groups for GroupNorm.
+        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. Default set to True.
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
 
@@ -163,7 +165,13 @@ def conv2d_block(
         )
     )
     if norm_type is not None:
-        block.append(build_normalization(norm_type, dim=2)(out_channels))
+        if norm_type is 'LN':
+            # LN is implemented as GroupNorm with 1 group
+            block.append(nn.GroupNorm(1, out_channels))
+        elif norm_type is 'GN':
+            block.append(nn.GroupNorm(num_groups_for_gn, out_channels))
+        else:
+            block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
         block.append(activation)
     return sequential_pack(block)
