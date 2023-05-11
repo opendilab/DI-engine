@@ -411,35 +411,31 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     seed=0,
                     env=dict(
                         env_id='BipedalWalker-v3',
-                        collector_env_num=1,
+                        collector_env_num=8,
                         evaluator_env_num=5,
                         # (bool) Scale output action into legal range.
                         act_scale=True,
                         n_evaluator_episode=5,
-                        stop_value=300,
                         rew_clip=True,
-                        # The path to save the game replay
-                        replay_path=None,
                     ),
                     policy=dict(
                         cuda=True,
-                        priority=False,
+                        random_collect_size=10000,
                         model=dict(
                             obs_shape=24,
                             action_shape=4,
                             twin_critic=True,
+                            action_space='regression',
                             actor_head_hidden_size=400,
                             critic_head_hidden_size=400,
-                            action_space='regression',
                         ),
                         learn=dict(
-                            update_per_collect=4,
-                            discount_factor=0.99,
-                            batch_size=128,
-                            learning_rate_actor=0.001,
-                            learning_rate_critic=0.001,
+                            update_per_collect=64,
+                            batch_size=256,
+                            learning_rate_actor=0.0003,
+                            learning_rate_critic=0.0003,
                             target_theta=0.005,
-                            ignore_done=False,
+                            discount_factor=0.99,
                             actor_update_freq=2,
                             noise=True,
                             noise_sigma=0.2,
@@ -447,14 +443,14 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                                 min=-0.5,
                                 max=0.5,
                             ),
+                            learner=dict(
+                                hook=dict(log_show_after_iter=1000, )
+                            )
                         ),
                         collect=dict(
-                            n_sample=256,
-                            noise_sigma=0.1,
-                            collector=dict(collect_print_freq=1000, ),
+                            n_sample=64,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=100, ), ),
-                        other=dict(replay_buffer=dict(replay_buffer_size=50000, ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=300000, ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -743,42 +739,34 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         # (bool) Scale output action into legal range.
                         act_scale=True,
                         n_evaluator_episode=5,
-                        stop_value=300,
                         rew_clip=True,
-                        # The path to save the game replay
-                        replay_path=None,
                     ),
                     policy=dict(
-                        cuda=False,
-                        priority=False,
-                        random_collect_size=1200,
+                        cuda=True,
+                        random_collect_size=10000,
                         model=dict(
                             obs_shape=24,
                             action_shape=4,
                             twin_critic=False,
-                            actor_head_hidden_size=256,
-                            critic_head_hidden_size=256,
                             action_space='regression',
+                            actor_head_hidden_size=400,
+                            critic_head_hidden_size=400,
                         ),
                         learn=dict(
-                            update_per_collect=1,
-                            batch_size=128,
-                            learning_rate_actor=0.001,
-                            learning_rate_critic=0.001,
-                            ignore_done=True,
-                            actor_update_freq=1,
-                            noise=False,
+                            update_per_collect=64,
+                            batch_size=256,
+                            learning_rate_actor=0.0003,
+                            learning_rate_critic=0.0003,
+                            target_theta=0.005,
+                            discount_factor=0.99,
+                            learner=dict(
+                                hook=dict(log_show_after_iter=1000, )
+                            )
                         ),
                         collect=dict(
-                            n_sample=16,
-                            noise_sigma=0.1,
-                            collector=dict(collect_print_freq=1000, ),
+                            n_sample=64,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=100, )),
-                        other=dict(replay_buffer=dict(
-                            replay_buffer_size=20000,
-                            max_use=16,
-                        ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=300000, ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -1518,19 +1506,19 @@ def get_instance_env(env: str) -> BaseEnv:
             'env_id': "SpaceInvaders-v4",
             'env_wrapper': 'atari_default',
         })
-        return DingEnvWrapper(gym.make("SpaceInvaders-v4"), cfg=cfg)
+        return DingEnvWrapper(gym.make("SpaceInvadersNoFrameskip-v4"), cfg=cfg)
     elif env == "Pong":
         cfg = EasyDict({
             'env_id': "Pong-v4",
             'env_wrapper': 'atari_default',
         })
-        return DingEnvWrapper(gym.make("Pong-v4"), cfg=cfg)
+        return DingEnvWrapper(gym.make("PongNoFrameskip-v4"), cfg=cfg)
     elif env == "Qbert":
         cfg = EasyDict({
             'env_id': "Qbert-v4",
             'env_wrapper': 'atari_default',
         })
-        return DingEnvWrapper(gym.make("Qbert-v4"), cfg=cfg)
+        return DingEnvWrapper(gym.make("QbertNoFrameskip-v4"), cfg=cfg)
     elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling', 'atari_breakout', 'atari_spaceinvader',
                  'atari_gopher']:
         from dizoo.atari.envs.atari_env import AtariEnv
