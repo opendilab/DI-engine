@@ -50,5 +50,5 @@
 
    image_cls_zh
    sokoban_zh
-   Evogym_zh.rst
+   evogym_zh.rst
    metadrive_zh

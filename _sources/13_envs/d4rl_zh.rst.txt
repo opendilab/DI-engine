@@ -1,4 +1,4 @@
-D4RL (Mujoco)
+D4RL (MuJoCo)
 ~~~~~~~~~~~~~
 
 概述

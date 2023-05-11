@@ -1,4 +1,4 @@
-Mujoco
+MuJoCo
 ~~~~~~~
 
 概述

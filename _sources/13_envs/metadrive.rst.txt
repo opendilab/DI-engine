@@ -2,7 +2,7 @@ Metadrive
 ~~~~~~~~~~~~~~~~~~
 
 Overview
-=======
+==========
 
 `MetaDrive Env <https://metadrive-simulator.readthedocs.io/en/latest/index.html>`_ is an efficient compositional driving simulator. The goal of the environment is to control a car (or multiple vehicles) from the starting point to the finishing point safely and on time. It has the following properties:
 
@@ -14,10 +14,10 @@ Overview
    :align: center
 
 Install
-====
+=========
 
 Installation Method
---------
+-------------------
 
 Users can choose to install it with one click through pip, or install it from source.
 
@@ -35,7 +35,7 @@ Note: If the user does not have root privileges, please add \ ``--user`` \ after
    pip install -e .
 
 Verify Installation
---------
+-------------------
 
 After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:
 
@@ -47,19 +47,19 @@ After the installation is complete, you can verify that the installation was suc
    print(obs.shape)  # output (259,)
 
 Image
-----
+------
 
 The image of DI-engine is equipped with the framework itself, which can be obtained by \ ``docker pull opendilab/ding:nightly`` \,
 or by visiting \ `docker hub <https://hub.docker.com/r/opendilab/ding>`__ \ for more images. Currently, MetaDrive doesn't have a own image.
 
 
 Space before Transformation (Original Environment)
-========================
+===================================================
 
 For details, please refer to the code implementation of `MetaDrive <https://github.com/metadriverse/metadrive/blob/main/metadrive/envs/metadrive_env.py>`_ .
 
 Observation space
---------
+-----------------
 
 The observation space of the vehicle is a 259-dimensional numpy array, the data type is float32, and the obs shape is (259,). The observation space consists of the following three parts:
 
@@ -70,7 +70,7 @@ The observation space of the vehicle is a 259-dimensional numpy array, the data 
 
 
 Action space
---------
+------------
 The action space of the MetaDrive environment is a 2-dimensional continuous action, and its valid range is [-1, 1]. Through this design, the action space of each agent is fixed as gym.spaces.Box(low=-1.0, high=1.0, shape=(2, )).
 
 - The first dimension represents the steering angle. When the action is 1 or -1, it means that the steering wheel is turned to the left or right to the maximum steering angle, and when it is 0, it means that the steering wheel is facing straight ahead.
@@ -78,7 +78,7 @@ The action space of the MetaDrive environment is a 2-dimensional continuous acti
 - At the same time, it also provides a configuration called extra_action_dim (int). For example, if we set config["extra_action_dim"] = 1, then the action space of each agent will become Box(-1.0, 1.0, shape =(3, )). This allows users to write environment wrappers that introduce more dimensions of input operations.
 
 Reward space
---------
+--------------
 
 The default reward function in MetaDrive consists of a dense (obtained during driving) reward and a sparse final reward.
 
@@ -116,11 +116,11 @@ Randomness:
 
 
 Transformed space (RL environment)
-=========================
+===================================
 
 
 Observation space
---------
+-----------------
 Different from the original version, the observation space is described as a 259-dimensional vector. In DI-engine,
 the observation space of the car is defined as a top view with a size of 5x84x84, where 5 represents the number of channels, and the last two dimensions (84x84) represent the size of the image for each channel.
 The semantics of the five channels are:
@@ -141,11 +141,11 @@ In the current scenario, the observation of the vehicle can be represented by th
 
 
 Action Space
---------
+--------------
 -  no change
 
 Reward Space
---------
+-------------
 -  no change
 
 Other
@@ -158,18 +158,18 @@ Other
 ========
 
 Lazy Initialization
-----------
+--------------------
 
 In order to support parallel operations such as environment vectorization, the specific environment instance generally adopts the lazy initialization method, that is, the \ ``__init__`` \ method of the environment does not initialize the real original environment instance, but only sets relevant parameters and configuration values.
 Instead, the concrete original environment instance is initialized when the \ ``reset`` \ method is called for the first time.
 
 Random Seed
---------
+-------------
 
 - You can use the _reset_global_seed method to set the random seed of the environment. If you do not set it manually, the environment will randomly sample the random seed setting environment.
 
-The difference between training and testing environments
---------------------
+The difference between training and evaluation environments
+------------------------------------------------------------
 
 - The training environment uses a dynamic random seed, that is, the random seed of each episode is different and is generated by a random number generator, but the seed of this random number generator is fixed by the \ ``seed`` \ method of the environment .
 - The test environment uses a static random seed, that is, the random seed of each episode is the same, and is specified by the \ ``seed`` \ method.
@@ -299,7 +299,7 @@ Here, for a specific configuration file, such as \ ``metadrive_onppo_config.py``
         main(main_config)
 
 Benchmark Algorithm Performance
-==============
+================================
 
 -  MetaDrive (the average episode return of the test episodes is greater than or equal to 250, which is regarded as the algorithm converges to an approximate optimal value).
 
@@ -307,4 +307,3 @@ Benchmark Algorithm Performance
 
    .. image:: images/metadrive_train1.png
      :align: center
-

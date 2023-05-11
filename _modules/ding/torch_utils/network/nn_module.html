@@ -384,7 +384,7 @@
 <span class="sd">        - activation (:obj:`nn.Module`): the optional activation function</span>
 <span class="sd">        - norm_type (:obj:`str`): type of the normalization</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer</span>
+<span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convolution layer</span>
 
 <span class="sd">    .. note::</span>
 
@@ -410,23 +410,26 @@
         <span class="n">pad_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;zero&#39;</span><span class="p">,</span>
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">norm_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_groups_for_gn</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a 2-dim convolution layer with activation and normalization.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - in_channels (:obj:`int`): Number of channels in the input tensor</span>
-<span class="sd">        - out_channels (:obj:`int`): Number of channels in the output tensor</span>
-<span class="sd">        - kernel_size (:obj:`int`): Size of the convolving kernel</span>
-<span class="sd">        - stride (:obj:`int`): Stride of the convolution</span>
-<span class="sd">        - padding (:obj:`int`): Zero-padding added to both sides of the input</span>
-<span class="sd">        - dilation (:obj:`int`): Spacing between kernel elements</span>
-<span class="sd">        - groups (:obj:`int`): Number of blocked connections from input channels to output channels</span>
-<span class="sd">        - pad_type (:obj:`str`): the way to add padding, include [&#39;zero&#39;, &#39;reflect&#39;, &#39;replicate&#39;], default: None</span>
-<span class="sd">        - activation (:obj:`nn.Module`): the optional activation function</span>
-<span class="sd">        - norm_type (:obj:`str`): type of the normalization, default set to None, now support [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;]</span>
-<span class="sd">        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. default set to True</span>
+<span class="sd">        - in_channels (:obj:`int`): Number of channels in the input tensor.</span>
+<span class="sd">        - out_channels (:obj:`int`): Number of channels in the output tensor.</span>
+<span class="sd">        - kernel_size (:obj:`int`): Size of the convolving kernel.</span>
+<span class="sd">        - stride (:obj:`int`): Stride of the convolution.</span>
+<span class="sd">        - padding (:obj:`int`): Zero-padding added to both sides of the input.</span>
+<span class="sd">        - dilation (:obj:`int`): Spacing between kernel elements.</span>
+<span class="sd">        - groups (:obj:`int`): Number of blocked connections from input channels to output channels.</span>
+<span class="sd">        - pad_type (:obj:`str`): the way to add padding, include [&#39;zero&#39;, &#39;reflect&#39;, &#39;replicate&#39;], default: None.</span>
+<span class="sd">        - activation (:obj:`nn.Module`): the optional activation function.</span>
+<span class="sd">        - norm_type (:obj:`str`): The type of the normalization, now support [&#39;BN&#39;, &#39;LN&#39;, &#39;IN&#39;, &#39;GN&#39;, &#39;SyncBN&#39;],</span>
+<span class="sd">            default set to None, which means no normalization.</span>
+<span class="sd">        - num_groups_for_gn (:obj:`int`): Number of groups for GroupNorm.</span>
+<span class="sd">        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. Default set to True.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer</span>
 
@@ -457,7 +460,17 @@
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="s1">&#39;LN&#39;</span><span class="p">:</span>
+            <span class="c1"># LN is implemented as GroupNorm with 1 group.</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GroupNorm</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="s1">&#39;GN&#39;</span><span class="p">:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GroupNorm</span><span class="p">(</span><span class="n">num_groups_for_gn</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">norm_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;BN&#39;</span><span class="p">,</span> <span class="s1">&#39;IN&#39;</span><span class="p">,</span> <span class="s1">&#39;SyncBN&#39;</span><span class="p">]:</span>
+            <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Invalid value in norm_type: </span><span class="si">{}</span><span class="s2">. The valid norm_type are &quot;</span>
+                           <span class="s2">&quot;BN, LN, IN, GN and SyncBN.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">norm_type</span><span class="p">))</span>
+
     <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
@@ -476,7 +489,7 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Create a 2-dim transopse convlution layer with activation and normalization</span>
+<span class="sd">        Create a 2-dim transpose convolution layer with activation and normalization</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - in_channels (:obj:`int`): Number of channels in the input tensor</span>
 <span class="sd">        - out_channels (:obj:`int`): Number of channels in the output tensor</span>
@@ -488,7 +501,7 @@
 <span class="sd">        - norm_type (:obj:`str`): type of the normalization</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2-dim \</span>
-<span class="sd">            transpose convlution layer</span>
+<span class="sd">            transpose convolution layer</span>
 
 <span class="sd">    .. note::</span>
 
@@ -780,7 +793,7 @@
 <div class="viewcode-block" id="NearestUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NearestUpsample">[docs]</a><span class="k">class</span> <span class="nc">NearestUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Upsamples the input to the given member varible scale_factor using mode nearest</span>
+<span class="sd">        Upsamples the input to the given member variable scale_factor using mode nearest</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        forward</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -810,7 +823,7 @@
 <div class="viewcode-block" id="BilinearUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.BilinearUpsample">[docs]</a><span class="k">class</span> <span class="nc">BilinearUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Upsamples the input to the given member varible scale_factor using mode biliner</span>
+<span class="sd">        Upsamples the input to the given member variable scale_factor using mode bilinear</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        forward</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -895,7 +908,7 @@
 <div class="viewcode-block" id="NoiseLinearLayer.reset_noise"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise">[docs]</a>    <span class="k">def</span> <span class="nf">reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Reset noise settinngs in the layer.</span>
+<span class="sd">            Reset noise settings in the layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">is_cuda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_mu</span><span class="o">.</span><span class="n">is_cuda</span>
         <span class="n">in_noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channels</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">is_cuda</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">))</span>
@@ -957,7 +970,7 @@
 <span class="sd">        - norm_type (:obj:`str`): type of the normalization</span>
 <span class="sd">        - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block</span>
 <span class="sd">        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5</span>
-<span class="sd">        - simga0 (:obj:`float`): the sigma0 is the defalut noise volumn when init NoiseLinearLayer</span>
+<span class="sd">        - simga0 (:obj:`float`): the sigma0 is the default noise volume when init NoiseLinearLayer</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block</span>
 

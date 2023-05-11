@@ -1,4 +1,4 @@
-Metadrive 中文文档
+Metadrive
 ~~~~~~~~~~~~~~~~~~
 
 概述

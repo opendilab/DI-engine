@@ -419,7 +419,7 @@ to the module and set to the out_channel of the conv layer.</p>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 1 dim convlution layer</p></li>
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 1 dim convolution layer</p></li>
 </ul>
 </dd>
 </dl>
@@ -434,17 +434,22 @@ to the module and set to the out_channel of the conv layer.</p>
 <dt>Overview:</dt><dd><p>Create a 2-dim convolution layer with activation and normalization.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
-<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
-<li><p>kernel_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Size of the convolving kernel</p></li>
-<li><p>stride (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Stride of the convolution</p></li>
-<li><p>padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Zero-padding added to both sides of the input</p></li>
-<li><p>dilation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Spacing between kernel elements</p></li>
-<li><p>groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of blocked connections from input channels to output channels</p></li>
-<li><p>pad_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the way to add padding, include [‘zero’, ‘reflect’, ‘replicate’], default: None</p></li>
-<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
-<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization, default set to None, now support [‘BN’, ‘IN’, ‘SyncBN’]</p></li>
-<li><p>bias (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether adds a learnable bias to the nn.Conv2d. default set to True</p></li>
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor.</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor.</p></li>
+<li><p>kernel_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Size of the convolving kernel.</p></li>
+<li><p>stride (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Stride of the convolution.</p></li>
+<li><p>padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Zero-padding added to both sides of the input.</p></li>
+<li><p>dilation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Spacing between kernel elements.</p></li>
+<li><p>groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of blocked connections from input channels to output channels.</p></li>
+<li><p>pad_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the way to add padding, include [‘zero’, ‘reflect’, ‘replicate’], default: None.</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function.</p></li>
+<li><dl class="simple">
+<dt>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The type of the normalization, now support [‘BN’, ‘LN’, ‘IN’, ‘GN’, ‘SyncBN’],</dt><dd><p>default set to None, which means no normalization.</p>
+</dd>
+</dl>
+</li>
+<li><p>num_groups_for_gn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of groups for GroupNorm.</p></li>
+<li><p>bias (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether adds a learnable bias to the nn.Conv2d. Default set to True.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -460,7 +465,7 @@ to the module and set to the out_channel of the conv layer.</p>
 <section id="module-ding.torch_utils.network.nn_module.deconv2d_block">
 <span id="deconv2d-block"></span><h2>deconv2d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.deconv2d_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
-<dt>Overview:</dt><dd><p>Create a 2-dim transopse convlution layer with activation and normalization</p>
+<dt>Overview:</dt><dd><p>Create a 2-dim transpose convolution layer with activation and normalization</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
@@ -475,7 +480,7 @@ to the module and set to the out_channel of the conv layer.</p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 2-dim </dt><dd><p>transpose convlution layer</p>
+<dt>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 2-dim </dt><dd><p>transpose convolution layer</p>
 </dd>
 </dl>
 </li>
@@ -627,7 +632,7 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
 <li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>) : whether to use dropout in the fully-connected block</p></li>
 <li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) : probability of an element to be zeroed in the dropout. Default: 0.5</p></li>
-<li><p>simga0 (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the sigma0 is the defalut noise volumn when init NoiseLinearLayer</p></li>
+<li><p>simga0 (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the sigma0 is the default noise volume when init NoiseLinearLayer</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -681,7 +686,7 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NearestUpsample">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.nn_module.</span></span><span class="sig-name descname"><span class="pre">NearestUpsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NearestUpsample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NearestUpsample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Upsamples the input to the given member varible scale_factor using mode nearest</p>
+<dt>Overview:</dt><dd><p>Upsamples the input to the given member variable scale_factor using mode nearest</p>
 </dd>
 <dt>Interface:</dt><dd><p>forward</p>
 </dd>
@@ -712,7 +717,7 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.BilinearUpsample">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.nn_module.</span></span><span class="sig-name descname"><span class="pre">BilinearUpsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#BilinearUpsample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.BilinearUpsample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Upsamples the input to the given member varible scale_factor using mode biliner</p>
+<dt>Overview:</dt><dd><p>Upsamples the input to the given member variable scale_factor using mode bilinear</p>
 </dd>
 <dt>Interface:</dt><dd><p>forward</p>
 </dd>
@@ -769,7 +774,7 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise">
 <span class="sig-name descname"><span class="pre">reset_noise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NoiseLinearLayer.reset_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Reset noise settinngs in the layer.</p>
+<dt>Overview:</dt><dd><p>Reset noise settings in the layer.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -795,7 +800,7 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <dt>Overview:</dt><dd><p>Build the corresponding normalization module</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normaliztion, now support [‘BN’, ‘IN’, ‘SyncBN’, ‘AdaptiveIN’]</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normaliztion, now support [‘BN’, ‘LN’, ‘IN’, ‘SyncBN’]</p></li>
 <li><p>dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): dimension of the normalization, when norm_type is in [BN, IN]</p></li>
 </ul>
 </dd>

@@ -1,4 +1,4 @@
-Mujoco
+MuJoCo
 ~~~~~~~
 
 Overview
