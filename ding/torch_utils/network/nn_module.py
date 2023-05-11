@@ -90,7 +90,7 @@ def conv1d_block(
         - activation (:obj:`nn.Module`): the optional activation function
         - norm_type (:obj:`str`): type of the normalization
     Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer
+        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convolution layer
 
     .. note::
 
@@ -116,23 +116,26 @@ def conv2d_block(
         pad_type: str = 'zero',
         activation: nn.Module = None,
         norm_type: str = None,
+        num_groups_for_gn: int = 1,
         bias: bool = True
 ) -> nn.Sequential:
     r"""
     Overview:
         Create a 2-dim convolution layer with activation and normalization.
     Arguments:
-        - in_channels (:obj:`int`): Number of channels in the input tensor
-        - out_channels (:obj:`int`): Number of channels in the output tensor
-        - kernel_size (:obj:`int`): Size of the convolving kernel
-        - stride (:obj:`int`): Stride of the convolution
-        - padding (:obj:`int`): Zero-padding added to both sides of the input
-        - dilation (:obj:`int`): Spacing between kernel elements
-        - groups (:obj:`int`): Number of blocked connections from input channels to output channels
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None
-        - activation (:obj:`nn.Module`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
-        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. default set to True
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - kernel_size (:obj:`int`): Size of the convolving kernel.
+        - stride (:obj:`int`): Stride of the convolution.
+        - padding (:obj:`int`): Zero-padding added to both sides of the input.
+        - dilation (:obj:`int`): Spacing between kernel elements.
+        - groups (:obj:`int`): Number of blocked connections from input channels to output channels.
+        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None.
+        - activation (:obj:`nn.Module`): the optional activation function.
+        - norm_type (:obj:`str`): The type of the normalization, now support ['BN', 'LN', 'IN', 'GN', 'SyncBN'],
+            default set to None, which means no normalization.
+        - num_groups_for_gn (:obj:`int`): Number of groups for GroupNorm.
+        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. Default set to True.
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
 
@@ -163,7 +166,17 @@ def conv2d_block(
         )
     )
     if norm_type is not None:
-        block.append(build_normalization(norm_type, dim=2)(out_channels))
+        if norm_type is 'LN':
+            # LN is implemented as GroupNorm with 1 group.
+            block.append(nn.GroupNorm(1, out_channels))
+        elif norm_type is 'GN':
+            block.append(nn.GroupNorm(num_groups_for_gn, out_channels))
+        elif norm_type in ['BN', 'IN', 'SyncBN']:
+            block.append(build_normalization(norm_type, dim=2)(out_channels))
+        else:
+            raise KeyError("Invalid value in norm_type: {}. The valid norm_type are "
+                           "BN, LN, IN, GN and SyncBN.".format(norm_type))
+
     if activation is not None:
         block.append(activation)
     return sequential_pack(block)
@@ -182,7 +195,7 @@ def deconv2d_block(
 ) -> nn.Sequential:
     r"""
     Overview:
-        Create a 2-dim transopse convlution layer with activation and normalization
+        Create a 2-dim transpose convolution layer with activation and normalization
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor
         - out_channels (:obj:`int`): Number of channels in the output tensor
@@ -194,7 +207,7 @@ def deconv2d_block(
         - norm_type (:obj:`str`): type of the normalization
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2-dim \
-            transpose convlution layer
+            transpose convolution layer
 
     .. note::
 
@@ -486,7 +499,7 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
 class NearestUpsample(nn.Module):
     r"""
     Overview:
-        Upsamples the input to the given member varible scale_factor using mode nearest
+        Upsamples the input to the given member variable scale_factor using mode nearest
     Interface:
         forward
     """
@@ -516,7 +529,7 @@ class NearestUpsample(nn.Module):
 class BilinearUpsample(nn.Module):
     r"""
     Overview:
-        Upsamples the input to the given member varible scale_factor using mode biliner
+        Upsamples the input to the given member variable scale_factor using mode bilinear
     Interface:
         forward
     """
@@ -601,7 +614,7 @@ class NoiseLinearLayer(nn.Module):
     def reset_noise(self):
         r"""
         Overview:
-            Reset noise settinngs in the layer.
+            Reset noise settings in the layer.
         """
         is_cuda = self.weight_mu.is_cuda
         in_noise = self._scale_noise(self.in_channels).to(torch.device("cuda" if is_cuda else "cpu"))
@@ -663,7 +676,7 @@ def noise_block(
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
         - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
-        - simga0 (:obj:`float`): the sigma0 is the defalut noise volumn when init NoiseLinearLayer
+        - simga0 (:obj:`float`): the sigma0 is the default noise volume when init NoiseLinearLayer
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
 
