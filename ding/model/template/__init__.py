@@ -5,6 +5,7 @@ from .pdqn import PDQN
 from .vac import VAC
 from .bc import DiscreteBC, ContinuousBC
 from .pg import PG
+from .nlp_pretrained_model import NLPPretrainedModel
 # algorithm-specific
 from .ppg import PPG
 from .qmix import Mixer, QMix

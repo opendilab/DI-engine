@@ -1,0 +1,68 @@
+from .utils import *
+from ding.envs import BaseEnv
+import openai
+
+
+class TabMWP(BaseEnv):
+    def __init__(self, args):
+        # args contains: cand_number, train_number, engine, temperature,
+        # max_tokens, top_p, frequency_penalty, presence_penalty, api_key
+        # option_inds, prompt_format
+        self._args = args
+        self._init_flag = False
+        self.problems, self.cand_pids, self.train_pids = None, None, None
+        self.last_problem = None
+        self.cand_examples = []
+        openai.api_key = args.api_key
+
+    def seed(self, seed, dynamic_seed=False):
+        self._args.seed = seed
+
+    def reset(self):
+        self.problems, self.cand_pids, self.train_pids = load_data(self._args)
+        self.cand_examples = []
+        for pid in self.cand_pids:
+            example = create_example_from_pid(pid, self.problems, self.args, test=True)
+            self.cand_examples.append(example)
+
+        self._init_flag = True
+        self.last_problem = 0   # TODO
+
+    def close(self):
+        self._init_flag = False
+
+    def step(self, action):
+        cids = action
+        shot_pids = [self.cand_pids[cid] for cid in cids]
+        # print(f"shot_pids: {shot_pids}")
+
+        # generate the prompt input
+        prompt = build_prompt(self.problems, shot_pids, self.last_problem, self._args)
+
+        # get the output from GPT-3
+        output = get_gpt3_output(prompt, self._args)
+
+        # extract the prediction from the output
+        prediction = extract_prediction(output, self.problems[self.last_problem]['choices'], self._args.option_inds)
+
+        # normalize the number in the text
+        prediction_norm = normalize_answer(prediction, self.problems[self.last_problem]['unit'])
+
+        if prediction_norm.lower() == normalize_answer(self.problems[self.last_problem]['answer'],
+                                                       self.problems[self.last_problem]['unit']).lower():
+            _reward = 1
+        else:
+            _reward = -1
+
+        self.last_problem += 1
+        if self.last_problem == self._args.train_number:
+            done = True
+        else:
+            done = False
+        info = {}
+
+        train_sample = create_example_from_pid(self.last_problem, self.problems, self._args, test=True)
+        obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
+
+        return obs, _reward, done, info
+
