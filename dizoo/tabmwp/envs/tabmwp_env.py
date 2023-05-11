@@ -1,8 +1,11 @@
+from ding.utils import ENV_REGISTRY
+
 from .utils import *
 from ding.envs import BaseEnv
 import openai
 
 
+@ENV_REGISTRY.register('tabmwp')
 class TabMWP(BaseEnv):
     def __init__(self, args):
         # args contains: cand_number, train_number, engine, temperature,

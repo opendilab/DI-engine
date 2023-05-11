@@ -16,7 +16,7 @@ class TestNLPPretrainedModel:
         ctxt_list = [problems[pid] for pid in test_pids]
         cands_list = [problems[pid] for pid in cand_pids]
 
-        model = NLPPretrainedModel(model_config="bert-base-uncased", add_linear=True, embedding_size=256)
+        model = NLPPretrainedModel(model_name="bert-base-uncased", add_linear=True, embedding_size=256)
         cands_embedding = model(cands_list)
         assert cands_embedding.shape == (3, 256)
         ctxt_embedding = model(ctxt_list)

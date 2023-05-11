@@ -9,14 +9,14 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 class NLPPretrainedModel(nn.Module):
 
     def __init__(self,
-                 model_config="bert-base-uncased",
+                 model_name="bert-base-uncased",
                  add_linear=False,
                  embedding_size=128,
                  freeze_encoder=True) -> None:
         super().__init__()
-        self.tokenizer = AutoTokenizer.from_pretrained(model_config)
-        print("model_config:", model_config)
-        self.model = AutoModelForTokenClassification.from_pretrained(model_config)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        print("model_config:", model_name)
+        self.model = AutoModelForTokenClassification.from_pretrained(model_name)
 
         # Freeze transformer encoder and only train the linear layer
         if freeze_encoder:
