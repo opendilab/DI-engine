@@ -69,3 +69,6 @@ class TabMWP(BaseEnv):
 
         return obs, _reward, done, info
 
+    def __repr__(self) -> str:
+        return "DI-engine tabmwp Env"
+

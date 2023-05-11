@@ -48,10 +48,10 @@ main_config = EasyDict(tabmwp_prompt_pg_config)
 tabmwp_prompt_pg_config = dict(
     env=dict(
         type='tabmwp',
-        import_names=['dizoo.wabmwp.envs.tabmwp_env'],
+        import_names=['dizoo.tabmwp.envs.tabmwp_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='policy_pg'),
+    policy=dict(type='prompt_pg'),
     replay_buffer=dict(type='naive'),
 )
 create_config = EasyDict(tabmwp_prompt_pg_config)

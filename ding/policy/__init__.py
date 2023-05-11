@@ -50,3 +50,4 @@ from .pc import ProcedureCloningBFSPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy
+from .prompt_pg import PromptPGPolicy
