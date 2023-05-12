@@ -166,16 +166,18 @@ def conv2d_block(
         )
     )
     if norm_type is not None:
-        if norm_type is 'LN':
+        if norm_type == 'LN':
             # LN is implemented as GroupNorm with 1 group.
             block.append(nn.GroupNorm(1, out_channels))
-        elif norm_type is 'GN':
+        elif norm_type == 'GN':
             block.append(nn.GroupNorm(num_groups_for_gn, out_channels))
         elif norm_type in ['BN', 'IN', 'SyncBN']:
             block.append(build_normalization(norm_type, dim=2)(out_channels))
         else:
-            raise KeyError("Invalid value in norm_type: {}. The valid norm_type are "
-                           "BN, LN, IN, GN and SyncBN.".format(norm_type))
+            raise KeyError(
+                "Invalid value in norm_type: {}. The valid norm_type are "
+                "BN, LN, IN, GN and SyncBN.".format(norm_type)
+            )
 
     if activation is not None:
         block.append(activation)
