@@ -460,16 +460,18 @@
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="s1">&#39;LN&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">norm_type</span> <span class="o">==</span> <span class="s1">&#39;LN&#39;</span><span class="p">:</span>
             <span class="c1"># LN is implemented as GroupNorm with 1 group.</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GroupNorm</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="n">norm_type</span> <span class="ow">is</span> <span class="s1">&#39;GN&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">norm_type</span> <span class="o">==</span> <span class="s1">&#39;GN&#39;</span><span class="p">:</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GroupNorm</span><span class="p">(</span><span class="n">num_groups_for_gn</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
         <span class="k">elif</span> <span class="n">norm_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;BN&#39;</span><span class="p">,</span> <span class="s1">&#39;IN&#39;</span><span class="p">,</span> <span class="s1">&#39;SyncBN&#39;</span><span class="p">]:</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Invalid value in norm_type: </span><span class="si">{}</span><span class="s2">. The valid norm_type are &quot;</span>
-                           <span class="s2">&quot;BN, LN, IN, GN and SyncBN.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">norm_type</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid value in norm_type: </span><span class="si">{}</span><span class="s2">. The valid norm_type are &quot;</span>
+                <span class="s2">&quot;BN, LN, IN, GN and SyncBN.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">norm_type</span><span class="p">)</span>
+            <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>

@@ -302,6 +302,8 @@
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">OnlineRLContext</span>
+    <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
+    <span class="kn">from</span> <span class="nn">ding.reward_model</span> <span class="kn">import</span> <span class="n">BaseRewardModel</span>
 
 
 <div class="viewcode-block" id="OffPolicyLearner"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner">[docs]</a><span class="k">class</span> <span class="nc">OffPolicyLearner</span><span class="p">:</span>
@@ -319,17 +321,19 @@
 <div class="viewcode-block" id="OffPolicyLearner.__init__"><a class="viewcode-back" href="../../../../05_api_doc/framework/middleware/learner.html#ding.framework.middleware.learner.OffPolicyLearner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
-            <span class="n">policy</span><span class="p">,</span>
+            <span class="n">policy</span><span class="p">:</span> <span class="s1">&#39;Policy&#39;</span><span class="p">,</span>
             <span class="n">buffer_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Buffer</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Buffer</span><span class="p">]],</span>
-            <span class="n">reward_model</span><span class="o">=</span><span class="kc">None</span>
+            <span class="n">reward_model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;BaseRewardModel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">log_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`EasyDict`): Config.</span>
 <span class="sd">            - policy (:obj:`Policy`): The policy to be trained.</span>
-<span class="sd">            - buffer\_ (:obj:`Buffer`): The replay buffer to store the data for training.</span>
-<span class="sd">            - reward_model (:obj:`nn.Module`): Additional reward estimator likes RND, ICM, etc. \</span>
+<span class="sd">            - buffer (:obj:`Buffer`): The replay buffer to store the data for training.</span>
+<span class="sd">            - reward_model (:obj:`BaseRewardModel`): Additional reward estimator likes RND, ICM, etc. \</span>
 <span class="sd">                default to None.</span>
+<span class="sd">            - log_freq (:obj:`int`): The frequency (iteration) of showing log.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fetcher</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">offpolicy_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">buffer_</span><span class="p">))</span>
