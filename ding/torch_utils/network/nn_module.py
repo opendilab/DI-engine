@@ -174,8 +174,10 @@ def conv2d_block(
         elif norm_type in ['BN', 'IN', 'SyncBN']:
             block.append(build_normalization(norm_type, dim=2)(out_channels))
         else:
-            raise KeyError("Invalid value in norm_type: {}. The valid norm_type are "
-                           "BN, LN, IN, GN and SyncBN.".format(norm_type))
+            raise KeyError(
+                "Invalid value in norm_type: {}. The valid norm_type are "
+                "BN, LN, IN, GN and SyncBN.".format(norm_type)
+            )
 
     if activation is not None:
         block.append(activation)
