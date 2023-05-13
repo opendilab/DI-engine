@@ -17,6 +17,7 @@ main_config = dict(
         stop_value=7600,
     ),
     policy=dict(
+        cuda=True,
         model=dict(
             obs_shape=17,
             action_shape=6,
