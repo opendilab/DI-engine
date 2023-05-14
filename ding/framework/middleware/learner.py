@@ -8,6 +8,8 @@ from .functional import trainer, offpolicy_data_fetcher, reward_estimator, her_d
 
 if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext
+    from ding.policy import Policy
+    from ding.reward_model import BaseRewardModel
 
 
 class OffPolicyLearner:
@@ -25,17 +27,19 @@ class OffPolicyLearner:
     def __init__(
             self,
             cfg: EasyDict,
-            policy,
+            policy: 'Policy',
             buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
-            reward_model=None
+            reward_model: Optional['BaseRewardModel'] = None,
+            log_freq: int = 100,
     ) -> None:
         """
         Arguments:
             - cfg (:obj:`EasyDict`): Config.
             - policy (:obj:`Policy`): The policy to be trained.
-            - buffer\_ (:obj:`Buffer`): The replay buffer to store the data for training.
-            - reward_model (:obj:`nn.Module`): Additional reward estimator likes RND, ICM, etc. \
+            - buffer (:obj:`Buffer`): The replay buffer to store the data for training.
+            - reward_model (:obj:`BaseRewardModel`): Additional reward estimator likes RND, ICM, etc. \
                 default to None.
+            - log_freq (:obj:`int`): The frequency (iteration) of showing log.
         """
         self.cfg = cfg
         self._fetcher = task.wrap(offpolicy_data_fetcher(cfg, buffer_))

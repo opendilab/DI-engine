@@ -8,7 +8,7 @@ spaceinvaders_mdqn_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000,
-        env_id='SpaceInvaders-v0',
+        env_id='SpaceInvadersNoFrameskip-v0',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),

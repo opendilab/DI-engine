@@ -5,7 +5,7 @@ from easydict import EasyDict
 main_config = dict(
     exp_name="walker2d_medium_replay_cql_seed0",
     env=dict(
-        env_id='walker2d-medium-replay-v0',
+        env_id='walker2d-medium-replay-v2',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -15,8 +15,8 @@ main_config = dict(
     policy=dict(
         cuda=True,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=17,
+            action_shape=6,
         ),
         learn=dict(
             data_path=None,
