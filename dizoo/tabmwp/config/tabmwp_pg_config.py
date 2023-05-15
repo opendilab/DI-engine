@@ -17,7 +17,8 @@ tabmwp_prompt_pg_config = dict(
         presence_penalty=0.,
         option_inds=["A", "B", "C", "D", "E", "F"],
         api_key='',
-        prompt_format='TQ-A'
+        prompt_format='TQ-A',
+        seed=0,
     ),
     policy=dict(
         cuda=True,

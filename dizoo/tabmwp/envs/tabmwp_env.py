@@ -1,3 +1,5 @@
+import gym
+
 from ding.utils import ENV_REGISTRY
 
 from .utils import *
@@ -7,16 +9,21 @@ import openai
 
 @ENV_REGISTRY.register('tabmwp')
 class TabMWP(BaseEnv):
-    def __init__(self, args):
+    def __init__(self, cfg):
         # args contains: cand_number, train_number, engine, temperature,
         # max_tokens, top_p, frequency_penalty, presence_penalty, api_key
         # option_inds, prompt_format
-        self._args = args
+        self._args = cfg
         self._init_flag = False
         self.problems, self.cand_pids, self.train_pids = None, None, None
         self.last_problem = None
         self.cand_examples = []
-        openai.api_key = args.api_key
+        openai.api_key = cfg.api_key
+        self.observation_space = None
+        self.action_space = None
+        self.reward_space = gym.spaces.Box(
+                low=-1, high=1, shape=(1, ), dtype=np.float32
+            )
 
     def seed(self, seed, dynamic_seed=False):
         self._args.seed = seed
@@ -25,7 +32,7 @@ class TabMWP(BaseEnv):
         self.problems, self.cand_pids, self.train_pids = load_data(self._args)
         self.cand_examples = []
         for pid in self.cand_pids:
-            example = create_example_from_pid(pid, self.problems, self.args, test=True)
+            example = create_example_from_pid(pid, self.problems, self._args, test=True)
             self.cand_examples.append(example)
 
         self._init_flag = True
