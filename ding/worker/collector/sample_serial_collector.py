@@ -316,7 +316,7 @@ class SampleSerialCollector(ISerialCollector):
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
         # log
-        if record_random_collect:
+        if record_random_collect:  # default is true, but when random collect, record_random_collect is False
             self._output_log(train_iter)
         else:
             self._episode_info.clear()
