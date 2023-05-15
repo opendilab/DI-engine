@@ -87,6 +87,8 @@ class PromptPGPolicy(Policy):
         for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
             # forward
             train_samples, cand_samples = batch["train_sample"], batch["candidate_samples"]
+            for ii in range(len(cand_samples)):
+                cand_samples[ii] = cand_samples[ii][0]
             output = self._learn_model.forward(train_samples, cand_samples)
             return_ = batch['return']
 
@@ -94,7 +96,7 @@ class PromptPGPolicy(Policy):
             for ii in range(self._cfg.shot_number):
                 log_prob = output['dist'].log_prob(batch['action'][ii])
                 policy_loss = -(log_prob * return_).mean()
-                entropy_loss = -self._cfg.learn.entropy_weight * dist.entropy().mean()
+                entropy_loss = -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
                 total_loss = policy_loss + entropy_loss
 
             # update
@@ -128,6 +130,8 @@ class PromptPGPolicy(Policy):
         data = default_collate(list(data.values()))
         self._model.eval()
         with torch.no_grad():
+            for ii in range(len(data['candidate_samples'])):
+                data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
             output = self._model.forward(data['train_sample'], data['candidate_samples'])
             act = []
             mask = torch.zeros_like(output['logit'])
@@ -190,6 +194,8 @@ class PromptPGPolicy(Policy):
         data = default_collate(list(data.values()))
         self._model.eval()
         with torch.no_grad():
+            for ii in range(len(data['candidate_samples'])):
+                data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
             output = self._model.forward(data['train_sample'], data['candidate_samples'])
             act = []
             mask = torch.zeros_like(output['logit'])
