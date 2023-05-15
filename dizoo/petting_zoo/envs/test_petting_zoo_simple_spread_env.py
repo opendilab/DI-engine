@@ -1,10 +1,10 @@
+from easydict import EasyDict
+import pytest
 import numpy as np
 import pettingzoo
 from ding.utils import import_module
-from easydict import EasyDict
-import pytest
 
-from dizoo.petting_zoo.envs.petting_zoo_env import PettingZooEnv
+from dizoo.petting_zoo.envs.petting_zoo_simple_spread_env import PettingZooEnv
 
 
 @pytest.mark.envtest
@@ -39,6 +39,7 @@ class TestPettingZooEnv:
             assert timestep.obs.shape == (n_agent, 2 + 2 + (n_agent - 1) * 2 + n_agent * 2 + (n_agent - 1) * 2)
             assert isinstance(timestep.done, bool), timestep.done
             assert isinstance(timestep.reward, np.ndarray), timestep.reward
+            assert timestep.reward.dtype == np.float32
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
 
@@ -80,6 +81,7 @@ class TestPettingZooEnv:
             assert timestep.obs['agent_alone_padding_state'].shape == (
                 n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2
             )
+            assert timestep.obs['action_mask'].dtype == np.float32
             assert isinstance(timestep.done, bool), timestep.done
             assert isinstance(timestep.reward, np.ndarray), timestep.reward
         print(env.observation_space, env.action_space, env.reward_space)

@@ -41,7 +41,7 @@ class ResBlock(nn.Module):
             - in_channels (:obj:`int`): Number of channels in the input tensor.
             - activation (:obj:`nn.Module`): the optional activation function.
             - norm_type (:obj:`str`): type of the normalization, default set to 'BN'(Batch Normalization), \
-                supports ['BN', 'IN', 'SyncBN', None].
+                supports ['BN', 'LN', 'IN', 'GN', 'SyncBN', None].
             - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck', 'downsample']
             - bias (:obj:`bool`): whether adds a learnable bias to the conv2d_block. default set to True.
             - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None,
@@ -101,7 +101,7 @@ class ResBlock(nn.Module):
 
 
 class ResFCBlock(nn.Module):
-    r'''
+    r"""
     Overview:
         Residual Block with 2 fully connected layers.
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
@@ -109,7 +109,7 @@ class ResFCBlock(nn.Module):
 
     Interfaces:
         forward
-    '''
+    """
 
     def __init__(self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN'):
         r"""

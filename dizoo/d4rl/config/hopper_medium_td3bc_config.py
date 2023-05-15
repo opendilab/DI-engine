@@ -5,11 +5,7 @@ from easydict import EasyDict
 main_config = dict(
     exp_name='hopper_medium_td3-bc_seed0',
     env=dict(
-        env_id='hopper-medium-v0',
-        norm_obs=dict(
-            use_norm=True, 
-            offline_stats=dict(use_offline_stats=True, ),
-        ),
+        env_id='hopper-medium-v2',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -17,6 +13,7 @@ main_config = dict(
         stop_value=6000,
     ),
     policy=dict(
+        cuda=True,
         model=dict(
             obs_shape=11,
             action_shape=3,
