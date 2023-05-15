@@ -16,7 +16,7 @@ class TabMWP(BaseEnv):
         self._args = cfg
         self._init_flag = False
         self.problems, self.cand_pids, self.train_pids = None, None, None
-        self.last_problem = None
+        self.problem_id = None
         self.cand_examples = []
         openai.api_key = cfg.api_key
         self.observation_space = None
@@ -36,8 +36,8 @@ class TabMWP(BaseEnv):
             self.cand_examples.append(example)
 
         self._init_flag = True
-        self.last_problem = 0  
-        train_sample = create_example_from_pid(self.last_problem, self.problems, self._args, test=True)
+        self.problem_id = 0
+        train_sample = create_example_from_pid(self.train_pids[self.problem_id], self.problems, self._args, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
         return obs
 
@@ -50,31 +50,31 @@ class TabMWP(BaseEnv):
         # print(f"shot_pids: {shot_pids}")
 
         # generate the prompt input
-        prompt = build_prompt(self.problems, shot_pids, self.last_problem, self._args)
+        prompt = build_prompt(self.problems, shot_pids, self.problem_id, self._args)
 
         # get the output from GPT-3
         output = get_gpt3_output(prompt, self._args)
 
         # extract the prediction from the output
-        prediction = extract_prediction(output, self.problems[self.last_problem]['choices'], self._args.option_inds)
+        prediction = extract_prediction(output, self.problems[self.problem_id]['choices'], self._args.option_inds)
 
         # normalize the number in the text
-        prediction_norm = normalize_answer(prediction, self.problems[self.last_problem]['unit'])
+        prediction_norm = normalize_answer(prediction, self.problems[self.problem_id]['unit'])
 
-        if prediction_norm.lower() == normalize_answer(self.problems[self.last_problem]['answer'],
-                                                       self.problems[self.last_problem]['unit']).lower():
+        if prediction_norm.lower() == normalize_answer(self.problems[self.problem_id]['answer'],
+                                                       self.problems[self.problem_id]['unit']).lower():
             _reward = 1
         else:
             _reward = -1
 
-        self.last_problem += 1
-        if self.last_problem == self._args.train_number:
+        self.problem_id += 1
+        if self.problem_id == self._args.train_number:
             done = True
         else:
             done = False
         info = {}
 
-        train_sample = create_example_from_pid(self.last_problem, self.problems, self._args, test=True)
+        train_sample = create_example_from_pid(self.train_pids[self.problem_id], self.problems, self._args, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
 
         return obs, _reward, done, info
