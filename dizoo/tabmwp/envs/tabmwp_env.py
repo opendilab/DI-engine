@@ -50,7 +50,7 @@ class TabMWP(BaseEnv):
         # print(f"shot_pids: {shot_pids}")
 
         # generate the prompt input
-        prompt = build_prompt(self.problems, shot_pids, self.problem_id, self._args)
+        prompt = build_prompt(self.problems, shot_pids, self.train_pids[self.problem_id], self._args)
 
         # get the output from GPT-3
         output = get_gpt3_output(prompt, self._args)
