@@ -1238,17 +1238,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'Pong':
+        elif env == 'PongNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='Pong-v4-C51',
+                    exp_name='PongNoFrameskip-v4-C51',
                     seed=0,
                     env=dict(
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=20,
-                        env_id='Pong-v4',
+                        env_id='PongNoFrameskip-v4',
                         #'ALE/Pong-v5' is available. But special setting is needed after gym make.
                         frame_stack=4,
                     ),
@@ -1292,17 +1292,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'SpaceInvaders':
+        elif env == 'SpaceInvadersNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='SpaceInvaders-v4-C51',
+                    exp_name='SpaceInvadersNoFrameskip-v4-C51',
                     seed=0,
                     env=dict(
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=10000000000,
-                        env_id='SpaceInvaders-v4',
+                        env_id='SpaceInvadersNoFrameskip-v4',
                         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
                         frame_stack=4,
                         manager=dict(shared_memory=False, )
@@ -1347,17 +1347,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'Qbert':
+        elif env == 'QbertNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='Qbert-v4-C51',
+                    exp_name='QbertNoFrameskip-v4-C51',
                     seed=0,
                     env=dict(
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=30000,
-                        env_id='Qbert-v4',
+                        env_id='QbertNoFrameskip-v4',
                         #'ALE/Qbert-v5' is available. But special setting is needed after gym make.
                         frame_stack=4
                     ),
@@ -1501,21 +1501,21 @@ def get_instance_env(env: str) -> BaseEnv:
             env_wrapper='mujoco_default',
         )
         return DingEnvWrapper(gym.make('Walker2d-v3'), cfg=cfg)
-    elif env == "SpaceInvaders":
+    elif env == "SpaceInvadersNoFrameskip":
         cfg = EasyDict({
-            'env_id': "SpaceInvaders-v4",
+            'env_id': "SpaceInvadersNoFrameskip-v4",
             'env_wrapper': 'atari_default',
         })
         return DingEnvWrapper(gym.make("SpaceInvadersNoFrameskip-v4"), cfg=cfg)
-    elif env == "Pong":
+    elif env == "PongNoFrameskip":
         cfg = EasyDict({
-            'env_id': "Pong-v4",
+            'env_id': "PongNoFrameskip-v4",
             'env_wrapper': 'atari_default',
         })
         return DingEnvWrapper(gym.make("PongNoFrameskip-v4"), cfg=cfg)
-    elif env == "Qbert":
+    elif env == "QbertNoFrameskip":
         cfg = EasyDict({
-            'env_id': "Qbert-v4",
+            'env_id': "QbertNoFrameskip-v4",
             'env_wrapper': 'atari_default',
         })
         return DingEnvWrapper(gym.make("QbertNoFrameskip-v4"), cfg=cfg)

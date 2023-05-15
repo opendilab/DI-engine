@@ -23,9 +23,9 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class C51Agent:
     supported_env_list = [
         'lunarlander_discrete',
-        'Pong',
-        'SpaceInvaders',
-        'Qbert',
+        'PongNoFrameskip',
+        'SpaceInvadersNoFrameskip',
+        'QbertNoFrameskip',
     ]
     algorithm = 'C51'
 
