@@ -36,7 +36,10 @@ class TabMWP(BaseEnv):
             self.cand_examples.append(example)
 
         self._init_flag = True
-        self.last_problem = 0   # TODO
+        self.last_problem = 0  
+        train_sample = create_example_from_pid(self.last_problem, self.problems, self._args, test=True)
+        obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
+        return obs
 
     def close(self):
         self._init_flag = False
