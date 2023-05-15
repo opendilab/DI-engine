@@ -142,6 +142,7 @@ class PromptPGPolicy(Policy):
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
             act = torch.stack(act, dim=0)
+        output['action'] = act
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -205,6 +206,7 @@ class PromptPGPolicy(Policy):
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
             act = torch.stack(act, dim=0)
+        output['action'] = act
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

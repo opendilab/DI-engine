@@ -22,6 +22,7 @@ tabmwp_prompt_pg_config = dict(
     ),
     policy=dict(
         cuda=True,
+        shot_number=2,
         model=dict(
             model_name="bert-base-uncased",
             add_linear=True,
