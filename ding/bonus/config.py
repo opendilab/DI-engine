@@ -411,35 +411,31 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     seed=0,
                     env=dict(
                         env_id='BipedalWalker-v3',
-                        collector_env_num=1,
+                        collector_env_num=8,
                         evaluator_env_num=5,
                         # (bool) Scale output action into legal range.
                         act_scale=True,
                         n_evaluator_episode=5,
-                        stop_value=300,
                         rew_clip=True,
-                        # The path to save the game replay
-                        replay_path=None,
                     ),
                     policy=dict(
                         cuda=True,
-                        priority=False,
+                        random_collect_size=10000,
                         model=dict(
                             obs_shape=24,
                             action_shape=4,
                             twin_critic=True,
+                            action_space='regression',
                             actor_head_hidden_size=400,
                             critic_head_hidden_size=400,
-                            action_space='regression',
                         ),
                         learn=dict(
-                            update_per_collect=4,
-                            discount_factor=0.99,
-                            batch_size=128,
-                            learning_rate_actor=0.001,
-                            learning_rate_critic=0.001,
+                            update_per_collect=64,
+                            batch_size=256,
+                            learning_rate_actor=0.0003,
+                            learning_rate_critic=0.0003,
                             target_theta=0.005,
-                            ignore_done=False,
+                            discount_factor=0.99,
                             actor_update_freq=2,
                             noise=True,
                             noise_sigma=0.2,
@@ -447,14 +443,14 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                                 min=-0.5,
                                 max=0.5,
                             ),
+                            learner=dict(
+                                hook=dict(log_show_after_iter=1000, )
+                            )
                         ),
                         collect=dict(
-                            n_sample=256,
-                            noise_sigma=0.1,
-                            collector=dict(collect_print_freq=1000, ),
+                            n_sample=64,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=100, ), ),
-                        other=dict(replay_buffer=dict(replay_buffer_size=50000, ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=300000, ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -743,42 +739,34 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         # (bool) Scale output action into legal range.
                         act_scale=True,
                         n_evaluator_episode=5,
-                        stop_value=300,
                         rew_clip=True,
-                        # The path to save the game replay
-                        replay_path=None,
                     ),
                     policy=dict(
-                        cuda=False,
-                        priority=False,
-                        random_collect_size=1200,
+                        cuda=True,
+                        random_collect_size=10000,
                         model=dict(
                             obs_shape=24,
                             action_shape=4,
                             twin_critic=False,
-                            actor_head_hidden_size=256,
-                            critic_head_hidden_size=256,
                             action_space='regression',
+                            actor_head_hidden_size=400,
+                            critic_head_hidden_size=400,
                         ),
                         learn=dict(
-                            update_per_collect=1,
-                            batch_size=128,
-                            learning_rate_actor=0.001,
-                            learning_rate_critic=0.001,
-                            ignore_done=True,
-                            actor_update_freq=1,
-                            noise=False,
+                            update_per_collect=64,
+                            batch_size=256,
+                            learning_rate_actor=0.0003,
+                            learning_rate_critic=0.0003,
+                            target_theta=0.005,
+                            discount_factor=0.99,
+                            learner=dict(
+                                hook=dict(log_show_after_iter=1000, )
+                            )
                         ),
                         collect=dict(
-                            n_sample=16,
-                            noise_sigma=0.1,
-                            collector=dict(collect_print_freq=1000, ),
+                            n_sample=64,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=100, )),
-                        other=dict(replay_buffer=dict(
-                            replay_buffer_size=20000,
-                            max_use=16,
-                        ), ),
+                        other=dict(replay_buffer=dict(replay_buffer_size=300000, ), ),
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -1193,6 +1181,157 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
+        elif env == 'Pong':
+            cfg.update(
+                dict(
+                    exp_name='Pong-v4-DQN',
+                    seed=0,
+                    env=dict(
+                        env_id='Pong-v4',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=20,
+                        fram_stack=4,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        priority=False,
+                        discount_factor=0.99,
+                        nstep=3,
+                        learn=dict(
+                            update_per_collect=10,
+                            batch_size=32,
+                            learning_rate=0.0001,
+                            # Frequency of target network update.
+                            target_update_freq=500,
+                        ),
+                        model=dict(
+                            obs_shape=[4, 84, 84],
+                            action_shape=6,
+                            encoder_hidden_size_list=[128, 128, 512],
+                        ),
+                        collect=dict(n_sample=96, ),
+                        other=dict(
+                            eps=dict(
+                                type='exp',
+                                start=1.,
+                                end=0.05,
+                                decay=250000,
+                            ),
+                            replay_buffer=dict(replay_buffer_size=100000, )
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'SpaceInvaders':
+            cfg.update(
+                dict(
+                    exp_name='SpaceInvaders-v4-DQN',
+                    seed=0,
+                    env=dict(
+                        env_id='SpaceInvadersNoFrameskip-v4',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        fram_stack=4,
+                        stop_value=2000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        priority=False,
+                        discount_factor=0.99,
+                        nstep=3,
+                        learn=dict(
+                            update_per_collect=10,
+                            batch_size=32,
+                            learning_rate=0.0001,
+                            # Frequency of target network update.
+                            target_update_freq=500,
+                            hook=dict(save_ckpt_after_iter=1000000, )
+                        ),
+                        model=dict(
+                            obs_shape=[4, 84, 84],
+                            action_shape=6,
+                            encoder_hidden_size_list=[128, 128, 512],
+                        ),
+                        collect=dict(n_sample=100, ),
+                        other=dict(
+                            eps=dict(
+                                type='exp',
+                                start=1.,
+                                end=0.05,
+                                decay=1000000,
+                            ),
+                            replay_buffer=dict(replay_buffer_size=400000, )
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'Qbert':
+            cfg.update(
+                dict(
+                    exp_name='Qbert-v4-DQN',
+                    seed=0,
+                    env=dict(
+                        env_id='Qbert-v4',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        fram_stack=4,
+                        stop_value=30000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        priority=False,
+                        discount_factor=0.99,
+                        nstep=3,
+                        learn=dict(
+                            update_per_collect=10,
+                            batch_size=32,
+                            learning_rate=0.0001,
+                            # Frequency of target network update.
+                            target_update_freq=500,
+                        ),
+                        model=dict(
+                            obs_shape=[4, 84, 84],
+                            action_shape=6,
+                            encoder_hidden_size_list=[128, 128, 512],
+                        ),
+                        collect=dict(n_sample=100, ),
+                        other=dict(
+                            eps=dict(
+                                type='exp',
+                                start=1.,
+                                end=0.05,
+                                decay=1000000,
+                            ),
+                            replay_buffer=dict(replay_buffer_size=400000, )
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'C51':
@@ -1250,17 +1389,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'Pong':
+        elif env == 'PongNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='Pong-v4-C51',
+                    exp_name='PongNoFrameskip-v4-C51',
                     seed=0,
                     env=dict(
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=20,
-                        env_id='Pong-v4',
+                        env_id='PongNoFrameskip-v4',
                         #'ALE/Pong-v5' is available. But special setting is needed after gym make.
                         frame_stack=4,
                     ),
@@ -1304,17 +1443,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'SpaceInvaders':
+        elif env == 'SpaceInvadersNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='SpaceInvaders-v4-C51',
+                    exp_name='SpaceInvadersNoFrameskip-v4-C51',
                     seed=0,
                     env=dict(
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=10000000000,
-                        env_id='SpaceInvaders-v4',
+                        env_id='SpaceInvadersNoFrameskip-v4',
                         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
                         frame_stack=4,
                         manager=dict(shared_memory=False, )
@@ -1359,17 +1498,17 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'Qbert':
+        elif env == 'QbertNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='Qbert-v4-C51',
+                    exp_name='QbertNoFrameskip-v4-C51',
                     seed=0,
                     env=dict(
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=30000,
-                        env_id='Qbert-v4',
+                        env_id='QbertNoFrameskip-v4',
                         #'ALE/Qbert-v5' is available. But special setting is needed after gym make.
                         frame_stack=4
                     ),
@@ -1513,24 +1652,24 @@ def get_instance_env(env: str) -> BaseEnv:
             env_wrapper='mujoco_default',
         )
         return DingEnvWrapper(gym.make('Walker2d-v3'), cfg=cfg)
-    elif env == "SpaceInvaders":
+    elif env == "SpaceInvadersNoFrameskip":
         cfg = EasyDict({
-            'env_id': "SpaceInvaders-v4",
+            'env_id': "SpaceInvadersNoFrameskip-v4",
             'env_wrapper': 'atari_default',
         })
-        return DingEnvWrapper(gym.make("SpaceInvaders-v4"), cfg=cfg)
-    elif env == "Pong":
+        return DingEnvWrapper(gym.make("SpaceInvadersNoFrameskip-v4"), cfg=cfg)
+    elif env == "PongNoFrameskip":
         cfg = EasyDict({
-            'env_id': "Pong-v4",
+            'env_id': "PongNoFrameskip-v4",
             'env_wrapper': 'atari_default',
         })
-        return DingEnvWrapper(gym.make("Pong-v4"), cfg=cfg)
-    elif env == "Qbert":
+        return DingEnvWrapper(gym.make("PongNoFrameskip-v4"), cfg=cfg)
+    elif env == "QbertNoFrameskip":
         cfg = EasyDict({
-            'env_id': "Qbert-v4",
+            'env_id': "QbertNoFrameskip-v4",
             'env_wrapper': 'atari_default',
         })
-        return DingEnvWrapper(gym.make("Qbert-v4"), cfg=cfg)
+        return DingEnvWrapper(gym.make("QbertNoFrameskip-v4"), cfg=cfg)
     elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling', 'atari_breakout', 'atari_spaceinvader',
                  'atari_gopher']:
         from dizoo.atari.envs.atari_env import AtariEnv
