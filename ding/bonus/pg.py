@@ -2,6 +2,7 @@ from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
 import os
+from functools import partial
 import torch
 import treetensor.torch as ttorch
 from ding.framework import task, OnlineRLContext
@@ -79,8 +80,8 @@ class PGAgent:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
         # define env and policy
-        collector_env = self._setup_env_manager(collector_env_num, context, debug)
-        evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug)
+        collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
+        evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
@@ -169,7 +170,7 @@ class PGAgent:
         if n_episode is not None:
             raise NotImplementedError
         # define env and policy
-        env = self._setup_env_manager(env_num, context, debug)
+        env = self._setup_env_manager(env_num, context, debug, 'collector')
 
         if save_data_path is None:
             save_data_path = os.path.join(self.exp_name, 'demo_data')
@@ -197,7 +198,7 @@ class PGAgent:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
-        env = self._setup_env_manager(env_num, context, debug)
+        env = self._setup_env_manager(env_num, context, debug, 'evaluator')
 
         evaluate_cfg = self.cfg
         evaluate_cfg.env.n_evaluator_episode = n_evaluator_episode
@@ -209,7 +210,14 @@ class PGAgent:
 
         return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
-    def _setup_env_manager(self, env_num: int, context: Optional[str] = None, debug: bool = False) -> BaseEnvManagerV2:
+    def _setup_env_manager(
+            self,
+            env_num: int,
+            context: Optional[str] = None,
+            debug: bool = False,
+            caller: str = 'collector'
+    ) -> BaseEnvManagerV2:
+        assert caller in ['evaluator', 'collector']
         if debug:
             env_cls = BaseEnvManagerV2
             manager_cfg = env_cls.default_config()
@@ -218,7 +226,7 @@ class PGAgent:
             manager_cfg = env_cls.default_config()
             if context is not None:
                 manager_cfg.context = context
-        return env_cls([self.env.clone for _ in range(env_num)], manager_cfg)
+        return env_cls([partial(self.env.clone, caller) for _ in range(env_num)], manager_cfg)
 
     @property
     def best(self):
