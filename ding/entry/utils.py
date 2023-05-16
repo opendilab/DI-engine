@@ -59,7 +59,9 @@ def random_collect(
     if policy_cfg.collect.collector.type == 'episode':
         new_data = collector.collect(n_episode=policy_cfg.random_collect_size, policy_kwargs=collect_kwargs)
     else:
-        new_data = collector.collect(n_sample=policy_cfg.random_collect_size, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(
+            n_sample=policy_cfg.random_collect_size, record_random_collect=False, policy_kwargs=collect_kwargs
+        )  # 'record_random_collect=False' means random collect without output log
     if postprocess_data_fn is not None:
         new_data = postprocess_data_fn(new_data)
     replay_buffer.push(new_data, cur_collector_envstep=0)
