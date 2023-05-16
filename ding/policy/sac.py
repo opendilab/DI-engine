@@ -317,6 +317,9 @@ class SACDiscretePolicy(Policy):
         # target update
         self._target_model.update(self._learn_model.state_dict())
         return {
+            'total_loss': loss_dict['total_loss'].item(),
+            'policy_loss': loss_dict['policy_loss'].item(),
+            'critic_loss': loss_dict['critic_loss'].item(),
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
             'priority': td_error_per_sample.abs().tolist(),
