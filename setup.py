@@ -52,7 +52,7 @@ setup(
     install_requires=[
         'setuptools<=66.1.1',
         'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
-        'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        #'torch>=1.1.0',
         'numpy>=1.18.0',
         'pandas',
         'tensorboardX>=2.2',
@@ -78,7 +78,7 @@ setup(
         'mpire>=2.3.5',
         'pynng',
         'redis',
-        'pettingzoo',
+        'pettingzoo<=1.22.3',
         'DI-treetensor>=0.3.0',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
