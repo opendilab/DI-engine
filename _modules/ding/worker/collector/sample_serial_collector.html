@@ -494,6 +494,7 @@
             <span class="n">n_sample</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
             <span class="n">drop_extra</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">record_random_collect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
             <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">level_seeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
@@ -504,6 +505,7 @@
 <span class="sd">            - n_sample (:obj:`int`): The number of collecting data sample.</span>
 <span class="sd">            - train_iter (:obj:`int`): The number of training iteration when calling collect method.</span>
 <span class="sd">            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.</span>
+<span class="sd">            - record_random_collect (:obj:`bool`) :Whether to output logs of random collect.</span>
 <span class="sd">            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.</span>
 <span class="sd">            - level_seeds (:obj:`dict`): Used in PLR, represents the seed of the environment that \</span>
 <span class="sd">                generate the data</span>
@@ -608,7 +610,10 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">env_id</span><span class="p">])</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_reset_stat</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
         <span class="c1"># log</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_output_log</span><span class="p">(</span><span class="n">train_iter</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">record_random_collect</span><span class="p">:</span>  <span class="c1"># default is true, but when random collect, record_random_collect is False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_log</span><span class="p">(</span><span class="n">train_iter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="c1"># on-policy reset</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_policy</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">):</span>
