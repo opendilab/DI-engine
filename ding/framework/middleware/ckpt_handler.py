@@ -22,7 +22,16 @@ class CkptSaver:
             return task.void()
         return super(CkptSaver, cls).__new__(cls)
 
-    def __init__(self, policy: Policy, save_dir: str, train_freq: Optional[int] = None, save_finish: bool = True):
+    def __init__(
+        self,
+        policy: Policy,
+        save_dir: str,
+        train_freq: Optional[int] = None,
+        save_finish: bool = True,
+        retry: int = 14400,
+        skip_when_disk_full: bool = True,
+        disk_avail_storage_preserve_percent: float = 90.0
+    ):
         """
         Overview:
             Initialize the `CkptSaver`.
@@ -31,6 +40,9 @@ class CkptSaver:
             - save_dir (:obj:`str`): The directory path to save ckpt.
             - train_freq (:obj:`int`): Number of training iterations between each saving checkpoint data.
             - save_finish (:obj:`bool`): Whether save final ckpt when ``task.finish = True``.
+            - retry (:obj:`int`): Number of retry if the disk is full, wait 60s every retry.
+            - skip_when_disk_full (:obj:`bool`): skip saving when disk is full.
+            - disk_avail_storage_preserve_percent (:obj:`float`): disk available storage preservation percentage
         """
         self.policy = policy
         self.train_freq = train_freq
@@ -40,6 +52,9 @@ class CkptSaver:
         self.last_save_iter = 0
         self.max_eval_value = -np.inf
         self.save_finish = save_finish
+        self.retry = retry
+        self.skip_when_disk_full = skip_when_disk_full
+        self.disk_avail_storage_preserve_percent = disk_avail_storage_preserve_percent
 
     def __call__(self, ctx: Union["OnlineRLContext", "OfflineRLContext"]) -> None:
         """
@@ -57,15 +72,22 @@ class CkptSaver:
         if self.train_freq:
             if ctx.train_iter == 0 or ctx.train_iter - self.last_save_iter >= self.train_freq:
                 save_file(
-                    "{}/iteration_{}.pth.tar".format(self.prefix, ctx.train_iter), self.policy.learn_mode.state_dict()
+                    "{}/iteration_{}.pth.tar".format(self.prefix, ctx.train_iter),
+                    self.policy.learn_mode.state_dict(),
+                    skip_when_disk_full=self.skip_when_disk_full,
+                    disk_avail_storage_preserve_percent=self.disk_avail_storage_preserve_percent
                 )
                 self.last_save_iter = ctx.train_iter
 
         # best episode return so far
         if ctx.eval_value is not None and ctx.eval_value > self.max_eval_value:
-            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.eval_mode.state_dict())
+            save_file(
+                "{}/eval.pth.tar".format(self.prefix),
+                self.policy.eval_mode.state_dict(),
+                skip_when_disk_full=self.skip_when_disk_full
+            )
             self.max_eval_value = ctx.eval_value
 
         # finish
         if task.finish and self.save_finish:
-            save_file("{}/final.pth.tar".format(self.prefix), self.policy.learn_mode.state_dict())
+            save_file("{}/final.pth.tar".format(self.prefix), self.policy.learn_mode.state_dict(), retry=self.retry)

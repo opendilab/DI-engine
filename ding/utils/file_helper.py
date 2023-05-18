@@ -7,7 +7,8 @@ import shutil
 import tempfile
 from functools import lru_cache
 from typing import Union
-
+import psutil
+import pathlib
 import torch
 
 from .import_helper import try_import_ceph, try_import_redis, try_import_rediscluster, try_import_mc
@@ -297,33 +298,67 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
     return data
 
 
-def torch_save(data: object, path: str) -> None:
+def torch_save(
+        data: object,
+        path: str,
+        retry: int = 0,
+        skip_when_disk_full: bool = False,
+        retry_time_interval: int = 60
+) -> None:
     r"""
     Overview:
         torch save data to file of path, and will wait if disk is full.
     Arguments:
         - data (:obj:`object`): The data to save
         - path (:obj:`str`): The path of file to save to
+        - retry (:obj:`int`): Number of retry if the disk is full
+        - skip_when_disk_full (:obj:`bool`): skip when disk is full
+        - retry_time_interval (:obj:`int`): time to wait if retry in second
     """
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # save the data to the temporary directory
-        tmp_path = f"{tmpdir}/data.pt"
-        torch.save(data, tmp_path)
 
-        # move the file to the desired path
-        while True:
-            try:
-                shutil.move(tmp_path, path)
-                break  # if successful, break out of the loop
-            except OSError as e:
-                if e.errno == 28:  # "No space left on device" error
-                    print("Disk full, waiting for space to be released...")
-                    time.sleep(60)  # wait for a minute and try again
-                else:
-                    raise e  # re-raise any other IOError exceptions
+    if retry <= 0 and not skip_when_disk_full:
+        torch.save(data, path)
+    else:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # save the data to the temporary directory
+            tmp_path = f"{tmpdir}/data.pt"
+            torch.save(data, tmp_path)
+
+            # move the file to the desired path
+            while retry >= 0:
+                try:
+                    shutil.move(tmp_path, path)
+                    break  # if successful, break out of the loop
+                except OSError as e:
+                    if e.errno == 28:  # "No space left on device" error
+                        if retry >= 1:
+                            print("Disk full, waiting for space to be released...")
+                            time.sleep(retry_time_interval)  # wait for a minute and try again
+                        elif not skip_when_disk_full:
+                            raise e  # re-raise any other OSError exceptions
+                        retry -= 1
+                    else:
+                        raise e  # re-raise any other OSError exceptions
 
 
-def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> None:
+def get_disk_usage_percentage(path):
+    path = pathlib.Path(path)
+    while not os.path.exists(path):
+        path = pathlib.Path(os.path.dirname(path))
+    usage = psutil.disk_usage(path)
+    available_percentage = usage.percent
+    return available_percentage
+
+
+def save_file(
+        path: str,
+        data: object,
+        fs_type: Union[None, str] = None,
+        use_lock: bool = False,
+        retry: int = 0,
+        skip_when_disk_full: bool = False,
+        disk_avail_storage_preserve_percent: float = 100.0
+) -> None:
     r"""
     Overview:
         Save data to file of path
@@ -332,6 +367,9 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
         - data (:obj:`object`): The data to save
         - fs_type (:obj:`str` or :obj:`None`): The file system type, support ``{'normal', 'ceph'}``
         - use_lock (:obj:`bool`): Whether ``use_lock`` is in local normal file system
+        - retry (:obj:`int`): Number of retry if the disk is full
+        - skip_when_disk_full (:obj:`bool`): skip when disk is full
+        - disk_avail_storage_preserve_percent (:obj:`float`): disk available storage preservation percentage to prevent disk from being full
     """
     if fs_type is None:
         if path.lower().startswith('s3'):
@@ -344,13 +382,16 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
     if fs_type == 'ceph':
         save_file_ceph(path, data)
     elif fs_type == 'normal':
-        if use_lock:
-            with get_file_lock(path, 'write'):
-                torch_save(data, path)
+        if get_disk_usage_percentage(path) <= disk_avail_storage_preserve_percent:
+            if use_lock:
+                with get_file_lock(path, 'write'):
+                    torch_save(data, path, retry, skip_when_disk_full)
+            else:
+                torch_save(data, path, retry, skip_when_disk_full)
         else:
-            torch_save(data, path)
+            print(f"disk storage usage is large than {disk_avail_storage_preserve_percent}, skip the file saving.")
     elif fs_type == 'mc':
-        torch_save(data, path)
+        torch.save(data, path)
         read_from_mc(path, flush=True)
 
 

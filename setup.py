@@ -89,6 +89,7 @@ setup(
         'scikit-learn',
         'hickle',
         'gymnasium',
+        'psutil',
     ],
     extras_require={
         'test': [

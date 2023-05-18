@@ -166,7 +166,7 @@ class SaveCkptHook(LearnerHook):
             path = os.path.join(dirname, ckpt_name)
             state_dict = engine.policy.state_dict()
             state_dict.update({'last_iter': engine.last_iter.val})
-            save_file(path, state_dict)
+            save_file(path, state_dict, skip_when_disk_full=True)
             engine.info('{} save ckpt in {}'.format(engine.instance_name, path))
 
 
