@@ -3,7 +3,7 @@ import gym
 from ding.utils import ENV_REGISTRY
 
 from .utils import *
-from ding.envs import BaseEnv
+from ding.envs import BaseEnv, BaseEnvTimestep
 import openai
 
 
@@ -79,7 +79,7 @@ class TabMWP(BaseEnv):
         train_sample = create_example_from_pid(pid, self.problems, self._args, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
 
-        return obs, _reward, done, info
+        return BaseEnvTimestep(obs, _reward, done, info)
 
     def __repr__(self) -> str:
         return "DI-engine tabmwp Env"
