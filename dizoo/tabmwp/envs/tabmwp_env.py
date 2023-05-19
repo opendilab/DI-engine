@@ -49,20 +49,22 @@ class TabMWP(BaseEnv):
         shot_pids = [self.cand_pids[cid] for cid in cids]
         # print(f"shot_pids: {shot_pids}")
 
+        pid = self.train_pids[self.problem_id]
+
         # generate the prompt input
-        prompt = build_prompt(self.problems, shot_pids, self.train_pids[self.problem_id], self._args)
+        prompt = build_prompt(self.problems, shot_pids, pid, self._args)
 
         # get the output from GPT-3
         output = get_gpt3_output(prompt, self._args)
 
         # extract the prediction from the output
-        prediction = extract_prediction(output, self.problems[self.problem_id]['choices'], self._args.option_inds)
+        prediction = extract_prediction(output, pid['choices'], self._args.option_inds)
 
         # normalize the number in the text
-        prediction_norm = normalize_answer(prediction, self.problems[self.problem_id]['unit'])
+        prediction_norm = normalize_answer(prediction, pid['unit'])
 
-        if prediction_norm.lower() == normalize_answer(self.problems[self.problem_id]['answer'],
-                                                       self.problems[self.problem_id]['unit']).lower():
+        if prediction_norm.lower() == normalize_answer(pid['answer'],
+                                                       pid['unit']).lower():
             _reward = 1
         else:
             _reward = -1
@@ -74,7 +76,7 @@ class TabMWP(BaseEnv):
             done = False
         info = {}
 
-        train_sample = create_example_from_pid(self.train_pids[self.problem_id], self.problems, self._args, test=True)
+        train_sample = create_example_from_pid(pid, self.problems, self._args, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
 
         return obs, _reward, done, info
