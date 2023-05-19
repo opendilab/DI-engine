@@ -94,6 +94,8 @@ class PromptPGPolicy(Policy):
                 cand_samples[ii] = cand_samples[ii][0]
             output = self._learn_model.forward(train_samples, cand_samples)
             return_ = batch['return']
+            if self._cuda:
+                return_ = return_.to(self._device)
 
             # calculate PG loss
             for ii in range(self._cfg.shot_number):

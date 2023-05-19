@@ -23,7 +23,21 @@ class TabMWP(BaseEnv):
         self.action_space = None
         self.reward_space = gym.spaces.Box(
                 low=-1, high=1, shape=(1, ), dtype=np.float32
-            )
+        )
+        assert self._args.engine in ['text-davinci-002', 'glm-10B']
+        if self._args.engine == 'glm-10B':
+            from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+            self.tokenizer = AutoTokenizer.from_pretrained("BAAI/glm-10b-chinese", trust_remote_code=True)
+            model = AutoModelForSeq2SeqLM.from_pretrained("BAAI/glm-10b-chinese", trust_remote_code=True)
+            self.model = model.half().cuda()
+
+    def get_output(self, inp):
+        inputs = self.tokenizer(inp, return_tensors="pt")
+        inputs = self.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
+        inputs = {key: value.cuda() for key, value in inputs.items()}
+        outputs = self.model.generate(**inputs, max_length=512, eos_token_id=self.tokenizer.eop_token_id)
+        outputs = self.tokenizer.decode(outputs[0].tolist())
+        return outputs
 
     def seed(self, seed, dynamic_seed=False):
         self._args.seed = seed
@@ -54,8 +68,11 @@ class TabMWP(BaseEnv):
         # generate the prompt input
         prompt = build_prompt(self.problems, shot_pids, pid, self._args)
 
-        # get the output from GPT-3
-        output = get_gpt3_output(prompt, self._args)
+        # get the output from LM
+        if self._args.engine == 'text-davinci-002':
+            output = get_gpt3_output(prompt, self._args)
+        else:
+            output = self.get_output(prompt)
 
         # extract the prediction from the output
         prediction = extract_prediction(output, self.problems[pid]['choices'], self._args.option_inds)
