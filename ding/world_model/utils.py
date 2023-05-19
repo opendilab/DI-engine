@@ -102,8 +102,8 @@ class TwoHotDistSymlog():
 
     def mean(self):
         print("mean called")
-        _mode = self.probs * self.buckets
-        return symexp(torch.sum(_mode, dim=-1, keepdim=True))
+        _mean = self.probs * self.buckets
+        return symexp(torch.sum(_mean, dim=-1, keepdim=True))
 
     def mode(self):
         _mode = self.probs * self.buckets
