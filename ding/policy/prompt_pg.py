@@ -84,7 +84,8 @@ class PromptPGPolicy(Policy):
         self._model.train()
 
         return_infos = []
-        for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+        for i in range(0, len(data), self._cfg.learn.batch_size):
+            batch = default_collate(data[i: i+self._cfg.learn.batch_size])
             # forward
             train_samples, cand_samples = batch["train_sample"], batch["candidate_samples"]
             for ii in range(len(cand_samples)):
@@ -176,8 +177,6 @@ class PromptPGPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        assert data[-1]['done'] is True, "PG needs a complete epsiode"
-
         if self._cfg.learn.ignore_done:
             raise NotImplementedError
 
