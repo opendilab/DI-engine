@@ -27,8 +27,8 @@ class TabMWP(BaseEnv):
         assert self._args.engine in ['text-davinci-002', 'glm-10B']
         if self._args.engine == 'glm-10B':
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            self.tokenizer = AutoTokenizer.from_pretrained("BAAI/glm-10b-chinese", trust_remote_code=True)
-            model = AutoModelForSeq2SeqLM.from_pretrained("BAAI/glm-10b-chinese", trust_remote_code=True)
+            self.tokenizer = AutoTokenizer.from_pretrained("THUDM//glm-10b-chinese", trust_remote_code=True)
+            model = AutoModelForSeq2SeqLM.from_pretrained("THUDM//glm-10b-chinese", trust_remote_code=True)
             self.model = model.half().cuda()
 
     def get_output(self, inp):
