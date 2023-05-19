@@ -133,7 +133,7 @@ class PromptPGPolicy(Policy):
         with torch.no_grad():
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
-            output = self._model.forward(data['train_sample'], data['candidate_samples'])
+            output = self._model.forward(data['obs']['train_sample'], data['obs']['candidate_samples'])
             act = []
             mask = torch.zeros_like(output['logit'])
             for ii in range(self._cfg.shot_number):
