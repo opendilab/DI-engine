@@ -58,13 +58,13 @@ class TabMWP(BaseEnv):
         output = get_gpt3_output(prompt, self._args)
 
         # extract the prediction from the output
-        prediction = extract_prediction(output, pid['choices'], self._args.option_inds)
+        prediction = extract_prediction(output, self.problems[pid]['choices'], self._args.option_inds)
 
         # normalize the number in the text
-        prediction_norm = normalize_answer(prediction, pid['unit'])
+        prediction_norm = normalize_answer(prediction, self.problems[pid]['unit'])
 
-        if prediction_norm.lower() == normalize_answer(pid['answer'],
-                                                       pid['unit']).lower():
+        if prediction_norm.lower() == normalize_answer(self.problems[pid]['answer'],
+                                                       self.problems[pid]['unit']).lower():
             _reward = 1
         else:
             _reward = -1
