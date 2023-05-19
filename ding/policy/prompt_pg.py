@@ -82,12 +82,14 @@ class PromptPGPolicy(Policy):
         """
         print(data)
         self._model.train()
+        if self._cuda:
+            data = to_device(data, self._device)
 
         return_infos = []
         for i in range(0, len(data), self._cfg.learn.batch_size):
             batch = default_collate(data[i: i+self._cfg.learn.batch_size])
             # forward
-            train_samples, cand_samples = batch["train_sample"], batch["candidate_samples"]
+            train_samples, cand_samples = batch["obs"]["train_sample"], batch["obs"]["candidate_samples"]
             for ii in range(len(cand_samples)):
                 cand_samples[ii] = cand_samples[ii][0]
             output = self._learn_model.forward(train_samples, cand_samples)
@@ -133,7 +135,7 @@ class PromptPGPolicy(Policy):
         with torch.no_grad():
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
-            output = self._model.forward(data['obs']['train_sample'], data['obs']['candidate_samples'])
+            output = self._model.forward(data['train_sample'], data['candidate_samples'])
             act = []
             mask = torch.zeros_like(output['logit'])
             for ii in range(self._cfg.shot_number):
