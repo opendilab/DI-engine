@@ -10,6 +10,7 @@ import openai
 @ENV_REGISTRY.register('tabmwp')
 class TabMWP(BaseEnv):
     model = None
+    tokenizer = None
     def __init__(self, cfg):
         # args contains: cand_number, train_number, engine, temperature,
         # max_tokens, top_p, frequency_penalty, presence_penalty, api_key
@@ -28,16 +29,16 @@ class TabMWP(BaseEnv):
         assert self._args.engine in ['text-davinci-002', 'glm-10B']
         if self._args.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            self.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
+            TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
             model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
             TabMWP.model = model.half().cuda()
 
     def get_output(self, inp):
-        inputs = self.tokenizer(inp, return_tensors="pt")
-        inputs = self.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
+        inputs = TabMWP.tokenizer(inp, return_tensors="pt")
+        inputs = TabMWP.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
         inputs = {key: value.cuda() for key, value in inputs.items()}
-        outputs = self.model.generate(**inputs, max_length=512, eos_token_id=self.tokenizer.eop_token_id)
-        outputs = self.tokenizer.decode(outputs[0].tolist())
+        outputs = TabMWP.model.generate(**inputs, max_length=512, eos_token_id=TabMWP.tokenizer.eop_token_id)
+        outputs = TabMWP.tokenizer.decode(outputs[0].tolist())
         return outputs
 
     def seed(self, seed, dynamic_seed=False):
