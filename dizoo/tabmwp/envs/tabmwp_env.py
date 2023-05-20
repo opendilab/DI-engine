@@ -9,6 +9,7 @@ import openai
 
 @ENV_REGISTRY.register('tabmwp')
 class TabMWP(BaseEnv):
+    model = None
     def __init__(self, cfg):
         # args contains: cand_number, train_number, engine, temperature,
         # max_tokens, top_p, frequency_penalty, presence_penalty, api_key
@@ -25,11 +26,11 @@ class TabMWP(BaseEnv):
                 low=-1, high=1, shape=(1, ), dtype=np.float32
         )
         assert self._args.engine in ['text-davinci-002', 'glm-10B']
-        if self._args.engine == 'glm-10B':
+        if self._args.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            self.tokenizer = AutoTokenizer.from_pretrained("THUDM//glm-10b-chinese", trust_remote_code=True)
-            model = AutoModelForSeq2SeqLM.from_pretrained("THUDM//glm-10b-chinese", trust_remote_code=True)
-            self.model = model.half().cuda()
+            self.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
+            model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
+            TabMWP.model = model.half().cuda()
 
     def get_output(self, inp):
         inputs = self.tokenizer(inp, return_tensors="pt")
