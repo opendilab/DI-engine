@@ -39,7 +39,11 @@ class TabMWP(BaseEnv):
         inputs = {key: value.cuda() for key, value in inputs.items()}
         outputs = TabMWP.model.generate(**inputs, max_length=512, eos_token_id=TabMWP.tokenizer.eop_token_id)
         outputs = TabMWP.tokenizer.decode(outputs[0].tolist())
-        return outputs
+
+        t0 = outputs.find('<|startofpiece|>') + 16
+        t1 = outputs.find('<|endofpiece|>')
+
+        return outputs[t0:t1]
 
     def seed(self, seed, dynamic_seed=False):
         self._args.seed = seed
