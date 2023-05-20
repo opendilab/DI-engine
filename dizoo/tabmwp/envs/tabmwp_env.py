@@ -34,10 +34,11 @@ class TabMWP(BaseEnv):
             TabMWP.model = model.half().cuda()
 
     def get_output(self, inp):
-        inputs = TabMWP.tokenizer(inp, return_tensors="pt")
+        inputs = TabMWP.tokenizer(inp + " [sMASK]", return_tensors="pt")
         inputs = TabMWP.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
         inputs = {key: value.cuda() for key, value in inputs.items()}
-        outputs = TabMWP.model.generate(**inputs, max_length=512, eos_token_id=TabMWP.tokenizer.eop_token_id)
+        outputs = TabMWP.model.generate(**inputs, max_length=512, eos_token_id=TabMWP.tokenizer.eop_token_id,
+                                        pad_token_id=TabMWP.tokenizer.eos_token_id)
         outputs = TabMWP.tokenizer.decode(outputs[0].tolist())
 
         t0 = outputs.find('<|startofpiece|>') + 16
