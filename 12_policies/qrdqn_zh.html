@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>MDQN &mdash; DI-engine 0.1.0 documentation</title>
+  <title>QRDQN &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="C51" href="c51_zh.html" />
-  <link rel="prev" title="DQN" href="dqn_zh.html" />
+  <link rel="next" title="ICM" href="icm_zh.html" />
+  <link rel="prev" title="C51" href="c51_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -268,13 +268,13 @@
         
           <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
         
-      <li>MDQN</li>
+      <li>QRDQN</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/12_policies/mdqn_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/12_policies/qrdqn_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -298,55 +298,77 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="mdqn">
-<h1>MDQN<a class="headerlink" href="#mdqn" title="Permalink to this headline">¶</a></h1>
+  <section id="qrdqn">
+<h1>QRDQN<a class="headerlink" href="#qrdqn" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>MDQN 是在 <a class="reference external" href="https://arxiv.org/abs/2007.14430">Munchausen Reinforcement Learning</a> 中提出的。 作者将这种通用方法称为 “Munchausen Reinforcement Learning”
-(M-RL)， 以纪念 Raspe 的《吹牛大王历险记》中的一段著名描写， 即 Baron 通过拉自己的头发从沼泽中脱身的情节。
-从实际使用的角度来看， MDQN 和 DQN 之间的关键区别是 Soft-DQN (传统 DQN 算法的扩展)的即时奖励中添加了一个缩放的 log-policy 。</p>
+<p>QR (Quantile Regression, 分位数回归) DQN 在 <a class="reference external" href="https://arxiv.org/pdf/1710.10044">Distributional Reinforcement Learning with Quantile Regression</a>  中被提出，它继承了学习 q 值分布的思想。与使用离散原子来近似分布密度函数不同， QRDQN 直接回归 q 值的一组离散分位数。</p>
 </section>
 <section id="id2">
 <h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<p>1。 MDQN 是一种 <strong>无模型 (model-free)</strong> 且 <strong>基于值函数 (value-based)</strong> 的强化学习算法。</p>
-<p>2。 MDQN 只支持 <strong>离散 (discrete)</strong>  动作空间。</p>
-<p>3。 MDQN 是一个 <strong>异策略 (off-policy)</strong> 算法。</p>
-<p>4。 MDQN 使用 <strong>epsilon贪心 (eps-greedy)</strong> 来做探索 (exploration)。</p>
-<p>5。 MDQN 增加了 <strong>动作间隔 (action gap)</strong> ， 并具有隐式的 <strong>KL正则化 (KL regularization)</strong> 。</p>
+<ol class="arabic simple">
+<li><p>QRDQN 是一种 <strong>无模型（model-free）</strong> 和 <strong>基于值（value-based）</strong> 的强化学习算法。</p></li>
+<li><p>QRDQN 仅支持 <strong>离散动作空间</strong> 。</p></li>
+<li><p>QRDQN 是一种 <strong>异策略（off-policy）</strong> 算法。</p></li>
+<li><p>通常情况下， QRDQN 使用 <strong>eps-greedy</strong> 或 <strong>多项式采样</strong> 进行探索。</p></li>
+<li><p>QRDQN 可以与循环神经网络 (RNN) 结合使用。</p></li>
+</ol>
 </section>
 <section id="id3">
 <h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>MDQN 中使用的目标 Q 值 (target Q value) 是:</p>
+<p>C51 (Categorical 51) 使用N个固定位置来近似其概率分布，并调整它们的概率，而 QRDQN 将固定的均匀概率分配给N个可调整的位置。基于这一点， QRDQN 使用分位数回归来随机调整分布的位置，以使其与目标分布的 Wasserstein 距离最小化。</p>
+<p>分位数回归损失是一种非对称凸损失函数，用于量化回归问题。对于给定的分位数 <span class="math notranslate nohighlight">\(\tau \in [0, 1]\)</span> ，该损失函数以权重 <span class="math notranslate nohighlight">\(\tau\)</span> 惩罚过估计误差，以权重 <span class="math notranslate nohighlight">\(1−\tau\)</span> 惩罚欠估计误差.
+对于一个分布 <span class="math notranslate nohighlight">\(Z\)</span> 和给定的分位数 <span class="math notranslate nohighlight">\(\tau\)</span>，分位数函数 <span class="math notranslate nohighlight">\(F_Z^{−1}(\tau)\)</span> 的值可以被描述为分位数回归损失的最小化器：</p>
 <div class="math notranslate nohighlight">
-\[\hat{q}_{\mathrm{m} \text {-dqn }}\left(r_t, s_{t+1}\right)=r_t+\alpha \tau \ln \pi_{\bar{\theta}}\left(a_t \mid s_t\right)+\gamma \sum_{a^{\prime} \in A} \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\left(q_{\bar{\theta}}\left(s_{t+1}, a^{\prime}\right)-\tau \ln \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\right)\]</div>
-<p>我们使用以下公式计算 log-policy 的值：  <span class="math notranslate nohighlight">\(\alpha \tau \ln \pi_{\bar{\theta}}\left(a_t \mid s_t\right)\)</span></p>
+\[\begin{split}\begin{array}{r}
+\mathcal{L}_{\mathrm{QR}}^{\tau}(\theta):=\mathbb{E}_{\hat{z} \sim Z}\left[\rho_{\tau}(\hat{Z}-\theta)\right], \text { where } \\
+\rho_{\tau}(u)=u\left(\tau-\delta_{\{u&lt;0\}}\right), \forall u \in \mathbb{R}
+\end{array}\end{split}\]</div>
+<p>上述提到的损失在零点处不平滑，这可能会限制在使用非线性函数逼近时的性能。因此，在 QRDQN 的 Bellman 更新过程中应用了一种修改后的分位数 Huber 损失， 称为 <code class="docutils literal notranslate"><span class="pre">quantile</span> <span class="pre">huber</span> <span class="pre">loss</span></code> 损失(即伪代码中的方程式10)。</p>
 <div class="math notranslate nohighlight">
-\[\tau \ln \pi_{k}=q_k-v_k-\tau \ln \left\langle 1, \exp \frac{q_k-v_k}{\tau}\right\rangle\]</div>
-<p>其中  <span class="math notranslate nohighlight">\(q_k\)</span>  在我们的代码中表示为  <cite>target_q_current</cite> 。 对于最大熵部分  <span class="math notranslate nohighlight">\(\tau \ln \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\)</span> 我们使用相同的公式进行计算，其中  <span class="math notranslate nohighlight">\(q_{k+1}\)</span> 在我们的代码中表示为 <cite>target_q</cite> 。</p>
-<p>我们将 <span class="math notranslate nohighlight">\(\tau \ln \pi(a \mid s)\)</span> 替换为 <span class="math notranslate nohighlight">\([\tau \ln \pi(a \mid s)]_{l_0}^0\)</span> 因为对数策略项 (log-policy term) 是无界的， 如果策略变得过于接近确定性策略 (deterministic policy) ，可能会导致数值性问题 (numerical issues) 。</p>
-<p>同时还将 <span class="math notranslate nohighlight">\(\pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\)</span> 替换为 <span class="math notranslate nohighlight">\(softmax(q-v)\)</span> ，因为这是在官方实现中使用的方法，但他们并未在论文中提及。</p>
-<p>我们使用上述改动后的配置在 asterix 进行测试，得到了与原论文相同的结果， 即MDQN可以增加动作间隙 (action gap) 。</p>
-<img alt="../_images/action_gap.png" class="align-center" src="../_images/action_gap.png" />
+\[\rho^{\kappa}_{\tau}(u)=L_{\kappa}(u)\lvert \tau-\delta_{\{u&lt;0\}} \rvert\]</div>
+<p>在这里 <span class="math notranslate nohighlight">\(L_{\kappa}\)</span> 是 Huber 损失.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>与 DQN 相比， QRDQN 具有以下区别:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>神经网络架构: QRDQN 的输出层大小为M x N，其中M是离散动作空间的大小，N是一个超参数，表示分位数目标的数量。</p></li>
+<li><p>使用分位数 Huber 损失替代 DQN 损失函数。</p></li>
+<li><p>在原始的 QRDQN 论文中，将 RMSProp 优化器替换为 Adam 优化器。而在 DI-engine 中，我们始终使用 Adam 优化器。</p></li>
+</ol>
+</div></blockquote>
+</div>
 </section>
 <section id="id4">
 <h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<img alt="../_images/mdqn.png" class="align-center" src="../_images/mdqn.png" />
+<a class="reference internal image-reference" href="../_images/QRDQN.png"><img alt="../_images/QRDQN.png" class="align-center" src="../_images/QRDQN.png" style="width: 645.0px; height: 308.5px;" /></a>
 </section>
 <section id="id5">
 <h2>扩展<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>TBD</p></li>
+<li><p>QRDQN可以与以下技术相结合使用:</p>
+<ul>
+<li><p>优先经验回放 (Prioritized Experience Replay)</p></li>
+<li><p>多步时序差分 (TD)损失</p></li>
+<li><p>双目标网络 (Double Target Network)</p></li>
+<li><p>循环神经网络 (RNN)</p></li>
+</ul>
+</li>
 </ul>
 </section>
 <section id="id6">
 <h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<p>MDQNPolicy 的默认配置如下：</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>在我们的基准结果中， QRDQN 使用与 DQN 相同的超参数，除了 QRDQN 的专属超参数——“分位数的数量” ，该超参数经验性地设置为32。</p>
+</div>
+<p>QRDQN 的默认配置可以如下定义:</p>
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.mdqn.</span></span><span class="sig-name descname"><span class="pre">MDQNPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/mdqn.html#MDQNPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.qrdqn.</span></span><span class="sig-name descname"><span class="pre">QRDQNPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/qrdqn.html#QRDQNPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Policy class of Munchausen DQN algorithm, extended by auxiliary objectives.
-Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430">https://arxiv.org/abs/2007.14430</a></p>
+<dt>Overview:</dt><dd><p>Policy class of QRDQN algorithm.</p>
 </dd>
 <dt>Config:</dt><dd><table class="docutils align-default">
 <colgroup>
@@ -370,14 +392,14 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 <tr class="row-even"><td><p>1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
 <td><p>str</p></td>
-<td><p>mdqn</p></td>
+<td><p>qrdqn</p></td>
 <td><div class="line-block">
 <div class="line">RL policy register name, refer to</div>
 <div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
 </div>
 </td>
 <td><div class="line-block">
-<div class="line">This arg is optional,</div>
+<div class="line">this arg is optional,</div>
 <div class="line">a placeholder</div>
 </div>
 </td>
@@ -391,7 +413,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 <td><div class="line-block">
-<div class="line">This arg can be diff-</div>
+<div class="line">this arg can be diff-</div>
 <div class="line">erent from modes</div>
 </div>
 </td>
@@ -410,34 +432,47 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 <tr class="row-odd"><td><p>4</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
 <td><p>bool</p></td>
-<td><p>False</p></td>
+<td><p>True</p></td>
 <td><div class="line-block">
 <div class="line">Whether use priority(PER)</div>
 </div>
 </td>
 <td><div class="line-block">
-<div class="line">Priority sample,</div>
+<div class="line">priority sample,</div>
 <div class="line">update priority</div>
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>5</p></td>
+<tr class="row-even"><td><p>6</p></td>
 <td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">priority_IS</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_weight</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">.start</span></code></div>
 </div>
 </td>
-<td><p>bool</p></td>
-<td><p>False</p></td>
+<td><p>float</p></td>
+<td><p>0.05</p></td>
 <td><div class="line-block">
-<div class="line">Whether use Importance Sampling Weight</div>
-<div class="line">to correct biased update. If True,</div>
-<div class="line">priority must be True.</div>
+<div class="line">Start value for epsilon decay. It’s</div>
+<div class="line">small because rainbow use noisy net.</div>
 </div>
 </td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>6</p></td>
+<tr class="row-odd"><td><p>7</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">.end</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.05</p></td>
+<td><div class="line-block">
+<div class="line">End value for epsilon decay.</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">discount_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">factor</span></code></div>
@@ -452,15 +487,15 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 <td><div class="line-block">
-<div class="line">May be 1 when sparse</div>
+<div class="line">may be 1 when sparse</div>
 <div class="line">reward env</div>
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>7</p></td>
+<tr class="row-odd"><td><p>9</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">nstep</span></code></p></td>
 <td><p>int</p></td>
-<td><p>1,
+<td><p>3,
 [3, 5]</p></td>
 <td><div class="line-block">
 <div class="line">N-step reward discount sum for target</div>
@@ -469,17 +504,14 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>8</p></td>
+<tr class="row-even"><td><p>10</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
 </div>
-<div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_gpu</span></code></div>
-</div>
 </td>
 <td><p>int</p></td>
-<td><p>1</p></td>
+<td><p>3</p></td>
 <td><div class="line-block">
 <div class="line">How many updates(iterations) to train</div>
 <div class="line">after collector’s one collection. Only</div>
@@ -487,204 +519,18 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </div>
 </td>
 <td><div class="line-block">
-<div class="line">This args can be vary</div>
+<div class="line">this args can be vary</div>
 <div class="line">from envs. Bigger val</div>
 <div class="line">means more off-policy</div>
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>10</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.batch_</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">size</span></code></div>
-</div>
-</td>
-<td><p>int</p></td>
-<td><p>32</p></td>
-<td><div class="line-block">
-<div class="line">The number of samples of an iteration</div>
-</div>
-</td>
-<td></td>
-</tr>
 <tr class="row-odd"><td><p>11</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate</span></code></div>
-</div>
-</td>
+<td><p><code class="docutils literal notranslate"><span class="pre">learn.kappa</span></code></p></td>
 <td><p>float</p></td>
-<td><p>0.001</p></td>
+<td><p>/</p></td>
 <td><div class="line-block">
-<div class="line">Gradient step length of an iteration.</div>
-</div>
-</td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>12</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
-</div>
-</td>
-<td><p>int</p></td>
-<td><p>2000</p></td>
-<td><div class="line-block">
-<div class="line">Frequence of target network update.</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">Hard(assign) update</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>13</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.ignore_</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">done</span></code></div>
-</div>
-</td>
-<td><p>bool</p></td>
-<td><p>False</p></td>
-<td><div class="line-block">
-<div class="line">Whether ignore done for target value</div>
-<div class="line">calculation.</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">Enable it for some</div>
-<div class="line">fake termination env</div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>14</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">collect.n_sample</span></code></p></td>
-<td><p>int</p></td>
-<td><p>4</p></td>
-<td><div class="line-block">
-<div class="line">The number of training samples of a</div>
-<div class="line">call of collector.</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">It varies from</div>
-<div class="line">different envs</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>15</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">collect.unroll</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">_len</span></code></div>
-</div>
-</td>
-<td><p>int</p></td>
-<td><p>1</p></td>
-<td><div class="line-block">
-<div class="line">unroll length of an iteration</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">In RNN, unroll_len&gt;1</div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>16</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.type</span></code></div>
-</div>
-</td>
-<td><p>str</p></td>
-<td><p>exp</p></td>
-<td><div class="line-block">
-<div class="line">exploration rate decay type</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">Support [‘exp’,</div>
-<div class="line">‘linear’].</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>17</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">start</span></code></div>
-</div>
-</td>
-<td><p>float</p></td>
-<td><p>0.01</p></td>
-<td><div class="line-block">
-<div class="line">start value of exploration rate</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">[0,1]</div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>18</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">end</span></code></div>
-</div>
-</td>
-<td><p>float</p></td>
-<td><p>0.001</p></td>
-<td><div class="line-block">
-<div class="line">end value of exploration rate</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">[0,1]</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>19</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
-<div class="line"><code class="docutils literal notranslate"><span class="pre">decay</span></code></div>
-</div>
-</td>
-<td><p>int</p></td>
-<td><p>250000</p></td>
-<td><div class="line-block">
-<div class="line">decay length of exploration</div>
-</div>
-</td>
-<td><div class="line-block">
-<div class="line">greater than 0. set</div>
-<div class="line">decay=250000 means</div>
-<div class="line">the exploration rate</div>
-<div class="line">decay from start</div>
-<div class="line">value to end value</div>
-<div class="line">during decay length.</div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>20</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">entropy_tau</span></code></div>
-</div>
-</td>
-<td><p>float</p></td>
-<td><p>0.003</p></td>
-<td><div class="line-block">
-<div class="line">the ration of entropy in TD loss</div>
-</div>
-</td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>21</p></td>
-<td><div class="line-block">
-<div class="line"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></div>
-</div>
-</td>
-<td><p>float</p></td>
-<td><p>0.9</p></td>
-<td><div class="line-block">
-<div class="line">the ration of Munchausen term to the</div>
-<div class="line">TD loss</div>
+<div class="line">Threshold of Huber loss</div>
 </div>
 </td>
 <td></td>
@@ -695,44 +541,67 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </dl>
 </dd></dl>
 
-<p>MDQN 使用的 TD error 接口定义如下：</p>
-<dl class="py function">
+<p>QRDQN 使用的网络接口可以如下定义:</p>
+<dl class="py class">
 <dt class="sig sig-object py">
-<span class="sig-prename descclassname"><span class="pre">ding.rl_utils.td.</span></span><span class="sig-name descname"><span class="pre">m_q_1step_td_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">data:</span> <span class="pre">collections.namedtuple</span></em>, <em class="sig-param"><span class="pre">gamma:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">tau:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">alpha:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">criterion:</span> <span class="pre">&lt;module</span> <span class="pre">'torch.nn.modules'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.8.16/x64/lib/python3.8/site-packages/torch/nn/modules/__init__.py'&gt;</span> <span class="pre">=</span> <span class="pre">MSELoss()</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../_modules/ding/rl_utils/td.html#m_q_1step_td_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Munchausen td_error for DQN algorithm, support 1 step td error.</p>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.q_learning.</span></span><span class="sig-name descname"><span class="pre">QRDQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_quantiles</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/q_learning.html#QRDQN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/q_learning.html#QRDQN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Use observation tensor to predict QRDQN’s output.
+Parameter updates with QRDQN’s MLPs forward setup.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">m_q_1step_td_data</span></code>): The input data, m_q_1step_td_data to calculate loss</p></li>
-<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Discount factor</p></li>
-<li><p>tau (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Entropy factor for Munchausen DQN</p></li>
-<li><p>alpha (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Discount factor for Munchausen term</p></li>
-<li><p>criterion (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.modules</span></code>): Loss function criterion</p></li>
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor with <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): 1step td error, 0-dim tensor</p></li>
+<li><dl class="simple">
+<dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run with encoder and head. Return the result prediction dictionary.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor with same size as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q valye tensor tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">num_quantiles)</span></code></p></li>
+<li><p>tau (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): tau tensor of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N,</span> <span class="pre">1)</span></code></p></li>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">m_q_1step_td_data</span></code>): the m_q_1step_td_data containing             [‘q’, ‘target_q’, ‘next_q’, ‘act’, ‘reward’, ‘done’, ‘weight’]</p></li>
-<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
-<li><p>target_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
-<li><p>next_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
-<li><p>act (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(( , B)\)</span></p></li>
-<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
-<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or None): <span class="math notranslate nohighlight">\((B, )\)</span>, the training sample weight</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is head_hidden_size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where M is action_shape.</p></li>
+<li><p>tau (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):  <span class="math notranslate nohighlight">\((B, M, 1)\)</span></p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QRDQN</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># default num_quantiles : int = 32</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">32</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<p>QRDQN 的贝尔曼更新在ding/rl_utils/td.py模块的qrdqn_nstep_td_error函数中实现。</p>
 </section>
-<section id="benchmark">
-<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id8">
-<caption><span class="caption-text">Benchmark and comparison of mdqn algorithm</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
+<section id="id7">
+<h2>基准<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default" id="id10">
+<caption><span class="caption-text">Benchmark and comparison of QRDQN algorithm</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 15%" />
@@ -750,65 +619,63 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 </thead>
 <tbody>
 <tr class="row-even"><td><div class="line-block">
-<div class="line">Asterix</div>
-<div class="line">(Asterix-v0)</div>
+<div class="line">Pong</div>
+<div class="line">(PongNoFrameskip-v4)</div>
 </div>
 </td>
-<td><p>8963</p></td>
-<td><img alt="../_images/mdqn_asterix.png" src="../_images/mdqn_asterix.png" />
+<td><p>20</p></td>
+<td><img alt="../_images/qrdqn_pong.png" src="../_images/qrdqn_pong.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/asterix/asterix_mdqn_config.py">config_link_asterix</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_qrdqn_config.py">config_link_p</a></p></td>
 <td><div class="line-block">
-<div class="line">sdqn(3513) paper(1718) dqn(3444)</div>
+<div class="line">Tianshou (20)</div>
 </div>
 </td>
 </tr>
 <tr class="row-odd"><td><div class="line-block">
-<div class="line">SpaceInvaders</div>
-<div class="line">(SpaceInvaders-v0)</div>
+<div class="line">Qbert</div>
+<div class="line">(QbertNoFrameskip-v4)</div>
 </div>
 </td>
-<td><p>2211</p></td>
-<td><img alt="../_images/mdqn_spaceinvaders.png" src="../_images/mdqn_spaceinvaders.png" />
+<td><p>18306</p></td>
+<td><img alt="../_images/qrdqn_qbert.png" src="../_images/qrdqn_qbert.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_mdqn_config.py">config_link_spaceinvaders</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_qrdqn_config.py">config_link_q</a></p></td>
 <td><div class="line-block">
-<div class="line">sdqn(1804) paper(2045) dqn(1228)</div>
+<div class="line">Tianshou (14990)</div>
 </div>
 </td>
 </tr>
 <tr class="row-even"><td><div class="line-block">
-<div class="line">Enduro</div>
-<div class="line">(Enduro-v4)</div>
+<div class="line">SpaceInvaders</div>
+<div class="line">(SpaceInvadersNoFrame skip-v4)</div>
 </div>
 </td>
-<td><p>1003</p></td>
-<td><img alt="../_images/mdqn_enduro.png" src="../_images/mdqn_enduro.png" />
+<td><p>2231</p></td>
+<td><img alt="../_images/qrdqn_spaceinvaders.png" src="../_images/qrdqn_spaceinvaders.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/enduro/enduro_mdqn_config.py">config_link_enduro</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_qrdqn_config.py">config_link_s</a></p></td>
 <td><div class="line-block">
-<div class="line">sdqn(986.1) paper(1171) dqn(986.4)</div>
+<div class="line">Tianshou (938)</div>
 </div>
 </td>
 </tr>
 </tbody>
 </table>
-<p>我们的配置和论文中的配置的主要区别如下：</p>
-<ul class="simple">
-<li><p>我们收集了100个样本，进行了十次训练。而在原论文中，收集了4个样本，进行了一次训练。</p></li>
-<li><p>我们每500个迭代更新一次目标网络 (target network) ，而原论文每2000个迭代更新一次目标网络。</p></li>
-<li><p>我们用于探索的epsilon从1逐渐下降到0.05，而原论文的epsilon是从0.01到0.001。</p></li>
-</ul>
 <p>P.S.:</p>
-<ul class="simple">
-<li><p>以上结果是在 <strong>seed 0</strong> 上运行同样配置得到的。</p></li>
-<li><p>对于像DQN这样的离散动作空间算法， 一般采用Atari环境集来进行测试， Atari 环境一般通过10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code> 的最高均值奖励（highest mean reward）训练来评估。关于Atari环境的更多细节请参考：  <a class="reference external" href="../env_tutorial/atari.html">Atari 环境教程</a></p></li>
-</ul>
+<ol class="arabic simple">
+<li><p>上述结果是通过在五个不同的随机种子 (0, 1, 2, 3, 4)上运行相同的配置获得的。</p></li>
+<li><p>对于像 QRDQN 这样的离散动作空间算法，通常使用 Atari 环境集进行测试(包括子环境 Pong ) ，而 Atari 环境通常通过训练10M个环境步骤的最高平均奖励来评估。有关 Atari 的更多详细信息, 请参阅 <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
+</ol>
 </section>
-<section id="id7">
-<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<section id="id8">
+<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>(QRDQN) Will Dabney, Mark Rowland, Marc G. Bellemare, Rémi Munos: “Distributional Reinforcement Learning with Quantile Regression”, 2017; arXiv:1710.10044. https://arxiv.org/pdf/1710.10044</p>
+</section>
+<section id="id9">
+<h2>其他开源实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Vieillard, Nino, Olivier Pietquin, and Matthieu Geist. “Munchausen reinforcement learning.” Advances in Neural Information Processing Systems 33 (2020): 4235-4246.</p></li>
+<li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/qrdqn.py">Tianshou</a></p></li>
 </ul>
 </section>
 </section>
@@ -821,12 +688,12 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="c51_zh.html" class="btn btn-neutral float-right" title="C51" accesskey="n"
+    <a href="icm_zh.html" class="btn btn-neutral float-right" title="ICM" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="dqn_zh.html" class="btn btn-neutral" title="DQN" accesskey="p"
+    <a href="c51_zh.html" class="btn btn-neutral" title="C51" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -856,15 +723,16 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">MDQN</a><ul>
+<li><a class="reference internal" href="#">QRDQN</a><ul>
 <li><a class="reference internal" href="#id1">概述</a></li>
 <li><a class="reference internal" href="#id2">核心要点</a></li>
 <li><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
 <li><a class="reference internal" href="#id4">伪代码</a></li>
 <li><a class="reference internal" href="#id5">扩展</a></li>
 <li><a class="reference internal" href="#id6">实现</a></li>
-<li><a class="reference internal" href="#benchmark">实验 Benchmark</a></li>
-<li><a class="reference internal" href="#id7">参考文献</a></li>
+<li><a class="reference internal" href="#id7">基准</a></li>
+<li><a class="reference internal" href="#id8">参考文献</a></li>
+<li><a class="reference internal" href="#id9">其他开源实现</a></li>
 </ul>
 </li>
 </ul>

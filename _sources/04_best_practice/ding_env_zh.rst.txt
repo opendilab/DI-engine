@@ -362,7 +362,7 @@ Q & A
 
 1. MARL 环境应当如何迁移？
    
-   可以参考 `Competitive RL <../env_tutorial/competitive_rl_zh.html>`_ 
+   可以参考 `Competitive RL <../13_envs/competitive_rl_zh.html>`_ 
 
    - 如果环境既支持 single-agent，又支持 double-agent 甚至 multi-agent，那么要针对不同的模式分类考虑
    - 在 multi-agent 环境中，action 和 observation 和 agent 个数匹配，但 reward 和 done 却不一定，需要搞清楚 reward 的定义
@@ -371,6 +371,6 @@ Q & A
 
 2. 混合动作空间的环境应当如何迁移？
    
-   可以参考 `Gym-Hybrid <../env_tutorial/gym_hybrid_zh.html>`_
+   可以参考 `Gym-Hybrid <../13_envs/gym_hybrid_zh.html>`_
 
    - Gym-Hybrid 中部分离散动作（Accelerate，Turn）是需要给出对应的 1 维连续参数的，以表示加速度和旋转角度，因此类似的环境需要主要关注其动作空间的定义

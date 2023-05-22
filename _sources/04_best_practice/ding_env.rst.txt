@@ -361,7 +361,7 @@ Q & A
 
 1. How should the MARL environment be migrated?
    
-   You can refer to `Competitive RL <../env_tutorial/competitive_rl_zh.html>`_ 
+   You can refer to `Competitive RL <../13_envs/competitive_rl_zh.html>`_ 
 
    - If the environment supports both single-agent, double-agent or even multi-agent, consider different mode classifications
    - In a multi-agent environment, the number of action and observation matches the number of agents, but the reward and done are not necessarily the same. It is necessary to clarify the definition of reward
@@ -370,6 +370,6 @@ Q & A
 
 2. How should the environment of the hybrid action space be migrated?
    
-   You can refer to  `Gym-Hybrid <../env_tutorial/gym_hybrid_zh.html>`_
+   You can refer to  `Gym-Hybrid <../13_envs/gym_hybrid_zh.html>`_
 
    - Some discrete actions (Accelerate, Turn) in Gym-Hybrid need to give corresponding 1-dimensional continuous parameters to represent acceleration and rotation angle, so similar environments need to focus on the definition of their action space

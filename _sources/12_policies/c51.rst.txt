@@ -94,6 +94,12 @@ Benchmark
      - | Tianshou(988.5)
 
 
+P.S.：
+
+1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
+2. For the discrete action space algorithm like DQN, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M ``env_step``. For more details about Atari, please refer to `Atari Env Tutorial <../env_tutorial/atari.html>`_ .
+
+
 Other Public Implementations
 -----------------------------
  - `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/c51.py>`_

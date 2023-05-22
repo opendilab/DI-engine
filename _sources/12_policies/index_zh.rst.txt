@@ -19,6 +19,9 @@
 
     dqn_zh
     mdqn_zh
+    c51_zh
+    qrdqn_zh
+
 .. toctree::
     :maxdepth: 3
     :caption: 探索
