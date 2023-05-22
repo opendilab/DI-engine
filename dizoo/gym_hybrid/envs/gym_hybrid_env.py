@@ -88,18 +88,6 @@ class GymHybridEnv(BaseEnv):
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
-        self._eval_episode_return += rew
-        if done:
-            info['eval_episode_return'] = self._eval_episode_return
-            if self._save_replay:
-                if self._env_id == 'HardMove-v0':
-                    self._env_id = f'hardmove_n{self._cfg.num_actuators}'
-                path = os.path.join(
-                    self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
-                )
-                self.display_frames_as_gif(self._frames, path)
-                self._frames = []
-                self._save_replay_count += 1
 
         obs = to_ndarray(obs)
         if isinstance(obs, list):  # corner case
@@ -114,6 +102,18 @@ class GymHybridEnv(BaseEnv):
         if isinstance(rew, list):
             rew = rew[0]
         assert isinstance(rew, np.ndarray) and rew.shape == (1, )
+        self._eval_episode_return += rew.item()
+        if done:
+            info['eval_episode_return'] = self._eval_episode_return
+            if self._save_replay:
+                if self._env_id == 'HardMove-v0':
+                    self._env_id = f'hardmove_n{self._cfg.num_actuators}'
+                path = os.path.join(
+                    self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
+                )
+                self.display_frames_as_gif(self._frames, path)
+                self._frames = []
+                self._save_replay_count += 1
         info['action_args_mask'] = np.array([[1, 0], [0, 1], [0, 0]])
         return BaseEnvTimestep(obs, rew, done, info)
 
