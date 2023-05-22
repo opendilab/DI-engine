@@ -16,7 +16,6 @@ from .parallel_entry import parallel_pipeline
 from .application_entry import eval, collect_demo_data, collect_episodic_demo_data, \
       episode_to_transitions, episode_to_transitions_filter
 from .application_entry_trex_collect_data import trex_collecting_data, collect_episodic_demo_data_for_trex
-from .serial_entry_guided_cost import serial_pipeline_guided_cost
 from .utils import random_collect
 from .application_entry_drex_collect_data import drex_collecting_data
 from .serial_entry_mbrl import serial_pipeline_dyna, serial_pipeline_dream
