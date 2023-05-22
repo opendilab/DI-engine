@@ -11,6 +11,7 @@ import openai
 class TabMWP(BaseEnv):
     model = None
     tokenizer = None
+
     def __init__(self, cfg):
         # args contains: cand_number, train_number, engine, temperature,
         # max_tokens, top_p, frequency_penalty, presence_penalty, api_key
@@ -24,8 +25,9 @@ class TabMWP(BaseEnv):
         self.observation_space = None
         self.action_space = None
         self.reward_space = gym.spaces.Box(
-                low=-1, high=1, shape=(1, ), dtype=np.float32
+            low=-1, high=1, shape=(1,), dtype=np.float32
         )
+        self.correct_num = 0
         assert self._args.engine in ['text-davinci-002', 'glm-10B']
         if self._args.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -52,6 +54,7 @@ class TabMWP(BaseEnv):
     def reset(self):
         self.problems, self.cand_pids, self.train_pids = load_data(self._args)
         self.cand_examples = []
+        self.correct_num = 0
         for pid in self.cand_pids:
             example = create_example_from_pid(pid, self.problems, self._args, test=True)
             self.cand_examples.append(example)
@@ -90,15 +93,17 @@ class TabMWP(BaseEnv):
         if prediction_norm.lower() == normalize_answer(self.problems[pid]['answer'],
                                                        self.problems[pid]['unit']).lower():
             _reward = 1
+            self.correct_num += 1
         else:
             _reward = -1
 
         self.problem_id += 1
         if self.problem_id == self._args.train_number:
             done = True
+            info = {'eval_episode_return': self.correct_num / self._args.train_number}
         else:
             done = False
-        info = {}
+            info = {}
 
         train_sample = create_example_from_pid(pid, self.problems, self._args, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
@@ -107,4 +112,3 @@ class TabMWP(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine tabmwp Env"
-
