@@ -87,7 +87,7 @@ class PromptPGPolicy(Policy):
 
         return_infos = []
         for i in range(0, len(data), self._cfg.learn.batch_size):
-            batch = default_collate(data[i: i+self._cfg.learn.batch_size])
+            batch = default_collate(data[i:i + self._cfg.learn.batch_size])
             # forward
             train_samples, cand_samples = batch["obs"]["train_sample"], batch["obs"]["candidate_samples"]
             for ii in range(len(cand_samples)):
