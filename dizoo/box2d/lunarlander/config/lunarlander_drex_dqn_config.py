@@ -66,7 +66,10 @@ lunarlander_drex_dqn_config = dict(
             n_sample=64,
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            collector=dict(get_train_sample=False, reward_shaping=False,), 
+            collector=dict(
+                get_train_sample=False,
+                reward_shaping=False,
+            ),
         ),
         # command_mode config
         other=dict(
@@ -116,4 +119,6 @@ if __name__ == '__main__':
     args.cfg[0].policy.collect.n_episode = 64
     del args.cfg[0].policy.collect.n_sample
     drex_collecting_data(args)
-    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward=True, cooptrain_reward=False, max_env_step=int(1e7))
+    serial_pipeline_reward_model_offpolicy(
+        (main_config, create_config), pretrain_reward=True, cooptrain_reward=False, max_env_step=int(1e7)
+    )
