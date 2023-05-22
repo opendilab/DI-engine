@@ -1,6 +1,9 @@
 from typing import List, Dict, Any
 from easydict import EasyDict
+from ditk import logging
 
+import pickle
+import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -72,6 +75,7 @@ class GuidedCostRewardModel(BaseRewardModel):
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
+        self.iter = 0
         self.reward_model = GCLNetwork(
             config.input_size, [config.hidden_size, config.hidden_size],
             output_size=1,
@@ -79,8 +83,39 @@ class GuidedCostRewardModel(BaseRewardModel):
         )
         self.reward_model.to(self.device)
         self.opt = optim.Adam(self.reward_model.parameters(), lr=config.learning_rate)
+        self.train_data = []
+        self.load_expert_data()
 
-    def train(self, expert_demo: torch.Tensor, samp: torch.Tensor, iter, step):
+    def load_expert_data(self) -> None:
+        """
+        Overview:
+            Getting the expert data from ``config['expert_data_path']`` attribute in self.
+        Effects:
+            This is a side effect function which updates the expert data attribute (e.g.  ``self.expert_data``)
+        """
+        with open(self.cfg.expert_data_path, 'rb') as f:
+            self.expert_data = pickle.load(f)
+
+    def train(self) -> None:
+        """
+        Overview:
+            Train the reward model.
+        """
+        # sample data for expert and train data
+        sample_size = min(len(self.expert_data), self.cfg.batch_size)
+        expert_demo = random.sample(self.expert_data, sample_size)
+        samp = random.sample(self.train_data, sample_size)
+
+        # remove non-tensor data in data list
+        samp = self._remove_redundant_keys(samp)
+
+        # train the reward model
+        for _ in range(self.cfg.update_per_collect):
+            loss_ioc = self._train(expert_demo, samp)
+            self.tb_logger.add_scalar('reward_model/loss_iter', loss_ioc, self.iter)
+            self.iter += 1
+
+    def _train(self, expert_demo: torch.Tensor, samp: torch.Tensor) -> float:
         device_0 = expert_demo[0]['obs'].device
         device_1 = samp[0]['obs'].device
         for i in range(len(expert_demo)):
@@ -106,9 +141,8 @@ class GuidedCostRewardModel(BaseRewardModel):
         self.opt.zero_grad()
         loss_IOC.backward()
         self.opt.step()
-        if iter % self.cfg.log_every_n_train == 0:
-            self.tb_logger.add_scalar('reward_model/loss_iter', loss_IOC, iter)
-            self.tb_logger.add_scalar('reward_model/loss_step', loss_IOC, step)
+
+        return loss_IOC.item()
 
     def estimate(self, data: list) -> List[Dict]:
         # NOTE: this estimate method of gcl alg. is a little different from the one in other irl alg.,
@@ -130,7 +164,7 @@ class GuidedCostRewardModel(BaseRewardModel):
                 if online_net is trained continuously, there should be some implementations in collect_data method
         """
         # if online_net is trained continuously, there should be some implementations in collect_data method
-        pass
+        self.train_data.extend(data)
 
     def clear_data(self, iter: int):
         """
@@ -150,3 +184,23 @@ class GuidedCostRewardModel(BaseRewardModel):
     def load_state_dict_reward_model(self, state_dict: Dict[str, Any]) -> None:
         self.reward_model.load_state_dict(state_dict['model'])
         self.opt.load_state_dict(state_dict['optimizer'])
+
+    def _remove_redundant_keys(self, samp: List[Dict]) -> List[Dict]:
+        """
+        Overview:
+            Remove redundant keys in the data list.
+        Arguments:
+            - samp (:obj:`List[Dict]`): The data list.
+        Returns:
+            - (:obj:`List[Dict]`): The data list without redundant keys.
+        """
+        keeped_keys = ['obs', 'next_obs', 'action', 'logit']
+        assert samp is not None and bool(samp), "samp is empty."
+        assert all(key in samp[0] for key in keeped_keys), "samp is missing required keys."
+        fixed_samp = []
+        for item in samp:
+            fixed_item = {}
+            for key in keeped_keys:
+                fixed_item[key] = item[key]
+            fixed_samp.append(fixed_item)
+        return fixed_samp

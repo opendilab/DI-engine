@@ -60,8 +60,12 @@ def test_irl(reward_model_config):
         config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
     # irl + rl training
-    cp_cartpole_dqn_config = deepcopy(cartpole_dqn_config)
-    cp_cartpole_dqn_create_config = deepcopy(cartpole_dqn_create_config)
+    if reward_model_config.type == 'guided_cost':
+        cp_cartpole_dqn_config = deepcopy(cartpole_ppo_offpolicy_config)
+        cp_cartpole_dqn_create_config = deepcopy(cartpole_ppo_offpolicy_create_config)
+    else:
+        cp_cartpole_dqn_config = deepcopy(cartpole_dqn_config)
+        cp_cartpole_dqn_create_config = deepcopy(cartpole_dqn_create_config)
     cp_cartpole_dqn_create_config.reward_model = dict(type=reward_model_config.type)
     if reward_model_config.type == 'gail':
         reward_model_config['data_path'] = '.'
