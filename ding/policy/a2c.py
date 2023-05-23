@@ -2,7 +2,8 @@ from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
 
-from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_train_sample
+from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_train_sample, \
+                        a2c_error_continuous
 from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator
@@ -27,6 +28,8 @@ class A2CPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous']
+        action_space='discrete',
         learn=dict(
 
             # (int) for a2c, update_per_collect must be 1.
@@ -74,6 +77,7 @@ class A2CPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init the optimizer, algorithm config, main and target models.
         """
+        assert self._cfg.action_space in ["continuous", "discrete"]
         # Optimizer
         self._optimizer = Adam(
             self._model.parameters(),
@@ -120,7 +124,11 @@ class A2CPolicy(Policy):
             error_data = a2c_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
 
             # Calculate A2C loss
-            a2c_loss = a2c_error(error_data)
+            if self._action_space == 'continuous':
+                a2c_loss = a2c_error_continuous(error_data)
+            elif self._action_space == 'discrete':
+                a2c_loss = a2c_error(error_data)
+
             wv, we = self._value_weight, self._entropy_weight
             total_loss = a2c_loss.policy_loss + wv * a2c_loss.value_loss - we * a2c_loss.entropy_loss
 
@@ -168,8 +176,14 @@ class A2CPolicy(Policy):
             Init traj and unroll length, collect model.
         """
 
+        assert self._cfg.action_space in ["continuous", "discrete"]
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
+        elif self._action_space == 'discrete':
+            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
         # Algorithm
         self._gamma = self._cfg.collect.discount_factor
@@ -245,7 +259,12 @@ class A2CPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        assert self._cfg.action_space in ["continuous", "discrete"]
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
+        elif self._action_space == 'discrete':
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:

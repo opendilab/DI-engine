@@ -3,7 +3,7 @@ from .ppo import ppo_data, ppo_loss, ppo_info, ppo_policy_data, ppo_policy_error
     ppo_error, ppo_error_continuous, ppo_policy_error_continuous
 from .ppg import ppg_data, ppg_joint_loss, ppg_joint_error
 from .gae import gae_data, gae
-from .a2c import a2c_data, a2c_error
+from .a2c import a2c_data, a2c_error, a2c_error_continuous
 from .coma import coma_data, coma_error
 from .td import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, \
     q_1step_td_error, m_q_1step_td_data, m_q_1step_td_error, td_lambda_data, td_lambda_error,\
