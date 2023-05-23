@@ -36,7 +36,6 @@ hopper_a2c_config = dict(
         ),
         command=dict(),
         eval=dict(),
-        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     ),
 )
 
