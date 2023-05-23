@@ -98,8 +98,21 @@ class PromptPGPolicy(Policy):
                 return_ = return_.to(self._device)
 
             # calculate PG loss
+            real_act = []
+            for b in range(batch['action'].shape[0]):
+                tmp_act = []
+                act = batch['action'][b].item()
+                idx = 0
+                while act > 0:
+                    if act % 2 != 0:
+                        tmp_act.append(idx)
+                    act = act // 2
+                    idx += 1
+                assert len(tmp_act) == self._cfg.shot_number
+                real_act.append(tmp_act)
+            real_act = torch.tensor(real_act, device=self._device)
             for ii in range(self._cfg.shot_number):
-                log_prob = output['dist'].log_prob(batch['action'][ii])
+                log_prob = output['dist'].log_prob(real_act[:, ii])
                 policy_loss = -(log_prob * return_).mean()
                 entropy_loss = -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
                 total_loss = policy_loss + entropy_loss
@@ -146,8 +159,10 @@ class PromptPGPolicy(Policy):
                 act.append(actions)
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
-            act = torch.stack(act, dim=0)
-        output['action'] = act
+            real_act = 0
+            for act in actions:
+                real_act += 2 ** act.item()
+        output['action'] = real_act
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -208,8 +223,10 @@ class PromptPGPolicy(Policy):
                 act.append(actions)
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
-            act = torch.stack(act, dim=0)
-        output['action'] = act
+            real_act = 0
+            for act in actions:
+                real_act += 2 ** act.item()
+        output['action'] = real_act
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

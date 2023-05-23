@@ -69,7 +69,15 @@ class TabMWP(BaseEnv):
         self._init_flag = False
 
     def step(self, action):
-        cids = action
+        cids = []
+        act = action.item()
+        idx = 0
+        while act > 0:
+            if act % 2 != 0:
+                cids.append(idx)
+            act = act // 2
+            idx += 1
+        assert len(cids) == self._cfg.shot_number
         shot_pids = [self.cand_pids[cid] for cid in cids]
         # print(f"shot_pids: {shot_pids}")
 
