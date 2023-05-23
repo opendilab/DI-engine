@@ -33,6 +33,8 @@ class DingEnvWrapper(BaseEnv):
         self._cfg = EasyDict(self._cfg)
         if 'act_scale' not in self._cfg:
             self._cfg.act_scale = False
+        if 'rew_clip' not in self._cfg:
+            self._cfg.rew_clip = False
         if 'env_wrapper' not in self._cfg:
             self._cfg.env_wrapper = 'default'
         if 'env_id' not in self._cfg:
@@ -124,6 +126,9 @@ class DingEnvWrapper(BaseEnv):
         if self._cfg.act_scale:
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
+        if self._cfg.rew_clip:
+            rew = max(-10, rew)
+        rew = np.float32(rew)
         if self.observation_space.dtype == np.float32:
             obs = to_ndarray(obs, dtype=np.float32)
         else:

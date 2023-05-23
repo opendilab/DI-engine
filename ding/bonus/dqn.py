@@ -24,6 +24,9 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class DQNAgent:
     supported_env_list = [
         'lunarlander_discrete',
+        'PongNoFrameskip',
+        'SpaceInvadersNoFrameskip',
+        'QbertNoFrameskip',
     ]
     algorithm = 'DQN'
 

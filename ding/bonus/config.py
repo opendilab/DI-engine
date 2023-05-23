@@ -1173,13 +1173,13 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'Pong':
+        elif env == 'PongNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='Pong-v4-DQN',
+                    exp_name='PongNoFrameskip-v4-DQN',
                     seed=0,
                     env=dict(
-                        env_id='Pong-v4',
+                        env_id='PongNoFrameskip-v4',
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
@@ -1223,10 +1223,10 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'SpaceInvaders':
+        elif env == 'SpaceInvadersNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='SpaceInvaders-v4-DQN',
+                    exp_name='SpaceInvadersNoFrameskip-v4-DQN',
                     seed=0,
                     env=dict(
                         env_id='SpaceInvadersNoFrameskip-v4',
@@ -1274,13 +1274,13 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        elif env == 'Qbert':
+        elif env == 'QbertNoFrameskip':
             cfg.update(
                 dict(
-                    exp_name='Qbert-v4-DQN',
+                    exp_name='QbertNoFrameskip-v4-DQN',
                     seed=0,
                     env=dict(
-                        env_id='Qbert-v4',
+                        env_id='QbertNoFrameskip-v4',
                         collector_env_num=8,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
@@ -1558,7 +1558,7 @@ def get_instance_env(env: str) -> BaseEnv:
     elif env == 'lunarlander_continuous':
         return DingEnvWrapper(gym.make('LunarLander-v2', continuous=True))
     elif env == 'bipedalwalker':
-        return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True})
+        return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True, 'rew_clip': True})
     elif env == 'pendulum':
         return DingEnvWrapper(gym.make('Pendulum-v1'), cfg={'act_scale': True})
     elif env == 'acrobot':
