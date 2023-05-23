@@ -171,7 +171,7 @@ class BaseEnv(gym.Env):
 
     @staticmethod
     def get_distance(x1: float, y1: float, x2: float, y2: float) -> float:
-        return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2))
+        return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2)).item()
 
     def render(self, mode='human'):
         screen_width = 400
@@ -397,7 +397,7 @@ class HardMoveEnv(gym.Env):
 
     @staticmethod
     def get_distance(x1: float, y1: float, x2: float, y2: float) -> float:
-        return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2))
+        return np.sqrt(((x1 - x2) ** 2) + ((y1 - y2) ** 2)).item()
 
     def close(self):
         if self.viewer:
