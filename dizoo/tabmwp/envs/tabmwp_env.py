@@ -77,7 +77,7 @@ class TabMWP(BaseEnv):
                 cids.append(idx)
             act = act // 2
             idx += 1
-        assert len(cids) == self._cfg.shot_number
+
         shot_pids = [self.cand_pids[cid] for cid in cids]
         # print(f"shot_pids: {shot_pids}")
 

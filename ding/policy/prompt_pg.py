@@ -159,9 +159,13 @@ class PromptPGPolicy(Policy):
                 act.append(actions)
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
-            real_act = 0
-            for act in actions:
-                real_act += 2 ** act.item()
+            real_act = []
+            for b in range(act[0].shape[0]):
+                tmp_act = torch.zeros_like(act[0])
+                for shot in act:
+                    tmp_act += 2 ** shot[b].item()
+                    real_act.append(tmp_act)
+            real_act = torch.tensor(real_act)
         output['action'] = real_act
         if self._cuda:
             output = to_device(output, 'cpu')
@@ -223,9 +227,14 @@ class PromptPGPolicy(Policy):
                 act.append(actions)
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
-            real_act = 0
-            for act in actions:
-                real_act += 2 ** act.item()
+            # act: [shot_number, bs]
+            real_act = []
+            for b in range(act[0].shape[0]):
+                tmp_act = torch.zeros_like(act[0])
+                for shot in act:
+                    tmp_act += 2 ** shot[b].item()
+                    real_act.append(tmp_act)
+            real_act = torch.tensor(real_act)
         output['action'] = real_act
         if self._cuda:
             output = to_device(output, 'cpu')
