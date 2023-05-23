@@ -13,7 +13,7 @@ halfcheetah_a2c_config = dict(
     ),
     policy=dict(
         cuda=True,
-        random_collect_size=10000,
+        action_space='continuous',
         model=dict(
             action_space='continuous',
             obs_shape=17,
