@@ -23,6 +23,9 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class A2CAgent:
     supported_env_list = [
         'lunarlander_discrete',
+        'hopper',
+        'HalfCheetah',
+        'Walker2d',
     ]
     algorithm = 'A2C'
 

@@ -42,6 +42,9 @@ class PPOF:
         'atari_qbert',
         'atari_kangaroo',
         'atari_bowling',
+        'PongNoFrameskip',
+        'SpaceInvadersNoFrameskip',
+        'QbertNoFrameskip',
         # mujoco
         'hopper',
     ]
