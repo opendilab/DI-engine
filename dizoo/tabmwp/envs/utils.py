@@ -147,6 +147,9 @@ def extract_prediction(output, options, option_inds):
     idx = output.find('\n')
     if idx > 0:
         output = output[:idx]
+    idx = output.find('=')
+    if idx > 0:
+        output = output[idx+1:].strip()
     # $\\frac{16}{95}$ -> 16/95
     output = re.sub(r"\$?\\frac\{([\d\.\,\-]+)\}\{([\d\.\,]+)\}\$?", r"\1/\2", output)
 
