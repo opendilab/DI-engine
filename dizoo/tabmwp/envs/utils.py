@@ -4,9 +4,40 @@ import random
 import re
 import time
 from functools import lru_cache
+import torch
 
 import numpy as np
 import openai
+
+
+def sample_logits(out, temperature=1.0, top_p=0.8):
+    probs = torch.softmax(out, dim=-1).cpu().numpy()
+    sorted_probs = np.sort(probs)[::-1]
+    cumulative_probs = np.cumsum(sorted_probs)
+    cutoff = float(sorted_probs[np.argmax(cumulative_probs > top_p)])
+    probs[probs < cutoff] = 0
+    if temperature != 1.0:
+        probs = probs.pow(1.0 / temperature)
+    probs = probs / np.sum(probs)
+    out = np.random.choice(a=len(probs), p=probs)
+    return out
+
+
+def calc_rwkv(model, tokenizer, prompt, max_len=10):
+    orig_len = len(prompt)
+    inputs = tokenizer(prompt, return_tensors="pt").to('cuda')
+    outputs = model(**inputs, labels=inputs["input_ids"])
+    out, state = outputs.logits, outputs.state
+
+    with torch.no_grad():
+        for i in range(max_len):
+            token = sample_logits(out[0, -1])
+            tmp = tokenizer.decode([token])
+            prompt = prompt + tmp
+            inputs = tokenizer(prompt, return_tensors="pt").to('cuda')
+            outputs = model(**inputs, labels=inputs["input_ids"])
+            out, state = outputs.logits, outputs.state
+    return prompt[orig_len:]
 
 
 def load_data(args):
@@ -88,7 +119,6 @@ def get_solution_text(problem):
 
 
 def create_one_example(format, table, question, answer, solution, test_example=True):
-
     input_format, output_format = format.split("-")  # e.g., "TQ-A"
 
     elements = {
@@ -117,7 +147,6 @@ def create_one_example(format, table, question, answer, solution, test_example=T
 
 
 def build_prompt(problems, shot_pids, test_pid, args):
-
     examples = []
     pids = shot_pids + [test_pid]
 
@@ -149,7 +178,7 @@ def extract_prediction(output, options, option_inds):
         output = output[:idx]
     idx = output.find('=')
     if idx > 0:
-        output = output[idx+1:].strip()
+        output = output[idx + 1:].strip()
     # $\\frac{16}{95}$ -> 16/95
     output = re.sub(r"\$?\\frac\{([\d\.\,\-]+)\}\{([\d\.\,]+)\}\$?", r"\1/\2", output)
 

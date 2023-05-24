@@ -28,13 +28,20 @@ class TabMWP(BaseEnv):
             low=-1, high=1, shape=(1,), dtype=np.float32
         )
         self.correct_num = 0
-        assert self._args.engine in ['text-davinci-002', 'glm-10B']
+        assert self._args.engine in ['text-davinci-002', 'glm-10B', 'rwkv-7B']
         if self._args.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
             model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
             TabMWP.model = model.half().cuda()
+        elif self._args.engine == 'rwkv-7B' and TabMWP.model is None:
+            from transformers import AutoTokenizer, AutoModel
+            TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile")
+            model = AutoModel.from_pretrained("sgugger/rwkv-7b-pile")
+            TabMWP.model = model.half().cuda()
 
+
+    @lru_cache(maxsize=10000)
     def get_output(self, inp):
         inputs = TabMWP.tokenizer(inp + " [MASK].", return_tensors="pt")
         inputs = TabMWP.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
@@ -89,6 +96,8 @@ class TabMWP(BaseEnv):
         # get the output from LM
         if self._args.engine == 'text-davinci-002':
             output = get_gpt3_output(prompt, self._args)
+        elif self._args.engine == 'rwkv-7b':
+            output = calc_rwkv(self.model, self.tokenizer, prompt)
         else:
             output = self.get_output(prompt)
 
