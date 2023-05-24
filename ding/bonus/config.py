@@ -171,7 +171,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        if env == 'hopper':
+        elif env == 'hopper':
             cfg.update(
                 dict(
                     exp_name='Hopper-v3-A2C',
@@ -213,7 +213,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        if env == 'HalfCheetah':
+        elif env == 'HalfCheetah':
             cfg.update(
                 dict(
                     exp_name='HalfCheetah-v3-A2C',
@@ -255,7 +255,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
-        if env == 'Walker2d':
+        elif env == 'Walker2d':
             cfg.update(
                 dict(
                     exp_name='Walker2d-v3-A2C',
