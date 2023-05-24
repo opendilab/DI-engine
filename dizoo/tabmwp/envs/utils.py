@@ -144,6 +144,9 @@ def build_prompt(problems, shot_pids, test_pid, args):
 
 
 def extract_prediction(output, options, option_inds):
+    idx = output.find('\n')
+    if idx > 0:
+        output = output[:idx]
     # $\\frac{16}{95}$ -> 16/95
     output = re.sub(r"\$?\\frac\{([\d\.\,\-]+)\}\{([\d\.\,]+)\}\$?", r"\1/\2", output)
 

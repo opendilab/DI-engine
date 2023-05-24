@@ -31,12 +31,12 @@ class TabMWP(BaseEnv):
         assert self._args.engine in ['text-davinci-002', 'glm-10B']
         if self._args.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
-            model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b-chinese", trust_remote_code=True)
+            TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
+            model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
             TabMWP.model = model.half().cuda()
 
     def get_output(self, inp):
-        inputs = TabMWP.tokenizer(inp + " [sMASK]", return_tensors="pt")
+        inputs = TabMWP.tokenizer(inp + " [MASK].", return_tensors="pt")
         inputs = TabMWP.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
         inputs = {key: value.cuda() for key, value in inputs.items()}
         outputs = TabMWP.model.generate(**inputs, max_length=512, eos_token_id=TabMWP.tokenizer.eop_token_id,
