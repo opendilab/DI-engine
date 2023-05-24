@@ -96,7 +96,7 @@ class TabMWP(BaseEnv):
         # get the output from LM
         if self._args.engine == 'text-davinci-002':
             output = get_gpt3_output(prompt, self._args)
-        elif self._args.engine == 'rwkv-7b':
+        elif self._args.engine == 'rwkv-7B':
             output = calc_rwkv(self.model, self.tokenizer, prompt)
         else:
             output = self.get_output(prompt)
