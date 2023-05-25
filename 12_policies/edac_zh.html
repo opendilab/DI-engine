@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>强化学习算法 &mdash; DI-engine 0.1.0 documentation</title>
+  <title>EDAC &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="DQN" href="dqn_zh.html" />
-  <link rel="prev" title="从 DI-zoo 开始学习" href="../11_dizoo/index_zh.html" />
+  <link rel="next" title="强化学习环境示例" href="../13_envs/index_zh.html" />
+  <link rel="prev" title="R2D3" href="r2d3_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -218,7 +218,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
@@ -266,13 +266,15 @@
       </li>
 
         
-      <li>强化学习算法</li>
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>EDAC</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/12_policies/index_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/12_policies/edac_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -296,163 +298,160 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="id1">
-<h1>强化学习算法<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
-<p>在此页面中，您可以找到当前在 DI-engine中实现的算法。
-与我们的算法相关的所有页面都遵循以下结构：</p>
+  <section id="edac">
+<h1>EDAC<a class="headerlink" href="#edac" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>离线强化学习（offline-RL）是一个新出现的研究领域，旨在使用大量先前收集的数据集来学习行为，而无需进一步与环境进行交互。
+它有可能解决许多实际决策问题，尤其是那些数据收集较为昂贵的应用问题（例如，在机器人，药物发现，对话生成，推荐系统中）或那些具有危险性的应用问题（例如，医疗保健，自动驾驶或教育）。
+此外，对于一些环境，在线收集的数据量远远低于离线数据集。离线强化学习的范式有望解决将强化学习算法从实验室环境带到现实世界的关键挑战。</p>
+<p>然而，在离线设置中直接使用现有的基于价值的 off-policy RL 算法通常会导致性能不佳，这是由于从分布外动作（out-of-distribution actions）引导和过度拟合等问题。
+因此，许多约束技术（例如策略约束；保守估计；不确定性估计）被添加到基本在线 RL 算法中。 基于不确定性的离线强化学习与多
+样化 Q-Ensemble（EDAC），首次提出于 <a class="reference external" href="https://arxiv.org/pdf/2110.01548.pdf">Uncertainty-Based Offline Reinforcement Learning with Diversified Q-Ensemble</a>，
+是其中之一，它通过添加更多 Critic Network 来惩罚分布外（OOD）操作。</p>
+</section>
+<section id="id2">
+<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>EDAC 是一种离线不确定性估计 RL 算法。</p></li>
+<li><p>EDAC 可以在 SAC RL 及相关衍生算法之上用不到20行代码实现。</p></li>
+<li><p>EDAC 支持连续动作空间。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>重要公式/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>EDAC 表明，通过增加 Critic 的数量，可以通过截断 Q 学习（clipped Q-learning） <span class="math notranslate nohighlight">\(min_{j=1,2}Q(s,a)\)</span> 来惩罚 OOD 操作。 因此，EDAC 可以通过在标准 SAC RL 算法上集成 Q 网络并添加惩罚项来惩罚 OOD 操作来实现。</p>
+<p>通常，对于 EDAC，惩罚项如下：</p>
+<a class="reference internal image-reference" href="../_images/edac_penalty_term.png"><img alt="../_images/edac_penalty_term.png" class="align-center" src="../_images/edac_penalty_term.png" style="width: 488.95000000000005px; height: 78.65px;" /></a>
+<p>通过添加上述惩罚项，该算法可以最小化实现更高计算效率的必要 Critic 数量，同时保持良好的性能。该项计算数据集状态操作的 Q 值梯度的内积。</p>
+<p>EDAC 通过增加 SAC 算法中 Q 网络的数量来显示截断 Q 学习的重要性。通过计算 clip 惩罚和 OOD 操作和数据集操作的标准偏差，论文显示为什么算法通过增加
+Q 网络的数量会表现得更好，如下图所示：</p>
+<a class="reference internal image-reference" href="../_images/edac_clip_penalty.png"><img alt="../_images/edac_clip_penalty.png" class="align-center" src="../_images/edac_clip_penalty.png" style="width: 584.6500000000001px; height: 173.25px;" /></a>
+<p>在下图中，论文显示了 OOD 操作的 Q 值梯度，其中红色向量表示 OOD 操作下的方向。我们发现，如果 OOD 操作的 Q 值的方差较小，则在梯度下降过程中将获得较小的惩罚
+。这进一步解释了为什么增加 Critic 数量可以惩罚 OOD 操作，并且也指示了论文后期改进的方向。</p>
+<a class="reference internal image-reference" href="../_images/edac_Q_grad.png"><img alt="../_images/edac_Q_grad.png" class="align-center" src="../_images/edac_Q_grad.png" style="width: 556.6px; height: 188.10000000000002px;" /></a>
+<p>尽管增加 Q 网络的数量可以提高性能，但过多的 Q 网络将成为负担。因此，EDAC 添加了惩罚项以减少 Critic 数量。 使用一阶泰勒近似，沿 w 的 OOD 操作处 Q 值的样本方差可以表示如下：</p>
+<a class="reference internal image-reference" href="../_images/edac_taylor.png"><img alt="../_images/edac_taylor.png" class="align-center" src="../_images/edac_taylor.png" style="width: 393.25000000000006px; height: 96.80000000000001px;" /></a>
+<p>为了有效地增加邻近原始数据集分布 OOD 操作的 Q 值方差，EDAC 最大化以下方程：</p>
+<a class="reference internal image-reference" href="../_images/edac_maxize.png"><img alt="../_images/edac_maxize.png" class="align-center" src="../_images/edac_maxize.png" style="width: 290.95000000000005px; height: 30.800000000000004px;" /></a>
+<p>有几种方法可以计算最小特征值，例如幂方法或 QR 算法。然而，这些迭代方法需要构建巨大的计算图，这使得使用反向传播优化特征值效率低下。相反，我们的目标是最大化所有特征值
+的总和，这等价于最大化总方差。因此，上述方程等同于最小化第一幅图的方程。</p>
+</section>
+<section id="id4">
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>伪代码显示在算法1中，与传统的 Actor-Critic 算法（例如 SAC）的区别以蓝色显示。</p>
+<a class="reference internal image-reference" href="../_images/edac_algorithm.png"><img alt="../_images/edac_algorithm.png" class="align-center" src="../_images/edac_algorithm.png" style="width: 592.9000000000001px; height: 402.05px;" /></a>
+</section>
+<section id="id5">
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>EDAC Policy 的默认配置定义如下：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.edac.</span></span><span class="sig-name descname"><span class="pre">EDACPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/edac.html#EDACPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Policy class of EDAC algorithm. <a class="reference external" href="https://arxiv.org/pdf/2110.01548.pdf">https://arxiv.org/pdf/2110.01548.pdf</a></p>
+</dd>
+<dt>Config:</dt><dd></dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HalfCheetah</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>92.5
+<span class="math notranslate nohighlight">\(\pm\)</span>
+9.9</p></td>
+<td><img alt="../_images/halfcheetah_edac.png" src="../_images/halfcheetah_edac.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_edac_medium_expert_config.py">config_link_ha</a></p></td>
+<td><p>EDAC Repo (106.3
+<span class="math notranslate nohighlight">\(\pm\)</span> 1.9)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hopper</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>110.8
+<span class="math notranslate nohighlight">\(\pm\)</span>
+1.3</p></td>
+<td><img alt="../_images/hopper_edac.png" src="../_images/hopper_edac.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_sac_edac_medium_expert_config.py">config_link_ho</a></p></td>
+<td><p>EDAC Repo (110.7
+<span class="math notranslate nohighlight">\(\pm\)</span> 0.1)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Specifically for each dataset, our implementation results are as follows:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 31%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>medium expert</p></th>
+<th class="head"><p>medium</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HalfCheetah</p></td>
+<td><p>92.5 <span class="math notranslate nohighlight">\(\pm\)</span>
+2.8</p></td>
+<td><p>59.9 <span class="math notranslate nohighlight">\(\pm\)</span>
+2.8</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hopper</p></td>
+<td><p>110.8 <span class="math notranslate nohighlight">\(\pm\)</span>
+1.3</p></td>
+<td><p>100.5 <span class="math notranslate nohighlight">\(\pm\)</span>
+1.6</p></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：
+1. 上述结果是通过在四个不同的随机种子（0、42、88、123、16）上运行相同的配置获得的。
+2. 上述基准测试是针对 HalfCheetah-v2，Hopper-v2。
+3. 上述比较结果是通过论文 <a class="reference external" href="https://arxiv.org/pdf/2110.01548.pdf">Uncertainty-Based Offline Reinforcement Learning with Diversified Q-Ensemble</a>。
+完整表格如下所示：</p>
+<a class="reference internal image-reference" href="../_images/edac_result.png"><img alt="../_images/edac_result.png" class="align-center" src="../_images/edac_result.png" style="width: 428.0px; height: 217.20000000000002px;" /></a>
+<ol class="arabic simple" start="4">
+<li><p>上述 Tensorboard 结果给出了未归一化的结果</p></li>
+</ol>
+</section>
+<section id="id7">
+<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>概述</p></li>
-<li><p>快速了解</p></li>
-<li><p>重要公示/重要图示</p></li>
-<li><p>伪代码</p></li>
-<li><p>扩展</p></li>
-<li><p>实现</p></li>
-<li><p>实现 Benchmark</p></li>
-<li><p>参考文献</p></li>
+<li><p>Kumar, Aviral, et al. “Conservative q-learning for offline reinforcement learning.” arXiv preprint arXiv:2006.04779 (2020).</p></li>
+<li><p>Chenjia Bai, et al. “Pessimistic Bootstrapping for Uncertainty-Driven Offline Reinforcement Learning.”</p></li>
 </ul>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Q-学习</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="dqn_zh.html">DQN</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id1">综述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id2">快速了解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id3">重要公示/重要图示</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id5">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#benchmark">实验 Benchmark</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id7">参考文献</a></li>
+</section>
+<section id="id8">
+<h2>其他公开实现<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/snu-mllab/EDAC">EDAC release repo</a></p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="mdqn_zh.html">MDQN</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id5">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#benchmark">实验 Benchmark</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id7">参考文献</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="c51_zh.html">C51</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id3">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id4">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id5">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id7">基准测试</a></li>
-<li class="toctree-l2"><a class="reference internal" href="c51_zh.html#id8">其他开源实现</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="qrdqn_zh.html">QRDQN</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id5">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id7">基准</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id8">参考文献</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id9">其他开源实现</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">探索</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="icm_zh.html">ICM</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id4">重要实现细节</a></li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id5">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="icm_zh.html#icmnetwork">ICMNetwork</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id6">实验结果</a></li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id7">参考资料</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="ngu_zh.html">NGU</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id5">重要的实现细节</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id6">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ngu_zh.html#rndnetwork-inversenetwork">RndNetwork/InverseNetwork</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ngu_zh.html#id8">内在奖励计算</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ngu_zh.html#id9">融合局内内在奖励和局外内在奖励</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id10">基准算法性能</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id11">参考资料</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="diayn_zh.html">DIAYN</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id5">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="diayn_zh.html#id6">判别器网络</a></li>
-<li class="toctree-l3"><a class="reference internal" href="diayn_zh.html#id7">数据收集</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id8">基准算法性能</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id9">参考资料</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">模仿学习</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="guided_cost_zh.html">Guided Cost Learning</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id1">综述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id2">快速了解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id3">重要公示/重要图示</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id5">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#benchmark">实验 Benchmark</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html#id7">参考文献</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="r2d3_zh.html">R2D3</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html#id2">核心要点</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id4">关键方程或关键框图</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id5">伪代码</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id6">重要的实现细节</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id7">实现</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id8">基准算法性能</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id10">参考资料</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">离线强化学习</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="edac_zh.html">EDAC</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id1">综述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id2">快速了解</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id3">重要公式/重要图示</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id5">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#benchmark">Benchmark</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id7">参考文献</a></li>
-<li class="toctree-l2"><a class="reference internal" href="edac_zh.html#id8">其他公开实现</a></li>
-</ul>
-</li>
-</ul>
-</div>
+</section>
 </section>
 
 
@@ -463,12 +462,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="dqn_zh.html" class="btn btn-neutral float-right" title="DQN" accesskey="n"
+    <a href="../13_envs/index_zh.html" class="btn btn-neutral float-right" title="强化学习环境示例" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="../11_dizoo/index_zh.html" class="btn btn-neutral" title="从 DI-zoo 开始学习" accesskey="p"
+    <a href="r2d3_zh.html" class="btn btn-neutral" title="R2D3" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -498,7 +497,15 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">强化学习算法</a><ul>
+<li><a class="reference internal" href="#">EDAC</a><ul>
+<li><a class="reference internal" href="#id1">综述</a></li>
+<li><a class="reference internal" href="#id2">快速了解</a></li>
+<li><a class="reference internal" href="#id3">重要公式/重要图示</a></li>
+<li><a class="reference internal" href="#id4">伪代码</a></li>
+<li><a class="reference internal" href="#id5">实现</a></li>
+<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li><a class="reference internal" href="#id7">参考文献</a></li>
+<li><a class="reference internal" href="#id8">其他公开实现</a></li>
 </ul>
 </li>
 </ul>
@@ -521,6 +528,7 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   
