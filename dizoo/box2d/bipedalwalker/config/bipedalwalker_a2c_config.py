@@ -16,8 +16,6 @@ bipedalwalker_a2c_config = dict(
     ),
     policy=dict(
         cuda=True,
-        # (int) the trajectory length to calculate v-trace target
-        unroll_len=32,
         # load_path="./bipedalwalker_a2c_seed0/ckpt/ckpt_best.pth.tar",
         action_space='continuous',
         model=dict(
@@ -27,22 +25,23 @@ bipedalwalker_a2c_config = dict(
         ),
         learn=dict(
             # (int) the number of data for a train iteration
-            batch_size=64,
+            batch_size=256,
             learning_rate=0.0003,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.01,
+            entropy_weight=0.001,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
+            adv_norm=True,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=64,
-            collector=dict(collect_print_freq=1000, ),
+            n_sample=512,
+            discount_factor=0.99,
+            collector=dict(collect_print_freq=100, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, )),
-        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
 bipedalwalker_a2c_config = EasyDict(bipedalwalker_a2c_config)

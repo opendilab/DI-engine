@@ -171,6 +171,49 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
+        elif env == 'bipedalwalker':
+            cfg.update(
+                dict(
+                    exp_name='Bipedalwalker-v3-A2C',
+                    seed=0,
+                    env=dict(
+                        env_id='BipedalWalker-v3',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        act_scale=True,
+                        n_evaluator_episode=8,
+                        rew_clip=True,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        action_space='continuous',
+                        model=dict(
+                            action_space='continuous',
+                            obs_shape=24,
+                            action_shape=4,
+                        ),
+                        learn=dict(
+                            batch_size=128,
+                            learning_rate=0.0003,
+                            value_weight=0.5,
+                            entropy_weight=0.001,
+                            discount_factor=0.99,
+                            adv_norm=True,
+                        ),
+                        collect=dict(
+                            n_sample=128,
+                            discount_factor=0.99,
+                        ),
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
         elif env == 'hopper':
             cfg.update(
                 dict(
