@@ -7,7 +7,7 @@ main_config = dict(
     env=dict(
         env_id='hopper-random-v0',
         norm_obs=dict(
-            use_norm=True, 
+            use_norm=True,
             offline_stats=dict(use_offline_stats=True, ),
         ),
         collector_env_num=1,
@@ -17,6 +17,7 @@ main_config = dict(
         stop_value=6000,
     ),
     policy=dict(
+        cuda=True,
         model=dict(
             obs_shape=11,
             action_shape=3,

@@ -56,6 +56,9 @@ class Parallel(metaclass=SingletonMetaclass):
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
+        self.mq_type = mq_type
+        self.barrier_runtime = Parallel.get_barrier_runtime()(self.node_id)
+
     @classmethod
     def runner(
             cls,
@@ -372,6 +375,18 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             s.close()
         return ip
 
+    def get_attch_to_len(self) -> int:
+        """
+        Overview:
+            Get the length of the 'attach_to' list of message queue.
+        Returns:
+            int: the length of the self._mq.attach_to. Returns 0 if self._mq is not initialized
+        """
+        if self._mq:
+            if hasattr(self._mq, 'attach_to'):
+                return len(self._mq.attach_to)
+        return 0
+
     def __enter__(self) -> "Parallel":
         return self
 
@@ -389,3 +404,9 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             self._listener.join(timeout=1)
             self._listener = None
         self._event_loop.stop()
+
+    @classmethod
+    def get_barrier_runtime(cls):
+        # We get the BarrierRuntime object in the closure to avoid circular import.
+        from ding.framework.middleware.barrier import BarrierRuntime
+        return BarrierRuntime

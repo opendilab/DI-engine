@@ -24,25 +24,17 @@ main_config = dict(
         cuda=True,
         on_policy=False,
         multi_agent=True,
-        # priority=True,
-        # priority_IS_weight=False,
-        random_collect_size=0,
+        random_collect_size=5000,
         model=dict(
             agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
             global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
             n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
-            # SAC concerned
             twin_critic=True,
-            actor_head_hidden_size=256,
-            critic_head_hidden_size=256,
         ),
         learn=dict(
             update_per_collect=50,
             batch_size=320,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
             # learning_rates
             learning_rate_q=5e-4,
             learning_rate_policy=5e-4,
@@ -51,16 +43,12 @@ main_config = dict(
             discount_factor=0.99,
             alpha=0.2,
             auto_alpha=True,
-            log_space=True,
-            ignore_down=False,
             target_entropy=-2,
         ),
         collect=dict(
             n_sample=1600,
-            unroll_len=1,
             env_num=collector_env_num,
         ),
-        command=dict(),
         eval=dict(
             env_num=evaluator_env_num,
             evaluator=dict(eval_freq=50, ),

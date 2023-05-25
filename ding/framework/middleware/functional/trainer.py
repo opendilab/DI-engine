@@ -1,18 +1,20 @@
 from typing import TYPE_CHECKING, Callable, Union
 from easydict import EasyDict
+import treetensor.torch as ttorch
 from ditk import logging
 import numpy as np
 from ding.policy import Policy
 from ding.framework import task, OfflineRLContext, OnlineRLContext
 
 
-def trainer(cfg: EasyDict, policy: Policy) -> Callable:
+def trainer(cfg: EasyDict, policy: Policy, log_freq: int = 100) -> Callable:
     """
     Overview:
         The middleware that executes a single training process.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be trained in step-by-step mode.
+        - log_freq (:obj:`int`): The frequency (iteration) of showing log.
     """
 
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
@@ -28,9 +30,9 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
         if ctx.train_data is None:
             return
+        data = ctx.train_data
         train_output = policy.forward(ctx.train_data)
-        #if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
-        if True:
+        if ctx.train_iter % log_freq == 0:
             if isinstance(ctx, OnlineRLContext):
                 logging.info(
                     'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(
@@ -49,13 +51,13 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     return _train
 
 
-def multistep_trainer(policy: Policy, log_freq: int) -> Callable:
+def multistep_trainer(policy: Policy, log_freq: int = 100) -> Callable:
     """
     Overview:
         The middleware that executes training for a target num of steps.
     Arguments:
         - policy (:obj:`Policy`): The policy specialized for multi-step training.
-        - int (:obj:`int`): The frequency (iteration) of showing log.
+        - log_freq (:obj:`int`): The frequency (iteration) of showing log.
     """
     last_log_iter = -1
 
@@ -72,7 +74,12 @@ def multistep_trainer(policy: Policy, log_freq: int) -> Callable:
 
         if ctx.train_data is None:  # no enough data from data fetcher
             return
-        data = ctx.train_data.to(policy._device)
+        if hasattr(policy, "_device"):  # For ppof policy
+            data = ctx.train_data.to(policy._device)
+        elif hasattr(policy, "get_attribute"):  # For other policy
+            data = ctx.train_data.to(policy.get_attribute("device"))
+        else:
+            assert AttributeError("Policy should have attribution '_device'.")
         train_output = policy.forward(data)
         nonlocal last_log_iter
         if ctx.train_iter - last_log_iter >= log_freq:

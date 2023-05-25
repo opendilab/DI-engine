@@ -73,7 +73,7 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
             else:
                 output = ctx.train_output
             for k, v in output.items():
-                if k in ['priority']:
+                if k in ['priority', 'td_error_priority']:
                     continue
                 if "[scalars]" in k:
                     new_k = k.split(']')[-1]

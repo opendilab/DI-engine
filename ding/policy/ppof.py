@@ -32,7 +32,7 @@ class PPOFPolicy:
         entropy_weight=0.01,
         clip_ratio=0.2,
         adv_norm=True,
-        value_norm='symlog',
+        value_norm='baseline',
         ppo_param_init=True,
         grad_norm=0.5,
         # collect
@@ -154,8 +154,9 @@ class PPOFPolicy:
                 next_value = self._model.compute_critic(data.next_obs)
                 reward = data.reward
 
-                assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog'],\
-                    'Not supported value normalization! Value normalization supported: popart, value rescale, symlog'
+                assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog', 'baseline'],\
+                    'Not supported value normalization! Value normalization supported: \
+                        popart, value rescale, symlog, baseline'
 
                 if self._cfg.value_norm == 'popart':
                     unnormalized_value = value['unnormalized_pred']
@@ -173,6 +174,9 @@ class PPOFPolicy:
                 elif self._cfg.value_norm == 'symlog':
                     value = inv_symlog(value['pred'])
                     next_value = inv_symlog(next_value['pred'])
+                elif self._cfg.value_norm == 'baseline':
+                    value = value['pred'] * self._running_mean_std.std
+                    next_value = next_value['pred'] * self._running_mean_std.std
 
                 traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
                 adv_data = gae_data(value, next_value, reward, data.done, traj_flag)
@@ -188,6 +192,10 @@ class PPOFPolicy:
                 elif self._cfg.value_norm == 'symlog':
                     value = symlog(value)
                     unnormalized_returns = symlog(unnormalized_returns)
+                elif self._cfg.value_norm == 'baseline':
+                    value /= self._running_mean_std.std
+                    unnormalized_returns /= self._running_mean_std.std
+                    self._running_mean_std.update(unnormalized_returns.cpu().numpy())
                 data.value = value
                 data.return_ = unnormalized_returns
 

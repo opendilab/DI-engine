@@ -536,5 +536,17 @@ class Task:
         if not self._async_loop:
             self._async_loop = asyncio.new_event_loop()
 
+    def get_attch_to_len(self) -> int:
+        """
+        Overview:
+            Get the length of the 'attach_to' list in Parallel._mq.
+        Returns:
+            int: the length of the Parallel._mq.
+        """
+        if self.router.is_active:
+            return self.router.get_attch_to_len()
+        else:
+            raise RuntimeError("The router is inactive, failed to be obtained the length of 'attch_to' list.")
+
 
 task = Task()

@@ -4,7 +4,7 @@ import torch
 import copy
 import numpy as np
 
-from ding.torch_utils import Adam, to_device, unsqueeze, ContrastiveLoss
+from ding.torch_utils import Adam, to_device, to_dtype, unsqueeze, ContrastiveLoss
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
     v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
     get_gae, ppo_policy_error_continuous
@@ -157,6 +157,9 @@ class PPOPolicy(Policy):
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
+        data['obs'] = to_dtype(data['obs'], torch.float32)
+        if 'next_obs' in data:
+            data['next_obs'] = to_dtype(data['next_obs'], torch.float32)
         # ====================
         # PPO forward
         # ====================
