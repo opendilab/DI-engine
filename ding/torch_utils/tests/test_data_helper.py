@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import treetensor.torch as ttorch
 
 from ding.torch_utils import CudaFetcher, to_device, to_dtype, to_tensor, to_ndarray, to_list, \
-    tensor_to_list, same_shape, build_log_buffer, get_tensor_data, get_shape0, to_item
+    tensor_to_list, same_shape, build_log_buffer, get_tensor_data, to_item
 from ding.utils import EasyTimer
 
 
@@ -139,7 +139,10 @@ class TestDataFunction:
         assert np.isscalar(new_data.a)
 
         with pytest.raises(ValueError):
-            to_item(torch.randn(4))
+            to_item({'a': torch.randn(4), 'b': torch.rand(1)}, ignore_error=False)
+        output = to_item({'a': torch.randn(4), 'b': torch.rand(1)}, ignore_error=True)
+        assert 'a' not in output
+        assert 'b' in output
 
     def test_same_shape(self):
         tlist = [torch.randn(3, 5) for i in range(5)]
@@ -159,18 +162,6 @@ class TestDataFunction:
             assert not t.requires_grad
         with pytest.raises(TypeError):
             get_tensor_data(EasyTimer())
-
-    def test_get_shape0(self):
-        a = {
-            'a': {
-                'b': torch.randn(4, 3)
-            },
-            'c': {
-                'd': torch.randn(4)
-            },
-        }
-        a = ttorch.as_tensor(a)
-        assert get_shape0(a) == 4
 
 
 @pytest.mark.unittest

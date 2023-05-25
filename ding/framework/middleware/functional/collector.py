@@ -70,8 +70,9 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
         if env.closed:
             env.launch()
 
-        obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
+        obs = ttorch.as_tensor(env.ready_obs)
         ctx.obs = obs
+        obs = obs.to(dtype=ttorch.float32)
         # TODO mask necessary rollout
 
         obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD

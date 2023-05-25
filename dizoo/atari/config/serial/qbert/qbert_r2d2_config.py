@@ -9,7 +9,7 @@ qbert_r2d2_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=int(1e6),
-        env_id='Qbert-v4',
+        env_id='QbertNoFrameskip-v4',
         #'ALE/Qbert-v5' is available. But special setting is needed after gym make.
         frame_stack=4
     ),

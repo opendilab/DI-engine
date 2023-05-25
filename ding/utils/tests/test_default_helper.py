@@ -3,14 +3,41 @@ from collections import namedtuple
 import numpy as np
 import pytest
 import torch
+import treetensor.torch as ttorch
 
 from ding.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper, \
     list_split, LimitedSpaceContainer, set_pkg_seed, deep_merge_dicts, deep_update, flatten_dict, RunningMeanStd, \
-    one_time_warning, split_data_generator
+    one_time_warning, split_data_generator, get_shape0
 
 
 @pytest.mark.unittest
 class TestDefaultHelper():
+
+    def test_get_shape0(self):
+        a = {
+            'a': {
+                'b': torch.randn(4, 3)
+            },
+            'c': {
+                'd': torch.randn(4)
+            },
+        }
+        b = [a, a]
+        c = (a, a)
+        d = {
+            'a': {
+                'b': ["a", "b", "c", "d"]
+            },
+            'c': {
+                'd': torch.randn(4)
+            },
+        }
+        a = ttorch.as_tensor(a)
+        assert get_shape0(a) == 4
+        assert get_shape0(b) == 4
+        assert get_shape0(c) == 4
+        with pytest.raises(Exception) as e_info:
+            assert get_shape0(d) == 4
 
     def test_lists_to_dicts(self):
         set_pkg_seed(12)

@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pytest
 
-from ding.model.common.head import DuelingHead, ReparameterizationHead, MultiHead, StochasticDuelingHead
+from ding.model.common.head import DuelingHead, ReparameterizationHead, MultiHead, StochasticDuelingHead, EnsembleHead
 from ding.torch_utils import is_differentiable
 
 B = 4
@@ -84,3 +84,10 @@ class TestHead:
         assert isinstance(sigma.grad, torch.Tensor)
         assert outputs['q_value'].shape == (B, 1)
         assert outputs['v_value'].shape == (B, 1)
+
+    def test_ensemble(self):
+        inputs = torch.randn(B, embedding_dim * 3, 1)
+        model = EnsembleHead(embedding_dim, action_shape, 3, 3, 3)
+        outputs = model(inputs)['pred']
+        self.output_check(model, outputs)
+        assert outputs.shape == (B, action_shape * 3)
