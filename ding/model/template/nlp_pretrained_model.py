@@ -9,11 +9,14 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 class NLPPretrainedModel(nn.Module):
 
     def __init__(
-            self, model_name="bert-base-uncased", add_linear=False, embedding_size=128, freeze_encoder=True
+            self,
+            model_name: str = "bert-base-uncased",
+            add_linear: bool = False,
+            embedding_size: int = 128,
+            freeze_encoder: bool = True
     ) -> None:
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        print("model_config:", model_name)
         self.model = AutoModelForTokenClassification.from_pretrained(model_name)
 
         # Freeze transformer encoder and only train the linear layer
@@ -30,7 +33,7 @@ class NLPPretrainedModel(nn.Module):
         else:
             self.linear = None
 
-    def _calc_embedding(self, x):
+    def _calc_embedding(self, x: list) -> torch.Tensor:
         input = self.tokenizer(x, truncation=True, padding=True, return_tensors="pt").to(self.model.device)
         output = self.model(**input, output_hidden_states=True)
         # Get last layer hidden states
@@ -44,7 +47,7 @@ class NLPPretrainedModel(nn.Module):
 
         return sentence_embedding
 
-    def forward(self, train_samples, candidate_samples):
+    def forward(self, train_samples: list, candidate_samples: list) -> dict:
         ctxt_embedding = self._calc_embedding(train_samples)
         cands_embedding = self._calc_embedding(candidate_samples)
         scores = torch.mm(ctxt_embedding, cands_embedding.t())

@@ -2,12 +2,11 @@ from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
 
-from ding.rl_utils import get_gae_with_default_last_value, get_train_sample
+from ding.rl_utils import get_train_sample
 from ding.torch_utils import Adam, to_device
-from ding.utils import POLICY_REGISTRY, split_data_generator
+from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
-from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('prompt_pg')
@@ -76,11 +75,10 @@ class PromptPGPolicy(Policy):
         Overview:
             Forward and backward function of learn mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs','adv']
+            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward']
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-        print(data)
         self._model.train()
         if self._cuda:
             data = to_device(data, self._device)
@@ -88,7 +86,7 @@ class PromptPGPolicy(Policy):
         return_infos = []
         for i in range(0, len(data), self._cfg.learn.batch_size):
             batch = default_collate(data[i:i + self._cfg.learn.batch_size])
-            # forward
+            # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             train_samples, cand_samples = batch["obs"]["train_sample"], batch["obs"]["candidate_samples"]
             for ii in range(len(cand_samples)):
                 cand_samples[ii] = cand_samples[ii][0]
@@ -102,6 +100,9 @@ class PromptPGPolicy(Policy):
             for b in range(batch['action'].shape[0]):
                 tmp_act = []
                 act = batch['action'][b].item()
+                # The action is a combination of indexes of all selected prompts.
+                # For example, if [3, 6] is selected, action = 2 ** 3 + 2 ** 6 = 8 + 64 = 72.
+                # In this step, we calculate all the indexes.
                 idx = 0
                 while act > 0:
                     if act % 2 != 0:
@@ -110,12 +111,14 @@ class PromptPGPolicy(Policy):
                     idx += 1
                 assert len(tmp_act) == self._cfg.shot_number
                 real_act.append(tmp_act)
-            real_act = torch.tensor(real_act, device=self._device)
+            real_act = torch.tensor(real_act, device=self._device)  # shape: (B, shot_number)
+            # Calculate loss.
+            total_loss = 0
             for ii in range(self._cfg.shot_number):
                 log_prob = output['dist'].log_prob(real_act[:, ii])
                 policy_loss = -(log_prob * return_).mean()
                 entropy_loss = -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
-                total_loss = policy_loss + entropy_loss
+                total_loss += policy_loss + entropy_loss
 
             # update
             self._optimizer.zero_grad()
@@ -148,9 +151,11 @@ class PromptPGPolicy(Policy):
         data = default_collate(list(data.values()))
         self._model.eval()
         with torch.no_grad():
+            # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
             output = self._model.forward(data['train_sample'], data['candidate_samples'])
+            # Generate actions.
             act = []
             mask = torch.zeros_like(output['logit'])
             for ii in range(self._cfg.shot_number):
@@ -159,6 +164,7 @@ class PromptPGPolicy(Policy):
                 act.append(actions)
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
+            # `act` is shaped (shot_num, B)
             real_act = []
             for b in range(act[0].shape[0]):
                 tmp_act = torch.zeros_like(act[0])
@@ -166,6 +172,7 @@ class PromptPGPolicy(Policy):
                     tmp_act += 2 ** shot[b].item()
                     real_act.append(tmp_act)
             real_act = torch.tensor(real_act)
+            # `real_act` is shaped (B)
         output['action'] = real_act
         if self._cuda:
             output = to_device(output, 'cpu')
@@ -217,9 +224,11 @@ class PromptPGPolicy(Policy):
         data = default_collate(list(data.values()))
         self._model.eval()
         with torch.no_grad():
+            # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
             output = self._model.forward(data['train_sample'], data['candidate_samples'])
+            # Generate actions.
             act = []
             mask = torch.zeros_like(output['logit'])
             for ii in range(self._cfg.shot_number):
@@ -227,7 +236,7 @@ class PromptPGPolicy(Policy):
                 act.append(actions)
                 for jj in range(actions.shape[0]):
                     mask[jj][actions[jj]] = -1e30
-            # act: [shot_number, bs]
+            # `act` is shaped (shot_num, B)
             real_act = []
             for b in range(act[0].shape[0]):
                 tmp_act = torch.zeros_like(act[0])
@@ -235,6 +244,7 @@ class PromptPGPolicy(Policy):
                     tmp_act += 2 ** shot[b].item()
                     real_act.append(tmp_act)
             real_act = torch.tensor(real_act)
+            # `real_act` is shaped (B)
         output['action'] = real_act
         if self._cuda:
             output = to_device(output, 'cpu')

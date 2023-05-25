@@ -8,9 +8,11 @@ import torch
 
 import numpy as np
 import openai
+import transformers
 
 
-def sample_logits(out, temperature=1.0, top_p=0.8):
+def sample_logits(out: torch.Tensor, temperature: float = 1.0, top_p: float = 0.8) -> int:
+    # Sample an action given the logits.
     probs = torch.softmax(out, dim=-1).cpu().numpy()
     sorted_probs = np.sort(probs)[::-1]
     cumulative_probs = np.cumsum(sorted_probs)
@@ -23,12 +25,13 @@ def sample_logits(out, temperature=1.0, top_p=0.8):
     return out
 
 
-def calc_rwkv(model, tokenizer, prompt, max_len=10):
+def calc_rwkv(model: transformers.RwkvForCausalLM, tokenizer: transformers.AutoTokenizer, prompt: str, max_len: int = 10) -> str:
+    # Use RWKV to generate sentence.
     orig_len = len(prompt)
     inputs = tokenizer(prompt, return_tensors="pt").to('cuda')
     outputs = model(**inputs, labels=inputs["input_ids"])
     out, state = outputs.logits, outputs.state
-
+    # Recurrent generation.
     with torch.no_grad():
         for i in range(max_len):
             token = sample_logits(out[0, -1])
@@ -40,26 +43,27 @@ def calc_rwkv(model, tokenizer, prompt, max_len=10):
     return prompt[orig_len:]
 
 
-def load_data(args):
+def load_data(args: dict) -> tuple:
+    # Load tabmwp dataset.
     random.seed(args.seed)
     data_root = 'dizoo/tabmwp/data'
     problems = json.load(open(os.path.join(data_root, f'problems_train.json')))
 
     pids = list(problems.keys())
-
     samples = random.sample(pids, args.train_number + args.cand_number)  # random sample
     train_pids = samples[:args.train_number]
     cand_pids = samples[args.train_number:]
     return problems, cand_pids, train_pids
 
 
-def get_gpt3_output(prompt, args):
+def get_gpt3_output(prompt: str, args: dict) -> str:
     return call_gpt3(args.engine, prompt, args.temperature, args.max_tokens, args.top_p, args.frequency_penalty,
                      args.presence_penalty)
 
 
 @lru_cache(maxsize=10000)
-def call_gpt3(engine, prompt, temperature, max_tokens, top_p, frequency_penalty, presence_penalty):
+def call_gpt3(engine: str, prompt: str, temperature: float, max_tokens: int, top_p: float,
+              frequency_penalty: float, presence_penalty: float) -> str:
     patience = 100
     while True:
         try:
@@ -73,7 +77,7 @@ def call_gpt3(engine, prompt, temperature, max_tokens, top_p, frequency_penalty,
                                                 stop=["\n"])
             output = response["choices"][0]["text"].strip()
             break
-        except Exception as e:
+        except Exception:
             patience -= 1
             if not patience:
                 print("!!! running out of patience waiting for OpenAI")
@@ -82,7 +86,7 @@ def call_gpt3(engine, prompt, temperature, max_tokens, top_p, frequency_penalty,
     return output
 
 
-def get_table_text(problem):
+def get_table_text(problem: dict) -> str:
     table = problem['table']
     title = problem['table_title']
     if title and len(title) > 0:
@@ -90,7 +94,7 @@ def get_table_text(problem):
     return table
 
 
-def get_question_text(problem, option_inds):
+def get_question_text(problem: dict, option_inds: list) -> str:
     question = problem['question']
 
     unit = problem['unit']
@@ -108,17 +112,19 @@ def get_question_text(problem, option_inds):
     return question
 
 
-def get_answer(problem):
+def get_answer(problem: dict) -> str:
     return problem['answer']
 
 
-def get_solution_text(problem):
-    # \\n: GPT-3 can generate the solution with more tokens
+def get_solution_text(problem: dict) -> str:
+    # GPT-3 can generate the solution with more tokens
     solution = problem['solution'].replace("\n", "\\n")
     return solution
 
 
-def create_one_example(format, table, question, answer, solution, test_example=True):
+def create_one_example(format: str, table: str, question: str, answer: str,
+                       solution: str, test_example:bool = True) -> str:
+    # Using template to generate one prompt example.
     input_format, output_format = format.split("-")  # e.g., "TQ-A"
 
     elements = {
@@ -146,7 +152,8 @@ def create_one_example(format, table, question, answer, solution, test_example=T
     return text
 
 
-def build_prompt(problems, shot_pids, test_pid, args):
+def build_prompt(problems: list, shot_pids: list, test_pid: int, args: dict) -> str:
+    # Given ids, generate the complete prompt. That is, the input to LM.
     examples = []
     pids = shot_pids + [test_pid]
 
@@ -172,7 +179,7 @@ def build_prompt(problems, shot_pids, test_pid, args):
     return prompt_input
 
 
-def extract_prediction(output, options, option_inds):
+def extract_prediction(output: str, options: list, option_inds: list) -> str:
     idx = output.find('\n')
     if idx > 0:
         output = output[:idx]
@@ -186,7 +193,7 @@ def extract_prediction(output, options, option_inds):
     output = re.sub(r"(?<=\d)[\=](?=[\-\$\d])", " = ", output)
     output = re.sub(r"\u2212", "-", output)
 
-    ## Multi-choice questions
+    # Multi-choice questions
     if options:
         patterns = [
             r'^\(([A-Za-z])\)$',  # "(b)", "(B)"
@@ -217,7 +224,7 @@ def extract_prediction(output, options, option_inds):
         return predition
 
     else:
-        ## free_text QA problems, numeric answer
+        # free_text QA problems, numeric answer
         patterns = [
             # r'^\([A-Za-z]\) ([\s\S]+)$', # "(A) XXXXX"
             # r'[Th]he answer is \([A-Za-z]\) ([\s\S]+)$', # "The answer is (B) XXXXX."
@@ -243,7 +250,7 @@ def extract_prediction(output, options, option_inds):
     return output
 
 
-def normalize_answer(text, unit):
+def normalize_answer(text: str, unit: str) -> str:
     # ["1,000", "123", "3/4", "56.456", "$56.4", "-3", "-10.02", "-3/2"]
 
     text = re.sub("^[\$]", "", text)
@@ -274,7 +281,7 @@ def normalize_answer(text, unit):
         return text
 
 
-def score_string_similarity(str1, str2):
+def score_string_similarity(str1: str, str2: str) -> float:
     if str1 == str2:
         return 2.0
     if " " in str1 or " " in str2:
@@ -289,7 +296,7 @@ def score_string_similarity(str1, str2):
             return 0.0
 
 
-def create_example_from_pid(pid, problems, args, test=False):
+def create_example_from_pid(pid: int, problems: list, args: dict, test: bool = False) -> str:
     problem = problems[pid]
     table = get_table_text(problem)
     question = get_question_text(problem, args.option_inds)

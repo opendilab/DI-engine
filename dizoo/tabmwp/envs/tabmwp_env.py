@@ -1,10 +1,8 @@
 import gym
 
 from ding.utils import ENV_REGISTRY
-
-from .utils import *
 from ding.envs import BaseEnv, BaseEnvTimestep
-import openai
+from .utils import *
 
 
 @ENV_REGISTRY.register('tabmwp')
@@ -13,9 +11,6 @@ class TabMWP(BaseEnv):
     tokenizer = None
 
     def __init__(self, cfg):
-        # args contains: cand_number, train_number, engine, temperature,
-        # max_tokens, top_p, frequency_penalty, presence_penalty, api_key
-        # option_inds, prompt_format
         self._args = cfg
         self._init_flag = False
         self.problems, self.cand_pids, self.train_pids = None, None, None
@@ -35,14 +30,13 @@ class TabMWP(BaseEnv):
             model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
             TabMWP.model = model.half().cuda()
         elif self._args.engine == 'rwkv-7B' and TabMWP.model is None:
-            from transformers import AutoTokenizer, AutoModel
-            TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile")
-            model = AutoModel.from_pretrained("sgugger/rwkv-7b-pile")
+            from transformers import AutoTokenizer, RwkvForCausalLM
+            TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile", trust_remote_code=True)
+            model = RwkvForCausalLM.from_pretrained("sgugger/rwkv-7b-pile")
             TabMWP.model = model.half().cuda()
 
-
     @lru_cache(maxsize=10000)
-    def get_output(self, inp):
+    def get_output(self, inp: str) -> str:
         inputs = TabMWP.tokenizer(inp + " [MASK].", return_tensors="pt")
         inputs = TabMWP.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
         inputs = {key: value.cuda() for key, value in inputs.items()}
@@ -55,10 +49,10 @@ class TabMWP(BaseEnv):
 
         return outputs[t0:t1]
 
-    def seed(self, seed, dynamic_seed=False):
+    def seed(self, seed: int, dynamic_seed: bool = False) -> None:
         self._args.seed = seed
 
-    def reset(self):
+    def reset(self) -> dict:
         self.problems, self.cand_pids, self.train_pids = load_data(self._args)
         self.cand_examples = []
         self.correct_num = 0
@@ -72,12 +66,13 @@ class TabMWP(BaseEnv):
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
         return obs
 
-    def close(self):
+    def close(self) -> None:
         self._init_flag = False
 
-    def step(self, action):
+    def step(self, action: np.array) -> BaseEnvTimestep:
         cids = []
         act = action.item()
+        # Convert action of one scalar in to indexes.
         idx = 0
         while act > 0:
             if act % 2 != 0:
@@ -86,8 +81,6 @@ class TabMWP(BaseEnv):
             idx += 1
 
         shot_pids = [self.cand_pids[cid] for cid in cids]
-        # print(f"shot_pids: {shot_pids}")
-
         pid = self.train_pids[self.problem_id]
 
         # generate the prompt input
