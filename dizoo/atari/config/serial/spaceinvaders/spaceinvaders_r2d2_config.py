@@ -9,7 +9,7 @@ spaceinvaders_r2d2_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=int(1e6),
-        env_id='SpaceInvaders-v4',
+        env_id='SpaceInvadersNoFrameskip-v4',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
         manager=dict(shared_memory=False, )

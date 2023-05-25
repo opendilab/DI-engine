@@ -5,9 +5,9 @@ from easydict import EasyDict
 main_config = dict(
     exp_name='walker2d_medium_replay_td3-bc_seed0',
     env=dict(
-        env_id='walker2d-medium-replay-v0',
+        env_id='walker2d-medium-replay-v2',
         norm_obs=dict(
-            use_norm=True, 
+            use_norm=True,
             offline_stats=dict(use_offline_stats=True, ),
         ),
         collector_env_num=1,
@@ -17,9 +17,10 @@ main_config = dict(
         stop_value=6000,
     ),
     policy=dict(
+        cuda=True,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=17,
+            action_shape=6,
         ),
         learn=dict(
             train_epoch=30000,
