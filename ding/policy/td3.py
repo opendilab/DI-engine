@@ -156,4 +156,4 @@ class TD3Policy(DDPGPolicy):
     )
 
     def monitor_vars(self) -> List[str]:
-        return ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
+        return ["q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
