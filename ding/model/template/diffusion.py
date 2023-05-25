@@ -7,14 +7,21 @@ import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 
 def extract(a, t, x_shape):
+    '''
+    Overview:
+        extract output from a through index t.
+    '''
     b, *_ = t.shape
     out = a.gather(-1, t)
     return out.reshape(b, *((1,) * (len(x_shape) - 1)))
 
 def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype = torch.float32):
     '''
-    cosine schedule
-    as proposed in https://openreview.net/forum?id=-NEXDKk8gZ
+    Overview:
+        cosine schedule
+        as proposed in https://openreview.net/forum?id=-NEXDKk8gZ
+    Return:
+        Tensor of beta [timesteps,], computing by cosine.
     '''
     steps = timesteps + 1
     x = np.linspace(0, steps, steps)
@@ -25,6 +32,10 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype = torch.float32
     return torch.tensor(betas_clipped, dtype=dtype)
 
 def apply_conditioning(x, conditions, action_dim):
+    '''
+    Overview:
+        add condition into x
+    '''
     for t, val in conditions.items():
         x[:, t, action_dim:] = val.clone()
     return x
@@ -75,6 +86,10 @@ class conv1d(nn.Module):
         return out
 
 class SinusoidalPosEmb(nn.Module):
+    '''
+    Overview:
+        compute sin position embeding
+    '''
     def __init__(self, dim: int,) -> None:
         super().__init__()
         self.dim = dim
@@ -411,6 +426,10 @@ class MLPnet(nn.Module):
             return out
         
 class ARInvModel(nn.Module):
+    '''
+    Overview:
+        Action model, return action by given state and next state
+    '''
     def __init__(
             self,
             hidden_dim: int,
@@ -474,7 +493,10 @@ class ARInvModel(nn.Module):
 
 @MODEL_REGISTRY.register('diffusion')
 class GaussianInvDynDiffusion(nn.Module):
-
+    '''
+    Overview:
+        Gaussian diffusion model with Invdyn action model.
+    '''
     def __init__(
             self,
             model: str,
