@@ -1,3 +1,25 @@
+2023.05.25(v0.4.8)
+- env: fix gym hybrid reward dtype bug (#664)
+- env: fix atari env id noframeskip bug (#655)
+- env: fix typo in gym any_trading env (#654)
+- env: update td3bc d4rl config (#659)
+- env: polish bipedalwalker config
+- algo: add EDAC offline RL algorithm (#639)
+- algo: add LN and GN norm_type support in ResBlock (#660)
+- algo: add normal value norm baseline for PPOF (#658)
+- algo: polish last layer init/norm in MLP (#650)
+- algo: polish TD3 monitor variable
+- feature: add MAPPO/MASAC task example (#661)
+- feature: add PPO example for complex env observation (#644)
+- feature: add barrier middleware (#570)
+- fix: abnormal collector log and add record_random_collect option (#662)
+- fix: to_item compatibility bug (#646)
+- fix: trainer dtype transform compatibility bug
+- fix: pettingzoo 1.23.0 compatibility bug
+- fix: ensemble head unittest bug
+- style: fix incompatible gym version bug in Dockerfile.env (#653)
+- style: add more algorithm docs
+
 2023.04.11(v0.4.7)
 - env: add dmc2gym env support and baseline (#451)
 - env: update pettingzoo to the latest version (#597)
