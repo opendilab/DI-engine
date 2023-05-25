@@ -194,7 +194,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         ),
                         learn=dict(
                             batch_size=128,
-                            learning_rate=0.0003,
+                            learning_rate=0.005,
                             value_weight=0.5,
                             entropy_weight=0.001,
                             discount_factor=0.99,
