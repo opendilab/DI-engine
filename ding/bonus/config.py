@@ -193,15 +193,14 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=4,
                         ),
                         learn=dict(
-                            batch_size=128,
-                            learning_rate=0.005,
-                            value_weight=0.5,
-                            entropy_weight=0.001,
-                            discount_factor=0.99,
+                            batch_size=64,
+                            learning_rate=0.01,
+                            value_weight=2,
+                            entropy_weight=0.01,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=128,
+                            n_sample=64,
                             discount_factor=0.99,
                         ),
                     ),
@@ -240,11 +239,11 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             learning_rate=0.0003,
                             value_weight=0.5,
                             entropy_weight=0.001,
-                            discount_factor=0.999,
                             adv_norm=True,
                         ),
                         collect=dict(
                             n_sample=256,
+                            discount_factor=0.999,
                         ),
                     ),
                     wandb_logger=dict(
@@ -282,12 +281,12 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             learning_rate=0.0003,
                             value_weight=0.5,
                             entropy_weight=0.001,
-                            discount_factor=0.999,
                             ignore_done=True,
                             adv_norm=True,
                         ),
                         collect=dict(
                             n_sample=1000,
+                            discount_factor=0.999,
                         ),
                     ),
                     wandb_logger=dict(
@@ -325,11 +324,11 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             learning_rate=0.0003,
                             value_weight=0.5,
                             entropy_weight=0.001,
-                            discount_factor=0.999,
                             adv_norm=True,
                         ),
                         collect=dict(
                             n_sample=256,
+                            discount_factor=0.999,
                         ),
                     ),
                     wandb_logger=dict(
