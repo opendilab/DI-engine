@@ -21,19 +21,19 @@ halfcheetah_a2c_config = dict(
         ),
         learn=dict(
             # (int) the number of data for a train iteration
-            batch_size=1000,
+            batch_size=256,
             learning_rate=0.0003,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.001,
             # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.999,
+            discount_factor=0.99,
             ignore_done=True,
             adv_norm=True,
         ),
         collect=dict(
-            n_sample=1000,
+            n_sample=256,
             collector=dict(collect_print_freq=100, ),
         ),
         command=dict(),
