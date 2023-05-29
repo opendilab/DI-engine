@@ -21,12 +21,12 @@ import gym
 import copy
 import os
 import csv
-from .dqn import DQNPolicy
+from .base_policy import Policy
 
 
 @POLICY_REGISTRY.register('dt')
-class DTPolicy(DQNPolicy):
-    r"""
+class DTPolicy(Policy):
+    """
     Overview:
         Policy class of DT algorithm in discrete environments.
     """
@@ -40,12 +40,11 @@ class DTPolicy(DQNPolicy):
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         priority=False,
         # (float) Reward's future discount factor, aka. gamma.
-        discount_factor=0.97,
+        discount_factor=0.999,
         # (int) N-step reward for target q_value estimation
-        nstep=1,
+        nstep=3,
         obs_shape=4,
         action_shape=2,
-        # encoder_hidden_size_list=[128, 128, 64],
         dataset='medium',  # medium / medium-replay / medium-expert
         rtg_scale=1000,  # normalize returns to go
         max_eval_ep_len=1000,  # max len of one episode
@@ -58,30 +57,48 @@ class DTPolicy(DQNPolicy):
         n_blocks=3,
         embed_dim=128,
         dropout_p=0.1,
-        learn=dict(
-
-            # batch_size=64,
-            learning_rate=1e-4,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
+        model=dict(
+            state_dim=11,
+            act_dim=3,
+            n_blocks=3,
+            h_dim=128,
+            context_len=20,
+            n_heads=1,
+            drop_p=0.1,
+            continuous=True,
         ),
-        # collect_mode config
-        collect=dict(),
-        eval=dict(),
-        # other config
-        other=dict(),
+        learn=dict(
+            # dataset_path (:obj:`str`): The pre-collected dataset path, which should
+            # point to the hdf5 file of the pre-collected dataset, and an absolute path is recommended.
+            # the path is usually something like ``./hopper_medium_expert-v2.hdf5``.
+            dataset_path='./hopper_medium_expert-v2.hdf5',
+            learning_rate=0.0001,
+            target_update_freq=100,
+            kappa=1.0,
+            min_q_weight=4.0,
+        ),
+        collect=dict(unroll_len=1, ),
+        eval=dict(evaluator=dict(evalu_freq=100, ), ),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=10000,
+            ),
+            replay_buffer=dict(replay_buffer_size=1000, ),
+        ),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'dt', ['ding.model.template.decision_transformer']
 
     def _init_learn(self) -> None:
-        r"""
-            Overview:
-                Learn mode init method. Called by ``self.__init__``.
-                Init the optimizer, algorithm config, main and target models.
-            """
+        """
+        Overview:
+            Learn mode init method. Called by ``self.__init__``.
+            Init the optimizer, algorithm config, main and target models.
+        """
 
         self.stop_value = self._cfg.stop_value
         self.env_name = self._cfg.env_name
@@ -376,3 +393,22 @@ class DTPolicy(DQNPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'action_loss']
+
+    # The following methods are to be compatible with DI-engine Policy class. They are not used in this algorithm.
+    def _forward_collect(self):
+        pass
+
+    def _forward_eval(self):
+        pass
+
+    def _get_train_sample(self):
+        pass
+
+    def _init_collect(self):
+        pass
+
+    def _init_eval(self):
+        pass
+
+    def _process_transition(self):
+        pass

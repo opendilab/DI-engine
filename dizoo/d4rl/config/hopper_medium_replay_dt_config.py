@@ -14,9 +14,10 @@ hopper_dt_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        stop_value=6000,
-        cuda=True,
         env_name='Hopper-v3',
+        log_dir = './DI-engine/dizoo/d4rl/config',
+        cuda=True,
+        stop_value=6000,
         rtg_target=6000,  # max target return to go
         max_eval_ep_len=1000,  # max lenght of one episode
         num_eval_ep=10,  # num of evaluation episode
@@ -29,7 +30,8 @@ hopper_dt_config = dict(
         embed_dim=128,
         n_heads=1,
         dropout_p=0.1,
-        log_dir='/home/wangzilin/research/dt/DI-engine/dizoo/d4rl/dt_data/hopper_medium_replay_dt_log',
+        discount_factor=0.999,
+        nstep=3,
         model=dict(
             state_dim=11,
             act_dim=3,
@@ -40,10 +42,11 @@ hopper_dt_config = dict(
             drop_p=0.1,
             continuous=True,
         ),
-        discount_factor=0.999,
-        nstep=3,
         learn=dict(
-            dataset_path='/mnt/lustre/wangzilin/d4rl_data/hopper-medium-replay-v2.pkl',
+            # dataset_path (:obj:`str`): The pre-collected dataset path, which should
+            # point to the hdf5 file of the pre-collected dataset, and an absolute path is recommended.
+            # the path is usually something like ``./hopper_expert_replay-v2.hdf5``.
+            dataset_path='./hopper_expert_replay-v2.hdf5',
             learning_rate=0.0001,
             target_update_freq=100,
             kappa=1.0,

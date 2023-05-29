@@ -1,5 +1,7 @@
 from typing import List, Dict, Tuple
 import pickle
+import os
+import h5py
 
 import easydict
 import torch
@@ -329,14 +331,51 @@ class D4RLTrajectoryDataset(Dataset):
 
         self.context_len = context_len
 
+        _, file_extension = os.path.splitext(dataset_path)
+
         # load dataset
-        with open(dataset_path, 'rb') as f:
-            self.trajectories = pickle.load(f)
+        if file_extension == '.pkl':
+            with open(dataset_path, 'rb') as f:
+                self.trajectories = pickle.load(f)
+        elif file_extension == '.hdf5':
+            with h5py.File(dataset_path, 'r') as f:
+                observations = f['observations'][:]
+                actions = f['actions'][:]
+                rewards = f['rewards'][:]
+                next_observations = f['next_observations'][:]
+                terminals = f['terminals'][:]
+            
+                raw_trajectories = list(zip(observations, actions, rewards, next_observations, terminals))
 
-        if isinstance(self.trajectories[0], list):
-            # for our collected dataset, e.g. cartpole/lunarlander case
+                # Process raw_trajectories into episodes
+                episode_trajectories = []
+                episode = []
+                keys = ['observations', 'actions', 'rewards', 'next_observations', 'terminals']
+                for transition in raw_trajectories:
+                    episode.append(dict(zip(keys, transition)))
+                    if transition[-1]:  # Check if the terminal flag is True
+                        episode_trajectories.append(episode)
+                        episode = []
+
+                # Convert episode lists to dicts
+                self.trajectories = []
+                for episode in episode_trajectories:
+                    episode_dict = {key: [] for key in keys}
+                    for transition in episode:
+                        for key in keys:
+                            episode_dict[key].append(transition[key])
+
+                    # Stack arrays along the first axis for each key
+                    for key in keys:
+                        episode_dict[key] = np.stack(episode_dict[key], axis=0)
+
+                    self.trajectories.append(episode_dict)
+        else:
+            raise ValueError(f"Unsupported file extension '{file_extension}'. Supported formats are .pkl and .hdf5")
+
+        if file_extension != '.hdf5' and isinstance(self.trajectories[0], list):
+            # For our customized collected dataset, e.g. cartpole/lunarlander case。
             trajectories_tmp = []
-
             original_keys = ['obs', 'next_obs', 'action', 'reward']
             keys = ['observations', 'next_observations', 'actions', 'rewards']
             for key, o_key in zip(keys, original_keys):
@@ -344,7 +383,7 @@ class D4RLTrajectoryDataset(Dataset):
                     {
                         key: np.stack(
                             [
-                                self.trjectories[eps_index][transition_index][o_key]
+                                self.trajectories[eps_index][transition_index][o_key]
                                 for transition_index in range(len(self.trajectories[eps_index]))
                             ],
                             axis=0
@@ -355,7 +394,6 @@ class D4RLTrajectoryDataset(Dataset):
 
         states = []
         for traj in self.trajectories:
-            traj_len = traj['observations'].shape[0]
             states.append(traj['observations'])
             # calculate returns to go and rescale them
             traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
