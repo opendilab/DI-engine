@@ -119,7 +119,8 @@ class PPOF:
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
             reward_model: Optional[str] = None,
-            debug: bool = False
+            debug: bool = False,
+            wandb_sweep: bool = False,
     ) -> TrainingReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -143,7 +144,8 @@ class PPOF:
                     metric_list=self.policy.monitor_vars(),
                     model=self.policy._model,
                     anonymous=True,
-                    project_name=self.exp_name
+                    project_name=self.exp_name,
+                    wandb_sweep=wandb_sweep,
                 )
             )
             task.use(termination_checker(max_env_step=step))

@@ -83,7 +83,8 @@ class TD3Agent:
             n_iter_log_show: int = 500,
             n_iter_save_ckpt: int = 1000,
             context: Optional[str] = None,
-            debug: bool = False
+            debug: bool = False,
+            wandb_sweep: bool = False,
     ) -> TrainingReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -110,7 +111,8 @@ class TD3Agent:
                     metric_list=self.policy.monitor_vars(),
                     model=self.policy._model,
                     anonymous=True,
-                    project_name=self.exp_name
+                    project_name=self.exp_name,
+                    wandb_sweep=wandb_sweep,
                 )
             )
             task.use(termination_checker(max_env_step=step))
