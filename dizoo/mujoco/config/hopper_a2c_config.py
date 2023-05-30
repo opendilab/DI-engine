@@ -28,7 +28,7 @@ hopper_a2c_config = dict(
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.001,
             # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.999,
+            discount_factor=0.99,
             adv_norm=True,
         ),
         collect=dict(
