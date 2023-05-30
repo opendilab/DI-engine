@@ -385,6 +385,9 @@ class IBCCommandModePolicy(IBCPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('bcq_command')
 class BCQCommandModelPolicy(BCQPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('edac_command')
 class EDACCommandModelPolicy(EDACPolicy, DummyCommandModePolicy):
     pass
