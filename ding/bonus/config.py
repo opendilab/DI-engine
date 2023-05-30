@@ -238,15 +238,15 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_space='continuous',
                         ),
                         learn=dict(
-                            batch_size=256,
+                            batch_size=64,
                             learning_rate=0.0003,
                             value_weight=0.5,
-                            entropy_weight=0.001,
+                            entropy_weight=0.01,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=256,
-                            discount_factor=0.999,
+                            n_sample=64,
+                            discount_factor=0.99,
                         ),
                     ),
                     wandb_logger=dict(
@@ -280,16 +280,16 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=6,
                         ),
                         learn=dict(
-                            batch_size=1000,
+                            batch_size=128,
                             learning_rate=0.0003,
                             value_weight=0.5,
-                            entropy_weight=0.001,
+                            entropy_weight=0.01,
                             ignore_done=True,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=1000,
-                            discount_factor=0.999,
+                            n_sample=128,
+                            discount_factor=0.99,
                         ),
                     ),
                     wandb_logger=dict(
@@ -323,15 +323,15 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=6,
                         ),
                         learn=dict(
-                            batch_size=256,
+                            batch_size=64,
                             learning_rate=0.0003,
                             value_weight=0.5,
-                            entropy_weight=0.001,
+                            entropy_weight=0.01,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=256,
-                            discount_factor=0.999,
+                            n_sample=64,
+                            discount_factor=0.99,
                         ),
                     ),
                     wandb_logger=dict(
