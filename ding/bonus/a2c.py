@@ -75,14 +75,16 @@ class A2CAgent:
         self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
-            self,
-            step: int = int(1e7),
-            collector_env_num: int = 4,
-            evaluator_env_num: int = 4,
-            n_iter_log_show: int = 500,
-            n_iter_save_ckpt: int = 1000,
-            context: Optional[str] = None,
-            debug: bool = False
+        self,
+        step: int = int(1e7),
+        collector_env_num: int = 4,
+        evaluator_env_num: int = 4,
+        n_iter_log_show: int = 500,
+        n_iter_save_ckpt: int = 1000,
+        context: Optional[str] = None,
+        debug: bool = False,
+        wandb: bool = True,
+        wandb_sweep: bool = False,
     ) -> TrainingReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -97,14 +99,16 @@ class A2CAgent:
             task.use(gae_estimator(self.cfg, self.policy.collect_mode))
             task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
-            task.use(
-                wandb_online_logger(
-                    metric_list=self.policy.monitor_vars(),
-                    model=self.policy._model,
-                    anonymous=True,
-                    project_name=self.exp_name
+            if wandb:
+                task.use(
+                    wandb_online_logger(
+                        metric_list=self.policy.monitor_vars(),
+                        model=self.policy._model,
+                        anonymous=True,
+                        project_name=self.exp_name,
+                        wandb_sweep=wandb_sweep,
+                    )
                 )
-            )
             task.use(termination_checker(max_env_step=step))
             task.use(final_ctx_saver(name=self.exp_name))
             task.run()

@@ -3,8 +3,6 @@ import os
 from easydict import EasyDict
 from matplotlib import pyplot as plt
 from matplotlib import animation
-from matplotlib import ticker as mtick
-from torch.nn import functional as F
 from sklearn.manifold import TSNE
 import numpy as np
 import torch
@@ -128,6 +126,7 @@ def wandb_online_logger(
         model: Optional[torch.nn.Module] = None,
         anonymous: bool = False,
         project_name: str = 'default-project',
+        wandb_sweep: bool = False,
 ) -> Callable:
     '''
     Overview:
@@ -154,10 +153,17 @@ def wandb_online_logger(
         metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    if anonymous:
-        wandb.init(project=project_name, reinit=True, anonymous="must")
+    if not wandb_sweep:
+        if anonymous:
+            wandb.init(project=project_name, reinit=True, anonymous="must")
+        else:
+            wandb.init(project=project_name, reinit=True)
     else:
-        wandb.init(project=project_name, reinit=True)
+        if anonymous:
+            wandb.init(project=project_name, anonymous="must")
+        else:
+            wandb.init(project=project_name)
+        plt.switch_backend('agg')
     if cfg is None:
         cfg = EasyDict(
             dict(
@@ -284,6 +290,7 @@ def wandb_online_logger(
 
         if bool(info_for_logging):
             wandb.log(data=info_for_logging, step=ctx.env_step)
+            # wandb.log(data=info_for_logging)
         plt.clf()
 
     return _plot
