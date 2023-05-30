@@ -24,6 +24,7 @@ class A2CAgent:
     supported_env_list = [
         'lunarlander_discrete',
         'bipedalwalker',
+        'pendulum',
         'hopper',
         'HalfCheetah',
         'Walker2d',

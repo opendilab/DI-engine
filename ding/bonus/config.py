@@ -213,6 +213,8 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
+        elif env == 'pendulum':
+            pass
         elif env == 'hopper':
             cfg.update(
                 dict(
