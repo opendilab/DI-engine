@@ -1,14 +1,14 @@
 from typing import TYPE_CHECKING, Optional, Callable, Dict, List, Union
-import os
+from ditk import logging
 from easydict import EasyDict
 from matplotlib import pyplot as plt
 from matplotlib import animation
 from matplotlib import ticker as mtick
 from torch.nn import functional as F
+import os
 import numpy as np
 import torch
 import wandb
-import h5py
 import pickle
 import treetensor.numpy as tnp
 from ding.framework import task
@@ -350,6 +350,12 @@ def wandb_offline_logger(
         except ImportError:
             import sys
             logging.warning("Please install sklearn first, such as `pip3 install scikit-learn`.")
+            sys.exit(1)
+        try:
+            import h5py
+        except ImportError:
+            import sys
+            logging.warning("Please install h5py first, such as `pip3 install h5py`.")
             sys.exit(1)
         assert os.path.splitext(datasetpath)[-1] in ['.pkl', '.h5', '.hdf5']
         if os.path.splitext(datasetpath)[-1] == '.pkl':
