@@ -22,6 +22,11 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class PGAgent:
     supported_env_list = [
         'lunarlander_discrete',
+        'bipedalwalker',
+        'pendulum',
+        'hopper',
+        'HalfCheetah',
+        'Walker2d',
     ]
     algorithm = 'PG'
 

@@ -385,6 +385,47 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
+        elif env == 'pendulum':
+            cfg.update(
+                dict(
+                    exp_name='Pendulum-v1-PG',
+                    seed=0,
+                    env=dict(
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        act_scale=True,
+                        n_evaluator_episode=8,
+                        stop_value=-200,
+                    ),
+                    policy=dict(
+                        cuda=False,
+                        action_space='continuous',
+                        model=dict(
+                            action_space='continuous',
+                            obs_shape=3,
+                            action_shape=1,
+                        ),
+                        learn=dict(
+                            batch_size=64,
+                            learning_rate=0.001,
+                            entropy_weight=0.001,
+                        ),
+                        collect=dict(
+                            n_episode=40,
+                            unroll_len=1,
+                            discount_factor=0.99,
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=100, ))
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
         else:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'TD3':
