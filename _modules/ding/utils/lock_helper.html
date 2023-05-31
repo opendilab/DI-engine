@@ -298,7 +298,6 @@
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">unique</span>
 
-<span class="kn">from</span> <span class="nn">readerwriterlock</span> <span class="kn">import</span> <span class="n">rwlock</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;windows&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">fcntl</span>
@@ -376,6 +375,13 @@
 <span class="sd">        - (:obj:`RWLockFairD`) Generated rwlock</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">assert</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;read&#39;</span><span class="p">,</span> <span class="s1">&#39;write&#39;</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">readerwriterlock</span> <span class="kn">import</span> <span class="n">rwlock</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">sys</span>
+        <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Please install readerwriterlock first, such as `pip3 install readerwriterlock`.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rw_lock_mapping</span><span class="p">:</span>
         <span class="n">rw_lock_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rwlock</span><span class="o">.</span><span class="n">RWLockFairD</span><span class="p">()</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">rw_lock_mapping</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
