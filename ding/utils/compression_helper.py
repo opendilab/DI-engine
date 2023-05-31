@@ -2,7 +2,6 @@ from typing import Any
 import pickle
 import cloudpickle
 import zlib
-import lz4.block
 import numpy as np
 
 
@@ -52,6 +51,13 @@ def lz4_data_compressor(data):
         >>> lz4.block.compress(pickle.dumps("Hello"))
         b'\x14\x00\x00\x00R\x80\x04\x95\t\x00\x01\x00\x90\x8c\x05Hello\x94.'
     """
+    try:
+        import lz4.block
+    except ImportError:
+        from ditk import logging
+        import sys
+        logging.warning("Please install lz4 first, such as `pip3 install lz4`")
+        sys.exit(1)
     return lz4.block.compress(pickle.dumps(data))
 
 
@@ -112,6 +118,13 @@ def lz4_data_decompressor(compressed_data):
     Overview:
         Return the decompressed original data (lz4 compressor).
     """
+    try:
+        import lz4.block
+    except ImportError:
+        from ditk import logging
+        import sys
+        logging.warning("Please install lz4 first, such as `pip3 install lz4`")
+        sys.exit(1)
     return pickle.loads(lz4.block.decompress(compressed_data))
 
 

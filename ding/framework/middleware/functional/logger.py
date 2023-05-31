@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 from matplotlib import ticker as mtick
 from torch.nn import functional as F
-from sklearn.manifold import TSNE
 import numpy as np
 import torch
 import wandb
@@ -346,6 +345,12 @@ def wandb_offline_logger(
         )
 
     def _vis_dataset(datasetpath: str):
+        try:
+            from sklearn.manifold import TSNE
+        except ImportError:
+            import sys
+            logging.warning("Please install sklearn first, such as `pip3 install scikit-learn`.")
+            sys.exit(1)
         assert os.path.splitext(datasetpath)[-1] in ['.pkl', '.h5', '.hdf5']
         if os.path.splitext(datasetpath)[-1] == '.pkl':
             with open(datasetpath, 'rb') as f:
