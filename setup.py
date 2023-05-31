@@ -52,7 +52,7 @@ setup(
     install_requires=[
         'setuptools<=66.1.1',
         'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
-        #'torch>=1.1.0',
+        'torch>=1.1.0',
         'numpy>=1.18.0',
         'pandas',
         'tensorboardX>=2.2',
@@ -60,7 +60,6 @@ setup(
         'pyyaml',
         'easydict==1.9',
         'protobuf',
-        'yapf==0.29.0',
         'flask~=1.1.2',
         'tqdm',
         'lz4',
@@ -71,7 +70,6 @@ setup(
         'URLObject>=2.4.0',
         'urllib3>=1.26.5',
         'responses~=0.12.1',
-        'readerwriterlock',
         'enum_tools',
         'trueskill',
         'h5py',
@@ -102,6 +100,7 @@ setup(
             'pytest-xdist>=1.34.0',
             'pytest-rerunfailures~=10.2',
             'pytest-timeout~=2.0.2',
+            'readerwriterlock',
         ],
         'style': [
             'yapf==0.29.0',
