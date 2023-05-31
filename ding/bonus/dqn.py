@@ -94,15 +94,14 @@ class DQNAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
             task.use(eps_greedy_handler(self.cfg))
-            # task.use(
-            #     StepCollector(
-            #         self.cfg,
-            #         self.policy.collect_mode,
-            #         collector_env,
-            #         random_collect_size=self.cfg.policy.random_collect_size
-            #     )
-            # )
-            task.use(StepCollector(self.cfg, self.policy.collect_mode, collector_env))
+            task.use(
+                StepCollector(
+                    self.cfg,
+                    self.policy.collect_mode,
+                    collector_env,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                )
+            )
             task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
