@@ -1,8 +1,8 @@
+from typing import List, Dict
+from ditk import logging
 import numpy as np
 import torch
 import pickle
-from typing import List, Dict
-import scipy.stats as stats
 try:
     from sklearn.svm import SVC
 except ImportError:
@@ -71,6 +71,13 @@ class PdeilRewardModel(BaseRewardModel):
             - tb_logger (:obj:`str`): Logger, defaultly set as 'SummaryWriter' for model summary
         """
         super(PdeilRewardModel, self).__init__()
+        try:
+            import scipy.stats as stats
+            self.stats = stats
+        except ImportError:
+            import sys
+            logging.warning("Please install scipy first, such as `pip3 install scipy`.")
+            sys.exit(1)
         self.cfg: dict = cfg
         self.e_u_s = None
         self.e_sigma_s = None
@@ -145,7 +152,9 @@ class PdeilRewardModel(BaseRewardModel):
         Overview:
            Get multivariate normal pdf of given np array.
         """
-        return np.asarray(stats.multivariate_normal.pdf(x, mean=mean, cov=cov, allow_singular=False), dtype=np.float32)
+        return np.asarray(
+            self.stats.multivariate_normal.pdf(x, mean=mean, cov=cov, allow_singular=False), dtype=np.float32
+        )
 
     def estimate(self, data: list) -> List[Dict]:
         """
