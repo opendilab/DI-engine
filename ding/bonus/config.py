@@ -579,12 +579,12 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=1,
                         ),
                         learn=dict(
-                            batch_size=200,
+                            batch_size=800,
                             learning_rate=0.001,
                             entropy_weight=0.001,
                         ),
                         collect=dict(
-                            n_episode=20,
+                            n_episode=4,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
