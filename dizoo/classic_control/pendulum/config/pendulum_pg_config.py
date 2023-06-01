@@ -18,12 +18,12 @@ pendulum_pg_config = dict(
             action_shape=1,
         ),
         learn=dict(
-            batch_size=200,
+            batch_size=400
             learning_rate=0.001,
             entropy_weight=0.001,
         ),
         collect=dict(
-            n_episode=40,
+            n_episode=2,
             unroll_len=1,
             discount_factor=0.99,
         ),

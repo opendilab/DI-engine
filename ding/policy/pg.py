@@ -90,8 +90,7 @@ class PGPolicy(Policy):
         self._model.train()
 
         return_infos = []
-        dummy_batch = len(data['obs'])
-        for batch in split_data_generator(data, dummy_batch, shuffle=True):
+        for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
             # forward
             output = self._learn_model.forward(batch['obs'])
             return_ = batch['return']
