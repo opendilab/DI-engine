@@ -90,13 +90,15 @@ class PGPolicy(Policy):
         self._model.train()
 
         return_infos = []
-        for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+        dummy_batch = len(data['obs'])
+        for batch in split_data_generator(data, dummy_batch, shuffle=True):
             # forward
             output = self._learn_model.forward(batch['obs'])
             return_ = batch['return']
             dist = output['dist']
-
             # calculate PG loss
+            if len(batch['action'].shape) == 1:
+                batch['action'] = batch['action'].unsqueeze(-1)
             log_prob = dist.log_prob(batch['action'])
             policy_loss = -(log_prob * return_).mean()
             entropy_loss = -self._cfg.learn.entropy_weight * dist.entropy().mean()
