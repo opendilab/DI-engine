@@ -1,12 +1,12 @@
+from functools import partial
+from ditk import logging
 import itertools
+import copy
 import numpy as np
 import multiprocessing
-import copy
 import torch
-from torch import nn
+import torch.nn as nn
 
-from scipy.spatial import KDTree
-from functools import partial
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.torch_utils import unsqueeze_repeat
@@ -27,6 +27,12 @@ def get_neighbor_index(data, k, serial=False):
 
         ret: [B, k]
     """
+    try:
+        from scipy.spatial import KDTree
+    except ImportError:
+        import sys
+        logging.warning("Please install scipy first, such as `pip3 install scipy`.")
+        sys.exit(1)
     data = data.cpu().numpy()
     tree = KDTree(data)
 
