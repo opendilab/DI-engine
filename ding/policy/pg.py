@@ -96,8 +96,6 @@ class PGPolicy(Policy):
             return_ = batch['return']
             dist = output['dist']
             # calculate PG loss
-            if len(batch['action'].shape) == 1:
-                batch['action'] = batch['action'].unsqueeze(-1)
             log_prob = dist.log_prob(batch['action'])
             policy_loss = -(log_prob * return_).mean()
             entropy_loss = -self._cfg.learn.entropy_weight * dist.entropy().mean()

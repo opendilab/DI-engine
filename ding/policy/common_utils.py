@@ -13,7 +13,10 @@ def default_preprocess_learn(
         ignore_done: bool = False,
 ) -> dict:
     # data preprocess
-    data = default_collate(data)
+    if data[0]['action'].dtype in [torch.int8, torch.int16, torch.int32, torch.int64]:
+        data = default_collate(data, cat_1dim=True)  # for discrete action
+    else:
+        data = default_collate(data, cat_1dim=False)  # for continuous action
     if ignore_done:
         data['done'] = torch.zeros_like(data['done']).float()
     else:

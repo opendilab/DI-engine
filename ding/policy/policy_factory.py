@@ -38,6 +38,8 @@ class PolicyFactory:
                     action = torch.as_tensor(action_space.sample())
                     if isinstance(action_space, gym.spaces.MultiDiscrete):
                         action = [torch.LongTensor([v]) for v in action]
+                    elif isinstance(action_space, gym.spaces.Discrete):
+                        action = action.unsqueeze(0)
                     actions[env_id] = {'action': action}
                 elif 'global_state' in data[env_id].keys():
                     # for smac

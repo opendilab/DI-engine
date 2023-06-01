@@ -53,7 +53,7 @@ def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, b
             }
         ) for _ in range(batch_size)
     ]
-    ctx.trajectories_copy = ttorch_collate(copy.deepcopy(ctx.trajectories))
+    ctx.trajectories_copy = ttorch_collate(copy.deepcopy(ctx.trajectories), cat_1dim=True)
     traj_flag = ctx.trajectories_copy.done.clone()
     traj_flag[ctx.trajectory_end_idx] = True
     ctx.trajectories_copy.traj_flag = traj_flag
@@ -67,7 +67,7 @@ def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, b
             d.logit = d.logit[0]
             d.next_obs = d.next_obs[0]
             d.obs = d.obs[0]
-        ctx.train_data = ttorch_collate(train_data)
+        ctx.train_data = ttorch_collate(train_data, cat_1dim=True)
 
     assert ctx.trajectories is None
     assert torch.equal(ctx.trajectories_copy.action, ctx.train_data.action)
