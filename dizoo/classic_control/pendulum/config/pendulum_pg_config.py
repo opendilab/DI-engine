@@ -3,7 +3,7 @@ from easydict import EasyDict
 pendulum_pg_config = dict(
     exp_name='pendulum_pg_seed0',
     env=dict(
-        collector_env_num=10,
+        collector_env_num=8,
         evaluator_env_num=5,
         act_scale=True,
         n_evaluator_episode=5,
@@ -18,12 +18,12 @@ pendulum_pg_config = dict(
             action_shape=1,
         ),
         learn=dict(
-            batch_size=64,
+            batch_size=400
             learning_rate=0.001,
             entropy_weight=0.001,
         ),
         collect=dict(
-            n_episode=40,
+            n_episode=2,
             unroll_len=1,
             discount_factor=0.99,
         ),

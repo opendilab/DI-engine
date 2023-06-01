@@ -348,7 +348,136 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             raise KeyError("not supported env type: {}".format(env))
     elif algorithm == 'PG':
         cfg = EasyDict({"policy": PGPolicy.default_config()})
-        if env == 'lunarlander_discrete':
+        if env == 'hopper':
+            cfg.update(
+                dict(
+                    exp_name='Hopper-v3-PG',
+                    seed=0,
+                    env=dict(
+                        env_id='Hopper-v3',
+                        norm_obs=dict(use_norm=False, ),
+                        norm_reward=dict(use_norm=False, ),
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=6000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        action_space='continuous',
+                        model=dict(
+                            action_space='continuous',
+                            obs_shape=11,
+                            action_shape=3,
+                        ),
+                        learn=dict(
+                            batch_size=64,
+                            learning_rate=0.001,
+                            entropy_weight=0.001,
+                        ),
+                        collect=dict(
+                            n_episode=8,
+                            unroll_len=1,
+                            discount_factor=0.99,
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=200, ))
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'HalfCheetah':
+            cfg.update(
+                dict(
+                    exp_name='HalfCheetah-v3-PG',
+                    seed=0,
+                    env=dict(
+                        env_id='HalfCheetah-v3',
+                        norm_obs=dict(use_norm=False, ),
+                        norm_reward=dict(use_norm=False, ),
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=6000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        action_space='continuous',
+                        model=dict(
+                            action_space='continuous',
+                            obs_shape=17,
+                            action_shape=6,
+                        ),
+                        learn=dict(
+                            batch_size=64,
+                            learning_rate=0.001,
+                            entropy_weight=0.001,
+                        ),
+                        collect=dict(
+                            n_episode=8,
+                            unroll_len=1,
+                            discount_factor=0.99,
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=200, ))
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'Walker2d':
+            cfg.update(
+                dict(
+                    exp_name='Walker2d-v3-PG',
+                    seed=0,
+                    env=dict(
+                        env_id='Walker2d-v3',
+                        norm_obs=dict(use_norm=False, ),
+                        norm_reward=dict(use_norm=False, ),
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        n_evaluator_episode=8,
+                        stop_value=6000,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        action_space='continuous',
+                        model=dict(
+                            action_space='continuous',
+                            obs_shape=17,
+                            action_shape=6,
+                        ),
+                        learn=dict(
+                            batch_size=64,
+                            learning_rate=0.001,
+                            entropy_weight=0.001,
+                        ),
+                        collect=dict(
+                            n_episode=8,
+                            unroll_len=1,
+                            discount_factor=0.99,
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=200, ))
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
+        elif env == 'lunarlander_discrete':
             cfg.update(
                 dict(
                     exp_name='LunarLander-v2-PG',
@@ -386,6 +515,49 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     ),
                 )
             )
+        elif env == 'bipedalwalker':
+            cfg.update(
+                dict(
+                    exp_name='Bipedalwalker-v3-PG',
+                    seed=0,
+                    env=dict(
+                        env_id='BipedalWalker-v3',
+                        collector_env_num=8,
+                        evaluator_env_num=8,
+                        act_scale=True,
+                        n_evaluator_episode=8,
+                        stop_value=300,
+                        rew_clip=True,
+                    ),
+                    policy=dict(
+                        cuda=True,
+                        action_space='continuous',
+                        model=dict(
+                            action_space='continuous',
+                            obs_shape=24,
+                            action_shape=4,
+                        ),
+                        learn=dict(
+                            batch_size=64,
+                            learning_rate=0.001,
+                            entropy_weight=0.001,
+                        ),
+                        collect=dict(
+                            n_episode=8,
+                            unroll_len=1,
+                            discount_factor=0.99,
+                        ),
+                        eval=dict(evaluator=dict(eval_freq=200, ))
+                    ),
+                    wandb_logger=dict(
+                        gradient_logger=True,
+                        video_logger=True,
+                        plot_logger=True,
+                        action_logger=True,
+                        return_logger=False
+                    ),
+                )
+            )
         elif env == 'pendulum':
             cfg.update(
                 dict(
@@ -393,9 +565,9 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                     seed=0,
                     env=dict(
                         collector_env_num=8,
-                        evaluator_env_num=8,
+                        evaluator_env_num=5,
                         act_scale=True,
-                        n_evaluator_episode=8,
+                        n_evaluator_episode=5,
                         stop_value=-200,
                     ),
                     policy=dict(
@@ -407,16 +579,16 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=1,
                         ),
                         learn=dict(
-                            batch_size=64,
+                            batch_size=200,
                             learning_rate=0.001,
                             entropy_weight=0.001,
                         ),
                         collect=dict(
-                            n_episode=40,
+                            n_episode=20,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=100, ))
+                        eval=dict(evaluator=dict(eval_freq=200, ))
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
