@@ -75,14 +75,14 @@ class C51Agent:
         self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
-            self,
-            step: int = int(1e7),
-            collector_env_num: int = 4,
-            evaluator_env_num: int = 4,
-            n_iter_save_ckpt: int = 1000,
-            context: Optional[str] = None,
-            debug: bool = False,
-            wandb_sweep: bool = False,
+        self,
+        step: int = int(1e7),
+        collector_env_num: int = 4,
+        evaluator_env_num: int = 4,
+        n_iter_save_ckpt: int = 1000,
+        context: Optional[str] = None,
+        debug: bool = False,
+        wandb_sweep: bool = False,
     ) -> TrainingReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
