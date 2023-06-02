@@ -16,6 +16,7 @@
 
 ![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
 ![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
+[![Read the Docs](https://img.shields.io/readthedocs/di-engine-docs?label=%E4%B8%AD%E6%96%87%E6%96%87%E6%A1%A3)](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
 ![deploy](https://github.com/opendilab/DI-engine/actions/workflows/deploy.yml/badge.svg)
