@@ -441,7 +441,7 @@ class NGURewardModel(BaseRewardModel):
         10 | ``update_per_``     int         100           | Number of updates per collect       |
            | ``collect``                                   |                                     |
         11 | ``only_use_``       float       1             | Whether to only use last            |
-           | ``last_five_``                                | five frames for ICM/RND.            |   
+           | ``last_five_``                                | five frames for ICM/RND.            |
            | ``frames_for_``                               |                                     |
            | ``icm_rnd``                                   |                                     |
         12 | ``last_nonzero_``   bool        False         | Whether to rescale                  | used in episode rm
@@ -452,7 +452,7 @@ class NGURewardModel(BaseRewardModel):
              ``_per_iters``                                                                      | buffer's data count
                                                                                                  | isn't too few.
                                                                                                  | (code work in entry)
-        == ====================  ========   =============  ====================================  =======================  
+        == ====================  ========   =============  ====================================  =======================
     """
     config = dict(
         # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
