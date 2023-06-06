@@ -99,7 +99,8 @@ class DQNAgent:
                     self.cfg,
                     self.policy.collect_mode,
                     collector_env,
-                    random_collect_size=self.cfg.policy.random_collect_size
+                    random_collect_size=self.cfg.policy.random_collect_size \
+                        if hasattr(self.cfg.policy, 'random_collect_size') else 0,
                 )
             )
             task.use(nstep_reward_enhancer(self.cfg))
