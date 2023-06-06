@@ -15,7 +15,8 @@
 ![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
 
 ![Style](https://github.com/opendilab/DI-engine/actions/workflows/style.yml/badge.svg)
-![Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)
+[![Read en Docs](https://github.com/opendilab/DI-engine/actions/workflows/doc.yml/badge.svg)](https://di-engine-docs.readthedocs.io/en/latest)
+[![Read zh_CN Docs](https://img.shields.io/readthedocs/di-engine-docs?label=%E4%B8%AD%E6%96%87%E6%96%87%E6%A1%A3)](https://di-engine-docs.readthedocs.io/zh_CN/latest)
 ![Unittest](https://github.com/opendilab/DI-engine/actions/workflows/unit_test.yml/badge.svg)
 ![Algotest](https://github.com/opendilab/DI-engine/actions/workflows/algo_test.yml/badge.svg)
 ![deploy](https://github.com/opendilab/DI-engine/actions/workflows/deploy.yml/badge.svg)
@@ -31,8 +32,9 @@
 [![GitHub pulls](https://img.shields.io/github/issues-pr/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/pulls)
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-yellow)](https://huggingface.co/OpenDILabCommunity)
 
-Updated on 2023.04.11 DI-engine-v0.4.7
+Updated on 2023.05.25 DI-engine-v0.4.8
 
 
 ## Introduction to DI-engine

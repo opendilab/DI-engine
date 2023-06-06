@@ -180,6 +180,7 @@ class PettingZooEnv(BaseEnv):
         obs, rew, done, trunc, info = self._env.step(action)
         obs_n = self._process_obs(obs)
         rew_n = np.array([sum([rew[agent] for agent in self._agents])])
+        rew_n = rew_n.astype(np.float32)
         # collide_sum = 0
         # for i in range(self._num_agents):
         #     collide_sum += info['n'][i][1]
@@ -271,7 +272,7 @@ class PettingZooEnv(BaseEnv):
             1
         )
         # action_mask: All actions are of use(either 1 for discrete or 5 for continuous). Thus all 1.
-        ret['action_mask'] = np.ones((self._num_agents, *self._action_dim))
+        ret['action_mask'] = np.ones((self._num_agents, *self._action_dim)).astype(np.float32)
         return ret
 
     def _process_action(self, action: 'torch.Tensor') -> Dict[str, np.ndarray]:  # noqa

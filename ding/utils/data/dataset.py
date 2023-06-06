@@ -1,17 +1,16 @@
 from typing import List, Dict, Tuple
-import pickle
-
-import easydict
-import torch
-import numpy as np
 from ditk import logging
 from copy import deepcopy
+from easydict import EasyDict
 from torch.utils.data import Dataset
 from dataclasses import dataclass
 
-from easydict import EasyDict
-from ding.utils.bfs_helper import get_vi_sequence
+import pickle
+import easydict
+import torch
+import numpy as np
 
+from ding.utils.bfs_helper import get_vi_sequence
 from ding.utils import DATASET_REGISTRY, import_module
 from ding.rl_utils import discount_cumsum
 
@@ -50,7 +49,9 @@ class D4RLDataset(Dataset):
         try:
             import d4rl  # register d4rl enviroments with open ai gym
         except ImportError:
+            import sys
             logging.warning("not found d4rl env, please install it, refer to https://github.com/rail-berkeley/d4rl")
+            sys.exit(1)
 
         # Init parameters
         data_path = cfg.policy.collect.get('data_path', None)
@@ -127,7 +128,9 @@ class HDF5Dataset(Dataset):
         try:
             import h5py
         except ImportError:
-            logging.warning("not found h5py package, please install it trough 'pip install h5py' ")
+            import sys
+            logging.warning("not found h5py package, please install it trough `pip install h5py ")
+            sys.exit(1)
         data_path = cfg.policy.collect.get('data_path', None)
         data = h5py.File(data_path, 'r')
         self._load_data(data)
@@ -526,8 +529,9 @@ def hdf5_save(exp_data, expert_data_path):
     try:
         import h5py
     except ImportError:
+        import sys
         logging.warning("not found h5py package, please install it trough 'pip install h5py' ")
-    import numpy as np
+        sys.exit(1)
     dataset = dataset = h5py.File('%s_demos.hdf5' % expert_data_path.replace('.pkl', ''), 'w')
     dataset.create_dataset('obs', data=np.array([d['obs'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('action', data=np.array([d['action'].numpy() for d in exp_data]), compression='gzip')
