@@ -18,7 +18,7 @@ class GatingType(enum.Enum):
 
 
 class SumMerge(nn.Module):
-    """Merge streams using a simple sum (faster than Merge, for large stream).
+    """Merge streams using a simple sum.
 
     Streams must have the same size.
     This module can merge any type of stream (vector, units or visual).
@@ -43,6 +43,15 @@ class VectorMerge(nn.Module):
 
     If gating_type is not none, the sum is weighted using a softmax
     of the intermediate activations labelled above.
+
+    Sepcifically, 
+        GatingType.NONE:
+            Means simple addition of streams and the sum is not weighted based on gate features.
+        GatingType.GLOBAL:
+            Each data stream is weighted by a global gate value, and the sum of all global gate values is 1.
+        GatingType.POINTWISE:
+            Compared to GLOBAL, each value in the data stream feature tensor is weighted.
+
     """
 
     def __init__(
@@ -58,15 +67,9 @@ class VectorMerge(nn.Module):
           input_sizes: A dictionary mapping input names to their size (a single
             integer for 1d inputs, or None for 0d inputs).
             If an input size is None, we assume it's ().
-          output_name: The name to give to the output of this module, of shape
-            [output_size] and dtype float32.
           output_size: The size of the output vector.
           gating_type: The type of gating mechanism to use.
           use_layer_norm: Whether to use layer normalization.
-          input_dtypes: An optional dictionary with the dtypes of the inputs. If an
-            input is missing from this dictionary, its dtype is assumed to be
-            float32.
-          name: The name of this component.
         """
         super().__init__()
         self._input_sizes = OrderedDict(input_sizes)
