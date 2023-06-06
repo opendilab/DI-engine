@@ -1,7 +1,6 @@
 from typing import List, Dict, Any
 import pickle
 import random
-from collections.abc import Iterable
 from easydict import EasyDict
 
 import torch
@@ -12,7 +11,6 @@ from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 from .reword_model_utils import concat_state_action_pairs
 from .network import GAILNetwork
-import torch.nn.functional as F
 from functools import partial
 
 
@@ -215,8 +213,11 @@ class GailRewardModel(BaseRewardModel):
     def clear_data(self, iter: int) -> None:
         """
         Overview:
-            Clearing training data. \
-            This is a side effect function which clears the data attribute in ``self``
+            Clearing training data.
+        Arguments:
+            - iter (:obj:`int`): Current training iteration
+        Returns / Effects:
+            This can be a side effect function which clears the data attribute in ``self``
         """
         assert hasattr(
             self.cfg, 'clear_buffer_per_iters'

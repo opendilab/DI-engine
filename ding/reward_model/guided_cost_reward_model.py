@@ -1,11 +1,9 @@
 from typing import List, Dict, Any
 from easydict import EasyDict
-from ditk import logging
 
 import pickle
 import random
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Independent, Normal
@@ -38,10 +36,6 @@ class GuidedCostRewardModel(BaseRewardModel):
         5  | ``batch_size``      int         64            | Training batch size                      |
         6  | ``hidden_size``     int         128           | Linear model hidden size                 |
         7  | ``action_shape``    int         1             | Action space shape                       |
-        8  | ``log_every_n``     int         50            | add loss to log every n iteration        |
-           | ``_train``                                    |                                          |
-        9  | ``store_model_``    int         100           | save model every n iteration             |
-           | ``every_n_train``                                                                        |
         == ====================  ========   =============  ========================================  ================
 
     """
@@ -63,10 +57,6 @@ class GuidedCostRewardModel(BaseRewardModel):
         # Bigger "update_per_collect" means bigger off-policy.
         # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
-        # (int) Add loss to log every n iteration.
-        log_every_n_train=50,
-        # (int) Save model every n iteration.
-        store_model_every_n_train=100,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa

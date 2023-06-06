@@ -1,19 +1,13 @@
 from typing import Union, Tuple, List, Dict, Optional
-from easydict import EasyDict
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distributions import Independent, Normal
 
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
+from ding.utils import SequenceType
 from ding.model import FCEncoder, ConvEncoder
-from ding.torch_utils.data_helper import to_tensor
 from ding.torch_utils import one_hot
 from ding.utils import RunningMeanStd
-from ding.utils.data import default_collate
-from .reword_model_utils import concat_state_action_pairs
-from functools import partial
 
 
 class RepresentationNetwork(nn.Module):

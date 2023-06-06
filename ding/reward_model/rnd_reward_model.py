@@ -10,7 +10,6 @@ from .base_reward_model import BaseRewardModel
 from .reword_model_utils import combine_intrinsic_exterinsic_reward, collect_states, obs_norm
 from .network import RNDNetwork
 from ding.utils import RunningMeanStd
-from ding.torch_utils.data_helper import to_tensor
 import numpy as np
 
 

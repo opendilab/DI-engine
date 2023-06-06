@@ -3,7 +3,6 @@ from ditk import logging
 import numpy as np
 import torch
 import pickle
-import scipy.stats as stats
 try:
     from sklearn.svm import SVC
 except ImportError:

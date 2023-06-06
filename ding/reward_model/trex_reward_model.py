@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Tuple, Optional, List, Dict
+from typing import Tuple, List, Dict
 from easydict import EasyDict
 from ditk import logging
 import pickle
@@ -11,8 +11,6 @@ import torch.nn as nn
 import torch.optim as optim
 
 from ding.utils import REWARD_MODEL_REGISTRY
-from ding.utils import SequenceType
-from ding.model.common import FCEncoder
 from ding.utils import build_logger
 from ding.utils.data import default_collate
 

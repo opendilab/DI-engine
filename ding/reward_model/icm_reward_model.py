@@ -3,7 +3,6 @@ from easydict import EasyDict
 
 import random
 import torch
-import torch.nn as nn
 import torch.optim as optim
 
 from ding.utils import REWARD_MODEL_REGISTRY

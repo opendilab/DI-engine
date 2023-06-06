@@ -1,6 +1,5 @@
 import copy
 import random
-from typing import Any
 
 import numpy as np
 import torch
@@ -9,7 +8,7 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
 from ding.utils import RunningMeanStd
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
+from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 from .network import RNDNetwork, InverseNetwork
 
@@ -414,41 +413,106 @@ class EpisodicNGURewardModel(BaseRewardModel):
 
 @REWARD_MODEL_REGISTRY.register('ngu-reward')
 class NGURewardModel(BaseRewardModel):
-    r"""
+    """
     Overview:
         The unifying reward for ngu which combined rnd-ngu and episodic
         The corresponding paper is `never give up: learning directed exploration strategies`.
+    Interface:
+        ``__init__``, ``train``, ``estimate``, ``collect_data``, ``clear_data``
+    Config:
+        == ====================  ========   =============  ====================================  =======================
+        ID Symbol                Type       Default Value  Description                           Other(Shape)
+        == ====================  ========   =============  ====================================  =======================
+        1  ``type``              str         ngu-reward    | Reward model register name,         |
+                                                           | refer to registry                   |
+                                                           | ``REWARD_MODEL_REGISTRY``           |
+        2  | ``intrinsic_``      str         add           | the intrinsic reward type           | including add, new
+           | ``reward_type``                               |                                     | , or assign
+        3  | ``policy_nstep``    int         1             | the nstep of policy                 |
+        4  | ``nstep``           int         1             | the nstep of reward                 |
+        5  | ``learning_rate``   float       0.001         | The step size of gradient descent   |
+        6  | ``obs_shape``       Tuple(      4             | the observation shape               |
+                                 [int,
+                                 list])
+        7  | ``action_shape``    int         2             | the action space shape              |
+        8  | ``batch_size``      int         64            | Training batch size                 |
+        9  | ``hidden``          list        [64, 64,      | Sequence of ``hidden_size``         |
+           | ``_size_list``      (int)       128]          | of reward network.                  |
+        10 | ``update_per_``     int         100           | Number of updates per collect       |
+           | ``collect``                                   |                                     |
+        11 | ``only_use_``       float       1             | Whether to only use last            |
+           | ``last_five_``                                | five frames for ICM/RND.            |   
+           | ``frames_for_``                               |                                     |
+           | ``icm_rnd``                                   |                                     |
+        12 | ``last_nonzero_``   bool        False         | Whether to rescale                  | used in episode rm
+             ``reward_rescale``                            | last nonzero reward.
+        13 | ``last_nonzero_``   int         1             | The weight of last nonzero reward.  | used in episode rm
+             ``reward_weight``                             |                                     |
+        14 | ``clear_buffer``    int         1             | clear buffer per fixed iters        | make sure replay
+             ``_per_iters``                                                                      | buffer's data count
+                                                                                                 | isn't too few.
+                                                                                                 | (code work in entry)
+        == ====================  ========   =============  ====================================  =======================  
     """
     config = dict(
+        # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
         type='ngu-reward',
+        # (int) nstep for rl algorithms used in episode reward model
         policy_nstep=5,
+        # (int) number of envs for collecting data
         collect_env_num=8,
         rnd_reward_model=dict(
+            # (str) The intrinsic reward type, including add, new, or assign.
             intrinsic_reward_type='add',
+            # (float) The step size of gradient descent.
             learning_rate=5e-4,
+            # (Tuple[int, list]) The observation shape.
             obs_shape=4,
+            # (int) The action space shape.
             action_shape=2,
+            # (int) Training batch size.
             batch_size=128,  # transitions
+            # (int) Number of updates per collect.
             update_per_collect=10,
+            # (bool) Whether to only use last five frames for ICM/RND.
             only_use_last_five_frames_for_icm_rnd=False,
+            # (int) Clear buffer per fixed iters, make sure replay buffer's data count isn't too few.
             clear_buffer_per_iters=10,
+            # (int) nstep for rl algorithms used in rnd reward model
             nstep=5,
+            # (list(int)) Sequence of ``hidden_size`` of reward network.
+            # If obs.shape == 1,  use MLP layers.
+            # If obs.shape == 3,  use conv layer and final dense layer.
             hidden_size_list=[128, 128, 64],
+            # (str) The reward model type, which must be rnd-ngu
             type='rnd-ngu',
         ),
         episodic_reward_model=dict(
+            # (bool) Whether to rescale last nonzero reward.
             last_nonzero_reward_rescale=False,
+            # (int) The weight of last nonzero reward.
             last_nonzero_reward_weight=1,
+            # (str) The intrinsic reward type, including add, new, or assign.
             intrinsic_reward_type='add',
+            # (float) The step size of gradient descent.
             learning_rate=5e-4,
+            # (Tuple[int, list]) The observation shape.
             obs_shape=4,
+            # (int) The action space shape.
             action_shape=2,
+            # (int) Training batch size.
             batch_size=128,  # transitions
+            # (int) Number of updates per collect.
             update_per_collect=10,
+            # (bool) Whether to only use last five frames for ICM/RND.
             only_use_last_five_frames_for_icm_rnd=False,
+            # (int) Clear buffer per fixed iters, make sure replay buffer's data count isn't too few.
             clear_buffer_per_iters=10,
+            # (int) nstep for rl algorithms used in episode reward model
             nstep=5,
+            # (list(int)) Sequence of ``hidden_size`` of reward network.
             hidden_size_list=[128, 128, 64],
+            # (str) The reward model type, which must be episodic
             type='episodic',
         ),
     )

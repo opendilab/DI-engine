@@ -1,10 +1,8 @@
-from typing import Union, Optional, List, Any, Tuple
+from typing import Optional, List, Any
 from collections.abc import Iterable
 from easydict import EasyDict
 
 import torch
-import torch.optim as optim
-import torch.nn.functional as F
 
 from ding.torch_utils import one_hot
 from ding.utils import RunningMeanStd
