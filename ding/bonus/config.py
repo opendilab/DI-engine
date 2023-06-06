@@ -99,6 +99,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             cfg.batch_size = 320
             cfg.epoch_per_collect = 10
             cfg.learning_rate = 3e-4
+            cfg.lr_scheduler = (2000, 0.1)
             cfg.model = dict(
                 encoder_hidden_size_list=[64, 64, 128],
                 actor_head_hidden_size=128,
@@ -151,13 +152,13 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=4,
                         ),
                         learn=dict(
-                            batch_size=160,
+                            batch_size=64,
                             learning_rate=3e-4,
                             entropy_weight=0.001,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=320,
+                            n_sample=64,
                             discount_factor=0.99,
                             gae_lambda=0.95,
                         ),
@@ -238,14 +239,14 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_space='continuous',
                         ),
                         learn=dict(
-                            batch_size=64,
+                            batch_size=128,
                             learning_rate=0.0003,
                             value_weight=0.5,
-                            entropy_weight=0.01,
+                            entropy_weight=0.02,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=64,
+                            n_sample=128,
                             discount_factor=0.99,
                         ),
                     ),
@@ -324,14 +325,14 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=6,
                         ),
                         learn=dict(
-                            batch_size=64,
+                            batch_size=32,
                             learning_rate=0.0003,
                             value_weight=0.5,
-                            entropy_weight=0.01,
+                            entropy_weight=0.005,
                             adv_norm=True,
                         ),
                         collect=dict(
-                            n_sample=64,
+                            n_sample=32,
                             discount_factor=0.99,
                         ),
                     ),
