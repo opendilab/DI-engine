@@ -42,6 +42,8 @@ class SILPolicy(Policy):
             # ==============================================================
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
+            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+            entropy_weight=0.01,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
             ignore_done=False,
@@ -116,16 +118,16 @@ class SILPolicy(Policy):
             error_data = sil_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
 
             # Calculate SIL loss
-            sil_loss = sil_error(error_data)
-            wv, we = self._value_weight, self._entropy_weight
-            total_loss = sil_loss.policy_loss + wv * sil_loss.value_loss
+            sil_loss, sil_info = sil_error(error_data)
+            wv = self._value_weight
+            sil_total_loss = sil_loss.policy_loss + wv * sil_loss.value_loss
 
             # ====================
             # SIL-learning update
             # ====================
 
             self._optimizer.zero_grad()
-            total_loss.backward()
+            sil_total_loss.backward()
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 list(self._learn_model.parameters()),
@@ -139,9 +141,10 @@ class SILPolicy(Policy):
         # only record last updates information in logger
         return {
             'cur_lr': self._optimizer.param_groups[0]['lr'],
-            'total_loss': total_loss.item(),
+            'total_loss': sil_total_loss.item(),
             'policy_loss': sil_loss.policy_loss.item(),
             'value_loss': sil_loss.value_loss.item(),
+            'policy_clipfrac': sil_info.policy_clipfrac,
             'adv_abs_max': adv.abs().max().item(),
             'grad_norm': grad_norm,
         }
@@ -268,4 +271,4 @@ class SILPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']
+        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'adv_abs_max', 'grad_norm']

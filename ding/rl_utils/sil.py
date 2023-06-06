@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 sil_data = namedtuple('sil_data', ['logit', 'action', 'value', 'adv', 'return_', 'weight'])
 sil_loss = namedtuple('sil_loss', ['policy_loss', 'value_loss'])
+sil_info = namedtuple('sil_info', ['policy_clipfrac', 'value_clipfrac'])
 
 
 def sil_error(data: namedtuple) -> namedtuple:
@@ -31,10 +32,13 @@ def sil_error(data: namedtuple) -> namedtuple:
     logp = dist.log_prob(action)
 
     # Clip the negative part of adv.
+    policy_clipfrac = adv.lt(0).float().mean().item()
     adv = adv.clamp_min(0)
     policy_loss = -(logp * adv * weight).mean()
 
     # Clip the negative part of the distance between value and return.
-    rv_dist = torch.clamp_min((return_ - value), 0)
+    rv_dist = return_ - value
+    value_clipfrac = rv_dist.lt(0).float().mean().item()
+    rv_dist = rv_dist.clamp_min(0)
     value_loss = (F.mse_loss(rv_dist, torch.zeros_like(rv_dist), reduction='none') * weight).mean()
-    return sil_loss(policy_loss, value_loss)
+    return sil_loss(policy_loss, value_loss), sil_info(policy_clipfrac, value_clipfrac)
