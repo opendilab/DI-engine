@@ -63,7 +63,10 @@ class BaseRewardModel(ABC):
     def clear_data(self, iter: int) -> None:
         """
         Overview:
-            Clearing training data. \
+            Clearing training data.
+        Arguments:
+            - iter (:obj:`int`): Current training iteration
+        Returns / Effects:
             This can be a side effect function which clears the data attribute in ``self``
         """
         raise NotImplementedError()

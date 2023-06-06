@@ -67,6 +67,7 @@ class DrexRewardModel(TrexRewardModel):
 
         self.demo_data = []
         self.load_expert_data()
+        self._logger.info("device: {}".format(device))
 
     def load_expert_data(self) -> None:
         """
@@ -82,10 +83,7 @@ class DrexRewardModel(TrexRewardModel):
             self.demo_data = pickle.load(f)
 
     def train(self):
-        # check if gpu available
-        device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        # Assume that we are on a CUDA machine, then this should print a CUDA device:
-        self._logger.info("device: {}".format(device))
+
         training_inputs, training_outputs = self.training_obs, self.training_labels
 
         cum_loss = 0.0

@@ -92,7 +92,6 @@ def serial_pipeline_reward_model_offpolicy(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
-    count = 0
     best_reward = -np.inf
     while True:
         collect_kwargs = commander.step()
@@ -116,7 +115,7 @@ def serial_pipeline_reward_model_offpolicy(
         if cooptrain_reward:
             reward_model.train()
             # clear buffer per fix iters to make sure replay buffer's data count isn't too few.
-            reward_model.clear_data(iter=count)
+            reward_model.clear_data(iter=learner.train_iter)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -135,7 +134,6 @@ def serial_pipeline_reward_model_offpolicy(
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
-        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
