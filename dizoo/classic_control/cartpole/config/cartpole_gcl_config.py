@@ -13,7 +13,14 @@ cartpole_gcl_ppo_offpolicy_config = dict(
         input_size=5,
         batch_size=32,
         continuous=False,
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # e.g. 'exp_name/expert_data.pkl'
         expert_data_path='cartpole_ppo_offpolicy_seed0/expert_data.pkl',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         expert_model_path='cartpole_ppo_offpolicy_seed0/ckpt/ckpt_best.pth.tar',
         update_per_collect=10,
         collect_count=1000,

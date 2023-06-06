@@ -21,6 +21,10 @@ qbert_trex_dqn_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
         expert_model_path='qbert_dqn_seed0',
         hidden_size_list=[512, 64, 1],
         obs_shape=[4, 84, 84],

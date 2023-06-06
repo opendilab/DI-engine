@@ -15,7 +15,14 @@ lunarlander_ppo_config = dict(
         batch_size=32,
         continuous=False,
         update_per_collect=20,
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # e.g. 'exp_name/expert_data.pkl'
         expert_data_path='lunarlander_ppo_offpolicy_seed0/expert_data.pkl',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         expert_model_path='lunarlander_ppo_offpolicy_seed0/ckpt/ckpt_best.pth.tar',
         collect_count=100000,
     ),

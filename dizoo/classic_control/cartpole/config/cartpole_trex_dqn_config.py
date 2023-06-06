@@ -20,6 +20,9 @@ cartpole_trex_dqn_config = dict(
         update_per_collect=1,
         num_trajs=6,
         num_snippets=6000,
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name``.
         expert_model_path='cartpole_dqn_seed0',  # expert model experiment directory path
         hidden_size_list=[512, 64, 1],
         obs_shape=4,

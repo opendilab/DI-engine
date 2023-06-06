@@ -18,6 +18,9 @@ cartpole_trex_ppo_onpolicy_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name``.
         expert_model_path='cartpole_ppo_seed0',  # expert model experiment directory path
         hidden_size_list=[512, 64, 1],
         obs_shape=4,
