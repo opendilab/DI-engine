@@ -271,4 +271,5 @@ class SILPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'adv_abs_max', 'grad_norm']
+        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'adv_abs_max', 'grad_norm',
+                                                'policy_clipfrac', 'value_clipfrac']
