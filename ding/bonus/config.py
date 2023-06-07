@@ -94,12 +94,35 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                 critic_head_hidden_size=128,
                 critic_head_layer_num=2,
             )
-        elif env in ['PongNoFrameskip', 'SpaceInvadersNoFrameskip', 'QbertNoFrameskip']:
+        elif env == 'PongNoFrameskip':
             cfg.n_sample = 3200
             cfg.batch_size = 320
             cfg.epoch_per_collect = 10
             cfg.learning_rate = 3e-4
+            cfg.model = dict(
+                encoder_hidden_size_list=[64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+            )
+        elif env == 'SpaceInvadersNoFrameskip':
+            cfg.n_sample = 320
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 1
+            cfg.learning_rate = 1e-3
+            cfg.entropy_weight = 0.01
             cfg.lr_scheduler = (2000, 0.1)
+            cfg.model = dict(
+                encoder_hidden_size_list=[64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+            )
+        elif env == 'QbertNoFrameskip':
+            cfg.n_sample = 3200
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 5e-4
+            cfg.lr_scheduler = (1000, 0.1)
+            cfg.deterministic_eval = True
             cfg.model = dict(
                 encoder_hidden_size_list=[64, 64, 128],
                 actor_head_hidden_size=128,
