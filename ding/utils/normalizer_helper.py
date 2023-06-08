@@ -1,3 +1,4 @@
+import numpy as np
 
 class DatasetNormalizer:
 
