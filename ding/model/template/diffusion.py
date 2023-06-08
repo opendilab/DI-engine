@@ -217,10 +217,10 @@ class TemporalUnet(nn.Module):
                 force_dropout: bool = False):
         '''
         Arguments:
-            x (:obj:'tensor') noise tarjectory
+            x (:obj:'tensor') noise trajectory
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
             time (:obj:'int') timestep of diffusion step
-            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+            returns (:obj:'tensor') condition returns of trajectory, returns is normal return
             use_dropout (:obj:'bool') Whether use returns condition mask
             force_dropout (:obj:'bool') Whether use returns condition
         '''
@@ -508,7 +508,7 @@ class GaussianInvDynDiffusion(nn.Module):
             Gaussian diffusion model with Invdyn action model.
     Arguments:
             - model (:obj:`nn.Module`): diffusion model
-            - horizon (:obj:`int`): horizon of tarjectory
+            - horizon (:obj:`int`): horizon of trajectory
             - obs_dim (:obj:`int`): Dim of the ovservation
             - action_dim (:obj:`int`): Dim of the ation
             - n_timesteps (:obj:`int`): Number of timesteps 
@@ -615,8 +615,8 @@ class GaussianInvDynDiffusion(nn.Module):
     def q_posterior(self, x_start, x_t, t):
         '''
         Arguments:
-            x_start (:obj:'tensor') noise tarjectory in timestep 0
-            x_t (:obj:'tuple') noise tarjectory in timestep t
+            x_start (:obj:'tensor') noise trajectory in timestep 0
+            x_t (:obj:'tuple') noise trajectory in timestep t
             t (:obj:'int') timestep of diffusion step
         '''
         posterior_mean = (
@@ -630,10 +630,10 @@ class GaussianInvDynDiffusion(nn.Module):
     def p_mean_variance(self, x, cond, t, returns=None):
         '''
         Arguments:
-            x (:obj:'tensor') noise tarjectory in timestep t
+            x (:obj:'tensor') noise trajectory in timestep t
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
             t (:obj:'int') timestep of diffusion step
-            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+            returns (:obj:'tensor') condition returns of trajectory, returns is normal return
         returns:
             model_mean (:obj:'tensor.float') 
             posterior_variance (:obj:'float')
@@ -663,10 +663,10 @@ class GaussianInvDynDiffusion(nn.Module):
     def p_sample(self, x, cond, t, returns=None):
         '''
         Arguments:
-            x (:obj:'tensor') noise tarjectory in timestep t
+            x (:obj:'tensor') noise trajectory in timestep t
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
             t (:obj:'int') timestep of diffusion step
-            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+            returns (:obj:'tensor') condition returns of trajectory, returns is normal return
         '''
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t, returns=returns)
@@ -681,8 +681,8 @@ class GaussianInvDynDiffusion(nn.Module):
         Arguments:
             shape (:obj:'tuple') (batch_size, horizon, self.obs_dim)
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
-            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
-            horizon (:obj:'int') horizon of tarjctory
+            returns (:obj:'tensor') condition returns of trajectory, returns is normal return
+            horizon (:obj:'int') horizon of trajectory
             verbose (:obj:'bool') whether log diffusion progress
             return_diffusion (:obj:'bool') whether use return diffusion
         '''
@@ -716,9 +716,9 @@ class GaussianInvDynDiffusion(nn.Module):
     def conditional_sample(self, cond, returns=None, horizon=None, *args, **kwargs):
         '''
         Arguments:
-            conditions (:obj:'tuple') [ (time, state), ... ] state is init state of env, time is timestep of tarjectory
-            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
-            horizon (:obj:'int') horizon of tarjectory
+            conditions (:obj:'tuple') [ (time, state), ... ] state is init state of env, time is timestep of trajectory
+            returns (:obj:'tensor') condition returns of trajectory, returns is normal return
+            horizon (:obj:'int') horizon of trajectory
         returns:
             x (:obj:'tensor') tarjctory of env
         '''

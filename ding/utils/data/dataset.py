@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from easydict import EasyDict
 from ding.utils.bfs_helper import get_vi_sequence
 
-from ding.utils import DATASET_REGISTRY, import_module
+from ding.utils import DATASET_REGISTRY, import_module, DatasetNormalizer
 from ding.rl_utils import discount_cumsum
 
 
@@ -344,7 +344,7 @@ class D4RLTrajectoryDataset(Dataset):
                     {
                         key: np.stack(
                             [
-                                self.trjectories[eps_index][transition_index][o_key]
+                                self.trajectories[eps_index][transition_index][o_key]
                                 for transition_index in range(len(self.trajectories[eps_index]))
                             ],
                             axis=0
@@ -521,6 +521,164 @@ class BCODataset(Dataset):
     def action(self):
         return self._data['action']
 
+@DATASET_REGISTRY.register('diffuser_tarj')
+class SequenceDataset(torch.utils.data.Dataset):
+
+    def __init__(self, cfg:dict,
+        normalizer='LimitsNormalizer'):
+        import gym
+        try:
+            import d4rl  # register d4rl enviroments with open ai gym
+        except ImportError:
+            logging.warning("not found d4rl env, please install it, refer to https://github.com/rail-berkeley/d4rl")
+
+        env_id = cfg.env.env_id
+        data_path = cfg.policy.collect.get('data_path', None)
+        env = gym.make(env_id)
+
+        if data_path:
+            d4rl.set_dataset_path(data_path)
+        dataset = d4rl.qlearning_dataset(env)
+        
+        self.returns_scale = cfg.env.returns_scale
+        self.horizon = cfg.env.horizon
+        self.max_path_length = cfg.env.max_path_length
+        self.discount = cfg.policy.discount
+        self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
+        self.use_padding = cfg.env.use_padding
+        self.include_returns = cfg.env.include_returns
+        itr = self.sequence_dataset(env, dataset)
+
+        fields = {}
+        for k, _ in dataset:
+            fields[key] = []
+        fields['path_lengths'] = []
+
+        for i, episode in enumerate(itr):
+            path_length = len(episode['observations'])
+            fields['path_lengths'].append(path_length)
+            for key, val in episode:
+                fields[key].append(val)
+            if episode['terminals'].any() and cfg.env.termination_penalty:
+                assert not episode['timeouts'].any(), 'Penalized a timeout episode for early termination'
+                fields['rewards'][-1][-1] += cfg.env.termination_penalty
+
+        self.normalizer = DatasetNormalizer(fields, normalizer, path_lengths=fields['path_lengths'])
+        self.indices = self.make_indices(fields.path_lengths, self.horizon)
+
+        self.observation_dim = fields.observations.shape[-1]
+        self.action_dim = fields.actions.shape[-1]
+        self.fields = fields
+        self.n_episodes = fields.observations.shape[0]
+        self.normalize()
+
+        # shapes = {key: val.shape for key, val in self.fields.items()}
+        # print(f'[ datasets/mujoco ] Dataset fields: {shapes}')
+
+    def sequence_dataset(self, env, dataset=None):
+        N = dataset['rewards'].shape[0]
+        data_ = {}
+
+        # The newer version of the dataset adds an explicit
+        # timeouts field. Keep old method for backwards compatability.
+        use_timeouts = 'timeouts' in dataset
+
+        episode_step = 0
+        for i in range(N):
+            done_bool = bool(dataset['terminals'][i])
+            if use_timeouts:
+                final_timestep = dataset['timeouts'][i]
+            else:
+                final_timestep = (episode_step == env._max_episode_steps - 1)
+
+            for k in dataset:
+                if 'metadata' in k: continue
+                data_[k].append(dataset[k][i])
+
+            if done_bool or final_timestep:
+                episode_step = 0
+                episode_data = {}
+                for k in data_:
+                    episode_data[k] = np.array(data_[k])
+                if 'maze2d' in env.name:
+                    episode_data = self.process_maze2d_episode(episode_data)
+                yield episode_data
+                data_ = {}
+
+            episode_step += 1
+
+    def process_maze2d_episode(self, episode):
+        '''
+            adds in `next_observations` field to episode
+        '''
+        assert 'next_observations' not in episode
+        length = len(episode['observations'])
+        next_observations = episode['observations'][1:].copy()
+        for key, val in episode.items():
+            episode[key] = val[:-1]
+        episode['next_observations'] = next_observations
+        return episode
+
+    def normalize(self, keys=['observations', 'actions']):
+        '''
+            normalize fields that will be predicted by the diffusion model
+        '''
+        for key in keys:
+            array = self.fields[key].reshape(self.n_episodes*self.max_path_length, -1)
+            normed = self.normalizer(array, key)
+            self.fields[f'normed_{key}'] = normed.reshape(self.n_episodes, self.max_path_length, -1)
+
+    def make_indices(self, path_lengths, horizon):
+        '''
+            makes indices for sampling from dataset;
+            each index maps to a datapoint
+        '''
+        indices = []
+        for i, path_length in enumerate(path_lengths):
+            max_start = min(path_length - 1, self.max_path_length - horizon)
+            if not self.use_padding:
+                max_start = min(max_start, path_length - horizon)
+            for start in range(max_start):
+                end = start + horizon
+                indices.append((i, start, end))
+        indices = np.array(indices)
+        return indices
+
+    def get_conditions(self, observations):
+        '''
+            condition on current observation for planning
+        '''
+        return {0: observations[0]}
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, idx, eps=1e-4):
+        path_ind, start, end = self.indices[idx]
+
+        observations = self.fields.normed_observations[path_ind, start:end]
+        actions = self.fields.normed_actions[path_ind, start:end]
+
+        conditions = self.get_conditions(observations)
+        trajectories = np.concatenate([actions, observations], axis=-1)
+
+        if self.include_returns:
+            rewards = self.fields.rewards[path_ind, start:]
+            discounts = self.discounts[:len(rewards)]
+            returns = (discounts * rewards).sum()
+            returns = np.array([returns/self.returns_scale], dtype=np.float32)
+            batch = {
+                'trajectories': trajectories,
+                'conditions': conditions,
+                'returns': returns
+            }
+        else:
+            batch = {
+                'trajectories': trajectories,
+                'conditions': conditions,
+            }
+
+        return batch
 
 def hdf5_save(exp_data, expert_data_path):
     try:
