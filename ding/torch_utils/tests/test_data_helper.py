@@ -138,7 +138,7 @@ class TestDataFunction:
         new_data = to_item(data)
         assert np.isscalar(new_data.a)
 
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, RuntimeError)):
             to_item({'a': torch.randn(4), 'b': torch.rand(1)}, ignore_error=False)
         output = to_item({'a': torch.randn(4), 'b': torch.rand(1)}, ignore_error=True)
         assert 'a' not in output

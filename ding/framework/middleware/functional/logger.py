@@ -1,15 +1,14 @@
 from typing import TYPE_CHECKING, Optional, Callable, Dict, List, Union
-import os
+from ditk import logging
 from easydict import EasyDict
 from matplotlib import pyplot as plt
 from matplotlib import animation
 from matplotlib import ticker as mtick
 from torch.nn import functional as F
-from sklearn.manifold import TSNE
+import os
 import numpy as np
 import torch
 import wandb
-import h5py
 import pickle
 import treetensor.numpy as tnp
 from ding.framework import task
@@ -73,7 +72,7 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
             else:
                 output = ctx.train_output
             for k, v in output.items():
-                if k in ['priority']:
+                if k in ['priority', 'td_error_priority']:
                     continue
                 if "[scalars]" in k:
                     new_k = k.split(']')[-1]
@@ -346,6 +345,18 @@ def wandb_offline_logger(
         )
 
     def _vis_dataset(datasetpath: str):
+        try:
+            from sklearn.manifold import TSNE
+        except ImportError:
+            import sys
+            logging.warning("Please install sklearn first, such as `pip3 install scikit-learn`.")
+            sys.exit(1)
+        try:
+            import h5py
+        except ImportError:
+            import sys
+            logging.warning("Please install h5py first, such as `pip3 install h5py`.")
+            sys.exit(1)
         assert os.path.splitext(datasetpath)[-1] in ['.pkl', '.h5', '.hdf5']
         if os.path.splitext(datasetpath)[-1] == '.pkl':
             with open(datasetpath, 'rb') as f:
