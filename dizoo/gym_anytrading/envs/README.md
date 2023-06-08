@@ -57,7 +57,7 @@ If profit or loss occurs, it means that one of the following two cycles in state
 
 ### Current Profit Calculation
 
-According to the above defination, we can easily know that the formula of accumulative profit is: 
+According to the above definition, we can easily know that the formula of accumulative profit is: 
 
 $\prod_{buying\ long}(r_{curr}/r_{pre}\ *\ cost) + \prod_{short\ selling}((2-r_{curr}/r_{pre})\ *\ cost)$
 
@@ -78,7 +78,7 @@ Comparing the objective function ($\mathbb{E}_{\tau}\sum\ r$) in reinforcement l
 so that maximize $\mathbb{E}_{\tau} \sum r$ 
 is equivalent to maximize $\mathbb{E}_{\tau}[\prod_{buying\ long}(r_{curr}/r_{pre}\ *\ cost) + \prod_{short\ selling}((2-r_{curr}/r_{pre})\ *\ cost)]$
 
-The experimental results show that such a defination is better than the original gym-anytrading accumulated reward function :$\sum(r_{curr} - r_{pre})$.
+The experimental results show that such a definition is better than the original gym-anytrading accumulated reward function :$\sum(r_{curr} - r_{pre})$.
 ### Render Function
 
   As you see, you can use `render` method to plot the position and profit at one episode.

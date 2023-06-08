@@ -91,7 +91,7 @@ class PPOF:
             action_shape = action_space.shape
 
         # Three types of value normalization is supported currently
-        assert self.cfg.value_norm in ['popart', 'value_rescale', 'symlog']
+        assert self.cfg.value_norm in ['popart', 'value_rescale', 'symlog', 'baseline']
         if model is None:
             if self.cfg.value_norm != 'popart':
                 model = PPOFModel(

@@ -47,6 +47,9 @@ from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
+from .bcq import BCQPolicy
+from .edac import EDACPolicy
+from .decision_diffuser import DDPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -315,6 +318,9 @@ class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
 class DTCommandModePolicy(DTPolicy, DummyCommandModePolicy):
     pass
 
+@POLICY_REGISTRY.register('dd_command')
+class DDCommandModePolicy(DDPolicy, DummyCommandModePolicy):
+    pass
 
 @POLICY_REGISTRY.register('qmix_command')
 class QMIXCommandModePolicy(QMIXPolicy, EpsCommandModePolicy):
@@ -378,6 +384,16 @@ class SQILSACCommandModePolicy(SQILSACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('ibc_command')
 class IBCCommandModePolicy(IBCPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('bcq_command')
+class BCQCommandModelPolicy(BCQPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('edac_command')
+class EDACCommandModelPolicy(EDACPolicy, DummyCommandModePolicy):
     pass
 
 
