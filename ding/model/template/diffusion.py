@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 
+#数据处理需要实现，看github官方的dataset里d4rl和sequence
 def extract(a, t, x_shape):
     '''
     Overview:
@@ -214,6 +215,15 @@ class TemporalUnet(nn.Module):
     
     def forward(self, x, cond, time, returns = None, use_dropout: bool = True, 
                 force_dropout: bool = False):
+        '''
+        Arguments:
+            x (:obj:'tensor') noise tarjectory
+            cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
+            time (:obj:'int') timestep of diffusion step
+            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+            use_dropout (:obj:'bool') Whether use returns condition mask
+            force_dropout (:obj:'bool') Whether use returns condition
+        '''
         if self.cale_energy:
             x_inp = x
 
@@ -495,7 +505,19 @@ class ARInvModel(nn.Module):
 class GaussianInvDynDiffusion(nn.Module):
     '''
     Overview:
-        Gaussian diffusion model with Invdyn action model.
+            Gaussian diffusion model with Invdyn action model.
+    Arguments:
+            - model (:obj:`nn.Module`): diffusion model
+            - horizon (:obj:`int`): horizon of tarjectory
+            - obs_dim (:obj:`int`): Dim of the ovservation
+            - action_dim (:obj:`int`): Dim of the ation
+            - n_timesteps (:obj:`int`): Number of timesteps 
+            - hidden_dim (:obj:'int'): hidden dim of inv_model
+            - returns_condition (:obj:'bool'): Whether use returns condition
+            - ar_inv (:obj:'bool'): Whether use inverse action learning
+            - train_only_inv (:obj:'bool'): Whether train inverse action only
+            - predict_epsilon (:obj:'bool'): Whether predict epsilon
+            - condition_guidance_w (:obj:'float'): weight of condition guidance
     '''
     def __init__(
             self,
@@ -591,6 +613,12 @@ class GaussianInvDynDiffusion(nn.Module):
             return noise
 
     def q_posterior(self, x_start, x_t, t):
+        '''
+        Arguments:
+            x_start (:obj:'tensor') noise tarjectory in timestep 0
+            x_t (:obj:'tuple') noise tarjectory in timestep t
+            t (:obj:'int') timestep of diffusion step
+        '''
         posterior_mean = (
             extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
             extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
@@ -600,6 +628,17 @@ class GaussianInvDynDiffusion(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, cond, t, returns=None):
+        '''
+        Arguments:
+            x (:obj:'tensor') noise tarjectory in timestep t
+            cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
+            t (:obj:'int') timestep of diffusion step
+            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+        returns:
+            model_mean (:obj:'tensor.float') 
+            posterior_variance (:obj:'float')
+            posterior_log_variance (:obj:'float')
+        '''
         if self.returns_condition:
             # epsilon could be epsilon or x0 itself
             epsilon_cond = self.model(x, cond, t, returns, use_dropout=False)
@@ -622,6 +661,13 @@ class GaussianInvDynDiffusion(nn.Module):
 
     @torch.no_grad()
     def p_sample(self, x, cond, t, returns=None):
+        '''
+        Arguments:
+            x (:obj:'tensor') noise tarjectory in timestep t
+            cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
+            t (:obj:'int') timestep of diffusion step
+            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+        '''
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t, returns=returns)
         noise = 0.5*torch.randn_like(x)
@@ -631,10 +677,20 @@ class GaussianInvDynDiffusion(nn.Module):
 
     @torch.no_grad()
     def p_sample_loop(self, shape, cond, returns=None, verbose=True, return_diffusion=False):
+        '''
+        Arguments:
+            shape (:obj:'tuple') (batch_size, horizon, self.obs_dim)
+            cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
+            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+            horizon (:obj:'int') horizon of tarjctory
+            verbose (:obj:'bool') whether log diffusion progress
+            return_diffusion (:obj:'bool') whether use return diffusion
+        '''
         device = self.betas.device
 
         batch_size = shape[0]
         x = 0.5*torch.randn(shape, device=device)
+        # In this model, init state must be given by the env and without noise.
         x = apply_conditioning(x, cond, 0)
 
         if return_diffusion: diffusion = [x]
@@ -659,7 +715,12 @@ class GaussianInvDynDiffusion(nn.Module):
     @torch.no_grad()
     def conditional_sample(self, cond, returns=None, horizon=None, *args, **kwargs):
         '''
-            conditions : [ (time, state), ... ]
+        Arguments:
+            conditions (:obj:'tuple') [ (time, state), ... ] state is init state of env, time is timestep of tarjectory
+            returns (:obj:'tensor') condition returns of tarjectory, returns is normal return
+            horizon (:obj:'int') horizon of tarjectory
+        returns:
+            x (:obj:'tensor') tarjctory of env
         '''
         device = self.betas.device
         batch_size = len(cond[0])
@@ -669,6 +730,12 @@ class GaussianInvDynDiffusion(nn.Module):
         return self.p_sample_loop(shape, cond, returns, *args, **kwargs)
     
     def q_sample(self, x_start, t, noise=None):
+        '''
+        Arguments:
+            conditions (:obj:'tuple') [ (time, state), ... ] conditions of diffusion
+            t (:obj:'int') timestep of diffusion
+            noise (:obj:'tensor.float') timestep's noise of diffusion
+        '''
         if noise is None:
             noise = torch.randn_like(x_start)
 
