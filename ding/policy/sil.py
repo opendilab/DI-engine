@@ -173,6 +173,7 @@ class SILPolicy(Policy):
         # only record last updates information in logger
         return {
             'cur_lr': self._optimizer.param_groups[0]['lr'],
+            'total_loss': sil_total_loss.item() + a2c_total_loss.item(),
             'sil_total_loss': sil_total_loss.item(),
             'a2c_total_loss': a2c_total_loss.item(),
             'sil_policy_loss': sil_loss.policy_loss.item(),
@@ -308,7 +309,7 @@ class SILPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + ['a2c_policy_loss', 'sil_policy_loss', 'sil_value_loss',
-                                                'a2c_value_loss', 'a2c_total_loss', 'sil_total_loss',
-                                                'a2c_entropy_loss', 'adv_abs_max', 'grad_norm', 'policy_clipfrac',
-                                                'value_clipfrac']
+        return super()._monitor_vars_learn() + [
+            'a2c_policy_loss', 'sil_policy_loss', 'sil_value_loss', 'a2c_value_loss', 'a2c_total_loss',
+            'sil_total_loss', 'a2c_entropy_loss', 'adv_abs_max', 'grad_norm', 'policy_clipfrac', 'value_clipfrac'
+        ]
