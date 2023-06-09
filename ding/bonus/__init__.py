@@ -1,5 +1,6 @@
 from .a2c import A2CAgent
 from .ppof import PPOF
+from .ppo_offpolicy import PPOOffPolicyAgent
 from .c51 import C51Agent
 from .td3 import TD3Agent
 from .ddpg import DDPGAgent

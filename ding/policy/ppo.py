@@ -457,6 +457,9 @@ class PPOPolicy(Policy):
         if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']
         return variables
+    
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
 
 
 @POLICY_REGISTRY.register('ppo_pg')
@@ -970,6 +973,8 @@ class PPOOffPolicy(Policy):
             'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
 
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
 
 @POLICY_REGISTRY.register('ppo_stdim')
 class PPOSTDIMPolicy(PPOPolicy):
