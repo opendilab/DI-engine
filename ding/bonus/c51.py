@@ -114,7 +114,7 @@ class C51Agent:
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> None:
+    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> float:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -158,6 +158,8 @@ class C51Agent:
             if done:
                 break
         logging.info(f'C51 deploy is finished, final episode return with {step} steps is: {return_}')
+
+        return return_
 
     def collect_data(
             self,
