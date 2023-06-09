@@ -226,6 +226,7 @@ def wandb_online_logger(
             info_for_logging.update(
                 {
                     "episode return mean": ctx.eval_value,
+                    "episode return std": ctx.eval_value_std,
                     "train iter": ctx.train_iter,
                     "env step": ctx.env_step
                 }
@@ -289,7 +290,6 @@ def wandb_online_logger(
 
         if bool(info_for_logging):
             wandb.log(data=info_for_logging, step=ctx.env_step)
-            # wandb.log(data=info_for_logging)
         plt.clf()
 
     return _plot
