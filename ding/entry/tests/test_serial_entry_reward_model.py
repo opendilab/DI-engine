@@ -1,6 +1,5 @@
 import pytest
 import os
-from ditk import logging
 from easydict import EasyDict
 from copy import deepcopy
 
@@ -23,17 +22,20 @@ cfg = [
         'type': 'pdeil',
         "alpha": 0.5,
         "discrete_action": False
-    }, {
+    },
+    {
         'type': 'gail',
         'input_size': 5,
         'hidden_size_list': [64],
         'batch_size': 64,
-    }, {
+    },
+    {
         'type': 'pwil',
         's_size': 4,
         'a_size': 2,
         'sample_size': 500,
-    }, {
+    },
+    {
         'type': 'red',
         'sample_size': 5000,
         'obs_shape': 4,
@@ -41,7 +43,16 @@ cfg = [
         'hidden_size_list': [64, 1],
         'update_per_collect': 200,
         'batch_size': 128,
-    }
+    },
+    {
+        'type': 'guided_cost',
+        'learning_rate': 0.001,
+        'input_size': 5,
+        'batch_size': 32,
+        'continuous': False,
+        'update_per_collect': 10,
+        'collect_count': 1000,
+    },
 ]
 
 
