@@ -9,7 +9,6 @@ def get_default_wrappers(env_wrapper_name: str, env_id: Optional[str] = None, ca
     assert caller == 'collector' or 'evaluator'
     if env_wrapper_name == 'mujoco_default':
         return [
-            EasyDict(type='delay_reward', kwargs=dict(delay_reward_step=3)),
             copy.deepcopy(eval_episode_return_wrapper),
         ]
     elif env_wrapper_name == 'atari_default':
