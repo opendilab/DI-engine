@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
 
-from ding.rl_utils import sil_data, sil_error, get_gae_with_default_last_value, get_train_sample
+from ding.rl_utils import sil_data, sil_error, get_gae_with_default_last_value, get_train_sample, a2c_data, a2c_error
 from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator
@@ -27,6 +27,8 @@ class SILPolicy(Policy):
         priority=False,
         # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (int) Number of epochs to use SIL loss to update the policy.
+        sil_update_per_collect=1,
         learn=dict(
             update_per_collect=1,  # fixed value, this line should not be modified by users
             batch_size=64,
@@ -115,19 +117,19 @@ class SILPolicy(Policy):
             if self._adv_norm:
                 # norm adv in total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-            error_data = sil_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
+            error_data = a2c_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
 
-            # Calculate SIL loss
-            sil_loss, sil_info = sil_error(error_data)
-            wv = self._value_weight
-            sil_total_loss = sil_loss.policy_loss + wv * sil_loss.value_loss
+            # Calculate A2C loss
+            a2c_loss = a2c_error(error_data)
+            wv, we = self._value_weight, self._entropy_weight
+            a2c_total_loss = a2c_loss.policy_loss + wv * a2c_loss.value_loss - we * a2c_loss.entropy_loss
 
             # ====================
-            # SIL-learning update
+            # A2C-learning update
             # ====================
 
             self._optimizer.zero_grad()
-            sil_total_loss.backward()
+            a2c_total_loss.backward()
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 list(self._learn_model.parameters()),
@@ -135,16 +137,51 @@ class SILPolicy(Policy):
             )
             self._optimizer.step()
 
+        for _ in range(self._cfg.sil_update_per_collect):
+            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+                # forward
+                output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
+
+                adv = batch['adv']
+                return_ = batch['value'] + adv
+                if self._adv_norm:
+                    # norm adv in total train_batch
+                    adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+                error_data = sil_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
+
+                # Calculate SIL loss
+                sil_loss, sil_info = sil_error(error_data)
+                wv = self._value_weight
+                sil_total_loss = sil_loss.policy_loss + wv * sil_loss.value_loss
+
+                # ====================
+                # SIL-learning update
+                # ====================
+
+                self._optimizer.zero_grad()
+                sil_total_loss.backward()
+
+                grad_norm = torch.nn.utils.clip_grad_norm_(
+                    list(self._learn_model.parameters()),
+                    max_norm=self._grad_norm,
+                )
+                self._optimizer.step()
+
         # =============
         # after update
         # =============
         # only record last updates information in logger
         return {
             'cur_lr': self._optimizer.param_groups[0]['lr'],
-            'total_loss': sil_total_loss.item(),
-            'policy_loss': sil_loss.policy_loss.item(),
-            'value_loss': sil_loss.value_loss.item(),
+            'sil_total_loss': sil_total_loss.item(),
+            'a2c_total_loss': a2c_total_loss.item(),
+            'sil_policy_loss': sil_loss.policy_loss.item(),
+            'a2c_policy_loss': a2c_loss.policy_loss.item(),
+            'sil_value_loss': sil_loss.value_loss.item(),
+            'a2c_value_loss': a2c_loss.value_loss.item(),
+            'a2c_entropy_loss': a2c_loss.entropy_loss.item(),
             'policy_clipfrac': sil_info.policy_clipfrac,
+            'value_clipfrac': sil_info.value_clipfrac,
             'adv_abs_max': adv.abs().max().item(),
             'grad_norm': grad_norm,
         }
@@ -271,5 +308,7 @@ class SILPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'adv_abs_max', 'grad_norm',
-                                                'policy_clipfrac', 'value_clipfrac']
+        return super()._monitor_vars_learn() + ['a2c_policy_loss', 'sil_policy_loss', 'sil_value_loss',
+                                                'a2c_value_loss', 'a2c_total_loss', 'sil_total_loss',
+                                                'a2c_entropy_loss', 'adv_abs_max', 'grad_norm', 'policy_clipfrac',
+                                                'value_clipfrac']
