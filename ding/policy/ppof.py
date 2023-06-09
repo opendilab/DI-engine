@@ -88,7 +88,8 @@ class PPOFPolicy:
                 epoch_num, min_lr_lambda = self._cfg.lr_scheduler
 
                 self._lr_scheduler = torch.optim.lr_scheduler.LambdaLR(
-                    self._optimizer, lr_lambda=lambda epoch: max(1.0 - epoch*(1.0-min_lr_lambda)/epoch_num , min_lr_lambda)
+                    self._optimizer,
+                    lr_lambda=lambda epoch: max(1.0 - epoch * (1.0 - min_lr_lambda) / epoch_num, min_lr_lambda)
                 )
 
             if self._cfg.value_norm:
@@ -290,10 +291,10 @@ class PPOFPolicy:
                         }
                     )
                 return_infos.append(return_info)
-        
+
         if self._cfg.lr_scheduler is not None:
             self._lr_scheduler.step()
-            
+
         return return_infos
 
     def state_dict(self) -> Dict[str, Any]:
