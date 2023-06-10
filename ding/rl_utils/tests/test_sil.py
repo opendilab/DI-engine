@@ -8,7 +8,7 @@ weight_args = [None, random_weight]
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('weight, ', weight_args)
-def test_a2c(weight):
+def test_sil(weight):
     B, N = 4, 32
     logit = torch.randn(B, N).requires_grad_(True)
     action = torch.randint(0, N, size=(B, ))
