@@ -10,7 +10,7 @@ VectorMerge provides three more complex weighted summations.
 
 import enum
 from typing import List, Dict
-
+from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -85,7 +85,7 @@ class VectorMerge(nn.Module):
             - use_layer_norm: Whether to use layer normalization.
         """
         super().__init__()
-        self._input_sizes = input_sizes
+        self._input_sizes = OrderedDict(input_sizes)
         self._output_size = output_size
         self._gating_type = gating_type
         self._use_layer_norm = use_layer_norm
