@@ -18,7 +18,7 @@ def test_a2c(weight):
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
     data = a2c_data(logit, action, value, adv, return_, weight)
-    loss, info = a2c_error(data)
+    loss = a2c_error(data)
     assert all([l.shape == tuple() for l in loss])
     assert logit.grad is None
     assert value.grad is None

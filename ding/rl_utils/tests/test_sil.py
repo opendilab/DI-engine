@@ -16,7 +16,7 @@ def test_a2c(weight):
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
     data = sil_data(logit, action, value, adv, return_, weight)
-    loss = sil_error(data)
+    loss, info = sil_error(data)
     assert all([l.shape == tuple() for l in loss])
     assert logit.grad is None
     assert value.grad is None
