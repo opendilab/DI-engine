@@ -122,7 +122,6 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
             cfg.epoch_per_collect = 10
             cfg.learning_rate = 5e-4
             cfg.lr_scheduler = (1000, 0.1)
-            cfg.deterministic_eval = True
             cfg.model = dict(
                 encoder_hidden_size_list=[64, 64, 128],
                 actor_head_hidden_size=128,

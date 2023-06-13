@@ -304,6 +304,7 @@ def wandb_offline_logger(
         model: Optional[torch.nn.Module] = None,
         anonymous: bool = False,
         project_name: str = 'default-project',
+        wandb_sweep: bool = False,
 ) -> Callable:
     '''
     Overview:
@@ -331,10 +332,17 @@ def wandb_offline_logger(
         metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    if anonymous:
-        wandb.init(project=project_name, reinit=True, anonymous="must")
+    if not wandb_sweep:
+        if anonymous:
+            wandb.init(project=project_name, reinit=True, anonymous="must")
+        else:
+            wandb.init(project=project_name, reinit=True)
     else:
-        wandb.init(project=project_name, reinit=True)
+        if anonymous:
+            wandb.init(project=project_name, anonymous="must")
+        else:
+            wandb.init(project=project_name)
+        plt.switch_backend('agg')
     if cfg is None:
         cfg = EasyDict(
             dict(
@@ -458,6 +466,7 @@ def wandb_offline_logger(
             info_for_logging.update(
                 {
                     "episode return mean": ctx.eval_value,
+                    "episode return std": ctx.eval_value_std,
                     "train iter": ctx.train_iter,
                     "env step": ctx.env_step
                 }
