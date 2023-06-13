@@ -2099,6 +2099,8 @@ def get_instance_env(env: str) -> BaseEnv:
         cfg = EasyDict(
             env_id='Hopper-v3',
             env_wrapper='mujoco_default',
+            act_scale=True,
+            rew_clip=True,
         )
         return DingEnvWrapper(gym.make('Hopper-v3'), cfg=cfg)
     elif env == 'HalfCheetah':
