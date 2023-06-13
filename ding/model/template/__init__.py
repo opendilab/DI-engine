@@ -23,9 +23,6 @@ from .madqn import MADQN
 from .vae import VanillaVAE
 from .decision_transformer import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
-<<<<<<< HEAD
-from .diffusion import GaussianInvDynDiffusion
-=======
 from .bcq import BCQ
 from .edac import QACEnsemble
->>>>>>> 342b872c87039832406a924e3995e88a5f0e0381
+from .diffusion import GaussianInvDynDiffusion

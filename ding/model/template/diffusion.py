@@ -6,7 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 
-#数据处理需要实现，看github官方的dataset里d4rl和sequence
+
+
 def extract(a, t, x_shape):
     '''
     Overview:
@@ -313,7 +314,6 @@ class TemporalValue(nn.Module):
             self,
             horizon: int,
             transition_dim: int,
-            cond_dim: int,
             dim: int = 32,
             time_dim: int = None,
             out_dim: int = 1,
@@ -500,14 +500,30 @@ class ARInvModel(nn.Module):
                                                 self.low_act + (l_i + 1) * self.bin_size).sample()
             action.append(a_i.unsqueeze(1))
         return torch.cat(action, dim=1)
+    
+    def calc_loss(self, comb_state, action):
+        eps = 1e-8
+        action = torch.clamp(action, min=self.low_act + eps, max=self.up_act - eps)
+        l_action = torch.div((action - self.low_act), self.bin_size, rounding_mode='floor').long()
+        state_inp = comb_state
 
-@MODEL_REGISTRY.register('diffusion')
+        state_d = self.state_embed(state_inp)
+        loss = self.ce_loss(self.act_mod[0](state_d), l_action[:, 0])
+
+        for i in range(1, self.action_dim):
+            loss += self.ce_loss(self.act_mod[i](torch.cat([state_d, self.lin_mod[i - 1](action[:, :i])], dim=1)),
+                                     l_action[:, i])
+
+        return loss/self.action_dim
+
+@MODEL_REGISTRY.register('dd')
 class GaussianInvDynDiffusion(nn.Module):
     '''
     Overview:
             Gaussian diffusion model with Invdyn action model.
     Arguments:
-            - model (:obj:`nn.Module`): diffusion model
+            - model (:obj:`str`): type of model
+            - model_cfg (:obj:'dict') config of model
             - horizon (:obj:`int`): horizon of trajectory
             - obs_dim (:obj:`int`): Dim of the ovservation
             - action_dim (:obj:`int`): Dim of the ation
@@ -515,13 +531,15 @@ class GaussianInvDynDiffusion(nn.Module):
             - hidden_dim (:obj:'int'): hidden dim of inv_model
             - returns_condition (:obj:'bool'): Whether use returns condition
             - ar_inv (:obj:'bool'): Whether use inverse action learning
-            - train_only_inv (:obj:'bool'): Whether train inverse action only
+            - train_only_inv (:obj:'bool'): Whether train inverse action model only
             - predict_epsilon (:obj:'bool'): Whether predict epsilon
             - condition_guidance_w (:obj:'float'): weight of condition guidance
+            - loss_discount (:obj:'float'): discount of loss
     '''
     def __init__(
             self,
             model: str,
+            model_cfg: dict,
             horizon: int,
             obs_dim: Union[int, SequenceType],
             action_dim: Union[int, SequenceType],
@@ -532,13 +550,17 @@ class GaussianInvDynDiffusion(nn.Module):
             train_only_inv: bool = False,
             predict_epsilon: bool = True,
             condition_guidance_w: float = 0.1,
+            loss_discount: float = 1.0,
+            clip_denoised: bool = False,
     ) -> None:
         super().__init__()
         self.horizon = horizon
         self.obs_dim = obs_dim
         self.action_dim = action_dim
         self.transition_dim = obs_dim + action_dim
-        self.model = model
+        if type(model) == str:
+            model = eval(model)
+        self.model = model(**model_cfg)
         self.ar_inv = ar_inv
         self.train_only_inv = train_only_inv
         self.predict_epsilon = predict_epsilon
@@ -554,6 +576,7 @@ class GaussianInvDynDiffusion(nn.Module):
                 nn.Linear(hidden_dim, self.action_dim),
             )
         self.returns_condition = returns_condition
+        self.clip_denoised = clip_denoised
 
         betas = cosine_beta_schedule(n_timesteps)
         alphas = 1. - betas
@@ -584,6 +607,8 @@ class GaussianInvDynDiffusion(nn.Module):
             betas * np.sqrt(alphas_cumprod_prev) / (1. - alphas_cumprod))
         self.register_buffer('posterior_mean_coef2',
             (1. - alphas_cumprod_prev) * np.sqrt(alphas) / (1. - alphas_cumprod))
+        
+        self.loss_weights = self.get_loss_weights(loss_discount)
     
     def get_loss_weights(self, discount: int):
         self.action_weight = 1
@@ -695,17 +720,14 @@ class GaussianInvDynDiffusion(nn.Module):
 
         if return_diffusion: diffusion = [x]
 
-        progress = utils.Progress(self.n_timesteps) if verbose else utils.Silent()
         for i in reversed(range(0, self.n_timesteps)):
             timesteps = torch.full((batch_size,), i, device=device, dtype=torch.long)
             x = self.p_sample(x, cond, timesteps, returns)
             x = apply_conditioning(x, cond, 0)
 
-            progress.update({'t': i})
 
             if return_diffusion: diffusion.append(x)
 
-        progress.close()
 
         if return_diffusion:
             return x, torch.stack(diffusion, dim=1)
@@ -745,6 +767,27 @@ class GaussianInvDynDiffusion(nn.Module):
         )
 
         return sample
+    
+    def p_losses(self, x_start, cond, t, returns=None):
+        noise = torch.randn_like(x_start)
+
+        x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
+        x_noisy = apply_conditioning(x_noisy, cond, 0)
+
+        x_recon = self.model(x_noisy, cond, t, returns)
+
+        if not self.predict_epsilon:
+            x_recon = apply_conditioning(x_recon, cond, 0)
+
+        assert noise.shape == x_recon.shape
+
+        if self.predict_epsilon:
+            loss = F.mse_loss(x_recon, noise)
+            loss = (loss * self.loss_weights).mean()
+        else:
+            loss = F.mse_loss(x_recon, x_start).mean()
+
+        return loss
     
     def forward(self, cond, *args, **kwargs):
         return self.conditional_sample(cond=cond, *args, **kwargs)

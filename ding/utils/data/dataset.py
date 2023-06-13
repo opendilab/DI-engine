@@ -527,8 +527,7 @@ class BCODataset(Dataset):
 @DATASET_REGISTRY.register('diffuser_tarj')
 class SequenceDataset(torch.utils.data.Dataset):
 
-    def __init__(self, cfg:dict,
-        normalizer='LimitsNormalizer'):
+    def __init__(self, cfg:dict):
         import gym
         try:
             import d4rl  # register d4rl enviroments with open ai gym
@@ -544,7 +543,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         dataset = d4rl.qlearning_dataset(env)
         
         self.returns_scale = cfg.env.returns_scale
-        self.horizon = cfg.env.horizon
+        self.horizon = cfg.policy.model.horizon
         self.max_path_length = cfg.env.max_path_length
         self.discount = cfg.policy.discount
         self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
@@ -566,7 +565,7 @@ class SequenceDataset(torch.utils.data.Dataset):
                 assert not episode['timeouts'].any(), 'Penalized a timeout episode for early termination'
                 fields['rewards'][-1][-1] += cfg.env.termination_penalty
 
-        self.normalizer = DatasetNormalizer(fields, normalizer, path_lengths=fields['path_lengths'])
+        self.normalizer = DatasetNormalizer(fields, cfg.policy.normalizer, path_lengths=fields['path_lengths'])
         self.indices = self.make_indices(fields.path_lengths, self.horizon)
 
         self.observation_dim = fields.observations.shape[-1]
