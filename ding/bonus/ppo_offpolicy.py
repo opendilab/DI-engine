@@ -14,6 +14,7 @@ from ding.policy import PPOOffPolicy
 from ding.utils import set_pkg_seed
 from ding.config import Config, save_config_py, compile_config
 from ding.model import VAC
+from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.config import get_instance_config, get_instance_env
 from ding.bonus.common import TrainingReturn, EvalReturn
@@ -127,6 +128,8 @@ class PPOOffPolicyAgent:
             logging.warning('No video would be generated during the deploy.')
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
+
+            forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
 
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)

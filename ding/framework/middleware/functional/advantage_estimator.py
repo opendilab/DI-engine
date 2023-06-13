@@ -75,6 +75,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         else:
             data = data.cpu()
             data = ttorch.split(data, 1)
+            # To ensure the shape of obs is same as config
             if data[0]['obs'].shape == obs_shape:
                 pass
             elif data[0]['obs'].shape[0] == 1 and data[0]['obs'].shape[1:] == obs_shape:
