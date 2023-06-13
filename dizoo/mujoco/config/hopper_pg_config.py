@@ -21,15 +21,15 @@ hopper_pg_config = dict(
         ),
         learn=dict(
             batch_size=64,
-            learning_rate=0.001,
-            entropy_weight=0.001,
+            learning_rate=0.005,
+            entropy_weight=0.01,
         ),
         collect=dict(
-            n_episode=8,
+            n_episode=34,
             unroll_len=1,
             discount_factor=0.99,
         ),
-        eval=dict(evaluator=dict(eval_freq=200, ))
+        eval=dict(evaluator=dict(eval_freq=1, ))
     ),
 )
 hopper_pg_config = EasyDict(hopper_pg_config)

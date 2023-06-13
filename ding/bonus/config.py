@@ -444,15 +444,15 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         ),
                         learn=dict(
                             batch_size=64,
-                            learning_rate=0.001,
-                            entropy_weight=0.001,
+                            learning_rate=0.005,
+                            entropy_weight=0.01,
                         ),
                         collect=dict(
-                            n_episode=8,
+                            n_episode=34,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=200, ))
+                        eval=dict(evaluator=dict(eval_freq=1, ))
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -491,11 +491,11 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             entropy_weight=0.001,
                         ),
                         collect=dict(
-                            n_episode=8,
+                            n_episode=20,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=200, ))
+                        eval=dict(evaluator=dict(eval_freq=1, ))
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -534,11 +534,11 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             entropy_weight=0.001,
                         ),
                         collect=dict(
-                            n_episode=8,
+                            n_episode=20,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=200, ))
+                        eval=dict(evaluator=dict(eval_freq=1, ))
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -615,11 +615,11 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             entropy_weight=0.001,
                         ),
                         collect=dict(
-                            n_episode=8,
+                            n_episode=20,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=200, ))
+                        eval=dict(evaluator=dict(eval_freq=1, ))
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
@@ -651,16 +651,16 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             action_shape=1,
                         ),
                         learn=dict(
-                            batch_size=800,
+                            batch_size=4000,
                             learning_rate=0.001,
                             entropy_weight=0.001,
                         ),
                         collect=dict(
-                            n_episode=4,
+                            n_episode=20,
                             unroll_len=1,
                             discount_factor=0.99,
                         ),
-                        eval=dict(evaluator=dict(eval_freq=200, ))
+                        eval=dict(evaluator=dict(eval_freq=1, ))
                     ),
                     wandb_logger=dict(
                         gradient_logger=True,
