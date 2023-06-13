@@ -293,7 +293,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         env_id='Hopper-v3',
                         norm_obs=dict(use_norm=False, ),
                         norm_reward=dict(use_norm=False, ),
-                        collector_env_num=8,
+                        collector_env_num=1,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=12000,
@@ -336,9 +336,10 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         env_id='HalfCheetah-v3',
                         norm_obs=dict(use_norm=False, ),
                         norm_reward=dict(use_norm=False, ),
-                        collector_env_num=8,
+                        collector_env_num=1,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
+                        act_scale=True,
                         stop_value=12000,
                     ),
                     policy=dict(
@@ -381,7 +382,7 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                         env_id='Walker2d-v3',
                         norm_obs=dict(use_norm=False, ),
                         norm_reward=dict(use_norm=False, ),
-                        collector_env_num=8,
+                        collector_env_num=1,
                         evaluator_env_num=8,
                         n_evaluator_episode=8,
                         stop_value=12000,
@@ -2104,12 +2105,16 @@ def get_instance_env(env: str) -> BaseEnv:
         cfg = EasyDict(
             env_id='HalfCheetah-v3',
             env_wrapper='mujoco_default',
+            act_scale=True,
+            rew_clip=True,
         )
         return DingEnvWrapper(gym.make('HalfCheetah-v3'), cfg=cfg)
     elif env == 'Walker2d':
         cfg = EasyDict(
             env_id='Walker2d-v3',
             env_wrapper='mujoco_default',
+            act_scale=True,
+            rew_clip=True,
         )
         return DingEnvWrapper(gym.make('Walker2d-v3'), cfg=cfg)
     elif env == "SpaceInvadersNoFrameskip":
