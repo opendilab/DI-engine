@@ -42,6 +42,14 @@ def apply_conditioning(x, conditions, action_dim):
         x[:, t, action_dim:] = val.clone()
     return x
 
+class Mish(nn.Module):
+    def forward(self, x):
+        return x * (torch.tanh(F.softplus(x)))
+
+class SiLU(nn.Module):
+    def forward(self, x):
+        return x * torch.sigmoid(x)
+
 class conv1d(nn.Module):
     """
     Overview:
@@ -116,9 +124,9 @@ class ResidualTemporalBlock(nn.Module):
     ) -> None:
         super().__init__()
         if mish:
-            act = nn.Mish()
+            act = Mish()
         else:
-            act = nn.SiLU()
+            act = SiLU()
         self.blocks = nn.ModuleList([
             conv1d(in_channels, out_channels, kernel_size, kernel_size // 2, act),
             conv1d(out_channels, out_channels, kernel_size, kernel_size // 2, act),
@@ -153,10 +161,10 @@ class TemporalUnet(nn.Module):
         
         if calc_energy:
             mish = False
-            act = nn.SiLU()
+            act = SiLU()
         else:
             mish = True
-            act = nn.Mish()
+            act = Mish()
 
         self.time_dim = dim
         self.returns_dim = dim
@@ -327,7 +335,7 @@ class TemporalValue(nn.Module):
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
             nn.Linear(dim, dim * 4),
-            nn.Mish(),
+            Mish(),
             nn.Linear(dim * 4, dim),
         )
         self.blocks = nn.ModuleList([])
@@ -343,7 +351,7 @@ class TemporalValue(nn.Module):
         fc_dim = dims[-1] * max(horizon, 1)
         self.final_block = nn.Sequential(
             nn.Linear(fc_dim + time_dim, fc_dim // 2),
-            nn.Mish(),
+            Mish(),
             nn.Linear(fc_dim // 2, out_dim),
         )
 
@@ -373,9 +381,9 @@ class MLPnet(nn.Module):
     ) -> None:
         super().__init__()
         if calc_energy:
-            act = nn.SiLU()
+            act = SiLU()
         else:
-            act = nn.Mish()
+            act = Mish()
         self.time_dim = dim
         self.returns_dim = dim
 
