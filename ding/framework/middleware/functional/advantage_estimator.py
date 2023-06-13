@@ -28,6 +28,12 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
     """
 
     model = policy.get_attribute('model')
+    obs_shape = cfg['policy']['model']['obs_shape']
+    obs_shape = torch.Size(torch.tensor(obs_shape)) if isinstance(obs_shape, list) \
+        else torch.Size(torch.tensor(obs_shape).unsqueeze(0))
+    action_shape = cfg['policy']['model']['action_shape']
+    action_shape = torch.Size(torch.tensor(action_shape)) if isinstance(action_shape, list) \
+        else torch.Size(torch.tensor(action_shape).unsqueeze(0))
 
     def _gae(ctx: "OnlineRLContext"):
         """
@@ -69,6 +75,17 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         else:
             data = data.cpu()
             data = ttorch.split(data, 1)
+            if data[0]['obs'].shape == obs_shape:
+                pass
+            elif data[0]['obs'].shape[0] == 1 and data[0]['obs'].shape[1:] == obs_shape:
+                for d in data:
+                    d['obs'] = d['obs'].squeeze(0)
+                    d['next_obs'] = d['next_obs'].squeeze(0)
+                if hasattr(data[0], 'logit'):
+                    for d in data:
+                        d['logit'] = d['logit'].squeeze(0)
+            else:
+                raise RuntimeError("The shape of obs is {}, which is not same as config.".format(data[0]['obs'].shape))
             for d in data:
                 buffer_.push(d)
         ctx.trajectories = None

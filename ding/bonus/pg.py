@@ -92,7 +92,6 @@ class PGAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
             task.use(EpisodeCollector(self.cfg, self.policy.collect_mode, collector_env))
-            # task.use(gae_estimator(self.cfg, self.policy.collect_mode))
             task.use(pg_estimator(self.policy.collect_mode))
             task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
