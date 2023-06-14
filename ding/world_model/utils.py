@@ -236,6 +236,77 @@ class UnnormalizedHuber(torchd.normal.Normal):
         return self.mean
 
 
+class SafeTruncatedNormal(torchd.normal.Normal):
+
+    def __init__(self, loc, scale, low, high, clip=1e-6, mult=1):
+        super().__init__(loc, scale)
+        self._low = low
+        self._high = high
+        self._clip = clip
+        self._mult = mult
+
+    def sample(self, sample_shape):
+        event = super().sample(sample_shape)
+        if self._clip:
+            clipped = torch.clip(event, self._low + self._clip, self._high - self._clip)
+            event = event - event.detach() + clipped.detach()
+        if self._mult:
+            event *= self._mult
+        return event
+
+
+class TanhBijector(torchd.Transform):
+
+    def __init__(self, validate_args=False, name='tanh'):
+        super().__init__()
+
+    def _forward(self, x):
+        return torch.tanh(x)
+
+    def _inverse(self, y):
+        y = torch.where((torch.abs(y) <= 1.), torch.clamp(y, -0.99999997, 0.99999997), y)
+        y = torch.atanh(y)
+        return y
+
+    def _forward_log_det_jacobian(self, x):
+        log2 = torch.math.log(2.0)
+        return 2.0 * (log2 - x - torch.softplus(-2.0 * x))
+
+
+def static_scan(fn, inputs, start):
+    last = start  # {logit:[batch_size, self._stoch, self._discrete], stoch:[batch_size, self._stoch, self._discrete], deter:[batch_size, self._deter]}
+    indices = range(inputs[0].shape[0])
+    flag = True
+    for index in indices:
+        inp = lambda x: (_input[x] for _input in inputs)  # inputs:(action:(time, batch, 6), embed:(time, batch, 4096))
+        last = fn(last, *inp(index))  # post, prior
+        if flag:
+            if type(last) == type({}):
+                outputs = {key: value.clone().unsqueeze(0) for key, value in last.items()}
+            else:
+                outputs = []
+                for _last in last:
+                    if type(_last) == type({}):
+                        outputs.append({key: value.clone().unsqueeze(0) for key, value in _last.items()})
+                    else:
+                        outputs.append(_last.clone().unsqueeze(0))
+            flag = False
+        else:
+            if type(last) == type({}):
+                for key in last.keys():
+                    outputs[key] = torch.cat([outputs[key], last[key].unsqueeze(0)], dim=0)
+            else:
+                for j in range(len(outputs)):
+                    if type(last[j]) == type({}):
+                        for key in last[j].keys():
+                            outputs[j][key] = torch.cat([outputs[j][key], last[j][key].unsqueeze(0)], dim=0)
+                    else:
+                        outputs[j] = torch.cat([outputs[j], last[j].unsqueeze(0)], dim=0)
+    if type(last) == type({}):
+        outputs = [outputs]
+    return outputs
+
+
 def weight_init(m):
     if isinstance(m, nn.Linear):
         in_num = m.in_features
