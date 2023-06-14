@@ -117,7 +117,7 @@ class A2CAgent:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
-        env = self.env.clone()
+        env = self.env.clone(caller='evaluator')
         env.seed(self.seed, dynamic_seed=False)
 
         if enable_save_replay and replay_save_path:
