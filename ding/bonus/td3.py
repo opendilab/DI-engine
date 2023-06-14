@@ -151,6 +151,10 @@ class TD3Agent:
 
         forward_fn = single_env_forward_wrapper(self.policy._model, self.cfg.policy.cuda)
 
+        # reset first to make sure the env is in the initial state
+        # env will be reset again in the main loop
+        env.reset()
+
         # main loop
         return_ = 0.
         step = 0
@@ -209,6 +213,11 @@ class TD3Agent:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug, 'evaluator')
+
+        # reset first to make sure the env is in the initial state
+        # env will be reset again in the main loop
+        env.launch()
+        env.reset()
 
         evaluate_cfg = self.cfg
         evaluate_cfg.env.n_evaluator_episode = n_evaluator_episode

@@ -170,6 +170,10 @@ class PPOF:
 
         forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.cuda)
 
+        # reset first to make sure the env is in the initial state
+        # env will be reset again in the main loop
+        env.reset()
+
         # main loop
         return_ = 0.
         step = 0
@@ -223,6 +227,11 @@ class PPOF:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug, 'evaluator')
+
+        # reset first to make sure the env is in the initial state
+        # env will be reset again in the main loop
+        env.launch()
+        env.reset()
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
