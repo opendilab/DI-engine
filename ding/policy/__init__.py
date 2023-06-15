@@ -50,7 +50,7 @@ from .ibc import IBCPolicy
 from .pc import ProcedureCloningBFSPolicy
 
 from .bcq import BCQPolicy
-from .sil import SILPolicy
+from .sil import SILA2CPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy

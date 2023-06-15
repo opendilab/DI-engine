@@ -11,11 +11,11 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
 
-@POLICY_REGISTRY.register('sil')
-class SILPolicy(Policy):
+@POLICY_REGISTRY.register('sil_a2c')
+class SILA2CPolicy(Policy):
     r"""
     Overview:
-        Policy class of SIL algorithm, paper link: https://arxiv.org/abs/1806.05635
+        Policy class of SIL algorithm combined with A2C, paper link: https://arxiv.org/abs/1806.05635
     """
     config = dict(
         # (string) RL policy register name (refer to function "register_policy").
@@ -103,6 +103,9 @@ class SILPolicy(Policy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        data_sil = data['replay_data']
+        data_sil = default_preprocess_learn(data_sil, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
+        data = data['new_data']
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
@@ -137,35 +140,34 @@ class SILPolicy(Policy):
             )
             self._optimizer.step()
 
-        for _ in range(self._cfg.sil_update_per_collect):
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
-                # forward
-                output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
+        for batch in data_sil:
+            # forward
+            output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
 
-                adv = batch['adv']
-                return_ = batch['value'] + adv
-                if self._adv_norm:
-                    # norm adv in total train_batch
-                    adv = (adv - adv.mean()) / (adv.std() + 1e-8)
-                error_data = sil_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
+            adv = batch['adv']
+            return_ = batch['value'] + adv
+            if self._adv_norm:
+                # norm adv in total train_batch
+                adv = (adv - adv.mean()) / (adv.std() + 1e-8)
+            error_data = sil_data(output['logit'], batch['action'], output['value'], adv, return_, batch['weight'])
 
-                # Calculate SIL loss
-                sil_loss, sil_info = sil_error(error_data)
-                wv = self._value_weight
-                sil_total_loss = sil_loss.policy_loss + wv * sil_loss.value_loss
+            # Calculate SIL loss
+            sil_loss, sil_info = sil_error(error_data)
+            wv = self._value_weight
+            sil_total_loss = sil_loss.policy_loss + wv * sil_loss.value_loss
 
-                # ====================
-                # SIL-learning update
-                # ====================
+            # ====================
+            # SIL-learning update
+            # ====================
 
-                self._optimizer.zero_grad()
-                sil_total_loss.backward()
+            self._optimizer.zero_grad()
+            sil_total_loss.backward()
 
-                grad_norm = torch.nn.utils.clip_grad_norm_(
-                    list(self._learn_model.parameters()),
-                    max_norm=self._grad_norm,
-                )
-                self._optimizer.step()
+            grad_norm = torch.nn.utils.clip_grad_norm_(
+                list(self._learn_model.parameters()),
+                max_norm=self._grad_norm,
+            )
+            self._optimizer.step()
 
         # =============
         # after update

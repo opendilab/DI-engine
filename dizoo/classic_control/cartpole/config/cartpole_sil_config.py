@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_sil_config = dict(
-    exp_name='cartpole_sil_seed0',
+    exp_name='cartpole_sil_a2c_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -38,7 +38,7 @@ cartpole_sil_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='sil'),
+    policy=dict(type='sil_a2c'),
 )
 cartpole_sil_create_config = EasyDict(cartpole_sil_create_config)
 create_config = cartpole_sil_create_config
