@@ -101,7 +101,7 @@ def serial_pipeline_sil(
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
 
-        train_data = {'new_data': new_data, 'replay_data': []}
+        tot_train_data = {'new_data': new_data, 'replay_data': []}
 
         # Learn policy from collected data
         for i in range(cfg.policy.sil_update_per_collect):
@@ -114,8 +114,8 @@ def serial_pipeline_sil(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            train_data['replay_data'].append(train_data)
-        learner.train(train_data, collector.envstep)
+            tot_train_data['replay_data'].append(train_data)
+        learner.train(tot_train_data, collector.envstep)
         if learner.policy.get_attribute('priority'):
             replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
