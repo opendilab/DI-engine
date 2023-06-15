@@ -87,9 +87,6 @@ def serial_pipeline_sil(
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
-    # Accumulate plenty of data at the beginning of training.
-    if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance

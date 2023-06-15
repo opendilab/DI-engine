@@ -117,6 +117,7 @@ class SILA2CPolicy(Policy):
             data_sil = to_device(data_sil, self._device)
         self._learn_model.train()
 
+        data_onpolicy = {data_onpolicy[k] for k in ['obs', 'adv', 'value', 'action', 'weight']}
         for batch in split_data_generator(data_onpolicy, self._cfg.learn.batch_size, shuffle=True):
             # forward
             output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
