@@ -91,7 +91,7 @@ class conv1d(nn.Module):
         x = x.unsqueeze(-2)
         x = self.norm(x)
         # [batch, channels, 1, horizon] -> [batch, channels, horizon]
-        x = x.squeeze(-1)
+        x = x.squeeze(-2)
         out = self.act(x)
         return out
 
@@ -211,14 +211,14 @@ class TemporalUnet(nn.Module):
 
         for ind, (dim_in, dim_out) in enumerate(reversed(in_out[1:])):
             is_last = ind >= (num_resolution - 1)
-            self.ups.append(nn.ModuleList[
+            self.ups.append(nn.ModuleList([
                 ResidualTemporalBlock(dim_out * 2, dim_in, embed_dim, kernel_size, mish=mish),
                 ResidualTemporalBlock(dim_in, dim_in, embed_dim, kernel_size, mish=mish),
                 nn.ConvTranspose1d(dim_in, dim_in, 4, 2, 1) if not is_last else nn.Identity()
-            ])
+            ]))
         
         self.final_conv = nn.Sequential(
-            conv1d(dim, dim, kernel_size=kernel_size, activation=act),
+            conv1d(dim, dim, kernel_size=kernel_size, padding=kernel_size // 2, activation=act),
             nn.Conv1d(dim, transition_dim, 1),
         )
     
@@ -791,7 +791,7 @@ class GaussianInvDynDiffusion(nn.Module):
 
         if self.predict_epsilon:
             loss = F.mse_loss(x_recon, noise)
-            loss = (loss * self.loss_weights).mean()
+            loss = (loss * self.loss_weights.to(loss.device)).mean()
         else:
             loss = F.mse_loss(x_recon, x_start).mean()
 

@@ -30,6 +30,8 @@ class DDPolicy(Policy):
         # Default 10000 in SAC.
         random_collect_size=10000,
         nstep=1,
+        # normalizer type
+        normalizer='CDFNormalizer',
         model=dict(
             # the type of model
             model='TemporalUnet',
@@ -121,7 +123,7 @@ class DDPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'dd', ['ding.model.template.dd']
+        return 'dd', ['ding.model.template.diffusion']
     
     def _init_learn(self) -> None:
         r"""
@@ -136,10 +138,10 @@ class DDPolicy(Policy):
         self.obs_dim = self._cfg.model.obs_dim
         self.ar_inv = self._cfg.model.ar_inv
         self.n_timesteps = self._cfg.model.n_timesteps
-        obs = np.random.rand(10, self.obs_dim)
-        acs = np.random.rand(10, self.action_dim)
-        sets = {'observations': obs, 'actions': acs}
-        self.normalizer = DatasetNormalizer(sets, self._cfg.normalizer, [1, 1])
+        obs = np.random.rand(1, self.obs_dim)
+        acs = np.random.rand(1, self.action_dim)
+        sets = {'observations': np.array([obs]), 'actions': np.array([acs])}
+        self.normalizer = DatasetNormalizer(sets, self._cfg.normalizer, [1])
 
         # Optimizers
         self._optimizer = Adam(
@@ -175,8 +177,23 @@ class DDPolicy(Policy):
             use_nstep=False
         )
         
+        conds = {}
+        val = data['condition_val']
+        id = data['condition_id']
+        for i in range(len(val)):
+            if id[i].item() in conds:
+                conds[id[i].item()].append(val[i])
+            else:
+                conds[id[i].item()] = [val[i]]
+        for key in conds:
+            conds[key] = torch.stack(conds[key])
+        data['conditions'] = conds
+        data['returns'] = data['returns'].unsqueeze(-1)
+        if self._cuda:
+            data = to_device(data, self._device)
+
         x = data['trajectories']
-        if self._cfg.learn.train_only_inv:
+        if self._cfg.model.train_only_inv:
             x_t = x[:, :-1, self.action_dim:]
             a_t = x[:, :-1, :self.action_dim]
             x_t_1 = x[:, 1:, self.action_dim:]
@@ -194,7 +211,7 @@ class DDPolicy(Policy):
             t = torch.randint(0, self.n_timesteps, (batch_size,), device=x.device).long()
             cond = data['conditions']
             returns = data['returns']
-            loss_dict['diffuse_loss'], info = self._model.p_losses(x[:, :, self.action_dim:], cond, t, returns)
+            loss_dict['diffuse_loss'] = self._model.p_losses(x[:, :, self.action_dim:], cond, t, returns)
             x_t = x[:, :-1, self.action_dim:]
             a_t = x[:, :-1, :self.action_dim]
             x_t_1 = x[:, 1:, self.action_dim:]
@@ -231,47 +248,29 @@ class DDPolicy(Policy):
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()
-        self.eval_action = [] * self._cfg.eval.evaluator_env_num
-        self.eval_init = [True] * self._cfg.eval.evaluator_env_num
-        self.eval_step = [0] * self._cfg.eval.evaluator_env_num
-        self.eval_obs = [[]] * self._cfg.eval.evaluator_env_num
 
     def _forward_eval(self, data: dict) -> Dict[str, Any]:
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
+
+        self._eval_model.eval()
+        obs = self.normalizer.normalize(data, 'observations')
         if self._cuda:
             data = to_device(data, self._device)
         data = {'obs': data}
-
-        self._eval_model.eval()
-        self.eval_obs[data_id].append(data['obs'])
-        obs = data['obs']
-        if self.eval_init[data_id]:
-            obs = self.normalizer.normalize(obs, 'observations')
-            returns = self._cfg.eval.test_ret * torch.ones(1).to(self._device)
-            conditions = {0: obs}
-            with torch.no_grad():
-                samples = self._eval_mode.conditional_sample(conditions, returns)
-                obs_comb = torch.cat([samples[:, 0, :], samples[:, 1, :]], dim=-1)
-                obs_comb = obs_comb.reshape(-1, 2 * data['obs'].shape)
-                action = self._eval_model.inv_model(obs_comb)
-                action = self.normalizer.unnormalize(action, 'actions')
-                self.eval_action[data_id] = action
-            self.eval_init[data_id] = False
-        self.eval_step[data_id] += 1
-        if self.eval_step[data_id] >= self._cfg.horizon:
-            self.eval_init[data_id] = True
-            self.eval_step[data_id] = 0
-        output = {'action:', self.eval_action[data_id][self.eval_step[data_id]]}
-        if self._cuda:
-            output = to_device(output, 'cpu')
+        returns = self._cfg.eval.test_ret * torch.ones(1).to(self._device)
+        conditions = {0: obs}
+        with torch.no_grad():
+            samples = self._eval_mode.conditional_sample(conditions, returns)
+            obs_comb = torch.cat([samples[:, 0, :], samples[:, 1, :]], dim=-1)
+            obs_comb = obs_comb.reshape(-1, 2 * data['obs'].shape)
+            action = self._eval_model.inv_model(obs_comb)
+            if self._cuda:
+                action = to_device(action, 'cpu')
+            action = self.normalizer.unnormalize(action, 'actions')
+        output = {'action:', action}
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-    
-    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self.eval_init[data_id] = True
-        self.eval_step[data_id] = 0
-        self.eval_obs[data_id] = []
 
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len

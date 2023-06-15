@@ -4,6 +4,7 @@ class DatasetNormalizer:
 
     def __init__(self, dataset, normalizer, path_lengths=None):
         dataset = flatten(dataset, path_lengths)
+        print("obs:", dataset['observations'].shape)
 
         self.observation_dim = dataset['observations'].shape[1]
         self.action_dim = dataset['actions'].shape[1]
@@ -43,6 +44,8 @@ def flatten(dataset, path_lengths):
     flattened = {}
     for key, xs in dataset.items():
         assert len(xs) == len(path_lengths)
+        if key == 'path_lengths':
+            continue
         flattened[key] = np.concatenate([
             x[:length]
             for x, length in zip(xs, path_lengths)

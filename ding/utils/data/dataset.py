@@ -524,7 +524,7 @@ class BCODataset(Dataset):
     def action(self):
         return self._data['action']
 
-@DATASET_REGISTRY.register('diffuser_tarj')
+@DATASET_REGISTRY.register('diffuser_traj')
 class SequenceDataset(torch.utils.data.Dataset):
 
     def __init__(self, cfg:dict):
@@ -545,41 +545,53 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.returns_scale = cfg.env.returns_scale
         self.horizon = cfg.policy.model.horizon
         self.max_path_length = cfg.env.max_path_length
-        self.discount = cfg.policy.discount
+        self.discount = cfg.policy.learn.discount_factor
         self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
         self.use_padding = cfg.env.use_padding
         self.include_returns = cfg.env.include_returns
         itr = self.sequence_dataset(env, dataset)
+        self.n_episodes = 0
 
         fields = {}
-        for k, _ in dataset:
-            fields[key] = []
+        for k in dataset.keys():
+            fields[k] = []
         fields['path_lengths'] = []
 
         for i, episode in enumerate(itr):
             path_length = len(episode['observations'])
+            assert path_length <= self.max_path_length
             fields['path_lengths'].append(path_length)
-            for key, val in episode:
-                fields[key].append(val)
+            for key, val in episode.items():
+                if key == 'rewards' or key == 'terminals':
+                    shape = (self.max_path_length,)
+                else:
+                    shape = (self.max_path_length, val.shape[-1])
+                arr = np.zeros(shape, dtype=np.float32)
+                arr[:path_length] = val
+                fields[key].append(arr)
             if episode['terminals'].any() and cfg.env.termination_penalty:
                 assert not episode['timeouts'].any(), 'Penalized a timeout episode for early termination'
-                fields['rewards'][-1][-1] += cfg.env.termination_penalty
+                fields['rewards'][-1][path_length -1] += cfg.env.termination_penalty
+            self.n_episodes += 1
+        
+        for k in dataset.keys():
+            fields[k] = np.array(fields[k])
 
         self.normalizer = DatasetNormalizer(fields, cfg.policy.normalizer, path_lengths=fields['path_lengths'])
-        self.indices = self.make_indices(fields.path_lengths, self.horizon)
+        self.indices = self.make_indices(fields['path_lengths'], self.horizon)
 
-        self.observation_dim = fields.observations.shape[-1]
-        self.action_dim = fields.actions.shape[-1]
+        self.observation_dim = cfg.policy.model.obs_dim
+        self.action_dim = cfg.policy.model.action_dim
         self.fields = fields
-        self.n_episodes = fields.observations.shape[0]
         self.normalize()
 
         # shapes = {key: val.shape for key, val in self.fields.items()}
         # print(f'[ datasets/mujoco ] Dataset fields: {shapes}')
 
     def sequence_dataset(self, env, dataset=None):
+        import collections
         N = dataset['rewards'].shape[0]
-        data_ = {}
+        data_ = collections.defaultdict(list)
 
         # The newer version of the dataset adds an explicit
         # timeouts field. Keep old method for backwards compatability.
@@ -602,10 +614,10 @@ class SequenceDataset(torch.utils.data.Dataset):
                 episode_data = {}
                 for k in data_:
                     episode_data[k] = np.array(data_[k])
-                if 'maze2d' in env.name:
+                if 'maze2d' in env.spec.id:
                     episode_data = self.process_maze2d_episode(episode_data)
                 yield episode_data
-                data_ = {}
+                data_ = collections.defaultdict(list)
 
             episode_step += 1
 
@@ -658,26 +670,31 @@ class SequenceDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx, eps=1e-4):
         path_ind, start, end = self.indices[idx]
 
-        observations = self.fields.normed_observations[path_ind, start:end]
-        actions = self.fields.normed_actions[path_ind, start:end]
+        observations = self.fields['normed_observations'][path_ind, start:end]
+        actions = self.fields['normed_actions'][path_ind, start:end]
+        done = self.fields['terminals'][path_ind, start:end]
 
-        conditions = self.get_conditions(observations)
+        # conditions = self.get_conditions(observations)
         trajectories = np.concatenate([actions, observations], axis=-1)
 
         if self.include_returns:
-            rewards = self.fields.rewards[path_ind, start:]
+            rewards = self.fields['rewards'][path_ind, start:]
             discounts = self.discounts[:len(rewards)]
             returns = (discounts * rewards).sum()
             returns = np.array([returns/self.returns_scale], dtype=np.float32)
             batch = {
                 'trajectories': trajectories,
-                'conditions': conditions,
-                'returns': returns
+                'condition_id': 0,
+                'condition_val': observations[0],
+                'returns': returns,
+                'done': done,
             }
         else:
             batch = {
                 'trajectories': trajectories,
-                'conditions': conditions,
+                'condition_id': 0,
+                'condition_val': observations[0],
+                'done': done,
             }
 
         return batch

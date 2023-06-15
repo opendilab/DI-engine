@@ -40,6 +40,7 @@ main_config = dict(
             condition_guidance_w=1.2,
             loss_discount=1,
         ),
+        normalizer='CDFNormalizer',
         learn=dict(
             data_path=None,
             train_epoch=30000,
@@ -48,7 +49,7 @@ main_config = dict(
             discount_factor=0.99,
             learner=dict(hook=dict(save_ckpt_after_iter=1000000000, )),
         ),
-        collect=dict(data_type='d4rl', ),
+        collect=dict(data_type='diffuser_traj', ),
         eval=dict(
             evaluator=dict(eval_freq=500, ),
             evaluator_env_num=8,
@@ -66,10 +67,9 @@ create_config = dict(
         type='d4rl',
         import_names=['dizoo.d4rl.envs.d4rl_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='dd',
-        import_names=['ding.policy.dd'],
     ),
     replay_buffer=dict(type='naive', ),
 )
