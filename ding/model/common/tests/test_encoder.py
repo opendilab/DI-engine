@@ -61,7 +61,3 @@ class TestEncoder:
         outputs = model(inputs)
         self.output_check(model, outputs)
         assert outputs.shape == (B, 256)
-
-
-a = TestEncoder()
-a.test_dreamer_conv_encoder()

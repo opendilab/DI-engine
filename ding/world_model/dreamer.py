@@ -14,6 +14,8 @@ from ding.torch_utils import fold_batch, unfold_batch, unsqueeze_repeat
 @WORLD_MODEL_REGISTRY.register('dreamer')
 class DREAMERWorldModel(WorldModel, nn.Module):
     config = dict(
+        pretrain=100,
+        train_freq=2,
         model=dict(
             state_size=None,
             action_size=None,
@@ -38,8 +40,6 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             discount_layers=2,
             value_layers=2,
             actor_layers=2,
-            act='SiLU',
-            norm='LayerNorm',
             cnn_depth=32,
             encoder_kernels=[4, 4, 4, 4],
             decoder_kernels=[4, 4, 4, 4],

@@ -28,6 +28,7 @@ cartpole_balance_dreamer_config = dict(
         model=dict(
             obs_shape=(3, 64, 64),
             action_shape=1,
+            actor_dist = 'normal',
         ),
         learn=dict(
             lambda_=0.95,
@@ -49,13 +50,14 @@ cartpole_balance_dreamer_config = dict(
         ),
     ),
     world_model=dict(
-        pretrain=100
+        #eval_every=10,
+        pretrain=100,
         #eval_freq=250,  # w.r.t envstep
         train_freq=2,  # w.r.t envstep
         cuda=cuda,
         model=dict(
             #elite_size=5,
-            state_size=(3, 84, 84),  # has to be specified
+            state_size=(3, 64, 64),  # has to be specified
             action_size=1,  # has to be specified
             reward_size=1,
             #hidden_size=200,

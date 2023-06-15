@@ -1,11 +1,10 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 import torch
 from torch import nn
 from copy import deepcopy
 from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from ding.policy import Policy
-from ding.rl_utils import generalized_lambda_returns
 from ding.model import model_wrap
 from ding.policy.common_utils import default_preprocess_learn
 
@@ -40,7 +39,7 @@ class DREAMERPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'dreamervac', ['ding.model.template.vac']
-    
+
     def _init_learn(self) -> None:
         r"""
         Overview:
@@ -53,11 +52,11 @@ class DREAMERPolicy(Policy):
 
         self._critic = self._model.critic
         self._actor = self._model.actor
-        
+
         if self._cfg.learn.slow_value_target:
             self._slow_value = deepcopy(self._critic)
             self._updates = 0
-        
+
         # Optimizer
         self._optimizer_value = Adam(
             self._critic.parameters(),
@@ -67,7 +66,7 @@ class DREAMERPolicy(Policy):
             self._actor.parameters(),
             lr=self._cfg.learn.learning_rate,
         )
-        
+
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
 
@@ -76,22 +75,20 @@ class DREAMERPolicy(Policy):
         if self._cfg.learn.reward_EMA:
             self.reward_ema = RewardEMA(device=self._device)
 
-    def _forward_learn(self, start: dict, repeats=None, world_model=None, envstep) -> Dict[str, Any]:
+    def _forward_learn(self, start: dict, world_model, envstep) -> Dict[str, Any]:
         # log dict
         log_vars = {}
+        self._learn_model.train()
         world_model.requires_grad_(requires_grad=False)
         self._actor.requires_grad_(requires_grad=True)
         # start is dict of {stoch, deter, logit}
         if self._cuda:
             start = to_device(start, self._device)
 
-        self._learn_model.train()
-        self._target_model.train()
-        
         # train self._actor
         imag_feat, imag_state, imag_action = imagine(
-                    self._cfg.learn, world_model, start, self._actor, self._cfg.imag_horizon, repeats
-                )
+            self._cfg.learn, world_model, start, self._actor, self._cfg.imag_horizon
+        )
         reward = world_model.heads["reward"](world_model.dynamics.get_feat(imag_state)).mode()
         actor_ent = self._actor(imag_feat).entropy()
         state_ent = world_model.dynamics.get_dist(imag_state).entropy()
@@ -125,9 +122,7 @@ class DREAMERPolicy(Policy):
         value_loss = -value.log_prob(target.detach())
         slow_target = self._slow_value(value_input[:-1].detach())
         if self._cfg.learn.slow_value_target:
-            value_loss = value_loss - value.log_prob(
-                slow_target.mode().detach()
-            )
+            value_loss = value_loss - value.log_prob(slow_target.mode().detach())
         if self._cfg.learn.value_decay:
             value_loss += self._cfg.learn.value_decay * value.mode()
         # (time, batch, 1), (time, batch, 1) -> (1,)
@@ -143,14 +138,14 @@ class DREAMERPolicy(Policy):
         # actor-critic update
         # ====================
         self._model.requires_grad_(requires_grad=True)
-        
+
         loss_dict = {
             'critic_loss': value_loss,
             'actor_loss': actor_loss,
         }
 
         norm_dict = self._update(loss_dict)
-        
+
         self._model.requires_grad_(requires_grad=False)
         # =============
         # after update
@@ -184,33 +179,9 @@ class DREAMERPolicy(Policy):
             - vars (:obj:`List[str]`): Variables' name list.
         """
         return [
-            'normed_target_mean',
-            'normed_target_std',
-            'normed_target_min',
-            'normed_target_max',
-            'EMA_005',
-            'EMA_095',
-            'actor_entropy',
-            'actor_state_entropy',
-            'value_mean',
-            'value_std',
-            'value_min',
-            'value_max',
-            'target_mean',
-            'target_std',
-            'target_min',
-            'target_max',
-            'imag_reward_mean',
-            'imag_reward_std',
-            'imag_reward_min',
-            'imag_reward_max',
-            'imag_action_mean',
-            'imag_action_std',
-            'imag_action_min',
-            'imag_action_max',
-            'actor_ent',
-            'actor_loss',
-            'critic_loss',
-            'actor_grad_norm',
-            'critic_grad_norm'
+            'normed_target_mean', 'normed_target_std', 'normed_target_min', 'normed_target_max', 'EMA_005', 'EMA_095',
+            'actor_entropy', 'actor_state_entropy', 'value_mean', 'value_std', 'value_min', 'value_max', 'target_mean',
+            'target_std', 'target_min', 'target_max', 'imag_reward_mean', 'imag_reward_std', 'imag_reward_min',
+            'imag_reward_max', 'imag_action_mean', 'imag_action_std', 'imag_action_min', 'imag_action_max', 'actor_ent',
+            'actor_loss', 'critic_loss', 'actor_grad_norm', 'critic_grad_norm'
         ]

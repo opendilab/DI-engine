@@ -285,26 +285,26 @@ def serial_pipeline_dreamer(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        for i in range(eval_every):
-            # train world model and fill imagination buffer
-            steps = (
-                cfg.world_model.pretrain
-                if world_model.should_pretrain()
-                else int(world_model.should_train(collector.envstep))
-            )
-            for _ in range(steps):
-                batch_size = learner.policy.get_attribute('batch_size')
-                post, context = world_model.train(env_buffer, collector.envstep, learner.train_iter, batch_size)
-                
-                start = post
-                
-                learner.train(
-                    start, collector.envstep, policy_kwargs=dict(world_model=world_model, envstep=collector.envstep)
-                )
+        
+        # train world model and fill imagination buffer
+        steps = (
+            cfg.world_model.pretrain
+            if world_model.should_pretrain()
+            else int(world_model.should_train(collector.envstep))
+        )
+        for _ in range(steps):
+            batch_size = learner.policy.get_attribute('batch_size')
+            post, context = world_model.train(env_buffer, collector.envstep, learner.train_iter, batch_size)
             
-            # fill environment buffer
-            data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-            env_buffer.push(data, cur_collector_envstep=collector.envstep)
+            start = post
+            
+            learner.train(
+                start, collector.envstep, policy_kwargs=dict(world_model=world_model, envstep=collector.envstep)
+            )
+        
+        # fill environment buffer
+        data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        env_buffer.push(data, cur_collector_envstep=collector.envstep)
 
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
