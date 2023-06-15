@@ -19,7 +19,7 @@ class SILA2CPolicy(Policy):
     """
     config = dict(
         # (string) RL policy register name (refer to function "register_policy").
-        type='sil',
+        type='sil_a2c',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether to use on-policy training pipeline(behaviour policy and training policy are the same)
@@ -104,14 +104,20 @@ class SILA2CPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         data_sil = data['replay_data']
-        data_sil = default_preprocess_learn(data_sil, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
-        data = data['new_data']
-        data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
+        data_sil = [
+            default_preprocess_learn(data_sil[i], ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
+            for i in range(len(data_sil))
+        ]
+        data_onpolicy = data['new_data']
+        data_onpolicy = default_preprocess_learn(
+            data_onpolicy, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
+        )
         if self._cuda:
-            data = to_device(data, self._device)
+            data_onpolicy = to_device(data_onpolicy, self._device)
+            data_sil = to_device(data_sil, self._device)
         self._learn_model.train()
 
-        for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+        for batch in split_data_generator(data_onpolicy, self._cfg.learn.batch_size, shuffle=True):
             # forward
             output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
 
