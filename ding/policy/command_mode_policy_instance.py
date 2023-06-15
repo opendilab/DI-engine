@@ -36,7 +36,7 @@ from .qtran import QTRANPolicy
 from .sql import SQLPolicy
 from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
-from .sil import SILPolicy
+from .sil import SILA2CPolicy
 
 from .dqfd import DQFDPolicy
 from .r2d3 import R2D3Policy
@@ -435,6 +435,6 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
         return {}
 
 
-@POLICY_REGISTRY.register('sil_command')
-class SILCommandModePolicy(SILPolicy, DummyCommandModePolicy):
+@POLICY_REGISTRY.register('sil_a2c_command')
+class SILA2CCommandModePolicy(SILA2CPolicy, DummyCommandModePolicy):
     pass

@@ -104,7 +104,7 @@ def serial_pipeline_sil(
         train_data = {'new_data': new_data, 'replay_data': []}
 
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.sil_update_per_collect):
+        for i in range(cfg.policy.sil_update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
