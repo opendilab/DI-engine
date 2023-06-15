@@ -12,3 +12,4 @@ from .gumbel_softmax import GumbelSoftmax
 from .gtrxl import GTrXL, GRUGatingUnit
 from .popart import PopArt
 from .dreamer import Conv2dSame, DreamerLayerNorm
+from .merge import GatingType, SumMerge, VectorMerge

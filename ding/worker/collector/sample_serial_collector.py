@@ -200,6 +200,7 @@ class SampleSerialCollector(ISerialCollector):
             n_sample: Optional[int] = None,
             train_iter: int = 0,
             drop_extra: bool = True,
+            record_random_collect: bool = True,
             policy_kwargs: Optional[dict] = None,
             level_seeds: Optional[List] = None,
     ) -> List[Any]:
@@ -210,6 +211,7 @@ class SampleSerialCollector(ISerialCollector):
             - n_sample (:obj:`int`): The number of collecting data sample.
             - train_iter (:obj:`int`): The number of training iteration when calling collect method.
             - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
+            - record_random_collect (:obj:`bool`) :Whether to output logs of random collect.
             - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
             - level_seeds (:obj:`dict`): Used in PLR, represents the seed of the environment that \
                 generate the data
@@ -314,7 +316,10 @@ class SampleSerialCollector(ISerialCollector):
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
         # log
-        self._output_log(train_iter)
+        if record_random_collect:  # default is true, but when random collect, record_random_collect is False
+            self._output_log(train_iter)
+        else:
+            self._episode_info.clear()
         # on-policy reset
         if self._on_policy:
             for env_id in range(self._env_num):

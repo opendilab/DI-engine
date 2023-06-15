@@ -51,49 +51,35 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         'setuptools<=66.1.1',
-        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
-        'torch>=1.1.0, <=1.12.1',  # If encountering pytorch errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
-        'numpy>=1.18.0',
-        'pandas',
-        'tensorboardX>=2.2',
-        'requests>=2.25.1',
-        'pyyaml',
-        'easydict==1.9',
-        'protobuf',
         'yapf==0.29.0',
-        'flask~=1.1.2',
-        'tqdm',
-        'lz4',
-        'scipy',
-        'cloudpickle',
-        'tabulate',
-        'click>=7.0.0',
-        'URLObject>=2.4.0',
-        'urllib3>=1.26.5',
-        'responses~=0.12.1',
-        'readerwriterlock',
-        'enum_tools',
+        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gymnasium',
+        'torch>=1.1.0',
+        'numpy>=1.18.0',
+        'DI-treetensor>=0.4.0',
+        'DI-toolkit>=0.1.0',
         'trueskill',
-        'h5py',
-        'mpire>=2.3.5',
-        'pynng',
-        'redis',
-        'pettingzoo',
-        'DI-treetensor>=0.3.0',
-        'DI-toolkit>=0.0.2',
-        'hbutils>=0.5.0',
+        'tensorboardX>=2.2',
         'wandb',
         'matplotlib',
-        'MarkupSafe==2.0.1',  # compatibility
-        'h5py',
-        'scikit-learn',
+        'easydict==1.9',
+        'pyyaml',
+        'enum_tools',
+        'cloudpickle',
         'hickle',
-        'gymnasium',
+        'tabulate',
+        'click>=7.0.0',
+        'requests>=2.25.1',  # interaction
+        'flask~=1.1.2',  # interaction
+        'responses~=0.12.1',  # interaction
+        'URLObject>=2.4.0',  # interaction
+        'MarkupSafe==2.0.1',  # interaction, compatibility
+        'pynng',  # parallel
+        'redis',  # parallel
+        'mpire>=2.3.5',  # parallel
     ],
     extras_require={
         'test': [
-            'gym[box2d]>=0.25.0',
-            'opencv-python',  # pypy incompatible
             'coverage>=5,<=7.0.1',
             'mock>=4.0.3',
             'pytest~=7.0.1',  # required by gym>=0.25.0
@@ -102,6 +88,15 @@ setup(
             'pytest-xdist>=1.34.0',
             'pytest-rerunfailures~=10.2',
             'pytest-timeout~=2.0.2',
+            'readerwriterlock',
+            'pandas',
+            'lz4',
+            'h5py',
+            'scipy',
+            'scikit-learn',
+            'gym[box2d]==0.25.1',
+            'pettingzoo<=1.22.3',
+            'opencv-python',  # pypy incompatible
         ],
         'style': [
             'yapf==0.29.0',
@@ -113,13 +108,12 @@ setup(
             'numba>=0.53.0',
         ],
         'dist': [
-            'redis==3.5.3',
             'redis-py-cluster==2.1.0',
         ],
         'common_env': [
             'ale-py',  # >=0.7.5',  # atari
             'autorom',
-            'gym[all]>=0.25.0',
+            'gym[all]==0.25.1',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
         ],
