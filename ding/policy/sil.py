@@ -12,11 +12,12 @@ from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .ppo import PPOPolicy
+from .a2c import A2CPolicy
 from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('sil_a2c')
-class SILA2CPolicy(Policy):
+class SILA2CPolicy(A2CPolicy):
     r"""
     Overview:
         Policy class of SIL algorithm combined with A2C, paper link: https://arxiv.org/abs/1806.05635
@@ -68,35 +69,6 @@ class SILA2CPolicy(Policy):
         ),
         eval=dict(),
     )
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
-
-    def _init_learn(self) -> None:
-        r"""
-        Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target models.
-        """
-        # Optimizer
-        self._optimizer = Adam(
-            self._model.parameters(),
-            lr=self._cfg.learn.learning_rate,
-            betas=self._cfg.learn.betas,
-            eps=self._cfg.learn.eps
-        )
-
-        # Algorithm config
-        self._priority = self._cfg.priority
-        self._priority_IS_weight = self._cfg.priority_IS_weight
-        self._value_weight = self._cfg.learn.value_weight
-        self._entropy_weight = self._cfg.learn.entropy_weight
-        self._adv_norm = self._cfg.learn.adv_norm
-        self._grad_norm = self._cfg.learn.grad_norm
-
-        # Main and target models
-        self._learn_model = model_wrap(self._model, wrapper_name='base')
-        self._learn_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -205,132 +177,11 @@ class SILA2CPolicy(Policy):
             'grad_norm': grad_norm,
         }
 
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
-
-    def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-        """
-
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
-        self._collect_model.reset()
-        # Algorithm
-        self._gamma = self._cfg.collect.discount_factor
-        self._gae_lambda = self._cfg.collect.gae_lambda
-
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of collect mode.
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor_critic')
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
-        Overview:
-            Generate dict type transition data from inputs.
-        Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
-        Returns:
-            - transition (:obj:`dict`): Dict type transition data.
-        """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'value': model_output['value'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
-        return transition
-
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and the n step return data, then sample from the n_step return data
-        Arguments:
-            - data (:obj:`list`): The trajectory's buffer list
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
-        """
-        data = get_gae_with_default_last_value(
-            data,
-            data[-1]['done'],
-            gamma=self._gamma,
-            gae_lambda=self._gae_lambda,
-            cuda=self._cuda,
-        )
-        return get_train_sample(data, self._unroll_len)
-
-    def _init_eval(self) -> None:
-        r"""
-        Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy.
-        """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._eval_model.reset()
-
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
-        Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._eval_model.eval()
-        with torch.no_grad():
-            output = self._eval_model.forward(data, mode='compute_actor')
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
-
     def _monitor_vars_learn(self) -> List[str]:
-        return super()._monitor_vars_learn() + [
-            'a2c_policy_loss', 'sil_policy_loss', 'sil_value_loss', 'a2c_value_loss', 'a2c_total_loss',
-            'sil_total_loss', 'a2c_entropy_loss', 'adv_abs_max', 'grad_norm', 'policy_clipfrac', 'value_clipfrac'
-        ]
+        return list(set(super()._monitor_vars_learn() + [
+            'sil_policy_loss', 'sil_value_loss', 'a2c_total_loss',
+            'sil_total_loss', 'policy_clipfrac', 'value_clipfrac'
+        ]))
 
 
 @POLICY_REGISTRY.register('sil_ppo')
