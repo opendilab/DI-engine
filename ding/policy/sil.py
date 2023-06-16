@@ -280,7 +280,7 @@ class SILPPOPolicy(PPOPolicy):
         self._learn_model.train()
         # Convert dtype for on-policy data.
         data_onpolicy['obs'] = to_dtype(data_onpolicy['obs'], torch.float32)
-        if 'next_obs' in data_onpolicy[0]:
+        if 'next_obs' in data_onpolicy:
             data_onpolicy['next_obs'] = to_dtype(data_onpolicy['next_obs'], torch.float32)
         # Convert dtype for sil-data.
         for i in range(len(data_sil)):
@@ -297,35 +297,37 @@ class SILPPOPolicy(PPOPolicy):
         for epoch in range(self._cfg.learn.epoch_per_collect):
             if self._recompute_adv:  # calculate new value using the new updated value network
                 with torch.no_grad():
-                    value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
-                    next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
+                    value = self._learn_model.forward(data_onpolicy['obs'], mode='compute_critic')['value']
+                    next_value = self._learn_model.forward(data_onpolicy['next_obs'], mode='compute_critic')['value']
                     if self._value_norm:
                         value *= self._running_mean_std.std
                         next_value *= self._running_mean_std.std
 
-                    traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
-                    compute_adv_data = gae_data(value, next_value, data['reward'], data['done'], traj_flag)
-                    data['adv'] = gae(compute_adv_data, self._gamma, self._gae_lambda)
+                    traj_flag = data_onpolicy.get('traj_flag', None)  # traj_flag indicates termination of trajectory
+                    compute_adv_data = gae_data(
+                        value, next_value, data_onpolicy['reward'], data_onpolicy['done'], traj_flag
+                    )
+                    data_onpolicy['adv'] = gae(compute_adv_data, self._gamma, self._gae_lambda)
 
-                    unnormalized_returns = value + data['adv']
+                    unnormalized_returns = value + data_onpolicy['adv']
 
                     if self._value_norm:
-                        data['value'] = value / self._running_mean_std.std
-                        data['return'] = unnormalized_returns / self._running_mean_std.std
+                        data_onpolicy['value'] = value / self._running_mean_std.std
+                        data_onpolicy['return'] = unnormalized_returns / self._running_mean_std.std
                         self._running_mean_std.update(unnormalized_returns.cpu().numpy())
                     else:
-                        data['value'] = value
-                        data['return'] = unnormalized_returns
+                        data_onpolicy['value'] = value
+                        data_onpolicy['return'] = unnormalized_returns
 
             else:  # don't recompute adv
                 if self._value_norm:
-                    unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
-                    data['return'] = unnormalized_return / self._running_mean_std.std
+                    unnormalized_return = data_onpolicy['adv'] + data_onpolicy['value'] * self._running_mean_std.std
+                    data_onpolicy['return'] = unnormalized_return / self._running_mean_std.std
                     self._running_mean_std.update(unnormalized_return.cpu().numpy())
                 else:
-                    data['return'] = data['adv'] + data['value']
+                    data_onpolicy['return'] = data_onpolicy['adv'] + data_onpolicy['value']
 
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+            for batch in split_data_generator(data_onpolicy, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:
