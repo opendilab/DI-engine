@@ -10,7 +10,7 @@ cartpole_sil_config = dict(
     ),
     policy=dict(
         cuda=False,
-        sil_update_per_collect=1,
+        sil_update_per_collect=5,
         model=dict(
             obs_shape=4,
             action_shape=2,

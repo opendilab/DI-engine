@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-collector_env_num = 8
-evaluator_env_num = 8
+collector_env_num = 4
+evaluator_env_num = 4
 lunarlander_sil_config = dict(
     exp_name='lunarlander_sil_a2c_seed0',
     env=dict(
@@ -13,7 +13,7 @@ lunarlander_sil_config = dict(
     ),
     policy=dict(
         cuda=False,
-        sil_update_per_collect=1,
+        sil_update_per_collect=5,
         model=dict(
             obs_shape=8,
             action_shape=4,

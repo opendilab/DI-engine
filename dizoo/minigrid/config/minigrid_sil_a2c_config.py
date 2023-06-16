@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-collector_env_num = 8
-evaluator_env_num = 8
+collector_env_num = 4
+evaluator_env_num = 4
 minigrid_sil_config = dict(
     exp_name='minigrid_sil_a2c_seed0',
     env=dict(
