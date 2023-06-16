@@ -215,6 +215,7 @@ class SILPPOPolicy(PPOPolicy):
             epoch_per_collect=10,
             batch_size=64,
             learning_rate=3e-4,
+            grad_norm=0.5,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
@@ -268,7 +269,7 @@ class SILPPOPolicy(PPOPolicy):
         # Extract on-policy data
         data_onpolicy = data['new_data']
         for i in range(len(data_onpolicy)):
-            data_onpolicy[i] = {k: data_onpolicy[i][k] for k in ['obs', 'adv', 'value', 'action', 'done']}
+            data_onpolicy[i] = {k: data_onpolicy[i][k] for k in ['obs', 'adv', 'value', 'action', 'done', 'next_obs', 'reward', 'logit']}
         data_onpolicy = default_preprocess_learn(
             data_onpolicy, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
         )
@@ -393,7 +394,7 @@ class SILPPOPolicy(PPOPolicy):
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 list(self._learn_model.parameters()),
-                max_norm=self._grad_norm,
+                max_norm=self.config.learn.grad_norm,
             )
             self._optimizer.step()
 
