@@ -1,16 +1,9 @@
-from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
+from typing import List, Dict, Any
 import torch
-import copy
-import numpy as np
 
-from ding.rl_utils import sil_data, sil_error, a2c_data, a2c_error, ppo_data, ppo_error, ppo_policy_error,\
-    ppo_policy_data, get_gae_with_default_last_value, get_train_sample, gae, gae_data, ppo_error_continuous, get_gae
-from ding.torch_utils import Adam, to_device, to_dtype, unsqueeze
-from ding.model import model_wrap
-from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
-from ding.utils.data import default_collate, default_decollate
-from .base_policy import Policy
+from ding.rl_utils import sil_data, sil_error, a2c_data, a2c_error, ppo_data, ppo_error, gae, gae_data
+from ding.torch_utils import to_device, to_dtype
+from ding.utils import POLICY_REGISTRY, split_data_generator
 from .ppo import PPOPolicy
 from .a2c import A2CPolicy
 from .common_utils import default_preprocess_learn
@@ -285,12 +278,16 @@ class SILPPOPolicy(PPOPolicy):
             data_onpolicy = to_device(data_onpolicy, self._device)
             data_sil = to_device(data_sil, self._device)
         self._learn_model.train()
+        # Convert dtype for on-policy data.
         data_onpolicy['obs'] = to_dtype(data_onpolicy['obs'], torch.float32)
-        if 'next_obs' in data_onpolicy:
+        if 'next_obs' in data_onpolicy[0]:
             data_onpolicy['next_obs'] = to_dtype(data_onpolicy['next_obs'], torch.float32)
-        data_sil['obs'] = to_dtype(data_sil['obs'], torch.float32)
-        if 'next_obs' in data_sil:
-            data_sil['next_obs'] = to_dtype(data_sil['next_obs'], torch.float32)
+        # Convert dtype for sil-data.
+        for i in range(len(data_sil)):
+            data_sil[i]['obs'] = to_dtype(data_sil[i]['obs'], torch.float32)
+        if 'next_obs' in data_sil[0]:
+            for i in range(len(data_sil)):
+                data_sil[i]['next_obs'] = to_dtype(data_sil[i]['next_obs'], torch.float32)
         # ====================
         # PPO forward
         # ====================
