@@ -178,10 +178,14 @@ class SILA2CPolicy(A2CPolicy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
-        return list(set(super()._monitor_vars_learn() + [
-            'sil_policy_loss', 'sil_value_loss', 'a2c_total_loss',
-            'sil_total_loss', 'policy_clipfrac', 'value_clipfrac'
-        ]))
+        return list(
+            set(
+                super()._monitor_vars_learn() + [
+                    'sil_policy_loss', 'sil_value_loss', 'a2c_total_loss', 'sil_total_loss', 'policy_clipfrac',
+                    'value_clipfrac'
+                ]
+            )
+        )
 
 
 @POLICY_REGISTRY.register('sil_ppo')
@@ -359,9 +363,11 @@ class SILPPOPolicy(PPOPolicy):
                 }
                 return_infos.append(return_info)
 
-        return_info_real = {k: sum([return_infos[i][k] for i in range(len(return_infos))])
-                               / len([return_infos[i][k] for i in range(len(return_infos))])
-                            for k in return_infos[0].keys()}
+        return_info_real = {
+            k: sum([return_infos[i][k]
+                    for i in range(len(return_infos))]) / len([return_infos[i][k] for i in range(len(return_infos))])
+            for k in return_infos[0].keys()
+        }
 
         for batch in data_sil:
             # forward
@@ -405,8 +411,12 @@ class SILPPOPolicy(PPOPolicy):
         return return_info_real
 
     def _monitor_vars_learn(self) -> List[str]:
-        variables = list(set(super()._monitor_vars_learn() + [
-            'sil_policy_loss', 'sil_value_loss', 'ppo_total_loss',
-            'sil_total_loss', 'policy_clipfrac', 'value_clipfrac'
-        ]))
+        variables = list(
+            set(
+                super()._monitor_vars_learn() + [
+                    'sil_policy_loss', 'sil_value_loss', 'ppo_total_loss', 'sil_total_loss', 'policy_clipfrac',
+                    'value_clipfrac'
+                ]
+            )
+        )
         return variables
