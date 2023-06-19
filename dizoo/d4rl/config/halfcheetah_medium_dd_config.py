@@ -51,8 +51,7 @@ main_config = dict(
         ),
         collect=dict(data_type='diffuser_traj', ),
         eval=dict(
-            evaluator=dict(eval_freq=500, ),
-            evaluator_env_num=8,
+            evaluator=dict(eval_freq=5, ),
             test_ret=0.9,
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),

@@ -105,8 +105,6 @@ class DDPolicy(Policy):
             unroll_len=1,
         ),
         eval=dict(
-            # evaluator num of env
-            evaluator_env_num=8,
             # return to go when evaluation
             test_ret=0.9,
             ),
@@ -246,7 +244,7 @@ class DDPolicy(Policy):
         return ret
     
     def _init_eval(self):
-        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model = model_wrap(self._target_model, wrapper_name='base')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> Dict[str, Any]:
@@ -255,20 +253,21 @@ class DDPolicy(Policy):
 
         self._eval_model.eval()
         obs = self.normalizer.normalize(data, 'observations')
+        obs = torch.tensor(obs)
         if self._cuda:
-            data = to_device(data, self._device)
-        data = {'obs': data}
-        returns = self._cfg.eval.test_ret * torch.ones(1).to(self._device)
+            obs = to_device(obs, self._device)
+        returns = self._cfg.eval.test_ret * torch.ones(obs.shape[0], 1).to(self._device)
         conditions = {0: obs}
         with torch.no_grad():
-            samples = self._eval_mode.conditional_sample(conditions, returns)
+            samples = self._eval_model.conditional_sample(conditions, returns)
             obs_comb = torch.cat([samples[:, 0, :], samples[:, 1, :]], dim=-1)
-            obs_comb = obs_comb.reshape(-1, 2 * data['obs'].shape)
+            obs_comb = obs_comb.reshape(-1, 2 * self.obs_dim)
             action = self._eval_model.inv_model(obs_comb)
             if self._cuda:
                 action = to_device(action, 'cpu')
             action = self.normalizer.unnormalize(action, 'actions')
-        output = {'action:', action}
+        action = torch.tensor(action).to('cpu')
+        output = {'action': action}
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
