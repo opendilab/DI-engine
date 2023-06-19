@@ -111,4 +111,4 @@ if __name__ == "__main__":
     args.cfg[0].policy.collect.n_episode = 8
     del args.cfg[0].policy.collect.n_sample
     drex_collecting_data(args)
-    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward=True, cooptrain_reward=False)
+    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward_model=True, cooptrain_reward_model=False)

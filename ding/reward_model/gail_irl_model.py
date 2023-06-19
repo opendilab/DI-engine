@@ -9,7 +9,7 @@ import torch.optim as optim
 
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
-from .reword_model_utils import concat_state_action_pairs
+from .reward_model_utils import concat_state_action_pairs
 from .network import GAILNetwork
 from functools import partial
 

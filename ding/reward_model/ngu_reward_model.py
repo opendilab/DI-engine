@@ -95,10 +95,10 @@ class RndNGURewardModel(BaseRewardModel):
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
         self.train_data_total = []
         self.train_data = []
-        self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.train_cnt_icm = 0
         self.estimate_cnt_rnd = 0
         self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
+        self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.only_use_last_five_frames = config.only_use_last_five_frames_for_icm_rnd
 
     def _train(self) -> torch.Tensor:

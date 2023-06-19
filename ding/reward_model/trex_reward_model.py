@@ -15,7 +15,7 @@ from ding.utils import build_logger
 from ding.utils.data import default_collate
 
 from .base_reward_model import BaseRewardModel
-from .reword_model_utils import collect_states
+from .reward_model_utils import collect_states
 from .network import TREXNetwork
 
 

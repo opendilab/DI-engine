@@ -24,8 +24,8 @@ def serial_pipeline_reward_model_onpolicy(
     model: Optional[torch.nn.Module] = None,
     max_train_iter: Optional[int] = int(1e10),
     max_env_step: Optional[int] = int(1e10),
-    cooptrain_reward: Optional[bool] = True,
-    pretrain_reward: Optional[bool] = False,
+    cooptrain_reward_model: Optional[bool] = True,
+    pretrain_reward_model: Optional[bool] = False,
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -40,6 +40,8 @@ def serial_pipeline_reward_model_onpolicy(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
         - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
+        - cooptrain_reward_model (:obj:`Optional[bool]`): Whether train reward model during policy training.
+        - pretrain_reward_model (:obj:`Optional[bool]`): Whether train reward model before policy training.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -80,7 +82,7 @@ def serial_pipeline_reward_model_onpolicy(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
     reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
-    if pretrain_reward:
+    if pretrain_reward_model:
         reward_model.train()
     # ==========
     # Main loop
@@ -108,10 +110,10 @@ def serial_pipeline_reward_model_onpolicy(
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
             new_data_count += len(new_data)
             # collect data for reward_model training
-            if cooptrain_reward:
+            if cooptrain_reward_model:
                 reward_model.collect_data(new_data)
         # update reward_model
-        if cooptrain_reward:
+        if cooptrain_reward_model:
             reward_model.train()
             reward_model.clear_data(iter=learner.train_iter)
         # Learn policy from collected data

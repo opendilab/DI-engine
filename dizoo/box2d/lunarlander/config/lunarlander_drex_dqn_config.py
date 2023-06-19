@@ -120,5 +120,5 @@ if __name__ == '__main__':
     del args.cfg[0].policy.collect.n_sample
     drex_collecting_data(args)
     serial_pipeline_reward_model_offpolicy(
-        (main_config, create_config), pretrain_reward=True, cooptrain_reward=False, max_env_step=int(1e7)
+        (main_config, create_config), pretrain_reward_model=True, cooptrain_reward_model=False, max_env_step=int(1e7)
     )

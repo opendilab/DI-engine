@@ -100,4 +100,4 @@ if __name__ == "__main__":
     )
 
     # train reward model
-    serial_pipeline_reward_model_offpolicy(main_config, create_config)
+    serial_pipeline_reward_model_offpolicy((main_config, create_config))

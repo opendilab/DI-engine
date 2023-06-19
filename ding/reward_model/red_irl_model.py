@@ -7,7 +7,7 @@ import torch.optim as optim
 from ding.utils import REWARD_MODEL_REGISTRY, one_time_warning
 from .base_reward_model import BaseRewardModel
 from .network import REDNetwork
-from .reword_model_utils import concat_state_action_pairs
+from .reward_model_utils import concat_state_action_pairs
 
 
 @REWARD_MODEL_REGISTRY.register('red')

@@ -31,11 +31,11 @@ lunarlander_ngu_config = dict(
             type='rnd-ngu',
         ),
         episodic_reward_model=dict(
-            # means if using rescale trick to the last non-zero reward
-            # when combing extrinsic and intrinsic reward.
+            # This refers to the use of a rescaling method applied to the final non-zero reward.
+            # when combing the extrinsic and intrinsic reward.
             # the rescale trick only used in:
-            # 1. sparse reward env minigrid, in which the last non-zero reward is a strong positive signal
-            # 2. the last reward of each episode directly reflects the agent's completion of the task, e.g. lunarlander
+            # 1. Environments with sparse rewards, such as the MiniGrid, where the final non-zero reward provides a significant positive signal.
+            # 2. Situations where the last reward of each episode directly corresponds to the agent's task completion, such as in the LunarLander environment.
             # Note that the ngu intrinsic reward is a positive value (max value is 5), in these envs,
             # the last non-zero reward should not be overwhelmed by intrinsic rewards, so we need rescale the
             # original last nonzero extrinsic reward.

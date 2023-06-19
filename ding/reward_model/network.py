@@ -155,23 +155,29 @@ class ICMNetwork(nn.Module):
     3) Predicting the next embedded obs, given the embeded former observation and action
     """
 
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType, action_shape: int) -> None:
+    def __init__(
+            self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType, residual_number: int,
+            inverse_hidden_size: int, action_shape: int
+    ) -> None:
         super(ICMNetwork, self).__init__()
         self.action_shape = action_shape
         feature_output = hidden_size_list[-1]
         self.feature = RepresentationNetwork(obs_shape, hidden_size_list)
-        self.inverse_net = nn.Sequential(nn.Linear(feature_output * 2, 512), nn.ReLU(), nn.Linear(512, action_shape))
+        self.inverse_net = nn.Sequential(
+            nn.Linear(feature_output * 2, inverse_hidden_size), nn.ReLU(), nn.Linear(inverse_hidden_size, action_shape)
+        )
+        self.residual_number = residual_number
         self.residual = nn.ModuleList(
             [
                 nn.Sequential(
                     nn.Linear(action_shape + 512, 512),
                     nn.LeakyReLU(),
                     nn.Linear(512, 512),
-                ) for _ in range(8)
+                ) for _ in range(self.residual_number * 2)
             ]
         )
-        self.forward_net_1 = RepresentationNetwork(action_shape + feature_output, [512], nn.LeakyReLU())
-        self.forward_net_2 = nn.Linear(action_shape + 512, feature_output)
+        self.forward_net_backbone = RepresentationNetwork(action_shape + feature_output, [512], nn.LeakyReLU())
+        self.forward_net_head = nn.Linear(action_shape + 512, feature_output)
 
     def _forward(self, state: torch.Tensor, next_state: torch.Tensor,
                  action_long: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -204,25 +210,26 @@ class ICMNetwork(nn.Module):
             - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size
               and A is the ''action_shape''
         """
+        # use feature network to encode state and next state
+        # feature network will use to identify whether the state has been seen
         action = one_hot(action_long, num=self.action_shape)
         encode_state = self.feature(state)
         encode_next_state = self.feature(next_state)
         # get pred action logit
         concat_state = torch.cat((encode_state, encode_next_state), 1)
         pred_action_logit = self.inverse_net(concat_state)
-        # ---------------------
 
         # get pred next state
         pred_next_state_feature_orig = torch.cat((encode_state, action), 1)
-        pred_next_state_feature_orig = self.forward_net_1(pred_next_state_feature_orig)
+        pred_next_state_feature_orig = self.forward_net_backbone(pred_next_state_feature_orig)
 
         # residual
-        for i in range(4):
+        for i in range(self.residual_number):
             pred_next_state_feature = self.residual[i * 2](torch.cat((pred_next_state_feature_orig, action), 1))
             pred_next_state_feature_orig = self.residual[i * 2 + 1](
                 torch.cat((pred_next_state_feature, action), 1)
             ) + pred_next_state_feature_orig
-        pred_next_state_feature = self.forward_net_2(torch.cat((pred_next_state_feature_orig, action), 1))
+        pred_next_state_feature = self.forward_net_head(torch.cat((pred_next_state_feature_orig, action), 1))
         real_next_state_feature = encode_next_state
         return real_next_state_feature, pred_next_state_feature, pred_action_logit
 
@@ -323,6 +330,10 @@ class TREXNetwork(nn.Module):
 
 
 class InverseNetwork(nn.Module):
+    """
+    Overview:
+        Network used in Episodic reward model for NGU.
+    """
 
     def __init__(
             self, obs_shape: Union[int, SequenceType], action_shape: int, hidden_size_list: SequenceType, device: str
@@ -340,11 +351,11 @@ class InverseNetwork(nn.Module):
             self,
             episodic_memory: List,
             current_controllable_state: torch.Tensor,
-            k=10,
-            kernel_cluster_distance=0.008,
-            kernel_epsilon=0.0001,
-            c=0.001,
-            siminarity_max=8,
+            k: int = 10,
+            kernel_cluster_distance: float = 0.008,
+            kernel_epsilon: float = 0.0001,
+            c: float = 0.001,
+            siminarity_max: int = 8,
     ) -> torch.Tensor:
         # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
         state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
@@ -385,9 +396,6 @@ class InverseNetwork(nn.Module):
             for i in range(batch_size):
                 for j in range(seq_length):
                     if j < 10:
-                        # if self._running_mean_std_episodic_reward.mean is not None:
-                        #     episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
-                        # else:
                         episodic_reward[i].append(torch.tensor(0.).to(self.device))
                     elif j:
                         episodic_memory = cur_obs_embedding[i][:j]
@@ -418,7 +426,18 @@ class InverseNetwork(nn.Module):
             return episodic_reward, episodic_reward_real_mean
 
     def learn(self, inputs: Dict) -> torch.Tensor:
-        # obs: torch.Tensor, next_obs: torch.Tensor, action: torch.Tensor
+        """
+         Overview:
+            Use observation, next_observation and action to train the inverse model
+            inputs must contain ['obs', 'next_obs', 'action']
+        Arguments:
+            - obs (:obj:`torch.Tensor`):
+                The current observation
+            - next_obs (:obj:`torch.Tensor`):
+                The next observation
+            - action (:obj:`torch.Tensor`):
+                The action
+        """
         cur_obs_embedding = self.embedding_net(inputs['obs'])
         next_obs_embedding = self.embedding_net(inputs['next_obs'])
         # get pred action

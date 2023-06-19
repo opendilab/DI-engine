@@ -8,7 +8,7 @@ import torch.optim as optim
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
 from .network import ICMNetwork
-from .reword_model_utils import combine_intrinsic_exterinsic_reward
+from .reward_model_utils import combine_intrinsic_exterinsic_reward
 
 
 def collect_states(iterator: list) -> Tuple[list, list, list]:
@@ -48,19 +48,22 @@ class ICMRewardModel(BaseRewardModel):
                                  list])
         5  | ``action_shape``    int         7             | the action space shape              |
         6  | ``batch_size``      int         64            | Training batch size                 |
-        7  | ``hidden``          list        [64, 64,      | the MLP layer shape                 |
+        7  | ``residual_num``    int         4             | the residual number of residual net |
+        8  | ``hidden``          list        [64, 64,      | the MLP layer shape                 |
            | ``_size_list``      (int)       128]          |                                     |
-        8  | ``update_per_``     int         100           | Number of updates per collect       |
+        9  | ``inverse_``        int         512           | the inverse model hidden size       | 
+           | ``hidden_size``
+        10  | ``update_per_``     int         100           | Number of updates per collect       |
            | ``collect``                                   |                                     |
-        9  | ``reverse_scale``   float       1             | the importance weight of the        |
-                                                           | forward and reverse loss            |
-        10 | ``intrinsic_``      float       0.003         | the weight of intrinsic reward      | r = w*r_i + r_e
+        11  | ``reverse_loss``    float       1             | the importance weight of the        |
+             ``_weight``                                   | forward and reverse loss            |
+        12 | ``intrinsic_``      float       0.003         | the weight of intrinsic reward      | r = w*r_i + r_e
              ``reward_weight``
-        11 | ``extrinsic_``      bool        True          | Whether to normlize
+        13 | ``extrinsic_``      bool        True          | Whether to normlize
              ``reward_norm``                               | extrinsic reward
-        12 | ``extrinsic_``      int         1             | the upper bound of the reward
+        14 | ``extrinsic_``      int         1             | the upper bound of the reward
             ``reward_norm_max``                            | normalization
-        13 | ``clear_buffer``    int         1             | clear buffer per fixed iters        | make sure replay
+        15 | ``clear_buffer``    int         1             | clear buffer per fixed iters        | make sure replay
              ``_per_iters``                                                                      | buffer's data count
                                                                                                  | isn't too few.
                                                                                                  | (code work in entry)
@@ -81,12 +84,16 @@ class ICMRewardModel(BaseRewardModel):
         batch_size=64,
         # (list) The MLP layer shape.
         hidden_size_list=[64, 64, 128],
+        # (int) the residual number.
+        residual_num=4,
+        # (int) The hidden layer shape of inverse network
+        inverse_hidden_size=512,
         # (int) How many updates(iterations) to train after collector's one collection.
         # Bigger "update_per_collect" means bigger off-policy.
         # collect data -> update policy-> collect data -> ...
         update_per_collect=100,
         # (float) The importance weight of the forward and reverse loss.
-        reverse_scale=1,
+        reverse_loss_weight=1,
         # (float) The weight of intrinsic reward.
         # r = intrinsic_reward_weight * r_i + r_e.
         intrinsic_reward_weight=0.003,  # 1/300
@@ -105,7 +112,10 @@ class ICMRewardModel(BaseRewardModel):
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = ICMNetwork(config.obs_shape, config.hidden_size_list, config.action_shape)
+        self.reward_model = ICMNetwork(
+            config.obs_shape, config.hidden_size_list, config.residual_num, config.inverse_hidden_size,
+            config.action_shape
+        )
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
@@ -114,7 +124,7 @@ class ICMRewardModel(BaseRewardModel):
         self.train_next_states = []
         self.train_actions = []
         self.opt = optim.Adam(self.reward_model.parameters(), config.learning_rate)
-        self.reverse_scale = config.reverse_scale
+        self.reverse_loss_weight = config.reverse_loss_weight
         self.estimate_cnt_icm = 0
         self.train_cnt_icm = 0
 
@@ -128,22 +138,25 @@ class ICMRewardModel(BaseRewardModel):
         data_actions: list = [self.train_actions[i] for i in train_data_index]
         data_actions: torch.Tensor = torch.cat(data_actions).to(self.device)
 
-        inverse_loss, forward_loss, accuracy = self.reward_model.learn(data_states, data_next_states, data_actions)
-        loss = self.reverse_scale * inverse_loss + forward_loss
+        # action_accuracy: the accuracy of predicting the action.
+        inverse_loss, forward_loss, action_accuracy = self.reward_model.learn(
+            data_states, data_next_states, data_actions
+        )
+        loss = self.reverse_loss_weight * inverse_loss + forward_loss
 
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
 
-        return loss, inverse_loss, forward_loss, accuracy
+        return loss, inverse_loss, forward_loss, action_accuracy
 
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
-            loss, inverse_loss, forward_loss, accuracy = self._train()
+            loss, inverse_loss, forward_loss, action_accuracy = self._train()
             self.tb_logger.add_scalar('icm_reward/total_loss', loss, self.train_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/forward_loss', forward_loss, self.train_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/inverse_loss', inverse_loss, self.train_cnt_icm)
-            self.tb_logger.add_scalar('icm_reward/action_accuracy', accuracy, self.train_cnt_icm)
+            self.tb_logger.add_scalar('icm_reward/action_accuracy', action_accuracy, self.train_cnt_icm)
             self.train_cnt_icm += 1
 
     def estimate(self, data: list) -> List[Dict]:
@@ -161,9 +174,12 @@ class ICMRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_mean', raw_icm_reward.mean(), self.estimate_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_min', raw_icm_reward.min(), self.estimate_cnt_icm)
             self.tb_logger.add_scalar('icm_reward/raw_icm_reward_std', raw_icm_reward.std(), self.estimate_cnt_icm)
-            icm_reward = (raw_icm_reward - raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
-            icm_reward = icm_reward.to(self.device)
-        train_data_augmented = combine_intrinsic_exterinsic_reward(train_data_augmented, icm_reward, self.cfg)
+            normalized_icm_reward = (raw_icm_reward -
+                                     raw_icm_reward.min()) / (raw_icm_reward.max() - raw_icm_reward.min() + 1e-8)
+            normalized_icm_reward = normalized_icm_reward.to(self.device)
+        train_data_augmented = combine_intrinsic_exterinsic_reward(
+            train_data_augmented, normalized_icm_reward, self.cfg
+        )
 
         return train_data_augmented
 

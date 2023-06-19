@@ -84,14 +84,14 @@ def test_irl(reward_model_config):
         reward_model_config['expert_data_path'] = expert_data_path
     cp_cartpole_dqn_config.reward_model = reward_model_config
     cp_cartpole_dqn_config.policy.collect.n_sample = 128
-    cooptrain_reward = True
-    pretrain_reward = False
+    cooptrain_reward_model = True
+    pretrain_reward_model = False
     serial_pipeline_reward_model_offpolicy(
         (cp_cartpole_dqn_config, cp_cartpole_dqn_create_config),
         seed=0,
         max_train_iter=2,
-        pretrain_reward=pretrain_reward,
-        cooptrain_reward=cooptrain_reward
+        pretrain_reward_model=pretrain_reward_model,
+        cooptrain_reward_model=cooptrain_reward_model
     )
     os.popen("rm -rf ckpt_* log expert_data.pkl")
 
@@ -103,6 +103,8 @@ def test_rnd():
         serial_pipeline_reward_model_onpolicy(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen("rm -rf cartpole_ppo_rnd*")
 
 
 @pytest.mark.unittest
@@ -112,6 +114,8 @@ def test_icm():
         serial_pipeline_reward_model_offpolicy(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen("rm -rf cartpole_ppo_icm*")
 
 
 @pytest.mark.unittest
@@ -121,6 +125,8 @@ def test_ngu():
         serial_pipeline_reward_model_offpolicy(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"
+    finally:
+        os.popen("rm -rf cartpole_ngu*")
 
 
 @pytest.mark.unittest
@@ -143,7 +149,7 @@ def test_trex():
     trex_collecting_data(args=args)
     try:
         serial_pipeline_reward_model_offpolicy(
-            config, seed=0, max_train_iter=1, pretrain_reward=True, cooptrain_reward=False
+            config, seed=0, max_train_iter=1, pretrain_reward_model=True, cooptrain_reward_model=False
         )
     except Exception:
         assert False, "pipeline fail"
@@ -178,7 +184,7 @@ def test_drex():
     drex_collecting_data(args=args)
     try:
         serial_pipeline_reward_model_offpolicy(
-            config, seed=0, max_train_iter=1, pretrain_reward=True, cooptrain_reward=False
+            config, seed=0, max_train_iter=1, pretrain_reward_model=True, cooptrain_reward_model=False
         )
     except Exception:
         assert False, "pipeline fail"

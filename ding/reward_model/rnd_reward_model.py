@@ -7,7 +7,7 @@ import torch.optim as optim
 
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
-from .reword_model_utils import combine_intrinsic_exterinsic_reward, collect_states, obs_norm
+from .reward_model_utils import combine_intrinsic_exterinsic_reward, collect_states, obs_norm
 from .network import RNDNetwork
 from ding.utils import RunningMeanStd
 import numpy as np
@@ -166,7 +166,7 @@ class RndRewardModel(BaseRewardModel):
     def clear_data(self, iter: int) -> None:
         assert hasattr(
             self.cfg, 'clear_buffer_per_iters'
-        ), "Reward Model does not have clear_buffer_per_iters, Clear failed"
+        ), "Reward Model does not have clear_buffer_per_iters, if you want to clear buffer, you need to add this attribute in config."
         if iter % self.cfg.clear_buffer_per_iters == 0:
             self.train_obs.clear()
 

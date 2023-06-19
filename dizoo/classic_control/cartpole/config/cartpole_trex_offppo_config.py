@@ -86,4 +86,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward=True, cooptrain_reward=False)
+    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward_model=True, cooptrain_reward_model=False)

@@ -2,7 +2,7 @@ import pytest
 import torch
 
 from easydict import EasyDict
-from ding.reward_model.reword_model_utils import concat_state_action_pairs, combine_intrinsic_exterinsic_reward
+from ding.reward_model.reward_model_utils import concat_state_action_pairs, combine_intrinsic_exterinsic_reward
 
 
 @pytest.mark.unittest
