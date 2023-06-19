@@ -7,8 +7,9 @@ from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.model import ConvEncoder
 from ding.world_model.base_world_model import WorldModel
-from ding.world_model.model.networks import RSSM, ConvDecoder, DenseHead
-from ding.torch_utils import fold_batch, unfold_batch, unsqueeze_repeat
+from ding.world_model.model.networks import RSSM, ConvDecoder
+from ding.torch_utils import to_device
+from ding.torch_utils.network.dreamer import DenseHead
 
 
 @WORLD_MODEL_REGISTRY.register('dreamer')
@@ -53,9 +54,8 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             dyn_std_act='sigmoid2',
             dyn_temp_post=True,
             dyn_min_std=0.1,
-            dyn_cell=True,
+            dyn_cell='gru_layer_norm',
             unimix_ratio=0.01,
-            initial='learned',
             device='cpu',
         ),
     )
@@ -65,18 +65,21 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         nn.Module.__init__(self)
 
         self._cfg = cfg.model
+        #self._cfg.act = getattr(torch.nn, self._cfg.act),
+        #self._cfg.norm = getattr(torch.nn, self._cfg.norm),
+        self._cfg.act = nn.modules.activation.SiLU  # nn.SiLU
+        self._cfg.norm = nn.modules.normalization.LayerNorm  # nn.LayerNorm
         self.state_size = self._cfg.state_size
         self.action_size = self._cfg.action_size
         self.reward_size = self._cfg.reward_size
         self.hidden_size = self._cfg.hidden_size
         self.batch_size = self._cfg.batch_size
-        self.max_epochs_since_update = cfg.max_epochs_since_update
 
         if self._cuda:
             self.cuda()
 
         self.encoder = ConvEncoder(
-            *self.state_size,
+            self.state_size,
             hidden_size_list=[32, 64, 128, 256, 128],  # to last layer 128?
             activation=torch.nn.SiLU(),
             kernel_size=self._cfg.encoder_kernels,
@@ -103,7 +106,6 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             self._cfg.dyn_min_std,
             self._cfg.dyn_cell,
             self._cfg.unimix_ratio,
-            self._cfg.initial,
             self._cfg.action_size,
             self.embed_size,
             self._cfg.device,
@@ -126,8 +128,8 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             (255, ),
             self._cfg.reward_layers,
             self._cfg.units,
-            self._cfg.act,
-            self._cfg.norm,
+            'SiLU',  # self._cfg.act
+            'LN',  # self._cfg.norm
             dist=self._cfg.reward_head,
             outscale=0.0,
         )
@@ -137,8 +139,8 @@ class DREAMERWorldModel(WorldModel, nn.Module):
                 [],
                 self._cfg.discount_layers,
                 self._cfg.units,
-                self._cfg.act,
-                self._cfg.norm,
+                'SiLU',  # self._cfg.act
+                'LN',  # self._cfg.norm
                 dist="binary",
             )
         # to do
@@ -157,15 +159,14 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         data = default_collate(data)
         data['done'] = data['done'].float()
         data['weight'] = data.get('weight', None)
-        data = {k: torch.Tensor(v).to(self._cfg.device) for k, v in data.items()}
-        #image = data['obs']
-        action = data['action']
-        reward = data['reward']
-        next_obs = data['next_obs']
-        if len(reward.shape) == 2:
-            reward = reward.unsqueeze(-1)
-        if len(action.shape) == 2:
-            action = action.unsqueeze(-1)
+        data['obs'] = data['obs'] / 255.0 - 0.5
+        next_obs = data['next_obs'] / 255.0 - 0.5
+        #data = {k: v.to(self._cfg.device) for k, v in data.items()}
+        data = to_device(data, self._cfg.device)
+        if len(data['reward'].shape) == 2:
+            data['reward'] = data['reward'].unsqueeze(-1)
+        if len(data['action'].shape) == 2:
+            data['action'] = data['action'].unsqueeze(-1)
 
         embed = self.encoder(data['obs'])
         post, prior = self.dynamics.observe(embed, data["action"])

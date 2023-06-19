@@ -282,7 +282,7 @@ def serial_pipeline_dreamer(
         collect_kwargs = commander.step()
         # eval the policy
         if evaluator.should_eval(collector.envstep):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep, policy_kwargs=dict(world_model=world_model))
             if stop:
                 break
         
@@ -303,7 +303,7 @@ def serial_pipeline_dreamer(
             )
         
         # fill environment buffer
-        data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        data = collector.collect(train_iter=learner.train_iter, policy_kwargs=dict(world_model=world_model, envstep=collector.envstep, **collect_kwargs))
         env_buffer.push(data, cur_collector_envstep=collector.envstep)
 
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:

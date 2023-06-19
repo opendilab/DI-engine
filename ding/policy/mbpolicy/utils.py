@@ -3,7 +3,7 @@ import torch
 from torch import Tensor
 from ding.torch_utils import fold_batch, unfold_batch
 from ding.rl_utils import generalized_lambda_returns
-from ding.world_model.utils import static_scan
+from ding.torch_utils.network.dreamer import static_scan
 
 
 def q_evaluation(obss: Tensor, actions: Tensor, q_critic_fn: Callable[[Tensor, Tensor],

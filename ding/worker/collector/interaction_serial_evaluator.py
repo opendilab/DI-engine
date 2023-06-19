@@ -186,6 +186,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             envstep: int = -1,
             n_episode: Optional[int] = None,
             force_render: bool = False,
+            policy_kwargs: Optional[dict] = None,
     ) -> Tuple[bool, dict]:
         '''
         Overview:
@@ -229,7 +230,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                     if render:
                         eval_monitor.update_video(self._env.ready_imgs)
 
-                    policy_output = self._policy.forward(obs)
+                    policy_output = self._policy.forward(obs, **policy_kwargs)
                     actions = {i: a['action'] for i, a in policy_output.items()}
                     actions = to_ndarray(actions)
                     timesteps = self._env.step(actions)

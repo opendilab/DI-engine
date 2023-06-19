@@ -1,9 +1,12 @@
-from typing import Dict, Any, List, Tuple
+from typing import List, Dict, Any, Tuple, Union
+from collections import namedtuple
 import torch
 from torch import nn
 from copy import deepcopy
 from ding.torch_utils import Adam, to_device
+from ding.rl_utils import get_train_sample
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
+from ding.utils.data import default_collate, default_decollate
 from ding.policy import Policy
 from ding.model import model_wrap
 from ding.policy.common_utils import default_preprocess_learn
@@ -18,6 +21,10 @@ class DREAMERPolicy(Policy):
         type='dreamer',
         # (bool) Whether to use cuda for network and loss computation.
         cuda=False,
+        # (int) Number of training samples (randomly collected) in replay buffer when training starts.
+        random_collect_size=5000,
+        # (bool) Whether to need policy-specific data in preprocess transition.
+        transition_with_policy_data=False,
         # (int)
         imag_horizon=15,
         learn=dict(
@@ -170,6 +177,129 @@ class DREAMERPolicy(Policy):
         critic_norm = nn.utils.clip_grad_norm_(self._model.critic.parameters(), self._grad_clip)
         self._optimizer_value.step()
         return {'actor_grad_norm': actor_norm, 'critic_grad_norm': critic_norm}
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        ret = {
+            'model': self._learn_model.state_dict(),
+            'optimizer_value': self._optimizer_value.state_dict(),
+            'optimizer_actor': self._optimizer_actor.state_dict(),
+        }
+        return ret
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
+
+    def _init_collect(self) -> None:
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_model = model_wrap(self._model, wrapper_name='base')
+        self._collect_model.reset()
+
+    def _forward_collect(self, data: dict, world_model, envstep, state=None) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        
+        if state is None:
+            batch_size = len(data_id)
+            latent = world_model.dynamics.initial(batch_size)  # {logit, stoch, deter}
+            action = torch.zeros((batch_size, self._config.num_actions)).to(
+                self._config.device
+            )
+        else:
+            latent, action = state
+        
+        data = data / 255.0 - 0.5
+        embed = world_model.encoder(data)
+        latent, _ = world_model.dynamics.obs_step(
+            latent, action, embed, self._config.collect_dyn_sample
+        )
+        feat = world_model.dynamics.get_feat(latent)
+        
+        actor = self._actor(feat)
+        action = actor.sample()
+        logprob = actor.log_prob(action)
+        latent = {k: v.detach() for k, v in latent.items()}
+        action = action.detach()
+        output = {"action": action, "logprob": logprob}
+        # to do
+        # should pass state to next collect
+        state = (latent, action)
+        
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+    
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        r"""
+        Overview:
+            Generate dict type transition data from inputs.
+        Arguments:
+            - obs (:obj:`Any`): Env observation
+            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
+            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
+                (here 'obs' indicates obs after env step).
+        Returns:
+            - transition (:obj:`dict`): Dict type transition data.
+        """
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'action': model_output['action'],
+            'logprob': model_output['logprob'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
+        return transition
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        return get_train_sample(data, self._unroll_len)
+
+    def _init_eval(self) -> None:
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
+
+    def _forward_eval(self, data: dict, world_model, state=None) -> dict:
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        
+        if state is None:
+            batch_size = len(data_id)
+            latent = world_model.dynamics.initial(batch_size)  # {logit, stoch, deter}
+            action = torch.zeros((batch_size, self._config.num_actions)).to(
+                self._config.device
+            )
+        else:
+            latent, action = state
+        
+        data = data / 255.0 - 0.5
+        embed = world_model.encoder(data)
+        latent, _ = world_model.dynamics.obs_step(
+            latent, action, embed, self._config.collect_dyn_sample
+        )
+        feat = world_model.dynamics.get_feat(latent)
+        
+        actor = self._actor(feat)
+        action = actor.mode()
+        logprob = actor.log_prob(action)
+        latent = {k: v.detach() for k, v in latent.items()}
+        action = action.detach()
+        output = {"action": action, "logprob": logprob}
+        # to do
+        # should pass state to next eval
+        state = (latent, action)
+        
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

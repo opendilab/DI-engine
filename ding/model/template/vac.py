@@ -6,7 +6,7 @@ from copy import deepcopy
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder, IMPALAConvEncoder
-from ding.world_model.model.networks import ActionHead, DenseHead
+from ding.torch_utils.network.dreamer import ActionHead, DenseHead
 
 
 @MODEL_REGISTRY.register('vac')
@@ -438,8 +438,8 @@ class DREAMERVAC(nn.Module):
             (255, ),
             value_layers,
             units,
-            act,
-            norm,
+            'SiLU',  # act
+            'LN',  # norm
             'twohot_symlog',
             outscale=0.0,
         )
