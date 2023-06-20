@@ -168,6 +168,7 @@ class RndRewardModel(BaseRewardModel):
             self.cfg, 'clear_buffer_per_iters'
         ), "Reward Model does not have clear_buffer_per_iters, \
             if you want to clear buffer, you need to add this attribute in config."
+
         if iter % self.cfg.clear_buffer_per_iters == 0:
             self.train_obs.clear()
 
