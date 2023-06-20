@@ -51,11 +51,11 @@ class ICMRewardModel(BaseRewardModel):
         7  | ``residual_num``    int         4             | the residual number of residual net |
         8  | ``hidden``          list        [64, 64,      | the MLP layer shape                 |
            | ``_size_list``      (int)       128]          |                                     |
-        9  | ``inverse_``        int         512           | the inverse model hidden size       | 
+        9  | ``inverse_``        int         512           | the inverse model hidden size       |
            | ``hidden_size``                               |                                     |
-        10  | ``update_per_``     int         100          | Number of updates per collect       |
+        10 | ``update_per_``     int         100           | Number of updates per collect       |
            | ``collect``                                   |                                     |
-        11  | ``reverse_loss``    float       1            | the importance weight of the        |
+        11 | ``reverse_loss``    float       1             | the importance weight of the        |
              ``_weight``                                   | forward and reverse loss            |
         12 | ``intrinsic_``      float       0.003         | the weight of intrinsic reward      | r = w*r_i + r_e
              ``reward_weight``
