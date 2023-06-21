@@ -120,6 +120,7 @@ class DMC2GymEnv(BaseEnv):
             "height": 84,
             "width": 84,
             "channels_first": True,
+            "resize": 84,
         }
 
         self._cfg.update(cfg)
@@ -154,7 +155,7 @@ class DMC2GymEnv(BaseEnv):
 
             # optional env wrapper
             if self._cfg['warp_frame']:
-                self._env = WarpFrameWrapper(self._env)
+                self._env = WarpFrameWrapper(self._env, size=self._cfg['resize'])
             if self._cfg['scale']:
                 self._env = ScaledFloatFrameWrapper(self._env)
             if self._cfg['clip_rewards']:

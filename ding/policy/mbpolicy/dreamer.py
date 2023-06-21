@@ -86,7 +86,7 @@ class DREAMERPolicy(Policy):
         # log dict
         log_vars = {}
         self._learn_model.train()
-        world_model.requires_grad_(requires_grad=False)
+        
         self._actor.requires_grad_(requires_grad=True)
         # start is dict of {stoch, deter, logit}
         if self._cuda:
@@ -102,7 +102,7 @@ class DREAMERPolicy(Policy):
         # this target is not scaled
         # slow is flag to indicate whether slow_target is used for lambda-return
         target, weights, base = compute_target(
-            self._cfg.learn, world_model, self._critic, imag_feat, imag_state, imag_action, reward, actor_ent, state_ent
+            self._cfg.learn, world_model, self._critic, imag_feat, imag_state, reward, actor_ent, state_ent
         )
         actor_loss, mets = compute_actor_loss(
             self._cfg.learn,
@@ -124,7 +124,7 @@ class DREAMERPolicy(Policy):
         self._critic.requires_grad_(requires_grad=True)
         value = self._critic(value_input[:-1].detach())
         # to do
-        target = torch.stack(target, dim=1)
+        # target = torch.stack(target, dim=1)
         # (time, batch, 1), (time, batch, 1) -> (time, batch)
         value_loss = -value.log_prob(target.detach())
         slow_target = self._slow_value(value_input[:-1].detach())
@@ -140,7 +140,7 @@ class DREAMERPolicy(Policy):
         log_vars.update(tensorstats(target, "target"))
         log_vars.update(tensorstats(reward, "imag_reward"))
         log_vars.update(tensorstats(imag_action, "imag_action"))
-        log_vars["actor_ent"] = torch.mean(actor_ent).detach().cpu().numpy()
+        log_vars["actor_ent"] = torch.mean(actor_ent).detach().cpu().numpy().item()
         # ====================
         # actor-critic update
         # ====================
@@ -248,9 +248,10 @@ class DREAMERPolicy(Policy):
         """
         transition = {
             'obs': obs,
-            'next_obs': timestep.obs,
+            #'next_obs': timestep.obs,
             'action': model_output['action'],
-            'logprob': model_output['logprob'],
+            # TODO(zp) random_collect just have action
+            #'logprob': model_output['logprob'],
             'reward': timestep.reward,
             'done': timestep.done,
         }

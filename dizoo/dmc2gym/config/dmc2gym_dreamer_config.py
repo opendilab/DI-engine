@@ -14,12 +14,13 @@ cartpole_balance_dreamer_config = dict(
         warp_frame=True,
         scale=True,
         clip_rewards=False,
-        frame_stack=3,
+        frame_stack=1,
         from_pixels=True,
+        resize=64,
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=100000,
+        stop_value=50,  # 800
     ),
     policy=dict(
         cuda=cuda,
@@ -33,14 +34,14 @@ cartpole_balance_dreamer_config = dict(
         learn=dict(
             lambda_=0.95,
             learning_rate=0.001,
-            batch_size=256,
+            batch_size=16,
             imag_sample=True,
             discount=0.997,
             reward_EMA=True,
         ),
         collect=dict(
             n_sample=1,
-            unroll_len=1,
+            unroll_len=64,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=10000, )),  # w.r.t envstep
@@ -62,7 +63,7 @@ cartpole_balance_dreamer_config = dict(
             reward_size=1,
             #hidden_size=200,
             #use_decay=True,
-            batch_size=256,
+            batch_size=16,
             #holdout_ratio=0.1,
             #max_epochs_since_update=5,
             #deterministic_rollout=True,

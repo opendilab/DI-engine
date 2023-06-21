@@ -206,6 +206,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             dist.reduce(envstep_tensor, dst=0)
             envstep = envstep_tensor.item()
 
+        if policy_kwargs is None:
+            policy_kwargs = {}
+        
         # evaluator only work on rank0
         stop_flag, return_info = False, []
         if get_rank() == 0:

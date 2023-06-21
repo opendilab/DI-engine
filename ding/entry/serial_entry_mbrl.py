@@ -276,6 +276,7 @@ def serial_pipeline_dreamer(
 
     # prefill environment buffer
     if cfg.policy.get('random_collect_size', 0) > 0:
+        cfg.policy.random_collect_size = cfg.policy.random_collect_size // cfg.policy.collect.unroll_len
         random_collect(cfg.policy, policy, collector, collector_env, commander, env_buffer)
 
     while True:

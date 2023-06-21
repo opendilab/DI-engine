@@ -101,18 +101,18 @@ def compute_actor_loss(
         adv = normed_target - normed_base
         metrics.update(tensorstats(normed_target, "normed_target"))
         values = reward_ema.values
-        metrics["EMA_005"] = values[0].detach().cpu().numpy()
-        metrics["EMA_095"] = values[1].detach().cpu().numpy()
+        metrics["EMA_005"] = values[0].detach().cpu().numpy().item()
+        metrics["EMA_095"] = values[1].detach().cpu().numpy().item()
 
     actor_target = adv
     if cfg.actor_entropy > 0:
         actor_entropy = cfg.actor_entropy * actor_ent[:-1][:, :, None]
         actor_target += actor_entropy
-        metrics["actor_entropy"] = torch.mean(actor_entropy).detach().cpu().numpy()
+        metrics["actor_entropy"] = torch.mean(actor_entropy).detach().cpu().numpy().item()
     if cfg.actor_state_entropy > 0:
         state_entropy = cfg.actor_state_entropy * state_ent[:-1]
         actor_target += state_entropy
-        metrics["actor_state_entropy"] = torch.mean(state_entropy).detach().cpu().numpy()
+        metrics["actor_state_entropy"] = torch.mean(state_entropy).detach().cpu().numpy().item()
     actor_loss = -torch.mean(weights[:-1] * actor_target)
     return actor_loss, metrics
 
@@ -143,5 +143,5 @@ def tensorstats(tensor, prefix=None):
         'max': torch.max(tensor).detach().cpu().numpy(),
     }
     if prefix:
-        metrics = {f'{prefix}_{k}': v for k, v in metrics.items()}
+        metrics = {f'{prefix}_{k}': v.item() for k, v in metrics.items()}
     return metrics

@@ -182,8 +182,17 @@ class WarpFrameWrapper(gym.ObservationWrapper):
             import sys
             logging.warning("Please install opencv-python first.")
             sys.exit(1)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+        # to do 
+        # channel_first
+        if frame.shape[0]<10:
+            frame = frame.transpose(1, 2, 0)
+            frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+            frame = frame.transpose(2, 0, 1)
+        else:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+            frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+            
+        return frame
 
 
 @ENV_WRAPPER_REGISTRY.register('scaled_float_frame')

@@ -64,6 +64,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         WorldModel.__init__(self, cfg, env, tb_logger)
         nn.Module.__init__(self)
 
+        self.pretrain_flag = True
         self._cfg = cfg.model
         #self._cfg.act = getattr(torch.nn, self._cfg.act),
         #self._cfg.norm = getattr(torch.nn, self._cfg.norm),
@@ -80,7 +81,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
 
         self.encoder = ConvEncoder(
             self.state_size,
-            hidden_size_list=[32, 64, 128, 256, 128],  # to last layer 128?
+            hidden_size_list=[32, 64, 128, 256, 4096],  # to last layer 128?
             activation=torch.nn.SiLU(),
             kernel_size=self._cfg.encoder_kernels,
             layer_norm=True
@@ -153,22 +154,39 @@ class DREAMERWorldModel(WorldModel, nn.Module):
     def eval(self, env_buffer, envstep, train_iter):
         pass
 
+    def should_pretrain(self):
+        if self.pretrain_flag:
+            self.pretrain_flag = False
+            return True
+        return False
+
     def train(self, env_buffer, envstep, train_iter, batch_size):
         self.last_train_step = envstep
+        # [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}]
         data = env_buffer.sample(batch_size, train_iter)
-        data = default_collate(data)
-        data['done'] = data['done'].float()
+        data = default_collate(data)  # -> {some_key: T lists}, each list is [B, some_dim]
+        data = {k: torch.stack(data[k], dim=1) for k in data}  # -> {dict_key: Tensor([B, T, any_dims])}
+        
+        data['discount'] = 1.0 - data['done'].float()
         data['weight'] = data.get('weight', None)
-        data['obs'] = data['obs'] / 255.0 - 0.5
-        next_obs = data['next_obs'] / 255.0 - 0.5
+        data['image'] = data['obs']
+        #data['obs'] = data['obs'] / 255.0 - 0.5
+        #next_obs = data['next_obs'] / 255.0 - 0.5
         #data = {k: v.to(self._cfg.device) for k, v in data.items()}
         data = to_device(data, self._cfg.device)
         if len(data['reward'].shape) == 2:
             data['reward'] = data['reward'].unsqueeze(-1)
         if len(data['action'].shape) == 2:
             data['action'] = data['action'].unsqueeze(-1)
+        if len(data['discount'].shape) == 2:
+            data['discount'] = data['discount'].unsqueeze(-1)
 
-        embed = self.encoder(data['obs'])
+        self.requires_grad_(requires_grad=True)
+
+        image = data['obs'].reshape([-1] + list(data['obs'].shape[-3:]))
+        embed = self.encoder(image)
+        embed = embed.reshape(list(data['obs'].shape[:-3]) + [embed.shape[-1]])
+        
         post, prior = self.dynamics.observe(embed, data["action"])
         kl_loss, kl_value, loss_lhs, loss_rhs = self.dynamics.kl_loss(
             post, prior, self._cfg.kl_forward, self._cfg.kl_free, self._cfg.kl_lscale, self._cfg.kl_rscale
@@ -182,7 +200,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             pred = head(feat)
             like = pred.log_prob(data[name])
             likes[name] = like
-            losses[name] = -torch.mean(like) * self._scales.get(name, 1.0)
+            losses[name] = -torch.mean(like)
         model_loss = sum(losses.values()) + kl_loss
 
         # ====================
@@ -191,22 +209,24 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         self.optimizer.zero_grad()
         model_loss.backward()
         self.optimizer.step()
+        
+        self.requires_grad_(requires_grad=False)
         # log
         if self.tb_logger is not None:
             for name, loss in losses.items():
-                self.tb_logger.add_scalar(name + '_loss', loss.detach().cpu().numpy(), envstep)
+                self.tb_logger.add_scalar(name + '_loss', loss.detach().cpu().numpy().item(), envstep)
         self.tb_logger.add_scalar('kl_free', self._cfg.kl_free, envstep)
         self.tb_logger.add_scalar('kl_lscale', self._cfg.kl_lscale, envstep)
         self.tb_logger.add_scalar('kl_rscale', self._cfg.kl_rscale, envstep)
-        self.tb_logger.add_scalar('loss_lhs', loss_lhs.detach().cpu().numpy(), envstep)
-        self.tb_logger.add_scalar('loss_rhs', loss_rhs.detach().cpu().numpy(), envstep)
-        self.tb_logger.add_scalar('kl', torch.mean(kl_value).detach().cpu().numpy(), envstep)
+        self.tb_logger.add_scalar('loss_lhs', loss_lhs.detach().cpu().numpy().item(), envstep)
+        self.tb_logger.add_scalar('loss_rhs', loss_rhs.detach().cpu().numpy().item(), envstep)
+        self.tb_logger.add_scalar('kl', torch.mean(kl_value).detach().cpu().numpy().item(), envstep)
 
         prior_ent = torch.mean(self.dynamics.get_dist(prior).entropy()).detach().cpu().numpy()
         post_ent = torch.mean(self.dynamics.get_dist(post).entropy()).detach().cpu().numpy()
 
-        self.tb_logger.add_scalar('prior_ent', prior_ent, envstep)
-        self.tb_logger.add_scalar('post_ent', post_ent, envstep)
+        self.tb_logger.add_scalar('prior_ent', prior_ent.item(), envstep)
+        self.tb_logger.add_scalar('post_ent', post_ent.item(), envstep)
 
         context = dict(
             embed=embed,
