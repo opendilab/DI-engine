@@ -6,10 +6,8 @@ from ding.data import DequeBuffer
 from ding.envs import BaseEnvManagerV2, DingEnvWrapper
 from ding.framework import ding_init, task
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import (CkptSaver, OffPolicyLearner,
-                                       StepCollector, data_pusher,
-                                       eps_greedy_handler,
-                                       interaction_evaluator, online_logger)
+from ding.framework.middleware import CkptSaver, OffPolicyLearner, StepCollector, data_pusher, eps_greedy_handler, \
+    interaction_evaluator, online_logger
 from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.utils import set_pkg_seed

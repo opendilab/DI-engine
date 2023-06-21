@@ -17,7 +17,7 @@ class CliffWalkingEnv(BaseEnv):
         self._cfg = EasyDict(
             env_id='CliffWalking',
             render_mode='rgb_array',
-            max_episode_steps=300,
+            max_episode_steps=300,    # default max trajectory length to truncate possible infinite attempts
         )
         self._cfg.update(cfg)
         self._init_flag = False
@@ -89,20 +89,6 @@ class CliffWalkingEnv(BaseEnv):
         onehot = np.zeros(48, dtype=np.float32)
         onehot[int(obs)] = 1
         return onehot
-
-    @staticmethod
-    def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_env_num = cfg.pop('collector_env_num')
-        cfg = copy.deepcopy(cfg)
-        cfg.is_train = True
-        return [cfg for _ in range(collector_env_num)]
-
-    @staticmethod
-    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num')
-        cfg = copy.deepcopy(cfg)
-        cfg.is_train = False
-        return [cfg for _ in range(evaluator_env_num)]
 
     @property
     def observation_space(self) -> gym.spaces.Space:
