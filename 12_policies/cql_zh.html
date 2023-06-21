@@ -1,0 +1,928 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>CQL &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="EDAC" href="edac_zh.html" />
+  <link rel="prev" title="R2D3" href="r2d3_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>CQL</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/cql_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="cql">
+<h1>CQL<a class="headerlink" href="#cql" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>离线强化学习（RL）是一个新出现的研究领域，旨在使用大量预先收集的数据集学习行为，而无需进一步与环境进行交互。它有可能在许多实际决策问题中取得巨大进展，
+其中与环境交互昂贵（例如，在机器人技术、药物发现、对话生成、推荐系统中）或不安全/危险（例如，在医疗保健、自动驾驶或教育中）。
+此外，在线收集的数据量远远低于离线数据集。这样的范式有望解决将强化学习算法从受限实验室环境带到现实世界的关键挑战。</p>
+<p>然而，直接在离线设置中使用现有的基于价值的离线 RL 算法通常会导致性能不佳，这是由于从分布外动作（out-of-distribution actions）引导和过度拟合等问题。因此，许多约束技术被添加到基本在线 RL 算法中。
+保守 Q 学习（CQL），首次提出于 <a class="reference external" href="https://arxiv.org/abs/2006.04779">Conservative Q-Learning for Offline Reinforcement Learning</a>,
+是其中之一，它通过对标准基于价值的 RL 算法进行简单修改来学习保守 Q 函数，其期望值下限。</p>
+</section>
+<section id="id2">
+<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>CQL 是一种离线 RL 算法。</p></li>
+<li><p>CQL 可以在许多标准在线 RL 算法之上用不到20行代码实现。</p></li>
+<li><p>CQL 支持离散和连续动作空间。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>重要公式/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>CQL 可以在许多标准在线 RL 算法之上用不到20行代码实现，只需将 CQL 正则化项添加到 Q 函数更新中。</p>
+<p>通常情况下，对于保守的离线策略评估，Q 函数通过迭代更新进行训练：</p>
+<a class="reference internal image-reference" href="../_images/cql_policy_evaluation.png"><img alt="../_images/cql_policy_evaluation.png" class="align-center" src="../_images/cql_policy_evaluation.png" style="width: 700.7px; height: 103.4px;" /></a>
+<p>仔细观察上面的方程，它由两部分组成-正则化项和通常的贝尔曼误差与权衡因子 <span class="math notranslate nohighlight">\(\alpha\)</span>。在正则化项内部，
+第一项总是在从:math:<a href="#id4"><span class="problematic" id="id5">`</span></a>mu`采样的（s,a）对上推动 Q 值下降，而第二项在从离线数据集抽取的（s,a）样本上推动Q值上升。</p>
+<p>根据以下定理，当:math:<cite>mu</cite> = <span class="math notranslate nohighlight">\(\pi\)</span> 时，上述方程下限了策略:math:<a href="#id6"><span class="problematic" id="id7">`</span></a>pi`下的期望值。</p>
+<p>对于合适的:math:<cite>alpha</cite> ，在采样误差和函数近似下，该界限成立。我们还注意到，随着更多数据变得可用并且|D(s; a)|增加，保证下界所需的:math:<cite>alpha`的理论值减小，
+这表明在无限数据的极限情况下，可以通过使用极小的:math:</cite>alpha`值获得下界。</p>
+<p>请注意，下面提供的分析假定 Q 函数中未使用函数近似，这意味着每次迭代都可以精确表示。该定理中的结果可以进一步推广到线性函数逼近器和非线性神经网络函数逼近器的情况，
+其中后者基于 neural tangent kernel（NTK）框架。有关更多详细信息，请参阅原始论文附录 D.1 中的定理 D.1 和定理 D.2。</p>
+<a class="reference internal image-reference" href="../_images/cql_theorem.png"><img alt="../_images/cql_theorem.png" class="align-center" src="../_images/cql_theorem.png" style="width: 1169.3000000000002px; height: 363.00000000000006px;" /></a>
+<p>那么，我们应该如何利用这一点进行策略优化呢？我们可以在每个策略迭代:math:<cite>hat{pi}^{k}(a|s)`之间交替执行完整的离线策略评估和一步策略改进。
+然而，这可能会计算昂贵。另外，由于策略:math:</cite>hat{pi}^{k}(a|s)` 通常源自Q函数，我们可以选择:math:<cite>mu(a|s)</cite> 来近似最大化当前Q函数迭代的策略，从而产生一个在线算法。
+因此，对于一个完整的离线RL算法，Q函数通常按如下方式更新：</p>
+<a class="reference internal image-reference" href="../_images/cql_general_3.png"><img alt="../_images/cql_general_3.png" class="align-center" src="../_images/cql_general_3.png" style="width: 680.9000000000001px; height: 101.2px;" /></a>
+<p>其中:math:<cite>CQL(R)</cite> 由正则化器 <span class="math notranslate nohighlight">\(R(\mu)\)</span>rho(a|s)`的 KL 散度，
+则我们得到:math:<cite>mu(a|s)approx rho(a|s)exp(Q(s,a))</cite>。首先，如果:math:<cite>rho(a|s)</cite> = Unif(a)，则上面的第一项对应于任何状态 s 下 Q 值的软最大值，并产生以下变体，
+称为CQL(H)：</p>
+<a class="reference internal image-reference" href="../_images/cql_equation_4.png"><img alt="../_images/cql_equation_4.png" class="align-center" src="../_images/cql_equation_4.png" style="width: 899.8000000000001px; height: 81.4px;" /></a>
+<p>其次，如果:math:<cite>rho(a|s)`被选择为前一个策略 :math:</cite>hat{pi}^{k-1}`，则上述方程（4）中的第一项被替换为来自所选 :math:<a href="#id8"><span class="problematic" id="id9">`</span></a>hat{pi}^{k-1}(a|s)`的动作的 Q 值的指数加权平均值。</p>
+</section>
+<section id="id10">
+<h2>伪代码<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<p>伪代码显示在算法1中，与传统的 Actor-Critic 算法（例如SAC）和深度 Q 学习算法（例如DQN）的区别以红色显示。</p>
+<a class="reference internal image-reference" href="../_images/cql.png"><img alt="../_images/cql.png" class="align-center" src="../_images/cql.png" style="width: 547.8000000000001px; height: 276.1px;" /></a>
+<p>上述伪代码中的方程4如下：</p>
+<a class="reference internal image-reference" href="../_images/cql_equation_4.png"><img alt="../_images/cql_equation_4.png" class="align-center" src="../_images/cql_equation_4.png" style="width: 654.4000000000001px; height: 59.2px;" /></a>
+<p>请注意，在实现过程中，方程（4）中的第一项将在 <a href="#id11"><span class="problematic" id="id12">`</span></a>torch.logsumexp`下计算，这会消耗大量运行时间。</p>
+</section>
+<section id="id13">
+<h2>实现<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<p>CQL 算法的默认设置如下：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.cql.</span></span><span class="sig-name descname"><span class="pre">CQLPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/cql.html#CQLPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of CQL algorithm.</p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 20%" />
+<col style="width: 8%" />
+<col style="width: 13%" />
+<col style="width: 33%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>td3</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer</div>
+<div class="line">to registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">random_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">collect_size</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>10000</p></td>
+<td><div class="line-block">
+<div class="line">Number of randomly collected</div>
+<div class="line">training samples in replay</div>
+<div class="line">buffer when training starts.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Default to 10000 for</div>
+<div class="line">SAC, 25000 for DDPG/</div>
+<div class="line">TD3.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">model.policy_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">embedding_size</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>256</p></td>
+<td><div class="line-block">
+<div class="line">Linear layer size for policy</div>
+<div class="line">network.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">model.soft_q_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">embedding_size</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>256</p></td>
+<td><div class="line-block">
+<div class="line">Linear layer size for soft q</div>
+<div class="line">network.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">model.value_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">embedding_size</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>256</p></td>
+<td><div class="line-block">
+<div class="line">Linear layer size for value</div>
+<div class="line">network.</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Defalut to None when</div>
+<div class="line">model.value_network</div>
+<div class="line">is False.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate_q</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>3e-4</p></td>
+<td><div class="line-block">
+<div class="line">Learning rate for soft q</div>
+<div class="line">network.</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Defalut to 1e-3, when</div>
+<div class="line">model.value_network</div>
+<div class="line">is True.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate_policy</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>3e-4</p></td>
+<td><div class="line-block">
+<div class="line">Learning rate for policy</div>
+<div class="line">network.</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Defalut to 1e-3, when</div>
+<div class="line">model.value_network</div>
+<div class="line">is True.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate_value</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>3e-4</p></td>
+<td><div class="line-block">
+<div class="line">Learning rate for policy</div>
+<div class="line">network.</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Defalut to None when</div>
+<div class="line">model.value_network</div>
+<div class="line">is False.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.alpha</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.2</p></td>
+<td><div class="line-block">
+<div class="line">Entropy regularization</div>
+<div class="line">coefficient.</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">alpha is initiali-</div>
+<div class="line">zation for auto</div>
+<div class="line"><cite>alpha</cite>, when</div>
+<div class="line">auto_alpha is True</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.repara_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">meterization</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Determine whether to use</div>
+<div class="line">reparameterization trick.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>12</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">auto_alpha</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Determine whether to use</div>
+<div class="line">auto temperature parameter</div>
+<div class="line"><cite>alpha</cite>.</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Temperature parameter</div>
+<div class="line">determines the</div>
+<div class="line">relative importance</div>
+<div class="line">of the entropy term</div>
+<div class="line">against the reward.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>13</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.-</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">ignore_done</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Determine whether to ignore</div>
+<div class="line">done flag.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Use ignore_done only</div>
+<div class="line">in halfcheetah env.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>14</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.-</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">target_theta</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.005</p></td>
+<td><div class="line-block">
+<div class="line">Used for soft update of the</div>
+<div class="line">target network.</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">aka. Interpolation</div>
+<div class="line">factor in polyak aver</div>
+<div class="line">aging for target</div>
+<div class="line">networks.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.cql.</span></span><span class="sig-name descname"><span class="pre">CQLDiscretePolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/cql.html#CQLDiscretePolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Policy class of CQL algorithm in discrete environments.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HalfCheetah</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>57.6
+<span class="math notranslate nohighlight">\(\pm\)</span>
+3.7</p></td>
+<td><img alt="../_images/halfcheetah_cql.png" src="../_images/halfcheetah_cql.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_cql_medium_expert_config.py">config_link_ha</a></p></td>
+<td><p>CQL Repo (75.6
+<span class="math notranslate nohighlight">\(\pm\)</span> 25.7)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>109.7
+<span class="math notranslate nohighlight">\(\pm\)</span>
+0.8</p></td>
+<td><img alt="../_images/walker2d_cql.png" src="../_images/walker2d_cql.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_cql_medium_expert_config.py">config_link_w</a></p></td>
+<td><p>CQL Repo (107.9
+<span class="math notranslate nohighlight">\(\pm\)</span> 1.6)</p></td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>85.4
+<span class="math notranslate nohighlight">\(\pm\)</span>
+14.8</p></td>
+<td><img alt="../_images/hopper_cql.png" src="../_images/hopper_cql.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_sac_cql_medium_expert_config.py">config_link_ho</a></p></td>
+<td><p>CQL Repo (105.6
+<span class="math notranslate nohighlight">\(\pm\)</span> 12.9)</p></td>
+</tr>
+</tbody>
+</table>
+<p>对于每个数据集，我们的实现结果如下：
++———————+—————–+—————-+—————–+—————–+———————-+
+| environment         <a href="#id14"><span class="problematic" id="id15">|</span></a>random           <a href="#id16"><span class="problematic" id="id17">|</span></a>medium replay   <a href="#id18"><span class="problematic" id="id19">|</span></a>medium expert    <a href="#id20"><span class="problematic" id="id21">|</span></a>medium           <a href="#id22"><span class="problematic" id="id23">|</span></a>expert                |
++=====================+=================+================+=================+=================+======================+
+|                     |                 |                |                 |                 |                      |
+<a href="#id24"><span class="problematic" id="id25">|</span></a>HalfCheetah          <a href="#id26"><span class="problematic" id="id27">|</span></a>18.7 <span class="math notranslate nohighlight">\(\pm\)</span> <a href="#id28"><span class="problematic" id="id29">|</span></a>47.1 <span class="math notranslate nohighlight">\(\pm\)</span>pm` <a href="#id30"><span class="problematic" id="id31">|</span></a>49.7 <span class="math notranslate nohighlight">\(\pm\)</span> <a href="#id32"><span class="problematic" id="id33">|</span></a>75.1 <span class="math notranslate nohighlight">\(\pm\)</span>      |
+|                     <a href="#id34"><span class="problematic" id="id35">|</span></a>1.2              <a href="#id36"><span class="problematic" id="id37">|</span></a>0.3             <a href="#id38"><span class="problematic" id="id39">|</span></a>3.7              <a href="#id40"><span class="problematic" id="id41">|</span></a>0.4              <a href="#id42"><span class="problematic" id="id43">|</span></a>18.4                  |
++———————+—————–+—————-+—————–+—————–+———————-+
+|                     |                 |                |                 |                 |                      |
+<a href="#id44"><span class="problematic" id="id45">|</span></a>Walker2d             <a href="#id46"><span class="problematic" id="id47">|</span></a>22.0 <span class="math notranslate nohighlight">\(\pm\)</span> <a href="#id48"><span class="problematic" id="id49">|</span></a>82.6 <span class="math notranslate nohighlight">\(\pm\)</span>pm`|82.4 <span class="math notranslate nohighlight">\(\pm\)</span> <a href="#id50"><span class="problematic" id="id51">|</span></a>109.2 <span class="math notranslate nohighlight">\(\pm\)</span>     |
+|                     <a href="#id52"><span class="problematic" id="id53">|</span></a>0.0              <a href="#id54"><span class="problematic" id="id55">|</span></a>3.4             <a href="#id56"><span class="problematic" id="id57">|</span></a>0.8              <a href="#id58"><span class="problematic" id="id59">|</span></a>1.9              <a href="#id60"><span class="problematic" id="id61">|</span></a>0.3                   |
++———————+—————–+—————-+—————–+—————–+———————-+
+|                     |                 |                |                 |                 |                      |
+<a href="#id62"><span class="problematic" id="id63">|</span></a>Hopper               <a href="#id64"><span class="problematic" id="id65">|</span></a>3.1 <span class="math notranslate nohighlight">\(\pm\)</span>  <a href="#id66"><span class="problematic" id="id67">|</span></a>98.3 <span class="math notranslate nohighlight">\(\pm\)</span>pm` <a href="#id68"><span class="problematic" id="id69">|</span></a>79.6 <span class="math notranslate nohighlight">\(\pm\)</span> <a href="#id70"><span class="problematic" id="id71">|</span></a>105.4  <span class="math notranslate nohighlight">\(\pm\)</span>    |
+|                     <a href="#id72"><span class="problematic" id="id73">|</span></a>2.6              <a href="#id74"><span class="problematic" id="id75">|</span></a>1.8             <a href="#id76"><span class="problematic" id="id77">|</span></a>14.8             <a href="#id78"><span class="problematic" id="id79">|</span></a>8.5              <a href="#id80"><span class="problematic" id="id81">|</span></a>7.2                   |
++———————+—————–+—————-+—————–+—————–+———————-+</p>
+<p>P.S.：</p>
+<ol class="arabic">
+<li><p>上述结果是通过在四个不同的随机种子（5、10、20、30）上运行相同的配置获得的。</p></li>
+<li><p>上述基准测试是针对HalfCheetah-v2、Hopper-v2、Walker2d-v2。</p></li>
+<li><p>上述比较结果是通过论文r <a class="reference external" href="https://openreview.net/pdf?id=Y4cs1Z3HnqL">Pessimistic Bootstrapping for Uncertainty-Driven Offline Reinforcement Learning</a>.
+获得的。完整表格如下所示。</p>
+<a class="reference internal image-reference" href="../_images/cql_official.png"><img alt="../_images/cql_official.png" class="align-center" src="../_images/cql_official.png" style="width: 769.6px; height: 451.6px;" /></a>
+</li>
+<li><p>上图给出了没有进行归一化(可以直接通过 env.get_normalized_score 函数得到)的结果。</p></li>
+</ol>
+</section>
+<section id="id82">
+<h2>引用<a class="headerlink" href="#id82" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Kumar, Aviral, et al. “Conservative q-learning for offline reinforcement learning.” arXiv preprint arXiv:2006.04779 (2020).</p></li>
+<li><p>Chenjia Bai, et al. “Pessimistic Bootstrapping for Uncertainty-Driven Offline Reinforcement Learning.”</p></li>
+</ul>
+</section>
+<section id="id83">
+<h2>其他开源实现<a class="headerlink" href="#id83" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/aviralkumar2907/CQL">CQL release repo</a></p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="edac_zh.html" class="btn btn-neutral float-right" title="EDAC" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="r2d3_zh.html" class="btn btn-neutral" title="R2D3" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">CQL</a><ul>
+<li><a class="reference internal" href="#id1">综述</a></li>
+<li><a class="reference internal" href="#id2">快速了解</a></li>
+<li><a class="reference internal" href="#id3">重要公式/重要图示</a></li>
+<li><a class="reference internal" href="#id10">伪代码</a></li>
+<li><a class="reference internal" href="#id13">实现</a></li>
+<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li><a class="reference internal" href="#id82">引用</a></li>
+<li><a class="reference internal" href="#id83">其他开源实现</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

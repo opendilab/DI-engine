@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="D4PG" href="d4pg.html" />
-  <link rel="prev" title="PPG" href="ppg.html" />
+  <link rel="next" title="ICM" href="icm_zh.html" />
+  <link rel="prev" title="QRDQN" href="qrdqn_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -204,30 +204,30 @@
         
         
         
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
 </ul>
 
         
@@ -260,13 +260,13 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="../index.html">
+        <a href="../index_zh.html">
             Docs
         </a> &gt;
       </li>
 
         
-          <li><a href="index.html">RL Algorithms Cheat Sheet</a> &gt;</li>
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
         
       <li>DDPG</li>
     
@@ -274,7 +274,7 @@
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/12_policies/ddpg.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/12_policies/ddpg_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -300,45 +300,52 @@
                 
   <section id="ddpg">
 <h1>DDPG<a class="headerlink" href="#ddpg" title="Permalink to this headline">¶</a></h1>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Deep Deterministic Policy Gradient (DDPG), proposed in the 2015 paper <a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a>, is an algorithm which learns a Q-function and a policy simultaneously.
-DDPG is an actor-critic, model-free algorithm based on the deterministic policy gradient(DPG) that can operate over high-dimensional, continuous action spaces.
-DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver14.pdf">Deterministic policy gradient algorithms</a> algorithm is similar to NFQCA <a class="reference external" href="https://link.springer.com/content/pdf/10.1007/s10994-011-5235-x.pdf?pdf=button">Reinforcement learning in feedback control</a>.</p>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>DDPG (Deep Deterministic Policy Gradient) 首次在论文
+<a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> 中提出,
+是一种同时学习Q函数和策略函数的算法。</p>
+<p>DDPG 是基于 DPG (deterministic policy gradient) 的 <strong>无模型（model-free）</strong> 算法，属于 <strong>演员—评委（actor-critic）</strong> 方法中的一员，可以在高维、连续的动作空间上运行。
+其中算法 DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver14.pdf">Deterministic policy gradient algorithms</a> 与算法 NFQCA <a class="reference external" href="https://link.springer.com/content/pdf/10.1007/s10994-011-5235-x.pdf?pdf=button">Reinforcement learning in feedback control</a> 相似。</p>
 </section>
-<section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>DDPG is only used for environments with <strong>continuous action spaces</strong> (e.g. MuJoCo).</p></li>
-<li><p>DDPG is an <strong>off-policy</strong> algorithm.</p></li>
-<li><p>DDPG is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes the actor network and the critic network, respectively.</p></li>
-<li><p>Usually, DDPG use <strong>Ornstein-Uhlenbeck process</strong> or <strong>Gaussian process</strong> (default in our implementation) for exploration.</p></li>
+<li><p>DDPG 仅支持 <strong>连续动作空间</strong> （例如： MuJoCo）.</p></li>
+<li><p>DDPG 是一种 <strong>异策略（off-policy）</strong> 算法.</p></li>
+<li><p>DDPG 是一种 <strong>无模型（model-free）</strong> 和 <strong>演员—评委（actor-critic）</strong> 的强化学习算法，它会分别优化策略网络和Q网络。</p></li>
+<li><p>通常, DDPG 使用 <strong>奥恩斯坦-乌伦贝克过程（Ornstein-Uhlenbeck process）</strong> 或 <strong>高斯过程（Gaussian process）</strong> （在我们的实现中默认使用高斯过程）来探索环境。</p></li>
 </ol>
 </section>
-<section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>The DDPG algorithm maintains a parameterized actor function <span class="math notranslate nohighlight">\(\mu\left(s \mid \theta^{\mu}\right)\)</span> which specifies the current policy by deterministically mapping states to a specific action. The critic <span class="math notranslate nohighlight">\(Q(s, a)\)</span> is learned using the Bellman equation as in Q-learning.</p>
-<p>The actor is updated by following the applying the chain rule to the expected return from the start distribution <span class="math notranslate nohighlight">\(J\)</span> with respect to the actor parameters.</p>
-<p>Specifically, to maximize the expected payoff <span class="math notranslate nohighlight">\(J\)</span>, the algorithm needs to compute the gradient of <span class="math notranslate nohighlight">\(J\)</span> on the policy function argument <span class="math notranslate nohighlight">\(\theta^{\mu}\)</span>. <span class="math notranslate nohighlight">\(J\)</span> is <span class="math notranslate nohighlight">\(Q (s, a)\)</span> expectations, so the problem is transformed into computing <span class="math notranslate nohighlight">\(Q^{\mu} (s, \mu(s))\)</span> to <span class="math notranslate nohighlight">\(\theta^{\mu}\)</span> gradient.</p>
-<p>According to the chain rule, <span class="math notranslate nohighlight">\(\nabla_{\theta^{\mu}} Q^{\mu}(s,  \mu(s)) = \nabla_{\theta^{\mu}}\mu(s)\nabla_{a}Q^\mu(s,a)|_{ a=\mu\left(s\right)}+\nabla_{\theta^{\mu}} Q^{\mu}(s,  a)|_{ a=\mu\left(s\right)}\)</span>.</p>
-<p>Similar to the derivation of <strong>off-policy stochastic policy gradient</strong> from <a class="reference external" href="https://arxiv.org/pdf/1205.4839.pdf">Off-Policy Actor-Critic</a>, <a class="reference external" href="http://proceedings.mlr.press/v32/silver14.pdf">Deterministic policy gradient algorithms</a> dropped the second term.
-Thus, the approximate <strong>deterministic policy gradient theorem</strong> is obtained:</p>
+<section id="id3">
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>DDPG 包含一个参数化的策略函数（actor） <span class="math notranslate nohighlight">\(\mu\left(s \mid \theta^{\mu}\right)\)</span> ,
+此函数通过将每一个状态确定性地映射到一个具体的动作从而明确当前策略。
+此外，算法还包含一个参数化的Q函数（critic） <span class="math notranslate nohighlight">\(Q(s, a)\)</span> 。
+正如 Q-learning 算法，此函数通过贝尔曼方程优化自身。</p>
+<p>策略网络通过将链式法则应用于初始分布的预期收益 <span class="math notranslate nohighlight">\(J\)</span> 来更新自身参数。</p>
+<p>具体而言，为了最大化预期收益 <span class="math notranslate nohighlight">\(J\)</span> ，算法需要计算 <span class="math notranslate nohighlight">\(J\)</span> 对策略函数参数 <span class="math notranslate nohighlight">\(\theta^{\mu}\)</span> 的梯度。 <span class="math notranslate nohighlight">\(J\)</span> 是 <span class="math notranslate nohighlight">\(Q(s, a)\)</span> 的期望，所以问题转化为计算 <span class="math notranslate nohighlight">\(Q^{\mu}(s, \mu(s))\)</span> 对 <span class="math notranslate nohighlight">\(\theta^{\mu}\)</span> 的梯度。</p>
+<p>根据链式法则，<span class="math notranslate nohighlight">\(\nabla_{\theta^{\mu}} Q^{\mu}(s, \mu(s)) = \nabla_{\theta^{\mu}}\mu(s)\nabla_{a}Q^\mu(s,a)|_{ a=\mu\left(s\right)}+\nabla_{\theta^{\mu}} Q^{\mu}(s, a)|_{ a=\mu\left(s\right)}\)</span>。</p>
+<p><a class="reference external" href="http://proceedings.mlr.press/v32/silver14.pdf">Deterministic policy gradient algorithms</a> 采取了与 <a class="reference external" href="https://arxiv.org/pdf/1205.4839.pdf">Off-Policy Actor-Critic</a> 中推导 <strong>异策略版本的随机性策略梯度定理</strong> 类似的做法，舍去了上式第二项，
+从而得到了近似后的 <strong>确定性策略梯度定理</strong> ：</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{aligned}
 \nabla_{\theta^{\mu}} J &amp; \approx \mathbb{E}_{s_{t} \sim \rho^{\beta}}\left[\left.\nabla_{\theta^{\mu}} Q\left(s, a \mid \theta^{Q}\right)\right|_{s=s_{t}, a=\mu\left(s_{t} \mid \theta^{\mu}\right)}\right] \\
 &amp;=\mathbb{E}_{s_{t} \sim \rho^{\beta}}\left[\left.\left.\nabla_{a} Q\left(s, a \mid \theta^{Q}\right)\right|_{s=s_{t}, a=\mu\left(s_{t}\right)} \nabla_{\theta^{\mu}} \mu\left(s \mid \theta^{\mu}\right)\right|_{s=s_{t}}\right]
 \end{aligned}\end{split}\]</div>
-<p>DDPG uses a <strong>replay buffer</strong> to guarantee that the samples are independently and identically distributed.</p>
-<p>To keep neural networks stable in many environments, DDPG uses <strong>“soft” target updates</strong> to update target networks rather than directly copying the weights. Specifically, DDPG creates a copy of the actor and critic networks, <span class="math notranslate nohighlight">\(Q'(s, a|\theta^{Q'})\)</span> and <span class="math notranslate nohighlight">\(\mu' \left(s \mid \theta^{\mu'}\right)\)</span> respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:</p>
+<p>DDPG 使用了一个 <strong>经验回放池（replay buffer）</strong> 来保证样本分布独立一致。</p>
+<p>为了使神经网络稳定优化，DDPG 使用 <strong>软更新（“soft” target updates）</strong> 的方式来优化目标网络，而不是像 DQN 中的 hard target updates 那样定期直接复制网络的参数。
+具体而言，DDPG 分别拷贝了 actor 网络 <span class="math notranslate nohighlight">\(\mu' \left(s \mid \theta^{\mu'}\right)\)</span> 和 critic 网络 <span class="math notranslate nohighlight">\(Q'(s, a|\theta^{Q'})\)</span> 用于计算目标值。
+然后通过让这些目标网络缓慢跟踪学习到的网络来更新这些目标网络的权重：</p>
 <div class="math notranslate nohighlight">
 \[\theta' \leftarrow \tau \theta + (1 - \tau)\theta',\]</div>
-<p>where <span class="math notranslate nohighlight">\(\tau&lt;&lt;1\)</span>. This means that the target values are constrained to change slowly, greatly improving the stability of learning.</p>
-<p>A major challenge of learning in continuous action spaces is exploration. However, it is an advantage for off-policies algorithms such as DDPG that the problem of exploration could be treated independently from the learning algorithm. Specifically, we constructed an exploration policy by adding noise sampled from a noise process N to actor policy:</p>
+<p>其中 <span class="math notranslate nohighlight">\(\tau&lt;&lt;1\)</span>。这意味着目标值被限制为缓慢变化，大大提高了学习的稳定性。</p>
+<p>在连续行动空间中学习的一个主要挑战是探索。然而，对于像DDPG这样的 <strong>异策略（off-policy）</strong> 算法来说，它的一个优势是可以独立于算法中的学习过程来处理探索问题。具体来说，我们通过将噪声过程 <span class="math notranslate nohighlight">\(\mathcal{N}\)</span> 采样的噪声添加到 actor 策略中来构建探索策略:</p>
 <div class="math notranslate nohighlight">
 \[\mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}\]</div>
 </section>
-<section id="pseudocode">
-<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<section id="id5">
+<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
     \caption{Deep Deterministic Policy Gradient}
@@ -379,39 +386,39 @@ Thus, the approximate <strong>deterministic policy gradient theorem</strong> is 
 \end{algorithm}\end{split}\end{aligned}\end{align} \]</div>
 <a class="reference internal image-reference" href="../_images/DDPG.jpg"><img alt="../_images/DDPG.jpg" class="align-center" src="../_images/DDPG.jpg" style="width: 751.5px; height: 556.5px;" /></a>
 </section>
-<section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h2>扩展<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <dl>
-<dt>DDPG can be combined with:</dt><dd><ul>
-<li><p>Target Network</p>
+<dt>DDPG 可以与以下技术相结合使用:</dt><dd><ul>
+<li><p>目标网络</p>
 <blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> proposes soft target updates used to keep the network training stable.
-Since we implement soft update Target Network for actor-critic through <code class="docutils literal notranslate"><span class="pre">TargetNetworkWrapper</span></code> in <code class="docutils literal notranslate"><span class="pre">model_wrap</span></code> and configuring <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code>.</p>
+<div><p><a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> 提出了利用软目标更新保持网络训练稳定的方法。
+因此我们通过 <code class="docutils literal notranslate"><span class="pre">model_wrap</span></code> 中的 <code class="docutils literal notranslate"><span class="pre">TargetNetworkWrapper</span></code> 和配置 <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code> 来实现 <strong>演员—评委（actor-critic）</strong> 的软更新目标网络。</p>
 </div></blockquote>
 </li>
-<li><p>Initial collection of replay buffer following random policy</p>
+<li><p>遵循随机策略的经验回放池初始采集</p>
 <blockquote>
-<div><p>Before optimizing the model parameters, we need to have a sufficient number of transition data in the replay buffer following random policy to ensure that the model does not overfit the replay buffer data at the beginning of the algorithm.
-So we control the number of transitions in the initial replay buffer by configuring <code class="docutils literal notranslate"><span class="pre">random_collect_size</span></code>.
-DDPG/TD3 <code class="docutils literal notranslate"><span class="pre">random_collect_size</span></code> is set to 25000 by default, while it is 10000 for SAC.
-We only simply follow SpinningUp default setting and use random policy to collect initialization data.</p>
+<div><p>在优化模型参数前，我们需要让经验回放池存有足够数目的遵循随机策略的 transition 数据，从而确保在算法初期模型不会对经验回放池数据过拟合。
+因此我们通过配置 <code class="docutils literal notranslate"><span class="pre">random-collect-size</span></code> 来控制初始经验回放池中的 transition 数目。
+DDPG/TD3 的 <code class="docutils literal notranslate"><span class="pre">random-collect-size</span></code> 默认设置为25000, SAC 为10000。
+我们只是简单地遵循 SpinningUp 默认设置，并使用随机策略来收集初始化数据。</p>
 </div></blockquote>
 </li>
-<li><p>Gaussian noise during collecting transition</p>
+<li><p>采集过渡过程中的高斯噪声</p>
 <blockquote>
-<div><p>For the exploration noise process DDPG uses temporally correlated noise in order to generate temporally correlated exploration for exploration efficiency in physical control problems with inertia.
-Specifically, DDPG uses Ornstein-Uhlenbeck process with <span class="math notranslate nohighlight">\(\theta = 0.15\)</span> and <span class="math notranslate nohighlight">\(\sigma = 0.2\)</span>. The Ornstein-Uhlenbeck process models the velocity of a Brownian particle with friction, which results in temporally correlated values centered around 0.
-However, we use Gaussian noise instead of Ornstein-Uhlenbeck noise due to too many hyper-parameters of Ornstein-Uhlenbeck noise.
-We configure <code class="docutils literal notranslate"><span class="pre">collect.noise_sigma</span></code> to control the exploration.</p>
+<div><p>对于探索噪声过程，DDPG使用时间相关噪声，以提高具有惯性的物理控制问题的探索效率。
+具体而言，DDPG 使用 Ornstein-Uhlenbeck 过程，其中 <span class="math notranslate nohighlight">\(\theta = 0.15\)</span> 且 <span class="math notranslate nohighlight">\(\sigma = 0.2\)</span>。Ornstein-Uhlenbeck 过程模拟了带有摩擦的布朗粒子的速度，其结果是以 0 为中心的时间相关值。
+然而，由于 Ornstein-Uhlenbeck 噪声的超参数太多，我们使用高斯噪声代替了 Ornstein-Uhlenbeck 噪声。
+我们通过配置 <code class="docutils literal notranslate"><span class="pre">collect.noise_sigma</span></code> 来控制探索程度。</p>
 </div></blockquote>
 </li>
 </ul>
 </dd>
 </dl>
 </section>
-<section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
-<p>The default config is defined as follows:</p>
+<section id="id8">
+<h2>实现<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>默认配置定义如下:</p>
 <dl class="py class">
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.ddpg.</span></span><span class="sig-name descname"><span class="pre">DDPGPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/ddpg.html#DDPGPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
@@ -693,9 +700,9 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </div></blockquote>
 </dd></dl>
 
-<section id="model">
-<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
-<p>Here we provide examples of <cite>QAC</cite> model as default model for <cite>DDPG</cite>.</p>
+<section id="id9">
+<h3>模型<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>在这里，我们提供了 <cite>QAC</cite> 模型作为 <cite>DDPG</cite> 的默认模型的示例。</p>
 <dl class="py class">
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qac.</span></span><span class="sig-name descname"><span class="pre">QAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">,</span> </span><span class="pre">easydict.EasyDict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_space</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twin_critic</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[32,</span> <span class="pre">64,</span> <span class="pre">256]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
@@ -860,10 +867,10 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 </dd></dl>
 
 </section>
-<section id="train-actor-critic-model">
-<h3>Train actor-critic model<a class="headerlink" href="#train-actor-critic-model" title="Permalink to this headline">¶</a></h3>
-<p>First, we initialize actor and critic optimizer in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>, respectively.
-Setting up two separate optimizers can guarantee that we <strong>only update</strong> actor network parameters and not critic network when we compute actor loss, vice versa.</p>
+<section id="actor-critic">
+<h3>训练 actor-critic 模型<a class="headerlink" href="#actor-critic" title="Permalink to this headline">¶</a></h3>
+<p>首先，我们在 <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code> 中分别初始化 actor 和 critic 优化器。
+设置两个独立的优化器可以保证我们在计算 actor 损失时只更新 actor 网络参数而不更新 critic 网络，反之亦然。</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># actor and critic optimizer</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
@@ -880,11 +887,11 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 </div>
 </div></blockquote>
 <dl>
-<dt>In <code class="docutils literal notranslate"><span class="pre">_forward_learn</span></code> we update actor-critic policy through computing critic loss, updating critic network, computing actor loss, and updating actor network.</dt><dd><ol class="arabic">
+<dt>在 <code class="docutils literal notranslate"><span class="pre">_forward_learn</span></code> 中，我们通过计算 critic 损失、更新 critic 网络、计算 actor 损失和更新 actor 网络来更新 actor-critic 策略。</dt><dd><ol class="arabic">
 <li><p><code class="docutils literal notranslate"><span class="pre">critic</span> <span class="pre">loss</span> <span class="pre">computation</span></code></p>
 <blockquote>
 <div><ul class="simple">
-<li><p>current and target value computation</p></li>
+<li><p>计算当前值和目标值</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># current q value</span>
 <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
@@ -896,7 +903,7 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>loss computation</p></li>
+<li><p>计算损失</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DDPG: single critic network</span>
 <span class="n">td_data</span> <span class="o">=</span> <span class="n">v_1step_td_data</span><span class="p">(</span><span class="n">q_value</span><span class="p">,</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">])</span>
@@ -934,10 +941,10 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 </dd>
 </dl>
 </section>
-<section id="target-network">
-<h3>Target Network<a class="headerlink" href="#target-network" title="Permalink to this headline">¶</a></h3>
-<p>We implement Target Network trough target model initialization in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>.
-We configure <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code> to control the interpolation factor in averaging.</p>
+<section id="id10">
+<h3>目标网络<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>我们通过 <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code> 中的目标模型初始化来实现目标网络。
+我们配置 <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code> 来控制平均中的插值因子。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># main and target models</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
@@ -950,8 +957,8 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
 </div>
 </section>
 </section>
-<section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<section id="id11">
+<h2>基准<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 15%" />
@@ -1001,20 +1008,20 @@ Spinning-up(1950)</p></td>
 </tr>
 </tbody>
 </table>
-<p>P.S.:</p>
+<p>P.S.：</p>
 <ol class="arabic simple">
-<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+<li><p>上述结果是通过在五个不同的随机种子(0,1,2,3,4)上运行相同的配置获得的。</p></li>
 </ol>
 </section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<section id="id12">
+<h2>参考<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
 <p>Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [<a class="reference external" href="http://arxiv.org/abs/1509.02971">http://arxiv.org/abs/1509.02971</a> arXiv:1509.02971].</p>
 <p>David Silver, Guy Lever, Nicolas Heess, Thomas Degris, Daan Wierstra, et al.. Deterministic Policy Gradient Algorithms. ICML, Jun 2014, Beijing, China. ffhal-00938992f</p>
 <p>Hafner, R., Riedmiller, M. Reinforcement learning in feedback control. Mach Learn 84, 137–169 (2011).</p>
 <p>Degris, T., White, M., and Sutton, R. S. (2012b). Linear off-policy actor-critic. In 29th International Conference on Machine Learning.</p>
 </section>
-<section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<section id="id13">
+<h2>其他公开的实现<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/ddpg">Baselines</a></p></li>
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ddpg">sb3</a></p></li>
@@ -1035,12 +1042,12 @@ Spinning-up(1950)</p></td>
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="d4pg.html" class="btn btn-neutral float-right" title="D4PG" accesskey="n"
+    <a href="icm_zh.html" class="btn btn-neutral float-right" title="ICM" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="ppg.html" class="btn btn-neutral" title="PPG" accesskey="p"
+    <a href="qrdqn_zh.html" class="btn btn-neutral" title="QRDQN" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -1071,20 +1078,20 @@ Spinning-up(1950)</p></td>
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">DDPG</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
-<li><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
-<li><a class="reference internal" href="#pseudocode">Pseudocode</a></li>
-<li><a class="reference internal" href="#extensions">Extensions</a></li>
-<li><a class="reference internal" href="#implementations">Implementations</a><ul>
-<li><a class="reference internal" href="#model">Model</a></li>
-<li><a class="reference internal" href="#train-actor-critic-model">Train actor-critic model</a></li>
-<li><a class="reference internal" href="#target-network">Target Network</a></li>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">核心要点</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
+<li><a class="reference internal" href="#id5">伪代码</a></li>
+<li><a class="reference internal" href="#id6">扩展</a></li>
+<li><a class="reference internal" href="#id8">实现</a><ul>
+<li><a class="reference internal" href="#id9">模型</a></li>
+<li><a class="reference internal" href="#actor-critic">训练 actor-critic 模型</a></li>
+<li><a class="reference internal" href="#id10">目标网络</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
-<li><a class="reference internal" href="#references">References</a></li>
-<li><a class="reference internal" href="#other-public-implementations">Other Public Implementations</a></li>
+<li><a class="reference internal" href="#id11">基准</a></li>
+<li><a class="reference internal" href="#id12">参考</a></li>
+<li><a class="reference internal" href="#id13">其他公开的实现</a></li>
 </ul>
 </li>
 </ul>

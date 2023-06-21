@@ -1,35 +1,42 @@
 DDPG
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Overview
+概述
 ---------
 
-Deep Deterministic Policy Gradient (DDPG), proposed in the 2015 paper `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_, is an algorithm which learns a Q-function and a policy simultaneously.
-DDPG is an actor-critic, model-free algorithm based on the deterministic policy gradient(DPG) that can operate over high-dimensional, continuous action spaces.
-DPG `Deterministic policy gradient algorithms <http://proceedings.mlr.press/v32/silver14.pdf>`_ algorithm is similar to NFQCA `Reinforcement learning in feedback control <https://link.springer.com/content/pdf/10.1007/s10994-011-5235-x.pdf?pdf=button>`_.
+DDPG (Deep Deterministic Policy Gradient) 首次在论文
+`Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ 中提出,
+是一种同时学习Q函数和策略函数的算法。
 
-Quick Facts
+DDPG 是基于 DPG (deterministic policy gradient) 的 **无模型（model-free）** 算法，属于 **演员—评委（actor-critic）** 方法中的一员，可以在高维、连续的动作空间上运行。
+其中算法 DPG `Deterministic policy gradient algorithms <http://proceedings.mlr.press/v32/silver14.pdf>`_ 与算法 NFQCA `Reinforcement learning in feedback control <https://link.springer.com/content/pdf/10.1007/s10994-011-5235-x.pdf?pdf=button>`_ 相似。
+
+核心要点
 -----------
-1. DDPG is only used for environments with **continuous action spaces** (e.g. MuJoCo).
+1. DDPG 仅支持 **连续动作空间** （例如： MuJoCo）.
 
-2. DDPG is an **off-policy** algorithm.
+2. DDPG 是一种 **异策略（off-policy）** 算法.
 
-3. DDPG is a **model-free** and **actor-critic** RL algorithm, which optimizes the actor network and the critic network, respectively.
+3. DDPG 是一种 **无模型（model-free）** 和 **演员—评委（actor-critic）** 的强化学习算法，它会分别优化策略网络和Q网络。
 
-4. Usually, DDPG use **Ornstein-Uhlenbeck process** or **Gaussian process** (default in our implementation) for exploration.
+4. 通常, DDPG 使用 **奥恩斯坦-乌伦贝克过程（Ornstein-Uhlenbeck process）** 或 **高斯过程（Gaussian process）** （在我们的实现中默认使用高斯过程）来探索环境。
 
-Key Equations or Key Graphs
+关键方程或关键框图
 ---------------------------
-The DDPG algorithm maintains a parameterized actor function :math:`\mu\left(s \mid \theta^{\mu}\right)` which specifies the current policy by deterministically mapping states to a specific action. The critic :math:`Q(s, a)` is learned using the Bellman equation as in Q-learning.
+DDPG 包含一个参数化的策略函数（actor） :math:`\mu\left(s \mid \theta^{\mu}\right)` ,
+此函数通过将每一个状态确定性地映射到一个具体的动作从而明确当前策略。
+此外，算法还包含一个参数化的Q函数（critic） :math:`Q(s, a)` 。
+正如 Q-learning 算法，此函数通过贝尔曼方程优化自身。
 
-The actor is updated by following the applying the chain rule to the expected return from the start distribution :math:`J` with respect to the actor parameters.
+策略网络通过将链式法则应用于初始分布的预期收益 :math:`J` 来更新自身参数。
 
-Specifically, to maximize the expected payoff :math:`J`, the algorithm needs to compute the gradient of :math:`J` on the policy function argument :math:`\theta^{\mu}`. :math:`J` is :math:`Q (s, a)` expectations, so the problem is transformed into computing :math:`Q^{\mu} (s, \mu(s))` to :math:`\theta^{\mu}` gradient.
+具体而言，为了最大化预期收益 :math:`J` ，算法需要计算 :math:`J` 对策略函数参数 :math:`\theta^{\mu}` 的梯度。 :math:`J` 是 :math:`Q(s, a)` 的期望，所以问题转化为计算 :math:`Q^{\mu}(s, \mu(s))` 对 :math:`\theta^{\mu}` 的梯度。
 
-According to the chain rule, :math:`\nabla_{\theta^{\mu}} Q^{\mu}(s,  \mu(s)) = \nabla_{\theta^{\mu}}\mu(s)\nabla_{a}Q^\mu(s,a)|_{ a=\mu\left(s\right)}+\nabla_{\theta^{\mu}} Q^{\mu}(s,  a)|_{ a=\mu\left(s\right)}`.
+根据链式法则，:math:`\nabla_{\theta^{\mu}} Q^{\mu}(s, \mu(s)) = \nabla_{\theta^{\mu}}\mu(s)\nabla_{a}Q^\mu(s,a)|_{ a=\mu\left(s\right)}+\nabla_{\theta^{\mu}} Q^{\mu}(s, a)|_{ a=\mu\left(s\right)}`。
 
-Similar to the derivation of **off-policy stochastic policy gradient** from `Off-Policy Actor-Critic <https://arxiv.org/pdf/1205.4839.pdf>`_, `Deterministic policy gradient algorithms <http://proceedings.mlr.press/v32/silver14.pdf>`_ dropped the second term.
-Thus, the approximate **deterministic policy gradient theorem** is obtained:
+`Deterministic policy gradient algorithms <http://proceedings.mlr.press/v32/silver14.pdf>`_ 采取了与 `Off-Policy Actor-Critic <https://arxiv.org/pdf/1205.4839.pdf>`_ 中推导 **异策略版本的随机性策略梯度定理** 类似的做法，舍去了上式第二项，
+从而得到了近似后的 **确定性策略梯度定理** ：
+
 
 .. math::
     \begin{aligned}
@@ -37,22 +44,24 @@ Thus, the approximate **deterministic policy gradient theorem** is obtained:
     &=\mathbb{E}_{s_{t} \sim \rho^{\beta}}\left[\left.\left.\nabla_{a} Q\left(s, a \mid \theta^{Q}\right)\right|_{s=s_{t}, a=\mu\left(s_{t}\right)} \nabla_{\theta^{\mu}} \mu\left(s \mid \theta^{\mu}\right)\right|_{s=s_{t}}\right]
     \end{aligned}
 
-DDPG uses a **replay buffer** to guarantee that the samples are independently and identically distributed.
+DDPG 使用了一个 **经验回放池（replay buffer）** 来保证样本分布独立一致。
 
-To keep neural networks stable in many environments, DDPG uses **“soft” target updates** to update target networks rather than directly copying the weights. Specifically, DDPG creates a copy of the actor and critic networks, :math:`Q'(s, a|\theta^{Q'})` and :math:`\mu' \left(s \mid \theta^{\mu'}\right)` respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:
+为了使神经网络稳定优化，DDPG 使用 **软更新（“soft” target updates）** 的方式来优化目标网络，而不是像 DQN 中的 hard target updates 那样定期直接复制网络的参数。
+具体而言，DDPG 分别拷贝了 actor 网络 :math:`\mu' \left(s \mid \theta^{\mu'}\right)` 和 critic 网络 :math:`Q'(s, a|\theta^{Q'})` 用于计算目标值。
+然后通过让这些目标网络缓慢跟踪学习到的网络来更新这些目标网络的权重：
 
 .. math::
     \theta' \leftarrow \tau \theta + (1 - \tau)\theta',
 
-where :math:`\tau<<1`. This means that the target values are constrained to change slowly, greatly improving the stability of learning.
+其中 :math:`\tau<<1`。这意味着目标值被限制为缓慢变化，大大提高了学习的稳定性。
 
-A major challenge of learning in continuous action spaces is exploration. However, it is an advantage for off-policies algorithms such as DDPG that the problem of exploration could be treated independently from the learning algorithm. Specifically, we constructed an exploration policy by adding noise sampled from a noise process N to actor policy:
+在连续行动空间中学习的一个主要挑战是探索。然而，对于像DDPG这样的 **异策略（off-policy）** 算法来说，它的一个优势是可以独立于算法中的学习过程来处理探索问题。具体来说，我们通过将噪声过程 :math:`\mathcal{N}` 采样的噪声添加到 actor 策略中来构建探索策略:
 
 .. math::
     \mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}
 
 
-Pseudocode
+伪代码
 ----------
 
 .. math::
@@ -103,50 +112,50 @@ Pseudocode
    :scale: 75%
    :align: center
 
-Extensions
+扩展
 -----------
-DDPG can be combined with:
-    - Target Network
+DDPG 可以与以下技术相结合使用:
+    - 目标网络
 
-        `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ proposes soft target updates used to keep the network training stable.
-        Since we implement soft update Target Network for actor-critic through ``TargetNetworkWrapper`` in ``model_wrap`` and configuring ``learn.target_theta``.
+        `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ 提出了利用软目标更新保持网络训练稳定的方法。
+        因此我们通过 ``model_wrap`` 中的 ``TargetNetworkWrapper`` 和配置 ``learn.target_theta`` 来实现 **演员—评委（actor-critic）** 的软更新目标网络。
+        
+    - 遵循随机策略的经验回放池初始采集
 
-    - Initial collection of replay buffer following random policy
+        在优化模型参数前，我们需要让经验回放池存有足够数目的遵循随机策略的 transition 数据，从而确保在算法初期模型不会对经验回放池数据过拟合。
+        因此我们通过配置 ``random-collect-size`` 来控制初始经验回放池中的 transition 数目。
+        DDPG/TD3 的 ``random-collect-size`` 默认设置为25000, SAC 为10000。
+        我们只是简单地遵循 SpinningUp 默认设置，并使用随机策略来收集初始化数据。
 
-        Before optimizing the model parameters, we need to have a sufficient number of transition data in the replay buffer following random policy to ensure that the model does not overfit the replay buffer data at the beginning of the algorithm.
-        So we control the number of transitions in the initial replay buffer by configuring ``random_collect_size``.
-        DDPG/TD3 ``random_collect_size`` is set to 25000 by default, while it is 10000 for SAC.
-        We only simply follow SpinningUp default setting and use random policy to collect initialization data.
+    - 采集过渡过程中的高斯噪声
 
-    - Gaussian noise during collecting transition
-
-        For the exploration noise process DDPG uses temporally correlated noise in order to generate temporally correlated exploration for exploration efficiency in physical control problems with inertia.
-        Specifically, DDPG uses Ornstein-Uhlenbeck process with :math:`\theta = 0.15` and :math:`\sigma = 0.2`. The Ornstein-Uhlenbeck process models the velocity of a Brownian particle with friction, which results in temporally correlated values centered around 0.
-        However, we use Gaussian noise instead of Ornstein-Uhlenbeck noise due to too many hyper-parameters of Ornstein-Uhlenbeck noise.
-        We configure ``collect.noise_sigma`` to control the exploration.
+        对于探索噪声过程，DDPG使用时间相关噪声，以提高具有惯性的物理控制问题的探索效率。
+        具体而言，DDPG 使用 Ornstein-Uhlenbeck 过程，其中 :math:`\theta = 0.15` 且 :math:`\sigma = 0.2`。Ornstein-Uhlenbeck 过程模拟了带有摩擦的布朗粒子的速度，其结果是以 0 为中心的时间相关值。
+        然而，由于 Ornstein-Uhlenbeck 噪声的超参数太多，我们使用高斯噪声代替了 Ornstein-Uhlenbeck 噪声。
+        我们通过配置 ``collect.noise_sigma`` 来控制探索程度。
 
 
-Implementations
+实现
 ----------------
-The default config is defined as follows:
+默认配置定义如下:
 
 .. autoclass:: ding.policy.ddpg.DDPGPolicy
    :noindex:
 
 
-Model
+模型
 ~~~~~~~~~~~~~~~~~
-Here we provide examples of `QAC` model as default model for `DDPG`.
+在这里，我们提供了 `QAC` 模型作为 `DDPG` 的默认模型的示例。
 
 .. autoclass:: ding.model.template.qac.QAC
     :members: forward, compute_actor, compute_critic
     :noindex:
 
-Train actor-critic model
+训练 actor-critic 模型
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, we initialize actor and critic optimizer in ``_init_learn``, respectively.
-Setting up two separate optimizers can guarantee that we **only update** actor network parameters and not critic network when we compute actor loss, vice versa.
+首先，我们在 ``_init_learn`` 中分别初始化 actor 和 critic 优化器。
+设置两个独立的优化器可以保证我们在计算 actor 损失时只更新 actor 网络参数而不更新 critic 网络，反之亦然。
 
     .. code-block:: python
 
@@ -162,10 +171,10 @@ Setting up two separate optimizers can guarantee that we **only update** actor n
             weight_decay=self._cfg.learn.weight_decay
         )
 
-In ``_forward_learn`` we update actor-critic policy through computing critic loss, updating critic network, computing actor loss, and updating actor network.
+在 ``_forward_learn`` 中，我们通过计算 critic 损失、更新 critic 网络、计算 actor 损失和更新 actor 网络来更新 actor-critic 策略。
     1. ``critic loss computation``
 
-        - current and target value computation
+        - 计算当前值和目标值
 
         .. code-block:: python
 
@@ -177,7 +186,7 @@ In ``_forward_learn`` we update actor-critic policy through computing critic los
                 next_data = {'obs': next_obs, 'action': next_action}
                 target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
 
-        - loss computation
+        - 计算损失
 
         .. code-block:: python
 
@@ -212,10 +221,10 @@ In ``_forward_learn`` we update actor-critic policy through computing critic los
         actor_loss.backward()
         self._optimizer_actor.step()
 
-Target Network
+目标网络
 ~~~~~~~~~~~~~~~~~
-We implement Target Network trough target model initialization in ``_init_learn``.
-We configure ``learn.target_theta`` to control the interpolation factor in averaging.
+我们通过 ``_init_learn`` 中的目标模型初始化来实现目标网络。
+我们配置 ``learn.target_theta`` 来控制平均中的插值因子。
 
 
 .. code-block:: python
@@ -229,7 +238,7 @@ We configure ``learn.target_theta`` to control the interpolation factor in avera
         update_kwargs={'theta': self._cfg.learn.target_theta}
     )
 
-Benchmark
+基准
 -----------
 
 
@@ -259,12 +268,12 @@ Benchmark
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 
 
-P.S.:
+P.S.：
 
-1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
+1. 上述结果是通过在五个不同的随机种子(0,1,2,3,4)上运行相同的配置获得的。
 
 
-References
+参考
 -----------
 Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [http://arxiv.org/abs/1509.02971 arXiv:1509.02971].
 
@@ -274,7 +283,7 @@ Hafner, R., Riedmiller, M. Reinforcement learning in feedback control. Mach Lear
 
 Degris, T., White, M., and Sutton, R. S. (2012b). Linear off-policy actor-critic. In 29th International Conference on Machine Learning.
 
-Other Public Implementations
+其他公开的实现
 ----------------------------
 
 - Baselines_

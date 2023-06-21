@@ -24,6 +24,12 @@
 
 .. toctree::
     :maxdepth: 3
+    :caption: 演员—评委
+
+    ddpg_zh
+
+.. toctree::
+    :maxdepth: 3
     :caption: 探索
 
     icm_zh
@@ -41,4 +47,5 @@
     :maxdepth: 3
     :caption: 离线强化学习
     
+    cql_zh
     edac_zh
