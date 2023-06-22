@@ -27,6 +27,7 @@ class SILA2CPolicy(A2CPolicy):
         priority_IS_weight=False,
         # (int) Number of epochs to use SIL loss to update the policy.
         sil_update_per_collect=1,
+        sil_recompute_adv=True,
         learn=dict(
             update_per_collect=1,  # fixed value, this line should not be modified by users
             batch_size=64,
@@ -123,10 +124,21 @@ class SILA2CPolicy(A2CPolicy):
 
         for batch in data_sil:
             # forward
+            with torch.no_grad():
+                recomputed_value = self._learn_model.forward(data_onpolicy['obs'], mode='compute_critic')['value']
+                recomputed_next_value = self._learn_model.forward(data_onpolicy['next_obs'], mode='compute_critic')['value']
+
+                traj_flag = data_onpolicy.get('traj_flag', None)  # traj_flag indicates termination of trajectory
+                compute_adv_data = gae_data(
+                    recomputed_value, recomputed_next_value, data_onpolicy['reward'], data_onpolicy['done'], traj_flag
+                )
+                recomputed_adv = gae(compute_adv_data, self._gamma, self._gae_lambda)
+
+                recomputed_returns = recomputed_value + recomputed_adv
             output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
 
-            adv = batch['adv']
-            return_ = batch['value'] + adv
+            adv = batch['adv'] if not self._cfg.sil_recompute_adv else recomputed_adv
+            return_ = batch['value'] + adv if not self._cfg.sil_recompute_adv else recomputed_returns
             if self._adv_norm:
                 # norm adv in total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
@@ -394,7 +406,7 @@ class SILPPOPolicy(PPOPolicy):
 
             grad_norm = torch.nn.utils.clip_grad_norm_(
                 list(self._learn_model.parameters()),
-                max_norm=self.config.learn.grad_norm,
+                max_norm=self.config["learn"]["grad_norm"],
             )
             self._optimizer.step()
 
