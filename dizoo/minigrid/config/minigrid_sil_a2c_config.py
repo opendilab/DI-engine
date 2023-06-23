@@ -10,7 +10,7 @@ minigrid_sil_config = dict(
         # typical MiniGrid env id:
         # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
         # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
-        env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-DoorKey-8x8-v0',
         n_evaluator_episode=5,
         max_step=300,
         stop_value=0.96,
