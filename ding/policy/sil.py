@@ -82,7 +82,7 @@ class SILA2CPolicy(A2CPolicy):
         # Extract on-policy data
         data_onpolicy = data['new_data']
         for i in range(len(data_onpolicy)):
-            data_onpolicy[i] = {k: data_onpolicy[i][k] for k in ['obs', 'adv', 'value', 'action', 'done']}
+            data_onpolicy[i] = {k: data_onpolicy[i][k] for k in ['obs', 'next_obs', 'reward', 'adv', 'value', 'action', 'done']}
         data_onpolicy = default_preprocess_learn(
             data_onpolicy, ignore_done=self._cfg.learn.ignore_done, use_nstep=False
         )
@@ -125,12 +125,12 @@ class SILA2CPolicy(A2CPolicy):
         for batch in data_sil:
             # forward
             with torch.no_grad():
-                recomputed_value = self._learn_model.forward(data_onpolicy['obs'], mode='compute_critic')['value']
-                recomputed_next_value = self._learn_model.forward(data_onpolicy['next_obs'], mode='compute_critic')['value']
+                recomputed_value = self._learn_model.forward(batch['obs'], mode='compute_critic')['value']
+                recomputed_next_value = self._learn_model.forward(batch['next_obs'], mode='compute_critic')['value']
 
-                traj_flag = data_onpolicy.get('traj_flag', None)  # traj_flag indicates termination of trajectory
+                traj_flag = batch.get('traj_flag', None)  # traj_flag indicates termination of trajectory
                 compute_adv_data = gae_data(
-                    recomputed_value, recomputed_next_value, data_onpolicy['reward'], data_onpolicy['done'], traj_flag
+                    recomputed_value, recomputed_next_value, batch['reward'], batch['done'], traj_flag
                 )
                 recomputed_adv = gae(compute_adv_data, self._gamma, self._gae_lambda)
 
@@ -172,10 +172,10 @@ class SILA2CPolicy(A2CPolicy):
             'sil_total_loss': sil_total_loss.item(),
             'a2c_total_loss': a2c_total_loss.item(),
             'sil_policy_loss': sil_loss.policy_loss.item(),
-            'a2c_policy_loss': a2c_loss.policy_loss.item(),
+            'policy_loss': a2c_loss.policy_loss.item(),
             'sil_value_loss': sil_loss.value_loss.item(),
-            'a2c_value_loss': a2c_loss.value_loss.item(),
-            'a2c_entropy_loss': a2c_loss.entropy_loss.item(),
+            'value_loss': a2c_loss.value_loss.item(),
+            'entropy_loss': a2c_loss.entropy_loss.item(),
             'policy_clipfrac': sil_info.policy_clipfrac,
             'value_clipfrac': sil_info.value_clipfrac,
             'adv_abs_max': adv.abs().max().item(),
