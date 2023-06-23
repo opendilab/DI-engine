@@ -20,6 +20,8 @@ freeway_sil_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=3,
             encoder_hidden_size_list=[128, 128, 512],
+            critic_head_hidden_size=512,
+            actor_head_hidden_size=512,
         ),
         learn=dict(
             batch_size=40,
