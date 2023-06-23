@@ -3,6 +3,7 @@ import gym
 from gym.spaces import Box
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 import dmc2gym
@@ -207,6 +208,7 @@ class DMC2GymEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = action.astype('float32')
+        action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         self._eval_episode_return += rew
         if done:

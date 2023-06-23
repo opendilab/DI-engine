@@ -42,6 +42,8 @@ cartpole_balance_dreamer_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=64,
+            action_size=1,  # has to be specified
+            collect_dyn_sample=True,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=10000, )),  # w.r.t envstep

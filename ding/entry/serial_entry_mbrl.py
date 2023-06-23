@@ -293,7 +293,7 @@ def serial_pipeline_dreamer(
             if world_model.should_pretrain()
             else int(world_model.should_train(collector.envstep))
         )
-        for _ in range(steps):
+        for _ in range(1):
             batch_size = learner.policy.get_attribute('batch_size')
             post, context = world_model.train(env_buffer, collector.envstep, learner.train_iter, batch_size)
             
