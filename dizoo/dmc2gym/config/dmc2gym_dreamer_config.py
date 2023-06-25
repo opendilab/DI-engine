@@ -10,7 +10,7 @@ cartpole_balance_dreamer_config = dict(
         env_id='dmc2gym_cartpole_balance',
         domain_name='cartpole',
         task_name='balance',
-        frame_skip=4,
+        frame_skip=1,
         warp_frame=True,
         scale=True,
         clip_rewards=False,
@@ -46,7 +46,7 @@ cartpole_balance_dreamer_config = dict(
             collect_dyn_sample=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=10000, )),  # w.r.t envstep
+        eval=dict(evaluator=dict(eval_freq=1, )),  # 10000
         other=dict(
             # environment buffer
             replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60),
@@ -59,16 +59,10 @@ cartpole_balance_dreamer_config = dict(
         train_freq=2,  # w.r.t envstep
         cuda=cuda,
         model=dict(
-            #elite_size=5,
             state_size=(3, 64, 64),  # has to be specified
             action_size=1,  # has to be specified
             reward_size=1,
-            #hidden_size=200,
-            #use_decay=True,
             batch_size=16,
-            #holdout_ratio=0.1,
-            #max_epochs_since_update=5,
-            #deterministic_rollout=True,
         ),
     ),
 )

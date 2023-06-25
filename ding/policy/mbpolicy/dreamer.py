@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
+import numpy as np
 import torch
 from torch import nn
 from copy import deepcopy
@@ -216,7 +217,7 @@ class DREAMERPolicy(Policy):
             if len(action.shape)==1:
                 action = action.unsqueeze(-1)
             if any(reset):
-                mask = 1 - reset
+                mask = 1 - np.array(reset)
                 for key in latent.keys():
                     for i in range(latent[key].shape[0]):
                         latent[key][i] *= mask[i]
@@ -235,8 +236,7 @@ class DREAMERPolicy(Policy):
         logprob = actor.log_prob(action)
         latent = {k: v.detach() for k, v in latent.items()}
         action = action.detach()
-        # to do
-        # should pass state to next collect
+        
         state = (latent, action)
         output = {"action": action, "logprob": logprob, "state": state}
         
@@ -275,7 +275,7 @@ class DREAMERPolicy(Policy):
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict, world_model, state=None) -> dict:
+    def _forward_eval(self, data: dict, world_model, reset=None, state=None) -> dict:
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -289,9 +289,20 @@ class DREAMERPolicy(Policy):
                 self._device
             )
         else:
-            latent, action = state
+            #state = default_collate(list(state.values()))
+            latent = default_collate(list(zip(*state))[0])
+            action = default_collate(list(zip(*state))[1])
+            if len(action.shape)==1:
+                action = action.unsqueeze(-1)
+            if any(reset):
+                mask = 1 - np.array(reset)
+                for key in latent.keys():
+                    for i in range(latent[key].shape[0]):
+                        latent[key][i] *= mask[i]
+                for i in range(len(action)):
+                    action[i] *= mask[i]
         
-        data = data / 255.0 - 0.5
+        #data = data / 255.0 - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(
             latent, action, embed, self._cfg.collect.collect_dyn_sample
@@ -303,10 +314,9 @@ class DREAMERPolicy(Policy):
         logprob = actor.log_prob(action)
         latent = {k: v.detach() for k, v in latent.items()}
         action = action.detach()
-        output = {"action": action, "logprob": logprob}
-        # to do
-        # should pass state to next eval
+
         state = (latent, action)
+        output = {"action": action, "logprob": logprob, "state": state}
         
         if self._cuda:
             output = to_device(output, 'cpu')
