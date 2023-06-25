@@ -66,6 +66,36 @@ class TabMWP(BaseEnv):
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
         return obs
 
+    def parse_all_answers(self):
+        n = len(self.cand_pids)
+        self.problem_id = 0
+        assert n == 20
+        assert self._args.train_number == 100
+        with open('sampled_pid.txt', 'w') as f:
+            f.write(str(self.cand_pids) + '\n')
+            f.write(str(self.train_pids) + '\n')
+
+        with open('model_in_out.txt', 'w') as f:
+            for i in range(n):
+                for j in range(n):
+                    if i == j:
+                        pass
+                    while self.problem_id < self.problem_id == self._args.train_number:
+                        shot_pids = [i, j]
+                        pid = self.train_pids[self.problem_id]
+
+                        # generate the prompt input
+                        prompt = build_prompt(self.problems, shot_pids, pid, self._args)
+
+                        # get the output from LM
+                        assert self._args.engine == 'text-davinci-002'
+                        output = get_gpt3_output(prompt, self._args)
+                        self.problem_id += 1
+
+                        output_txt = {'shot_pids': shot_pids, 'pid': pid, 'prompt': prompt, 'output': output}
+                        f.write(str(output_txt) + '\n')
+                        assert False
+
     def close(self) -> None:
         self._init_flag = False
 
@@ -122,3 +152,26 @@ class TabMWP(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine tabmwp Env"
+
+
+if __name__ == '__main__':
+    from easydict import EasyDict
+    env_cfg = EasyDict(dict(
+        cand_number=20,
+        train_number=100,
+        engine='text-davinci-002',
+        temperature=0.,
+        max_tokens=512,
+        top_p=1.,
+        frequency_penalty=0.,
+        presence_penalty=0.,
+        option_inds=["A", "B", "C", "D", "E", "F"],
+        api_key='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',
+        prompt_format='TQ-A',
+        seed=0,
+    ))
+    env = TabMWP(env_cfg)
+    env.seed(0)
+    env.reset()
+    env.parse_all_answers()
+
