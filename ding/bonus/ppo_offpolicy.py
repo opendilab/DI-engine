@@ -23,6 +23,9 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class PPOOffPolicyAgent:
     supported_env_list = [
         'lunarlander_discrete',
+        'PongNoFrameskip',
+        'SpaceInvadersNoFrameskip',
+        'QbertNoFrameskip',
     ]
     algorithm = 'PPOOffPolicy'
 
