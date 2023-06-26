@@ -302,7 +302,9 @@
 <h1>IQN<a class="headerlink" href="#iqn" title="Permalink to this headline">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>IQN was proposed in <a class="reference external" href="https://arxiv.org/pdf/1806.06923">Implicit Quantile Networks for Distributional Reinforcement Learning</a>. The key difference between IQN and QRDQN is that IQN introduces the implicit quantile network (IQN), a deterministic parametric function trained to re-parameterize samples from a base distribution, e.g. tau in U([0, 1]), to the respective quantile values of a target distribution, while QRDQN direct learns a fixed set of pre-defined quantiles.</p>
+<p>IQN was proposed in <a class="reference external" href="https://arxiv.org/pdf/1806.06923">Implicit Quantile Networks for Distributional Reinforcement Learning</a>.
+The goal of distributional RL is to provide a more comprehensive depiction of the expected reward distribution for different actions by modeling the probability distribution of the value function.
+The key difference between IQN and QRDQN is that IQN introduces the implicit quantile network (IQN), a deterministic parametric function trained to re-parameterize samples from a base distribution, e.g. tau in U([0, 1]), to the respective quantile values of a target distribution, while QRDQN direct learns a fixed set of pre-defined quantiles.</p>
 </section>
 <section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>

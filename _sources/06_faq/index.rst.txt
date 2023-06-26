@@ -1,29 +1,37 @@
 FAQ
-=====================
+############
 
-.. toctree::
-   :maxdepth: 1
+
+Frequently Asked Questions
+===============================
+.. contents::
+    :depth: 1
+    :local:
+    :backlinks: none
+
+------
+
 
 Q1: Import packages warning
-********************************************************
+--------------------------------------
 
-:A1:
+**A1:**
 
 Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running DI-engine, generally users can ignore it, and DI-engine will automatically search for corresponding alternative libraries or code implementations during import.
 
 Q2: Cannot use DI-engine command line tool (CLI) after installation
-****************************************************************************************
+--------------------------------------------------------------------------------------
 
-:A2:
+**A2:**
 
 - pip with ``-e`` flag might sometimes make CLI not available. Generally, non-developers do not need to install with ``-e`` flag, removing the flag and reinstall is sufficient.
 - Part of the operating environment will install the CLI in the user directory, you need to verify whether the CLI installation directory is in the user's environment variable (such as ``$PATH`` in Linux).
 
 
 Q3: "No permission" error occurred during installation
-**********************************************************************
+--------------------------------------------------------------------------------------
 
-:A3:
+**A3:**
 
 Due to the lack of corresponding permissions in some operating environments, "Permission denied" may appear during pip installation. The specific reasons and solutions are as follows:
  - pip with ``--user`` flag and install in user's directory
@@ -31,9 +39,9 @@ Due to the lack of corresponding permissions in some operating environments, "Pe
 
 
 Q4: How to set the relevant operating parameters of ``SyncSubprocessEnvManager``
-****************************************************************************************************
+----------------------------------------------------------------------------------------------------
 
-:A4:
+**A4:**
 
 Add ``manager`` field to the ``env`` field in cfg file, you can specify whether to use ``shared_memory`` as well as the context of multiprocessing launch. The following code provides a simple example. For detailed parameter information, please refer to ``SyncSubprocessEnvManager``.
 
@@ -46,7 +54,7 @@ Add ``manager`` field to the ``env`` field in cfg file, you can specify whether 
     )
 
 Q5: How to adjust the learning rate
-**************************************************
+--------------------------------------------------
 
 :A5:
 
@@ -83,9 +91,9 @@ The curve of learning rate is shown in the figure below
    :height: 250
 
 Q6: How to understand the printed [EVALUATOR] information
-***************************************************************
+----------------------------------------------------------------------------------------------------
 
-:A6:
+**A6:**
 
 We print out the evaluation information of ``evaluator`` in `interaction_serial_evaluator.py <https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253>`_ ,
 including ``env``, ``final reward``, ``current episode``, which represent the ``eval_env`` index (``env_id``) corresponding to the current completed episode (in which ``timestep.done=True``),
@@ -117,3 +125,81 @@ We utilize ``VectorEvalMonitor`` to control the termination/exiting of the evalu
 , i.e. the evaluator completes all evaluation episodes (``n_evaluator_episode`` in config), the ``evaluator`` will exit the evaluation phase.
 Thus there may be a case where the corresponding log information of an ``eval_env`` is still repeated even if it finishes the evaluation of ``each_env_episode[i]`` episodes, which
 do not adversely affect the evaluation results, so the users don't need to be worried about these repeated logs.
+
+Q7: Is there any documentation for the config file in DI-engine? How can I set the fields in the config file to control training termination?
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+**A7:**
+
+For a detailed introduction to the `configuration file system in DI-engine, please refer to the Configuration File System Documentation <https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/config_zh.html>`_. In DI-engine, there are generally three types of termination settings:
+
+- When the pre-set ``stop value`` (modified in the config file) is reached, i.e., when the ``evaluation episode reward mean`` is greater than or equal to the ``stop value``.
+
+- When the maximum number of environment interaction steps (``env step``) is reached, which can be modified in the training entry.
+
+  - Example 1: https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L24
+
+  - Example 2: https://github.com/opendilab/DI-engine/blob/main/ding/example/sac.py#L41 (setting the value of ``max_env_step``)
+
+- When the maximum number of training iterations (``train iter``) is reached, which can be modified in the training entry.
+
+  - Example 1: https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L23
+
+  - Example 2: https://github.com/opendilab/DI-engine/blob/main/ding/example/sac.py#L41
+
+Furthermore, for specific field descriptions in the config file, you can refer to the comments in the default config section of each class. For example:
+
+- `DQN default config <https://github.com/opendilab/DI-engine/blob/main/ding/policy/dqn.py#L85>`_
+
+- `SAC default config <https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py#L64>`_
+
+Reinforcement learning-related configuration files can be complex. If there are any details you don't understand, please feel free to ask!
+
+Q8: DI-engine installation-related questions.
+----------------------------------------------------
+
+- **Q8-1** Can DI-engine be installed using pip?
+
+  **A8-1:**
+
+  Yes, you can directly use the command ``pip install DI-engine`` for installation. For more details, please refer to the Installation Guide - `Installing Released Versions <https://di-engine-docs.readthedocs.io/zh_CN/latest/01_quickstart/installation_zh.html#id3>`_.
+
+- **Q8-2** Does the installation of DI-engine automatically install PyTorch? What happens if PyTorch is already installed on the computer?
+
+  **A8-2:** 
+
+  If PyTorch has been installed in the current environment and its version meets the requirements during the DI-engine installation, DI-engine will directly install other required packages. If PyTorch has not been installed previously, DI-engine will install the CPU version of PyTorch by default. It is recommended to install the appropriate version of PyTorch beforehand. Otherwise, DI-engine will install the CPU version of PyTorch by default. For specific installation steps, please refer to the `Installation Guide <https://di-engine-docs.readthedocs.io/zh_CN/latest/index_zh.html>`_.
+
+- **Q8-3** Which version of gym does DI-engine correspond to? Does it not support the latest gym version?
+
+  **A8-3:** 
+
+  Currently, DI-engine corresponds to gym version 0.25.1 (2023.5.5). For the compatibility of various dependencies with DI-engine, you can refer to the `setup.py <https://github.com/opendilab/DI-engine/blob/main/setup.py#L53>`_ file.
+
+- **Q8-4** 
+
+  **A8-4:** 
+
+  You can clone the repository from GitHub and navigate to the respective folder. Then run ``pip install -e .`` as follows:
+
+  .. code-block::
+
+    git clone https://github.com/opendilab/DI-engine.git
+    cd DI-engine
+    pip install .
+
+
+Q9: What does "episode" refer to in DI-engine?
+----------------------------------------------------
+
+**A9:**
+
+It is not an original concept in reinforcement learning but originates from gaming. It is similar to the concept of a "level" and refers to the process where an agent starts playing a game until it reaches a game over or successfully completes the game. In essence, it represents a complete cycle of interaction with the environment, such as a game session or a game of Go. 
+
+
+Q10: Does DI-engine support the self-play mechanism?
+----------------------------------------------------
+
+**A10:**
+
+Yes, it is supported. The simplest examples can be found in the `league demo <https://github.com/opendilab/DI-engine/tree/main/dizoo/league_demo>`_ and `slime volleyball <https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley>`_ in the ``dizoo`` directory.

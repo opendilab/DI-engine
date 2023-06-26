@@ -1,73 +1,73 @@
 IQN
 ^^^^^^^
 
-Overview
+概述
 ---------
-IQN was proposed in `Implicit Quantile Networks for Distributional Reinforcement Learning <https://arxiv.org/pdf/1806.06923>`_. 
-The goal of distributional RL is to provide a more comprehensive depiction of the expected reward distribution for different actions by modeling the probability distribution of the value function.
-The key difference between IQN and QRDQN is that IQN introduces the implicit quantile network (IQN), a deterministic parametric function trained to re-parameterize samples from a base distribution, e.g. tau in U([0, 1]), to the respective quantile values of a target distribution, while QRDQN direct learns a fixed set of pre-defined quantiles.
+IQN 是在 `Implicit Quantile Networks for Distributional Reinforcement Learning <https://arxiv.org/pdf/1806.06923>`_ 被提出的。
+Distributional RL 的研究目标是通过建模值函数的概率分布，更全面地描述不同动作的预期奖励分布。
+IQN (Implicit Quantile Network)和 QRDQN (Quantile Regression DQN) 之间的关键区别在于， IQN 引入了隐式量化网络（Implicit Quantile Network），它是一个确定性参数化函数，通过训练将来自基本分布（例如在U([0, 1])上的 tau ）的样本重新参数化为目标分布的相应分位数值，而 QRDQN 直接学习了一组预定义的固定分位数。
 
-Quick Facts
+要点摘要：
 -----------
-1. IQN is a **model-free** and **value-based** RL algorithm.
+1. IQN 是一种 **无模型（model-free）** 和 **基于值（value-based）** 的强化学习算法。
 
-2. IQN only support **discrete action spaces**.
+2. IQN 仅支持 **离散动作空间** 。
 
-3. IQN is an **off-policy** algorithm.
+3. IQN 是一种 **异策略（off-policy）** 算法。
 
-4. Usually, IQN use **eps-greedy** or **multinomial sample** for exploration.
+4. 通常情况下， IQN 使用 **eps-greedy** 或 **多项式采样（multinomial sample）** 进行探索。
 
-5. IQN can be equipped with RNN.
+5. IQN 可以与循环神经网络 (RNN) 结合使用。
 
-Key Equations
+关键方程
 -------------
-In implicit quantile networks, a sampled quantile tau is first encoded into an embedding vector via:
+在隐式量化网络中，首先通过以下方式将采样的分位数tau编码为嵌入向量：
 
     .. math::
 
         \phi_{j}(\tau):=\operatorname{ReLU}\left(\sum_{i=0}^{n-1} \cos (\pi i \tau) w_{i j}+b_{j}\right)
 
-Then the quantile embedding is element-wise multiplied by the embedding of the observation of the environment, and the subsequent fully-connected layers map the resulted product vector to the respective quantile value.
+然后，分位数嵌入（quantile embedding）与环境观测的嵌入（embedding）进行逐元素相乘，并通过后续的全连接层将得到的乘积向量映射到相应的分位数值。
 
-Key Graphs
+关键图
 -------------
-The comparison among DQN, C51, QRDQN and IQN is shown as follows:
+以下是DQN、C51、QRDQN和IQN之间的比较：
 
 .. image:: images/dis_reg_compare.png
    :align: center
    :width: 800
 
-Extensions
+扩展
 -----------
-IQN can be combined with:
-  - PER (Prioritized Experience Replay)
+IQN 可以与以下技术相结合使用:
+  - 优先经验回放 (Prioritized Experience Replay)
 
     .. tip::
-        Whether PER improves IQN depends on the task and the training strategy.
-  - Multi-step TD-loss
-  - Double (target) Network
-  - RNN
+        是否优先级经验回放 (PER) 能够提升 IQN 的性能取决于任务和训练策略。
+  - 多步时序差分 (TD) 损失
+  - 双目标网络 (Double Target Network)
+  - 循环神经网络 (RNN)
 
-Implementation
+实现
 ------------------
 
 .. tip::
-      Our benchmark result of IQN uses the same hyper-parameters as DQN except the IQN's exclusive hyper-parameter, ``the number of quantiles``, which is empirically set as 32. The number of quantiles are not recommended to set larger than 64, which brings marginal gain and much more forward latency.
+      我们的IQN基准结果使用与DQN相同的超参数，除了IQN的独有超参数, ``the number of quantiles``， 它经验性地设置为32。不推荐将分位数的数量设置为大于64，因为这会带来较小的收益，并且会增加更多的前向传递延迟。
 
-The default config of IQN is defined as follows:
+IQN算法的默认配置如下所示：
 
 .. autoclass:: ding.policy.iqn.IQNPolicy
    :noindex:
 
-The network interface IQN used is defined as follows:
+IQN算法使用的网络接口定义如下：
 
 .. autoclass:: ding.model.template.q_learning.IQN
    :members: forward
    :noindex:
 
-The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
+IQN算法中使用的贝尔曼更新（Bellman update）在 ``iqn_nstep_td_error`` 函数中定义，我们可以在 ``ding/rl_utils/td.py``文件中找到它。
 
-Benchmark
+基准
 -----------
 
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
@@ -96,16 +96,16 @@ Benchmark
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 
 P.S.:
-  1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4).
+1. 上述结果是通过在五个不同的随机种子 (0, 1, 2, 3, 4)上运行相同的配置获得的。
 
-References
+参考文献
 ------------
 
 
 (IQN) Will Dabney, Georg Ostrovski, David Silver, Rémi Munos: “Implicit Quantile Networks for Distributional Reinforcement Learning”, 2018; arXiv:1806.06923. https://arxiv.org/pdf/1806.06923
 
 
-Other Public Implementations
+其他开源实现
 ---------------------------------
 
   - `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/iqn.py>`_

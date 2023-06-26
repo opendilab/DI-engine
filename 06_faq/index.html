@@ -298,33 +298,39 @@
                 
   <section id="faq">
 <h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
+<section id="frequently-asked-questions">
+<h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h2>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#q1-import-packages-warning" id="id2">Q1: Import packages warning</a></p></li>
+<li><p><a class="reference internal" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" id="id3">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></p></li>
+<li><p><a class="reference internal" href="#q3-no-permission-error-occurred-during-installation" id="id4">Q3: “No permission” error occurred during installation</a></p></li>
+<li><p><a class="reference internal" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager" id="id5">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></p></li>
+<li><p><a class="reference internal" href="#q5-how-to-adjust-the-learning-rate" id="id6">Q5: How to adjust the learning rate</a></p></li>
+<li><p><a class="reference internal" href="#q6-how-to-understand-the-printed-evaluator-information" id="id7">Q6: How to understand the printed [EVALUATOR] information</a></p></li>
+<li><p><a class="reference internal" href="#q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination" id="id8">Q7: Is there any documentation for the config file in DI-engine? How can I set the fields in the config file to control training termination?</a></p></li>
+<li><p><a class="reference internal" href="#q8-di-engine-installation-related-questions" id="id9">Q8: DI-engine installation-related questions.</a></p></li>
+<li><p><a class="reference internal" href="#q9-what-does-episode-refer-to-in-di-engine" id="id10">Q9: What does “episode” refer to in DI-engine?</a></p></li>
+<li><p><a class="reference internal" href="#q10-does-di-engine-support-the-self-play-mechanism" id="id11">Q10: Does DI-engine support the self-play mechanism?</a></p></li>
+</ul>
 </div>
+<hr class="docutils" />
 <section id="q1-import-packages-warning">
-<h2>Q1: Import packages warning<a class="headerlink" href="#q1-import-packages-warning" title="Permalink to this headline">¶</a></h2>
-<dl class="field-list simple">
-<dt class="field-odd">A1</dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
+<h3>Q1: Import packages warning<a class="headerlink" href="#q1-import-packages-warning" title="Permalink to this headline">¶</a></h3>
+<p><strong>A1:</strong></p>
 <p>Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running DI-engine, generally users can ignore it, and DI-engine will automatically search for corresponding alternative libraries or code implementations during import.</p>
 </section>
 <section id="q2-cannot-use-di-engine-command-line-tool-cli-after-installation">
-<h2>Q2: Cannot use DI-engine command line tool (CLI) after installation<a class="headerlink" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" title="Permalink to this headline">¶</a></h2>
-<dl class="field-list simple">
-<dt class="field-odd">A2</dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
+<h3>Q2: Cannot use DI-engine command line tool (CLI) after installation<a class="headerlink" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" title="Permalink to this headline">¶</a></h3>
+<p><strong>A2:</strong></p>
 <ul class="simple">
 <li><p>pip with <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag might sometimes make CLI not available. Generally, non-developers do not need to install with <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag, removing the flag and reinstall is sufficient.</p></li>
 <li><p>Part of the operating environment will install the CLI in the user directory, you need to verify whether the CLI installation directory is in the user’s environment variable (such as <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> in Linux).</p></li>
 </ul>
 </section>
 <section id="q3-no-permission-error-occurred-during-installation">
-<h2>Q3: “No permission” error occurred during installation<a class="headerlink" href="#q3-no-permission-error-occurred-during-installation" title="Permalink to this headline">¶</a></h2>
-<dl class="field-list simple">
-<dt class="field-odd">A3</dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
+<h3>Q3: “No permission” error occurred during installation<a class="headerlink" href="#q3-no-permission-error-occurred-during-installation" title="Permalink to this headline">¶</a></h3>
+<p><strong>A3:</strong></p>
 <dl class="simple">
 <dt>Due to the lack of corresponding permissions in some operating environments, “Permission denied” may appear during pip installation. The specific reasons and solutions are as follows:</dt><dd><ul class="simple">
 <li><p>pip with <code class="docutils literal notranslate"><span class="pre">--user</span></code> flag and install in user’s directory</p></li>
@@ -334,11 +340,8 @@
 </dl>
 </section>
 <section id="q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">
-<h2>Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code><a class="headerlink" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager" title="Permalink to this headline">¶</a></h2>
-<dl class="field-list simple">
-<dt class="field-odd">A4</dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
+<h3>Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code><a class="headerlink" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager" title="Permalink to this headline">¶</a></h3>
+<p><strong>A4:</strong></p>
 <p>Add <code class="docutils literal notranslate"><span class="pre">manager</span></code> field to the <code class="docutils literal notranslate"><span class="pre">env</span></code> field in cfg file, you can specify whether to use <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> as well as the context of multiprocessing launch. The following code provides a simple example. For detailed parameter information, please refer to <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
     <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
@@ -349,7 +352,7 @@
 </div>
 </section>
 <section id="q5-how-to-adjust-the-learning-rate">
-<h2>Q5: How to adjust the learning rate<a class="headerlink" href="#q5-how-to-adjust-the-learning-rate" title="Permalink to this headline">¶</a></h2>
+<h3>Q5: How to adjust the learning rate<a class="headerlink" href="#q5-how-to-adjust-the-learning-rate" title="Permalink to this headline">¶</a></h3>
 <dl class="field-list simple">
 <dt class="field-odd">A5</dt>
 <dd class="field-odd"><p></p></dd>
@@ -382,11 +385,8 @@ The following code provides a simple example. For more detail, see demo: <a clas
 <a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
 </section>
 <section id="q6-how-to-understand-the-printed-evaluator-information">
-<h2>Q6: How to understand the printed [EVALUATOR] information<a class="headerlink" href="#q6-how-to-understand-the-printed-evaluator-information" title="Permalink to this headline">¶</a></h2>
-<dl class="field-list simple">
-<dt class="field-odd">A6</dt>
-<dd class="field-odd"><p></p></dd>
-</dl>
+<h3>Q6: How to understand the printed [EVALUATOR] information<a class="headerlink" href="#q6-how-to-understand-the-printed-evaluator-information" title="Permalink to this headline">¶</a></h3>
+<p><strong>A6:</strong></p>
 <p>We print out the evaluation information of <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253">interaction_serial_evaluator.py</a> ,
 including <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">final</span> <span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">episode</span></code>, which represent the <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> index (<code class="docutils literal notranslate"><span class="pre">env_id</span></code>) corresponding to the current completed episode (in which <code class="docutils literal notranslate"><span class="pre">timestep.done=True</span></code>),
 the final reward of the completed episode, and how many episodes it was evaluated by the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code>, respectively. A typical demonstration log is shown in the figure below:</p>
@@ -406,6 +406,69 @@ We utilize <code class="docutils literal notranslate"><span class="pre">VectorEv
 , i.e. the evaluator completes all evaluation episodes (<code class="docutils literal notranslate"><span class="pre">n_evaluator_episode</span></code> in config), the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> will exit the evaluation phase.
 Thus there may be a case where the corresponding log information of an <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> is still repeated even if it finishes the evaluation of <code class="docutils literal notranslate"><span class="pre">each_env_episode[i]</span></code> episodes, which
 do not adversely affect the evaluation results, so the users don’t need to be worried about these repeated logs.</p>
+</section>
+<section id="q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination">
+<h3>Q7: Is there any documentation for the config file in DI-engine? How can I set the fields in the config file to control training termination?<a class="headerlink" href="#q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination" title="Permalink to this headline">¶</a></h3>
+<p><strong>A7:</strong></p>
+<p>For a detailed introduction to the <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/config_zh.html">configuration file system in DI-engine, please refer to the Configuration File System Documentation</a>. In DI-engine, there are generally three types of termination settings:</p>
+<ul class="simple">
+<li><p>When the pre-set <code class="docutils literal notranslate"><span class="pre">stop</span> <span class="pre">value</span></code> (modified in the config file) is reached, i.e., when the <code class="docutils literal notranslate"><span class="pre">evaluation</span> <span class="pre">episode</span> <span class="pre">reward</span> <span class="pre">mean</span></code> is greater than or equal to the <code class="docutils literal notranslate"><span class="pre">stop</span> <span class="pre">value</span></code>.</p></li>
+<li><p>When the maximum number of environment interaction steps (<code class="docutils literal notranslate"><span class="pre">env</span> <span class="pre">step</span></code>) is reached, which can be modified in the training entry.</p>
+<ul>
+<li><p>Example 1: <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L24">https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L24</a></p></li>
+<li><p>Example 2: <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/sac.py#L41">https://github.com/opendilab/DI-engine/blob/main/ding/example/sac.py#L41</a> (setting the value of <code class="docutils literal notranslate"><span class="pre">max_env_step</span></code>)</p></li>
+</ul>
+</li>
+<li><p>When the maximum number of training iterations (<code class="docutils literal notranslate"><span class="pre">train</span> <span class="pre">iter</span></code>) is reached, which can be modified in the training entry.</p>
+<ul>
+<li><p>Example 1: <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L23">https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry.py#L23</a></p></li>
+<li><p>Example 2: <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/sac.py#L41">https://github.com/opendilab/DI-engine/blob/main/ding/example/sac.py#L41</a></p></li>
+</ul>
+</li>
+</ul>
+<p>Furthermore, for specific field descriptions in the config file, you can refer to the comments in the default config section of each class. For example:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/dqn.py#L85">DQN default config</a></p></li>
+<li><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py#L64">SAC default config</a></p></li>
+</ul>
+<p>Reinforcement learning-related configuration files can be complex. If there are any details you don’t understand, please feel free to ask!</p>
+</section>
+<section id="q8-di-engine-installation-related-questions">
+<h3>Q8: DI-engine installation-related questions.<a class="headerlink" href="#q8-di-engine-installation-related-questions" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p><strong>Q8-1</strong> Can DI-engine be installed using pip?</p>
+<p><strong>A8-1:</strong></p>
+<p>Yes, you can directly use the command <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">DI-engine</span></code> for installation. For more details, please refer to the Installation Guide - <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/01_quickstart/installation_zh.html#id3">Installing Released Versions</a>.</p>
+</li>
+<li><p><strong>Q8-2</strong> Does the installation of DI-engine automatically install PyTorch? What happens if PyTorch is already installed on the computer?</p>
+<p><strong>A8-2:</strong></p>
+<p>If PyTorch has been installed in the current environment and its version meets the requirements during the DI-engine installation, DI-engine will directly install other required packages. If PyTorch has not been installed previously, DI-engine will install the CPU version of PyTorch by default. It is recommended to install the appropriate version of PyTorch beforehand. Otherwise, DI-engine will install the CPU version of PyTorch by default. For specific installation steps, please refer to the <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/index_zh.html">Installation Guide</a>.</p>
+</li>
+<li><p><strong>Q8-3</strong> Which version of gym does DI-engine correspond to? Does it not support the latest gym version?</p>
+<p><strong>A8-3:</strong></p>
+<p>Currently, DI-engine corresponds to gym version 0.25.1 (2023.5.5). For the compatibility of various dependencies with DI-engine, you can refer to the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/setup.py#L53">setup.py</a> file.</p>
+</li>
+<li><p><strong>Q8-4</strong></p>
+<p><strong>A8-4:</strong></p>
+<p>You can clone the repository from GitHub and navigate to the respective folder. Then run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">opendilab</span><span class="o">/</span><span class="n">DI</span><span class="o">-</span><span class="n">engine</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">DI</span><span class="o">-</span><span class="n">engine</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="q9-what-does-episode-refer-to-in-di-engine">
+<h3>Q9: What does “episode” refer to in DI-engine?<a class="headerlink" href="#q9-what-does-episode-refer-to-in-di-engine" title="Permalink to this headline">¶</a></h3>
+<p><strong>A9:</strong></p>
+<p>It is not an original concept in reinforcement learning but originates from gaming. It is similar to the concept of a “level” and refers to the process where an agent starts playing a game until it reaches a game over or successfully completes the game. In essence, it represents a complete cycle of interaction with the environment, such as a game session or a game of Go.</p>
+</section>
+<section id="q10-does-di-engine-support-the-self-play-mechanism">
+<h3>Q10: Does DI-engine support the self-play mechanism?<a class="headerlink" href="#q10-does-di-engine-support-the-self-play-mechanism" title="Permalink to this headline">¶</a></h3>
+<p><strong>A10:</strong></p>
+<p>Yes, it is supported. The simplest examples can be found in the <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/league_demo">league demo</a> and <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley">slime volleyball</a> in the <code class="docutils literal notranslate"><span class="pre">dizoo</span></code> directory.</p>
+</section>
 </section>
 </section>
 
@@ -453,12 +516,19 @@ do not adversely affect the evaluation results, so the users don’t need to be 
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">FAQ</a><ul>
+<li><a class="reference internal" href="#frequently-asked-questions">Frequently Asked Questions</a><ul>
 <li><a class="reference internal" href="#q1-import-packages-warning">Q1: Import packages warning</a></li>
 <li><a class="reference internal" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></li>
 <li><a class="reference internal" href="#q3-no-permission-error-occurred-during-installation">Q3: “No permission” error occurred during installation</a></li>
 <li><a class="reference internal" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></li>
 <li><a class="reference internal" href="#q5-how-to-adjust-the-learning-rate">Q5: How to adjust the learning rate</a></li>
 <li><a class="reference internal" href="#q6-how-to-understand-the-printed-evaluator-information">Q6: How to understand the printed [EVALUATOR] information</a></li>
+<li><a class="reference internal" href="#q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination">Q7: Is there any documentation for the config file in DI-engine? How can I set the fields in the config file to control training termination?</a></li>
+<li><a class="reference internal" href="#q8-di-engine-installation-related-questions">Q8: DI-engine installation-related questions.</a></li>
+<li><a class="reference internal" href="#q9-what-does-episode-refer-to-in-di-engine">Q9: What does “episode” refer to in DI-engine?</a></li>
+<li><a class="reference internal" href="#q10-does-di-engine-support-the-self-play-mechanism">Q10: Does DI-engine support the self-play mechanism?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
