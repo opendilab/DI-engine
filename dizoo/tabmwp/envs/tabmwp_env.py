@@ -12,6 +12,7 @@ class TabMWP(BaseEnv):
 
     def __init__(self, cfg):
         self._args = cfg
+        self.enable_replay = cfg.enable_replay
         self._init_flag = False
         self.problems, self.cand_pids, self.train_pids = None, None, None
         self.problem_id = None
@@ -54,6 +55,16 @@ class TabMWP(BaseEnv):
 
     def reset(self) -> dict:
         self.problems, self.cand_pids, self.train_pids = load_data(self._args)
+        if self.enable_replay:
+            with open('sampled_pids.txt') as f:
+                a, b = f.read().split()
+            self.cand_pids, self.train_pids = eval(a), eval(b)
+            self.results_memory = []
+            with open('model_in_and_out.txt') as f:
+                tmp = f.read().split()
+            for tt in tmp:
+                self.results_memory.append(eval(tt))
+
         self.cand_examples = []
         self.correct_num = 0
         for pid in self.cand_pids:
@@ -66,11 +77,19 @@ class TabMWP(BaseEnv):
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
         return obs
 
+    def search_answer(self, pid, pids):
+        for item in self.results_memory:
+            if item['pid'] != pid:
+                continue
+            if item['shot_pids'] == pids:
+                return item['output']
+
+        raise ValueError('item does not exists.')
+
     def parse_all_answers(self):
         n = len(self.cand_pids)
         self.problem_id = 0
-        assert n == 20
-        assert self._args.train_number == 100
+
         with open('sampled_pid.txt', 'w') as f:
             f.write(str(self.cand_pids) + '\n')
             f.write(str(self.train_pids) + '\n')
@@ -79,8 +98,8 @@ class TabMWP(BaseEnv):
             for i in range(n):
                 for j in range(n):
                     if i == j:
-                        pass
-                    while self.problem_id < self.problem_id == self._args.train_number:
+                        continue
+                    while self.problem_id < self._args.train_number:
                         shot_pids = [i, j]
                         pid = self.train_pids[self.problem_id]
 
@@ -88,7 +107,7 @@ class TabMWP(BaseEnv):
                         prompt = build_prompt(self.problems, shot_pids, pid, self._args)
 
                         # get the output from LM
-                        assert self._args.engine == 'text-davinci-002'
+                        # assert self._args.engine == 'text-davinci-002'
                         output = get_gpt3_output(prompt, self._args)
                         self.problem_id += 1
 
@@ -117,7 +136,9 @@ class TabMWP(BaseEnv):
         prompt = build_prompt(self.problems, shot_pids, pid, self._args)
 
         # get the output from LM
-        if self._args.engine == 'text-davinci-002':
+        if self.enable_replay:
+            output = self.search_answer(pid, shot_pids)
+        elif self._args.engine == 'text-davinci-002':
             output = get_gpt3_output(prompt, self._args)
         elif self._args.engine == 'rwkv-7B':
             output = calc_rwkv(self.model, self.tokenizer, prompt)
@@ -157,8 +178,8 @@ class TabMWP(BaseEnv):
 if __name__ == '__main__':
     from easydict import EasyDict
     env_cfg = EasyDict(dict(
-        cand_number=20,
-        train_number=100,
+        cand_number=4,
+        train_number=20,
         engine='text-davinci-002',
         temperature=0.,
         max_tokens=512,
@@ -166,7 +187,7 @@ if __name__ == '__main__':
         frequency_penalty=0.,
         presence_penalty=0.,
         option_inds=["A", "B", "C", "D", "E", "F"],
-        api_key='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',
+        api_key='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',
         prompt_format='TQ-A',
         seed=0,
     ))
