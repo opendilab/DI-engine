@@ -59,7 +59,9 @@ class SampleSerialCollector(ISerialCollector):
         if self._rank == 0:
             if tb_logger is not None:
                 self._logger, _ = build_logger(
-                    path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
+                    path='./{}/log/{}'.format(self._exp_name, self._instance_name),
+                    name=self._instance_name,
+                    need_tb=False
                 )
                 self._tb_logger = tb_logger
             else:
