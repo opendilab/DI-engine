@@ -790,10 +790,11 @@ class GaussianInvDynDiffusion(nn.Module):
         assert noise.shape == x_recon.shape
 
         if self.predict_epsilon:
-            loss = F.mse_loss(x_recon, noise)
+            loss = F.mse_loss(x_recon, noise, reduction='none')
             loss = (loss * self.loss_weights.to(loss.device)).mean()
         else:
-            loss = F.mse_loss(x_recon, x_start).mean()
+            loss = F.mse_loss(x_recon, x_start, reduction='none')
+            loss = (loss * self.loss_weights.to(loss.device)).mean()
 
         return loss
     

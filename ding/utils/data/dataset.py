@@ -569,7 +569,7 @@ class SequenceDataset(torch.utils.data.Dataset):
                 arr = np.zeros(shape, dtype=np.float32)
                 arr[:path_length] = val
                 fields[key].append(arr)
-            if episode['terminals'].any() and cfg.env.termination_penalty:
+            if episode['terminals'].any() and cfg.env.termination_penalty and 'timeouts' in episode:
                 assert not episode['timeouts'].any(), 'Penalized a timeout episode for early termination'
                 fields['rewards'][-1][path_length -1] += cfg.env.termination_penalty
             self.n_episodes += 1

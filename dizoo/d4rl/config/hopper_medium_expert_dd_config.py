@@ -1,9 +1,9 @@
 from easydict import EasyDict
 
 main_config = dict(
-    exp_name="halfcheetah_medium_dd_seed0",
+    exp_name="hopper_medium_expert_dd_seed0",
     env=dict(
-        env_id='halfcheetah-medium-v2',
+        env_id='hopper-medium-expert-v2',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -20,7 +20,7 @@ main_config = dict(
         model=dict(
             model='TemporalUnet',
             model_cfg=dict(
-                transition_dim=17,
+                transition_dim=11,
                 dim=128,
                 dim_mults=[1, 4, 8],
                 returns_condition=True,
@@ -29,10 +29,10 @@ main_config = dict(
                 kernel_size=5,
             ),
             horizon=100,
-            obs_dim=17,
-            action_dim=6,
-            n_timesteps=100,
-            hidden_dim=512,
+            obs_dim=11,
+            action_dim=3,
+            n_timesteps=200,
+            hidden_dim=256,
             returns_condition=True,
             ar_inv=False,
             train_only_inv=False,
