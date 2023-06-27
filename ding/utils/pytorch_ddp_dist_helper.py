@@ -1,6 +1,7 @@
-import os
-from typing import Callable, Tuple, List, Any
+from typing import Callable, Tuple, List, Any, Union
+from easydict import EasyDict
 
+import os
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -30,6 +31,7 @@ def get_world_size() -> int:
 
 broadcast = dist.broadcast
 allgather = dist.all_gather
+broadcast_object_list = dist.broadcast_object_list
 
 
 def allreduce(x: torch.Tensor) -> None:
@@ -40,6 +42,35 @@ def allreduce(x: torch.Tensor) -> None:
 def allreduce_async(name: str, x: torch.Tensor) -> None:
     x.div_(get_world_size())
     dist.all_reduce(x, async_op=True)
+
+
+def reduce_data(x: Union[int, float, torch.Tensor], dst: int) -> Union[int, float, torch.Tensor]:
+    if np.isscalar(x):
+        x_tensor = torch.as_tensor([x]).cuda()
+        dist.reduce(x_tensor, dst)
+        return x_tensor.item()
+    elif isinstance(x, torch.Tensor):
+        dist.reduce(x, dst)
+        return x
+    else:
+        raise TypeError("not supported type: {}".format(type(x)))
+
+
+def allreduce_data(x: Union[int, float, torch.Tensor], op: str) -> Union[int, float, torch.Tensor]:
+    assert op in ['sum', 'avg'], op
+    if np.isscalar(x):
+        x_tensor = torch.as_tensor([x]).cuda()
+        dist.all_reduce(x_tensor)
+        if op == 'avg':
+            x_tensor.div_(get_world_size())
+        return x_tensor.item()
+    elif isinstance(x, torch.Tensor):
+        dist.all_reduce(x)
+        if op == 'avg':
+            x.div_(get_world_size())
+        return x
+    else:
+        raise TypeError("not supported type: {}".format(type(x)))
 
 
 synchronize = torch.cuda.synchronize
@@ -119,7 +150,7 @@ def dist_finalize() -> None:
     pass
 
 
-class DistContext:
+class DDPContext:
 
     def __init__(self) -> None:
         pass
@@ -146,3 +177,10 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
         groups.append(dist.new_group(rank_list[i]))
     group_size = world_size // num_groups
     return groups[rank // group_size]
+
+
+def to_ddp_config(cfg: EasyDict) -> EasyDict:
+    w = get_world_size()
+    cfg.policy.learn.batch_size = int(np.ceil(cfg.policy.learn.batch_size / w))
+    cfg.policy.collect.n_sample = int(np.ceil(cfg.policy.collect.n_sample) / w)
+    return cfg
