@@ -58,6 +58,7 @@ class DenseHead(nn.Module):
         dist='normal',
         std=1.0,
         outscale=1.0,
+        device='cpu',
     ):
         super(DenseHead, self).__init__()
         self._shape = (shape, ) if isinstance(shape, int) else shape
@@ -69,6 +70,7 @@ class DenseHead(nn.Module):
         self._norm = norm
         self._dist = dist
         self._std = std
+        self._device = device
 
         self.mlp = MLP(
             inp_dim,
@@ -103,7 +105,7 @@ class DenseHead(nn.Module):
         if self._dist == "binary":
             return Bernoulli(torchd.independent.Independent(torchd.bernoulli.Bernoulli(logits=mean), len(self._shape)))
         if self._dist == "twohot_symlog":
-            return TwoHotDistSymlog(logits=mean)
+            return TwoHotDistSymlog(logits=mean, device=self._device)
         raise NotImplementedError(self._dist)
 
 

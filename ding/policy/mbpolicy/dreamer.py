@@ -1,6 +1,5 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
-import numpy as np
 import torch
 from torch import nn
 from copy import deepcopy
@@ -212,12 +211,12 @@ class DREAMERPolicy(Policy):
             )
         else:
             #state = default_collate(list(state.values()))
-            latent = default_collate(list(zip(*state))[0])
-            action = default_collate(list(zip(*state))[1])
+            latent = to_device(default_collate(list(zip(*state))[0]), self._device)
+            action = to_device(default_collate(list(zip(*state))[1]), self._device)
             if len(action.shape)==1:
                 action = action.unsqueeze(-1)
-            if any(reset):
-                mask = 1 - np.array(reset)
+            if reset.any():
+                mask = 1 - reset
                 for key in latent.keys():
                     for i in range(latent[key].shape[0]):
                         latent[key][i] *= mask[i]
@@ -290,12 +289,12 @@ class DREAMERPolicy(Policy):
             )
         else:
             #state = default_collate(list(state.values()))
-            latent = default_collate(list(zip(*state))[0])
-            action = default_collate(list(zip(*state))[1])
+            latent = to_device(default_collate(list(zip(*state))[0]), self._device)
+            action = to_device(default_collate(list(zip(*state))[1]), self._device)
             if len(action.shape)==1:
                 action = action.unsqueeze(-1)
-            if any(reset):
-                mask = 1 - np.array(reset)
+            if reset.any():
+                mask = 1 - reset
                 for key in latent.keys():
                     for i in range(latent[key].shape[0]):
                         latent[key][i] *= mask[i]

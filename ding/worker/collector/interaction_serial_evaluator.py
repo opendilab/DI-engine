@@ -133,7 +133,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self.reset_policy(_policy)
         if self._policy_cfg.type == 'dreamer_command':
             self._states = None
-            self._resets = [False for i in range(self._env_num)]
+            self._resets = np.array([False for i in range(self._env_num)])
         self._max_episode_return = float("-inf")
         self._last_eval_iter = -1
         self._end_flag = False
@@ -252,6 +252,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             # If there is an abnormal timestep, reset all the related variables(including this env).
                             self._policy.reset([env_id])
                             continue
+                        if self._policy_cfg.type == 'dreamer_command':
+                            self._resets[env_id] = t.done
                         if t.done:
                             # Env reset is done by env_manager automatically.
                             if 'figure_path' in self._cfg:
@@ -268,8 +270,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                                     env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
                                 )
                             )
-                            if self._policy_cfg.type == 'dreamer_command':
-                                self._resets[env_id] = True
                         envstep_count += 1
             duration = self._timer.value
             episode_return = eval_monitor.get_episode_return()

@@ -56,7 +56,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             dyn_min_std=0.1,
             dyn_cell='gru_layer_norm',
             unimix_ratio=0.01,
-            device='cpu',
+            device='cuda' if torch.cuda.is_available() else 'cpu',
         ),
     )
 
@@ -75,9 +75,6 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         self.reward_size = self._cfg.reward_size
         self.hidden_size = self._cfg.hidden_size
         self.batch_size = self._cfg.batch_size
-
-        if self._cuda:
-            self.cuda()
 
         self.encoder = ConvEncoder(
             self.state_size,
@@ -133,6 +130,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             'LN',  # self._cfg.norm
             dist=self._cfg.reward_head,
             outscale=0.0,
+            device=self._cfg.device,
         )
         if self._cfg.pred_discount:
             self.heads["discount"] = DenseHead(
@@ -143,7 +141,11 @@ class DREAMERWorldModel(WorldModel, nn.Module):
                 'SiLU',  # self._cfg.act
                 'LN',  # self._cfg.norm
                 dist="binary",
+                device=self._cfg.device,
             )
+        
+        if self._cuda:
+            self.cuda()
         # to do
         # grad_clip, weight_decay
         self.optimizer = torch.optim.Adam(self.parameters(), lr=self._cfg.model_lr)

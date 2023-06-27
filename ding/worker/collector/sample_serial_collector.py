@@ -134,7 +134,7 @@ class SampleSerialCollector(ISerialCollector):
 
         if self._policy_cfg.type == 'dreamer_command':
             self._states = None
-            self._resets = [False for i in range(self._env_num)]
+            self._resets = np.array([False for i in range(self._env_num)])
         self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
@@ -271,6 +271,8 @@ class SampleSerialCollector(ISerialCollector):
                         self._reset_stat(env_id)
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
+                    if self._policy_cfg.type == 'dreamer_command' and not random_collect:
+                        self._resets[env_id] = timestep.done
                     if self._policy_cfg.type == 'ngu_command':  # for NGU policy
                         transition = self._policy.process_transition(
                             self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
@@ -324,8 +326,6 @@ class SampleSerialCollector(ISerialCollector):
                     # Env reset is done by env_manager automatically
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
-                    if self._policy_cfg.type == 'dreamer_command' and not random_collect:
-                        self._resets[env_id] = True
                     
         # log
         if record_random_collect:  # default is true, but when random collect, record_random_collect is False

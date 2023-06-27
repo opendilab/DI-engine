@@ -20,7 +20,7 @@ cartpole_balance_dreamer_config = dict(
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=50,  # 800
+        stop_value=1000,  # 1000
     ),
     policy=dict(
         cuda=cuda,
@@ -46,7 +46,7 @@ cartpole_balance_dreamer_config = dict(
             collect_dyn_sample=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=1, )),  # 10000
+        eval=dict(evaluator=dict(eval_freq=10000, )),  # 10000
         other=dict(
             # environment buffer
             replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60),

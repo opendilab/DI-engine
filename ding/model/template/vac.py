@@ -442,4 +442,5 @@ class DREAMERVAC(nn.Module):
             'LN',  # norm
             'twohot_symlog',
             outscale=0.0,
+            device='cuda' if torch.cuda.is_available() else 'cpu',
         )
