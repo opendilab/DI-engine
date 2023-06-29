@@ -265,6 +265,38 @@ class ClipRewardWrapper(gym.RewardWrapper):
         """
         return np.sign(reward)
 
+@ENV_WRAPPER_REGISTRY.register('action_repeat')
+class ActionRepeatWrapper(gym.Wrapper):
+    """
+    Overview:
+        Repeat the action to step with env.
+    Interface:
+        ``__init__``, ``step``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+        - ``action_repeat``
+    
+    """
+
+    def __init__(self, env, action_repeat=1):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+        self.action_repeat = action_repeat
+
+    def step(self, action):
+        reward = 0
+        for _ in range(self.action_repeat):
+            obs, rew, done, info = self.env.step(action)
+            reward += rew or 0
+            if done:
+                break
+        return obs, reward, done, info
+
 
 @ENV_WRAPPER_REGISTRY.register('delay_reward')
 class DelayRewardWrapper(gym.Wrapper):

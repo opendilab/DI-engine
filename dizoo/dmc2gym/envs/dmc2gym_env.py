@@ -7,7 +7,7 @@ from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 import dmc2gym
-from ding.envs import WarpFrameWrapper, ScaledFloatFrameWrapper, ClipRewardWrapper, FrameStackWrapper
+from ding.envs import WarpFrameWrapper, ScaledFloatFrameWrapper, ClipRewardWrapper, ActionRepeatWrapper, FrameStackWrapper
 
 
 def dmc2gym_observation_space(dim, minimum=-np.inf, maximum=np.inf, dtype=np.float32) -> Callable:
@@ -115,6 +115,7 @@ class DMC2GymEnv(BaseEnv):
             'warp_frame': False,
             'scale': False,
             'clip_rewards': False,
+            'action_repeat': 1,
             "frame_stack": 3,
             "from_pixels": True,
             "visualize_reward": False,
@@ -161,6 +162,8 @@ class DMC2GymEnv(BaseEnv):
                 self._env = ScaledFloatFrameWrapper(self._env)
             if self._cfg['clip_rewards']:
                 self._env = ClipRewardWrapper(self._env)
+            if self._cfg['action_repeat']:
+                self._env = ActionRepeatWrapper(self._env, self._cfg['action_repeat'])
             if self._cfg['frame_stack'] > 1:
                 self._env = FrameStackWrapper(self._env, self._cfg['frame_stack'])
 

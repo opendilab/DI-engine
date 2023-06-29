@@ -145,6 +145,7 @@ class DREAMERPolicy(Policy):
         # actor-critic update
         # ====================
         self._model.requires_grad_(requires_grad=True)
+        world_model.requires_grad_(requires_grad=True)
 
         loss_dict = {
             'critic_loss': value_loss,
@@ -154,6 +155,7 @@ class DREAMERPolicy(Policy):
         norm_dict = self._update(loss_dict)
 
         self._model.requires_grad_(requires_grad=False)
+        world_model.requires_grad_(requires_grad=False)
         # =============
         # after update
         # =============

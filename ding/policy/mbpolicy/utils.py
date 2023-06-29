@@ -60,9 +60,11 @@ def imagine(cfg, world_model, start, actor, horizon, repeats=None):
 
 
 def compute_target(cfg, world_model, critic, imag_feat, imag_state, reward, actor_ent, state_ent):
-    if "cont" in world_model.heads:
+    if "discount" in world_model.heads:
         inp = world_model.dynamics.get_feat(imag_state)
-        discount = cfg.discount * world_model.heads["cont"](inp).mean
+        discount = cfg.discount * world_model.heads["discount"](inp).mean
+        # TODO whether to detach
+        discount = discount.detach()
     else:
         discount = cfg.discount * torch.ones_like(reward)
 

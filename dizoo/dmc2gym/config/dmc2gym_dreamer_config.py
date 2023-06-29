@@ -14,6 +14,7 @@ cartpole_balance_dreamer_config = dict(
         warp_frame=True,
         scale=True,
         clip_rewards=False,
+        action_repeat=2,
         frame_stack=1,
         from_pixels=True,
         resize=64,
@@ -25,7 +26,7 @@ cartpole_balance_dreamer_config = dict(
     policy=dict(
         cuda=cuda,
         # it is better to put random_collect_size in policy.other
-        random_collect_size=5000,
+        random_collect_size=2500,  # 5000
         model=dict(
             obs_shape=(3, 64, 64),
             action_shape=1,
@@ -46,7 +47,7 @@ cartpole_balance_dreamer_config = dict(
             collect_dyn_sample=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=10000, )),  # 10000
+        eval=dict(evaluator=dict(eval_freq=5000, )),  # 10000
         other=dict(
             # environment buffer
             replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60),
