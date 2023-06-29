@@ -324,11 +324,11 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                             critic_head_layer_num=2,
                         ),
                         learn=dict(
-                            update_per_collect=24,
+                            update_per_collect=18,
                             batch_size=128,
                             learning_rate=0.0001,
                             value_weight=1.0,
-                            entropy_weight=0.03,
+                            entropy_weight=0.005,
                             clip_ratio=0.1,
                             adv_norm=False,
                         ),
