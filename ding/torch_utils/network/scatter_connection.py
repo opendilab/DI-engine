@@ -119,12 +119,12 @@ class ScatterConnection(nn.Module):
         B, M, N = x.shape
         x = x.permute(0, 2, 1)
         H, W = spatial_size
-        indices = (coord_x * W + coord_y).long()
-        indices = indices.unsqueeze(dim=1).repeat(1, N, 1)
+        index = (coord_x * W + coord_y).long()
+        index = index.unsqueeze(dim=1).repeat(1, N, 1)
         output = torch.zeros(size=(B, N, H, W), device=device).view(B, N, H * W)
         if self.scatter_type == 'cover':
-            output.scatter_(dim=2, index=indices, src=x)
+            output.scatter_(dim=2, index=index, src=x)
         elif self.scatter_type == 'add':
-            output.scatter_add_(dim=2, index=indices, src=x)
+            output.scatter_add_(dim=2, index=index, src=x)
         output = output.view(B, N, H, W)
         return output
