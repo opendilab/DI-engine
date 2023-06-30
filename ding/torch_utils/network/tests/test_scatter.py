@@ -29,7 +29,7 @@ class TestScatterConnection:
             loss = output.mean()
             loss.backward()
             assert isinstance(input.grad, torch.Tensor)
-    
+
     def test_xy_forward(self):
         for scatter_type in ['add', 'cover']:
             model = ScatterConnection(scatter_type)
@@ -43,4 +43,3 @@ class TestScatterConnection:
             loss.backward()
             assert isinstance(input.grad, torch.Tensor)
             assert output.shape == (BatchSize, EmbeddingSize, *SpatialSize)
-
