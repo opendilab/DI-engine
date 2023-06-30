@@ -33,13 +33,14 @@ class TestScatterConnection:
     def test_xy_forward(self):
         for scatter_type in ['add', 'cover']:
             model = ScatterConnection(scatter_type)
-            BatchSize, Num, EmbeddingSize = 10, 20, 3
+            B, M, N = 10, 20, 3
             SpatialSize = (13, 17)
-            input = torch.randn(size=(BatchSize, Num, EmbeddingSize)).requires_grad_(True)
-            coord_x = torch.randint(low=0, high=13, size=(BatchSize, Num))
-            coord_y = torch.randint(low=0, high=17, size=(BatchSize, Num))
+            H, W = 13, 17
+            input = torch.randn(size=(B, M, N)).requires_grad_(True)
+            coord_x = torch.randint(low=0, high=13, size=(B, M))
+            coord_y = torch.randint(low=0, high=17, size=(B, M))
             output = model.xy_forward(input, SpatialSize, coord_x, coord_y)
             loss = output.mean()
             loss.backward()
             assert isinstance(input.grad, torch.Tensor)
-            assert output.shape == (BatchSize, EmbeddingSize, *SpatialSize)
+            assert output.shape == (B, N, H, W)
