@@ -172,7 +172,7 @@ class PdeilRewardModel(BaseRewardModel):
         s = torch.stack([item['obs'] for item in train_data_augmented], dim=0)
         a = torch.stack([item['action'] for item in train_data_augmented], dim=0)
         if self.p_u_s is None:
-            print("you need to train you reward model first")
+            logging.warning("you need to train you reward model first")
             for item in train_data_augmented:
                 item['reward'].zero_()
         else:
@@ -218,10 +218,14 @@ class PdeilRewardModel(BaseRewardModel):
         """
         self.train_data.extend(item)
 
-    def clear_data(self):
+    def clear_data(self, iter: int):
         """
         Overview:
             Clearing training data. \
             This is a side effect function which clears the data attribute in ``self``
         """
-        self.train_data.clear()
+        assert hasattr(
+            self.cfg, 'clear_buffer_per_iters'
+        ), "Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.clear_buffer_per_iters == 0:
+            self.train_data.clear()

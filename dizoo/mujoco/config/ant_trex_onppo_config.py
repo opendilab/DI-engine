@@ -75,6 +75,15 @@ ant_trex_ppo_create_config = EasyDict(ant_trex_ppo_create_config)
 create_config = ant_trex_ppo_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c ant_trex_onppo_config.py -s 0`
-    from ding.entry import serial_pipeline_trex_onpolicy
-    serial_pipeline_trex_onpolicy((main_config, create_config), seed=0)
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_onpolicy
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
+    trex_collecting_data(args)
+    serial_pipeline_reward_model_onpolicy((main_config, create_config), pretrain_reward_model=True, cooptrain_reward_model=False)

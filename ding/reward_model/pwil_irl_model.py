@@ -1,4 +1,5 @@
 from typing import Dict, List
+from ditk import logging
 import math
 import random
 import pickle
@@ -6,6 +7,7 @@ import torch
 
 from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
+from .reward_model_utils import concat_state_action_pairs
 
 
 def collect_state_action_pairs(iterator):
@@ -16,13 +18,12 @@ def collect_state_action_pairs(iterator):
     Arguments:
         - iterator (:obj:`Iterable`): Iterables with at least ``obs`` and ``action`` tensor keys.
     Returns:
-        - res (:obj:`Torch.tensor`): State and action pairs.
+        - res (:obj:`List(Tuple(torch.Tensor, torch.Tensor))`): State and action pairs.
     """
     res = []
     for item in iterator:
         state = item['obs']
         action = item['action']
-        # s_a = torch.cat([state, action.float()], dim=-1)
         res.append((state, action))
     return res
 
@@ -95,6 +96,7 @@ class PwilRewardModel(BaseRewardModel):
         self.cfg: Dict = config
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
+        self.tb_logger = tb_logger
         self.expert_data: List[tuple] = []
         self.train_data: List[tuple] = []
         # In this algo, model is a dict
@@ -114,12 +116,12 @@ class PwilRewardModel(BaseRewardModel):
         """
         with open(self.cfg.expert_data_path, 'rb') as f:
             self.expert_data = pickle.load(f)
-            print("the data size is:", len(self.expert_data))
+            logging.info("the data size is: %d", len(self.expert_data))
         sample_size = min(self.cfg.sample_size, len(self.expert_data))
         self.expert_data = random.sample(self.expert_data, sample_size)
         self.expert_data = [(item['obs'], item['action']) for item in self.expert_data]
         self.expert_s, self.expert_a = list(zip(*self.expert_data))
-        print('the expert data demonstrations is:', len(self.expert_data))
+        logging.info('the expert data demonstrations is: %d', len(self.expert_data))
 
     def collect_data(self, data: list) -> None:
         """
@@ -253,10 +255,14 @@ class PwilRewardModel(BaseRewardModel):
             reward = self.cfg.alpha * math.exp(self.reward_factor * c)
             self.reward_table[(s, a)] = torch.FloatTensor([reward])
 
-    def clear_data(self) -> None:
+    def clear_data(self, iter: int) -> None:
         """
         Overview:
             Clearing training data. \
             This is a side effect function which clears the data attribute in ``self``
         """
-        self.train_data.clear()
+        assert hasattr(
+            self.cfg, 'clear_buffer_per_iters'
+        ), "Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.clear_buffer_per_iters == 0:
+            self.train_data.clear()

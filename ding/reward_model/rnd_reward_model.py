@@ -1,51 +1,16 @@
-from typing import Union, Tuple, List, Dict
+from typing import List, Dict
 from easydict import EasyDict
 
 import random
 import torch
-import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
-from ding.model import FCEncoder, ConvEncoder
+from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
+from .reward_model_utils import combine_intrinsic_exterinsic_reward, collect_states, obs_norm
+from .network import RNDNetwork
 from ding.utils import RunningMeanStd
-from ding.torch_utils.data_helper import to_tensor
 import numpy as np
-
-
-def collect_states(iterator):
-    res = []
-    for item in iterator:
-        state = item['obs']
-        res.append(state)
-    return res
-
-
-class RndNetwork(nn.Module):
-
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
-        super(RndNetwork, self).__init__()
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.target = FCEncoder(obs_shape, hidden_size_list)
-            self.predictor = FCEncoder(obs_shape, hidden_size_list)
-        elif len(obs_shape) == 3:
-            self.target = ConvEncoder(obs_shape, hidden_size_list)
-            self.predictor = ConvEncoder(obs_shape, hidden_size_list)
-        else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
-            )
-        for param in self.target.parameters():
-            param.requires_grad = False
-
-    def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        predict_feature = self.predictor(obs)
-        with torch.no_grad():
-            target_feature = self.target(obs)
-        return predict_feature, target_feature
 
 
 @REWARD_MODEL_REGISTRY.register('rnd')
@@ -126,38 +91,32 @@ class RndRewardModel(BaseRewardModel):
             from tensorboardX import SummaryWriter
             tb_logger = SummaryWriter('rnd_reward_model')
         self.tb_logger = tb_logger
-        self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
+        self.reward_model = RNDNetwork(config.obs_shape, config.hidden_size_list)
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
         self.train_obs = []
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
-        self._running_mean_std_rnd_reward = RunningMeanStd(epsilon=1e-4)
         self.estimate_cnt_rnd = 0
         self.train_cnt_icm = 0
         self._running_mean_std_rnd_obs = RunningMeanStd(epsilon=1e-4)
 
-    def _train(self) -> None:
+    def _train(self) -> torch.Tensor:
         train_data: list = random.sample(self.train_obs, self.cfg.batch_size)
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
         if self.cfg.obs_norm:
-            # Note: observation normalization: transform obs to mean 0, std 1
-            self._running_mean_std_rnd_obs.update(train_data.cpu().numpy())
-            train_data = (train_data - to_tensor(self._running_mean_std_rnd_obs.mean).to(self.device)) / to_tensor(
-                self._running_mean_std_rnd_obs.std
-            ).to(self.device)
-            train_data = torch.clamp(train_data, min=self.cfg.obs_norm_clamp_min, max=self.cfg.obs_norm_clamp_max)
-
-        predict_feature, target_feature = self.reward_model(train_data)
-        loss = F.mse_loss(predict_feature, target_feature.detach())
-        self.tb_logger.add_scalar('rnd_reward/loss', loss, self.train_cnt_icm)
+            train_data = obs_norm(train_data, self._running_mean_std_rnd_obs, self.cfg, self.device)
+        loss = self.reward_model.learn(train_data)
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
 
+        return loss
+
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
-            self._train()
+            loss = self._train()
+            self.tb_logger.add_scalar('rnd_reward/loss', loss, self.train_cnt_icm)
             self.train_cnt_icm += 1
 
     def estimate(self, data: list) -> List[Dict]:
@@ -171,19 +130,10 @@ class RndRewardModel(BaseRewardModel):
         obs = collect_states(train_data_augmented)
         obs = torch.stack(obs).to(self.device)
         if self.cfg.obs_norm:
-            # Note: observation normalization: transform obs to mean 0, std 1
-            obs = (obs - to_tensor(self._running_mean_std_rnd_obs.mean
-                                   ).to(self.device)) / to_tensor(self._running_mean_std_rnd_obs.std).to(self.device)
-            obs = torch.clamp(obs, min=self.cfg.obs_norm_clamp_min, max=self.cfg.obs_norm_clamp_max)
+            obs = obs_norm(obs, self._running_mean_std_rnd_obs, self.cfg, self.device)
 
+        rnd_reward = self.reward_model.forward(obs)
         with torch.no_grad():
-            predict_feature, target_feature = self.reward_model(obs)
-            mse = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            self._running_mean_std_rnd_reward.update(mse.cpu().numpy())
-
-            # Note: according to the min-max normalization, transform rnd reward to [0,1]
-            rnd_reward = (mse - mse.min()) / (mse.max() - mse.min() + 1e-8)
-
             # save the rnd_reward statistics into tb_logger
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', rnd_reward.max(), self.estimate_cnt_rnd)
@@ -200,19 +150,7 @@ class RndRewardModel(BaseRewardModel):
         # rewards = torch.stack([data[i]['reward'] for i in range(len(data))])
         # rewards = (rewards - torch.min(rewards)) / (torch.max(rewards) - torch.min(rewards))
 
-        for item, rnd_rew in zip(train_data_augmented, rnd_reward):
-            if self.intrinsic_reward_type == 'add':
-                if self.cfg.extrinsic_reward_norm:
-                    item['reward'] = item[
-                        'reward'] / self.cfg.extrinsic_reward_norm_max + rnd_rew * self.cfg.intrinsic_reward_weight
-                else:
-                    item['reward'] = item['reward'] + rnd_rew * self.cfg.intrinsic_reward_weight
-            elif self.intrinsic_reward_type == 'new':
-                item['intrinsic_reward'] = rnd_rew
-                if self.cfg.extrinsic_reward_norm:
-                    item['reward'] = item['reward'] / self.cfg.extrinsic_reward_norm_max
-            elif self.intrinsic_reward_type == 'assign':
-                item['reward'] = rnd_rew
+        train_data_augmented = combine_intrinsic_exterinsic_reward(train_data_augmented, rnd_reward, self.cfg)
 
         # save the augmented_reward statistics into tb_logger
         rew = [item['reward'].cpu().numpy() for item in train_data_augmented]
@@ -225,8 +163,14 @@ class RndRewardModel(BaseRewardModel):
     def collect_data(self, data: list) -> None:
         self.train_obs.extend(collect_states(data))
 
-    def clear_data(self) -> None:
-        self.train_obs.clear()
+    def clear_data(self, iter: int) -> None:
+        assert hasattr(
+            self.cfg, 'clear_buffer_per_iters'
+        ), "Reward Model does not have clear_buffer_per_iters, \
+            if you want to clear buffer, you need to add this attribute in config."
+
+        if iter % self.cfg.clear_buffer_per_iters == 0:
+            self.train_obs.clear()
 
     def state_dict(self) -> Dict:
         return self.reward_model.state_dict()

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_gcl_ppo_onpolicy_config = dict(
-    exp_name='cartpole_gcl_seed0',
+cartpole_gcl_ppo_offpolicy_config = dict(
+    exp_name='cartpole_gcl_offpolicy_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -13,56 +13,75 @@ cartpole_gcl_ppo_onpolicy_config = dict(
         input_size=5,
         batch_size=32,
         continuous=False,
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # e.g. 'exp_name/expert_data.pkl'
+        expert_data_path='cartpole_ppo_offpolicy_seed0/expert_data.pkl',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='cartpole_ppo_offpolicy_seed0/ckpt/ckpt_best.pth.tar',
         update_per_collect=10,
+        collect_count=1000,
     ),
     policy=dict(
         cuda=False,
-        recompute_adv=True,
-        action_space='discrete',
         model=dict(
             obs_shape=4,
             action_shape=2,
-            action_space='discrete',
             encoder_hidden_size_list=[64, 64, 128],
             critic_head_hidden_size=128,
             actor_head_hidden_size=128,
+            action_space='discrete',
         ),
         learn=dict(
-            update_per_collect=2,
+            update_per_collect=6,
             batch_size=64,
             learning_rate=0.001,
+            value_weight=0.5,
             entropy_weight=0.01,
+            clip_ratio=0.2,
+            learner=dict(hook=dict(save_ckpt_after_iter=1000)),
         ),
         collect=dict(
-            # Users should add their own model path here. Model path should lead to a model.
-            # Absolute path is recommended.
-            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-            model_path='model_path_placeholder',
-            # If you need the data collected by the collector to contain logit key which reflect the probability of
-            # the action, you can change the key to be True.
-            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
-            collector_logit=True,  # add logit into collected transition
-            n_sample=256,
+            n_sample=128,
+            unroll_len=1,
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=50, ), ),
+        eval=dict(evaluator=dict(eval_freq=40, )),
+        other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_gcl_ppo_onpolicy_config = EasyDict(cartpole_gcl_ppo_onpolicy_config)
-main_config = cartpole_gcl_ppo_onpolicy_config
-cartpole_gcl_ppo_onpolicy_create_config = dict(
+cartpole_gcl_ppo_offpolicy_config = EasyDict(cartpole_gcl_ppo_offpolicy_config)
+main_config = cartpole_gcl_ppo_offpolicy_config
+cartpole_gcl_ppo_offpolicy_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
     reward_model=dict(type='guided_cost'),
 )
-cartpole_gcl_ppo_onpolicy_create_config = EasyDict(cartpole_gcl_ppo_onpolicy_create_config)
-create_config = cartpole_gcl_ppo_onpolicy_create_config
+cartpole_gcl_ppo_offpolicy_create_config = EasyDict(cartpole_gcl_ppo_offpolicy_create_config)
+create_config = cartpole_gcl_ppo_offpolicy_create_config
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline_guided_cost
-    serial_pipeline_guided_cost((main_config, create_config), seed=0)
+    # or you can enter `ding -m serial -c cartpole_ppo_offpolicy_config.py -s 0`
+    from ding.entry import collect_demo_data, serial_pipeline_reward_model_offpolicy
+    from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config
+
+    expert_cfg = (cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config)
+    expert_data_path = main_config.reward_model.expert_data_path
+    state_dict_path = main_config.reward_model.expert_model_path
+    collect_count = main_config.reward_model.collect_count
+    collect_demo_data(
+        expert_cfg,
+        seed=0,
+        state_dict_path=state_dict_path,
+        expert_data_path=expert_data_path,
+        collect_count=collect_count
+    )
+    serial_pipeline_reward_model_offpolicy((main_config, create_config))

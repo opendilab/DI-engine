@@ -1,18 +1,16 @@
 import copy
 import random
-from typing import Union, Tuple, Dict, List
 
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
+from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
-from ding.model import FCEncoder, ConvEncoder
 from ding.utils import RunningMeanStd
-from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
+from ding.utils import REWARD_MODEL_REGISTRY
 from .base_reward_model import BaseRewardModel
+from .network import RNDNetwork, InverseNetwork
 
 
 def collect_data_and_exclude_null_data_rnd(data_in):
@@ -69,31 +67,6 @@ def collect_data_episodic(data_in):
     return res, is_null_list
 
 
-class RndNetwork(nn.Module):
-
-    def __init__(self, obs_shape: Union[int, SequenceType], hidden_size_list: SequenceType) -> None:
-        super(RndNetwork, self).__init__()
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.target = FCEncoder(obs_shape, hidden_size_list)
-            self.predictor = FCEncoder(obs_shape, hidden_size_list)
-        elif len(obs_shape) == 3:
-            self.target = ConvEncoder(obs_shape, hidden_size_list)
-            self.predictor = ConvEncoder(obs_shape, hidden_size_list)
-        else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, "
-                "please customize your own RND model".format(obs_shape)
-            )
-        for param in self.target.parameters():
-            param.requires_grad = False
-
-    def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        predict_feature = self.predictor(obs)
-        with torch.no_grad():
-            target_feature = self.target(obs)
-        return predict_feature, target_feature
-
-
 @REWARD_MODEL_REGISTRY.register('rnd-ngu')
 class RndNGURewardModel(BaseRewardModel):
     r"""
@@ -116,27 +89,29 @@ class RndNGURewardModel(BaseRewardModel):
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
+        self.reward_model = RNDNetwork(config.obs_shape, config.hidden_size_list)
         self.reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
         self.train_data_total = []
         self.train_data = []
-        self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
+        self.train_cnt_icm = 0
         self.estimate_cnt_rnd = 0
         self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
+        self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self.only_use_last_five_frames = config.only_use_last_five_frames_for_icm_rnd
 
-    def _train(self) -> None:
+    def _train(self) -> torch.Tensor:
         train_data: list = random.sample(list(self.train_data_cur), self.cfg.batch_size)
 
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
 
-        predict_feature, target_feature = self.reward_model(train_data)
-        loss = F.mse_loss(predict_feature, target_feature.detach())
+        loss = self.reward_model.learn(train_data)
         self.opt.zero_grad()
         loss.backward()
         self.opt.step()
+
+        return loss
 
     def train(self) -> None:
         if self.only_use_last_five_frames:
@@ -167,7 +142,9 @@ class RndNGURewardModel(BaseRewardModel):
             # self.train_data = tmp
 
         for _ in range(self.cfg.update_per_collect):
-            self._train()
+            loss = self._train()
+            self.tb_logger.add_scalar('rnd_reward/loss', loss, self.train_cnt_icm)
+            self.train_cnt_icm += 1
 
     def estimate(self, data: list) -> torch.Tensor:
         """
@@ -180,8 +157,7 @@ class RndNGURewardModel(BaseRewardModel):
         obs = torch.stack(obs).to(self.device)
 
         with torch.no_grad():
-            predict_feature, target_feature = self.reward_model(obs)
-            reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
+            reward = self.reward_model.forward(obs, norm=False)
             self._running_mean_std_rnd.update(reward.cpu().numpy())
             # transform to mean 1 std 1
             reward = 1 + (reward - self._running_mean_std_rnd.mean) / (self._running_mean_std_rnd.std + 1e-11)
@@ -207,39 +183,6 @@ class RndNGURewardModel(BaseRewardModel):
              for k, v in sample.items()} for sample in train_data
         ]
         return train_data_reward_deepcopy
-
-
-class InverseNetwork(nn.Module):
-
-    def __init__(self, obs_shape: Union[int, SequenceType], action_shape, hidden_size_list: SequenceType) -> None:
-        super(InverseNetwork, self).__init__()
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.embedding_net = FCEncoder(obs_shape, hidden_size_list)
-        elif len(obs_shape) == 3:
-            self.embedding_net = ConvEncoder(obs_shape, hidden_size_list)
-        else:
-            raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
-            )
-        self.inverse_net = nn.Sequential(
-            nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
-        )
-
-    def forward(self, inputs: Dict, inference: bool = False) -> Dict:
-        if inference:
-            with torch.no_grad():
-                cur_obs_embedding = self.embedding_net(inputs['obs'])
-            return cur_obs_embedding
-        else:
-            # obs: torch.Tensor, next_obs: torch.Tensor
-            cur_obs_embedding = self.embedding_net(inputs['obs'])
-            next_obs_embedding = self.embedding_net(inputs['next_obs'])
-            # get pred action
-            obs_plus_next_obs = torch.cat([cur_obs_embedding, next_obs_embedding], dim=-1)
-            pred_action_logits = self.inverse_net(obs_plus_next_obs)
-            pred_action_probs = nn.Softmax(dim=-1)(pred_action_logits)
-            return pred_action_logits, pred_action_probs
 
 
 @REWARD_MODEL_REGISTRY.register('episodic')
@@ -275,7 +218,9 @@ class EpisodicNGURewardModel(BaseRewardModel):
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
-        self.episodic_reward_model = InverseNetwork(config.obs_shape, config.action_shape, config.hidden_size_list)
+        self.episodic_reward_model = InverseNetwork(
+            config.obs_shape, config.action_shape, config.hidden_size_list, self.device
+        )
         self.episodic_reward_model.to(self.device)
         self.intrinsic_reward_type = config.intrinsic_reward_type
         assert self.intrinsic_reward_type in ['add', 'new', 'assign']
@@ -283,11 +228,10 @@ class EpisodicNGURewardModel(BaseRewardModel):
         self.train_action_total = []
         self.opt = optim.Adam(self.episodic_reward_model.parameters(), config.learning_rate)
         self.estimate_cnt_episodic = 0
-        self._running_mean_std_episodic_dist = RunningMeanStd(epsilon=1e-4)
-        self._running_mean_std_episodic_reward = RunningMeanStd(epsilon=1e-4)
+        self.train_cnt_episodic = 0
         self.only_use_last_five_frames = config.only_use_last_five_frames_for_icm_rnd
 
-    def _train(self) -> None:
+    def _train(self) -> torch.Tensor:
         # sample episode's timestep index
         train_index = np.random.randint(low=0, high=self.train_obs.shape[0], size=self.cfg.batch_size)
 
@@ -295,13 +239,13 @@ class EpisodicNGURewardModel(BaseRewardModel):
         train_next_obs: torch.Tensor = self.train_next_obs[train_index].to(self.device)
         train_action: torch.Tensor = self.train_action[train_index].to(self.device)
 
-        train_data = {'obs': train_obs, 'next_obs': train_next_obs}
-        pred_action_logits, pred_action_probs = self.episodic_reward_model(train_data)
-
-        inverse_loss = F.cross_entropy(pred_action_logits, train_action.squeeze(-1))
+        train_data = {'obs': train_obs, 'next_obs': train_next_obs, 'action': train_action}
+        inverse_loss = self.episodic_reward_model.learn(train_data)
         self.opt.zero_grad()
         inverse_loss.backward()
         self.opt.step()
+
+        return inverse_loss
 
     def train(self) -> None:
         self.train_next_obs_total = copy.deepcopy(self.train_obs_total)
@@ -332,32 +276,9 @@ class EpisodicNGURewardModel(BaseRewardModel):
         self.train_action = torch.cat(self.train_action, 0)
 
         for _ in range(self.cfg.update_per_collect):
-            self._train()
-
-    def _compute_intrinsic_reward(
-            self,
-            episodic_memory: List,
-            current_controllable_state: torch.Tensor,
-            k=10,
-            kernel_cluster_distance=0.008,
-            kernel_epsilon=0.0001,
-            c=0.001,
-            siminarity_max=8,
-    ) -> torch.Tensor:
-        # this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py
-        state_dist = torch.cdist(current_controllable_state.unsqueeze(0), episodic_memory, p=2).squeeze(0).sort()[0][:k]
-        self._running_mean_std_episodic_dist.update(state_dist.cpu().numpy())
-        state_dist = state_dist / (self._running_mean_std_episodic_dist.mean + 1e-11)
-
-        state_dist = torch.clamp(state_dist - kernel_cluster_distance, min=0, max=None)
-        kernel = kernel_epsilon / (state_dist + kernel_epsilon)
-        s = torch.sqrt(torch.clamp(torch.sum(kernel), min=0, max=None)) + c
-
-        if s > siminarity_max:
-            print('s > siminarity_max:', s.max(), s.min())
-            return torch.tensor(0)  # NOTE
-        return 1 / s
-        # average value 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30
+            loss = self._train()
+            self.tb_logger.add_scalar('episodic_reward/train_loss', loss, self.train_cnt_episodic)
+            self.train_cnt_episodic += 1
 
     def estimate(self, data: list) -> torch.Tensor:
         """
@@ -365,63 +286,10 @@ class EpisodicNGURewardModel(BaseRewardModel):
         """
 
         obs, is_null = collect_data_episodic(data)
-        # obs shape list(list()) [batch_size,seq_length,obs_dim]
-        batch_size = len(obs)
-        seq_length = len(obs[0])
 
-        # stack episode dim
-        obs = [torch.stack(episode_obs, dim=0) for episode_obs in obs]
-
-        # stack batch dim
-        # way 0
-        if isinstance(self.cfg.obs_shape, int):
-            obs = torch.stack(obs, dim=0).view(batch_size * seq_length, self.cfg.obs_shape).to(self.device)
-        else:  # len(self.cfg.obs_shape) == 3 for image obs
-            obs = torch.stack(obs, dim=0).view(batch_size * seq_length, *self.cfg.obs_shape).to(self.device)
-        # way 2
-        # obs = torch.cat(obs, 0)
-
-        inputs = {'obs': obs, 'is_null': is_null}
         with torch.no_grad():
-            cur_obs_embedding = self.episodic_reward_model(inputs, inference=True)
-            cur_obs_embedding = cur_obs_embedding.view(batch_size, seq_length, -1)
-            episodic_reward = [[] for _ in range(batch_size)]
-            null_cnt = 0  # the number of null transitions in the whole minibatch
-            for i in range(batch_size):
-                for j in range(seq_length):
-                    if j < 10:
-                        # if self._running_mean_std_episodic_reward.mean is not None:
-                        #     episodic_reward[i].append(torch.tensor(self._running_mean_std_episodic_reward.mean).to(self.device))
-                        # else:
-                        episodic_reward[i].append(torch.tensor(0.).to(self.device))
-                    elif j:
-                        episodic_memory = cur_obs_embedding[i][:j]
-                        reward = self._compute_intrinsic_reward(episodic_memory,
-                                                                cur_obs_embedding[i][j]).to(self.device)
-                        episodic_reward[i].append(reward)
-
-                if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:
-                    # TODO(pu): if have null padding, the episodic_reward should be 0
-                    not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
-                    null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
-                    # add the number of null transitions in i'th sequence in batch
-                    null_cnt = null_cnt + seq_length - null_start_index
-                    for k in range(null_start_index, seq_length):
-                        episodic_reward[i][k] = torch.tensor(0).to(self.device)
-                        # episodic_reward[i][null_start_index:-1]=[torch.tensor(0).to(self.device)
-                        # for i in range(seq_length-null_start_index)]
-
-            # list(list(tensor)) -> tensor
-            tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
-            # stack batch dim
-            episodic_reward = torch.stack(tmp, dim=0)  # TODO(pu): image case
-            episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
-
-            episodic_reward_real_mean = sum(episodic_reward) / (
-                batch_size * seq_length - null_cnt
-            )  # TODO(pu): recompute mean
+            episodic_reward, episodic_reward_real_mean = self.episodic_reward_model.forward(obs, is_null)
             self.estimate_cnt_episodic += 1
-            self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())
 
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic
@@ -541,3 +409,157 @@ class EpisodicNGURewardModel(BaseRewardModel):
                                     int(data[i]['beta'][j])]
 
         return data, estimate_cnt
+
+
+@REWARD_MODEL_REGISTRY.register('ngu-reward')
+class NGURewardModel(BaseRewardModel):
+    """
+    Overview:
+        The unifying reward for ngu which combined rnd-ngu and episodic
+        The corresponding paper is `never give up: learning directed exploration strategies`.
+    Interface:
+        ``__init__``, ``train``, ``estimate``, ``collect_data``, ``clear_data``
+    Config:
+        == ====================  ========   =============  ====================================  =======================
+        ID Symbol                Type       Default Value  Description                           Other(Shape)
+        == ====================  ========   =============  ====================================  =======================
+        1  ``type``              str         ngu-reward    | Reward model register name,         |
+                                                           | refer to registry                   |
+                                                           | ``REWARD_MODEL_REGISTRY``           |
+        2  | ``intrinsic_``      str         add           | the intrinsic reward type           | including add, new
+           | ``reward_type``                               |                                     | , or assign
+        3  | ``policy_nstep``    int         1             | the nstep of policy                 |
+        4  | ``nstep``           int         1             | the nstep of reward                 |
+        5  | ``learning_rate``   float       0.001         | The step size of gradient descent   |
+        6  | ``obs_shape``       Tuple(      4             | the observation shape               |
+                                 [int,
+                                 list])
+        7  | ``action_shape``    int         2             | the action space shape              |
+        8  | ``batch_size``      int         64            | Training batch size                 |
+        9  | ``hidden``          list        [64, 64,      | Sequence of ``hidden_size``         |
+           | ``_size_list``      (int)       128]          | of reward network.                  |
+        10 | ``update_per_``     int         100           | Number of updates per collect       |
+           | ``collect``                                   |                                     |
+        11 | ``only_use_``       float       1             | Whether to only use last            |
+           | ``last_five_``                                | five frames for ICM/RND.            |
+           | ``frames_for_``                               |                                     |
+           | ``icm_rnd``                                   |                                     |
+        12 | ``last_nonzero_``   bool        False         | Whether to rescale                  | used in episode rm
+             ``reward_rescale``                            | last nonzero reward.
+        13 | ``last_nonzero_``   int         1             | The weight of last nonzero reward.  | used in episode rm
+             ``reward_weight``                             |                                     |
+        14 | ``clear_buffer``    int         1             | clear buffer per fixed iters        | make sure replay
+             ``_per_iters``                                                                      | buffer's data count
+                                                                                                 | isn't too few.
+                                                                                                 | (code work in entry)
+        == ====================  ========   =============  ====================================  =======================
+    """
+    config = dict(
+        # (str) Reward model register name, refer to registry ``REWARD_MODEL_REGISTRY``.
+        type='ngu-reward',
+        # (int) nstep for rl algorithms used in episode reward model
+        policy_nstep=5,
+        # (int) number of envs for collecting data
+        collect_env_num=8,
+        rnd_reward_model=dict(
+            # (str) The intrinsic reward type, including add, new, or assign.
+            intrinsic_reward_type='add',
+            # (float) The step size of gradient descent.
+            learning_rate=5e-4,
+            # (Tuple[int, list]) The observation shape.
+            obs_shape=4,
+            # (int) The action space shape.
+            action_shape=2,
+            # (int) Training batch size.
+            batch_size=128,  # transitions
+            # (int) Number of updates per collect.
+            update_per_collect=10,
+            # (bool) Whether to only use last five frames for ICM/RND.
+            only_use_last_five_frames_for_icm_rnd=False,
+            # (int) Clear buffer per fixed iters, make sure replay buffer's data count isn't too few.
+            clear_buffer_per_iters=10,
+            # (int) nstep for rl algorithms used in rnd reward model
+            nstep=5,
+            # (list(int)) Sequence of ``hidden_size`` of reward network.
+            # If obs.shape == 1,  use MLP layers.
+            # If obs.shape == 3,  use conv layer and final dense layer.
+            hidden_size_list=[128, 128, 64],
+            # (str) The reward model type, which must be rnd-ngu
+            type='rnd-ngu',
+        ),
+        episodic_reward_model=dict(
+            # (bool) Whether to rescale last nonzero reward.
+            last_nonzero_reward_rescale=False,
+            # (int) The weight of last nonzero reward.
+            last_nonzero_reward_weight=1,
+            # (str) The intrinsic reward type, including add, new, or assign.
+            intrinsic_reward_type='add',
+            # (float) The step size of gradient descent.
+            learning_rate=5e-4,
+            # (Tuple[int, list]) The observation shape.
+            obs_shape=4,
+            # (int) The action space shape.
+            action_shape=2,
+            # (int) Training batch size.
+            batch_size=128,  # transitions
+            # (int) Number of updates per collect.
+            update_per_collect=10,
+            # (bool) Whether to only use last five frames for ICM/RND.
+            only_use_last_five_frames_for_icm_rnd=False,
+            # (int) Clear buffer per fixed iters, make sure replay buffer's data count isn't too few.
+            clear_buffer_per_iters=10,
+            # (int) nstep for rl algorithms used in episode reward model
+            nstep=5,
+            # (list(int)) Sequence of ``hidden_size`` of reward network.
+            hidden_size_list=[128, 128, 64],
+            # (str) The reward model type, which must be episodic
+            type='episodic',
+        ),
+    )
+
+    def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:
+        super(NGURewardModel, self).__init__()
+        self.cfg = config
+        self.tb_logger = tb_logger
+        self.estimate_cnt = 0
+        self.rnd_reward_model = RndNGURewardModel(config.rnd_reward_model, device, tb_logger)
+        self.episodic_reward_model = EpisodicNGURewardModel(config.episodic_reward_model, device, tb_logger)
+
+    def train(self) -> None:
+        self.rnd_reward_model.train()
+        self.episodic_reward_model.train()
+
+    def estimate(self, data: list) -> dict:
+
+        # estimate reward
+        rnd_reward = self.rnd_reward_model.estimate(data)
+        episodic_reward = self.episodic_reward_model.estimate(data)
+
+        # combine reward
+        train_data_augumented, self.estimate_cnt = self.episodic_reward_model.fusion_reward(
+            data,
+            episodic_reward,
+            rnd_reward,
+            nstep=self.cfg.policy_nstep,
+            collector_env_num=self.cfg.collect_env_num,
+            tb_logger=self.tb_logger,
+            estimate_cnt=self.estimate_cnt
+        )
+
+        return train_data_augumented
+
+    def collect_data(self, data) -> None:
+        self.rnd_reward_model.collect_data(data)
+        self.episodic_reward_model.collect_data(data)
+
+    def clear_data(self, iter: int) -> None:
+        assert hasattr(
+            self.cfg.rnd_reward_model, 'clear_buffer_per_iters'
+        ), "RND Reward Model does not have clear_buffer_per_iters, Clear failed"
+        assert hasattr(
+            self.cfg.episodic_reward_model, 'clear_buffer_per_iters'
+        ), "Episodic Reward Model does not have clear_buffer_per_iters, Clear failed"
+        if iter % self.cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+            self.rnd_reward_model.clear_data()
+        if iter % self.cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+            self.episodic_reward_model.clear_data()

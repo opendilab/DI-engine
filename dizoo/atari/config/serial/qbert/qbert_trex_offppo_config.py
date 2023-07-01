@@ -13,6 +13,7 @@ qbert_trex_ppo_config = dict(
     ),
     reward_model=dict(
         type='trex',
+        exp_name='qbert_trex_offppo_seed0',
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=0,
@@ -20,9 +21,14 @@ qbert_trex_ppo_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./qbert.params',
-        offline_data_path='abs data path',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
+        expert_model_path='qbert_ppo_seed0',
+        hidden_size_list=[512, 64, 1],
+        obs_shape=[4, 84, 84],
+        action_shape=6,
     ),
     policy=dict(
         cuda=True,
@@ -69,6 +75,7 @@ qbert_trex_ppo_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
+    reward_model=dict(type='trex'),
 )
 create_config = EasyDict(qbert_trex_ppo_create_config)
 
@@ -80,7 +87,7 @@ if __name__ == "__main__":
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_reward_model_trex
+    from ding.entry import serial_pipeline_reward_model_offpolicy
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
@@ -89,4 +96,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex((main_config, create_config))
+    serial_pipeline_reward_model_offpolicy((main_config, create_config), pretrain_reward_model=True, cooptrain_reward_model=False)
