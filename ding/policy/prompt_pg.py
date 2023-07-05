@@ -114,11 +114,14 @@ class PromptPGPolicy(Policy):
             real_act = torch.tensor(real_act, device=self._device)  # shape: (B, shot_number)
             # Calculate loss.
             total_loss = 0
+            total_policy_loss, total_entropy_loss = 0, 0
             for ii in range(self._cfg.shot_number):
                 log_prob = output['dist'].log_prob(real_act[:, ii])
                 policy_loss = -(log_prob * return_).mean()
                 entropy_loss = -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
                 total_loss += policy_loss + entropy_loss
+                total_policy_loss += policy_loss
+                total_entropy_loss += entropy_loss
 
             # update
             self._optimizer.zero_grad()
@@ -134,8 +137,8 @@ class PromptPGPolicy(Policy):
             return_info = {
                 'cur_lr': self._optimizer.param_groups[0]['lr'],
                 'total_loss': total_loss.item(),
-                'policy_loss': policy_loss.item(),
-                'entropy_loss': entropy_loss.item(),
+                'policy_loss': total_policy_loss.item(),
+                'entropy_loss': total_entropy_loss.item(),
                 'return_abs_max': return_.abs().max().item(),
                 'grad_norm': grad_norm,
             }

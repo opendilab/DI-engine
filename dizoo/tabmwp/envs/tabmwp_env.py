@@ -57,14 +57,17 @@ class TabMWP(BaseEnv):
         self.problems, self.cand_pids, self.train_pids = load_data(self._args)
         if self.enable_replay:
             with open('sampled_pids.txt') as f:
-                a, b = f.read().split()
+                tmp = f.read().split('\n')
+                a, b = tmp[0], tmp[1]
             self.cand_pids, self.train_pids = eval(a), eval(b)
+            self.cand_pids = self.cand_pids[:self._args.cand_number]
+            self.train_pids = self.train_pids[:self._args.train_number]
             self.results_memory = []
             with open('model_in_and_out.txt') as f:
-                tmp = f.read().split()
-                print(tmp[0])
-                assert False
+                tmp = f.read().split('\n')
             for tt in tmp:
+                if len(tt.strip()) == 0:
+                    continue
                 self.results_memory.append(eval(tt))
 
         self.cand_examples = []
@@ -196,4 +199,5 @@ if __name__ == '__main__':
     env = TabMWP(env_cfg)
     env.seed(0)
     env.reset()
+    env.search_answer('22976', ['32889', '8044'])
 
