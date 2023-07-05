@@ -2,7 +2,7 @@ import gym
 
 from ding.utils import ENV_REGISTRY
 from ding.envs import BaseEnv, BaseEnvTimestep
-from .utils import *
+from dizoo.tabmwp.envs.utils import *
 
 
 @ENV_REGISTRY.register('tabmwp')
@@ -62,6 +62,8 @@ class TabMWP(BaseEnv):
             self.results_memory = []
             with open('model_in_and_out.txt') as f:
                 tmp = f.read().split()
+                print(tmp[0])
+                assert False
             for tt in tmp:
                 self.results_memory.append(eval(tt))
 
@@ -100,7 +102,7 @@ class TabMWP(BaseEnv):
                     if i == j:
                         continue
                     while self.problem_id < self._args.train_number:
-                        shot_pids = [i, j]
+                        shot_pids = [self.cand_pids[i], self.cand_pids[j]]
                         pid = self.train_pids[self.problem_id]
 
                         # generate the prompt input
@@ -113,7 +115,6 @@ class TabMWP(BaseEnv):
 
                         output_txt = {'shot_pids': shot_pids, 'pid': pid, 'prompt': prompt, 'output': output}
                         f.write(str(output_txt) + '\n')
-                        assert False
 
     def close(self) -> None:
         self._init_flag = False
@@ -178,7 +179,7 @@ class TabMWP(BaseEnv):
 if __name__ == '__main__':
     from easydict import EasyDict
     env_cfg = EasyDict(dict(
-        cand_number=4,
+        cand_number=16,
         train_number=20,
         engine='text-davinci-002',
         temperature=0.,
@@ -187,12 +188,12 @@ if __name__ == '__main__':
         frequency_penalty=0.,
         presence_penalty=0.,
         option_inds=["A", "B", "C", "D", "E", "F"],
-        api_key='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',
+        api_key='xxx',
         prompt_format='TQ-A',
+        enable_replay=True,
         seed=0,
     ))
     env = TabMWP(env_cfg)
     env.seed(0)
     env.reset()
-    env.parse_all_answers()
 
