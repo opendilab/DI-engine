@@ -43,6 +43,16 @@ def calc_rwkv(model: transformers.RwkvForCausalLM, tokenizer: transformers.AutoT
     return prompt[orig_len:]
 
 
+def calc_internlm(model, tokenizer, prompt: str, args):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    for k, v in inputs.items():
+        inputs[k] = v.cuda()
+    gen_kwargs = {"max_length": args.max_tokens, "top_p": args.top_p, "temperature": args.temperature, "do_sample": True,
+                  "repetition_penalty": args.frequency_penalty}
+    output = model.generate(**inputs, **gen_kwargs)
+    print(output)
+
+
 def load_data(args: dict) -> tuple:
     # Load tabmwp dataset.
     random.seed(args.seed)

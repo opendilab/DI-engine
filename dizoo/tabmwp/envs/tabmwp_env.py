@@ -35,6 +35,11 @@ class TabMWP(BaseEnv):
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile", trust_remote_code=True)
             model = RwkvForCausalLM.from_pretrained("sgugger/rwkv-7b-pile")
             TabMWP.model = model.half().cuda()
+        elif self._args.engine == 'interlm-7B':
+            from transformers import AutoTokenizer, AutoModelForCausalLM
+            TabMWP.tokenizer = AutoTokenizer.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
+            model = AutoModelForCausalLM.from_pretrained("internlm/internlm-7b", trust_remote_code=True).cuda()
+            TabMWP.model = model.eval()
 
     @lru_cache(maxsize=10000)
     def get_output(self, inp: str) -> str:
@@ -146,6 +151,8 @@ class TabMWP(BaseEnv):
             output = get_gpt3_output(prompt, self._args)
         elif self._args.engine == 'rwkv-7B':
             output = calc_rwkv(self.model, self.tokenizer, prompt)
+        elif self._args.engine == 'internlm-7B':
+            output = calc_internlm(self.model, self.tokenizer, prompt, self._args)
         else:
             output = self.get_output(prompt)
 
