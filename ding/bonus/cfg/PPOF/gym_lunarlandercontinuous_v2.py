@@ -1,0 +1,14 @@
+from easydict import EasyDict
+
+cfg = dict(
+    exp_name='LunarLanderContinuous-V2-PPO',
+    action_space='continuous',
+    n_sample=400,
+    act_scale=True,
+)
+
+cfg = EasyDict(cfg)
+
+import ding.envs.gym_env
+from functools import partial
+env = partial(ding.envs.gym_env.env, cfg=dict(act_scale=cfg.act_scale))

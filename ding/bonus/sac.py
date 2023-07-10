@@ -1,67 +1,71 @@
-from dataclasses import dataclass
 from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
 import os
-from functools import partial
 import torch
 import treetensor.torch as ttorch
 from ding.framework import task, OnlineRLContext
-from ding.framework.middleware import CkptSaver, multistep_trainer, \
+from ding.framework.middleware import CkptSaver, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, data_pusher, \
     OffPolicyLearner, final_ctx_saver
-from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
+from ding.envs import BaseEnv
+from ding.envs import setup_ding_env_manager
 from ding.policy import SACPolicy
 from ding.utils import set_pkg_seed
-from ding.config import Config, save_config_py, compile_config
+from ding.config import save_config_py, compile_config
 from ding.model import QAC
 from ding.model import model_wrap
 from ding.data import DequeBuffer
-from ding.bonus.config import get_instance_config, get_instance_env
 from ding.bonus.common import TrainingReturn, EvalReturn
+from ding.bonus.cfg.SAC import supported_env_cfg
+from ding.bonus.cfg.SAC import supported_env
 
 
 class SACAgent:
-    supported_env_list = [
-        'hopper',
-        'HalfCheetah',
-        'Walker2d',
-        'lunarlander_continuous',
-        'bipedalwalker',
-        'pendulum',
-    ]
-    algorithm = 'SAC'
+    supported_env_list = list(supported_env_cfg.keys())
 
     def __init__(
             self,
-            env: Union[str, BaseEnv],
+            env_id: str = None,
+            env: BaseEnv = None,
             seed: int = 0,
             exp_name: str = None,
             model: Optional[torch.nn.Module] = None,
-            cfg: Optional[Union[EasyDict, dict, str]] = None,
+            cfg: Optional[Union[EasyDict, dict]] = None,
             policy_state_dict: str = None,
     ) -> None:
-        if isinstance(env, str):
-            assert env in SACAgent.supported_env_list, "Please use supported envs: {}".format(
+        assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
+
+        if cfg is not None and not isinstance(cfg, EasyDict):
+            cfg = EasyDict(cfg)
+
+        if env_id is not None:
+            assert env_id in SACAgent.supported_env_list, "Please use supported envs: {}".format(
                 SACAgent.supported_env_list
             )
-            self.env = get_instance_env(env)
             if cfg is None:
-                # 'It should be default env tuned config'
-                cfg = get_instance_config(env, algorithm=SACAgent.algorithm)
+                cfg = supported_env_cfg[env_id]
             else:
-                assert isinstance(cfg, EasyDict), "Please use EasyDict as config data type."
-
-            if exp_name is not None:
-                cfg.exp_name = exp_name
-            self.cfg = compile_config(cfg, policy=SACPolicy)
-            self.exp_name = self.cfg.exp_name
-
-        elif isinstance(env, BaseEnv):
-            self.cfg = compile_config(cfg, policy=SACPolicy)
-            raise NotImplementedError
+                assert cfg.env.env_id == env_id, "env_id in cfg should be the same as env_id in args."
         else:
-            raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
+            assert hasattr(cfg.env, "env_id"), "Please specify env_id in cfg."
+            assert cfg.env.env_id in SACAgent.supported_env_list, "Please use supported envs: {}".format(
+                SACAgent.supported_env_list
+            )
+        default_policy_config = EasyDict({"policy": SACPolicy.default_config()})
+        default_policy_config.update(cfg)
+        cfg = default_policy_config
+
+        if exp_name is not None:
+            cfg.exp_name = exp_name
+        self.cfg = compile_config(cfg, policy=SACPolicy)
+        self.exp_name = self.cfg.exp_name
+        if env is None:
+            self.env = supported_env[cfg.env.env_id](cfg=cfg.env)
+        else:
+            assert isinstance(env, BaseEnv), "Please use BaseEnv as env data type."
+            self.env = env
+
         logging.getLogger().setLevel(logging.INFO)
         self.seed = seed
         set_pkg_seed(self.seed, use_cuda=self.cfg.policy.cuda)
@@ -79,9 +83,8 @@ class SACAgent:
     def train(
         self,
         step: int = int(1e7),
-        collector_env_num: int = 4,
-        evaluator_env_num: int = 4,
-        n_iter_log_show: int = 500,
+        collector_env_num: int = None,
+        evaluator_env_num: int = None,
         n_iter_save_ckpt: int = 1000,
         context: Optional[str] = None,
         debug: bool = False,
@@ -91,8 +94,10 @@ class SACAgent:
             logging.getLogger().setLevel(logging.DEBUG)
         logging.debug(self.policy._model)
         # define env and policy
-        collector_env = self._setup_env_manager(collector_env_num, context, debug, 'collector')
-        evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
+        collector_env_num = collector_env_num if collector_env_num else self.cfg.env.collector_env_num
+        evaluator_env_num = evaluator_env_num if evaluator_env_num else self.cfg.env.evaluator_env_num
+        collector_env = setup_ding_env_manager(self.env, collector_env_num, context, debug, 'collector')
+        evaluator_env = setup_ding_env_manager(self.env, evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
@@ -170,6 +175,8 @@ class SACAgent:
                 break
         logging.info(f'SAC deploy is finished, final episode return with {step} steps is: {return_}')
 
+        env.close()
+
         return return_
 
     def collect_data(
@@ -186,7 +193,8 @@ class SACAgent:
         if n_episode is not None:
             raise NotImplementedError
         # define env and policy
-        env = self._setup_env_manager(env_num, context, debug, 'collector')
+        env_num = env_num if env_num else self.cfg.env.collector_env_num
+        env = setup_ding_env_manager(self.env, env_num, context, debug, 'collector')
 
         if save_data_path is None:
             save_data_path = os.path.join(self.exp_name, 'demo_data')
@@ -214,7 +222,8 @@ class SACAgent:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
-        env = self._setup_env_manager(env_num, context, debug, 'evaluator')
+        env_num = env_num if env_num else self.cfg.env.evaluator_env_num
+        env = setup_ding_env_manager(self.env, env_num, context, debug, 'evaluator')
 
         # reset first to make sure the env is in the initial state
         # env will be reset again in the main loop
@@ -230,24 +239,6 @@ class SACAgent:
             task.run(max_step=1)
 
         return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
-
-    def _setup_env_manager(
-            self,
-            env_num: int,
-            context: Optional[str] = None,
-            debug: bool = False,
-            caller: str = 'collector'
-    ) -> BaseEnvManagerV2:
-        assert caller in ['evaluator', 'collector']
-        if debug:
-            env_cls = BaseEnvManagerV2
-            manager_cfg = env_cls.default_config()
-        else:
-            env_cls = SubprocessEnvManagerV2
-            manager_cfg = env_cls.default_config()
-            if context is not None:
-                manager_cfg.context = context
-        return env_cls([partial(self.env.clone, caller) for _ in range(env_num)], manager_cfg)
 
     @property
     def best(self):

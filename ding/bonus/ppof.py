@@ -1,9 +1,7 @@
-from dataclasses import dataclass
 from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
 from functools import partial
-import random
 import os
 import gym
 import gymnasium
@@ -186,6 +184,8 @@ class PPOF:
             if done:
                 break
         logging.info(f'PPOF deploy is finished, final episode return with {step} steps is: {return_}')
+
+        env.close()
 
         return return_
 

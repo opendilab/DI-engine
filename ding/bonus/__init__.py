@@ -1,3 +1,4 @@
+from . import cfg
 from .a2c import A2CAgent
 from .ppof import PPOF
 from .ppo_offpolicy import PPOOffPolicyAgent
@@ -7,3 +8,110 @@ from .ddpg import DDPGAgent
 from .dqn import DQNAgent
 from .sac import SACAgent
 from .pg import PGAgent
+
+supported_algo = dict(
+    A2C=A2CAgent,
+    PPOF=PPOF,
+    PPOOffPolicy=PPOOffPolicyAgent,
+    C51=C51Agent,
+    TD3=TD3Agent,
+    DDPG=DDPGAgent,
+    DQN=DQNAgent,
+    SAC=SACAgent,
+    PG=PGAgent,
+)
+
+supported_algo_list = list(supported_algo.keys())
+
+
+def env_supported(algo: str = None) -> list:
+    """
+    return list of the envs that supported by di-engine.
+    """
+
+    if algo is not None:
+        if algo.upper() == "A2C":
+            return list(cfg.A2C.supported_env.keys())
+        elif algo.upper() == "C51":
+            return list(cfg.C51.supported_env.keys())
+        elif algo.upper() == "DDPG":
+            return list(cfg.DDPG.supported_env.keys())
+        elif algo.upper() == "DQN":
+            return list(cfg.DQN.supported_env.keys())
+        elif algo.upper() == "PG":
+            return list(cfg.PG.supported_env.keys())
+        elif algo.upper() == "PPOF":
+            return list(cfg.PPOF.supported_env.keys())
+        elif algo.upper() == "PPOOFFPOLICY":
+            return list(cfg.PPOOffPolicy.supported_env.keys())
+        elif algo.upper() == "SAC":
+            return list(cfg.SAC.supported_env.keys())
+        elif algo.upper() == "TD3":
+            return list(cfg.TD3.supported_env.keys())
+        else:
+            raise ValueError("The algo {} is not supported by di-engine.".format(algo))
+    else:
+        #merge all the supported envs from all the algos
+        supported_env = []
+        supported_env.extend(list(cfg.SAC.supported_env.keys()))
+        return supported_env
+
+
+supported_env = env_supported()
+
+
+def algo_supported(env_id: str = None) -> list:
+    """
+    return list of the algos that supported by di-engine.
+    """
+    if env_id is not None:
+        algo = []
+        if env_id.upper() in [item.upper() for item in cfg.A2C.supported_env.keys()]:
+            algo.append("A2C")
+        if env_id.upper() in [item.upper() for item in cfg.C51.supported_env.keys()]:
+            algo.append("C51")
+        if env_id.upper() in [item.upper() for item in cfg.DDPG.supported_env.keys()]:
+            algo.append("DDPG")
+        if env_id.upper() in [item.upper() for item in cfg.DQN.supported_env.keys()]:
+            algo.append("DQN")
+        if env_id.upper() in [item.upper() for item in cfg.PG.supported_env.keys()]:
+            algo.append("PG")
+        if env_id.upper() in [item.upper() for item in cfg.PPOF.supported_env.keys()]:
+            algo.append("PPOF")
+        if env_id.upper() in [item.upper() for item in cfg.PPOOffPolicy.supported_env.keys()]:
+            algo.append("PPOOffPolicy")
+        if env_id.upper() in [item.upper() for item in cfg.SAC.supported_env.keys()]:
+            algo.append("SAC")
+        if env_id.upper() in [item.upper() for item in cfg.TD3.supported_env.keys()]:
+            algo.append("TD3")
+
+        if len(algo) == 0:
+            raise ValueError("The env {} is not supported by di-engine.".format(env_id))
+        return algo
+    else:
+        return supported_algo_list
+
+
+def is_supported(env_id: str = None, algo: str = None) -> bool:
+    """
+    Check if the env-algo pair is supported by di-engine.
+    """
+    if env_id is not None and env_id.upper() in [item.upper() for item in supported_env.keys()]:
+        if algo is not None and algo.upper() in supported_algo_list:
+            if env_id.upper() in env_supported(algo):
+                return True
+            else:
+                return False
+        elif algo is None:
+            return True
+        else:
+            return False
+    elif env_id is None:
+        if algo is not None and algo.upper() in supported_algo_list:
+            return True
+        elif algo is None:
+            raise ValueError("Please specify the env or algo.")
+        else:
+            return False
+    else:
+        return False
