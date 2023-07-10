@@ -6,9 +6,9 @@ cfg = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
-        act_scale=True,
         n_evaluator_episode=5,
         stop_value=-250,
+        act_scale=True,
     ),
     policy=dict(
         cuda=False,

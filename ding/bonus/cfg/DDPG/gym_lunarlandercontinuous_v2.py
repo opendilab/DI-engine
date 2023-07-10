@@ -8,8 +8,8 @@ cfg = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        act_scale=True,
         stop_value=240,
+        act_scale=True,
     ),
     policy=dict(
         cuda=True,

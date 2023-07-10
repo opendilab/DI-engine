@@ -9,7 +9,6 @@ cfg = dict(
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        act_scale=True,
         stop_value=12000,
         env_wrapper='mujoco_default',
         act_scale=True,

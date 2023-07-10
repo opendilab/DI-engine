@@ -7,9 +7,8 @@ cfg = dict(
         env_id='BipedalWalker-v3',
         collector_env_num=8,
         evaluator_env_num=5,
-        # (bool) Scale output action into legal range.
-        act_scale=True,
         n_evaluator_episode=5,
+        act_scale=True,
         rew_clip=True,
     ),
     policy=dict(

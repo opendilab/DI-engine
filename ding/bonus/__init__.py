@@ -1,24 +1,26 @@
 from . import cfg
 from .a2c import A2CAgent
-from .ppof import PPOF
-from .ppo_offpolicy import PPOOffPolicyAgent
 from .c51 import C51Agent
-from .td3 import TD3Agent
 from .ddpg import DDPGAgent
 from .dqn import DQNAgent
-from .sac import SACAgent
 from .pg import PGAgent
+from .ppof import PPOF
+from .ppo_offpolicy import PPOOffPolicyAgent
+from .sac import SACAgent
+from .sql import SQLAgent
+from .td3 import TD3Agent
 
 supported_algo = dict(
     A2C=A2CAgent,
-    PPOF=PPOF,
-    PPOOffPolicy=PPOOffPolicyAgent,
     C51=C51Agent,
-    TD3=TD3Agent,
     DDPG=DDPGAgent,
     DQN=DQNAgent,
-    SAC=SACAgent,
     PG=PGAgent,
+    PPOF=PPOF,
+    PPOOffPolicy=PPOOffPolicyAgent,
+    SAC=SACAgent,
+    SQL=SQLAgent,
+    TD3=TD3Agent,
 )
 
 supported_algo_list = list(supported_algo.keys())
@@ -46,6 +48,8 @@ def env_supported(algo: str = None) -> list:
             return list(cfg.PPOOffPolicy.supported_env.keys())
         elif algo.upper() == "SAC":
             return list(cfg.SAC.supported_env.keys())
+        elif algo.upper() == "SQL":
+            return list(cfg.SQL.supported_env.keys())
         elif algo.upper() == "TD3":
             return list(cfg.TD3.supported_env.keys())
         else:
@@ -82,6 +86,8 @@ def algo_supported(env_id: str = None) -> list:
             algo.append("PPOOffPolicy")
         if env_id.upper() in [item.upper() for item in cfg.SAC.supported_env.keys()]:
             algo.append("SAC")
+        if env_id.upper() in [item.upper() for item in cfg.SQL.supported_env.keys()]:
+            algo.append("SQL")
         if env_id.upper() in [item.upper() for item in cfg.TD3.supported_env.keys()]:
             algo.append("TD3")
 

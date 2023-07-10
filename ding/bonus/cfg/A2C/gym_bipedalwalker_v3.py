@@ -7,8 +7,8 @@ cfg = dict(
         env_id='BipedalWalker-v3',
         collector_env_num=8,
         evaluator_env_num=8,
-        act_scale=True,
         n_evaluator_episode=8,
+        act_scale=True,
         rew_clip=True,
     ),
     policy=dict(

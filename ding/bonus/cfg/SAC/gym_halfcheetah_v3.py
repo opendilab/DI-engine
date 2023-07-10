@@ -5,8 +5,6 @@ cfg = dict(
     seed=0,
     env=dict(
         env_id='HalfCheetah-v3',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
@@ -16,7 +14,7 @@ cfg = dict(
         rew_clip=True,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         random_collect_size=10000,
         model=dict(
             obs_shape=17,

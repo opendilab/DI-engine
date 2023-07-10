@@ -6,4 +6,5 @@ from . import PG
 from . import PPOF
 from . import PPOOffPolicy
 from . import SAC
+from . import SQL
 from . import TD3

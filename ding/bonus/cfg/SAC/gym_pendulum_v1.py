@@ -6,12 +6,12 @@ cfg = dict(
     env=dict(
         collector_env_num=10,
         evaluator_env_num=8,
-        act_scale=True,
         n_evaluator_episode=8,
         stop_value=-250,
+        act_scale=True,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=False,
         random_collect_size=1000,
         model=dict(

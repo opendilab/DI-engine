@@ -7,9 +7,9 @@ cfg = dict(
         env_id='LunarLanderContinuous-v2',
         collector_env_num=4,
         evaluator_env_num=8,
-        act_scale=True,
         n_evaluator_episode=8,
         stop_value=240,
+        act_scale=True,
     ),
     policy=dict(
         cuda=True,
