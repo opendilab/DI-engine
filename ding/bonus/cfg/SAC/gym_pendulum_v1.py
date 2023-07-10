@@ -4,6 +4,7 @@ cfg = dict(
     exp_name='Pendulum-v1-SAC',
     seed=0,
     env=dict(
+        env_id='Pendulum-v1',
         collector_env_num=10,
         evaluator_env_num=8,
         n_evaluator_episode=8,
