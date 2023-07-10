@@ -24,7 +24,7 @@ class TabMWP(BaseEnv):
             low=-1, high=1, shape=(1,), dtype=np.float32
         )
         self.correct_num = 0
-        assert self._args.engine in ['text-davinci-002', 'glm-10B', 'rwkv-7B']
+        assert self._args.engine in ['text-davinci-002', 'glm-10B', 'rwkv-7B', 'internlm-7B']
         if self._args.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
@@ -35,7 +35,7 @@ class TabMWP(BaseEnv):
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile", trust_remote_code=True)
             model = RwkvForCausalLM.from_pretrained("sgugger/rwkv-7b-pile")
             TabMWP.model = model.half().cuda()
-        elif self._args.engine == 'interlm-7B':
+        elif self._args.engine == 'internlm-7B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForCausalLM
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained("internlm/internlm-7b", trust_remote_code=True).cuda()
