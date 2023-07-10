@@ -9,6 +9,7 @@ cfg = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
+        env_wrapper='atari_default',
     ),
     policy=dict(
         cuda=True,
