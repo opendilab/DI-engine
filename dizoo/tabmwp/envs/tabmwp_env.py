@@ -97,19 +97,22 @@ class TabMWP(BaseEnv):
         raise ValueError('item does not exists.')
 
     def parse_all_answers(self):
-        n = len(self.cand_pids)
+        self.cand_pids = ['32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514', '19270', '23713', '17209', '33379', '34987', '11177', '30218', '26066', '24169', '28492']
+        self.train_pids = ['14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433', '26979', '18135', '13347', '17679', '38426', '3454', '10432', '31011', '12162', '13063', '7812', '29661', '24482', '4970', '4405', '17405', '27781', '26724', '5993', '16442', '30148', '15895', '6855', '29903', '18107', '29504', '11106', '32964', '29891', '32104', '15712', '24287', '4997', '32581', '21020', '17247', '31455', '13245', '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198', '26039', '3791', '4909', '37056', '7144', '8185', '2131', '4398', '38199', '29520', '37329', '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229', '22918', '31680', '15024', '24607', '26930']
         self.problem_id = 0
+        self._args.train_number = len(self.train_pids)
+        n = len(self.cand_pids)
 
         with open('sampled_pid.txt', 'w') as f:
             f.write(str(self.cand_pids) + '\n')
             f.write(str(self.train_pids) + '\n')
 
         with open('model_in_out.txt', 'w') as f:
-            for i in range(n):
-                for j in range(n):
-                    if i == j:
-                        continue
-                    while self.problem_id < self._args.train_number:
+            while self.problem_id < self._args.train_number:
+                for i in range(n):
+                    for j in range(n):
+                        if i == j:
+                            continue
                         shot_pids = [self.cand_pids[i], self.cand_pids[j]]
                         pid = self.train_pids[self.problem_id]
 
@@ -119,10 +122,12 @@ class TabMWP(BaseEnv):
                         # get the output from LM
                         # assert self._args.engine == 'text-davinci-002'
                         output = get_gpt3_output(prompt, self._args)
-                        self.problem_id += 1
 
                         output_txt = {'shot_pids': shot_pids, 'pid': pid, 'prompt': prompt, 'output': output}
                         f.write(str(output_txt) + '\n')
+                        print(self.problem_id, i, j)
+
+                self.problem_id += 1
 
     def close(self) -> None:
         self._init_flag = False
@@ -206,5 +211,6 @@ if __name__ == '__main__':
     env = TabMWP(env_cfg)
     env.seed(0)
     env.reset()
-    env.search_answer('22976', ['32889', '8044'])
+    env.parse_all_answers()
+    # env.search_answer('22976', ['32889', '8044'])
 

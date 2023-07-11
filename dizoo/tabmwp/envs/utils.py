@@ -50,6 +50,7 @@ def calc_internlm(model, tokenizer, prompt: str, args):
     gen_kwargs = {"max_length": args.max_tokens, "top_p": args.top_p, "temperature": args.temperature, "do_sample": True,
                   "repetition_penalty": args.frequency_penalty}
     output = model.generate(**inputs, **gen_kwargs)
+    output = tokenizer.decode(output)
     print(output)
 
 
