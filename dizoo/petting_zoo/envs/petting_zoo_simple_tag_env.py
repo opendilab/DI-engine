@@ -101,21 +101,21 @@ class PettingZooTagEnv(BaseEnv):
                             low=float("-inf"),
                             high=float("inf"),
                             shape=(
-                                (2+2)*(self.num_good+self.num_adversaries)+2*self.num_obstacles
+                                (2+2)*(self._num_good+self._num_adversaries)+2*self._num_obstacles,
                             ),
                             dtype=np.float32
                         ),
                         'agent_alone_state': gym.spaces.Box(
                             low=float("-inf"),
                             high=float("inf"),
-                            shape=(self.num_good+self.num_adversaries, 2+2+2*self.num_obstacles),
+                            shape=(self._num_good+self._num_adversaries, 2+2+2*self._num_obstacles),
                             dtype=np.float32
                         ),
                         'agent_alone_padding_state': gym.spaces.Dict({agent: self._env.observation_space(agent) for agent in self._agents}),
                         'action_mask': gym.spaces.Box(
                             low=float("-inf"),
                             high=float("inf"),
-                            shape=(self.num_good+self.num_adversaries, self._action_dim[0]),  # (self._num_agents, 5)
+                            shape=(self._num_good+self._num_adversaries, self._action_dim[0]),  # (self._num_agents, 5)
                             dtype=np.float32
                         )
                     }
@@ -126,7 +126,7 @@ class PettingZooTagEnv(BaseEnv):
                         {agent: gym.spaces.Box(
                             low=float("-inf"),
                             high=float("inf"),
-                            shape=(self._env.observation_space(agent).shape[0]+(2+2)*(self.num_good+self.num_adversaries)+2*self.num_obstacles),
+                            shape=(self._env.observation_space(agent).shape[0]+(2+2)*(self._num_good+self._num_adversaries)+2*self._num_obstacles,),
                             dtype=np.float32
                         )
                         for agent in self._agents})
@@ -232,7 +232,7 @@ class PettingZooTagEnv(BaseEnv):
         #               - all obstacles' position.
         all_agent_v = np.concatenate([value[0:2] for value in obs.values()])
         all_agent_pos = np.concatenate([value[2:4] for value in obs.values()])
-        all_obstacle_pos = list(obs.values())[0][4:4+self.num_obstacles*2]
+        all_obstacle_pos = list(obs.values())[0][4:4+self._num_obstacles*2]
         ret['global_state'] = np.concatenate([all_agent_pos, all_agent_v, all_obstacle_pos])
         # agent_specific_global_state: Dict like {'adversary0':xx, 'agent':xx}.
         #               Shape:
@@ -253,7 +253,7 @@ class PettingZooTagEnv(BaseEnv):
         #                    - obstacles' positions (do not include other agents' positions)
         ret['agent_alone_state']={}
         for key in obs:
-            ret['agent_alone_state'][key] = obs[key][0:4+2*self.num_obstacles]
+            ret['agent_alone_state'][key] = obs[key][0:4+2*self._num_obstacles]
         # agent_alone_padding_state: Dict like {'adversary0':xx, 'agent':xx}
         #                            Shape:
         #                            - good_agent: 2+2+2*num_obstacles+2*(num_good+num_adversaries-1)+2*(num_good-1)
@@ -264,10 +264,10 @@ class PettingZooTagEnv(BaseEnv):
         for key in obs:
             length = len(obs[key])
             new_value = np.zeros(length)
-            new_value[0:4+2*self.num_obstacles] = obs[key][0:4+2*self.num_obstacles]
+            new_value[0:4+2*self._num_obstacles] = obs[key][0:4+2*self._num_obstacles]
             ret['agent_alone_padding_state'][key] = new_value
         # action_mask: All actions are of use(either 1 for discrete or 5 for continuous). Thus all 1.
-        ret['action_mask'] = np.ones((self._num_agents, *self._action_dim)).astype(np.float32)
+        ret['action_mask'] = np.ones((self._num_good+self._num_adversaries, *self._action_dim)).astype(np.float32)
         return ret
 
     def _process_action(self, action: 'torch.Tensor') -> Dict[str, np.ndarray]:  # noqa
