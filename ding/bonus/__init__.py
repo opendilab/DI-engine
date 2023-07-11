@@ -1,4 +1,4 @@
-from . import cfg
+import ding.config
 from .a2c import A2CAgent
 from .c51 import C51Agent
 from .ddpg import DDPGAgent
@@ -33,32 +33,41 @@ def env_supported(algo: str = None) -> list:
 
     if algo is not None:
         if algo.upper() == "A2C":
-            return list(cfg.A2C.supported_env.keys())
+            return list(ding.config.A2C.supported_env.keys())
         elif algo.upper() == "C51":
-            return list(cfg.C51.supported_env.keys())
+            return list(ding.config.C51.supported_env.keys())
         elif algo.upper() == "DDPG":
-            return list(cfg.DDPG.supported_env.keys())
+            return list(ding.config.DDPG.supported_env.keys())
         elif algo.upper() == "DQN":
-            return list(cfg.DQN.supported_env.keys())
+            return list(ding.config.DQN.supported_env.keys())
         elif algo.upper() == "PG":
-            return list(cfg.PG.supported_env.keys())
+            return list(ding.config.PG.supported_env.keys())
         elif algo.upper() == "PPOF":
-            return list(cfg.PPOF.supported_env.keys())
+            return list(ding.config.PPOF.supported_env.keys())
         elif algo.upper() == "PPOOFFPOLICY":
-            return list(cfg.PPOOffPolicy.supported_env.keys())
+            return list(ding.config.PPOOffPolicy.supported_env.keys())
         elif algo.upper() == "SAC":
-            return list(cfg.SAC.supported_env.keys())
+            return list(ding.config.SAC.supported_env.keys())
         elif algo.upper() == "SQL":
-            return list(cfg.SQL.supported_env.keys())
+            return list(ding.config.SQL.supported_env.keys())
         elif algo.upper() == "TD3":
-            return list(cfg.TD3.supported_env.keys())
+            return list(ding.config.TD3.supported_env.keys())
         else:
             raise ValueError("The algo {} is not supported by di-engine.".format(algo))
     else:
-        #merge all the supported envs from all the algos
-        supported_env = []
-        supported_env.extend(list(cfg.SAC.supported_env.keys()))
-        return supported_env
+        supported_env = set()
+        supported_env.update(ding.config.A2C.supported_env.keys())
+        supported_env.update(ding.config.C51.supported_env.keys())
+        supported_env.update(ding.config.DDPG.supported_env.keys())
+        supported_env.update(ding.config.DQN.supported_env.keys())
+        supported_env.update(ding.config.PG.supported_env.keys())
+        supported_env.update(ding.config.PPOF.supported_env.keys())
+        supported_env.update(ding.config.PPOOffPolicy.supported_env.keys())
+        supported_env.update(ding.config.SAC.supported_env.keys())
+        supported_env.update(ding.config.SQL.supported_env.keys())
+        supported_env.update(ding.config.TD3.supported_env.keys())
+        # return the list of the envs
+        return list(supported_env)
 
 
 supported_env = env_supported()
@@ -70,25 +79,25 @@ def algo_supported(env_id: str = None) -> list:
     """
     if env_id is not None:
         algo = []
-        if env_id.upper() in [item.upper() for item in cfg.A2C.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.A2C.supported_env.keys()]:
             algo.append("A2C")
-        if env_id.upper() in [item.upper() for item in cfg.C51.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.C51.supported_env.keys()]:
             algo.append("C51")
-        if env_id.upper() in [item.upper() for item in cfg.DDPG.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.DDPG.supported_env.keys()]:
             algo.append("DDPG")
-        if env_id.upper() in [item.upper() for item in cfg.DQN.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.DQN.supported_env.keys()]:
             algo.append("DQN")
-        if env_id.upper() in [item.upper() for item in cfg.PG.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.PG.supported_env.keys()]:
             algo.append("PG")
-        if env_id.upper() in [item.upper() for item in cfg.PPOF.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.PPOF.supported_env.keys()]:
             algo.append("PPOF")
-        if env_id.upper() in [item.upper() for item in cfg.PPOOffPolicy.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.PPOOffPolicy.supported_env.keys()]:
             algo.append("PPOOffPolicy")
-        if env_id.upper() in [item.upper() for item in cfg.SAC.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.SAC.supported_env.keys()]:
             algo.append("SAC")
-        if env_id.upper() in [item.upper() for item in cfg.SQL.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.SQL.supported_env.keys()]:
             algo.append("SQL")
-        if env_id.upper() in [item.upper() for item in cfg.TD3.supported_env.keys()]:
+        if env_id.upper() in [item.upper() for item in ding.config.TD3.supported_env.keys()]:
             algo.append("TD3")
 
         if len(algo) == 0:

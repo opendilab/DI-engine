@@ -16,8 +16,8 @@ from ding.config import save_config_py, compile_config
 from ding.model import VAC
 from ding.model import model_wrap
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.bonus.cfg.A2C import supported_env_cfg
-from ding.bonus.cfg.A2C import supported_env
+from ding.config.A2C import supported_env_cfg
+from ding.config.A2C import supported_env
 
 
 class A2CAgent:

@@ -16,8 +16,8 @@ from ding.config import save_config_py, compile_config
 from ding.model import QAC
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.bonus.cfg.TD3 import supported_env_cfg
-from ding.bonus.cfg.TD3 import supported_env
+from ding.config.TD3 import supported_env_cfg
+from ding.config.TD3 import supported_env
 
 
 class TD3Agent:

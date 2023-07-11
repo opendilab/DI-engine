@@ -17,8 +17,8 @@ from ding.model import C51DQN
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.bonus.cfg.C51 import supported_env_cfg
-from ding.bonus.cfg.C51 import supported_env
+from ding.config.C51 import supported_env_cfg
+from ding.config.C51 import supported_env
 
 
 class C51Agent:

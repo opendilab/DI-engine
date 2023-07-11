@@ -15,8 +15,8 @@ from ding.utils import set_pkg_seed
 from ding.config import save_config_py, compile_config
 from ding.model import PG
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.bonus.cfg.PG import supported_env_cfg
-from ding.bonus.cfg.PG import supported_env
+from ding.config.PG import supported_env_cfg
+from ding.config.PG import supported_env
 
 
 class PGAgent:

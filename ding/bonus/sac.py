@@ -17,8 +17,8 @@ from ding.model import QAC
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.bonus.cfg.SAC import supported_env_cfg
-from ding.bonus.cfg.SAC import supported_env
+from ding.config.SAC import supported_env_cfg
+from ding.config.SAC import supported_env
 
 
 class SACAgent:
