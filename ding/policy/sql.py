@@ -294,3 +294,6 @@ class SQLPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['record_value_function']
+
+    def monitor_vars(self) -> List[str]:
+        return self._monitor_vars_learn()
