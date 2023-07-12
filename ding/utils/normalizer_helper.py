@@ -77,6 +77,30 @@ class Normalizer:
     def unnormalize(self, *args, **kwargs):
         raise NotImplementedError()
 
+class GaussianNormalizer(Normalizer):
+    '''
+        normalizes to zero mean and unit variance
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.means = self.X.mean(axis=0)
+        self.stds = self.X.std(axis=0)
+        self.z = 1
+
+    def __repr__(self):
+        return (
+            f'''[ Normalizer ] dim: {self.mins.size}\n    '''
+            f'''means: {np.round(self.means, 2)}\n    '''
+            f'''stds: {np.round(self.z * self.stds, 2)}\n'''
+        )
+
+    def normalize(self, x):
+        return (x - self.means) / self.stds
+
+    def unnormalize(self, x):
+        return x * self.stds + self.means
+
 class CDFNormalizer(Normalizer):
     '''
         makes training data uniform (over each dimension) by transforming it with marginal CDFs
