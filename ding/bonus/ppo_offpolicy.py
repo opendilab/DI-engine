@@ -110,6 +110,7 @@ class PPOOffPolicyAgent:
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
+                    cfg=self.cfg.wandb_logger,
                     metric_list=self.policy.monitor_vars(),
                     model=self.policy._model,
                     anonymous=True,

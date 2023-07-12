@@ -239,13 +239,20 @@ def wandb_online_logger(
                 episode_return = episode_return.squeeze(1)
 
             if cfg.video_logger:
-                file_list = []
-                for p in os.listdir(record_path):
-                    if os.path.splitext(p)[-1] == ".mp4":
-                        file_list.append(p)
-                file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
-                video_path = os.path.join(record_path, file_list[-2])
-                info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
+                if 'replay_video' in ctx.eval_output:
+                    # save numpy array "images" of shape (N,1212,3,224,320) to N video files in mp4 format
+                    # The numpy tensor must be either 4 dimensional or 5 dimensional. Channels should be (time, channel, height, width) or (batch, time, channel, height width)
+                    video_images = ctx.eval_output['replay_video']
+                    video_images = video_images.astype(np.uint8)
+                    info_for_logging.update({"replay_video": wandb.Video(video_images, fps=60)})
+                elif record_path is not None:
+                    file_list = []
+                    for p in os.listdir(record_path):
+                        if os.path.splitext(p)[-1] == ".mp4":
+                            file_list.append(p)
+                    file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
+                    video_path = os.path.join(record_path, file_list[-2])
+                    info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
 
             if cfg.action_logger:
                 action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))

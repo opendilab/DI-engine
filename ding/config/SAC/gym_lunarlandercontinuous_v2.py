@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cfg = dict(
-    exp_name='LunarLander-v2-SAC',
+    exp_name='LunarLanderContinuous-v2-SAC',
     seed=0,
     env=dict(
         env_id='LunarLanderContinuous-v2',
