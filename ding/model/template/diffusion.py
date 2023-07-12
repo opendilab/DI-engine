@@ -1,4 +1,5 @@
 from typing import Union, List, Dict
+from collections import namedtuple
 import numpy as np
 import math
 import torch
@@ -6,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 
-
+Sample = namedtuple('Sample', 'trajectories values chains')
 
 def extract(a, t, x_shape):
     '''
@@ -41,6 +42,51 @@ def apply_conditioning(x, conditions, action_dim):
     for t, val in conditions.items():
         x[:, t, action_dim:] = val.clone()
     return x
+
+def default_sample_fn(self, x, cond, t):
+        model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t)
+        model_std = torch.exp(0.5 * model_log_variance)
+
+        # no noise when t == 0
+        noise = torch.randn_like(x)
+        noise[t == 0] = 0
+
+        values = torch.zeros(len(x), device=x.device)
+        return model_mean + model_std * noise, values
+
+def get_guide_output(guide, x, cond, t):
+    x.requires_grad_()
+    y = guide(x, cond, t).squeeze(dim=-1)
+    grad = torch.autograd.grad([y.sum()], [x])[0]
+    x.detach()
+    return y, grad
+
+def n_step_guided_p_sample(
+    model, x, cond, t, guide, scale=0.001, t_stopgrad=0, n_guide_steps=1, scale_grad_by_std=True,
+):
+    model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
+    model_std = torch.exp(0.5 * model_log_variance)
+    model_var = torch.exp(model_log_variance)
+
+    for _ in range(n_guide_steps):
+        with torch.enable_grad():
+            y, grad = get_guide_output(guide, x, cond, t)
+
+        if scale_grad_by_std:
+            grad = model_var * grad
+
+        grad[t < t_stopgrad] = 0
+
+        x = x + scale * grad
+        x = apply_conditioning(x, cond, model.action_dim)
+
+    model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t)
+
+    # no noise when t == 0
+    noise = torch.randn_like(x)
+    noise[t == 0] = 0
+
+    return model_mean + model_std * noise, y
 
 class Mish(nn.Module):
     def forward(self, x):
@@ -113,6 +159,56 @@ class SinusoidalPosEmb(nn.Module):
         emb = torch.cat((emb.sin(), emb.cos()), dim=1)
         return emb
 
+class Residual(nn.Module):
+    def __init__(self,fn):
+        super().__init__()
+        self.fn = fn
+    
+    def forward(self, x, *arg, **kwargs):
+        return self.fn(x, *arg, **kwargs) + x
+
+class LayerNorm(nn.Module):
+    def __init__(self, dim, eps = 1e-5) -> None:
+        super().__init__()
+        self.eps = eps
+        self.g = nn.Parameter(torch.ones(1, dim, 1))
+        self.b = nn.Parameter(torch.zeros(1, dim, 1))
+
+    def forward(self, x):
+        var = torch.var(x, dim=1, unbiased=False, keepdim=True)
+        mean = torch.mean(x, dim=1, keepdim=True)
+        return (x - mean) / (var + self.eps).sqrt() * self.g + self.b
+
+class PreNorm(nn.Module):
+    def __init__(self, dim, fn) -> None:
+        super().__init__()
+        self.fn = fn
+        self.norm = LayerNorm(dim)
+
+    def forward(self, x):
+        x = self.norm(x)
+        return self.fn(x)
+    
+class LinearAttention(nn.Module):
+    def __init__(self, dim, heads=4, dim_head=32) -> None:
+        super().__init__()
+        self.scale = dim_head ** -0.5
+        self.heads = heads
+        hidden_dim = dim_head * heads
+        self.to_qkv = nn.Conv1d(dim, hidden_dim * 3, 1, bias=False)
+        self.to_out = nn.Conv1d(hidden_dim, dim, 1)
+
+    def forward(self, x):
+        qkv = self.to_qkv(x).chunk(3, dim=1)
+        q, k, v = map(lambda t: t.reshape(t.shape[0], self.heads, -1, t.shape[-1]), qkv)
+        q = q * self.scale
+        k = k.softmax(dim=-1)
+        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
+
+        out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
+        out = out.reshape(out.shape[0], -1, out.shape[-1])
+        return self.to_out(out)
+
 class ResidualTemporalBlock(nn.Module):
     def __init__(
             self,
@@ -154,6 +250,7 @@ class TemporalUnet(nn.Module):
             condition_dropout: float = 0.1,
             calc_energy: bool = False,
             kernel_size: int = 5,
+            attention = False,
     ) -> None:
         super().__init__()
         dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
@@ -202,11 +299,13 @@ class TemporalUnet(nn.Module):
             self.downs.append(nn.ModuleList([
                 ResidualTemporalBlock(dim_in, dim_out, embed_dim, kernel_size, mish=mish),
                 ResidualTemporalBlock(dim_out, dim_out, embed_dim, kernel_size, mish=mish),
+                Residual(PreNorm(dim_out, LinearAttention(dim_out))) if attention else nn.Identity(),
                 nn.Conv1d(dim_out, dim_out, 3, 2, 1) if not is_last else nn.Identity()
             ]))
         
         mid_dim = dims[-1]
         self.mid_block1 = ResidualTemporalBlock(mid_dim, mid_dim, embed_dim, kernel_size, mish)
+        self.mid_atten = self.mid_attn = Residual(PreNorm(mid_dim, LinearAttention(mid_dim))) if attention else nn.Identity()
         self.mid_block2 = ResidualTemporalBlock(mid_dim, mid_dim, embed_dim, kernel_size, mish)
 
         for ind, (dim_in, dim_out) in enumerate(reversed(in_out[1:])):
@@ -214,6 +313,7 @@ class TemporalUnet(nn.Module):
             self.ups.append(nn.ModuleList([
                 ResidualTemporalBlock(dim_out * 2, dim_in, embed_dim, kernel_size, mish=mish),
                 ResidualTemporalBlock(dim_in, dim_in, embed_dim, kernel_size, mish=mish),
+                Residual(PreNorm(dim_in, LinearAttention(dim_in))) if attention else nn.Identity(),
                 nn.ConvTranspose1d(dim_in, dim_in, 4, 2, 1) if not is_last else nn.Identity()
             ]))
         
@@ -252,19 +352,22 @@ class TemporalUnet(nn.Module):
 
         h = []
 
-        for resnet, resnet2, downsample in self.downs:
+        for resnet, resnet2, atten, downsample in self.downs:
             x = resnet(x, t)
             x = resnet2(x, t)
+            x = atten(x)
             h.append(x)
             x = downsample(x)
 
         x = self.mid_block1(x, t)
+        x = self.mid_atten(x)
         x = self.mid_block2(x, t)
 
-        for resnet, resnet2, upsample in self.ups:
+        for resnet, resnet2, atten, upsample in self.ups:
             x = torch.cat((x, h.pop()), dim=1)
             x = resnet(x, t)
             x = resnet2(x, t)
+            x = atten(x)
             x = upsample(x)
 
         x = self.final_conv(x)
@@ -325,6 +428,7 @@ class TemporalValue(nn.Module):
             dim: int = 32,
             time_dim: int = None,
             out_dim: int = 1,
+            kernel_size: int = 5,
             dim_mults: SequenceType = [1, 2, 4, 8],
     ) -> None:
         super().__init__()
@@ -339,16 +443,32 @@ class TemporalValue(nn.Module):
             nn.Linear(dim * 4, dim),
         )
         self.blocks = nn.ModuleList([])
+        num_resolutions = len(in_out)
         
-        for dim_in, dim_out in in_out:
+        for ind, (dim_in, dim_out) in enumerate(in_out):
+            is_last = ind >= (num_resolutions - 1)
             self.blocks.append(nn.ModuleList([
-                ResidualTemporalBlock(dim_in, dim_out, kernel_size=5, embed_dim=time_dim),
-                ResidualTemporalBlock(dim_out, dim_out, kernel_size=5, embed_dim=time_dim),
+                ResidualTemporalBlock(dim_in, dim_out, kernel_size=kernel_size, embed_dim=time_dim),
+                ResidualTemporalBlock(dim_out, dim_out, kernel_size=kernel_size, embed_dim=time_dim),
                 nn.Conv1d(dim_out, dim_out, 3, 2, 1)
             ]))
-            horizon = horizon // 2
+            
+            if not is_last:
+                horizon = horizon // 2
+
+        mid_dim = dims[-1]
+        mid_dim_2 = mid_dim // 2
+        mid_dim_3 = mid_dim // 4
+
+        self.mid_block1 = ResidualTemporalBlock(mid_dim, mid_dim_2, kernel_size=kernel_size, embed_dim=time_dim)
+        self.mid_down1 = nn.Conv1d(mid_dim_2, mid_dim_2, 3, 2, 1)
+
+        horizon = horizon // 2
+        self.mid_block2 = ResidualTemporalBlock(mid_dim_2, mid_dim_3, kernel_size=kernel_size, embed_dim=time_dim)
+        self.mid_down2 = nn.Conv1d(mid_dim_3, mid_dim_3, 3, 2, 1)
+        horizon = horizon // 2
         
-        fc_dim = dims[-1] * max(horizon, 1)
+        fc_dim = mid_dim_3 * max(horizon, 1)
         self.final_block = nn.Sequential(
             nn.Linear(fc_dim + time_dim, fc_dim // 2),
             Mish(),
@@ -364,6 +484,12 @@ class TemporalValue(nn.Module):
             x = resnet(x, t)
             x = resnet2(x, t)
             x = downsample(x)
+
+        x = self.mid_block1(x, t)
+        x = self.mid_down1(x)
+
+        x = self.mid_block2(x, t)
+        x = self.mid_down2(x)
 
         x = x.view(len(x), -1)
         out = self.final_block(torch.cat([x, t], dim=-1))
@@ -523,6 +649,269 @@ class ARInvModel(nn.Module):
                                      l_action[:, i])
 
         return loss/self.action_dim
+
+class GaussianDiffusion(nn.Module):
+    '''
+    Overview:
+            Gaussian diffusion model with Invdyn action model.
+    Arguments:
+            - model (:obj:`str`): type of model
+            - model_cfg (:obj:'dict') config of model
+            - horizon (:obj:`int`): horizon of trajectory
+            - obs_dim (:obj:`int`): Dim of the ovservation
+            - action_dim (:obj:`int`): Dim of the ation
+            - n_timesteps (:obj:`int`): Number of timesteps 
+            - predict_epsilon (:obj:'bool'): Whether predict epsilon
+            - loss_discount (:obj:'float'): discount of loss
+            - clip_denoised (:obj:'bool'): Whether use clip_denoised
+            - action_weight (:obj:'float'): weight of action
+            - loss_weights (:obj:'dict'): weight of loss
+    '''
+    def __init__(
+            self,
+            model: str,
+            model_cfg: dict,
+            horizon: int,
+            obs_dim: Union[int, SequenceType],
+            action_dim: Union[int, SequenceType],
+            n_timesteps: int = 1000,
+            predict_epsilon: bool = True,
+            loss_discount: float = 1.0,
+            clip_denoised: bool = False,
+            action_weight: float = 1.0,
+            loss_weights: dict = None,
+    ) -> None:
+        super().__init__()
+        self.horizon = horizon
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
+        self.transition_dim = obs_dim + action_dim
+        if type(model) == str:
+            model = eval(model)
+        self.model = model(**model_cfg)
+        self.predict_epsilon = predict_epsilon
+        self.clip_denoised = clip_denoised
+
+        betas = cosine_beta_schedule(n_timesteps)
+        alphas = 1. - betas
+        alphas_cumprod = torch.cumprod(alphas, axis=0)
+        alphas_cumprod_prev = torch.cat([torch.ones(1), alphas_cumprod[:-1]])
+        self.n_timesteps = int(n_timesteps)
+
+        self.register_buffer('betas', betas)
+        self.register_buffer('alphas_cumprod', alphas_cumprod)
+        self.register_buffer('alphas_cumprod_prev', alphas_cumprod_prev)
+
+        # calculations for diffusion q(x_t | x_{t-1}) and others
+        self.register_buffer('sqrt_alphas_cumprod', torch.sqrt(alphas_cumprod))
+        self.register_buffer('sqrt_one_minus_alphas_cumprod', torch.sqrt(1. - alphas_cumprod))
+        self.register_buffer('log_one_minus_alphas_cumprod', torch.log(1. - alphas_cumprod))
+        self.register_buffer('sqrt_recip_alphas_cumprod', torch.sqrt(1. / alphas_cumprod))
+        self.register_buffer('sqrt_recipm1_alphas_cumprod', torch.sqrt(1. / alphas_cumprod - 1))
+
+        # calculations for posterior q(x_{t-1} | x_t, x_0)
+        posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
+        self.register_buffer('posterior_variance', posterior_variance)
+
+        ## log calculation clipped because the posterior variance
+        ## is 0 at the beginning of the diffusion chain
+        self.register_buffer('posterior_log_variance_clipped',
+            torch.log(torch.clamp(posterior_variance, min=1e-20)))
+        self.register_buffer('posterior_mean_coef1',
+            betas * np.sqrt(alphas_cumprod_prev) / (1. - alphas_cumprod))
+        self.register_buffer('posterior_mean_coef2',
+            (1. - alphas_cumprod_prev) * np.sqrt(alphas) / (1. - alphas_cumprod))
+        
+        self.loss_weights = self.get_loss_weights(action_weight, loss_discount, loss_weights)
+    
+    def get_loss_weights(self, action_weight: float, discount: float, weights_dict: dict):
+        '''
+        Overview:
+            sets loss coefficients for trajectory
+        Arguments:
+            - action_weight (:obj:'float') coefficient on first action loss
+            - discount (:obj:'float') multiplies t^th timestep of trajectory loss by discount**t
+            - weights_dict (:obj:'dict') { i: c } multiplies dimension i of observation loss by c
+        '''
+        self.action_weight = action_weight
+        dim_weights = torch.ones(self.transition_dim, dtype=torch.float32)
+
+        ## set loss coefficients for dimensions of observation
+        if weights_dict is None: weights_dict = {}
+        for ind, w in weights_dict.items():
+            dim_weights[self.action_dim + ind] *= w
+
+        ## decay loss with trajectory timestep: discount**t
+        discounts = discount ** torch.arange(self.horizon, dtype=torch.float)
+        discounts = discounts / discounts.mean()
+        loss_weights = torch.einsum('h,t->ht', discounts, dim_weights)
+
+        ## manually set a0 weight
+        loss_weights[0, :self.action_dim] = action_weight
+        return loss_weights
+    
+    def predict_start_from_noise(self, x_t, t, noise):
+        '''
+            if self.predict_epsilon, model output is (scaled) noise;
+            otherwise, model predicts x0 directly
+        '''
+        if self.predict_epsilon:
+            return (
+                extract(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t -
+                extract(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * noise
+            )
+        else:
+            return noise
+
+    def q_posterior(self, x_start, x_t, t):
+        posterior_mean = (
+            extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
+            extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
+        )
+        posterior_variance = extract(self.posterior_variance, t, x_t.shape)
+        posterior_log_variance_clipped = extract(self.posterior_log_variance_clipped, t, x_t.shape)
+        return posterior_mean, posterior_variance, posterior_log_variance_clipped
+
+    def p_mean_variance(self, x, cond, t):
+        x_recon = self.predict_start_from_noise(x, t=t, noise=self.model(x, cond, t))
+
+        if self.clip_denoised:
+            x_recon.clamp_(-1., 1.)
+        else:
+            assert RuntimeError()
+
+        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(
+                x_start=x_recon, x_t=x, t=t)
+        return model_mean, posterior_variance, posterior_log_variance
+
+    @torch.no_grad()
+    def p_sample_loop(self, shape, cond, return_chain=False,  sample_fn=default_sample_fn, **sample_kwargs):
+        device = self.betas.device
+
+        batch_size = shape[0]
+        x = torch.randn(shape, device=device)
+        x = apply_conditioning(x, cond, self.action_dim)
+
+        chain = [x] if return_chain else None
+
+        for i in reversed(range(0, self.n_timesteps)):
+            t = torch.full((batch_size,), i, device=device, dtype=torch.long)
+            x, values = sample_fn(self, x, cond, t, **sample_kwargs)
+            x = apply_conditioning(x, cond, self.action_dim)
+
+            if return_chain: 
+                chain.append(x)
+
+
+        inds = torch.argsort(values, descending=True)
+        x = x[inds]
+        values = values[inds]
+        if return_chain: 
+            chain = torch.stack(chain, dim=1)
+        return Sample(x, values, chain)
+
+    @torch.no_grad()
+    def conditional_sample(self, cond, horizon=None, **sample_kwargs):
+        '''
+            conditions : [ (time, state), ... ]
+        '''
+        device = self.betas.device
+        batch_size = len(cond[0])
+        horizon = horizon or self.horizon
+        shape = (batch_size, horizon, self.transition_dim)
+
+        return self.p_sample_loop(shape, cond, **sample_kwargs)
+    
+    def q_sample(self, x_start, t, noise=None):
+        '''
+        Arguments:
+            conditions (:obj:'tuple') [ (time, state), ... ] conditions of diffusion
+            t (:obj:'int') timestep of diffusion
+            noise (:obj:'tensor.float') timestep's noise of diffusion
+        '''
+        if noise is None:
+            noise = torch.randn_like(x_start)
+
+        sample = (
+            extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
+            extract(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise
+        )
+
+        return sample
+    
+    def p_losses(self, x_start, cond, t):
+        noise = torch.randn_like(x_start)
+
+        x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
+        x_noisy = apply_conditioning(x_noisy, cond, self.action_dim)
+
+        x_recon = self.model(x_noisy, cond, t)
+        x_recon = apply_conditioning(x_recon, cond, self.action_dim)
+
+        assert noise.shape == x_recon.shape
+
+        if self.predict_epsilon:
+            loss = F.mse_loss(x_recon, noise, reduction='none')
+            loss = (loss * self.loss_weights.to(loss.device)).mean()
+        else:
+            loss = F.mse_loss(x_recon, x_start, reduction='none')
+            loss = (loss * self.loss_weights.to(loss.device)).mean()
+
+        return loss
+    
+    def forward(self, cond, *args, **kwargs):
+        return self.conditional_sample(cond, *args, **kwargs)
+
+class ValueDiffusion(GaussianDiffusion):
+    def p_losses(self, x_start, cond, target, t):
+        noise = torch.randn_like(x_start)
+        x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
+        x_noisy = apply_conditioning(x_noisy, cond, self.action_dim)
+
+        pred = self.model(x_noisy, cond, t)
+        loss = F.mse_loss(pred, target, reduction='none').mean()
+
+        return loss
+    
+    def forward(self, x, cond, t):
+        return self.model(x, cond, t)
+    
+@MODEL_REGISTRY.register('pd')
+class PlanDiffuser(nn.Module):
+    def __init__(
+            self,
+            diffuser_model: str,
+            diffuser_model_cfg: dict,
+            value_model: str,
+            value_model_cfg: dict,
+            **sample_kwargs
+            ):
+        super().__init__()
+        diffuser_model = eval(diffuser_model)
+        self.diffsuer = diffuser_model(**diffuser_model_cfg)
+        value_model = eval(value_model)
+        self.value = value_model(**value_model_cfg)
+        self.sample_kwargs = sample_kwargs
+
+    def diffuser_loss(self, x_start, cond, t):
+        return self.diffsuer.p_losses(x_start, cond, t)
+    
+    def value_loss(self, x_start, cond, target, t):
+        return self.value.p_losses(x_start, cond, target, t)
+    
+    def get_eval(self, cond, batch_size = 1):
+        cond = self.repeat_cond(cond, batch_size)
+        samples = self.diffsuer(cond, sample_fn=n_step_guided_p_sample, guide=self.value, **self.sample_kwargs)
+        # extract action [eval_num * batch_size, horizon, transition_dim]
+        actions = samples.trajectories[:, :, :self.diffsuer.action_dim]
+        actions = actions.reshape(-1, batch_size, *actions.shape[1:])
+        action = actions[:, 0, 0]
+        return action
+    
+    def repeat_cond(self, cond, batch_size):
+        for k,v in cond.items():
+            cond[k] = v.repeat_interleave(batch_size, dim=0)
+        return cond
 
 @MODEL_REGISTRY.register('dd')
 class GaussianInvDynDiffusion(nn.Module):

@@ -543,7 +543,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         dataset = d4rl.qlearning_dataset(env)
         
         self.returns_scale = cfg.env.returns_scale
-        self.horizon = cfg.policy.model.horizon
+        self.horizon = cfg.policy.model.diffuser_model_cfg.horizon
         self.max_path_length = cfg.env.max_path_length
         self.discount = cfg.policy.learn.discount_factor
         self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
@@ -580,8 +580,8 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.normalizer = DatasetNormalizer(fields, cfg.policy.normalizer, path_lengths=fields['path_lengths'])
         self.indices = self.make_indices(fields['path_lengths'], self.horizon)
 
-        self.observation_dim = cfg.policy.model.obs_dim
-        self.action_dim = cfg.policy.model.action_dim
+        self.observation_dim = cfg.policy.model.diffuser_model_cfg.obs_dim
+        self.action_dim = cfg.policy.model.diffuser_model_cfg.action_dim
         self.fields = fields
         self.normalize()
 
