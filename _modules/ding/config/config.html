@@ -307,7 +307,7 @@
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">deep_merge_dicts</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">deep_merge_dicts</span><span class="p">,</span> <span class="n">get_rank</span>
 <span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">get_env_cls</span><span class="p">,</span> <span class="n">get_env_manager_cls</span><span class="p">,</span> <span class="n">BaseEnvManager</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">get_policy_cls</span>
 <span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseSerialCommander</span><span class="p">,</span> <span class="n">Coordinator</span><span class="p">,</span> \
@@ -753,7 +753,7 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">n_episode</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">n_evaluator_episode</span>
     <span class="k">if</span> <span class="s1">&#39;exp_name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span>
-    <span class="k">if</span> <span class="n">save_cfg</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">save_cfg</span> <span class="ow">and</span> <span class="n">get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">renew_dir</span><span class="p">:</span>
             <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;_%y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>

@@ -603,7 +603,7 @@
             <span class="k">if</span> <span class="n">ignore_error</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_item</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
                     <span class="k">pass</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_item</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>

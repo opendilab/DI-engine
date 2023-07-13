@@ -300,7 +300,8 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">build_logger</span><span class="p">,</span> <span class="n">EasyTimer</span><span class="p">,</span> <span class="n">SERIAL_COLLECTOR_REGISTRY</span><span class="p">,</span> <span class="n">one_time_warning</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">build_logger</span><span class="p">,</span> <span class="n">EasyTimer</span><span class="p">,</span> <span class="n">SERIAL_COLLECTOR_REGISTRY</span><span class="p">,</span> <span class="n">one_time_warning</span><span class="p">,</span> <span class="n">get_rank</span><span class="p">,</span> <span class="n">get_world_size</span><span class="p">,</span> \
+    <span class="n">broadcast_object_list</span><span class="p">,</span> <span class="n">allreduce_data</span>
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_tensor</span><span class="p">,</span> <span class="n">to_ndarray</span>
 <span class="kn">from</span> <span class="nn">.base_serial_collector</span> <span class="kn">import</span> <span class="n">ISerialCollector</span><span class="p">,</span> <span class="n">CachePool</span><span class="p">,</span> <span class="n">TrajBuffer</span><span class="p">,</span> <span class="n">INF</span><span class="p">,</span> <span class="n">to_tensor_transitions</span>
 
@@ -346,16 +347,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="n">get_rank</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_world_size</span> <span class="o">=</span> <span class="n">get_world_size</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span>
+                    <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
                 <span class="n">path</span><span class="o">=</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
-                <span class="n">path</span><span class="o">=</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span>
-            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SampleSerialCollector.reset_env"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.reset_env">[docs]</a>    <span class="k">def</span> <span class="nf">reset_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseEnvManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -478,8 +490,9 @@
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SampleSerialCollector.__del__"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.__del__">[docs]</a>    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -525,6 +538,8 @@
         <span class="k">if</span> <span class="n">policy_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">policy_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">collected_sample</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">collected_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">collected_episode</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">return_data</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">while</span> <span class="n">collected_sample</span> <span class="o">&lt;</span> <span class="n">n_sample</span><span class="p">:</span>
@@ -570,7 +585,7 @@
                     <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;collect_iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_iter</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_env_info</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_total_envstep_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">collected_step</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="c1"># prepare data</span>
                     <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">])</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traj_len</span><span class="p">:</span>
                         <span class="c1"># If policy is r2d2:</span>
@@ -588,7 +603,6 @@
                         <span class="n">transitions</span> <span class="o">=</span> <span class="n">to_tensor_transitions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy_obs</span><span class="p">)</span>
                         <span class="n">train_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">)</span>
                         <span class="n">return_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">train_sample</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_total_train_sample_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_sample</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_env_info</span><span class="p">[</span><span class="n">env_id</span><span class="p">][</span><span class="s1">&#39;train_sample&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_sample</span><span class="p">)</span>
                         <span class="n">collected_sample</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_sample</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_traj_buffer</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -597,7 +611,7 @@
 
                 <span class="c1"># If env is done, record episode info and reset</span>
                 <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_total_episode_count</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">collected_episode</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">reward</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">]</span>
                     <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">reward</span><span class="p">,</span>
@@ -609,6 +623,17 @@
                     <span class="c1"># Env reset is done by env_manager automatically</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">env_id</span><span class="p">])</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_reset_stat</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="n">collected_duration</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="p">])</span>
+        <span class="c1"># reduce data when enables DDP</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_world_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">collected_sample</span> <span class="o">=</span> <span class="n">allreduce_data</span><span class="p">(</span><span class="n">collected_sample</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+            <span class="n">collected_step</span> <span class="o">=</span> <span class="n">allreduce_data</span><span class="p">(</span><span class="n">collected_step</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+            <span class="n">collected_episode</span> <span class="o">=</span> <span class="n">allreduce_data</span><span class="p">(</span><span class="n">collected_episode</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+            <span class="n">collected_duration</span> <span class="o">=</span> <span class="n">allreduce_data</span><span class="p">(</span><span class="n">collected_duration</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_envstep_count</span> <span class="o">+=</span> <span class="n">collected_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_episode_count</span> <span class="o">+=</span> <span class="n">collected_episode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_duration</span> <span class="o">+=</span> <span class="n">collected_duration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_total_train_sample_count</span> <span class="o">+=</span> <span class="n">collected_sample</span>
         <span class="c1"># log</span>
         <span class="k">if</span> <span class="n">record_random_collect</span><span class="p">:</span>  <span class="c1"># default is true, but when random collect, record_random_collect is False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_output_log</span><span class="p">(</span><span class="n">train_iter</span><span class="p">)</span>
@@ -627,11 +652,13 @@
 <div class="viewcode-block" id="SampleSerialCollector._output_log"><a class="viewcode-back" href="../../../../05_api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector._output_log">[docs]</a>    <span class="k">def</span> <span class="nf">_output_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Print the output log information. You can refer to Docs/Best Practice/How to understand\</span>
-<span class="sd">             training generated folders/Serial mode/log/collector for more details.</span>
+<span class="sd">            Print the output log information. You can refer to the docs of `Best Practice` to understand \</span>
+<span class="sd">            the training generated logs and tensorboards.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - train_iter (:obj:`int`): the number of training iteration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">train_iter</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_train_iter</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_print_freq</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_last_train_iter</span> <span class="o">=</span> <span class="n">train_iter</span>
             <span class="n">episode_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="p">)</span>
@@ -639,7 +666,6 @@
             <span class="n">train_sample_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;train_sample&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="p">])</span>
             <span class="n">duration</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="p">])</span>
             <span class="n">episode_return</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_total_duration</span> <span class="o">+=</span> <span class="n">duration</span>
             <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s1">&#39;episode_count&#39;</span><span class="p">:</span> <span class="n">episode_count</span><span class="p">,</span>
                 <span class="s1">&#39;envstep_count&#39;</span><span class="p">:</span> <span class="n">envstep_count</span><span class="p">,</span>
@@ -649,7 +675,6 @@
                 <span class="s1">&#39;avg_envstep_per_sec&#39;</span><span class="p">:</span> <span class="n">envstep_count</span> <span class="o">/</span> <span class="n">duration</span><span class="p">,</span>
                 <span class="s1">&#39;avg_train_sample_per_sec&#39;</span><span class="p">:</span> <span class="n">train_sample_count</span> <span class="o">/</span> <span class="n">duration</span><span class="p">,</span>
                 <span class="s1">&#39;avg_episode_per_sec&#39;</span><span class="p">:</span> <span class="n">episode_count</span> <span class="o">/</span> <span class="n">duration</span><span class="p">,</span>
-                <span class="s1">&#39;collect_time&#39;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
                 <span class="s1">&#39;reward_mean&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
                 <span class="s1">&#39;reward_std&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
                 <span class="s1">&#39;reward_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
@@ -657,7 +682,6 @@
                 <span class="s1">&#39;total_envstep_count&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_envstep_count</span><span class="p">,</span>
                 <span class="s1">&#39;total_train_sample_count&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_train_sample_count</span><span class="p">,</span>
                 <span class="s1">&#39;total_episode_count&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_episode_count</span><span class="p">,</span>
-                <span class="s1">&#39;total_duration&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_total_duration</span><span class="p">,</span>
                 <span class="c1"># &#39;each_reward&#39;: episode_return,</span>
             <span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_episode_info</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>

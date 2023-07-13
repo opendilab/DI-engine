@@ -301,7 +301,7 @@
 
 <span class="kn">from</span> <span class="nn">ding.worker.replay_buffer</span> <span class="kn">import</span> <span class="n">IBuffer</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SumSegmentTree</span><span class="p">,</span> <span class="n">MinSegmentTree</span><span class="p">,</span> <span class="n">BUFFER_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">build_logger</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">build_logger</span><span class="p">,</span> <span class="n">get_rank</span>
 <span class="kn">from</span> <span class="nn">ding.utils.autolog</span> <span class="kn">import</span> <span class="n">TickTime</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">UsedDataRemover</span><span class="p">,</span> <span class="n">generate_id</span><span class="p">,</span> <span class="n">SampledDataAttrMonitor</span><span class="p">,</span> <span class="n">PeriodicThruputMonitor</span><span class="p">,</span> <span class="n">ThruputController</span>
 
@@ -400,6 +400,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="n">get_rank</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">replay_buffer_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">deepcopy</span>
         <span class="c1"># ``_data`` is a circular queue to store data (full data or meta data)</span>
@@ -457,16 +458,22 @@
 
         <span class="c1"># Monitor &amp; Logger</span>
         <span class="n">monitor_cfg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">monitor</span>
-        <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tb_logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                    <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
+                    <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
                 <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">need_tb</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="n">build_logger</span><span class="p">(</span>
-                <span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_exp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="c1"># Sampled data attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cur_learner_iter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -477,9 +484,10 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_freq</span> <span class="o">=</span> <span class="n">monitor_cfg</span><span class="o">.</span><span class="n">sampled_data_attr</span><span class="o">.</span><span class="n">print_freq</span>
         <span class="c1"># Periodic thruput.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span> <span class="o">=</span> <span class="n">PeriodicThruputMonitor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">monitor_cfg</span><span class="o">.</span><span class="n">periodic_thruput</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span>
-        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span> <span class="o">=</span> <span class="n">PeriodicThruputMonitor</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">monitor_cfg</span><span class="o">.</span><span class="n">periodic_thruput</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span>
+            <span class="p">)</span>
 
         <span class="c1"># Used data remover</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">enable_track_used_data</span>
@@ -504,9 +512,10 @@
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -668,7 +677,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_weight</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_next_unique_id</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_update_of_push</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">cur_collector_envstep</span><span class="p">)</span>
@@ -729,7 +739,8 @@
                         <span class="n">data_start</span> <span class="o">=</span> <span class="mi">0</span>
                         <span class="n">valid_data_start</span> <span class="o">+=</span> <span class="n">L</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_data</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
             <span class="c1"># Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">+</span> <span class="n">length</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_next_unique_id</span> <span class="o">+=</span> <span class="n">length</span>
@@ -862,8 +873,9 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_used_data_remover</span><span class="o">.</span><span class="n">add_used_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">remove_data_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">valid_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">remove_data_count</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sum_tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sum_tree</span><span class="o">.</span><span class="n">neutral_element</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_min_tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_tree</span><span class="o">.</span><span class="n">neutral_element</span>
@@ -918,7 +930,8 @@
 <span class="sd">            - add_count (:obj:`int`): How many datas are added into buffer.</span>
 <span class="sd">            - cur_collector_envstep (:obj:`int`): Collector envstep, passed in by collector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">push_data_count</span> <span class="o">+=</span> <span class="n">add_count</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">push_data_count</span> <span class="o">+=</span> <span class="n">add_count</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_thruput_controller</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_thruput_controller</span><span class="o">.</span><span class="n">history_push_count</span> <span class="o">+=</span> <span class="n">add_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cur_collector_envstep</span> <span class="o">=</span> <span class="n">cur_collector_envstep</span>
@@ -933,7 +946,8 @@
 <span class="sd">                e.g. use, priority, staleness, etc.</span>
 <span class="sd">            - cur_learner_iter (:obj:`int`): Learner iteration, passed in by learner.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">sample_data_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">sample_data_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_thruput_controller</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_thruput_controller</span><span class="o">.</span><span class="n">history_sample_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cur_learner_iter</span> <span class="o">=</span> <span class="n">cur_learner_iter</span>
@@ -962,7 +976,7 @@
             <span class="s1">&#39;staleness_max&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_monitor</span><span class="o">.</span><span class="n">max</span><span class="p">[</span><span class="s1">&#39;staleness&#39;</span><span class="p">](),</span>
             <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_beta</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_freq</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;=== Sample data </span><span class="si">{}</span><span class="s2"> Times ===&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampled_data_attr_print_count</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">get_tabulate_vars_hor</span><span class="p">(</span><span class="n">out_dict</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>

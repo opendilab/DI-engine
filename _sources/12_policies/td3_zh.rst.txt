@@ -1,43 +1,47 @@
 TD3
 ^^^^^^^
 
-Overview
+概述
 ---------
 
-Twin Delayed DDPG (TD3), proposed in the 2018 paper `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/abs/1802.09477>`_, is an algorithm which considers the interplay between function approximation error in both policy and value updates.
-TD3 is an actor-critic, model-free algorithm based on the `deep deterministic policy gradient (DDPG) <https://arxiv.org/abs/1509.02971>`_ that can address overestimation bias, the accumulation of error in temporal difference methods and high sensitivity to hyper-parameters in continuous action spaces. Specifically, TD3 addresses the issue by introducing the following three critical tricks:
+Twin Delayed DDPG (TD3) 首次在2018年发表的论文 `Addressing Function Approximation Error in Actor-Critic Methods <https://arxiv.org/abs/1802.09477>`_ 中被提出，它是一种考虑了策略和值更新中函数逼近误差之间相互作用的算法。
+TD3 是一种基于 `deep deterministic policy gradient (DDPG) <https://arxiv.org/abs/1509.02971>`_ 的 **无模型（model-free）** 算法，属于 **演员—评委（actor-critic）** 类算法中的一员。此算法可以解决高估偏差，时间差分方法中的误差积累以及连续动作空间中对超参数的高敏感性的问题。具体来说，TD3通过引入以下三个关键技巧来解决这些问题:
 
-1. Clipped Double-Q Learning: When calculating the targets in the Bellman error loss functions, TD3 learns two Q-functions instead of one, and uses the smaller Q-value.
+1. 截断双 Q 学习（Clipped Double-Q Learning）：在计算Bellman误差损失函数中的目标时，TD3 学习两个 Q 函数而不是一个，并使用较小的 Q 值。
 
-2. Delayed Policy Updates:  TD3 updates the policy (and target networks) less frequently than the Q-function. In the paper, the author recommends one policy update for two Q-function updates. In our implementation, TD3 only updates the policy and target networks after a ﬁxed number of updates :math:`d` to the critic. We implement Policy Updates Delay through configuring ``learn.actor_update_freq``.
+2. 延迟的策略更新（Delayed Policy Updates）： TD3更新策略(和目标网络)的频率低于 Q 函数的更新频率。在本文中，作者建议在对 Q 函数更新两次后进行一次策略更新。在我们的实现中，TD3 仅在对 critic 网络更新一定次数 :math:`d` 后，才对策略和目标网络进行一次更新。我们通过配置参数 ``learn.actor_update_freq`` 来实现策略更新延迟。
 
-3. Target Policy Smoothing:  By smoothing out Q along changes in action, TD3 provides noise to the target action, making it more difficult for the policy to exploit Q-function faults.
+3. 目标策略平滑（Target Policy Smoothing）：通过沿动作变化平滑 Q 值，TD3 为目标动作引入噪声，使策略更加难以利用 Q 函数的预测错误。
 
-Quick Facts
+核心要点
 -----------
-1. TD3 is only used for environments with **continuous action spaces** (e.g., MuJoCo).
+1. TD3 仅支持 **连续动作空间** （例如： MuJoCo）.
 
-2. TD3 is an **off-policy** algorithm.
+2. TD3 是一种 **异策略（off-policy）** 算法.
 
-3. TD3 is a **model-free** and **actor-critic** RL algorithm, which optimizes actor network and critic network respectively.
+3. TD3 是一种 **无模型（model-free）** 和 **演员—评委（actor-critic）** 的强化学习算法，它会分别优化策略网络和Q网络。
 
-Key Equations or Key Graphs
+关键方程或关键框图
 ---------------------------
-TD3 proposes a clipped Double Q-learning variant which leverages the notion that a value estimate suffering from overestimation bias can be used as an approximate upper-bound to the true value estimate. TD3 shows that target networks, a common approach in deep Q-learning methods, are critical for variance reduction by reducing the accumulation of errors.
+TD3 提出了一个截断双 Q 学习变体（Clipped Double-Q Learning），它利用了这样一个概念，即遭受高估偏差的值估计可以用作真实值估计的近似上限。结合下式计算 :math:`Q_{\theta_1}` 的 target，当 :math:`Q_{\theta_2} \textless Q_{\theta_1}` 时，我们认为 :math:`Q_{\theta_1}` 高估了，并将其当作真实值估计的近似上限，取较小的 :math:`Q_{\theta_2}` 计算 :math:`y_1` 以减少过估计。
 
-Firstly, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates :math:`d` to the critic.
-We implement Policy Updates Delay through configuring ``learn.actor_update_freq``.
+作为原始版本双 Q 学习的一种拓展，此扩展的动机是，如果目标和当前网络过于相似，例如在actor-critic框架中使用缓慢变化的策略，原始版本的双 Q 学习有时是无效的。
 
-Secondly, the target update of Clipped Double Q-learning algorithm is as follows:
+TD3表明，目标网络是深度 Q 学习方法中的一种常见方法，通过减少误差积累来减少目标的方差是至关重要的。
+
+首先，为了解决动作价值估计和策略提升的耦合问题，TD3建议延迟策略更新，直到动作价值估计值尽可能小。因此，TD3只在固定数量次数的 critic 网络更新后再更新策略和目标网络。
+我们通过配置参数 ``learn.actor_update_freq`` 来实现策略更新延迟。
+
+其次，截断双 Q 学习（Clipped Double Q-learning）算法的目标更新如下:
 
 .. math::
     y_{1}=r+\gamma \min _{i=1,2} Q_{\theta_{i}^{\prime}}\left(s^{\prime}, \pi_{\phi_{1}}\left(s^{\prime}\right)\right)
 
-In implementation, computational costs can be reduced by using a single actor optimized with respect to :math:`Q_{\theta_1}` . We then use the same target :math:`y_2= y_1for Q_{\theta_2}`. 
+在实现中，我们可以通过使用单一的 actor 来优化 :math:`Q_{\theta_1}` 以减少计算开销。由于 TD target 计算过程中使用了同样的策略，因此对于 :math:`Q_{\theta_2}` 的优化目标， :math:`y_2= y_1` 。
 
 
-Finally, a concern with deterministic policies is they can overﬁt to narrow peaks in the value estimate. When updating the critic, a learning target using a deterministic policy is highly susceptible to inaccuracies induced by function approximation error, increasing the variance of the target.
-TD3 introduces a regularization strategy for deep value learning, target policy smoothing, which mimics the learning update from SARSA. Specifically, TD3 approximates this expectation over actions by adding a small amount of random noise to the target policy and averaging over mini-batches following:
+最后，确定性策略的一个问题是，由于以神经网络参数化的 Q 函数对 buffer 中动作的价值估计存在突然激增的尖峰（narrow peaks），这会导致策略网络过拟合到这些动作上。并且当更新 critic 网络时，使用确定性策略的学习目标极易受到函数近似误差引起的不准确性的影响，从而增加了目标的方差。
+TD3 引入了一种用于深度价值学习的正则化策略，即目标策略平滑，它模仿了SARSA的学习更新。具体来说，TD3通过在目标策略中添加少量随机噪声并在多次计算以下数值后，取平均值来近似此期望：
 
 .. math::
     \begin{array}{l}
@@ -45,9 +49,9 @@ TD3 introduces a regularization strategy for deep value learning, target policy 
     \epsilon \sim \operatorname{clip}(\mathcal{N}(0, \sigma),-c, c)
     \end{array}
 
-we implement Target Policy Smoothing through configuring ``learn.noise``, ``learn.noise_sigma``, and ``learn.noise_range``.
+我们通过配置 ``learn.noise``、 ``learn.noise_sigma`` 和 ``learn.noise_range`` 来实现目标策略平滑。
 
-Pseudocode
+伪代码
 ----------
 
 .. math::
@@ -102,37 +106,39 @@ Pseudocode
    :scale: 80%
    :align: center
 
-Extensions
+扩展
 -----------
-TD3 is combined with:
+TD3 可以与以下技术相结合使用:
 
-    - Replay Buffers
+    - 遵循随机策略的经验回放池初始采集
 
-        DDPG/TD3 ``random_collect_size`` is set to 25000 by default, while it is 10000 for SAC.
-        We only simply follow SpinningUp default setting and use random policy to collect initialization data.
-        We configure ``random_collect_size`` for data collection.
-
-
-
+        在优化模型参数前，我们需要让经验回放池存有足够数目的遵循随机策略的 transition 数据，从而确保在算法初期模型不会对经验回放池数据过拟合。
+        DDPG/TD3 的 ``random-collect-size`` 默认设置为25000, SAC 为10000。
+        我们只是简单地遵循 SpinningUp 默认设置，并使用随机策略来收集初始化数据。
+        我们通过配置 ``random-collect-size`` 来控制初始经验回放池中的 transition 数目。
 
 
-Implementations
+
+
+
+实现
 ----------------
-The default config is defined as follows:
+默认配置定义如下:
 
 .. autoclass:: ding.policy.td3.TD3Policy
 
-1. Model
-   Here we provide examples of `QAC` model as default model for `TD3`.
+1. 模型
+
+   在这里，我们提供了 `QAC` 模型作为 `TD3` 的默认模型的示例。
 
     .. autoclass:: ding.model.template.qac.QAC
         :members: forward, compute_actor, compute_critic
         :noindex:
 
-2. Train actor-critic model
+2. 训练 actor-critic 模型
 
-    Firstly, we initialize actor and critic optimizer in ``_init_learn``, respectively.
-    Setting up two separate optimizers can guarantee that we **only update** actor network parameters instead of the critic network when we compute actor loss, vice versa.
+    首先，我们在 ``_init_learn`` 中分别初始化 actor 和 critic 优化器。
+    设置两个独立的优化器可以保证我们在计算 actor 损失时只更新 actor 网络参数而不更新 critic 网络，反之亦然。
 
         .. code-block:: python
 
@@ -148,10 +154,10 @@ The default config is defined as follows:
                 weight_decay=self._cfg.learn.weight_decay
             )
 
-    In ``_forward_learn`` we update actor-critic policy through computing critic loss, updating critic network, computing actor loss, and updating actor network.
+    在 ``_forward_learn`` 中，我们通过计算 critic 损失、更新 critic 网络、计算 actor 损失和更新 actor 网络来更新 actor-critic 策略。
         1. ``critic loss computation``
 
-            - current and target value computation
+            - 计算当前值和目标值
 
             .. code-block:: python
 
@@ -169,7 +175,7 @@ The default config is defined as follows:
                     next_data = {'obs': next_obs, 'action': next_action}
                     target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
 
-            - target(**Clipped Double-Q Learning**) and loss computation
+            - Q 网络目标（**Clipped Double-Q Learning**）和损失计算
 
             .. code-block:: python
 
@@ -201,7 +207,7 @@ The default config is defined as follows:
                         loss_dict[k].backward()
                 self._optimizer_critic.step()
 
-        3. ``actor loss computation`` and  ``actor network update`` depending on the level of **delaying the policy updates**.
+        3. ``actor loss computation`` 和  ``actor network update`` 取决于策略更新延迟（**delaying the policy updates**）的程度。
 
             .. code-block:: python
 
@@ -220,10 +226,10 @@ The default config is defined as follows:
                     self._optimizer_actor.step()
 
 
-3. Target Network
+3. 目标网络（Target Network）
 
-    We implement Target Network trough target model initialization in ``_init_learn``.
-    We configure ``learn.target_theta`` to control the interpolation factor in averaging.
+    我们通过 ``_init_learn`` 中的 ``self._target_model`` 初始化来实现目标网络。
+    我们配置 ``learn.target_theta`` 来控制平均中的插值因子。
 
 
     .. code-block:: python
@@ -238,10 +244,10 @@ The default config is defined as follows:
         )
 
 
-4. Target Policy Smoothing Regularization
+4. 目标策略平滑正则（Target Policy Smoothing Regularization）
 
-    We implement Target Policy Smoothing Regularization trough target model initialization in ``_init_learn``.
-    We configure ``learn.noise``, ``learn.noise_sigma``, and ``learn.noise_range`` to control the added noise, which is clipped to keep the target close to the original action.
+    我们通过 ``_init_learn`` 中的目标模型初始化来实现目标策略平滑正则。
+    我们通过配置 ``learn.noise``、 ``learn.noise_sigma`` 和 ``learn.noise_range`` 来控制引入的噪声，通过对噪声进行截断使所选动作不会太过偏离原始动作。
 
     .. code-block:: python
 
@@ -259,7 +265,7 @@ The default config is defined as follows:
 
 
 
-Benchmark
+基准
 -----------
 
 
@@ -291,15 +297,15 @@ Benchmark
 
 P.S.：
 
-1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
+1. 上述结果是通过在五个不同的随机种子(0,1,2,3,4)上运行相同的配置获得的。
 
 
 
-References
+参考文献
 -----------
 Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [http://arxiv.org/abs/1802.09477 arXiv:1802.09477].
 
-Other Public Implementations
+其他公开的实现
 ----------------------------
 
 - `sb3`_
