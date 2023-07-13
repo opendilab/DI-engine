@@ -7,16 +7,14 @@ spaceinvaders_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
-        #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
         multi_gpu=True,
         priority=False,
+        random_collect_size=5000,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -58,6 +56,7 @@ create_config = spaceinvaders_dqn_create_config
 
 if __name__ == '__main__':
     from ding.entry import serial_pipeline
-    from ding.utils import DistContext
-    with DistContext():
-        serial_pipeline((main_config, create_config), seed=0)
+    from ding.utils import DDPContext, to_ddp_config
+    with DDPContext():
+        main_config = to_ddp_config(main_config)
+        serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7))

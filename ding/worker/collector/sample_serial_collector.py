@@ -6,7 +6,8 @@ import numpy as np
 import torch
 
 from ding.envs import BaseEnvManager
-from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY, one_time_warning
+from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY, one_time_warning, get_rank, get_world_size, \
+    broadcast_object_list, allreduce_data
 from ding.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 
@@ -52,16 +53,27 @@ class SampleSerialCollector(ISerialCollector):
         self._cfg = cfg
         self._timer = EasyTimer()
         self._end_flag = False
+        self._rank = get_rank()
+        self._world_size = get_world_size()
 
-        if tb_logger is not None:
+        if self._rank == 0:
+            if tb_logger is not None:
+                self._logger, _ = build_logger(
+                    path='./{}/log/{}'.format(self._exp_name, self._instance_name),
+                    name=self._instance_name,
+                    need_tb=False
+                )
+                self._tb_logger = tb_logger
+            else:
+                self._logger, self._tb_logger = build_logger(
+                    path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+                )
+        else:
             self._logger, _ = build_logger(
                 path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
             )
-            self._tb_logger = tb_logger
-        else:
-            self._logger, self._tb_logger = build_logger(
-                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
-            )
+            self._tb_logger = None
+
         self.reset(policy, env)
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
@@ -184,8 +196,9 @@ class SampleSerialCollector(ISerialCollector):
             return
         self._end_flag = True
         self._env.close()
-        self._tb_logger.flush()
-        self._tb_logger.close()
+        if self._tb_logger:
+            self._tb_logger.flush()
+            self._tb_logger.close()
 
     def __del__(self) -> None:
         """
@@ -231,6 +244,8 @@ class SampleSerialCollector(ISerialCollector):
         if policy_kwargs is None:
             policy_kwargs = {}
         collected_sample = 0
+        collected_step = 0
+        collected_episode = 0
         return_data = []
 
         while collected_sample < n_sample:
@@ -276,7 +291,7 @@ class SampleSerialCollector(ISerialCollector):
                     transition['collect_iter'] = train_iter
                     self._traj_buffer[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
-                    self._total_envstep_count += 1
+                    collected_step += 1
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
                         # If policy is r2d2:
@@ -294,7 +309,6 @@ class SampleSerialCollector(ISerialCollector):
                         transitions = to_tensor_transitions(self._traj_buffer[env_id], not self._deepcopy_obs)
                         train_sample = self._policy.get_train_sample(transitions)
                         return_data.extend(train_sample)
-                        self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
                         collected_sample += len(train_sample)
                         self._traj_buffer[env_id].clear()
@@ -303,7 +317,7 @@ class SampleSerialCollector(ISerialCollector):
 
                 # If env is done, record episode info and reset
                 if timestep.done:
-                    self._total_episode_count += 1
+                    collected_episode += 1
                     reward = timestep.info['eval_episode_return']
                     info = {
                         'reward': reward,
@@ -315,6 +329,17 @@ class SampleSerialCollector(ISerialCollector):
                     # Env reset is done by env_manager automatically
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
+        collected_duration = sum([d['time'] for d in self._episode_info])
+        # reduce data when enables DDP
+        if self._world_size > 1:
+            collected_sample = allreduce_data(collected_sample, 'sum')
+            collected_step = allreduce_data(collected_step, 'sum')
+            collected_episode = allreduce_data(collected_episode, 'sum')
+            collected_duration = allreduce_data(collected_duration, 'sum')
+        self._total_envstep_count += collected_step
+        self._total_episode_count += collected_episode
+        self._total_duration += collected_duration
+        self._total_train_sample_count += collected_sample
         # log
         if record_random_collect:  # default is true, but when random collect, record_random_collect is False
             self._output_log(train_iter)
@@ -333,11 +358,13 @@ class SampleSerialCollector(ISerialCollector):
     def _output_log(self, train_iter: int) -> None:
         """
         Overview:
-            Print the output log information. You can refer to Docs/Best Practice/How to understand\
-             training generated folders/Serial mode/log/collector for more details.
+            Print the output log information. You can refer to the docs of `Best Practice` to understand \
+            the training generated logs and tensorboards.
         Arguments:
             - train_iter (:obj:`int`): the number of training iteration.
         """
+        if self._rank != 0:
+            return
         if (train_iter - self._last_train_iter) >= self._collect_print_freq and len(self._episode_info) > 0:
             self._last_train_iter = train_iter
             episode_count = len(self._episode_info)
@@ -345,7 +372,6 @@ class SampleSerialCollector(ISerialCollector):
             train_sample_count = sum([d['train_sample'] for d in self._episode_info])
             duration = sum([d['time'] for d in self._episode_info])
             episode_return = [d['reward'] for d in self._episode_info]
-            self._total_duration += duration
             info = {
                 'episode_count': episode_count,
                 'envstep_count': envstep_count,
@@ -355,7 +381,6 @@ class SampleSerialCollector(ISerialCollector):
                 'avg_envstep_per_sec': envstep_count / duration,
                 'avg_train_sample_per_sec': train_sample_count / duration,
                 'avg_episode_per_sec': episode_count / duration,
-                'collect_time': duration,
                 'reward_mean': np.mean(episode_return),
                 'reward_std': np.std(episode_return),
                 'reward_max': np.max(episode_return),
@@ -363,7 +388,6 @@ class SampleSerialCollector(ISerialCollector):
                 'total_envstep_count': self._total_envstep_count,
                 'total_train_sample_count': self._total_train_sample_count,
                 'total_episode_count': self._total_episode_count,
-                'total_duration': self._total_duration,
                 # 'each_reward': episode_return,
             }
             self._episode_info.clear()
