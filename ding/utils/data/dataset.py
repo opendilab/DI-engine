@@ -562,10 +562,9 @@ class SequenceDataset(torch.utils.data.Dataset):
             assert path_length <= self.max_path_length
             fields['path_lengths'].append(path_length)
             for key, val in episode.items():
-                if key == 'rewards' or key == 'terminals':
-                    shape = (self.max_path_length,)
-                else:
-                    shape = (self.max_path_length, val.shape[-1])
+                if val.ndim < 2:
+                    val = np.expand_dims(val, axis=-1)
+                shape = (self.max_path_length, val.shape[-1])
                 arr = np.zeros(shape, dtype=np.float32)
                 arr[:path_length] = val
                 fields[key].append(arr)

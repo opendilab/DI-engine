@@ -244,13 +244,13 @@ class TemporalUnet(nn.Module):
     def __init__(
             self,
             transition_dim: int,
-            dim: int = 128,
+            dim: int = 32,
             dim_mults: SequenceType = [1, 2, 4, 8],
             returns_condition: bool = False,
             condition_dropout: float = 0.1,
             calc_energy: bool = False,
             kernel_size: int = 5,
-            attention = False,
+            attention: bool = False,
     ) -> None:
         super().__init__()
         dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
@@ -305,7 +305,7 @@ class TemporalUnet(nn.Module):
         
         mid_dim = dims[-1]
         self.mid_block1 = ResidualTemporalBlock(mid_dim, mid_dim, embed_dim, kernel_size, mish)
-        self.mid_atten = self.mid_attn = Residual(PreNorm(mid_dim, LinearAttention(mid_dim))) if attention else nn.Identity()
+        self.mid_atten = Residual(PreNorm(mid_dim, LinearAttention(mid_dim))) if attention else nn.Identity()
         self.mid_block2 = ResidualTemporalBlock(mid_dim, mid_dim, embed_dim, kernel_size, mish)
 
         for ind, (dim_in, dim_out) in enumerate(reversed(in_out[1:])):

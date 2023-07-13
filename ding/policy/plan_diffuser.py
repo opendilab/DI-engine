@@ -175,6 +175,7 @@ class PDPolicy(Policy):
         self.n_timesteps = self._cfg.model.diffuser_model_cfg.n_timesteps
         self.gradient_accumulate_every = self._cfg.learn.gradient_accumulate_every
         self.plan_batch_szie = self._cfg.learn.plan_batch_size
+        self.gradient_steps = 1
         obs = np.random.rand(1, self.obs_dim)
         acs = np.random.rand(1, self.action_dim)
         sets = {'observations': np.array([obs]), 'actions': np.array([acs])}
@@ -238,10 +239,14 @@ class PDPolicy(Policy):
         loss_dict['diffuse_loss'] = self._model.diffuser_loss(x, cond, t)
         loss_dict['value_loss'] = self._model.value_loss(x, cond, target, t)
         total_loss = ((loss_dict['diffuse_loss'] + loss_dict['value_loss'])) / self.gradient_accumulate_every
-        
-        self._optimizer.zero_grad()
         total_loss.backward()
-        self._optimizer.step()
+
+        if self.gradient_steps >= self.gradient_accumulate_every:
+            self._optimizer.zero_grad()
+            self._optimizer.step()
+            self.gradient_steps = 1
+        else:
+            self.gradient_steps += 1
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
         return loss_dict
