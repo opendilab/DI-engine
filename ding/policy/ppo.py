@@ -438,7 +438,11 @@ class PPOPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         if self._cfg.multi_agent:
-            return 'mavac', ['ding.model.template.mavac']
+            self._cfg.get('dict_obs', False)
+            if self._cfg.dict_obs:
+                return 'mavacdo', ['ding.model.template.mavac_diff_obs']
+            else:
+                return 'mavac', ['ding.model.template.mavac']
         else:
             return 'vac', ['ding.model.template.vac']
 
