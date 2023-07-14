@@ -21,11 +21,11 @@ import gym
 import copy
 import os
 import csv
-from .dqn import DQNPolicy
+from .base_policy import Policy
 
 
 @POLICY_REGISTRY.register('dt')
-class DTPolicy(DQNPolicy):
+class DTPolicy(Policy):
     r"""
     Overview:
         Policy class of DT algorithm in discrete environments.
@@ -356,11 +356,12 @@ class DTPolicy(DQNPolicy):
         return self.max_env_score >= self.stop_value
 
     def get_d4rl_normalized_score(self, score, env_name):
-        env_key = env_name.split('-')[0].lower()
-        assert env_key in D4RLTrajectoryDataset.REF_MAX_SCORE, \
-            f'no reference score for {env_key} env to calculate d4rl score'
-        d4rl_max_score, d4rl_min_score = D4RLTrajectoryDataset.REF_MAX_SCORE, D4RLTrajectoryDataset.REF_MIN_SCORE
-        return (score - d4rl_min_score[env_key]) / (d4rl_max_score[env_key] - d4rl_min_score[env_key])
+        # env_key = env_name.split('-')[0].lower()
+        # assert env_key in D4RLTrajectoryDataset.REF_MAX_SCORE, \
+        #     f'no reference score for {env_key} env to calculate d4rl score'
+        # d4rl_max_score, d4rl_min_score = D4RLTrajectoryDataset.REF_MAX_SCORE, D4RLTrajectoryDataset.REF_MIN_SCORE
+        # return (score - d4rl_min_score[env_key]) / (d4rl_max_score[env_key] - d4rl_min_score[env_key])
+        return 0
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
@@ -376,3 +377,52 @@ class DTPolicy(DQNPolicy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'action_loss']
+
+        
+    def _init_eval(self) -> None:
+        pass
+
+
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        pass
+
+
+    def _init_collect(self) -> None:
+        pass
+
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
+        pass
+
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
+            or some continuous transitions(DRQN).
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
+                format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`dict`): The list of training samples.
+
+        .. note::
+            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
+            And the user can customize the this data processing procecure by overriding this two methods and collector \
+            itself.
+        """
+        pass
+
+    def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
+        """
+        Overview:
+            Generate a transition(e.g.: <s, a, s', r, d>) for this algorithm training.
+        Arguments:
+            - obs (:obj:`Any`): Env observation.
+            - policy_output (:obj:`Dict[str, Any]`): The output of policy collect mode(``self._forward_collect``),\
+                including at least ``action``.
+            - timestep (:obj:`namedtuple`): The output after env step(execute policy output action), including at \
+                least ``obs``, ``reward``, ``done``, (here obs indicates obs after env step).
+        Returns:
+            - transition (:obj:`dict`): Dict type transition data.
+        """
+        pass

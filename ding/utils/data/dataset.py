@@ -342,18 +342,17 @@ class D4RLTrajectoryDataset(Dataset):
 
             original_keys = ['obs', 'next_obs', 'action', 'reward']
             keys = ['observations', 'next_observations', 'actions', 'rewards']
-            for key, o_key in zip(keys, original_keys):
-                trajectories_tmp = [
-                    {
-                        key: np.stack(
-                            [
-                                self.trjectories[eps_index][transition_index][o_key]
-                                for transition_index in range(len(self.trajectories[eps_index]))
-                            ],
-                            axis=0
-                        )
-                    } for eps_index in range(len(self.trajectories))
-                ]
+            trajectories_tmp = [
+                {
+                    key: np.stack(
+                        [
+                            self.trajectories[eps_index][transition_index][o_key]
+                            for transition_index in range(len(self.trajectories[eps_index]))
+                        ],
+                        axis=0
+                    ) for key, o_key in zip(keys, original_keys)
+                } for eps_index in range(len(self.trajectories))
+            ]
             self.trajectories = trajectories_tmp
 
         states = []

@@ -34,15 +34,15 @@ lunarlander_dqn_config = dict(
                 dataloader=dict(num_workers=0, ),
                 log_policy=True,
                 hook=dict(
-                    # load_ckpt_before_run='./lunarlander/ckpt/ckpt_best.pth.tar',
-                    load_ckpt_before_run='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
+                    load_ckpt_before_run='./ckpt_best.pth.tar', # TODO: syspath modeified in other place, have to use abs path. May be fix in next version.
+                    # load_ckpt_before_run='/mnt/nfs/luyd/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
                     log_show_after_iter=100,
                     save_ckpt_after_iter=10000,
                     save_ckpt_after_run=False,
                 ),
                 cfg_type='BaseLearnerDict',
-                # load_path='./cartpole/ckpt/ckpt_best.pth.tar',
-                load_path='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
+                load_path='./ckpt_best.pth.tar', # TODO: same like last path.
+                # load_path='/mnt/nfs/luyd/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
             ),
             update_per_collect=10,
             batch_size=64,
@@ -61,9 +61,9 @@ lunarlander_dqn_config = dict(
             # save
             # data_type='hdf5',
             data_type='naive',
-            save_path='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/data/dqn_data_1000eps.pkl',  # TODO(pu)
+            save_path='./dt_data/dqn_data_1000eps.pkl',  # TODO(pu)
             # load
-            data_path='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/data/dqn_data_10eps.pkl',  # TODO(pu)
+            data_path='./dt_data/dqn_data_10eps.pkl',  # TODO(pu)
         ),
         # command_mode config
         other=dict(
