@@ -7,6 +7,7 @@ from . import gym_spaceInvadersnoframeskip_v4
 
 supported_env_cfg = {
     gym_lunarlander_v2.cfg.env.env_id: gym_lunarlander_v2.cfg,
+    
     gym_lunarlandercontinuous_v2.cfg.env.env_id: gym_lunarlandercontinuous_v2.cfg,
     gym_pongnoframeskip_v4.cfg.env.env_id: gym_pongnoframeskip_v4.cfg,
     gym_qbertnoframeskip_v4.cfg.env.env_id: gym_qbertnoframeskip_v4.cfg,

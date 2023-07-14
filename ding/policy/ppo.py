@@ -685,7 +685,7 @@ class PPOOffPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous']
+        # (str) Which kind of action space used in PPOPolicy, ["general", "continuous", "discrete", "hybrid"]
         action_space='discrete',
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
@@ -743,7 +743,7 @@ class PPOOffPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
         
-        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+        assert self._cfg.action_space in ["general", "continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
@@ -943,6 +943,7 @@ class PPOOffPolicy(Policy):
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': total_loss.item(),
             'policy_loss': ppo_loss.policy_loss.item(),
+            'value': data['value'].mean().item(),
             'value_loss': ppo_loss.value_loss.item(),
             'entropy_loss': ppo_loss.entropy_loss.item(),
             'adv_abs_max': adv.abs().max().item(),
@@ -1126,7 +1127,7 @@ class PPOOffPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         variables = super()._monitor_vars_learn() + [
-            'policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
+            'policy_loss', 'value', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
         if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']

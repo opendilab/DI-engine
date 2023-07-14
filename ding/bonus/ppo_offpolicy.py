@@ -99,7 +99,12 @@ class PPOOffPolicyAgent:
         evaluator_env = setup_ding_env_manager(self.env, evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
+            task.use(
+                interaction_evaluator(
+                    self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
+                        if hasattr(self.cfg.policy.eval, "render") else False
+                )
+            )
             task.use(StepCollector(
                 self.cfg,
                 self.policy.collect_mode,

@@ -52,8 +52,4 @@ cfg = dict(
 cfg = EasyDict(cfg)
 
 import ding.envs.gym_env
-from functools import partial
-env = partial(
-    ding.envs.gym_env.env,
-    cfg=dict(env_wrapper=cfg.env.env_wrapper, act_scale=cfg.env.act_scale, rew_clip=cfg.env.rew_clip)
-)
+env = ding.envs.gym_env.env,
