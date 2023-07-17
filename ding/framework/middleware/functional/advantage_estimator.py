@@ -82,11 +82,19 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
                 for d in data:
                     d['obs'] = d['obs'].squeeze(0)
                     d['next_obs'] = d['next_obs'].squeeze(0)
-                if hasattr(data[0], 'logit'):
+                if 'logit' in data[0]:
                     for d in data:
                         d['logit'] = d['logit'].squeeze(0)
+                if 'log_prob' in data[0]:
+                    for d in data:
+                        d['log_prob'] = d['log_prob'].squeeze(0)
             else:
                 raise RuntimeError("The shape of obs is {}, which is not same as config.".format(data[0]['obs'].shape))
+
+            if data[0]['action'].dtype in [torch.float16,torch.float32,torch.double] \
+                    and data[0]['action'].dim() == 2:
+                for d in data:
+                    d['action'] = d['action'].squeeze(0)
             for d in data:
                 buffer_.push(d)
         ctx.trajectories = None

@@ -77,9 +77,6 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
 
         obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
         inference_output = policy.forward(obs, **ctx.collect_kwargs)
-        # for key, value in inference_output.items():
-        #     if value['action'].dim() == 0:
-        #         inference_output[key]['action'] = value['action'].unsqueeze(0)
         ctx.action = [to_ndarray(v['action']) for v in inference_output.values()]  # TBD
         ctx.inference_output = inference_output
 

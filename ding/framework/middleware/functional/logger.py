@@ -120,6 +120,7 @@ def offline_logger() -> Callable:
 def wandb_online_logger(
         record_path: str = None,
         cfg: Union[dict, EasyDict] = None,
+        exp_config: Union[dict, EasyDict] = None,
         metric_list: Optional[List[str]] = None,
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
@@ -152,16 +153,28 @@ def wandb_online_logger(
         metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    if not wandb_sweep:
-        if anonymous:
-            wandb.init(project=project_name, reinit=True, anonymous="must")
+    if exp_config:
+        if not wandb_sweep:
+            if anonymous:
+                wandb.init(project=project_name, config=exp_config, reinit=True, anonymous="must")
+            else:
+                wandb.init(project=project_name, config=exp_config, reinit=True)
         else:
-            wandb.init(project=project_name, reinit=True)
+            if anonymous:
+                wandb.init(project=project_name, config=exp_config, anonymous="must")
+            else:
+                wandb.init(project=project_name, config=exp_config)
     else:
-        if anonymous:
-            wandb.init(project=project_name, anonymous="must")
+        if not wandb_sweep:
+            if anonymous:
+                wandb.init(project=project_name, reinit=True, anonymous="must")
+            else:
+                wandb.init(project=project_name, reinit=True)
         else:
-            wandb.init(project=project_name)
+            if anonymous:
+                wandb.init(project=project_name, anonymous="must")
+            else:
+                wandb.init(project=project_name)
         plt.switch_backend('agg')
     if cfg is None:
         cfg = EasyDict(
@@ -185,7 +198,7 @@ def wandb_online_logger(
     if env is not None and cfg.video_logger is True and record_path is not None:
         env.enable_save_replay(replay_path=record_path)
     if cfg.gradient_logger:
-        wandb.watch(model)
+        wandb.watch(model, log="all", log_freq=100, log_graph=True)
     else:
         one_time_warning(
             "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
@@ -225,6 +238,8 @@ def wandb_online_logger(
         if ctx.eval_value != -np.inf:
             info_for_logging.update(
                 {
+                    "episode return min": ctx.eval_value_min,
+                    "episode return max": ctx.eval_value_max,
                     "episode return mean": ctx.eval_value,
                     "episode return std": ctx.eval_value_std,
                     "train iter": ctx.train_iter,
@@ -472,6 +487,8 @@ def wandb_offline_logger(
         if ctx.eval_value != -np.inf:
             info_for_logging.update(
                 {
+                    "episode return min": ctx.eval_value_min,
+                    "episode return max": ctx.eval_value_max,
                     "episode return mean": ctx.eval_value,
                     "episode return std": ctx.eval_value_std,
                     "train iter": ctx.train_iter,

@@ -1,3 +1,4 @@
+from .activation import get_activation
 from .checkpoint_helper import build_checkpoint_helper, CountVar, auto_checkpoint
 from .data_helper import to_device, to_tensor, to_ndarray, to_list, to_dtype, same_shape, tensor_to_list, \
     build_log_buffer, CudaFetcher, get_tensor_data, unsqueeze, squeeze, get_null_data, get_shape0, to_item
@@ -10,3 +11,4 @@ from .nn_test_helper import is_differentiable
 from .math_helper import cov
 from .dataparallel import DataParallel
 from .reshape_helper import fold_batch, unfold_batch, unsqueeze_repeat
+from .modules import *

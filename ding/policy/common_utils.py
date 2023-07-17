@@ -17,10 +17,19 @@ def default_preprocess_learn(
         data = default_collate(data, cat_1dim=True)  # for discrete action
     else:
         data = default_collate(data, cat_1dim=False)  # for continuous action
+    if 'value' in data and data['value'].dim() == 2 and data['value'].shape[1] == 1:
+        data['value'] = data['value'].squeeze(-1)
+    if 'adv' in data and data['adv'].dim() == 2 and data['adv'].shape[1] == 1:
+        data['adv'] = data['adv'].squeeze(-1)
+
     if ignore_done:
         data['done'] = torch.zeros_like(data['done']).float()
     else:
         data['done'] = data['done'].float()
+
+    if data['done'].dim() == 2 and data['done'].shape[1] == 1:
+        data['done'] = data['done'].squeeze(-1)
+
     if use_priority_IS_weight:
         assert use_priority, "Use IS Weight correction, but Priority is not used."
     if use_priority and use_priority_IS_weight:

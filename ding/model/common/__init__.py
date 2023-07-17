@@ -2,4 +2,4 @@ from .head import DiscreteHead, DuelingHead, DistributionHead, RainbowHead, QRDQ
     QuantileHead, FQFHead, RegressionHead, ReparameterizationHead, MultiHead, BranchingHead, head_cls_map, \
     independent_normal_dist, AttentionPolicyHead, PopArtVHead, EnsembleHead
 from .encoder import ConvEncoder, FCEncoder, IMPALAConvEncoder
-from .utils import create_model, get_activation
+from .utils import create_model

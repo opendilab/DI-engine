@@ -2,7 +2,7 @@
 from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ
 from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
-from .vac import VAC
+from .vac import BaseVAC, VAC
 from .bc import DiscreteBC, ContinuousBC
 from .pg import PG
 # algorithm-specific
@@ -25,3 +25,5 @@ from .decision_transformer import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import QACEnsemble
+from .value_network import QModel, VModel
+from .stochastic_policy import StochasticPolicy
