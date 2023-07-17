@@ -61,6 +61,8 @@ setup(
         'trueskill',
         'tensorboardX>=2.2',
         'wandb',
+        'moviepy',
+        'imageio',
         'matplotlib',
         'easydict==1.9',
         'pyyaml',
