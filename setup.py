@@ -61,8 +61,6 @@ setup(
         'trueskill',
         'tensorboardX>=2.2',
         'wandb',
-        'moviepy',
-        'imageio',
         'matplotlib',
         'easydict==1.9',
         'pyyaml',
@@ -108,6 +106,10 @@ setup(
         'fast': [
             'numpy-stl',
             'numba>=0.53.0',
+        ],
+        'video':[
+            'moviepy',
+            'imageio',
         ],
         'dist': [
             'redis-py-cluster==2.1.0',

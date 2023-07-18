@@ -2,6 +2,7 @@ from typing import Optional, Union
 from ditk import logging
 from easydict import EasyDict
 import os
+import numpy as np
 import torch
 import treetensor.torch as ttorch
 from ding.framework import task, OnlineRLContext
@@ -12,6 +13,7 @@ from ding.envs import BaseEnv
 from ding.envs import setup_ding_env_manager
 from ding.policy import PGPolicy
 from ding.utils import set_pkg_seed
+from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
 from ding.model import PG
 from ding.bonus.common import TrainingReturn, EvalReturn
@@ -97,7 +99,11 @@ class PGAgent:
         evaluator_env = setup_ding_env_manager(self.env, evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env))
+            task.use(interaction_evaluator(
+                self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
+                        if hasattr(self.cfg.policy.eval, "render") else False
+                )
+            )
             task.use(EpisodeCollector(self.cfg, self.policy.collect_mode, collector_env))
             task.use(pg_estimator(self.policy.collect_mode))
             task.use(trainer(self.cfg, self.policy.learn_mode))
@@ -117,19 +123,36 @@ class PGAgent:
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> float:
+    def deploy(
+            self,
+            enable_save_replay: bool = False,
+            concatenate_all_replay: bool = False,
+            replay_save_path: str = None,
+            seed: Optional[Union[int, List]] = None,
+            debug: bool = False
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self.env.clone(caller='evaluator')
-        env.seed(self.seed, dynamic_seed=False)
 
-        if enable_save_replay and replay_save_path:
+        if seed is not None and isinstance(seed, int):
+            seeds = [seed]
+        elif seed is not None and isinstance(seed, list):
+            seeds = seed
+        else:
+            seeds = [self.seed]
+
+        returns = []
+        images = []
+        if enable_save_replay:
+            replay_save_path = os.path.join(self.exp_name, 'videos') if replay_save_path is None else replay_save_path
             env.enable_save_replay(replay_path=replay_save_path)
-        elif enable_save_replay:
-            env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
         else:
             logging.warning('No video would be generated during the deploy.')
+            if concatenate_all_replay:
+                logging.warning('concatenate_all_replay is set to False because enable_save_replay is False.')
+                concatenate_all_replay = False
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
 
@@ -160,22 +183,31 @@ class PGAgent:
         # env will be reset again in the main loop
         env.reset()
 
-        # main loop
-        return_ = 0.
-        step = 0
-        obs = env.reset()
-        while True:
-            action = forward_fn(obs)
-            obs, rew, done, info = env.step(action)
-            return_ += rew
-            step += 1
-            if done:
-                break
-        logging.info(f'PG deploy is finished, final episode return with {step} steps is: {return_}')
+        for seed in seeds:
+            env.seed(seed, dynamic_seed=False)
+            return_ = 0.
+            step = 0
+            obs = env.reset()
+            images.append(render(env)[None]) if concatenate_all_replay else None
+            while True:
+                action = forward_fn(obs)
+                obs, rew, done, info = env.step(action)
+                images.append(render(env)[None]) if concatenate_all_replay else None
+                return_ += rew
+                step += 1
+                if done:
+                    break
+            logging.info(f'DQN deploy is finished, final episode return with {step} steps is: {return_}')
+            returns.append(return_)
 
         env.close()
 
-        return return_
+        if concatenate_all_replay:
+            images = np.concatenate(images, axis=0)
+            import imageio
+            imageio.mimwrite(os.path.join(replay_save_path, 'deploy.mp4'), images, fps=get_env_fps(env))
+
+        return EvalReturn(eval_value=np.mean(returns), eval_value_std=np.std(returns))
 
     def collect_data(
             self,
