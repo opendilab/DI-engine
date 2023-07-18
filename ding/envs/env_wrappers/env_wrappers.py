@@ -1174,6 +1174,23 @@ class GymToGymnasiumWrapper(gym.Wrapper):
             return self.env.reset()
 
 
+class AllinObsWrapper(gym.Wrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+
+    def reset(self):
+        return {'obs':self.env.reset(), 'reward': [0]}
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        obs = {'obs':obs, 'reward': reward}
+        from ding.envs import BaseEnvTimestep
+        return BaseEnvTimestep(obs, reward, done, info)
+    
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+        self.env.seed(seed, dynamic_seed)
+
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """
     Overview:

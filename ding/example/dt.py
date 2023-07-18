@@ -1,16 +1,17 @@
 import gym
 from ditk import logging
-from ding.model import QAC
-from ding.policy import CQLPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2
+from ding.model.template.decision_transformer import DecisionTransformer
+from ding.policy import DTPolicy
+from ding.envs import DingEnvWrapper, BaseEnvManager, BaseEnvManagerV2
+from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
 from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext
 from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger
 from ding.utils import set_pkg_seed
-from dizoo.classic_control.pendulum.envs.pendulum_env import PendulumEnv
-from dizoo.classic_control.pendulum.config.pendulum_cql_config import main_config, create_config
+from dizoo.box2d.lunarlander.envs.lunarlander_env import LunarLanderEnv
+from dizoo.box2d.lunarlander.config.lunarlander_dt_config import main_config, create_config
 
 
 def main():
@@ -21,14 +22,14 @@ def main():
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OfflineRLContext()):
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
+            env_fn=[lambda: AllinObsWrapper(LunarLanderEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         dataset = create_dataset(cfg)
-        model = QAC(**cfg.policy.model)
-        policy = CQLPolicy(cfg.policy, model=model)
+        model = DecisionTransformer(**cfg.policy.model)
+        policy = DTPolicy(cfg.policy, model=model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(offline_data_fetcher(cfg, dataset))

@@ -328,9 +328,10 @@ class D4RLTrajectoryDataset(Dataset):
         },
     }
 
-    def __init__(self, dataset_path: str, context_len: int, rtg_scale: float) -> None:
-
-        self.context_len = context_len
+    def __init__(self, cfg: dict) -> None:
+        dataset_path = cfg.policy.collect.get('data_path', None)
+        rtg_scale = cfg.policy.rtg_scale
+        self.context_len = cfg.policy.context_len
 
         # load dataset
         with open(dataset_path, 'rb') as f:
