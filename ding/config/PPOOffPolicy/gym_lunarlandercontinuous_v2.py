@@ -8,7 +8,7 @@ cfg = dict(
     seed=0,
     env=dict(
         env_id='LunarLanderContinuous-v2',
-        collector_env_num=16,
+        collector_env_num=8,
         evaluator_env_num=4,
         n_evaluator_episode=4,
         stop_value=240,
@@ -72,7 +72,7 @@ cfg = dict(
         ),
         learn=dict(
             update_per_collect=1,
-            batch_size=1024,
+            batch_size=512,
             learning_rate=3e-4,
             value_weight=0.5,
             entropy_weight=0.01,
@@ -86,16 +86,16 @@ cfg = dict(
             weight_decay=0.0,
         ),
         collect=dict(
-            n_sample=1024,
+            n_sample=512,
             unroll_len=1,
-            discount_factor=0.99,
+            discount_factor=0.999,
             gae_lambda=1.0,
         ),
         eval=dict(
             evaluator=dict(eval_freq=100, ),
             render=True,
         ),
-        other=dict(replay_buffer=dict(replay_buffer_size=int(128), ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=int(512), ), ),
     ),
     wandb_logger=dict(
         gradient_logger=True, video_logger=True, plot_logger=True, action_logger=False, return_logger=False
