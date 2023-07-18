@@ -30,6 +30,7 @@ from .type_helper import SequenceType
 from .render_helper import render, fps
 from .fast_copy import fastcopy
 from .bfs_helper import get_vi_sequence
+from .video_helper import numpy_array_to_video
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
