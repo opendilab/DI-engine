@@ -311,7 +311,7 @@
 <li><p>参考文献</p></li>
 </ul>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Q-学习</span></p>
+<p class="caption" role="heading"><span class="caption-text">基于价值的强化学习（Value-Based RL）</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dqn_zh.html">DQN</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id1">综述</a></li>
@@ -324,15 +324,15 @@
 <li class="toctree-l2"><a class="reference internal" href="dqn_zh.html#id7">参考文献</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="mdqn_zh.html">MDQN</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id5">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#benchmark">实验 Benchmark</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id7">参考文献</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rainbow_zh.html">Rainbow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id1">概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id2">要点摘要</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id3">关键方程或关键图表</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id4">扩展</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id5">实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id6">基准</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id7">关于Rainbow算法的实验技巧</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id8">参考文献</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="c51_zh.html">C51</a><ul>
@@ -358,29 +358,6 @@
 <li class="toctree-l2"><a class="reference internal" href="qrdqn_zh.html#id9">其他开源实现</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="rainbow_zh.html">Rainbow</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id2">要点摘要</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id3">关键方程或关键图表</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#double-dqn">Double DQN</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#prioritized-experience-replay-per">Prioritized Experience Replay(PER)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#dueling-network">Dueling Network</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#multi-step-learning">Multi-step Learning</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#distributional-rl">Distributional RL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#noisy-net">Noisy Net</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#intergrated-method">Intergrated Method</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id4">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id5">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id6">基准</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id7">关于Rainbow算法的实验技巧</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rainbow_zh.html#id8">参考文献</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="rainbow_zh.html#id9">其他开源实现</a></li>
-</ul>
-</li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="iqn_zh.html">IQN</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id1">概述</a></li>
 <li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id2">要点摘要：</a></li>
@@ -388,15 +365,26 @@
 <li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id4">关键图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id5">扩展</a></li>
 <li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id6">实现</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id9">基准</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id10">参考文献</a></li>
-<li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id11">其他开源实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id7">基准</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id8">参考文献</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iqn_zh.html#id9">其他开源实现</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mdqn_zh.html">MDQN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id1">概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id2">核心要点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id3">关键方程或关键框图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id4">伪代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id5">扩展</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id6">实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#benchmark">实验 Benchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdqn_zh.html#id7">参考文献</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">演员—评委</span></p>
+<p class="caption" role="heading"><span class="caption-text">演员—评委（Actor-Critic）</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="ddpg_zh.html">DDPG</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id1">概述</a></li>
@@ -404,34 +392,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id3">关键方程或关键框图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id5">伪代码</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id6">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id8">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ddpg_zh.html#id9">模型</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ddpg_zh.html#actor-critic">训练 actor-critic 模型</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ddpg_zh.html#id10">目标网络</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id11">基准</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id12">参考</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id13">其他公开的实现</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">演员—评委</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ddpg_zh.html">DDPG</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id2">核心要点</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id3">关键方程或关键框图</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id5">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id6">扩展</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id8">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ddpg_zh.html#id9">模型</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ddpg_zh.html#actor-critic">训练 actor-critic 模型</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ddpg_zh.html#id10">目标网络</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id8">实现</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id11">基准</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id12">参考</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ddpg_zh.html#id13">其他公开的实现</a></li>
@@ -459,10 +420,7 @@
 <li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id2">核心要点</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id3">关键方程或关键框图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id4">重要实现细节</a></li>
-<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id5">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="icm_zh.html#icmnetwork">ICMNetwork</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id5">实现</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id6">实验结果</a></li>
 <li class="toctree-l2"><a class="reference internal" href="icm_zh.html#id7">参考资料</a></li>
 </ul>
@@ -473,12 +431,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id3">关键方程或关键框图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id4">伪代码</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id5">重要的实现细节</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id6">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ngu_zh.html#rndnetwork-inversenetwork">RndNetwork/InverseNetwork</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ngu_zh.html#id8">内在奖励计算</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ngu_zh.html#id9">融合局内内在奖励和局外内在奖励</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id6">实现</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id10">基准算法性能</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ngu_zh.html#id11">参考资料</a></li>
 </ul>
@@ -488,11 +441,7 @@
 <li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id2">核心要点</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id3">关键方程或关键框图</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id4">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id5">实现</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="diayn_zh.html#id6">判别器网络</a></li>
-<li class="toctree-l3"><a class="reference internal" href="diayn_zh.html#id7">数据收集</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id5">实现</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id8">基准算法性能</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diayn_zh.html#id9">参考资料</a></li>
 </ul>
@@ -515,15 +464,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="r2d3_zh.html">R2D3</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html#id1">概述</a></li>
-<li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html#id2">核心要点</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id4">关键方程或关键框图</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id5">伪代码</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id6">重要的实现细节</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id7">实现</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id8">基准算法性能</a></li>
-<li class="toctree-l3"><a class="reference internal" href="r2d3_zh.html#id10">参考资料</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html#id2">核心要点</a></li>
 </ul>
 </li>
 </ul>
@@ -535,11 +476,11 @@
 <li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id1">综述</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id2">快速了解</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id3">重要公式/重要图示</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id10">伪代码</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id13">实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id4">伪代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id5">实现</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cql_zh.html#benchmark">Benchmark</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id82">引用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id83">其他开源实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id6">引用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cql_zh.html#id7">其他开源实现</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="edac_zh.html">EDAC</a><ul>

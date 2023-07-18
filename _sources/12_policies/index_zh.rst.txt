@@ -14,31 +14,25 @@
 - 参考文献
 
 .. toctree::
-    :maxdepth: 3
-    :caption: Q-学习
+    :maxdepth: 2
+    :caption: 基于价值的强化学习（Value-Based RL）
 
     dqn_zh
-    mdqn_zh
+    rainbow_zh
     c51_zh
     qrdqn_zh
-    rainbow_zh
     iqn_zh
+    mdqn_zh
 
 .. toctree::
-    :maxdepth: 3
-    :caption: 演员—评委
-
-    ddpg_zh
-
-.. toctree::
-    :maxdepth: 3
-    :caption: 演员—评委
+    :maxdepth: 2
+    :caption: 演员—评委（Actor-Critic）
 
     ddpg_zh
     td3_zh
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     :caption: 探索
 
     icm_zh
@@ -46,14 +40,14 @@
     diayn_zh
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     :caption: 模仿学习
 
     guided_cost_zh
     r2d3_zh
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     :caption: 离线强化学习
     
     cql_zh

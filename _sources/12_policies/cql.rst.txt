@@ -49,11 +49,6 @@ Note that the analysis presented below assumes that no function approximation is
 meaning that each iterate can be represented exactly. the result in this theorem can be further generalized to the case of both linear function approximators and non-linear neural network function
 approximators, where the latter builds on the neural tangent kernel (NTK) framework. For more details, please refer to the Theorem D.1 and Theorem D.2 in Appendix D.1 in the original paper.
 
-
-.. image:: images/cql_theorem.png
-   :align: center
-   :scale: 55%
-
 So, how should we utilize this for policy optimization? We could alternate between performing full off-policy evaluation for each policy iterate, :math:`\hat{\pi}^{k}(a|s)`, and one
 step of policy improvement. However, this can be computationally expensive. Alternatively, since the
 policy :math:`\hat{\pi}^{k}(a|s)` is typically derived from the Q-function, we could instead choose :math:`\mu(a|s)` to approximate

@@ -79,7 +79,7 @@ DQN的多步变体通过最小化替代损失来定义，具体如下：
 在文章 `Revisiting Fundamentals of Experience Replay <https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf>`_, 作者分析认为，当使用多步学习时，更大容量的回放缓冲区显著提高了性能，并且他们认为原因是多步学习带来了更大的方差，而这一方差可以通过更大的回放缓冲区来进行补偿。
 
 Distributional RL
->>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>
 Distributional RL 最初是在 `A Distributional Perspective on Reinforcement Learning <https://arxiv.org/abs/1707.06887>`_ 中提出的。它通过使用离散分布来学习逼近回报的分布，而不是期望回报。它的分布由一个向量 :math:`\boldsymbol{z}` 支持, 即 :math:`z^{i}=v_{\min }+(i-1) \frac{v_{\max }-v_{\min }}{N_{\text {atoms }}-1}` ,其中 :math:`i \in\left\{1, \ldots, N_{\text {atoms }}\right\}`,  :math:`N_{\text {atoms }} \in \mathbb{N}^{+}atoms` 。 
 它在t时刻的近似分布 :math:`d_{t}` 在这个支持向量上被定义, 在每个原子 :math:`i` 上的概率为 :math:`p_{\theta}^{i}\left(S_{t}, A_{t}\right)`  最终的分布可以表示为 :math:`d_{t}=\left(z, p_{\theta}\left(S_{t}, A_{t}\right)\right)` 。
 然后，通过最小化分布 :math:`d_{t}` 和目标分布之间的Kullback-Leibler散度，得到了一种 Q-learning 的 distributional variant 。

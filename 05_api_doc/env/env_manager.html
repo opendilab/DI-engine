@@ -312,10 +312,9 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Create a BaseEnvManager to manage multiple environments.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done</p>
+<dt>Interfaces:</dt><dd><p>reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done, reward_shaping,         enable_save_figure</p>
 </dd>
-<dt>Properties:</dt><dd><p>env_num, ready_obs, done, method_name_list
-observation_space, action_space, reward_space</p>
+<dt>Properties:</dt><dd><p>env_num, ready_obs, done, method_name_list, observation_space, action_space, reward_space</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -331,7 +330,7 @@ observation_space, action_space, reward_space</p>
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay">
 <span class="sig-name descname"><span class="pre">enable_save_replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.enable_save_replay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Set each env’s replay save path.</p>
+<dt>Overview:</dt><dd><p>Enable all environments to save replay video after each episode terminates.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>replay_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[str],</span> <span class="pre">str]</span></code>): List of paths for each environment;                 Or one path for all environments.</p></li>

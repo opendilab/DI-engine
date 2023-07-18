@@ -65,7 +65,7 @@ IQN算法使用的网络接口定义如下：
    :members: forward
    :noindex:
 
-IQN算法中使用的贝尔曼更新（Bellman update）在 ``iqn_nstep_td_error`` 函数中定义，我们可以在 ``ding/rl_utils/td.py``文件中找到它。
+IQN算法中使用的贝尔曼更新（Bellman update）在 ``iqn_nstep_td_error`` 函数中定义，我们可以在 ``ding/rl_utils/td.py`` 文件中找到它。
 
 基准
 -----------

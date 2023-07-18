@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="DDPG" href="ddpg_zh.html" />
-  <link rel="prev" title="Rainbow" href="rainbow_zh.html" />
+  <link rel="next" title="MDQN" href="mdqn_zh.html" />
+  <link rel="prev" title="QRDQN" href="qrdqn_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -587,10 +587,10 @@ Parameter updates with IQN’s MLPs forward setup.</p>
 
 </dd></dl>
 
-<p>IQN算法中使用的贝尔曼更新（Bellman update）在 <code class="docutils literal notranslate"><span class="pre">iqn_nstep_td_error</span></code> 函数中定义，我们可以在 <a href="#id7"><span class="problematic" id="id8">``</span></a>ding/rl_utils/td.py``文件中找到它。</p>
+<p>IQN算法中使用的贝尔曼更新（Bellman update）在 <code class="docutils literal notranslate"><span class="pre">iqn_nstep_td_error</span></code> 函数中定义，我们可以在 <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code> 文件中找到它。</p>
 </section>
-<section id="id9">
-<h2>基准<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<section id="id7">
+<h2>基准<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 15%" />
@@ -641,12 +641,12 @@ skip-v4)</p>
 <p>P.S.:
 1. 上述结果是通过在五个不同的随机种子 (0, 1, 2, 3, 4)上运行相同的配置获得的。</p>
 </section>
-<section id="id10">
-<h2>参考文献<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<section id="id8">
+<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <p>(IQN) Will Dabney, Georg Ostrovski, David Silver, Rémi Munos: “Implicit Quantile Networks for Distributional Reinforcement Learning”, 2018; arXiv:1806.06923. https://arxiv.org/pdf/1806.06923</p>
 </section>
-<section id="id11">
-<h2>其他开源实现<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<section id="id9">
+<h2>其他开源实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/iqn.py">Tianshou</a></p></li>
@@ -663,12 +663,12 @@ skip-v4)</p>
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="ddpg_zh.html" class="btn btn-neutral float-right" title="DDPG" accesskey="n"
+    <a href="mdqn_zh.html" class="btn btn-neutral float-right" title="MDQN" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="rainbow_zh.html" class="btn btn-neutral" title="Rainbow" accesskey="p"
+    <a href="qrdqn_zh.html" class="btn btn-neutral" title="QRDQN" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -705,9 +705,9 @@ skip-v4)</p>
 <li><a class="reference internal" href="#id4">关键图</a></li>
 <li><a class="reference internal" href="#id5">扩展</a></li>
 <li><a class="reference internal" href="#id6">实现</a></li>
-<li><a class="reference internal" href="#id9">基准</a></li>
-<li><a class="reference internal" href="#id10">参考文献</a></li>
-<li><a class="reference internal" href="#id11">其他开源实现</a></li>
+<li><a class="reference internal" href="#id7">基准</a></li>
+<li><a class="reference internal" href="#id8">参考文献</a></li>
+<li><a class="reference internal" href="#id9">其他开源实现</a></li>
 </ul>
 </li>
 </ul>

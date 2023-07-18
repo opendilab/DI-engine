@@ -336,7 +336,6 @@ values of <span class="math notranslate nohighlight">\(\alpha\)</span>.</p>
 <p>Note that the analysis presented below assumes that no function approximation is used in the Q-function,
 meaning that each iterate can be represented exactly. the result in this theorem can be further generalized to the case of both linear function approximators and non-linear neural network function
 approximators, where the latter builds on the neural tangent kernel (NTK) framework. For more details, please refer to the Theorem D.1 and Theorem D.2 in Appendix D.1 in the original paper.</p>
-<a class="reference internal image-reference" href="../_images/cql_theorem.png"><img alt="../_images/cql_theorem.png" class="align-center" src="../_images/cql_theorem.png" style="width: 1169.3000000000002px; height: 363.00000000000006px;" /></a>
 <p>So, how should we utilize this for policy optimization? We could alternate between performing full off-policy evaluation for each policy iterate, <span class="math notranslate nohighlight">\(\hat{\pi}^{k}(a|s)\)</span>, and one
 step of policy improvement. However, this can be computationally expensive. Alternatively, since the
 policy <span class="math notranslate nohighlight">\(\hat{\pi}^{k}(a|s)\)</span> is typically derived from the Q-function, we could instead choose <span class="math notranslate nohighlight">\(\mu(a|s)\)</span> to approximate
