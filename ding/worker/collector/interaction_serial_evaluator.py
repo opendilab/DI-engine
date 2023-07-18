@@ -25,10 +25,12 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         # Evaluate every "eval_freq" training iterations.
         eval_freq=1000,
         render=dict(
-            # tensorboard video render is disabled by default
+            # Tensorboard video render is disabled by default.
             render_freq=-1,
             mode='train_iter',
-        )
+        ),
+        # File path for visualize environment information.
+        figure_path=None,
     )
 
     def __init__(
@@ -231,9 +233,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             continue
                         if t.done:
                             # Env reset is done by env_manager automatically.
-                            if 'figure_path' in self._cfg:
-                                if self._cfg.figure_path is not None:
-                                    self._env.enable_save_figure(env_id, self._cfg.figure_path)
+                            if 'figure_path' in self._cfg and self._cfg.figure_path is not None:
+                                self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
                             reward = t.info['eval_episode_return']
                             if 'episode_info' in t.info:
