@@ -151,8 +151,17 @@ class PPOOffPolicyAgent:
             logging.warning('No video would be generated during the deploy.')
 
         def single_env_forward_wrapper(forward_fn, cuda=True):
-
-            forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
+            
+            if self.cfg.policy.action_space=='discrete':
+                forward_fn = model_wrap(forward_fn, wrapper_name='argmax_sample').forward
+            elif self.cfg.policy.action_space=='continuous':
+                forward_fn = model_wrap(forward_fn, wrapper_name='deterministic_sample').forward
+            elif self.cfg.policy.action_space=='hybrid':
+                forward_fn = model_wrap(forward_fn, wrapper_name='hybrid_deterministic_argmax_sample').forward
+            elif self.cfg.policy.action_space=='general':
+                forward_fn = model_wrap(forward_fn, wrapper_name='base').forward
+            else:
+                raise NotImplementedError
 
             def _forward(obs):
                 # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)
