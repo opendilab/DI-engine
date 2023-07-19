@@ -324,6 +324,8 @@ class DequeBuffer(Buffer):
 
         if unroll_len and unroll_len > 1:
             group_names = filter_by_unroll_len()
+            if len(group_names) == 0:
+                return []
         else:
             group_names = list(set(self.meta_index[groupby]))
 
