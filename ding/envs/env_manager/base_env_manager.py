@@ -66,10 +66,10 @@ class BaseEnvManager(object):
     Overview:
         Create a BaseEnvManager to manage multiple environments.
     Interfaces:
-        reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done
+        reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done, reward_shaping, \
+        enable_save_figure
     Properties:
-        env_num, ready_obs, done, method_name_list
-        observation_space, action_space, reward_space
+        env_num, ready_obs, done, method_name_list, observation_space, action_space, reward_space
     """
 
     @classmethod
@@ -411,7 +411,7 @@ class BaseEnvManager(object):
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         """
         Overview:
-            Set each env's replay save path.
+            Enable all environments to save replay video after each episode terminates.
         Arguments:
             - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
                 Or one path for all environments.
@@ -420,18 +420,15 @@ class BaseEnvManager(object):
             replay_path = [replay_path] * self.env_num
         self._env_replay_path = replay_path
 
-    def enable_save_figure(self, env_id: int, figure_path: Union[List[str], str]) -> None:
+    def enable_save_figure(self, env_id: int, figure_path: str) -> None:
         """
         Overview:
-            Set each env's replay save path.
+            Enable a specific env to save figure (e.g. environment statistics or episode return curve).
         Arguments:
-            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
-                Or one path for all environments.
+            - figure_path (:obj:`str`): The file directory path for all environments to save figures.
         """
-        if isinstance(figure_path, str):
-            self._env[env_id].enable_save_figure(figure_path)
-        else:
-            raise TypeError("invalid figure_path arguments type: {}".format(type(figure_path)))
+        assert figure_path is not None
+        self._env[env_id].enable_save_figure(figure_path)
 
     def close(self) -> None:
         """

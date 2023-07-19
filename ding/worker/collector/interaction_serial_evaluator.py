@@ -2,12 +2,11 @@ from typing import Optional, Callable, Tuple
 from collections import namedtuple
 import numpy as np
 import torch
-import torch.distributed as dist
 
 from ding.envs import BaseEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, to_item
 from ding.utils import build_logger, EasyTimer, SERIAL_EVALUATOR_REGISTRY
-from ding.utils import get_world_size, get_rank
+from ding.utils import get_world_size, get_rank, broadcast_object_list
 from .base_serial_evaluator import ISerialEvaluator, VectorEvalMonitor
 
 
@@ -26,10 +25,12 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         # Evaluate every "eval_freq" training iterations.
         eval_freq=1000,
         render=dict(
-            # tensorboard video render is disabled by default
+            # Tensorboard video render is disabled by default.
             render_freq=-1,
             mode='train_iter',
-        )
+        ),
+        # File path for visualize environment information.
+        figure_path=None,
     )
 
     def __init__(
@@ -65,10 +66,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                     './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name
                 )
         else:
-            self._logger, _ = build_logger(
-                './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
-            )
-            self._tb_logger = None
+            self._logger, self._tb_logger = None, None  # for close elegantly
         self.reset(policy, env)
 
         self._timer = EasyTimer()
@@ -199,12 +197,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
             - return_info (:obj:`dict`): Current evaluation return information.
         '''
-        if get_world_size() > 1:
-            # sum up envstep to rank0
-            envstep_tensor = torch.tensor(envstep).cuda()
-            dist.reduce(envstep_tensor, dst=0)
-            envstep = envstep_tensor.item()
-
         # evaluator only work on rank0
         stop_flag, return_info = False, []
         if get_rank() == 0:
@@ -241,9 +233,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             continue
                         if t.done:
                             # Env reset is done by env_manager automatically.
-                            if 'figure_path' in self._cfg:
-                                if self._cfg.figure_path is not None:
-                                    self._env.enable_save_figure(env_id, self._cfg.figure_path)
+                            if 'figure_path' in self._cfg and self._cfg.figure_path is not None:
+                                self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
                             reward = t.info['eval_episode_return']
                             if 'episode_info' in t.info:
@@ -308,7 +299,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
 
         if get_world_size() > 1:
             objects = [stop_flag, return_info]
-            dist.broadcast_object_list(objects, src=0)
+            broadcast_object_list(objects, src=0)
             stop_flag, return_info = objects
 
         return_info = to_item(return_info)

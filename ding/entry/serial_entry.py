@@ -11,7 +11,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
     create_serial_collector, create_serial_evaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
-from ding.utils import set_pkg_seed
+from ding.utils import set_pkg_seed, get_rank
 from .utils import random_collect
 
 
@@ -61,7 +61,7 @@ def serial_pipeline(
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
-    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial')) if get_rank() == 0 else None
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     collector = create_serial_collector(
         cfg.policy.collect.collector,
@@ -119,18 +119,19 @@ def serial_pipeline(
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
-    import time
-    import pickle
-    import numpy as np
-    with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
-        eval_value_raw = [d['eval_episode_return'] for d in eval_info]
-        final_data = {
-            'stop': stop,
-            'env_step': collector.envstep,
-            'train_iter': learner.train_iter,
-            'eval_value': np.mean(eval_value_raw),
-            'eval_value_raw': eval_value_raw,
-            'finish_time': time.ctime(),
-        }
-        pickle.dump(final_data, f)
+    if get_rank() == 0:
+        import time
+        import pickle
+        import numpy as np
+        with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
+            eval_value_raw = [d['eval_episode_return'] for d in eval_info]
+            final_data = {
+                'stop': stop,
+                'env_step': collector.envstep,
+                'train_iter': learner.train_iter,
+                'eval_value': np.mean(eval_value_raw),
+                'eval_value_raw': eval_value_raw,
+                'finish_time': time.ctime(),
+            }
+            pickle.dump(final_data, f)
     return policy

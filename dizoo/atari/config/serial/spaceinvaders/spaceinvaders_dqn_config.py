@@ -7,18 +7,14 @@ spaceinvaders_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
-        manager=dict(shared_memory=False, ),
-        # The path to save the game replay
-        replay_path='./spaceinvaders_dqn_seed0/video',
     ),
     policy=dict(
         cuda=True,
         priority=False,
-        load_path="./spaceinvaders_dqn_seed0/ckpt/ckpt_best.pth.tar",
+        random_collect_size=5000,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -61,4 +57,4 @@ create_config = spaceinvaders_dqn_create_config
 if __name__ == '__main__':
     # or you can enter ding -m serial -c spaceinvaders_dqn_config.py -s 0
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7))
