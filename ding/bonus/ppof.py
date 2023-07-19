@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 from ditk import logging
 from easydict import EasyDict
 from functools import partial
