@@ -109,7 +109,7 @@ setup(
         ],
         'video':[
             'moviepy',
-            'imageio',
+            'imageio[ffmpeg]',
         ],
         'dist': [
             'redis-py-cluster==2.1.0',
