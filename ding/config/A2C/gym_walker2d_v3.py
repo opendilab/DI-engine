@@ -43,4 +43,4 @@ cfg = dict(
 cfg = EasyDict(cfg)
 
 import ding.envs.gym_env
-env = ding.envs.gym_env.env,
+env = ding.envs.gym_env.env
