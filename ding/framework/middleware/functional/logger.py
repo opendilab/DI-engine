@@ -520,9 +520,9 @@ def wandb_offline_logger(
         wandb.log({"dataset": wandb.Image("dataset.png")})
 
     if cfg.vis_dataset is True:
-        _vis_dataset(dataset_path)
+        _vis_dataset(exp_config.dataset_path)
 
-    def _plot(ctx: "OnlineRLContext"):
+    def _plot(ctx: "OfflineRLContext"):
         nonlocal first_plot
         if first_plot:
             first_plot = False
@@ -559,7 +559,7 @@ def wandb_offline_logger(
                     "episode return mean": ctx.eval_value,
                     "episode return std": ctx.eval_value_std,
                     "train iter": ctx.train_iter,
-                    "env step": ctx.env_step
+                    "train_epoch": ctx.train_epoch,
                 }
             )
 
