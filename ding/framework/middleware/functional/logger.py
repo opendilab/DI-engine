@@ -318,9 +318,9 @@ def wandb_online_logger(
 
 
 def wandb_offline_logger(
-        dataset_path: str,
         record_path: str = None,
         cfg: Union[dict, EasyDict] = None,
+        exp_config: Union[dict, EasyDict] = None,
         metric_list: Optional[List[str]] = None,
         env: Optional[BaseEnvManagerV2] = None,
         model: Optional[torch.nn.Module] = None,
@@ -332,7 +332,6 @@ def wandb_offline_logger(
     Overview:
         Wandb visualizer to track the experiment.
     Arguments:
-        - datasetpath (:obj:`str`): The path to save the replay of simulation.
         - record_path (:obj:`str`): The path to save the replay of simulation.
         - cfg (:obj:`Union[dict, EasyDict]`): Config, a dict of following settings:
             - gradient_logger: boolean. Whether to track the gradient.
@@ -340,6 +339,7 @@ def wandb_offline_logger(
             - video_logger: boolean. Whether to upload the rendering video replay.
             - action_logger: boolean. `q_value` or `action probability`.
             - return_logger: boolean. Whether to track the return value.
+            - vis_dataset: boolean. Whether to visualize the dataset.
         - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Policy neural network model.
@@ -354,16 +354,28 @@ def wandb_offline_logger(
         metric_list = ["q_value", "target q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]
     # Initialize wandb with default settings
     # Settings can be covered by calling wandb.init() at the top of the script
-    if not wandb_sweep:
-        if anonymous:
-            wandb.init(project=project_name, reinit=True, anonymous="must")
+    if exp_config:
+        if not wandb_sweep:
+            if anonymous:
+                wandb.init(project=project_name, config=exp_config, reinit=True, anonymous="must")
+            else:
+                wandb.init(project=project_name, config=exp_config, reinit=True)
         else:
-            wandb.init(project=project_name, reinit=True)
+            if anonymous:
+                wandb.init(project=project_name, config=exp_config, anonymous="must")
+            else:
+                wandb.init(project=project_name, config=exp_config)
     else:
-        if anonymous:
-            wandb.init(project=project_name, anonymous="must")
+        if not wandb_sweep:
+            if anonymous:
+                wandb.init(project=project_name, reinit=True, anonymous="must")
+            else:
+                wandb.init(project=project_name, reinit=True)
         else:
-            wandb.init(project=project_name)
+            if anonymous:
+                wandb.init(project=project_name, anonymous="must")
+            else:
+                wandb.init(project=project_name)
         plt.switch_backend('agg')
     if cfg is None:
         cfg = EasyDict(
@@ -373,6 +385,7 @@ def wandb_offline_logger(
                 video_logger=False,
                 action_logger=False,
                 return_logger=False,
+                vis_dataset=True,
             )
         )
     else:
@@ -387,14 +400,13 @@ def wandb_offline_logger(
     if env is not None and cfg.video_logger is True and record_path is not None:
         env.enable_save_replay(replay_path=record_path)
     if cfg.gradient_logger:
-        wandb.watch(model)
+        wandb.watch(model, log="all", log_freq=100, log_graph=True)
     else:
         one_time_warning(
             "If you want to use wandb to visualize the gradient, please set gradient_logger = True in the config."
         )
 
     first_plot = True
-
     def _vis_dataset(datasetpath: str):
         try:
             from sklearn.manifold import TSNE
@@ -503,13 +515,20 @@ def wandb_offline_logger(
                 episode_return = episode_return.squeeze(1)
 
             if cfg.video_logger:
-                file_list = []
-                for p in os.listdir(record_path):
-                    if os.path.splitext(p)[-1] == ".mp4":
-                        file_list.append(p)
-                file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
-                video_path = os.path.join(record_path, file_list[-2])
-                info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
+                if 'replay_video' in ctx.eval_output:
+                    # save numpy array "images" of shape (N,1212,3,224,320) to N video files in mp4 format
+                    # The numpy tensor must be either 4 dimensional or 5 dimensional. Channels should be (time, channel, height, width) or (batch, time, channel, height width)
+                    video_images = ctx.eval_output['replay_video']
+                    video_images = video_images.astype(np.uint8)
+                    info_for_logging.update({"replay_video": wandb.Video(video_images, fps=60)})
+                elif record_path is not None:
+                    file_list = []
+                    for p in os.listdir(record_path):
+                        if os.path.splitext(p)[-1] == ".mp4":
+                            file_list.append(p)
+                    file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(record_path, fn)))
+                    video_path = os.path.join(record_path, file_list[-2])
+                    info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
 
             if cfg.action_logger:
                 action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
