@@ -61,14 +61,30 @@ class TabMWP(BaseEnv):
     def reset(self) -> dict:
         self.problems, self.cand_pids, self.train_pids = load_data(self._args)
         if self.enable_replay:
-            with open('sampled_pids.txt') as f:
-                tmp = f.read().split('\n')
-                a, b = tmp[0], tmp[1]
-            self.cand_pids, self.train_pids = eval(a), eval(b)
-            self.cand_pids = self.cand_pids[:self._args.cand_number]
-            self.train_pids = self.train_pids[:self._args.train_number]
+            self.cand_pids = ['32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514',
+                              '19270', '23713', '17209', '33379', '34987', '11177']
+            if self._args.seed == 0:  # train
+                self.train_pids = ['14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433',
+                                   '26979', '18135', '13347', '17679', '38426', '3454', '10432', '31011', '12162',
+                                   '13063', '7812', '29661', '24482', '4970', '4405', '17405', '27781', '26724', '5993',
+                                   '16442', '30148', '15895', '6855', '29903', '18107', '29504', '11106', '32964',
+                                   '29891', '32104', '15712', '24287', '4997', '32581', '21020', '17247', '31455',
+                                   '13245', '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198',
+                                   '26039', '3791', '4909', '37056', '7144', '8185', '2131', '4398', '38199', '29520',
+                                   '37329', '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229',
+                                   '22918', '31680', '15024', '24607', '26930']
+                model_io_path = 'dizoo/tabmwp/data/model_in_out_train.txt'
+            else:
+                self.train_pids = ['21037', '22976', '2224', '14145', '27962', '26553', '22110', '16541', '26044',
+                                   '19492', '31882', '11991', '27594', '7637', '15394', '7666', '5177', '33761',
+                                   '13703', '29105']
+                model_io_path = 'dizoo/tabmwp/data/model_in_out_eval.txt'
+
+            self._args.cand_number = len(self.cand_pids)
+            self._args.train_number = len(self.train_pids)
+
             self.results_memory = []
-            with open('model_in_and_out.txt') as f:
+            with open(model_io_path) as f:
                 tmp = f.read().split('\n')
             for tt in tmp:
                 if len(tt.strip()) == 0:

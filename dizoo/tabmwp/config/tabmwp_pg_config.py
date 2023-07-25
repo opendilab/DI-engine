@@ -31,11 +31,11 @@ tabmwp_prompt_pg_config = dict(
             embedding_size=128,
         ),
         learn=dict(
-            batch_size=20,
+            batch_size=10,
             # (bool) Whether to normalize advantage. Default to False.
             learning_rate=0.001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
-            entropy_weight=0.,
+            entropy_weight=0.001,
             grad_norm=0.5,
         ),
         collect=dict(
