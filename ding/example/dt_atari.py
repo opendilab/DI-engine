@@ -1,17 +1,19 @@
 import gym
+import torch
+import numpy as np
 from ditk import logging
-from ding.model.template.decision_transformer import DecisionTransformer
+from ding.model.template.dt import DecisionTransformer, DecisionTransformerA
 from ding.policy import DTPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManager, BaseEnvManagerV2
+from ding.envs import BaseEnvManagerV2
 from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
 from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, termination_checker, final_ctx_saver
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, termination_checker
 from ding.utils import set_pkg_seed
-from dizoo.box2d.lunarlander.envs.lunarlander_env import LunarLanderEnv
-from dizoo.box2d.lunarlander.config.lunarlander_dt_config import main_config, create_config
+from dizoo.atari.envs import AtariEnv
+from dizoo.atari.config.pong_dt_config import main_config, create_config
 
 
 def main():
@@ -19,17 +21,18 @@ def main():
     # For demostration, we also can train a RL policy (e.g. SAC) and collect some data
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    ding_init(cfg)
+    # ding_init(cfg)
     with task.start(async_mode=False, ctx=OfflineRLContext()):
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: AllinObsWrapper(LunarLanderEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
+            env_fn=[lambda: AllinObsWrapper(AtariEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         dataset = create_dataset(cfg)
-        cfg.policy.state_mean, cfg.policy.state_std = dataset.get_state_stats()
-        model = DecisionTransformer(**cfg.policy.model)
+        cfg.policy.model.max_timestep = dataset.get_max_timestep()
+        # model = DecisionTransformer(**cfg.policy.model)
+        model = DecisionTransformerA(cfg.policy.model)
         policy = DTPolicy(cfg.policy, model=model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
@@ -37,9 +40,10 @@ def main():
         task.use(trainer(cfg, policy.learn_mode))
         task.use(termination_checker(max_train_iter=1e5))
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
-        task.use(offline_logger())
+        task.use(offline_logger(cfg.exp_name))
         task.run()
 
 
 if __name__ == "__main__":
     main()
+

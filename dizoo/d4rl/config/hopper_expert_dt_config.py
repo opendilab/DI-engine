@@ -2,7 +2,7 @@ from easydict import EasyDict
 from copy import deepcopy
 
 hopper_dt_config = dict(
-    exp_name='hopper_expert_dt_seed0',
+    exp_name='dt_log/d4rl/hopper/hopper_expert_dt_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -15,12 +15,14 @@ hopper_dt_config = dict(
     ),
     policy=dict(
         stop_value=6000,
+        state_mean=None,
+        state_std=None,
+        evaluator_env_num=8,
         cuda=True,
         env_name='Hopper-v3',
         rtg_target=6000,  # max target return to go
         max_eval_ep_len=1000,  # max lenght of one episode
         num_eval_ep=10,  # num of evaluation episode
-        batch_size=64,
         wt_decay=1e-4,
         warmup_steps=10000,
         num_updates_per_iter=100,
@@ -29,7 +31,6 @@ hopper_dt_config = dict(
         embed_dim=128,
         n_heads=1,
         dropout_p=0.1,
-        log_dir='/home/wangzilin/research/dt/DI-engine/dizoo/d4rl/dt_data/hopper_expert_dt_log',
         model=dict(
             state_dim=11,
             act_dim=3,
@@ -43,13 +44,17 @@ hopper_dt_config = dict(
         discount_factor=0.999,
         nstep=3,
         learn=dict(
-            dataset_path='/mnt/lustre/wangzilin/d4rl_data/hopper-expert-v2.pkl',
+            batch_size=64,
             learning_rate=0.0001,
             target_update_freq=100,
             kappa=1.0,
             min_q_weight=4.0,
         ),
-        collect=dict(unroll_len=1, ),
+        collect=dict(
+            data_type='d4rl_trajectory',
+            data_path='/mnt/nfs/luyd/hopper_expert.hdf5',
+            unroll_len=1,
+        ),
         eval=dict(evaluator=dict(evalu_freq=100, ), ),
         other=dict(
             eps=dict(

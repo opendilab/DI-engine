@@ -4,9 +4,31 @@ The code is transplanted from https://github.com/nikhilbarhate99/min-decision-tr
 
 from ding.utils import MODEL_REGISTRY
 from typing import Tuple
-from ding.torch_utils.network.transformer import Attention
+from ding.torch_utils.network.transformer import Attention, MaskedCausalAttention
 import torch
 import torch.nn as nn
+
+
+class BlockM(nn.Module):
+    def __init__(self, h_dim, max_T, n_heads, drop_p):
+        super().__init__()
+        self.attention = MaskedCausalAttention(h_dim, max_T, n_heads, drop_p)
+        self.mlp = nn.Sequential(
+                nn.Linear(h_dim, 4*h_dim),
+                nn.GELU(),
+                nn.Linear(4*h_dim, h_dim),
+                nn.Dropout(drop_p),
+            )
+        self.ln1 = nn.LayerNorm(h_dim)
+        self.ln2 = nn.LayerNorm(h_dim)
+
+    def forward(self, x):
+        # Attention -> LayerNorm -> MLP -> LayerNorm
+        x = x + self.attention(x) # residual
+        x = self.ln1(x)
+        x = x + self.mlp(x) # residual
+        x = self.ln2(x)
+        return x
 
 
 class Block(nn.Module):
