@@ -28,7 +28,8 @@ from .base_policy import Policy
 class DTPolicy(Policy):
     r"""
     Overview:
-        Policy class of DT algorithm in discrete environments.
+        Policy class of Decision Transformer algorithm in discrete environments.
+        Paper link: https://arxiv.org/abs/2106.01345
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -80,10 +81,10 @@ class DTPolicy(Policy):
 
     def _init_learn(self) -> None:
         r"""
-            Overview:
-                Learn mode init method. Called by ``self.__init__``.
-                Init the optimizer, algorithm config, main and target models.
-            """
+        Overview:
+            Learn mode init method. Called by ``self.__init__``.
+            Init the optimizer, algorithm config, main and target models.
+        """
         self.env_name = self._cfg.env_name
         # rtg_scale: scale of `return to go`
         # rtg_target: max target of `return to go`
@@ -151,7 +152,7 @@ class DTPolicy(Policy):
         state_preds, action_preds, return_preds = self._learn_model.forward(
             timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
         )
-        
+
         if self.cfg.env_type == 'atari':
             action_loss = F.cross_entropy(action_preds.reshape(-1, action_preds.size(-1)), action_target.reshape(-1))
         else:
