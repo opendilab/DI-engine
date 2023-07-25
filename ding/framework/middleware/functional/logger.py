@@ -126,6 +126,7 @@ def wandb_online_logger(
         model: Optional[torch.nn.Module] = None,
         anonymous: bool = False,
         project_name: str = 'default-project',
+        run_name: str = None,
         wandb_sweep: bool = False,
 ) -> Callable:
     '''
@@ -145,6 +146,8 @@ def wandb_online_logger(
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
         - project_name (:obj:`str`): The name of wandb project.
+        - run_name (:obj:`str`): The name of wandb run.
+        - wandb_sweep (:obj:`bool`): Whether to use wandb sweep.
     '''
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
@@ -155,26 +158,50 @@ def wandb_online_logger(
     # Settings can be covered by calling wandb.init() at the top of the script
     if exp_config:
         if not wandb_sweep:
-            if anonymous:
-                wandb.init(project=project_name, config=exp_config, reinit=True, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, reinit=True, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config, reinit=True, name=run_name)
             else:
-                wandb.init(project=project_name, config=exp_config, reinit=True)
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, reinit=True, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config, reinit=True)
         else:
-            if anonymous:
-                wandb.init(project=project_name, config=exp_config, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config, name=run_name)
             else:
-                wandb.init(project=project_name, config=exp_config)
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config)
     else:
         if not wandb_sweep:
-            if anonymous:
-                wandb.init(project=project_name, reinit=True, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, reinit=True, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, reinit=True, name=run_name)
             else:
-                wandb.init(project=project_name, reinit=True)
+                if anonymous:
+                    wandb.init(project=project_name, reinit=True, anonymous="must")
+                else:
+                    wandb.init(project=project_name, reinit=True)
         else:
-            if anonymous:
-                wandb.init(project=project_name, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, name=run_name)
             else:
-                wandb.init(project=project_name)
+                if anonymous:
+                    wandb.init(project=project_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name)
         plt.switch_backend('agg')
     if cfg is None:
         cfg = EasyDict(
@@ -326,6 +353,7 @@ def wandb_offline_logger(
         model: Optional[torch.nn.Module] = None,
         anonymous: bool = False,
         project_name: str = 'default-project',
+        run_name: str = None,
         wandb_sweep: bool = False,
 ) -> Callable:
     '''
@@ -346,6 +374,8 @@ def wandb_offline_logger(
         - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
             The anonymous mode allows visualization of data without wandb count.
         - project_name (:obj:`str`): The name of wandb project.
+        - run_name (:obj:`str`): The name of wandb run.
+        - wandb_sweep (:obj:`bool`): Whether to use wandb sweep.
     '''
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
@@ -356,26 +386,51 @@ def wandb_offline_logger(
     # Settings can be covered by calling wandb.init() at the top of the script
     if exp_config:
         if not wandb_sweep:
-            if anonymous:
-                wandb.init(project=project_name, config=exp_config, reinit=True, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, reinit=True, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config, reinit=True, name=run_name)
             else:
-                wandb.init(project=project_name, config=exp_config, reinit=True)
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, reinit=True, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config, reinit=True)
         else:
-            if anonymous:
-                wandb.init(project=project_name, config=exp_config, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config, name=run_name)
             else:
-                wandb.init(project=project_name, config=exp_config)
+                if anonymous:
+                    wandb.init(project=project_name, config=exp_config, anonymous="must")
+                else:
+                    wandb.init(project=project_name, config=exp_config)
     else:
         if not wandb_sweep:
-            if anonymous:
-                wandb.init(project=project_name, reinit=True, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, reinit=True, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, reinit=True, name=run_name)
             else:
-                wandb.init(project=project_name, reinit=True)
+                if anonymous:
+                    wandb.init(project=project_name, reinit=True, anonymous="must")
+                else:
+                    wandb.init(project=project_name, reinit=True)
         else:
-            if anonymous:
-                wandb.init(project=project_name, anonymous="must")
+            if run_name is not None:
+                if anonymous:
+                    wandb.init(project=project_name, name=run_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name, name=run_name)
             else:
-                wandb.init(project=project_name)
+                if anonymous:
+                    wandb.init(project=project_name, anonymous="must")
+                else:
+                    wandb.init(project=project_name)
+        plt.switch_backend('agg')
         plt.switch_backend('agg')
     if cfg is None:
         cfg = EasyDict(
