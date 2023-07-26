@@ -192,6 +192,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
         info = {}
+        # TODO replace return_info with episode_info (validated by the league demo case)
         return_info = [[] for _ in range(self._policy_num)]
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()

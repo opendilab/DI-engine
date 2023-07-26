@@ -124,7 +124,7 @@ def serial_pipeline(
         import pickle
         import numpy as np
         with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
-            eval_value_raw = [d['eval_episode_return'] for d in eval_info]
+            eval_value_raw = eval_info['eval_episode_return']
             final_data = {
                 'stop': stop,
                 'env_step': collector.envstep,
