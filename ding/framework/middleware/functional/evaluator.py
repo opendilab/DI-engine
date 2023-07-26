@@ -268,8 +268,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
                     if 'episode_info' in timestep.info:
                         eval_monitor.update_info(env_id, timestep.info.episode_info)
         episode_return = eval_monitor.get_episode_return()
-        episode_return_min = np.std(episode_return)
-        episode_return_max = np.std(episode_return)
+        episode_return_min = np.min(episode_return)
+        episode_return_max = np.max(episode_return)
         episode_return_std = np.std(episode_return)
         episode_return = np.mean(episode_return)
         stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
