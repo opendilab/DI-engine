@@ -88,4 +88,4 @@ cartpole_balance_create_config = dict(
 cartpole_balance_create_config = EasyDict(cartpole_balance_create_config)
 
 if __name__ == '__main__':
-    serial_pipeline_dreamer((cartpole_balance_dreamer_config, cartpole_balance_create_config), seed=0, max_env_step=1000000)
+    serial_pipeline_dreamer((cartpole_balance_dreamer_config, cartpole_balance_create_config), seed=0, max_env_step=500000)

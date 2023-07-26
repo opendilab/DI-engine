@@ -3,7 +3,7 @@ import copy
 import torch
 from torch import nn
 
-from ding.utils import WORLD_MODEL_REGISTRY
+from ding.utils import WORLD_MODEL_REGISTRY, lists_to_dicts
 from ding.utils.data import default_collate
 from ding.model import ConvEncoder
 from ding.world_model.base_world_model import WorldModel
@@ -162,19 +162,17 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             return True
         return False
 
-    def train(self, env_buffer, envstep, train_iter, batch_size):
+    def train(self, env_buffer, envstep, train_iter, batch_size, batch_length):
         self.last_train_step = envstep
-        # [len=B, ele={dict_key: [len=T, ele=Tensor(any_dims)]}]
-        data = env_buffer.sample(batch_size, train_iter)
-        data = default_collate(data)  # -> {some_key: T lists}, each list is [B, some_dim]
+        data = env_buffer.sample(batch_size, batch_length, train_iter)  # [len=B, ele=[len=T, ele={dict_key: Tensor(any_dims)}]]
+        data = default_collate(data)  # -> [len=T, ele={dict_key: Tensor(B, any_dims)}]
+        data = lists_to_dicts(data, recursive=True)  # -> {some_key: T lists}, each list is [B, some_dim]
         data = {k: torch.stack(data[k], dim=1) for k in data}  # -> {dict_key: Tensor([B, T, any_dims])}
-        
-        data['discount'] = 1.0 - data['done'].float()
+
+        data['discount'] = data.get('discount', 1.0 - data['done'].float())
+        data['discount'] *= 0.997
         data['weight'] = data.get('weight', None)
-        data['image'] = data['obs']
-        #data['obs'] = data['obs'] / 255.0 - 0.5
-        #next_obs = data['next_obs'] / 255.0 - 0.5
-        #data = {k: v.to(self._cfg.device) for k, v in data.items()}
+        data['image'] = data['obs'] - 0.5
         data = to_device(data, self._cfg.device)
         if len(data['reward'].shape) == 2:
             data['reward'] = data['reward'].unsqueeze(-1)
@@ -185,9 +183,9 @@ class DREAMERWorldModel(WorldModel, nn.Module):
 
         self.requires_grad_(requires_grad=True)
 
-        image = data['obs'].reshape([-1] + list(data['obs'].shape[-3:]))
+        image = data['image'].reshape([-1] + list(data['image'].shape[-3:]))
         embed = self.encoder(image)
-        embed = embed.reshape(list(data['obs'].shape[:-3]) + [embed.shape[-1]])
+        embed = embed.reshape(list(data['image'].shape[:-3]) + [embed.shape[-1]])
         
         post, prior = self.dynamics.observe(embed, data["action"])
         kl_loss, kl_value, loss_lhs, loss_rhs = self.dynamics.kl_loss(

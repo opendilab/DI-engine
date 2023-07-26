@@ -4,12 +4,12 @@ from ding.entry import serial_pipeline_dreamer
 
 cuda = False
 
-cartpole_balance_dreamer_config = dict(
-    exp_name='dmc2gym_cartpole_balance_dreamer',
+walker_walk_dreamer_config = dict(
+    exp_name='dmc2gym_walker_walk_dreamer',
     env=dict(
-        env_id='dmc2gym_cartpole_balance',
-        domain_name='cartpole',
-        task_name='balance',
+        env_id='dmc2gym_walker_walk',
+        domain_name='walker',
+        task_name='walk',
         frame_skip=1,
         warp_frame=True,
         scale=True,
@@ -26,10 +26,10 @@ cartpole_balance_dreamer_config = dict(
     policy=dict(
         cuda=cuda,
         # it is better to put random_collect_size in policy.other
-        random_collect_size=2500, 
+        random_collect_size=2500,
         model=dict(
             obs_shape=(3, 64, 64),
-            action_shape=1,
+            action_shape=6,
             actor_dist = 'normal',
         ),
         learn=dict(
@@ -44,11 +44,11 @@ cartpole_balance_dreamer_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
-            action_size=1,  # has to be specified
+            action_size=6,  # has to be specified
             collect_dyn_sample=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=5000, )), 
+        eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             # environment buffer
             replay_buffer=dict(replay_buffer_size=500000, periodic_thruput_seconds=60),
@@ -60,16 +60,16 @@ cartpole_balance_dreamer_config = dict(
         cuda=cuda,
         model=dict(
             state_size=(3, 64, 64),  # has to be specified
-            action_size=1,  # has to be specified
+            action_size=6,  # has to be specified
             reward_size=1,
             batch_size=16,
         ),
     ),
 )
 
-cartpole_balance_dreamer_config = EasyDict(cartpole_balance_dreamer_config)
+walker_walk_dreamer_config = EasyDict(walker_walk_dreamer_config)
 
-cartpole_balance_create_config = dict(
+walker_walk_create_config = dict(
     env=dict(
         type='dmc2gym',
         import_names=['dizoo.dmc2gym.envs.dmc2gym_env'],
@@ -85,7 +85,7 @@ cartpole_balance_create_config = dict(
         import_names=['ding.world_model.dreamer'],
     ),
 )
-cartpole_balance_create_config = EasyDict(cartpole_balance_create_config)
+walker_walk_create_config = EasyDict(walker_walk_create_config)
 
 if __name__ == '__main__':
-    serial_pipeline_dreamer((cartpole_balance_dreamer_config, cartpole_balance_create_config), seed=0, max_env_step=1000000)
+    serial_pipeline_dreamer((walker_walk_dreamer_config, walker_walk_create_config), seed=0, max_env_step=500000)

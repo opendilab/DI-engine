@@ -32,10 +32,13 @@ class DREAMERPolicy(Policy):
             lambda_=0.95,
             # (float) Max norm of gradients.
             grad_clip=100,
-            learning_rate=0.001,
-            batch_size=256,
+            learning_rate=3e-5,
+            batch_size=16,
+            batch_length=64,
             imag_sample=True,
             slow_value_target=True,
+            slow_target_update=1,
+            slow_target_fraction=0.02,
             discount=0.997,
             reward_EMA=True,
             actor_entropy=3e-4,
@@ -86,6 +89,7 @@ class DREAMERPolicy(Policy):
         # log dict
         log_vars = {}
         self._learn_model.train()
+        self._update_slow_target()
         
         self._actor.requires_grad_(requires_grad=True)
         # start is dict of {stoch, deter, logit}
@@ -180,6 +184,14 @@ class DREAMERPolicy(Policy):
         self._optimizer_value.step()
         return {'actor_grad_norm': actor_norm, 'critic_grad_norm': critic_norm}
 
+    def _update_slow_target(self):
+        if self._cfg.learn.slow_value_target:
+            if self._updates % self._cfg.learn.slow_target_update == 0:
+                mix = self._cfg.learn.slow_target_fraction
+                for s, d in zip(self._critic.parameters(), self._slow_value.parameters()):
+                    d.data = mix * s.data + (1 - mix) * d.data
+            self._updates += 1
+    
     def _state_dict_learn(self) -> Dict[str, Any]:
         ret = {
             'model': self._learn_model.state_dict(),
@@ -225,7 +237,7 @@ class DREAMERPolicy(Policy):
                 for i in range(len(action)):
                     action[i] *= mask[i]
         
-        #data = data / 255.0 - 0.5
+        data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(
             latent, action, embed, self._cfg.collect.collect_dyn_sample
@@ -260,11 +272,11 @@ class DREAMERPolicy(Policy):
         """
         transition = {
             'obs': obs,
-            #'next_obs': timestep.obs,
             'action': model_output['action'],
             # TODO(zp) random_collect just have action
             #'logprob': model_output['logprob'],
             'reward': timestep.reward,
+            'discount': timestep.info['discount'],
             'done': timestep.done,
         }
         return transition
@@ -303,7 +315,7 @@ class DREAMERPolicy(Policy):
                 for i in range(len(action)):
                     action[i] *= mask[i]
         
-        #data = data / 255.0 - 0.5
+        data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(
             latent, action, embed, self._cfg.collect.collect_dyn_sample

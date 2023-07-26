@@ -295,7 +295,8 @@ def serial_pipeline_dreamer(
         )
         for _ in range(steps):
             batch_size = learner.policy.get_attribute('batch_size')
-            post, context = world_model.train(env_buffer, collector.envstep, learner.train_iter, batch_size)
+            batch_length = cfg.policy.learn.batch_length
+            post, context = world_model.train(env_buffer, collector.envstep, learner.train_iter, batch_size, batch_length)
             
             start = post
             
