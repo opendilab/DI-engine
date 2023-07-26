@@ -84,7 +84,7 @@ class TabMWP(BaseEnv):
             self._args.train_number = len(self.train_pids)
 
             self.results_memory = []
-            with open(model_io_path) as f:
+            with open(model_io_path, encoding="ISO-8859-1") as f:
                 tmp = f.read().split('\n')
             for tt in tmp:
                 if len(tt.strip()) == 0:
