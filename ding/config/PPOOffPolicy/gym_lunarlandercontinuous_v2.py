@@ -11,7 +11,7 @@ cfg = dict(
         collector_env_num=8,
         evaluator_env_num=4,
         n_evaluator_episode=4,
-        stop_value=240,
+        stop_value=260,
         act_scale=True,
     ),
     policy=dict(
