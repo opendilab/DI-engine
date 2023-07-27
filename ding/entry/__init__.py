@@ -28,3 +28,4 @@ from .application_entry_drex_collect_data import drex_collecting_data
 from .serial_entry_mbrl import serial_pipeline_dyna, serial_pipeline_dream
 from .serial_entry_bco import serial_pipeline_bco
 from .serial_entry_pc import serial_pipeline_pc
+from .serial_entry_sil import serial_pipeline_sil
