@@ -11,34 +11,36 @@ class TabMWP(BaseEnv):
     tokenizer = None
 
     def __init__(self, cfg):
-        self._args = cfg
+        self.cfg = cfg
         self.enable_replay = cfg.enable_replay
         self._init_flag = False
         self.problems, self.cand_pids, self.train_pids = None, None, None
         self.problem_id = None
         self.cand_examples = []
         openai.api_key = cfg.api_key
-        self.observation_space = None
-        self.action_space = None
+        self.observation_space = gym.spaces.Dict()
+        self.action_space = gym.spaces.Discrete(self.cfg.cand_number * (self.cfg.cand_number - 1))
         self.reward_space = gym.spaces.Box(
             low=-1, high=1, shape=(1,), dtype=np.float32
         )
         self.correct_num = 0
-        assert self._args.engine in ['text-davinci-002', 'glm-10B', 'rwkv-7B', 'internlm-7B']
-        if self._args.engine == 'glm-10B' and TabMWP.model is None:
+
+        # Initialize language model if needed.
+        assert self.cfg.engine in ['text-davinci-002', 'glm-10B', 'rwkv-7B', 'internlm-7B']
+        if self.cfg.engine == 'glm-10B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
             model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
-            TabMWP.model = model.half().cuda()
-        elif self._args.engine == 'rwkv-7B' and TabMWP.model is None:
+            TabMWP.model = model.half()
+        elif self.cfg.engine == 'rwkv-7B' and TabMWP.model is None:
             from transformers import AutoTokenizer, RwkvForCausalLM
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile", trust_remote_code=True)
             model = RwkvForCausalLM.from_pretrained("sgugger/rwkv-7b-pile")
-            TabMWP.model = model.half().cuda()
-        elif self._args.engine == 'internlm-7B' and TabMWP.model is None:
+            TabMWP.model = model.half()
+        elif self.cfg.engine == 'internlm-7B' and TabMWP.model is None:
             from transformers import AutoTokenizer, AutoModelForCausalLM
             TabMWP.tokenizer = AutoTokenizer.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
-            model = AutoModelForCausalLM.from_pretrained("internlm/internlm-7b", trust_remote_code=True).cuda()
+            model = AutoModelForCausalLM.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
             TabMWP.model = model.eval()
 
     @lru_cache(maxsize=10000)
@@ -56,14 +58,16 @@ class TabMWP(BaseEnv):
         return outputs[t0:t1]
 
     def seed(self, seed: int, dynamic_seed: bool = False) -> None:
-        self._args.seed = seed
+        self.cfg.seed = seed
 
     def reset(self) -> dict:
-        self.problems, self.cand_pids, self.train_pids = load_data(self._args)
+        self.problems, self.cand_pids, self.train_pids = load_data(self.cfg)
+        if TabMWP.model is not None:
+            TabMWP.model = TabMWP.model.cuda()
         if self.enable_replay:
             self.cand_pids = ['32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514',
                               '19270', '23713', '17209', '33379', '34987', '11177']
-            if self._args.seed == 0:  # train
+            if self.cfg.seed == 0:  # train
                 self.train_pids = ['14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433',
                                    '26979', '18135', '13347', '17679', '38426', '3454', '10432', '31011', '12162',
                                    '13063', '7812', '29661', '24482', '4970', '4405', '17405', '27781', '26724', '5993',
@@ -80,8 +84,8 @@ class TabMWP(BaseEnv):
                                    '13703', '29105']
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_eval.txt'
 
-            self._args.cand_number = len(self.cand_pids)
-            self._args.train_number = len(self.train_pids)
+            self.cfg.cand_number = len(self.cand_pids)
+            self.cfg.train_number = len(self.train_pids)
 
             self.results_memory = []
             with open(model_io_path, encoding="ISO-8859-1") as f:
@@ -94,12 +98,12 @@ class TabMWP(BaseEnv):
         self.cand_examples = []
         self.correct_num = 0
         for pid in self.cand_pids:
-            example = create_example_from_pid(pid, self.problems, self._args, test=True)
+            example = create_example_from_pid(pid, self.problems, self.cfg, test=True)
             self.cand_examples.append(example)
 
         self._init_flag = True
         self.problem_id = 0
-        train_sample = create_example_from_pid(self.train_pids[self.problem_id], self.problems, self._args, test=True)
+        train_sample = create_example_from_pid(self.train_pids[self.problem_id], self.problems, self.cfg, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
         return obs
 
@@ -116,7 +120,7 @@ class TabMWP(BaseEnv):
         self.cand_pids = ['32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514', '19270', '23713', '17209', '33379', '34987', '11177', '30218', '26066', '24169', '28492']
         self.train_pids = ['14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433', '26979', '18135', '13347', '17679', '38426', '3454', '10432', '31011', '12162', '13063', '7812', '29661', '24482', '4970', '4405', '17405', '27781', '26724', '5993', '16442', '30148', '15895', '6855', '29903', '18107', '29504', '11106', '32964', '29891', '32104', '15712', '24287', '4997', '32581', '21020', '17247', '31455', '13245', '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198', '26039', '3791', '4909', '37056', '7144', '8185', '2131', '4398', '38199', '29520', '37329', '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229', '22918', '31680', '15024', '24607', '26930']
         self.problem_id = 0
-        self._args.train_number = len(self.train_pids)
+        self.cfg.train_number = len(self.train_pids)
         n = len(self.cand_pids)
 
         with open('sampled_pid.txt', 'w') as f:
@@ -124,7 +128,7 @@ class TabMWP(BaseEnv):
             f.write(str(self.train_pids) + '\n')
 
         with open('model_in_out.txt', 'w') as f:
-            while self.problem_id < self._args.train_number:
+            while self.problem_id < self.cfg.train_number:
                 for i in range(n):
                     for j in range(n):
                         if i == j:
@@ -133,11 +137,11 @@ class TabMWP(BaseEnv):
                         pid = self.train_pids[self.problem_id]
 
                         # generate the prompt input
-                        prompt = build_prompt(self.problems, shot_pids, pid, self._args)
+                        prompt = build_prompt(self.problems, shot_pids, pid, self.cfg)
 
                         # get the output from LM
                         # assert self._args.engine == 'text-davinci-002'
-                        output = get_gpt3_output(prompt, self._args)
+                        output = get_gpt3_output(prompt, self.cfg)
 
                         output_txt = {'shot_pids': shot_pids, 'pid': pid, 'prompt': prompt, 'output': output}
                         f.write(str(output_txt) + '\n')
@@ -163,45 +167,45 @@ class TabMWP(BaseEnv):
         pid = self.train_pids[self.problem_id]
 
         # generate the prompt input
-        prompt = build_prompt(self.problems, shot_pids, pid, self._args)
+        prompt = build_prompt(self.problems, shot_pids, pid, self.cfg)
 
         # get the output from LM
         if self.enable_replay:
             output = self.search_answer(pid, shot_pids)
-        elif self._args.engine == 'text-davinci-002':
-            output = get_gpt3_output(prompt, self._args)
-        elif self._args.engine == 'rwkv-7B':
+        elif self.cfg.engine == 'text-davinci-002':
+            output = get_gpt3_output(prompt, self.cfg)
+        elif self.cfg.engine == 'rwkv-7B':
             output = calc_rwkv(self.model, self.tokenizer, prompt)
-        elif self._args.engine == 'internlm-7B':
-            output = calc_internlm(self.model, self.tokenizer, prompt, self._args)
+        elif self.cfg.engine == 'internlm-7B':
+            output = calc_internlm(self.model, self.tokenizer, prompt, self.cfg)
         else:
             output = self.get_output(prompt)
 
         # extract the prediction from the output
-        prediction = extract_prediction(output, self.problems[pid]['choices'], self._args.option_inds)
+        prediction = extract_prediction(output, self.problems[pid]['choices'], self.cfg.option_inds)
 
         # normalize the number in the text
         prediction_norm = normalize_answer(prediction, self.problems[pid]['unit'])
 
         if prediction_norm.lower() == normalize_answer(self.problems[pid]['answer'],
                                                        self.problems[pid]['unit']).lower():
-            _reward = 1
+            reward = 1
             self.correct_num += 1
         else:
-            _reward = -1
+            reward = -1
 
         self.problem_id += 1
-        if self.problem_id == self._args.train_number:
+        if self.problem_id == self.cfg.train_number:
             done = True
-            info = {'eval_episode_return': self.correct_num / self._args.train_number}
+            info = {'eval_episode_return': self.correct_num / self.cfg.train_number}
         else:
             done = False
             info = {}
 
-        train_sample = create_example_from_pid(pid, self.problems, self._args, test=True)
+        train_sample = create_example_from_pid(pid, self.problems, self.cfg, test=True)
         obs = {'train_sample': train_sample, 'candidate_samples': self.cand_examples}
 
-        return BaseEnvTimestep(obs, _reward, done, info)
+        return BaseEnvTimestep(obs, reward, done, info)
 
     def __repr__(self) -> str:
         return "DI-engine tabmwp Env"

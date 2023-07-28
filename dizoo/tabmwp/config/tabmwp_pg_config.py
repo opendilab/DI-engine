@@ -8,7 +8,7 @@ tabmwp_prompt_pg_config = dict(
         n_evaluator_episode=1,
         stop_value=1,
         cand_number=16,
-        train_number=20,
+        train_number=80,
         engine='text-davinci-002',
         temperature=0.,
         max_tokens=512,
@@ -16,6 +16,7 @@ tabmwp_prompt_pg_config = dict(
         frequency_penalty=0.,
         presence_penalty=0.,
         option_inds=["A", "B", "C", "D", "E", "F"],
+        # The API-key of openai. You can get your key in this website: https://platform.openai.com/
         api_key='',
         enable_replay=True,
         prompt_format='TQ-A',

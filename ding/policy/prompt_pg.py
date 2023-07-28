@@ -14,6 +14,7 @@ class PromptPGPolicy(Policy):
     r"""
     Overview:
         Policy class of Prompt Policy Gradient (PromptPG) algorithm.
+        Link of the original paper: https://arxiv.org/abs/2209.14610
     """
     config = dict(
         # (string) RL policy register name (refer to function "register_policy").
@@ -92,8 +93,6 @@ class PromptPGPolicy(Policy):
                 cand_samples[ii] = cand_samples[ii][0]
             output = self._learn_model.forward(train_samples, cand_samples)
             return_ = batch['return']
-            if self._cuda:
-                return_ = return_.to(self._device)
 
             # calculate PG loss
             real_act = []
