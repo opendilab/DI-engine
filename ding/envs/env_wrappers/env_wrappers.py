@@ -184,7 +184,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
             sys.exit(1)
         # to do 
         # channel_first
-        if frame.shape[0]<10:
+        if frame.shape[0] < 10:
             frame = frame.transpose(1, 2, 0)
             frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
             frame = frame.transpose(2, 0, 1)

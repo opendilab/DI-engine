@@ -95,7 +95,6 @@ def compute_actor_loss(
     policy = actor(inp)
     actor_ent = policy.entropy()
     # Q-val for actor is not transformed using symlog
-    # target = torch.stack(target, dim=1)
     if cfg.reward_EMA:
         offset, scale = reward_ema(target)
         normed_target = (target - offset) / scale

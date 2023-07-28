@@ -6,7 +6,8 @@ from torch import nn
 import torch.nn.functional as F
 from torch import distributions as torchd
 
-from ding.torch_utils.network.dreamer import weight_init, uniform_weight_init, OneHotDist, ContDist, SymlogDist, static_scan, DreamerLayerNorm
+from ding.torch_utils.network.dreamer import weight_init, uniform_weight_init, static_scan, \
+    OneHotDist, ContDist, SymlogDist, DreamerLayerNorm
 
 
 class RSSM(nn.Module):

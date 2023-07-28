@@ -432,7 +432,7 @@ class DREAMERVAC(nn.Module):
             actor_temp,
             outscale=1.0,
             unimix_ratio=action_unimix_ratio,
-        )  # action_dist -> action_disc?
+        )
         self.critic = DenseHead(
             feat_size,  # pytorch version
             (255, ),

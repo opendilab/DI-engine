@@ -3,8 +3,8 @@ from easydict import EasyDict
 import torch
 from torch import distributions as torchd
 from itertools import product
-from ding.torch_utils.network.dreamer import DenseHead, SampleDist, OneHotDist, TwoHotDistSymlog, SymlogDist, ContDist, Bernoulli, UnnormalizedHuber, weight_init, uniform_weight_init
-
+from ding.torch_utils.network.dreamer import DenseHead, SampleDist, OneHotDist, TwoHotDistSymlog, \
+    SymlogDist, ContDist, Bernoulli, UnnormalizedHuber, weight_init, uniform_weight_init
 
 # arguments
 shape = [255, (255, ), ()]
@@ -29,7 +29,7 @@ def test_DenseHead(shape, dist):
 B, time = 16, 64
 mean = torch.randn(B, time, 255)
 std = 1.0
-a = torch.randn(B, time, 1)  #  or torch.randn(B, time, 255)
+a = torch.randn(B, time, 1)  # or torch.randn(B, time, 255)
 sample_shape = torch.Size([])
 
 

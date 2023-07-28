@@ -6,6 +6,8 @@ from torch import nn
 import torch.nn.functional as F
 from torch import distributions as torchd
 from ding.torch_utils import MLP
+from ding.rl_utils import symlog, inv_symlog
+
 
 class Conv2dSame(torch.nn.Conv2d):
 
@@ -46,10 +48,16 @@ class DreamerLayerNorm(nn.Module):
 
 
 class DenseHead(nn.Module):
+    """
+    Overview:
+       DenseHead Network for value head, reward head, and discount head of dreamerv3.
+    Interface:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
         self,
-        inp_dim,  # config.dyn_stoch * config.dyn_discrete + config.dyn_deter
+        inp_dim,
         shape,  # (255,)
         layer_num,
         units,  # 512
@@ -90,7 +98,7 @@ class DenseHead(nn.Module):
             self.std_layer = nn.Linear(self._units, np.prod(self._shape))
             self.std_layer.apply(uniform_weight_init(outscale))
 
-    def forward(self, features, dtype=None):
+    def forward(self, features):
         x = features
         out = self.mlp(x)  # (batch, time, _units=512)
         mean = self.mean_layer(out)  # (batch, time, 255)
@@ -100,16 +108,22 @@ class DenseHead(nn.Module):
             std = self._std
         if self._dist == "normal":
             return ContDist(torchd.independent.Independent(torchd.normal.Normal(mean, std), len(self._shape)))
-        if self._dist == "huber":
+        elif self._dist == "huber":
             return ContDist(torchd.independent.Independent(UnnormalizedHuber(mean, std, 1.0), len(self._shape)))
-        if self._dist == "binary":
+        elif self._dist == "binary":
             return Bernoulli(torchd.independent.Independent(torchd.bernoulli.Bernoulli(logits=mean), len(self._shape)))
-        if self._dist == "twohot_symlog":
+        elif self._dist == "twohot_symlog":
             return TwoHotDistSymlog(logits=mean, device=self._device)
         raise NotImplementedError(self._dist)
 
 
 class ActionHead(nn.Module):
+    """
+    Overview:
+       ActionHead Network for action head of dreamerv3.
+    Interface:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
         self,
@@ -158,7 +172,7 @@ class ActionHead(nn.Module):
             self._dist_layer = nn.Linear(self._units, self._size)
             self._dist_layer.apply(uniform_weight_init(outscale))
 
-    def __call__(self, features, dtype=None):
+    def forward(self, features):
         x = features
         x = self._pre_layers(x)
         if self._dist == "tanh_normal":
@@ -206,28 +220,19 @@ class ActionHead(nn.Module):
         else:
             raise NotImplementedError(self._dist)
         return dist
-    
-
-def symlog(x):
-    return torch.sign(x) * torch.log(torch.abs(x) + 1.0)
-
-
-def symexp(x):
-    return torch.sign(x) * (torch.exp(torch.abs(x)) - 1.0)
 
 
 class SampleDist:
+    """
+    Overview:
+       A kind of sample Dist for ActionHead of dreamerv3.
+    Interface:
+        ``__init__``, ``mean``, ``mode``, ``entropy``
+    """
 
     def __init__(self, dist, samples=100):
         self._dist = dist
         self._samples = samples
-
-    @property
-    def name(self):
-        return 'SampleDist'
-
-    def __getattr__(self, name):
-        return getattr(self._dist, name)
 
     def mean(self):
         samples = self._dist.sample(self._samples)
@@ -245,6 +250,12 @@ class SampleDist:
 
 
 class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
+    """
+    Overview:
+       A kind of onehot Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``mode``, ``sample``
+    """
 
     def __init__(self, logits=None, probs=None, unimix_ratio=0.0):
         if logits is not None and unimix_ratio > 0.0:
@@ -270,7 +281,13 @@ class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
         return sample
 
 
-class TwoHotDistSymlog():
+class TwoHotDistSymlog:
+    """
+    Overview:
+       A kind of twohotsymlog Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``mode``, ``mean``, ``log_prob``, ``log_prob_target``
+    """
 
     def __init__(self, logits=None, low=-20.0, high=20.0, device='cpu'):
         self.logits = logits
@@ -279,13 +296,12 @@ class TwoHotDistSymlog():
         self.width = (self.buckets[-1] - self.buckets[0]) / 255
 
     def mean(self):
-        print("mean called")
         _mean = self.probs * self.buckets
-        return symexp(torch.sum(_mean, dim=-1, keepdim=True))
+        return inv_symlog(torch.sum(_mean, dim=-1, keepdim=True))
 
     def mode(self):
         _mode = self.probs * self.buckets
-        return symexp(torch.sum(_mode, dim=-1, keepdim=True))
+        return inv_symlog(torch.sum(_mode, dim=-1, keepdim=True))
 
     # Inside OneHotCategorical, log_prob is calculated using only max element in targets
     def log_prob(self, x):
@@ -316,20 +332,26 @@ class TwoHotDistSymlog():
         return (target * log_pred).sum(-1)
 
 
-class SymlogDist():
+class SymlogDist:
+    """
+    Overview:
+       A kind of Symlog Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``entropy``, ``mode``, ``mean``, ``log_prob``
+    """
 
-    def __init__(self, mode, dist='mse', agg='sum', tol=1e-8, dim_to_reduce=[-1, -2, -3]):
+    def __init__(self, mode, dist='mse', aggregation='sum', tol=1e-8, dim_to_reduce=[-1, -2, -3]):
         self._mode = mode
         self._dist = dist
-        self._agg = agg
+        self._aggregation = aggregation
         self._tol = tol
         self._dim_to_reduce = dim_to_reduce
 
     def mode(self):
-        return symexp(self._mode)
+        return inv_symlog(self._mode)
 
     def mean(self):
-        return symexp(self._mode)
+        return inv_symlog(self._mode)
 
     def log_prob(self, value):
         assert self._mode.shape == value.shape
@@ -341,16 +363,22 @@ class SymlogDist():
             distance = torch.where(distance < self._tol, 0, distance)
         else:
             raise NotImplementedError(self._dist)
-        if self._agg == 'mean':
+        if self._aggregation == 'mean':
             loss = distance.mean(self._dim_to_reduce)
-        elif self._agg == 'sum':
+        elif self._aggregation == 'sum':
             loss = distance.sum(self._dim_to_reduce)
         else:
-            raise NotImplementedError(self._agg)
+            raise NotImplementedError(self._aggregation)
         return -loss
 
 
 class ContDist:
+    """
+    Overview:
+       A kind of ordinary Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``
+    """
 
     def __init__(self, dist=None):
         super().__init__()
@@ -374,6 +402,12 @@ class ContDist:
 
 
 class Bernoulli:
+    """
+    Overview:
+       A kind of Bernoulli Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``
+    """
 
     def __init__(self, dist=None):
         super().__init__()
@@ -402,6 +436,12 @@ class Bernoulli:
 
 
 class UnnormalizedHuber(torchd.normal.Normal):
+    """
+    Overview:
+       A kind of UnnormalizedHuber Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``mode``, ``log_prob``
+    """
 
     def __init__(self, loc, scale, threshold=1, **kwargs):
         super().__init__(loc, scale, **kwargs)
@@ -415,6 +455,12 @@ class UnnormalizedHuber(torchd.normal.Normal):
 
 
 class SafeTruncatedNormal(torchd.normal.Normal):
+    """
+    Overview:
+       A kind of SafeTruncatedNormal Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``sample``
+    """
 
     def __init__(self, loc, scale, low, high, clip=1e-6, mult=1):
         super().__init__(loc, scale)
@@ -434,6 +480,12 @@ class SafeTruncatedNormal(torchd.normal.Normal):
 
 
 class TanhBijector(torchd.Transform):
+    """
+    Overview:
+       A kind of TanhBijector Dist for dreamerv3.
+    Interface:
+        ``__init__``, ``_forward``, ``_inverse``, ``_forward_log_det_jacobian``
+    """
 
     def __init__(self, validate_args=False, name='tanh'):
         super().__init__()
@@ -452,40 +504,44 @@ class TanhBijector(torchd.Transform):
 
 
 def static_scan(fn, inputs, start):
-    last = start  # {logit:[batch_size, self._stoch, self._discrete], stoch:[batch_size, self._stoch, self._discrete], deter:[batch_size, self._deter]}
+    last = start  # {logit, stoch, deter:[batch_size, self._deter]}
     indices = range(inputs[0].shape[0])
     flag = True
     for index in indices:
         inp = lambda x: (_input[x] for _input in inputs)  # inputs:(action:(time, batch, 6), embed:(time, batch, 4096))
         last = fn(last, *inp(index))  # post, prior
         if flag:
-            if type(last) == type({}):
+            if isinstance(last, dict):
                 outputs = {key: value.clone().unsqueeze(0) for key, value in last.items()}
             else:
                 outputs = []
                 for _last in last:
-                    if type(_last) == type({}):
+                    if isinstance(_last, dict):
                         outputs.append({key: value.clone().unsqueeze(0) for key, value in _last.items()})
                     else:
                         outputs.append(_last.clone().unsqueeze(0))
             flag = False
         else:
-            if type(last) == type({}):
+            if isinstance(last, dict):
                 for key in last.keys():
                     outputs[key] = torch.cat([outputs[key], last[key].unsqueeze(0)], dim=0)
             else:
                 for j in range(len(outputs)):
-                    if type(last[j]) == type({}):
+                    if isinstance(last[j], dict):
                         for key in last[j].keys():
                             outputs[j][key] = torch.cat([outputs[j][key], last[j][key].unsqueeze(0)], dim=0)
                     else:
                         outputs[j] = torch.cat([outputs[j], last[j].unsqueeze(0)], dim=0)
-    if type(last) == type({}):
+    if isinstance(last, dict):
         outputs = [outputs]
     return outputs
 
 
 def weight_init(m):
+    """
+    Overview:
+       weight_init for Linear, Conv2d, ConvTranspose2d, and LayerNorm.
+    """
     if isinstance(m, nn.Linear):
         in_num = m.in_features
         out_num = m.out_features
@@ -512,6 +568,10 @@ def weight_init(m):
 
 
 def uniform_weight_init(given_scale):
+    """
+    Overview:
+       weight_init for Linear and LayerNorm.
+    """
 
     def f(m):
         if isinstance(m, nn.Linear):

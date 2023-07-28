@@ -90,7 +90,7 @@ class DREAMERPolicy(Policy):
         log_vars = {}
         self._learn_model.train()
         self._update_slow_target()
-        
+
         self._actor.requires_grad_(requires_grad=True)
         # start is dict of {stoch, deter, logit}
         if self._cuda:
@@ -191,7 +191,7 @@ class DREAMERPolicy(Policy):
                 for s, d in zip(self._critic.parameters(), self._slow_value.parameters()):
                     d.data = mix * s.data + (1 - mix) * d.data
             self._updates += 1
-    
+
     def _state_dict_learn(self) -> Dict[str, Any]:
         ret = {
             'model': self._learn_model.state_dict(),
@@ -216,18 +216,16 @@ class DREAMERPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         self._collect_model.eval()
-        
+
         if state is None:
             batch_size = len(data_id)
             latent = world_model.dynamics.initial(batch_size)  # {logit, stoch, deter}
-            action = torch.zeros((batch_size, self._cfg.collect.action_size)).to(
-                self._device
-            )
+            action = torch.zeros((batch_size, self._cfg.collect.action_size)).to(self._device)
         else:
             #state = default_collate(list(state.values()))
             latent = to_device(default_collate(list(zip(*state))[0]), self._device)
             action = to_device(default_collate(list(zip(*state))[1]), self._device)
-            if len(action.shape)==1:
+            if len(action.shape) == 1:
                 action = action.unsqueeze(-1)
             if reset.any():
                 mask = 1 - reset
@@ -236,28 +234,26 @@ class DREAMERPolicy(Policy):
                         latent[key][i] *= mask[i]
                 for i in range(len(action)):
                     action[i] *= mask[i]
-        
+
         data = data - 0.5
         embed = world_model.encoder(data)
-        latent, _ = world_model.dynamics.obs_step(
-            latent, action, embed, self._cfg.collect.collect_dyn_sample
-        )
+        latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
         feat = world_model.dynamics.get_feat(latent)
-        
+
         actor = self._actor(feat)
         action = actor.sample()
         logprob = actor.log_prob(action)
         latent = {k: v.detach() for k, v in latent.items()}
         action = action.detach()
-        
+
         state = (latent, action)
         output = {"action": action, "logprob": logprob, "state": state}
-        
+
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-    
+
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
         Overview:
@@ -294,18 +290,16 @@ class DREAMERPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
-        
+
         if state is None:
             batch_size = len(data_id)
             latent = world_model.dynamics.initial(batch_size)  # {logit, stoch, deter}
-            action = torch.zeros((batch_size, self._cfg.collect.action_size)).to(
-                self._device
-            )
+            action = torch.zeros((batch_size, self._cfg.collect.action_size)).to(self._device)
         else:
             #state = default_collate(list(state.values()))
             latent = to_device(default_collate(list(zip(*state))[0]), self._device)
             action = to_device(default_collate(list(zip(*state))[1]), self._device)
-            if len(action.shape)==1:
+            if len(action.shape) == 1:
                 action = action.unsqueeze(-1)
             if reset.any():
                 mask = 1 - reset
@@ -314,14 +308,12 @@ class DREAMERPolicy(Policy):
                         latent[key][i] *= mask[i]
                 for i in range(len(action)):
                     action[i] *= mask[i]
-        
+
         data = data - 0.5
         embed = world_model.encoder(data)
-        latent, _ = world_model.dynamics.obs_step(
-            latent, action, embed, self._cfg.collect.collect_dyn_sample
-        )
+        latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
         feat = world_model.dynamics.get_feat(latent)
-        
+
         actor = self._actor(feat)
         action = actor.mode()
         logprob = actor.log_prob(action)
@@ -330,7 +322,7 @@ class DREAMERPolicy(Policy):
 
         state = (latent, action)
         output = {"action": action, "logprob": logprob, "state": state}
-        
+
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

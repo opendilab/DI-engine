@@ -478,12 +478,14 @@ class SequenceReplayBuffer(NaiveReplayBuffer):
         replay_buffer_size, push_count
     """
 
-    def sample(self,
-               batch: int,
-               sequence: int,
-               cur_learner_iter: int,
-               sample_range: slice = None,
-               replace: bool = False) -> Optional[list]:
+    def sample(
+            self,
+            batch: int,
+            sequence: int,
+            cur_learner_iter: int,
+            sample_range: slice = None,
+            replace: bool = False
+    ) -> Optional[list]:
         """
         Overview:
             Sample data with length ``size``.
@@ -531,12 +533,12 @@ class SequenceReplayBuffer(NaiveReplayBuffer):
         if sample_range is None:
             while batch < size:
                 episode = np.random.choice(episodes)
-                length = tail - episode*500 if tail - episode*500 < 500 else 500
+                length = tail - episode * 500 if tail - episode * 500 < 500 else 500
                 available = length - sequence
                 if available < 1:
                     continue
-                list(range(episode*500, episode*500 + available))
-                indices.append(np.random.randint(episode*500, episode*500 + available + 1))
+                list(range(episode * 500, episode * 500 + available))
+                indices.append(np.random.randint(episode * 500, episode * 500 + available + 1))
                 batch += 1
         else:
             raise NotImplemented("sample_range is not implemented in this version")
@@ -556,8 +558,8 @@ class SequenceReplayBuffer(NaiveReplayBuffer):
         for idx in indices:
             assert self._data[idx] is not None, idx
             if self._deepcopy:
-                copy_data = copy.deepcopy(self._data[idx:idx+sequence])
+                copy_data = copy.deepcopy(self._data[idx:idx + sequence])
             else:
-                copy_data = self._data[idx:idx+sequence]
+                copy_data = self._data[idx:idx + sequence]
             data.append(copy_data)
         return data
