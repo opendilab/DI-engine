@@ -2,11 +2,17 @@ import torch
 
 from ding.utils import MODEL_REGISTRY
 from torch import nn
-from transformers import AutoTokenizer, AutoModelForTokenClassification
+try:
+    from transformers import AutoTokenizer, AutoModelForTokenClassification
+except ImportError:
+    import sys
+    from ditk import logging
+    logging.warning("not found transformer, please install it using: pip install transformers")
+    sys.exit(1)
 
 
-@MODEL_REGISTRY.register('nlp_pretrained_model')
-class NLPPretrainedModel(nn.Module):
+@MODEL_REGISTRY.register('language_transformer')
+class LanguageTransformer(nn.Module):
 
     def __init__(
             self,
@@ -34,13 +40,16 @@ class NLPPretrainedModel(nn.Module):
             self.linear = None
 
     def _calc_embedding(self, x: list) -> torch.Tensor:
+        # ``truncation=True`` means that if the length of the prompt exceed the ``max_length`` of the tokenizer,
+        # the exceeded part will be truncated. ``padding=True`` means that if the length of the prompt does not reach
+        # the ``max_length``, the latter part will be padded. These settings ensure the length of encoded tokens is
+        # exactly ``max_length``, which can enable batch-wise computing.
         input = self.tokenizer(x, truncation=True, padding=True, return_tensors="pt").to(self.model.device)
         output = self.model(**input, output_hidden_states=True)
         # Get last layer hidden states
         last_hidden_states = output.hidden_states[-1]
         # Get [CLS] hidden states
         sentence_embedding = last_hidden_states[:, 0, :]  # len(input_list) x hidden_size
-        # print(f"sentence_embedding: {sentence_embedding}")
 
         if self.linear:
             sentence_embedding = self.linear(sentence_embedding)  # len(input_list) x embedding_size
@@ -48,7 +57,7 @@ class NLPPretrainedModel(nn.Module):
         return sentence_embedding
 
     def forward(self, train_samples: list, candidate_samples: list) -> dict:
-        ctxt_embedding = self._calc_embedding(train_samples)
+        prompt_embedding = self._calc_embedding(train_samples)
         cands_embedding = self._calc_embedding(candidate_samples)
-        scores = torch.mm(ctxt_embedding, cands_embedding.t())
+        scores = torch.mm(prompt_embedding, cands_embedding.t())
         return {'dist': torch.distributions.Categorical(logits=scores), 'logit': scores}

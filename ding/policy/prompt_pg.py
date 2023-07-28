@@ -55,7 +55,7 @@ class PromptPGPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'nlp_pretrained_model', ['ding.model.template.nlp_pretrained_model']
+        return 'language_transformer', ['ding.model.template.language_transformer']
 
     def _init_learn(self) -> None:
         r"""
@@ -118,10 +118,9 @@ class PromptPGPolicy(Policy):
             for ii in range(self._cfg.shot_number):
                 log_prob = output['dist'].log_prob(real_act[:, ii])
                 policy_loss = -(log_prob * return_).mean()
-                entropy_loss = -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
-                total_loss += policy_loss + entropy_loss
                 total_policy_loss += policy_loss
-                total_entropy_loss += entropy_loss
+            total_entropy_loss += -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
+            total_loss = total_entropy_loss + total_policy_loss
 
             # update
             self._optimizer.zero_grad()

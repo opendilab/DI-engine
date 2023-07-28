@@ -1,7 +1,6 @@
 import pytest
-import torch
 
-from ding.model.template.nlp_pretrained_model import NLPPretrainedModel
+from ding.model.template.language_transformer import LanguageTransformer
 
 
 @pytest.mark.unittest
@@ -17,11 +16,6 @@ class TestNLPPretrainedModel:
         ctxt_list = [problems[pid] for pid in test_pids]
         cands_list = [problems[pid] for pid in cand_pids]
 
-        model = NLPPretrainedModel(model_name="bert-base-uncased", add_linear=True, embedding_size=256)
-        cands_embedding = model(cands_list)
-        assert cands_embedding.shape == (3, 256)
-        ctxt_embedding = model(ctxt_list)
-        assert ctxt_embedding.shape == (1, 256)
-
-        scores = torch.mm(ctxt_embedding, cands_embedding.t())
+        model = LanguageTransformer(model_name="bert-base-uncased", add_linear=True, embedding_size=256)
+        scores = model(ctxt_list, cands_list)
         assert scores.shape == (1, 3)
