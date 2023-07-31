@@ -53,8 +53,8 @@ hopper_dt_config = dict(
         ),
         collect=dict(
             data_type='d4rl_trajectory',
-            # data_path='/mnt/nfs/luyd/hopper_medium.hdf5',
-            data_path='/mnt/nfs/luyd/d4rl/hopper_medium-v2.pkl',
+            # data_path='hopper_medium.hdf5',
+            data_path='d4rl/hopper_medium-v2.pkl',
             unroll_len=1,
         ),
         eval=dict(evaluator=dict(evalu_freq=100, ), ),

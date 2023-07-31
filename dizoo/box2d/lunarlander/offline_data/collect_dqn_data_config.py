@@ -35,14 +35,14 @@ lunarlander_dqn_config = dict(
                 log_policy=True,
                 hook=dict(
                     load_ckpt_before_run='./ckpt_best.pth.tar', # TODO: syspath modeified in other place, have to use abs path. May be fix in next version.
-                    # load_ckpt_before_run='/mnt/nfs/luyd/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
+                    # load_ckpt_before_run='DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
                     log_show_after_iter=100,
                     save_ckpt_after_iter=10000,
                     save_ckpt_after_run=False,
                 ),
                 cfg_type='BaseLearnerDict',
                 load_path='./ckpt_best.pth.tar', # TODO: same like last path.
-                # load_path='/mnt/nfs/luyd/DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
+                # load_path='DI-engine/dizoo/box2d/lunarlander/dt_data/ckpt/ckpt_best.pth.tar',
             ),
             update_per_collect=10,
             batch_size=64,

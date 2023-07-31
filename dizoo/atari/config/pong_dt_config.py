@@ -21,7 +21,7 @@ hopper_dt_config = dict(
         num_buffers=50,
         num_steps=500000,
         # num_steps=500,
-        data_dir_prefix='/mnt/nfs/luyd/d4rl_atari/Pong',
+        data_dir_prefix='d4rl_atari/Pong',
         trajectories_per_buffer=10,
         env_type='atari',
         stop_value=105,
@@ -33,7 +33,7 @@ hopper_dt_config = dict(
         # rtg_scale=10,
         max_eval_ep_len=10000,  # max lenght of one episode
         wt_decay=1e-4,
-        clip_grad_norm_p=1.0
+        clip_grad_norm_p=1.0,
         betas = (0.9, 0.95),
         weight_decay=0.1,
         # warmup_steps=100000,
@@ -59,8 +59,8 @@ hopper_dt_config = dict(
         ),
         collect=dict(
             data_type='d4rl_trajectory',
-            # data_path='/mnt/nfs/luyd/hopper_medium.hdf5',
-            data_path='/mnt/nfs/luyd/d4rl_atari/Pong',
+            # data_path='hopper_medium.hdf5',
+            data_path='d4rl_atari/Pong',
             unroll_len=1,
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),

@@ -52,7 +52,7 @@ hopper_dt_config = dict(
         ),
         collect=dict(
             data_type='d4rl_trajectory',
-            data_path='/mnt/nfs/luyd/hopper_expert.hdf5',
+            data_path='hopper_expert.hdf5',
             unroll_len=1,
         ),
         eval=dict(evaluator=dict(evalu_freq=100, ), ),

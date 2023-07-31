@@ -52,9 +52,9 @@ class DTPolicy(Policy):
         warmup_steps=10000,
         max_train_iters=200,
         context_len=20,
-        log_dir='/mnt/nfs/luyd/DI-engine/dizoo/box2d/lunarlander/dt_log_1000eps',   
+        log_dir='DI-engine/dizoo/box2d/lunarlander/dt_log_1000eps',   
         learn=dict(
-            dataset_path='/mnt/nfs/luyd/DI-engine/dizoo/box2d/lunarlander/offline_data/dt_data/dqn_data_1000eps.pkl',  # TODO
+            dataset_path='DI-engine/dizoo/box2d/lunarlander/offline_data/dt_data/dqn_data_1000eps.pkl',  # TODO
             # batch_size=64,
             learning_rate=1e-4,
             # ==============================================================
