@@ -7,8 +7,8 @@ Soft Q Learning (SQL) is an off-policy maximum entropy Q learning algorithm that
 The energy based model is used in Soft Q-Learning, where the optimal policy expressed via a Boltzmann distribution is learned through maximizing the expectation of the cumulative reward added by an entropy term.
 In this way, the resulting policies gain the advantages to try to learn all of the ways of performing the task, instead of only learning the best way to perform the task as the other traditional RL algorithms do.
 The amortized Stein variational gradient descent (SVGD) has been utilized to learn
-a stochastic sampling network that approximates
-samples from this distribution. The features of
+a stochastic sampling network that produces unbiased
+samples from the policy energy-based model. The features of
 the algorithm include improved exploration via the maximum entropy formulation
 and compositionality that allows transferring
 skills between tasks.
@@ -107,13 +107,13 @@ Extensions
 -----------
 SQL can be combined with:
 
-    - Exploration techniques such as epsilon-greedy or OU Noise (implemented in the original paper; Please refer to `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ and `On the theory of the Brownian motion <https://link.aps.org/pdf/10.1103/PhysRev.36.823?casa_token=yFMSHBrxJoMAAAAA:5nFSMwUrqcdlUoobFDYOP0Y58r5jmNogkpHqFgMhzv0Md-4EcIkofMHHCkgsjEJFO10yqsmrhmNk_4dL>`_) to enchance explorations.
+    - **Exploration Techniques**. Techniques such as epsilon-greedy or OU Noise (implemented in the original paper; Please refer to `Continuous control with deep reinforcement learning <https://arxiv.org/abs/1509.02971>`_ and `On the theory of the Brownian motion <https://link.aps.org/pdf/10.1103/PhysRev.36.823?casa_token=yFMSHBrxJoMAAAAA:5nFSMwUrqcdlUoobFDYOP0Y58r5jmNogkpHqFgMhzv0Md-4EcIkofMHHCkgsjEJFO10yqsmrhmNk_4dL>`_) to enchance explorations.
 
-    - Some analysts draw connection between Soft Q-learning and Policy
+    - **Policy Gradient algorithms**. Some analysts draw connection between Soft Q-learning and Policy
       Gradient algorithms such as `Equivalence Between Policy Gradients and
       Soft Q-Learning <https://arxiv.org/abs/1704.06440>`__.
     
-    - SQL can be combined with demonstration data to propose an imitation learning algorithm: SQIL proposed in `SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards <https://arxiv.org/abs/1905.11108>`_.  Please also refer to `SQIL code <https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py>` for a DI-engine implementation.
+    - **Imitation learning**. SQL can be combined with demonstration data to propose an imitation learning algorithm: SQIL proposed in `SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards <https://arxiv.org/abs/1905.11108>`_.  Please also refer to `SQIL code <https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py>`_ for a DI-engine implementation.
 
 
 
@@ -140,11 +140,8 @@ The table below shows a benchmark of the performance of DQN, SQL (in discrete ac
 
 .. note::
 
- - The stopping values for Lunarlander and Pong are 200 and 20 respectively.
+ - The stopping values for Lunarlander and Pong are 200 and 20 respectively. Training stops when the average of the evaluation values exceeds the stopping values.
 
- - both on：cuda = True； base env manger = subprocess
-
- - both off：cuda = False； base env manager = base
 
 References
 -----------

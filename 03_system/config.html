@@ -1,0 +1,565 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration File System &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Best Practice" href="../04_best_practice/index.html" />
+  <link rel="prev" title="Distributed" href="distributed.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">System Design</a> &gt;</li>
+        
+      <li>Configuration File System</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/03_system/config.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="configuration-file-system">
+<h1>Configuration File System<a class="headerlink" href="#configuration-file-system" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Configuration file system is an important component in machine learning algorithm tools, and the complexity of reinforcement learning makes its configuration field tasks more intricate compared to other machine learning tasks. To address this issue, DI-engine is designed based on the principle of “Convention over Configuration” (CoC), and a set of basic principles and related tools are developed, including:</p>
+<ul class="simple">
+<li><p>Python configuration principles</p></li>
+<li><p>Configuration compilation principles</p></li>
+<li><p>Default configuration and user configuration</p></li>
+<li><p>Classification of core configuration fields for reinforcement learning tasks</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To learn more about the <code class="docutils literal notranslate"><span class="pre">Convention</span> <span class="pre">over</span> <span class="pre">Configuration</span></code> principle, you can refer to a Chinese blog post <a class="reference external" href="https://zhuanlan.zhihu.com/p/540714858">设计杂谈(0x02)——约定大于配置</a> .</p>
+</div>
+</section>
+<section id="basic-principles">
+<h2>Basic Principles<a class="headerlink" href="#basic-principles" title="Permalink to this headline">¶</a></h2>
+<p>The overall schematic diagram is as follows:</p>
+<img alt="../_images/config.png" class="align-center" src="../_images/config.png" />
+<section id="python-configuration-principles">
+<h3>Python Configuration Principles<a class="headerlink" href="#python-configuration-principles" title="Permalink to this headline">¶</a></h3>
+<p>As most machine learning programs value programming flexibility and ease of use, DI-engine uses Python files (specifically, multi-level dict) as the default configuration file to be compatible with various special requirements. Users who previously used <code class="docutils literal notranslate"><span class="pre">yaml</span></code> and <code class="docutils literal notranslate"><span class="pre">json</span></code> can also easily migrate to Python configuration. However, for parts outside of the core modules, such as communication interfaces in reinforcement learning simulation environments, native configuration can also be used without any special restrictions.</p>
+</section>
+<section id="configuration-compilation-principles">
+<h3>Configuration Compilation Principles<a class="headerlink" href="#configuration-compilation-principles" title="Permalink to this headline">¶</a></h3>
+<p>For the entire training program, DI-engine uses tool functions such as <code class="docutils literal notranslate"><span class="pre">compile_config</span></code> and <code class="docutils literal notranslate"><span class="pre">get_instance_cfg</span></code> as boundaries. Before the boundary, users can customize the required configuration content through various means such as using default configurations, modifying configurations in the code, and entering configurations from the command line. However, after the boundary, all configuration files will be fixed and no further changes will be allowed. The training program will also create corresponding functional modules and training pipelines based on the configuration at that time. This rule is called the <code class="docutils literal notranslate"><span class="pre">Configuration</span> <span class="pre">Compilation</span> <span class="pre">Principles</span></code> , where the period before the boundary is the <code class="docutils literal notranslate"><span class="pre">configuration</span> <span class="pre">compilation</span> <span class="pre">generation</span> <span class="pre">period</span></code> , and the period after the boundary is the <code class="docutils literal notranslate"><span class="pre">configuration</span> <span class="pre">runtime</span> <span class="pre">usage</span> <span class="pre">period</span></code> . In addition, in the tool functions, the final generated configuration file will be exported and stored in the experiment directory folder (usually named <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> ), which can be used by users to check the validity of the configuration file settings or to reproduce the original experiment directly using this file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Typically, after completing an experiment, relevant information is stored in a path folder named after the <code class="docutils literal notranslate"><span class="pre">exp_name</span></code> configuration field. Among them, the macro configuration information file is <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> , and the configuration file that can be directly used for training after format conversion is <code class="docutils literal notranslate"><span class="pre">formatted_total_config.py</span></code> . Users can import the corresponding <code class="docutils literal notranslate"><span class="pre">main_config</span></code> and <code class="docutils literal notranslate"><span class="pre">create_config</span></code> directly from this file and pass them to the training entry function to start the experiment.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To ensure the effectiveness of the Configuration Compilation Principles, users are advised not to use operations such as <code class="docutils literal notranslate"><span class="pre">cfg.get('field_xxx',</span> <span class="pre">'xxx')</span></code> in module code as it can violate the compilation principles and cannot record and track relevant modifications.</p>
+</div>
+</section>
+<section id="default-configuration-and-user-configuration">
+<h3>Default Configuration and User Configuration<a class="headerlink" href="#default-configuration-and-user-configuration" title="Permalink to this headline">¶</a></h3>
+<p>On the other hand, due to the various configuration contents such as MDP modeling settings, algorithm tuning settings, and training system efficiency settings in reinforcement learning training programs, there are often numerous configurable file fields. However, different configuration fields have different usage frequencies, and in most cases, most configuration fields do not need to be modified by users. Therefore, DI-engine has introduced the concept of default configuration, where core concepts in reinforcement learning, such as Policy, Env, and Buffer, often have their default configurations (default config), whose complete definitions and explanations can be found in the corresponding class definitions. When using DI-engine, users only need to specify the configuration fields that need to be modified or added in the current situation. In the boundary function mentioned earlier (such as <code class="docutils literal notranslate"><span class="pre">compile_config</span></code> ), the default configuration and user configuration are compiled and merged to form the final configuration file. The specific merging rules are as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Fields that exist in the default configuration but not in the user configuration will use the default values.</p></li>
+<li><p>Fields that exist in the user configuration but not in the default configuration will use the values specified by the user.</p></li>
+<li><p>Fields that exist in both the default configuration and the user configuration will use the values specified by the user.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="the-categories-of-core-configuration-fields-of-a-reinforcement-learning-task">
+<h3>The Categories of Core Configuration Fields of a Reinforcement Learning Task<a class="headerlink" href="#the-categories-of-core-configuration-fields-of-a-reinforcement-learning-task" title="Permalink to this headline">¶</a></h3>
+<p>Overall, the configuration fields required for reinforcement learning tasks in DI-engine can be mainly classified into two categories:</p>
+<ul class="simple">
+<li><p>The first category consists of objects that are shared by various workers/middleware in the training pipeline, such as algorithm policies ( <code class="docutils literal notranslate"><span class="pre">Policy</span></code> ), environments ( <code class="docutils literal notranslate"><span class="pre">Env</span></code> ), reward models ( <code class="docutils literal notranslate"><span class="pre">Reward</span> <span class="pre">Model</span></code> ), data queues ( <code class="docutils literal notranslate"><span class="pre">Buffer</span></code> ), and so on. Each of these objects has its own default configuration. In the overall configuration file, they are placed in parallel with each other and maintain a flat hierarchy. The meaning of each object’s configuration fields can be found in the corresponding class definition, and the class variables <code class="docutils literal notranslate"><span class="pre">config</span></code> and class method <code class="docutils literal notranslate"><span class="pre">default_config</span></code> specify the default configuration and calling method.</p></li>
+<li><p>The second category consists of workers/middleware that perform various tasks in the training pipeline, such as learners ( <code class="docutils literal notranslate"><span class="pre">Learner</span></code> ), data collectors ( <code class="docutils literal notranslate"><span class="pre">Collector</span></code> ), and so on. They generally have fewer corresponding parameters, which can be directly specified in the training entry function or attached to the global area of the overall configuration file. There are no special requirements for their specific implementation, and the code should be kept clear and easy to use.</p></li>
+</ul>
+<p>In addition to the main configuration <code class="docutils literal notranslate"><span class="pre">main_config</span></code> , there is also a creation configuration <code class="docutils literal notranslate"><span class="pre">create_config</span></code> that helps to quickly create training entry points. This part of the creation configuration is only used in the <code class="docutils literal notranslate"><span class="pre">serial_pipeline_xxx</span></code> series of quick training entry points, and can be ignored by users who create their own custom training entry functions. The creation configuration needs to specify the corresponding type name ( <code class="docutils literal notranslate"><span class="pre">type</span></code> ) and the path required to import the module ( <code class="docutils literal notranslate"><span class="pre">import_names</span></code> ).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Due to historical reasons, there were many sub-domains defined in the Policy field, such as learn, collect, eval, other, and so on. However, in the latest version of DI-engine (&gt;=0.4.7), the mandatory dependency on these definitions has been removed. Now, using or not using these structures is optional, as long as the configuration fields are corresponded with the corresponding effective code segments in the policy.</p>
+</div>
+</section>
+<section id="other-tools">
+<h3>Other Tools<a class="headerlink" href="#other-tools" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine also provides some related tools for configuration file storage and formatting. For specific information, please refer to the code <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/config">ding/config</a> .</p>
+</section>
+</section>
+<section id="analysis-of-configuration-file-examples">
+<h2>Analysis of Configuration File Examples<a class="headerlink" href="#analysis-of-configuration-file-examples" title="Permalink to this headline">¶</a></h2>
+<p>Here’s a <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">specific configuration example</a> in DI-engine, which is used to train a DQN agent in the CartPole environment (the example used in the quick start document). The specific configuration content and related field explanations are as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+
+<span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;cartpole_dqn_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">195</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">cartpole_dqn_config</span>
+<span class="n">cartpole_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;cartpole&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.classic_control.cartpole.envs.cartpole_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_dqn_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">cartpole_dqn_create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The entire configuration file can be divided into two parts, <code class="docutils literal notranslate"><span class="pre">main_config</span></code> and <code class="docutils literal notranslate"><span class="pre">create_config</span></code> . The main configuration (main_config) contains three parts: experiment name (exp_name), environment (env), and policy (policy), which respectively specify the most relevant and frequently modified configuration fields for the current task.</p>
+<p>The creation configuration specifies the types of environment, environment manager, and policy, so that the quick training entry <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> below can directly run this configuration file. If you are using the task/middleware method to customize the training entry, you can directly load this configuration file.</p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../04_best_practice/index.html" class="btn btn-neutral float-right" title="Best Practice" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="distributed.html" class="btn btn-neutral" title="Distributed" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Configuration File System</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#basic-principles">Basic Principles</a><ul>
+<li><a class="reference internal" href="#python-configuration-principles">Python Configuration Principles</a></li>
+<li><a class="reference internal" href="#configuration-compilation-principles">Configuration Compilation Principles</a></li>
+<li><a class="reference internal" href="#default-configuration-and-user-configuration">Default Configuration and User Configuration</a></li>
+<li><a class="reference internal" href="#the-categories-of-core-configuration-fields-of-a-reinforcement-learning-task">The Categories of Core Configuration Fields of a Reinforcement Learning Task</a></li>
+<li><a class="reference internal" href="#other-tools">Other Tools</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#analysis-of-configuration-file-examples">Analysis of Configuration File Examples</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

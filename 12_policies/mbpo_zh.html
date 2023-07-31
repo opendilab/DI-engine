@@ -9,10 +9,11 @@
 
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview: module code &mdash; DI-engine 0.1.0 documentation</title>
+  <title>MBPO &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -34,6 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="强化学习环境示例" href="../13_envs/index_zh.html" />
+  <link rel="prev" title="EDAC" href="edac_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -212,10 +215,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
@@ -263,10 +266,16 @@
       </li>
 
         
-      <li>Overview: module code</li>
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>MBPO</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/mbpo_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
         
       </li>
     
@@ -289,150 +298,197 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="ding/config/config.html">ding.config.config</a></li>
-<li><a href="ding/data/buffer/buffer.html">ding.data.buffer.buffer</a></li>
-<li><a href="ding/data/buffer/deque_buffer.html">ding.data.buffer.deque_buffer</a></li>
-<li><a href="ding/data/buffer/middleware/clone_object.html">ding.data.buffer.middleware.clone_object</a></li>
-<li><a href="ding/data/buffer/middleware/group_sample.html">ding.data.buffer.middleware.group_sample</a></li>
-<li><a href="ding/data/buffer/middleware/padding.html">ding.data.buffer.middleware.padding</a></li>
-<li><a href="ding/data/buffer/middleware/priority.html">ding.data.buffer.middleware.priority</a></li>
-<li><a href="ding/data/buffer/middleware/sample_range_view.html">ding.data.buffer.middleware.sample_range_view</a></li>
-<li><a href="ding/data/buffer/middleware/staleness_check.html">ding.data.buffer.middleware.staleness_check</a></li>
-<li><a href="ding/data/buffer/middleware/use_time_check.html">ding.data.buffer.middleware.use_time_check</a></li>
-<li><a href="ding/data/shm_buffer.html">ding.data.shm_buffer</a></li>
-<li><a href="ding/envs/env/base_env.html">ding.envs.env.base_env</a></li>
-<li><a href="ding/envs/env_manager/base_env_manager.html">ding.envs.env_manager.base_env_manager</a></li>
-<li><a href="ding/envs/env_manager/subprocess_env_manager.html">ding.envs.env_manager.subprocess_env_manager</a></li>
-<li><a href="ding/envs/env_wrappers/env_wrappers.html">ding.envs.env_wrappers.env_wrappers</a></li>
-<li><a href="ding/framework/context.html">ding.framework.context</a></li>
-<li><a href="ding/framework/middleware/ckpt_handler.html">ding.framework.middleware.ckpt_handler</a></li>
-<li><a href="ding/framework/middleware/collector.html">ding.framework.middleware.collector</a></li>
-<li><a href="ding/framework/middleware/functional/advantage_estimator.html">ding.framework.middleware.functional.advantage_estimator</a></li>
-<li><a href="ding/framework/middleware/functional/collector.html">ding.framework.middleware.functional.collector</a></li>
-<li><a href="ding/framework/middleware/functional/data_processor.html">ding.framework.middleware.functional.data_processor</a></li>
-<li><a href="ding/framework/middleware/functional/enhancer.html">ding.framework.middleware.functional.enhancer</a></li>
-<li><a href="ding/framework/middleware/functional/evaluator.html">ding.framework.middleware.functional.evaluator</a></li>
-<li><a href="ding/framework/middleware/functional/trainer.html">ding.framework.middleware.functional.trainer</a></li>
-<li><a href="ding/framework/middleware/learner.html">ding.framework.middleware.learner</a></li>
-<li><a href="ding/framework/parallel.html">ding.framework.parallel</a></li>
-<li><a href="ding/framework/task.html">ding.framework.task</a></li>
-<li><a href="ding/league/base_league.html">ding.league.base_league</a></li>
-<li><a href="ding/league/one_vs_one_league.html">ding.league.one_vs_one_league</a></li>
-<li><a href="ding/league/player.html">ding.league.player</a></li>
-<li><a href="ding/league/shared_payoff.html">ding.league.shared_payoff</a></li>
-<li><a href="ding/league/starcraft_player.html">ding.league.starcraft_player</a></li>
-<li><a href="ding/model/common/encoder.html">ding.model.common.encoder</a></li>
-<li><a href="ding/model/common/head.html">ding.model.common.head</a></li>
-<li><a href="ding/model/common/utils.html">ding.model.common.utils</a></li>
-<li><a href="ding/model/template/collaq.html">ding.model.template.collaq</a></li>
-<li><a href="ding/model/template/coma.html">ding.model.template.coma</a></li>
-<li><a href="ding/model/template/ppg.html">ding.model.template.ppg</a></li>
-<li><a href="ding/model/template/q_learning.html">ding.model.template.q_learning</a></li>
-<li><a href="ding/model/template/qac.html">ding.model.template.qac</a></li>
-<li><a href="ding/model/template/qac_dist.html">ding.model.template.qac_dist</a></li>
-<li><a href="ding/model/template/qmix.html">ding.model.template.qmix</a></li>
-<li><a href="ding/model/template/vac.html">ding.model.template.vac</a></li>
-<li><a href="ding/model/template/wqmix.html">ding.model.template.wqmix</a></li>
-<li><a href="ding/policy/a2c.html">ding.policy.a2c</a></li>
-<li><a href="ding/policy/acer.html">ding.policy.acer</a></li>
-<li><a href="ding/policy/atoc.html">ding.policy.atoc</a></li>
-<li><a href="ding/policy/c51.html">ding.policy.c51</a></li>
-<li><a href="ding/policy/collaq.html">ding.policy.collaq</a></li>
-<li><a href="ding/policy/coma.html">ding.policy.coma</a></li>
-<li><a href="ding/policy/cql.html">ding.policy.cql</a></li>
-<li><a href="ding/policy/d4pg.html">ding.policy.d4pg</a></li>
-<li><a href="ding/policy/ddpg.html">ding.policy.ddpg</a></li>
-<li><a href="ding/policy/dqfd.html">ding.policy.dqfd</a></li>
-<li><a href="ding/policy/dqn.html">ding.policy.dqn</a></li>
-<li><a href="ding/policy/edac.html">ding.policy.edac</a></li>
-<li><a href="ding/policy/fqf.html">ding.policy.fqf</a></li>
-<li><a href="ding/policy/impala.html">ding.policy.impala</a></li>
-<li><a href="ding/policy/iqn.html">ding.policy.iqn</a></li>
-<li><a href="ding/policy/mbpolicy/mbsac.html">ding.policy.mbpolicy.mbsac</a></li>
-<li><a href="ding/policy/mdqn.html">ding.policy.mdqn</a></li>
-<li><a href="ding/policy/ngu.html">ding.policy.ngu</a></li>
-<li><a href="ding/policy/ppg.html">ding.policy.ppg</a></li>
-<li><a href="ding/policy/ppo.html">ding.policy.ppo</a></li>
-<li><a href="ding/policy/qmix.html">ding.policy.qmix</a></li>
-<li><a href="ding/policy/qrdqn.html">ding.policy.qrdqn</a></li>
-<li><a href="ding/policy/qtran.html">ding.policy.qtran</a></li>
-<li><a href="ding/policy/r2d2.html">ding.policy.r2d2</a></li>
-<li><a href="ding/policy/r2d2_gtrxl.html">ding.policy.r2d2_gtrxl</a></li>
-<li><a href="ding/policy/r2d3.html">ding.policy.r2d3</a></li>
-<li><a href="ding/policy/rainbow.html">ding.policy.rainbow</a></li>
-<li><a href="ding/policy/sac.html">ding.policy.sac</a></li>
-<li><a href="ding/policy/sql.html">ding.policy.sql</a></li>
-<li><a href="ding/policy/td3.html">ding.policy.td3</a></li>
-<li><a href="ding/policy/td3_bc.html">ding.policy.td3_bc</a></li>
-<li><a href="ding/policy/wqmix.html">ding.policy.wqmix</a></li>
-<li><a href="ding/reward_model/base_reward_model.html">ding.reward_model.base_reward_model</a></li>
-<li><a href="ding/reward_model/gail_irl_model.html">ding.reward_model.gail_irl_model</a></li>
-<li><a href="ding/reward_model/guided_cost_reward_model.html">ding.reward_model.guided_cost_reward_model</a></li>
-<li><a href="ding/reward_model/her_reward_model.html">ding.reward_model.her_reward_model</a></li>
-<li><a href="ding/reward_model/icm_reward_model.html">ding.reward_model.icm_reward_model</a></li>
-<li><a href="ding/reward_model/ngu_reward_model.html">ding.reward_model.ngu_reward_model</a></li>
-<li><a href="ding/reward_model/pdeil_irl_model.html">ding.reward_model.pdeil_irl_model</a></li>
-<li><a href="ding/reward_model/pwil_irl_model.html">ding.reward_model.pwil_irl_model</a></li>
-<li><a href="ding/reward_model/red_irl_model.html">ding.reward_model.red_irl_model</a></li>
-<li><a href="ding/reward_model/rnd_reward_model.html">ding.reward_model.rnd_reward_model</a></li>
-<li><a href="ding/reward_model/trex_reward_model.html">ding.reward_model.trex_reward_model</a></li>
-<li><a href="ding/rl_utils/adder.html">ding.rl_utils.adder</a></li>
-<li><a href="ding/rl_utils/exploration.html">ding.rl_utils.exploration</a></li>
-<li><a href="ding/rl_utils/ppo.html">ding.rl_utils.ppo</a></li>
-<li><a href="ding/rl_utils/td.html">ding.rl_utils.td</a></li>
-<li><a href="ding/torch_utils/checkpoint_helper.html">ding.torch_utils.checkpoint_helper</a></li>
-<li><a href="ding/torch_utils/data_helper.html">ding.torch_utils.data_helper</a></li>
-<li><a href="ding/torch_utils/distribution.html">ding.torch_utils.distribution</a></li>
-<li><a href="ding/torch_utils/loss/cross_entropy_loss.html">ding.torch_utils.loss.cross_entropy_loss</a></li>
-<li><a href="ding/torch_utils/loss/multi_logits_loss.html">ding.torch_utils.loss.multi_logits_loss</a></li>
-<li><a href="ding/torch_utils/network/activation.html">ding.torch_utils.network.activation</a></li>
-<li><a href="ding/torch_utils/network/gtrxl.html">ding.torch_utils.network.gtrxl</a></li>
-<li><a href="ding/torch_utils/network/nn_module.html">ding.torch_utils.network.nn_module</a></li>
-<li><a href="ding/torch_utils/network/res_block.html">ding.torch_utils.network.res_block</a></li>
-<li><a href="ding/torch_utils/network/rnn.html">ding.torch_utils.network.rnn</a></li>
-<li><a href="ding/torch_utils/network/scatter_connection.html">ding.torch_utils.network.scatter_connection</a></li>
-<li><a href="ding/torch_utils/network/soft_argmax.html">ding.torch_utils.network.soft_argmax</a></li>
-<li><a href="ding/torch_utils/network/transformer.html">ding.torch_utils.network.transformer</a></li>
-<li><a href="ding/torch_utils/optimizer_helper.html">ding.torch_utils.optimizer_helper</a></li>
-<li><a href="ding/utils/data/dataloader.html">ding.utils.data.dataloader</a></li>
-<li><a href="ding/utils/data/structure/cache.html">ding.utils.data.structure.cache</a></li>
-<li><a href="ding/utils/default_helper.html">ding.utils.default_helper</a></li>
-<li><a href="ding/utils/design_helper.html">ding.utils.design_helper</a></li>
-<li><a href="ding/utils/lock_helper.html">ding.utils.lock_helper</a></li>
-<li><a href="ding/utils/segment_tree.html">ding.utils.segment_tree</a></li>
-<li><a href="ding/utils/system_helper.html">ding.utils.system_helper</a></li>
-<li><a href="ding/utils/time_helper.html">ding.utils.time_helper</a></li>
-<li><a href="ding/utils/time_helper_base.html">ding.utils.time_helper_base</a></li>
-<li><a href="ding/worker/collector/base_serial_collector.html">ding.worker.collector.base_serial_collector</a></li>
-<li><a href="ding/worker/collector/base_serial_evaluator.html">ding.worker.collector.base_serial_evaluator</a></li>
-<li><a href="ding/worker/collector/comm/base_comm_collector.html">ding.worker.collector.comm.base_comm_collector</a></li>
-<li><a href="ding/worker/collector/comm/flask_fs_collector.html">ding.worker.collector.comm.flask_fs_collector</a></li>
-<li><a href="ding/worker/collector/comm/utils.html">ding.worker.collector.comm.utils</a></li>
-<li><a href="ding/worker/collector/episode_serial_collector.html">ding.worker.collector.episode_serial_collector</a></li>
-<li><a href="ding/worker/collector/sample_serial_collector.html">ding.worker.collector.sample_serial_collector</a></li>
-<li><a href="ding/worker/coordinator/base_parallel_commander.html">ding.worker.coordinator.base_parallel_commander</a></li>
-<li><a href="ding/worker/coordinator/base_serial_commander.html">ding.worker.coordinator.base_serial_commander</a></li>
-<li><a href="ding/worker/coordinator/comm_coordinator.html">ding.worker.coordinator.comm_coordinator</a></li>
-<li><a href="ding/worker/coordinator/coordinator.html">ding.worker.coordinator.coordinator</a></li>
-<li><a href="ding/worker/coordinator/resource_manager.html">ding.worker.coordinator.resource_manager</a></li>
-<li><a href="ding/worker/coordinator/solo_parallel_commander.html">ding.worker.coordinator.solo_parallel_commander</a></li>
-<li><a href="ding/worker/learner/base_learner.html">ding.worker.learner.base_learner</a></li>
-<li><a href="ding/worker/learner/comm/base_comm_learner.html">ding.worker.learner.comm.base_comm_learner</a></li>
-<li><a href="ding/worker/learner/comm/flask_fs_learner.html">ding.worker.learner.comm.flask_fs_learner</a></li>
-<li><a href="ding/worker/learner/learner_hook.html">ding.worker.learner.learner_hook</a></li>
-<li><a href="ding/worker/replay_buffer/advanced_buffer.html">ding.worker.replay_buffer.advanced_buffer</a></li>
-<li><a href="ding/worker/replay_buffer/base_buffer.html">ding.worker.replay_buffer.base_buffer</a></li>
-<li><a href="ding/worker/replay_buffer/episode_buffer.html">ding.worker.replay_buffer.episode_buffer</a></li>
-<li><a href="ding/worker/replay_buffer/naive_buffer.html">ding.worker.replay_buffer.naive_buffer</a></li>
-<li><a href="ding/worker/replay_buffer/utils.html">ding.worker.replay_buffer.utils</a></li>
-<li><a href="ding/world_model/mbpo.html">ding.world_model.mbpo</a></li>
+  <section id="mbpo">
+<h1>MBPO<a class="headerlink" href="#mbpo" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Model-based policy optimization (MBPO) 首次在论文 <a class="reference external" href="https://arxiv.org/abs/1906.08253">When to Trust Your Model: Model-Based Policy Optimization</a> 中被提出。
+MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
+具体来说，MBPO 通过训练模型集合来拟合真实环境的 transition ，并利用它生成从真实环境状态开始的短轨迹来进行策略提升。
+对于 RL 策略的选择，MBPO 使用 SAC 作为其 RL 的部分。</p>
+<p>这个 repo <a class="reference external" href="https://github.com/opendilab/awesome-model-based-RL">awesome-model-based-RL</a> 提供了更多 model-based rl 的论文。</p>
+</section>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>MBPO 是一种 <strong>基于模型（model-based）的</strong> 强化学习算法。</p></li>
+<li><p>MBPO 用 SAC 作为 RL 策略。</p></li>
+<li><p>MBPO 仅支持 <strong>连续动作空间</strong> 。</p></li>
+<li><p>MBPO 使用了 <strong>model-ensemble</strong>。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<section id="predictive-model">
+<h3>预测模型（Predictive Model）<a class="headerlink" href="#predictive-model" title="Permalink to this headline">¶</a></h3>
+<p>MBPO 利用高斯神经网络集合（ensemble of gaussian neural network），集合中的每个成员都是：</p>
+<div class="math notranslate nohighlight">
+\[p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t) = N(\mu_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t), \Sigma_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t))\]</div>
+<p>模型训练中使用的最大似然损失为：</p>
+<div class="math notranslate nohighlight">
+\[L(\theta)=\mathbb{E}\left[log(p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t))\right]\]</div>
+</section>
+<section id="policy-optimization">
+<h3>策略优化（Policy Optimization）<a class="headerlink" href="#policy-optimization" title="Permalink to this headline">¶</a></h3>
+<p>策略评估步骤（Policy evaluation step）：</p>
+<div class="math notranslate nohighlight">
+\[Q^\pi(\boldsymbol{s}_t,\boldsymbol{a}_t) = \mathbb{E}_\pi[{\sum}_{t=0}^{\infty}\gamma^t r(\boldsymbol{s}_t,\boldsymbol{a}_t)]\]</div>
+<p>策略提升步骤（Policy improvement step）：</p>
+<div class="math notranslate nohighlight">
+\[\min J_\pi(\phi, D) = \mathbb{E}_{s_t \sim D}[D_{KL}(\pi \| exp\{Q^\pi - V^\pi\})]\]</div>
+<p>注意：这个更新要保证
+<span class="math notranslate nohighlight">\(Q^{\pi_{new}}(\boldsymbol{s}_t,\boldsymbol{a}_t) \geq Q^{\pi_{old}}(\boldsymbol{s}_t,\boldsymbol{a}_t)\)</span>，
+可以查看原论文中 Appendix B.2 部分 Lemma2 的相关证明 <a class="reference external" href="https://arxiv.org/abs/1801.01290">paper</a>。</p>
+</section>
+</section>
+<section id="id4">
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/MBPO.png"><img alt="../_images/MBPO.png" class="align-center" src="../_images/MBPO.png" style="width: 1689.6000000000001px; height: 555.5px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>MBPO 的首次实现只给出了应用于 SAC 的超参数，并不适用于 DDPG 和 TD3 。</p>
+</div>
+</section>
+<section id="id5">
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>默认配置定义如下:</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.mbpolicy.mbsac.</span></span><span class="sig-name descname"><span class="pre">MBSACPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/mbpolicy/mbsac.html#MBSACPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Model based SAC with value expansion (arXiv: 1803.00101)
+and value gradient (arXiv: 1510.09142) w.r.t lambda-return.</p>
+<p><a class="reference external" href="https://arxiv.org/pdf/1803.00101.pdf">https://arxiv.org/pdf/1803.00101.pdf</a>
+<a class="reference external" href="https://arxiv.org/pdf/1510.09142.pdf">https://arxiv.org/pdf/1510.09142.pdf</a></p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 3%" />
+<col style="width: 26%" />
+<col style="width: 10%" />
+<col style="width: 17%" />
+<col style="width: 44%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">learn._lambda</span></code></p></td>
+<td><p>float</p></td>
+<td><p>0.8</p></td>
+<td><div class="line-block">
+<div class="line">Lambda for TD-lambda return.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><a href="#id6"><span class="problematic" id="id7">``</span></a>learn.grad_clip`</p></td>
+<td><p>float</p></td>
+<td><p>100.0</p></td>
+<td><div class="line-block">
+<div class="line">Max norm of gradients.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">learn.sample_</span></code>
+<code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether to sample states or tra-</div>
+<div class="line-block">
+<div class="line">nsitions from env buffer.</div>
+</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For other configs, please refer to ding.policy.sac.SACPolicy.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="id8">
+<h2>基准<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default" id="id11">
+<caption><span class="caption-text">Benchmark of MBPO algorithm</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 43%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Hopper</p></td>
+<td><img alt="../_images/sac_mbpo_hopper.png" src="../_images/sac_mbpo_hopper.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mujoco/config/hopper_sac_mbpo_default_config.py">config_link_p</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Halfcheetah</p></td>
+<td><img alt="../_images/sac_mbpo_halfcheetah.png" src="../_images/sac_mbpo_halfcheetah.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/halfcheetah_sac_mbpo_default_config.py">config_link_q</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Walker2d</p></td>
+<td><img alt="../_images/sac_mbpo_walker2d.png" src="../_images/sac_mbpo_walker2d.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/walker2d_sac_mbpo_default_config.py">config_link_s</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>上述结果是通过在三个不同的随机种子(0,1,2)上运行相同的配置获得的。</p></li>
+</ol>
+</section>
+<section id="id9">
+<h2>其他公开的实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/facebookresearch/mbrl-lib/blob/main/mbrl/algorithms/mbpo.py">mbrl-lib</a></p></li>
 </ul>
+</section>
+<section id="id10">
+<h2>参考文献<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Michael Janner, Justin Fu, Marvin Zhang, Sergey Levine: “When to Trust Your Model: Model-Based Policy Optimization”, 2019; arXiv:1906.08253.</p></li>
+</ul>
+</section>
+</section>
+
 
               </article>
               
             </div>
             <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../13_envs/index_zh.html" class="btn btn-neutral float-right" title="强化学习环境示例" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="edac_zh.html" class="btn btn-neutral" title="EDAC" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
   
 
   <hr>
@@ -458,7 +514,24 @@
         <div class="pytorch-content-right" id="pytorch-content-right">
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
-              
+              <ul>
+<li><a class="reference internal" href="#">MBPO</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">核心要点</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键框图</a><ul>
+<li><a class="reference internal" href="#predictive-model">预测模型（Predictive Model）</a></li>
+<li><a class="reference internal" href="#policy-optimization">策略优化（Policy Optimization）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">伪代码</a></li>
+<li><a class="reference internal" href="#id5">实现</a></li>
+<li><a class="reference internal" href="#id8">基准</a></li>
+<li><a class="reference internal" href="#id9">其他公开的实现</a></li>
+<li><a class="reference internal" href="#id10">参考文献</a></li>
+</ul>
+</li>
+</ul>
+
             </div>
           </div>
         </div>
@@ -477,6 +550,7 @@
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="SQN" href="sqn.html" />
-  <link rel="prev" title="FQF" href="fqf.html" />
+  <link rel="next" title="MDQN" href="mdqn_zh.html" />
+  <link rel="prev" title="FQF" href="fqf_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -204,30 +204,30 @@
         
         
         
-        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithms Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
 </ul>
 
         
@@ -260,13 +260,13 @@
   <ul class="pytorch-breadcrumbs">
     
       <li>
-        <a href="../index.html">
+        <a href="../index_zh.html">
             Docs
         </a> &gt;
       </li>
 
         
-          <li><a href="index.html">RL Algorithms Cheat Sheet</a> &gt;</li>
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
         
       <li>SQL</li>
     
@@ -274,7 +274,7 @@
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/12_policies/sql.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/12_policies/sql_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -300,97 +300,84 @@
                 
   <section id="sql">
 <h1>SQL<a class="headerlink" href="#sql" title="Permalink to this headline">¶</a></h1>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Soft Q Learning (SQL) is an off-policy maximum entropy Q learning algorithm that first proposed in <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a>.
-The energy based model is used in Soft Q-Learning, where the optimal policy expressed via a Boltzmann distribution is learned through maximizing the expectation of the cumulative reward added by an entropy term.
-In this way, the resulting policies gain the advantages to try to learn all of the ways of performing the task, instead of only learning the best way to perform the task as the other traditional RL algorithms do.
-The amortized Stein variational gradient descent (SVGD) has been utilized to learn
-a stochastic sampling network that produces unbiased
-samples from the policy energy-based model. The features of
-the algorithm include improved exploration via the maximum entropy formulation
-and compositionality that allows transferring
-skills between tasks.</p>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Soft Q Learning（SQL）是一种异策略（off-policy）的 maximum entropy Q learning 算法，首次在 <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> 中被提出。
+SQL 使用基于能量的模型，在其中通过最大化累积奖励的期望值加上熵项来学习通过玻尔兹曼分布表示的最优策略。
+这样，最终得到的策略具有一种优势，即尝试学习执行任务的所有可能方式，而不仅仅是像其他传统强化学习算法那样只学习执行任务的最佳方式。
+Stein variational gradient descent (SVGD) 被用于学习一个随机采样网络，该网络能够从策略的 energy-based model 中产生无偏样本。
+该算法的特点包括通过最大熵公式改善探索能力，并具有可以在任务之间传递技能的组合性。</p>
 </section>
-<section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<section id="id2">
+<h2>要点摘要<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>SQL is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
-<li><p>SQL is an <strong>off-policy</strong> algorithm.</p></li>
-<li><p>SQL supports both <strong>discrete</strong> and <strong>continuous</strong> action spaces.</p></li>
-<li><p>SVGD has been adopted for sampling from the soft Q-function for environments with <strong>continuous</strong> action spaces.</p></li>
+<li><p>SQL 是一种 <strong>无模型（model-free）</strong> 和 <strong>基于值（value-based）</strong> 的强化学习算法。</p></li>
+<li><p>SQL 是一种 <strong>异策略（off-policy）</strong> 算法。</p></li>
+<li><p>SQL 同时支持 <strong>离散动作空间</strong> 和 <strong>连续动作空间</strong> 。</p></li>
+<li><p>SVGD 已被采用于从具有 <strong>连续动作空间</strong> 的 soft Q 函数中进行采样。</p></li>
 </ol>
 </section>
-<section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>SQL considers a more general maximum entropy policy, such that the optimal policy aims to maximize its entropy at each visited state:</p>
+<section id="id3">
+<h2>关键方程或关键图表<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>SQL是一种最大熵策略的一种，这种策略（最大化熵策略）会选择一个使当前状态下概率最大的动作，同时最大化当前状态的不确定性或信息熵。
+这有助于智能体平衡探索与利用，通过选择使得当前状态的不确定性最大的动作，来探索环境中未知的部分，并在已知部分利用已有的经验。
+SQL考虑了一个更通用的最大熵策略，使得最优策略在每个访问的状态下都旨在最大化其熵值：</p>
 <img alt="../_images/sql_policy.png" src="../_images/sql_policy.png" />
-<p>where <span class="math notranslate nohighlight">\({\alpha}\)</span>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <span class="math notranslate nohighlight">\({\alpha}\)</span>  is a hyperparameter that has to be tuned (not one to be learned during training).</p>
-<p>By defining the soft Q function and soft V functions in equations 4 and 5 below respectively:</p>
+<p>其中 <span class="math notranslate nohighlight">\({\alpha}\)</span> 是一个可选且方便的参数，可以用于确定熵和奖励的相对重要性。在实践中, <span class="math notranslate nohighlight">\({\alpha}\)</span>   是一个超参数，需要进行调优（不是在训练过程中学习得到的）。</p>
+<p>通过下面的公式4和公式5定义 soft Q function 和 soft V function ：</p>
 <img alt="../_images/SQL_Q.png" src="../_images/SQL_Q.png" />
 <img alt="../_images/SQL_V.png" src="../_images/SQL_V.png" />
-<p>The optimal policy to the above maximum entropy formulation of the policy can be proved to be:</p>
+<p>可以证明，对于上述基于最大熵公式的策略，最优策略为：</p>
 <img alt="../_images/SQL_opt_policy.png" src="../_images/SQL_opt_policy.png" />
-<p>The proof can be found in the appendix or from the paper <cite>Modeling purposeful adaptive behavior with the principle of maximum causal entropy &lt;https://www.cs.cmu.edu/~bziebart/publications/thesis-bziebart.pdf&gt;</cite></p>
-<p>The soft Q iteration for training expressive energy-based models is given by the following theorem (<cite>Theorem 3</cite> in the paper):</p>
+<p>证明可以在附录中或者论文中找到 <a class="reference external" href="https://www.cs.cmu.edu/~bziebart/publications/thesis-bziebart.pdf">Modeling purposeful adaptive behavior with the principle of maximum causal entropy</a> 。</p>
+<p>用于训练富有表现力的 energy-based models 的 soft Q iteration 由以下定理给出： (<cite>Theorem 3</cite> in the paper):</p>
 <p>Theorem: Let <span class="math notranslate nohighlight">\(Q_{\text{soft}(\cdot, \cdot))\)</span> and <span class="math notranslate nohighlight">\(V_{\text{soft}(\cdot))\)</span> be bounded and assume that <span class="math notranslate nohighlight">\(\int_{\mathcal{A}} exp(\frac{1}{\alpha} Q_{\text{soft}}(\cdot, a^{'}) ) \,da^{'} &lt; \infty\)</span> and that <span class="math notranslate nohighlight">\(Q^{*}_{\text{soft}} &lt; \infty\)</span> exist. Then the fixed-point iteration</p>
 <img alt="../_images/SQL_fi.png" src="../_images/SQL_fi.png" />
 <p>converges to <span class="math notranslate nohighlight">\(Q^{*}_{\text{soft}} and V^{*}_{\text{soft}}\)</span> respectively.</p>
-<p>However, there are several practicalities
-that need to be considered in order to make use of the algorithm to solve real world problems.
-First, the soft Bellman backup cannot be performed
-exactly in continuous or large state and action spaces, and
-second, sampling from the energy-based model in (6) is intractable
-in general.</p>
-<p>To convert the above theorem into a stochastic optimization
-problem, we first express the soft value function in terms
-of an expectation via importance sampling:</p>
+<p>然而，为了将该算法应用于解决现实世界的问题，需要考虑几个实际问题。
+首先，在连续的状态和动作空间中，以及在状态（或者）空间比较大的情况下，无法准确执行 soft Bellman backup ，其次，在一般情况下， 从energy-based models （公式6）中进行采样是难以处理的。</p>
+<p>为了将上述定理转化为一个随机优化问题，我们首先通过重要性采样将 soft value function 表示为一个期望：</p>
 <img alt="../_images/SQL_sto_V.png" src="../_images/SQL_sto_V.png" />
-<p>where <span class="math notranslate nohighlight">\(q_{a'}\)</span> can be an arbitrary distribution over the action
-space.</p>
-<p>By noting the identity <span class="math notranslate nohighlight">\(g_{1}(x)=g_{2}(x) \forall x \in \mathbb{X} \Leftrightarrow  \mathbb{E}_{x\sim q}[((g_{1}(x)-g_{2}(x))^{2}]=0\)</span> , where q can be any strictly positive density function on <span class="math notranslate nohighlight">\(\mathbb{X}\)</span>, we can express the
-soft Q-iteration in an equivalent form as minimizing</p>
+<p>其中 <span class="math notranslate nohighlight">\(q_{a'}\)</span> 可是是动作空间中的任意分布。</p>
+<p>考虑到以下等式： <span class="math notranslate nohighlight">\(g_{1}(x)=g_{2}(x) \forall x \in \mathbb{X} \Leftrightarrow  \mathbb{E}_{x\sim q}[((g_{1}(x)-g_{2}(x))^{2}]=0\)</span> 其中， q 可以是在 <span class="math notranslate nohighlight">\(\mathbb{X}\)</span> 上的任意严格正的密度函数。
+我们可以将 soft Q-iteration  表达为等价形式的最小化问题：</p>
 <img alt="../_images/SQL_sto_Q.png" src="../_images/SQL_sto_Q.png" />
-<p>where <span class="math notranslate nohighlight">\(q_{s_{t}}\)</span> and <span class="math notranslate nohighlight">\(q_{a_{t}}\)</span> are positive over <span class="math notranslate nohighlight">\(\mathrm{S}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{A}\)</span> respectively.</p>
+<p>其中 <span class="math notranslate nohighlight">\(q_{s_{t}}\)</span> 和 <span class="math notranslate nohighlight">\(q_{a_{t}}\)</span> 在分别空间 <span class="math notranslate nohighlight">\(\mathrm{S}\)</span> 和 <span class="math notranslate nohighlight">\(\mathrm{A}\)</span> 是处处大于0的。</p>
 <img alt="../_images/SQL_sto_Q_tar.png" src="../_images/SQL_sto_Q_tar.png" />
-<p>is a target Q-value, with <span class="math notranslate nohighlight">\(V^{\bar{\theta}}_{\text{soft}}\)</span> given by the equation 10 and <span class="math notranslate nohighlight">\(\theta\)</span> being replaced by the target parameters, <span class="math notranslate nohighlight">\(\bar{\theta}\)</span>.</p>
-<p>While the sampling distributions <span class="math notranslate nohighlight">\(q_{s_{t}}\)</span>, <span class="math notranslate nohighlight">\(q_{a_{t}}\)</span> and <span class="math notranslate nohighlight">\(q_{a'}\)</span> can be arbitrary, we typically use real samples from rollouts of the current policy <span class="math notranslate nohighlight">\(\pi(a_{t}|s_{t}) \propto exp(\frac{1}{\alpha} Q_{\text{soft}}^{\theta}(s_{t},a_{t}))\)</span>.</p>
-<p>However, in continuous spaces, Since the form of the policy is so
-general, sampling from it is intractable - We still need a tractable way to sample from the policy. Here is where SVGD comes in.</p>
-<p>Formally, we want to learn a state-conditioned stochastic neural network <span class="math notranslate nohighlight">\(a_{t}=f^{\phi}(\xi,s_{t})\)</span> parametrized by <span class="math notranslate nohighlight">\(\phi\)</span>, that
-maps noise samples <span class="math notranslate nohighlight">\(\xi\)</span> drawn from a normal Gaussian, or other arbitrary distribution, into unbiased action samples. We denote
-the induced distribution of the actions as <span class="math notranslate nohighlight">\(\pi^{\phi}(a_{t}|s_{t})\)</span> and we want tp find parameters <span class="math notranslate nohighlight">\(\phi\)</span> so that the induced distribution approximates the energy-based distribution in terms of the
-KL divergence.</p>
+<p>是 target Q-value, 其中 <span class="math notranslate nohighlight">\(V^{\bar{\theta}}_{\text{soft}}\)</span> 由公式 10 得到， 而 <span class="math notranslate nohighlight">\(\theta\)</span> 可以被目标参数  <span class="math notranslate nohighlight">\(\bar{\theta}\)</span> 所替代。</p>
+<p>尽管采样的分布 <span class="math notranslate nohighlight">\(q_{s_{t}}\)</span>, <span class="math notranslate nohighlight">\(q_{a_{t}}\)</span> and <span class="math notranslate nohighlight">\(q_{a'}\)</span> 可以是任意分布, 但我们通常使用当前策略的回放中的真实样本 <span class="math notranslate nohighlight">\(\pi(a_{t}|s_{t}) \propto exp(\frac{1}{\alpha} Q_{\text{soft}}^{\theta}(s_{t},a_{t}))\)</span>.</p>
+<p>然而，在连续空间中，由于策略的形式非常广泛，从中进行采样是困难的。 我们仍然需要一种可行的方式来从策略中进行采样。这就是SVGD发挥作用的地方。</p>
+<p>形式上，我们希望学习一个基于状态条件的随机神经网络。 <span class="math notranslate nohighlight">\(a_{t}=f^{\phi}(\xi,s_{t})\)</span> 的参数是 <span class="math notranslate nohighlight">\(\phi\)</span>, 它把标准高斯分布中（或者其他分布中）采样的噪声样本 <span class="math notranslate nohighlight">\(\xi\)</span> 映射到无偏的动作样本中。
+我们将产生的动作分布表示为  <span class="math notranslate nohighlight">\(\pi^{\phi}(a_{t}|s_{t})\)</span> ，同时我们希望找到参数 <span class="math notranslate nohighlight">\(\phi\)</span> 使得产生的分布在 KL divergence 方面近似于 energy-based distribution 。</p>
 <img alt="../_images/SQL_sto_pi12.png" src="../_images/SQL_sto_pi12.png" />
-<p>Practically, we optimise the policy by the following two equations:</p>
+<p>在实践中，我们通过以下两个方程来优化策略：</p>
 <img alt="../_images/SQL_sto_pi13.png" src="../_images/SQL_sto_pi13.png" />
 <img alt="../_images/SQL_sto_pi14.png" src="../_images/SQL_sto_pi14.png" />
 </section>
-<section id="pseudo-code">
-<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
-<p>The pseudo code is as follows:</p>
+<section id="id4">
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>伪代码如下所示：</p>
 <img alt="../_images/SQL.png" src="../_images/SQL.png" />
-<p>Where the equation 10, 11, 13, 14 can be referred from the above section.</p>
+<p>其中，方程10、11、13和14可以从上述部分中参考。</p>
 </section>
-<section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
-<p>SQL can be combined with:</p>
+<section id="id5">
+<h2>扩展<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>SQL 可以与以下内容结合使用：</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>Exploration Techniques</strong>. Techniques such as epsilon-greedy or OU Noise (implemented in the original paper; Please refer to <a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> and <a class="reference external" href="https://link.aps.org/pdf/10.1103/PhysRev.36.823?casa_token=yFMSHBrxJoMAAAAA:5nFSMwUrqcdlUoobFDYOP0Y58r5jmNogkpHqFgMhzv0Md-4EcIkofMHHCkgsjEJFO10yqsmrhmNk_4dL">On the theory of the Brownian motion</a>) to enchance explorations.</p></li>
-<li><p><strong>Policy Gradient algorithms</strong>. Some analysts draw connection between Soft Q-learning and Policy
-Gradient algorithms such as <a class="reference external" href="https://arxiv.org/abs/1704.06440">Equivalence Between Policy Gradients and
-Soft Q-Learning</a>.</p></li>
-<li><p><strong>Imitation learning</strong>. SQL can be combined with demonstration data to propose an imitation learning algorithm: SQIL proposed in <a class="reference external" href="https://arxiv.org/abs/1905.11108">SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards</a>.  Please also refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py">SQIL code</a> for a DI-engine implementation.</p></li>
+<li><p><strong>探索技术</strong>, 例如ε-贪婪或 OU 噪声 (这些技术可以在原始论文中找到；请参考  <a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> 和 <a class="reference external" href="https://link.aps.org/pdf/10.1103/PhysRev.36.823?casa_token=yFMSHBrxJoMAAAAA:5nFSMwUrqcdlUoobFDYOP0Y58r5jmNogkpHqFgMhzv0Md-4EcIkofMHHCkgsjEJFO10yqsmrhmNk_4dL">On the theory of the Brownian motion</a>) 以增强探索能力。</p></li>
+<li><p><strong>策略梯度算法</strong>，一些分析人士将 Soft Q-learning 与策略梯度算法（Policy Gradient algorithms）之间建立了联系，比如 <a class="reference external" href="https://arxiv.org/abs/1704.06440">Equivalence Between Policy Gradients and
+Soft Q-Learning</a> 。</p></li>
+<li><p><strong>演示数据</strong>， SQL可以与演示数据结合使用，用于提出一种模仿学习算法: SQIL， 该算法在以下论文中提出： <a class="reference external" href="https://arxiv.org/abs/1905.11108">SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards</a>  。  请参考 DI-engine 实现中的 SQIL 代码，链接：  <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py">SQIL code</a> 。</p></li>
 </ul>
 </div></blockquote>
 </section>
-<section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
-<p>The default config is defined as follows:</p>
+<section id="id6">
+<h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>默认配置被定义如下：</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="ding.policy.sql.SQLPolicy">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.sql.</span></span><span class="sig-name descname"><span class="pre">SQLPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/sql.html#SQLPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.sql.SQLPolicy" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.sql.</span></span><span class="sig-name descname"><span class="pre">SQLPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/sql.html#SQLPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Policy class of SQL algorithm.</p>
 </dd>
@@ -398,9 +385,9 @@ Soft Q-Learning</a>.</p></li>
 </dd></dl>
 
 </section>
-<section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<p>The table below shows a benchmark of the performance of DQN, SQL (in discrete action spaces), and SQIL in Lunarlander and Pong environments.</p>
+<section id="id7">
+<h2>基准<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>下表显示了DQN、SQL（在离散动作空间中）和SQIL在Lunarlander和Pong环境中的性能基准测试结果。</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -438,12 +425,12 @@ Soft Q-Learning</a>.</p></li>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <ul class="simple">
-<li><p>The stopping values for Lunarlander and Pong are 200 and 20 respectively. Training stops when the average of the evaluation values exceeds the stopping values.</p></li>
+<li><p>Lunarlander和Pong的停止值分别为200和20， 当评估值的平均值到达停止值以上的时候训练停止。</p></li>
 </ul>
 </div>
 </section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<section id="id8">
+<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Haarnoja, Tuomas, et al. “Reinforcement learning with deep energy-based policies.” International Conference on Machine Learning. PMLR, 2017.</p></li>
 <li><p>Uhlenbeck, G. E. and Ornstein, L. S. On the theory of the brownian motion. Physical review, 36(5):823, 1930.</p></li>
@@ -458,8 +445,8 @@ the principle of maximum causal entropy. PhD thesis,
 2010.</p></li>
 </ul>
 </section>
-<section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<section id="id9">
+<h2>其他开源的实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/rail-berkeley/softlearning">SQL release repo</a></p></li>
 </ul>
@@ -474,12 +461,12 @@ the principle of maximum causal entropy. PhD thesis,
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="sqn.html" class="btn btn-neutral float-right" title="SQN" accesskey="n"
+    <a href="mdqn_zh.html" class="btn btn-neutral float-right" title="MDQN" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="fqf.html" class="btn btn-neutral" title="FQF" accesskey="p"
+    <a href="fqf_zh.html" class="btn btn-neutral" title="FQF" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -510,15 +497,15 @@ the principle of maximum causal entropy. PhD thesis,
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
 <li><a class="reference internal" href="#">SQL</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
-<li><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
-<li><a class="reference internal" href="#pseudo-code">Pseudo-code</a></li>
-<li><a class="reference internal" href="#extensions">Extensions</a></li>
-<li><a class="reference internal" href="#implementations">Implementations</a></li>
-<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
-<li><a class="reference internal" href="#references">References</a></li>
-<li><a class="reference internal" href="#other-public-implementations">Other Public Implementations</a></li>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">要点摘要</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键图表</a></li>
+<li><a class="reference internal" href="#id4">伪代码</a></li>
+<li><a class="reference internal" href="#id5">扩展</a></li>
+<li><a class="reference internal" href="#id6">实现</a></li>
+<li><a class="reference internal" href="#id7">基准</a></li>
+<li><a class="reference internal" href="#id8">参考文献</a></li>
+<li><a class="reference internal" href="#id9">其他开源的实现</a></li>
 </ul>
 </li>
 </ul>

@@ -330,8 +330,8 @@
 <span class="sd">              | ``embedding_size``                             | network.                        |</span>
 <span class="sd">           5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |</span>
 <span class="sd">              | ``embedding_size``                             | network.                        |</span>
-<span class="sd">           6  | ``model.emsemble_`` int         10             | Number of Q-ensemble network    |</span>
-<span class="sd">              | ``num``                                        |                                 |</span>
+<span class="sd">           6  | ``model.emsemble``  int         10             | Number of Q-ensemble network    |</span>
+<span class="sd">              | ``_num``                                       |                                 |</span>
 <span class="sd">              |                                                |                                 | is False.</span>
 <span class="sd">           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when</span>
 <span class="sd">              | ``_rate_q``                                    | network.                        | model.value_network</span>
@@ -346,8 +346,7 @@
 <span class="sd">              |                                                | coefficient.                    | zation for auto</span>
 <span class="sd">              |                                                |                                 | `alpha`, when</span>
 <span class="sd">              |                                                |                                 | auto_alpha is True</span>
-<span class="sd">           11 | ``learn.eta``       bool        True           | Parameter of EDAC algorithm     |Defalut to 1.0</span>
-<span class="sd">              |                                                |                                 |</span>
+<span class="sd">           11 | ``learn.eta``       bool        True           | Parameter of EDAC algorithm     | Defalut to 1.0</span>
 <span class="sd">           12 | ``learn.``          bool        True           | Determine whether to use        | Temperature parameter</span>
 <span class="sd">              | ``auto_alpha``                                 | auto temperature parameter      | determines the</span>
 <span class="sd">              |                                                | `alpha`.                        | relative importance</span>

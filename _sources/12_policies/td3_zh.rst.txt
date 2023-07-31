@@ -126,6 +126,7 @@ TD3 可以与以下技术相结合使用:
 默认配置定义如下:
 
 .. autoclass:: ding.policy.td3.TD3Policy
+   :noindex:
 
 1. 模型
 

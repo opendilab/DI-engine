@@ -22,6 +22,8 @@
     c51_zh
     qrdqn_zh
     iqn_zh
+    fqf_zh
+    sql_zh
     mdqn_zh
 
 .. toctree::
@@ -30,6 +32,12 @@
 
     ddpg_zh
     td3_zh
+
+.. toctree::
+    :maxdepth: 2
+    :caption: 多智能体强化学习
+
+    qmix_zh
 
 .. toctree::
     :maxdepth: 2
@@ -52,3 +60,15 @@
     
     cql_zh
     edac_zh
+
+.. toctree::
+    :maxdepth: 2
+    :caption: 基于模型的强化学习（Model-Based RL）
+
+    mbpo_zh
+
+.. toctree::
+    :maxdepth: 2
+    :caption: 泛化
+
+    plr_zh
