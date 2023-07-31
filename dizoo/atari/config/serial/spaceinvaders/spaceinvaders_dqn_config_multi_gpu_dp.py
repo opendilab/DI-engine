@@ -7,11 +7,9 @@ spaceinvaders_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         #'ALE/SpaceInvaders-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -60,4 +58,4 @@ if __name__ == '__main__':
     from ding.model.template.q_learning import DQN
     from ding.torch_utils import DataParallel
     model = DataParallel(DQN(obs_shape=[4, 84, 84], action_shape=6))
-    serial_pipeline((main_config, create_config), seed=0, model=model)
+    serial_pipeline((main_config, create_config), seed=0, model=model, max_env_step=int(1e7))

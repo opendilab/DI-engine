@@ -7,7 +7,7 @@ import hickle
 
 from ding.worker.replay_buffer import IBuffer
 from ding.utils import SumSegmentTree, MinSegmentTree, BUFFER_REGISTRY
-from ding.utils import LockContext, LockContextType, build_logger
+from ding.utils import LockContext, LockContextType, build_logger, get_rank
 from ding.utils.autolog import TickTime
 from .utils import UsedDataRemover, generate_id, SampledDataAttrMonitor, PeriodicThruputMonitor, ThruputController
 
@@ -106,6 +106,7 @@ class AdvancedReplayBuffer(IBuffer):
         self._instance_name = instance_name
         self._end_flag = False
         self._cfg = cfg
+        self._rank = get_rank()
         self._replay_buffer_size = self._cfg.replay_buffer_size
         self._deepcopy = self._cfg.deepcopy
         # ``_data`` is a circular queue to store data (full data or meta data)
@@ -163,16 +164,22 @@ class AdvancedReplayBuffer(IBuffer):
 
         # Monitor & Logger
         monitor_cfg = self._cfg.monitor
-        if tb_logger is not None:
+        if self._rank == 0:
+            if tb_logger is not None:
+                self._logger, _ = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+                )
+                self._tb_logger = tb_logger
+            else:
+                self._logger, self._tb_logger = build_logger(
+                    './{}/log/{}'.format(self._exp_name, self._instance_name),
+                    self._instance_name,
+                )
+        else:
             self._logger, _ = build_logger(
                 './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
             )
-            self._tb_logger = tb_logger
-        else:
-            self._logger, self._tb_logger = build_logger(
-                './{}/log/{}'.format(self._exp_name, self._instance_name),
-                self._instance_name,
-            )
+            self._tb_logger = None
         self._start_time = time.time()
         # Sampled data attributes.
         self._cur_learner_iter = -1
@@ -183,9 +190,10 @@ class AdvancedReplayBuffer(IBuffer):
         )
         self._sampled_data_attr_print_freq = monitor_cfg.sampled_data_attr.print_freq
         # Periodic thruput.
-        self._periodic_thruput_monitor = PeriodicThruputMonitor(
-            self._instance_name, monitor_cfg.periodic_thruput, self._logger, self._tb_logger
-        )
+        if self._rank == 0:
+            self._periodic_thruput_monitor = PeriodicThruputMonitor(
+                self._instance_name, monitor_cfg.periodic_thruput, self._logger, self._tb_logger
+            )
 
         # Used data remover
         self._enable_track_used_data = self._cfg.enable_track_used_data
@@ -210,9 +218,10 @@ class AdvancedReplayBuffer(IBuffer):
             return
         self._end_flag = True
         self.clear()
-        self._periodic_thruput_monitor.close()
-        self._tb_logger.flush()
-        self._tb_logger.close()
+        if self._rank == 0:
+            self._periodic_thruput_monitor.close()
+            self._tb_logger.flush()
+            self._tb_logger.close()
         if self._enable_track_used_data:
             self._used_data_remover.close()
 
@@ -374,7 +383,8 @@ class AdvancedReplayBuffer(IBuffer):
             self._set_weight(data)
             self._data[self._tail] = data
             self._valid_count += 1
-            self._periodic_thruput_monitor.valid_count = self._valid_count
+            if self._rank == 0:
+                self._periodic_thruput_monitor.valid_count = self._valid_count
             self._tail = (self._tail + 1) % self._replay_buffer_size
             self._next_unique_id += 1
             self._monitor_update_of_push(1, cur_collector_envstep)
@@ -435,7 +445,8 @@ class AdvancedReplayBuffer(IBuffer):
                         data_start = 0
                         valid_data_start += L
             self._valid_count += len(valid_data)
-            self._periodic_thruput_monitor.valid_count = self._valid_count
+            if self._rank == 0:
+                self._periodic_thruput_monitor.valid_count = self._valid_count
             # Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.
             self._tail = (self._tail + length) % self._replay_buffer_size
             self._next_unique_id += length
@@ -568,8 +579,9 @@ class AdvancedReplayBuffer(IBuffer):
             if self._enable_track_used_data:
                 self._used_data_remover.add_used_data(self._data[idx])
             self._valid_count -= 1
-            self._periodic_thruput_monitor.valid_count = self._valid_count
-            self._periodic_thruput_monitor.remove_data_count += 1
+            if self._rank == 0:
+                self._periodic_thruput_monitor.valid_count = self._valid_count
+                self._periodic_thruput_monitor.remove_data_count += 1
             self._data[idx] = None
             self._sum_tree[idx] = self._sum_tree.neutral_element
             self._min_tree[idx] = self._min_tree.neutral_element
@@ -624,7 +636,8 @@ class AdvancedReplayBuffer(IBuffer):
             - add_count (:obj:`int`): How many datas are added into buffer.
             - cur_collector_envstep (:obj:`int`): Collector envstep, passed in by collector.
         """
-        self._periodic_thruput_monitor.push_data_count += add_count
+        if self._rank == 0:
+            self._periodic_thruput_monitor.push_data_count += add_count
         if self._use_thruput_controller:
             self._thruput_controller.history_push_count += add_count
         self._cur_collector_envstep = cur_collector_envstep
@@ -639,7 +652,8 @@ class AdvancedReplayBuffer(IBuffer):
                 e.g. use, priority, staleness, etc.
             - cur_learner_iter (:obj:`int`): Learner iteration, passed in by learner.
         """
-        self._periodic_thruput_monitor.sample_data_count += len(sample_data)
+        if self._rank == 0:
+            self._periodic_thruput_monitor.sample_data_count += len(sample_data)
         if self._use_thruput_controller:
             self._thruput_controller.history_sample_count += len(sample_data)
         self._cur_learner_iter = cur_learner_iter
@@ -668,7 +682,7 @@ class AdvancedReplayBuffer(IBuffer):
             'staleness_max': self._sampled_data_attr_monitor.max['staleness'](),
             'beta': self._beta,
         }
-        if self._sampled_data_attr_print_count % self._sampled_data_attr_print_freq == 0:
+        if self._sampled_data_attr_print_count % self._sampled_data_attr_print_freq == 0 and self._rank == 0:
             self._logger.info("=== Sample data {} Times ===".format(self._sampled_data_attr_print_count))
             self._logger.info(self._logger.get_tabulate_vars_hor(out_dict))
             for k, v in out_dict.items():
