@@ -522,12 +522,12 @@ class D4RLTrajectoryDataset(Dataset):
                     while not done:
                         states, ac, ret, next_states, next_action, next_reward, terminal, indices = frb.sample_transition_batch(batch_size=1, indices=[i])
                         states = states.transpose((0, 3, 1, 2))[0] # (1, 84, 84, 4) --> (4, 84, 84)
-                        obss += [states]
-                        actions += [ac[0]]
-                        stepwise_returns += [ret[0]]
+                        obss.append(states)
+                        actions.append(ac[0])
+                        stepwise_returns.append(ret[0])
                         if terminal[0]:
-                            done_idxs += [len(obss)]
-                            returns += [0]
+                            done_idxs.append(len(obss))
+                            returns.append(0)
                             if trajectories_to_load == 0:
                                 done = True
                             else:
@@ -591,7 +591,7 @@ class D4RLTrajectoryDataset(Dataset):
         if self.env_type != 'atari':
             return len(self.trajectories)
         else:
-            return len(self.obss)
+            return len(self.obss) - self.context_len * 3
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         if self.env_type != 'atari':
@@ -640,7 +640,7 @@ class D4RLTrajectoryDataset(Dataset):
                     torch.zeros(padding_len, dtype=torch.long)], dim=0
                 )
             return timesteps, states, actions, returns_to_go, traj_mask
-        else:
+        else: # mean time cost less than 0.02s
             block_size = self.context_len
             done_idx = idx + block_size
             for i in self.done_idxs:
@@ -654,7 +654,6 @@ class D4RLTrajectoryDataset(Dataset):
             rtgs = torch.tensor(self.rtgs[idx:done_idx], dtype=torch.float32).unsqueeze(1)
             timesteps = torch.tensor(self.timesteps[idx:idx+1], dtype=torch.int64).unsqueeze(1)
             traj_mask = torch.ones(self.context_len, dtype=torch.long)
-            
             return timesteps, states, actions, rtgs, traj_mask
         
 

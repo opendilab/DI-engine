@@ -3,6 +3,7 @@ from copy import deepcopy
 
 hopper_dt_config = dict(
     exp_name='dt_log/atari/Pong/Pong_dt_seed0',
+    # exp_name='dt_log/atari/Pong/Pong_dt_seed0',
     env=dict(
         env_id='PongNoFrameskip-v4',
         norm_obs=dict(use_norm=False, ),
@@ -14,56 +15,47 @@ hopper_dt_config = dict(
         stop_value=20,
         frame_stack=4,
         is_train=False,
+        episode_num=10000, # stop in breakout
     ),
     policy=dict(
         num_buffers=50,
         num_steps=500000,
-        data_dir_prefix='/mnt/nfs/luyd/d4rl_atari/Pong/',
+        # num_steps=500,
+        data_dir_prefix='/mnt/nfs/luyd/d4rl_atari/Pong',
         trajectories_per_buffer=10,
         env_type='atari',
-        stop_value=20,
-        state_mean=None,
-        state_std=None,
-        evaluator_env_num=8,
+        stop_value=105,
         cuda=True,
         env_name='PongNoFrameskip-v4',
         dataset_name='Pong',
-        rtg_target=20,  # max target return to go
-        rtg_scale=10,
+        # rtg_target=20,  # max target return to go
+        rtg_target=90,  # max target return to go
+        # rtg_scale=10,
         max_eval_ep_len=10000,  # max lenght of one episode
-        num_eval_ep=10,  # num of evaluation episode
         wt_decay=1e-4,
+        clip_grad_norm_p=1.0
+        betas = (0.9, 0.95),
+        weight_decay=0.1,
         # warmup_steps=100000,
         warmup_steps=10000,
-        num_updates_per_iter=100,
         context_len=30,
-        n_blocks=6,
-        embed_dim=128,
-        n_heads=8,
-        dropout_p=0.1,
         model=dict(
             state_dim=(4, 84, 84),
-            act_dim=6,
-            n_blocks=3,
-            h_dim=128,
+            # act_dim=6,
+            act_dim=4,
             n_embd=128,
             context_len=30,
             n_heads=8,
             n_layer=6,
-            drop_p=0.1,
             embd_pdrop=0.1,
             resid_pdrop = 0.1,
             attn_pdrop = 0.1,
             continuous=False,
         ),
-        discount_factor=0.999,
-        nstep=3,
         learn=dict(
             batch_size=128,
             learning_rate=6e-4,
             target_update_freq=100,
-            kappa=1.0,
-            min_q_weight=4.0,
         ),
         collect=dict(
             data_type='d4rl_trajectory',
@@ -71,7 +63,7 @@ hopper_dt_config = dict(
             data_path='/mnt/nfs/luyd/d4rl_atari/Pong',
             unroll_len=1,
         ),
-        eval=dict(evaluator=dict(evalu_freq=100, ), ),
+        eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(
             eps=dict(
                 type='exp',

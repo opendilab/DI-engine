@@ -1174,6 +1174,7 @@ class GymToGymnasiumWrapper(gym.Wrapper):
             return self.env.reset()
 
 
+@ENV_WRAPPER_REGISTRY.register('reward_in_obs')
 class AllinObsWrapper(gym.Wrapper):
     """
     Overview:

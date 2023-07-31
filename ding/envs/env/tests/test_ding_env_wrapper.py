@@ -180,3 +180,22 @@ class TestDingEnvWrapper:
         action = ding_env_hybrid.random_action()
         print('random_action', action)
         assert isinstance(action, dict)
+
+    @pytest.mark.unittest
+    def test_AllinObsWrapper(self):
+        env_cfg = EasyDict(env_id='PongNoFrameskip-v4', env_wrapper='reward_in_obs')
+        ding_env_aio = DingEnvWrapper(cfg=env_cfg)
+
+        data = ding_env_aio.reset()
+        assert isinstance(data, dict)
+        assert 'obs' in data.keys() and 'reward' in data.keys()
+        assert data['obs'].shape == ding_env_aio.observation_space
+        while True:
+            action = ding_env_aio.random_action()
+            timestep = ding_env_aio.step(action)
+            # print(timestep.reward)
+            assert isinstance(timestep.obs,dict)
+            if timestep.done:
+                assert 'eval_episode_return' in timestep.info, timestep.info
+                break
+        print(ding_env_aio.observation_space, ding_env_aio.action_space, ding_env_aio.reward_space)
