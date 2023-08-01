@@ -431,11 +431,11 @@ class CombinationArgmaxSampleWrapper(IModelWrapper):
         # `act` is shaped (shot_num, B)
         real_act = []
         for b in range(act[0].shape[0]):
-            tmp_act = torch.zeros_like(act[0])
+            tmp_act = torch.zeros_like(act[0][0])
             for shot in act:
                 tmp_act += 2 ** shot[b].item()
             real_act.append(tmp_act)
-        real_act = torch.tensor(real_act)
+        real_act = torch.stack(real_act, dim=0)
         output['action'] = real_act
         return output
 
@@ -460,10 +460,11 @@ class CombinationMultinomialSampleWrapper(IModelWrapper):
         # `act` is shaped (shot_num, B)
         real_act = []
         for b in range(act[0].shape[0]):
-            tmp_act = torch.zeros_like(act[0])
+            tmp_act = torch.zeros_like(act[0][0])
             for shot in act:
                 tmp_act += 2 ** shot[b].item()
             real_act.append(tmp_act)
+        real_act = torch.stack(real_act, dim=0)
         output['action'] = real_act
         return output
 
