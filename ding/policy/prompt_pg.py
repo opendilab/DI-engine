@@ -4,7 +4,7 @@ import torch
 
 from ding.rl_utils import get_train_sample
 from ding.torch_utils import Adam, to_device
-from ding.utils import POLICY_REGISTRY
+from ding.utils import POLICY_REGISTRY, split_data_generator
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 
@@ -85,14 +85,16 @@ class PromptPGPolicy(Policy):
             data = to_device(data, self._device)
 
         return_infos = []
-        for i in range(0, len(data), self._cfg.learn.batch_size):
-            batch = default_collate(data[i:i + self._cfg.learn.batch_size])
+        for batch in split_data_generator(data, self._cfg.learn.batch_size):
             # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             train_samples, cand_samples = batch["obs"]["train_sample"], batch["obs"]["candidate_samples"]
             for ii in range(len(cand_samples)):
                 cand_samples[ii] = cand_samples[ii][0]
             output = self._learn_model.forward(train_samples, cand_samples)
             return_ = batch['return']
+
+            if self._cuda:
+                return_ = to_device(return_, self._device)
 
             # calculate PG loss
             real_act = []
