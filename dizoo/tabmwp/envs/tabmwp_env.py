@@ -78,11 +78,16 @@ class TabMWP(BaseEnv):
                                    '37329', '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229',
                                    '22918', '31680', '15024', '24607', '26930']
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_train.txt'
+                if not os.path.exists(model_io_path):
+                    os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_train.txt -O '
+                              + model_io_path)
             else:
                 self.train_pids = ['21037', '22976', '2224', '14145', '27962', '26553', '22110', '16541', '26044',
                                    '19492', '31882', '11991', '27594', '7637', '15394', '7666', '5177', '33761',
                                    '13703', '29105']
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_eval.txt'
+                os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_eval.txt -O '
+                          + model_io_path)
 
             self.cfg.cand_number = len(self.cand_pids)
             self.cfg.train_number = len(self.train_pids)

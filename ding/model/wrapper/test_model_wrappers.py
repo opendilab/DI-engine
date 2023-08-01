@@ -554,10 +554,10 @@ class TestModelWrappers:
         model = model_wrap(ActorMLP(), wrapper_name='combination_argmax_sample')
         data = {'obs': torch.randn(4, 3)}
         output = model.forward(shot_number=2, inputs=data)
-        assert output.shape['action'] == 4
+        assert output['action'].shape == (4,)
 
     def test_combination_multinomial_sample_wrapper(self):
         model = model_wrap(ActorMLP(), wrapper_name='combination_multinomial_sample')
         data = {'obs': torch.randn(4, 3)}
         output = model.forward(shot_number=2, inputs=data)
-        assert output['action'].shape == 4
+        assert output['action'].shape == (4,)
