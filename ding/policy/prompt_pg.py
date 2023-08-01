@@ -7,6 +7,7 @@ from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY, split_data_generator
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
+from ..model import model_wrap
 
 
 @POLICY_REGISTRY.register('prompt_pg')
@@ -84,8 +85,7 @@ class PromptPGPolicy(Policy):
 
         return_infos = []
         for i in range(0, len(data), self._cfg.learn.batch_size):
-            # Collate function.
-            batch = {k: data[i:i+self._cfg.learn.batch_size][k] for k in data}
+            batch = default_collate(data[i:i + self._cfg.learn.batch_size])
             if self._cuda:
                 batch = to_device(batch, self._device)
 
@@ -95,9 +95,6 @@ class PromptPGPolicy(Policy):
                 cand_samples[ii] = cand_samples[ii][0]
             output = self._learn_model.forward(train_samples, cand_samples)
             return_ = batch['return']
-
-            if self._cuda:
-                return_ = to_device(return_, self._device)
 
             # calculate PG loss
             real_act = []
@@ -151,6 +148,7 @@ class PromptPGPolicy(Policy):
     def _init_collect(self) -> None:
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.collect.discount_factor
+        self._collect_model = model_wrap(self._model, wrapper_name='combination_multinomial_sample')
 
     def _forward_collect(self, data: dict) -> dict:
         data_id = list(data.keys())
@@ -160,26 +158,7 @@ class PromptPGPolicy(Policy):
             # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
-            output = self._model.forward(data['train_sample'], data['candidate_samples'])
-            # Generate actions.
-            act = []
-            mask = torch.zeros_like(output['logit'])
-            for ii in range(self._cfg.shot_number):
-                dist = torch.distributions.Categorical(logits=output['logit'] + mask)
-                actions = dist.sample()
-                act.append(actions)
-                for jj in range(actions.shape[0]):
-                    mask[jj][actions[jj]] = -1e30
-            # `act` is shaped (shot_num, B)
-            real_act = []
-            for b in range(act[0].shape[0]):
-                tmp_act = torch.zeros_like(act[0])
-                for shot in act:
-                    tmp_act += 2 ** shot[b].item()
-                real_act.append(tmp_act)
-            real_act = torch.tensor(real_act)
-            # `real_act` is shaped (B)
-        output['action'] = real_act
+            output = self._collect_model.forward(self._cfg.shot_number, data['train_sample'], data['candidate_samples'])
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -223,7 +202,7 @@ class PromptPGPolicy(Policy):
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
-        pass
+        self._eval_model = model_wrap(self._model, wrapper_name='combination_argmax_sample')
 
     def _forward_eval(self, data: dict) -> dict:
         data_id = list(data.keys())
@@ -233,25 +212,7 @@ class PromptPGPolicy(Policy):
             # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
-            output = self._model.forward(data['train_sample'], data['candidate_samples'])
-            # Generate actions.
-            act = []
-            mask = torch.zeros_like(output['logit'])
-            for ii in range(self._cfg.shot_number):
-                actions = torch.argmax(output['logit'] + mask, dim=-1)
-                act.append(actions)
-                for jj in range(actions.shape[0]):
-                    mask[jj][actions[jj]] = -1e30
-            # `act` is shaped (shot_num, B)
-            real_act = []
-            for b in range(act[0].shape[0]):
-                tmp_act = torch.zeros_like(act[0])
-                for shot in act:
-                    tmp_act += 2 ** shot[b].item()
-                real_act.append(tmp_act)
-            real_act = torch.tensor(real_act)
-            # `real_act` is shaped (B)
-        output['action'] = real_act
+            output = self._eval_model.forward(self._cfg.shot_number, data['train_sample'], data['candidate_samples'])
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

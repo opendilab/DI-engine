@@ -15,7 +15,7 @@ class TabMWP(BaseEnv):
         self.enable_replay = cfg.enable_replay
         self._init_flag = False
         self.problems, self.cand_pids, self.train_pids = None, None, None
-        self.problem_id = None
+        self.problem_id = 0
         self.cand_examples = []
         openai.api_key = cfg.api_key
         self.observation_space = gym.spaces.Dict()
