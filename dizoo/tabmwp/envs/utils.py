@@ -51,7 +51,7 @@ def calc_internlm(model, tokenizer, prompt: str, args):
                   "repetition_penalty": args.frequency_penalty}
     output = model.generate(**inputs, **gen_kwargs)
     output = tokenizer.decode(output)
-    print(output)
+    return output
 
 
 def load_data(args: dict) -> tuple:
