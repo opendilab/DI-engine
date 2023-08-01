@@ -81,11 +81,14 @@ class PromptPGPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
         self._model.train()
-        if self._cuda:
-            data = to_device(data, self._device)
 
         return_infos = []
-        for batch in split_data_generator(data, self._cfg.learn.batch_size):
+        for i in range(0, len(data), self._cfg.learn.batch_size):
+            # Collate function.
+            batch = {k: data[i:i+self._cfg.learn.batch_size][k] for k in data}
+            if self._cuda:
+                batch = to_device(batch, self._device)
+
             # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             train_samples, cand_samples = batch["obs"]["train_sample"], batch["obs"]["candidate_samples"]
             for ii in range(len(cand_samples)):
