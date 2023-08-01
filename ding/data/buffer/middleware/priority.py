@@ -54,7 +54,10 @@ class PriorityExperienceReplay:
 
     def push(self, chain: Callable, data: Any, meta: Optional[dict] = None, *args, **kwargs) -> BufferedData:
         if meta is None:
-            meta = {'priority': self.max_priority}
+            if 'priority' in data:
+                meta = {'priority': data['priority'].item()}
+            else:
+                meta = {'priority': self.max_priority}
         else:
             if 'priority' not in meta:
                 meta['priority'] = self.max_priority

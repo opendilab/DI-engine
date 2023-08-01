@@ -9,7 +9,7 @@ from ding.data.model_loader import FileModelLoader
 from ding.data.storage_loader import FileStorageLoader
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware.distributer import ContextExchanger, ModelExchanger
+from ding.framework.middleware.distributer import ContextExchanger, ModelExchanger, PeriodicalModelExchanger
 from ding.framework.parallel import Parallel
 from ding.utils.default_helper import set_pkg_seed
 from os import path
@@ -221,3 +221,54 @@ def model_exchanger_main_with_model_loader():
 @pytest.mark.tmp
 def test_model_exchanger_with_model_loader():
     Parallel.runner(n_parallel_workers=2, startup_interval=0)(model_exchanger_main_with_model_loader)
+
+
+def periodical_model_exchanger_main():
+    with task.start(ctx=OnlineRLContext()):
+        set_pkg_seed(0, use_cuda=False)
+        policy = MockPolicy()
+        X = torch.rand(10)
+        y = torch.rand(10)
+
+        if task.router.node_id == 0:
+            task.add_role(task.role.LEARNER)
+            task.use(PeriodicalModelExchanger(policy._model, mode="send", period=3))
+        else:
+            task.add_role(task.role.COLLECTOR)
+            task.use(PeriodicalModelExchanger(policy._model, mode="receive", period=1, stale_toleration=3))
+
+        if task.has_role(task.role.LEARNER):
+
+            def train(ctx):
+                policy.train(X, y)
+                sleep(0.3)
+
+            task.use(train)
+        else:
+            y_pred1 = policy.predict(X)
+            print("y_pred1: ", y_pred1)
+            stale = 1
+
+            def pred(ctx):
+                nonlocal stale
+                y_pred2 = policy.predict(X)
+                print("y_pred2: ", y_pred2)
+                stale += 1
+                assert stale <= 3 or all(y_pred1 == y_pred2)
+                if any(y_pred1 != y_pred2):
+                    stale = 1
+
+                sleep(0.3)
+
+            task.use(pred)
+        task.run(8)
+
+
+@pytest.mark.tmp
+def test_periodical_model_exchanger():
+    Parallel.runner(n_parallel_workers=2, startup_interval=0)(periodical_model_exchanger_main)
+
+
+if __name__ == "__main__":
+    #test_model_exchanger()
+    test_periodical_model_exchanger()

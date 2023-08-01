@@ -1,3 +1,4 @@
+import numpy as np
 from time import sleep, time
 from dataclasses import fields
 from typing import TYPE_CHECKING, List, Dict, Any, Optional, Union
@@ -279,6 +280,140 @@ class ModelExchanger:
             self._model_loader.save(self._send_callback)
         else:
             task.emit(self._event_name, self._model.state_dict(), only_remote=True)
+
+    def _send_callback(self, storage: Storage):
+        if task.running:
+            task.emit(self._event_name, storage, only_remote=True)
+
+    def __del__(self):
+        if self._model_loader:
+            self._model_loader.shutdown()
+
+
+class PeriodicalModelExchanger:
+
+    def __init__(
+            self,
+            model: "Module",
+            mode: str,
+            period: int = 1,
+            delay_toleration: float = np.inf,
+            stale_toleration: int = 1,
+            event_name: str = "model_exchanger",
+            model_loader: Optional[ModelLoader] = None
+    ) -> None:
+        """
+        Overview:
+            Exchange model between processes, only the learner will send the model,
+            otherwise the model will only be received.
+            If you are using a shared model on a single host, there is no need to use this middleware.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): Pytorch module.
+            - model_loader (:obj:`ModelLoader`): Encode model in subprocess.
+        """
+        self._model = model
+        self._model_loader = model_loader
+        self._event_name = event_name
+        self._period = period
+        self.mode = mode
+        if self.mode == "receive":
+            self._id_counter = -1
+            self._model_id = -1
+        else:
+            self._id_counter = 0
+        self.stale_toleration = stale_toleration
+        self.model_stale = stale_toleration
+        self.delay_toleration = delay_toleration
+        self._state_dict_cache: Optional[Union[object, Storage]] = None
+
+        if self.mode == "receive":
+            task.on(self._event_name, self._cache_state_dict)
+        if model_loader:
+            task.once("finish", lambda _: model_loader.shutdown())
+
+    def _cache_state_dict(self, msg: Dict[str, Any]):
+        # msg: Dict {'id':id,'model':state_dict: Union[object, Storage]}
+        print(f"node_id[{task.router.node_id}] get model msg")
+        if msg['id'] % self._period == 0:
+            self._state_dict_cache = msg['model']
+            self._id_counter = msg['id']
+            self._time = msg['time']
+        else:
+            print(f"node_id[{task.router.node_id}] skip save cache")
+
+    def __new__(cls, *args, **kwargs):
+        return super(PeriodicalModelExchanger, cls).__new__(cls)
+
+    def __call__(self, ctx: "Context") -> Any:
+        if self._model_loader:
+            self._model_loader.start()
+
+        if self.mode == "receive":
+            print(f"node_id[{task.router.node_id}] try receive model")
+            if ctx.total_step != 0:  # Skip first iteration
+                self._update_model()
+            else:
+                print(f"node_id[{task.router.node_id}] skip first iteration")
+        elif self.mode == "send":
+            yield
+            print(f"node_id[{task.router.node_id}] try send model")
+            if self._id_counter % self._period == 0:
+                self._send_model(id=self._id_counter)
+                print(f"node_id[{task.router.node_id}] model send [{self._id_counter}]")
+            self._id_counter += 1
+        else:
+            raise NotImplementedError
+
+    def _update_model(self):
+        start = time()
+        while True:
+            if task.finish:
+                return
+            if time() - start > 60:
+                logging.warning("Timeout when waiting for new model! Node id: {}".format(task.router.node_id))
+                self.model_stale += 1
+                break
+            if self._state_dict_cache is None:
+                if self.model_stale < self.stale_toleration and time() - self._time < self.delay_toleration:
+                    self.model_stale += 1
+                    break
+                else:
+                    sleep(0.01)
+            else:
+                #print(f"node_id[{task.router.node_id}] time diff {time()-self._time}")
+                if self._id_counter > self._model_id and time() - self._time < self.delay_toleration:
+                    print(f"node_id[{task.router.node_id}] begin update")
+                    if isinstance(self._state_dict_cache, Storage) and self._model_loader is not None:
+                        try:
+                            self._model.load_state_dict(self._model_loader.load(self._state_dict_cache))
+                            self._state_dict_cache = None
+                            self._model_id = self._id_counter
+                            self.model_stale = 1
+                            break
+                        except FileNotFoundError as e:
+                            logging.warning(
+                                "Model file has been deleted on node {}, maybe you can increase the ttl.".format(
+                                    task.router.node_id
+                                )
+                            )
+                            self._state_dict_cache = None
+                            continue
+                    else:
+                        self._model.load_state_dict(self._state_dict_cache)
+                        self._state_dict_cache = None
+                        self._model_id = self._id_counter
+                        print(f"node_id[{task.router.node_id}] model updated")
+                        self.model_stale = 1
+                        break
+                else:
+                    print(f"node_id[{task.router.node_id}] same id skip update")
+                    self.model_stale += 1
+
+    def _send_model(self, id: int):
+        if self._model_loader:
+            self._model_loader.save(self._send_callback)
+        else:
+            task.emit(self._event_name, {'id': id, 'model': self._model.state_dict(), 'time': time()}, only_remote=True)
 
     def _send_callback(self, storage: Storage):
         if task.running:
