@@ -304,11 +304,14 @@ class PeriodicalModelExchanger:
     ) -> None:
         """
         Overview:
-            Exchange model between processes, only the learner will send the model,
-            otherwise the model will only be received.
-            If you are using a shared model on a single host, there is no need to use this middleware.
+            Exchange model between processes periodically
         Arguments:
             - model (:obj:`torch.nn.Module`): Pytorch module.
+            - mode (:obj:`str`): "send" or "receive"
+            - period (:obj:`int`): Period of model exchange.
+            - delay_toleration (:obj:`float`): Delay toleration of model exchange.
+            - stale_toleration (:obj:`int`): Stale toleration of model exchange.
+            - event_name (:obj:`str`): Event name of model exchange.
             - model_loader (:obj:`ModelLoader`): Encode model in subprocess.
         """
         self._model = model
