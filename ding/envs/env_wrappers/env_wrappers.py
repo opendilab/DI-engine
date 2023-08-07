@@ -1192,21 +1192,24 @@ class AllinObsWrapper(gym.Wrapper):
         super().__init__(env)
 
     def reset(self):
-        ret = {'obs':self.env.reset(), 'reward': np.array([0])}
-        self._observation_space = gym.spaces.Dict({
-            'obs': self.env.observation_space,
-            'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32)}
+        ret = {'obs': self.env.reset(), 'reward': np.array([0])}
+        self._observation_space = gym.spaces.Dict(
+            {
+                'obs': self.env.observation_space,
+                'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32)
+            }
         )
         return ret
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)
-        obs = {'obs':obs, 'reward': reward}
+        obs = {'obs': obs, 'reward': reward}
         from ding.envs import BaseEnvTimestep
         return BaseEnvTimestep(obs, reward, done, info)
-    
+
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self.env.seed(seed, dynamic_seed)
+
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """

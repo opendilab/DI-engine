@@ -82,6 +82,7 @@ class Attention(nn.Module):
 
 
 class MaskedCausalAttention(nn.Module):
+
     def __init__(self, h_dim, max_T, n_heads, drop_p):
         super().__init__()
 
@@ -102,22 +103,22 @@ class MaskedCausalAttention(nn.Module):
 
         # register buffer makes sure mask does not get updated
         # during backpropagation
-        self.register_buffer('mask',mask)
+        self.register_buffer('mask', mask)
 
     def forward(self, x):
-        B, T, C = x.shape # batch size, seq length, h_dim * n_heads
+        B, T, C = x.shape  # batch size, seq length, h_dim * n_heads
 
-        N, D = self.n_heads, C // self.n_heads # N = num heads, D = attention dim
+        N, D = self.n_heads, C // self.n_heads  # N = num heads, D = attention dim
 
         # rearrange q, k, v as (B, N, T, D)
-        q = self.q_net(x).view(B, T, N, D).transpose(1,2)
-        k = self.k_net(x).view(B, T, N, D).transpose(1,2)
-        v = self.v_net(x).view(B, T, N, D).transpose(1,2)
+        q = self.q_net(x).view(B, T, N, D).transpose(1, 2)
+        k = self.k_net(x).view(B, T, N, D).transpose(1, 2)
+        v = self.v_net(x).view(B, T, N, D).transpose(1, 2)
 
         # weights (B, N, T, T)
-        weights = q @ k.transpose(2,3) / math.sqrt(D)
+        weights = q @ k.transpose(2, 3) / math.sqrt(D)
         # causal mask applied to weights
-        weights = weights.masked_fill(self.mask[...,:T,:T] == 0, float('-inf'))
+        weights = weights.masked_fill(self.mask[..., :T, :T] == 0, float('-inf'))
         # normalize weights, all -inf -> 0 after softmax
         normalized_weights = F.softmax(weights, dim=-1)
 
@@ -125,7 +126,7 @@ class MaskedCausalAttention(nn.Module):
         attention = self.att_drop(normalized_weights @ v)
 
         # gather heads and project (B, N, T, D) -> (B, T, N*D)
-        attention = attention.transpose(1, 2).contiguous().view(B,T,N*D)
+        attention = attention.transpose(1, 2).contiguous().view(B, T, N * D)
 
         out = self.proj_drop(self.proj_net(attention))
         return out

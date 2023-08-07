@@ -194,7 +194,7 @@ class TestDingEnvWrapper:
             action = ding_env_aio.random_action()
             timestep = ding_env_aio.step(action)
             # print(timestep.reward)
-            assert isinstance(timestep.obs,dict)
+            assert isinstance(timestep.obs, dict)
             if timestep.done:
                 assert 'eval_episode_return' in timestep.info, timestep.info
                 break

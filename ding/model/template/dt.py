@@ -19,6 +19,7 @@ import torch.nn.functional as F
 
 
 class MaskedCausalAttention(nn.Module):
+
     def __init__(self, h_dim, max_T, n_heads, drop_p):
         super().__init__()
 
@@ -39,22 +40,22 @@ class MaskedCausalAttention(nn.Module):
 
         # register buffer makes sure mask does not get updated
         # during backpropagation
-        self.register_buffer('mask',mask)
+        self.register_buffer('mask', mask)
 
     def forward(self, x):
-        B, T, C = x.shape # batch size, seq length, h_dim * n_heads
+        B, T, C = x.shape  # batch size, seq length, h_dim * n_heads
 
-        N, D = self.n_heads, C // self.n_heads # N = num heads, D = attention dim
+        N, D = self.n_heads, C // self.n_heads  # N = num heads, D = attention dim
 
         # rearrange q, k, v as (B, N, T, D)
-        q = self.q_net(x).view(B, T, N, D).transpose(1,2)
-        k = self.k_net(x).view(B, T, N, D).transpose(1,2)
-        v = self.v_net(x).view(B, T, N, D).transpose(1,2)
+        q = self.q_net(x).view(B, T, N, D).transpose(1, 2)
+        k = self.k_net(x).view(B, T, N, D).transpose(1, 2)
+        v = self.v_net(x).view(B, T, N, D).transpose(1, 2)
 
         # weights (B, N, T, T)
-        weights = q @ k.transpose(2,3) / math.sqrt(D)
+        weights = q @ k.transpose(2, 3) / math.sqrt(D)
         # causal mask applied to weights
-        weights = weights.masked_fill(self.mask[...,:T,:T] == 0, float('-inf'))
+        weights = weights.masked_fill(self.mask[..., :T, :T] == 0, float('-inf'))
         # normalize weights, all -inf -> 0 after softmax
         normalized_weights = F.softmax(weights, dim=-1)
 
@@ -62,37 +63,50 @@ class MaskedCausalAttention(nn.Module):
         attention = self.att_drop(normalized_weights @ v)
 
         # gather heads and project (B, N, T, D) -> (B, T, N*D)
-        attention = attention.transpose(1, 2).contiguous().view(B,T,N*D)
+        attention = attention.transpose(1, 2).contiguous().view(B, T, N * D)
 
         out = self.proj_drop(self.proj_net(attention))
         return out
 
 
 class Block(nn.Module):
+
     def __init__(self, h_dim, max_T, n_heads, drop_p):
         super().__init__()
         self.attention = MaskedCausalAttention(h_dim, max_T, n_heads, drop_p)
         self.mlp = nn.Sequential(
-                nn.Linear(h_dim, 4*h_dim),
-                nn.GELU(),
-                nn.Linear(4*h_dim, h_dim),
-                nn.Dropout(drop_p),
-            )
+            nn.Linear(h_dim, 4 * h_dim),
+            nn.GELU(),
+            nn.Linear(4 * h_dim, h_dim),
+            nn.Dropout(drop_p),
+        )
         self.ln1 = nn.LayerNorm(h_dim)
         self.ln2 = nn.LayerNorm(h_dim)
 
     def forward(self, x):
         # Attention -> LayerNorm -> MLP -> LayerNorm
-        x = x + self.attention(x) # residual
+        x = x + self.attention(x)  # residual
         x = self.ln1(x)
-        x = x + self.mlp(x) # residual
+        x = x + self.mlp(x)  # residual
         x = self.ln2(x)
         return x
 
 
 class DecisionTransformer(nn.Module):
-    def __init__(self, state_dim, act_dim, n_blocks, h_dim, context_len,
-                 n_heads, drop_p, max_timestep=4096, state_encoder=None, continuous=False):
+
+    def __init__(
+        self,
+        state_dim,
+        act_dim,
+        n_blocks,
+        h_dim,
+        context_len,
+        n_heads,
+        drop_p,
+        max_timestep=4096,
+        state_encoder=None,
+        continuous=False
+    ):
         super().__init__()
 
         self.state_dim = state_dim
@@ -110,7 +124,7 @@ class DecisionTransformer(nn.Module):
         self.embed_rtg = torch.nn.Linear(1, h_dim)
 
         self.pos_emb = nn.Parameter(torch.zeros(1, input_seq_len + 1, self.h_dim))
-        self.global_pos_emb = nn.Parameter(torch.zeros(1, max_timestep+1, self.h_dim))
+        self.global_pos_emb = nn.Parameter(torch.zeros(1, max_timestep + 1, self.h_dim))
 
         if state_encoder == None:
             self.embed_state = torch.nn.Linear(state_dim, h_dim)
@@ -122,16 +136,14 @@ class DecisionTransformer(nn.Module):
         if continuous:
             # continuous actions
             self.embed_action = torch.nn.Linear(act_dim, h_dim)
-            use_action_tanh = True # True for continuous actions
+            use_action_tanh = True  # True for continuous actions
         else:
             # discrete actions
             self.embed_action = torch.nn.Embedding(act_dim, h_dim)
-            use_action_tanh = False # False for discrete actions
+            use_action_tanh = False  # False for discrete actions
 
         ### prediction heads
-        self.predict_action = nn.Sequential(
-            *([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else []))
-        )
+        self.predict_action = nn.Sequential(*([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else [])))
 
     def forward(self, timesteps, states, actions, returns_to_go):
         B, T = states.shape[0], states.shape[1]
@@ -143,19 +155,24 @@ class DecisionTransformer(nn.Module):
             action_embeddings = self.embed_action(actions) + time_embeddings
             returns_embeddings = self.embed_rtg(returns_to_go) + time_embeddings
         else:
-            state_embeddings = self.state_encoder(states.reshape(-1, 4, 84, 84).type(torch.float32).contiguous()) # (batch * block_size, h_dim)
-            state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1], self.h_dim) # (batch, block_size, h_dim)
+            state_embeddings = self.state_encoder(
+                states.reshape(-1, 4, 84, 84).type(torch.float32).contiguous()
+            )  # (batch * block_size, h_dim)
+            state_embeddings = state_embeddings.reshape(
+                states.shape[0], states.shape[1], self.h_dim
+            )  # (batch, block_size, h_dim)
             returns_embeddings = self.embed_rtg(returns_to_go.type(torch.float32))
-            action_embeddings = self.embed_action(actions.type(torch.long).squeeze(-1)) # (batch, block_size, h_dim)
+            action_embeddings = self.embed_action(actions.type(torch.long).squeeze(-1))  # (batch, block_size, h_dim)
 
         # stack rtg, states and actions and reshape sequence as
         # (r_0, s_0, a_0, r_1, s_1, a_1, r_2, s_2, a_2 ...)
-        h = torch.stack(
-            (returns_embeddings, state_embeddings, action_embeddings), dim=1
-        ).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
+        h = torch.stack((returns_embeddings, state_embeddings, action_embeddings),
+                        dim=1).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
 
-        all_global_pos_emb = torch.repeat_interleave(self.global_pos_emb, B, dim=0) # batch_size, traj_length, h_dim
-        position_embeddings = torch.gather(all_global_pos_emb, 1, torch.repeat_interleave(timesteps, self.h_dim, dim=-1))
+        all_global_pos_emb = torch.repeat_interleave(self.global_pos_emb, B, dim=0)  # batch_size, traj_length, h_dim
+        position_embeddings = torch.gather(
+            all_global_pos_emb, 1, torch.repeat_interleave(timesteps, self.h_dim, dim=-1)
+        )
         position_embeddings = position_embeddings + self.pos_emb[:, :h.shape[1], :]
 
         h = self.embed_ln(h + position_embeddings)
@@ -168,17 +185,17 @@ class DecisionTransformer(nn.Module):
         # h[:, 1, t] is conditioned on the input sequence r_0, s_0, a_0 ... r_t, s_t
         # h[:, 2, t] is conditioned on the input sequence r_0, s_0, a_0 ... r_t, s_t, a_t
         # that is, for each timestep (t) we have 3 output embeddings from the transformer,
-        # each conditioned on all previous timesteps plus 
+        # each conditioned on all previous timesteps plus
         # the 3 input variables at that timestep (r_t, s_t, a_t) in sequence.
         h = h.reshape(B, T, 3, self.h_dim).permute(0, 2, 1, 3)
 
         # get predictions
         if self.state_encoder == None:
-            return_preds = self.predict_rtg(h[:,2])     # predict next rtg given r, s, a
-            state_preds = self.predict_state(h[:,2])    # predict next state given r, s, a
+            return_preds = self.predict_rtg(h[:, 2])  # predict next rtg given r, s, a
+            state_preds = self.predict_state(h[:, 2])  # predict next state given r, s, a
         else:
             return_preds = None
             state_preds = None
-        action_preds = self.predict_action(h[:,1])  # predict action given r, s
+        action_preds = self.predict_action(h[:, 1])  # predict action given r, s
 
         return state_preds, action_preds, return_preds

@@ -12,7 +12,7 @@ Pong_dt_config = dict(
         stop_value=20,
         frame_stack=4,
         is_train=False,
-        episode_num=10000, # stop in breakout
+        episode_num=10000,  # stop in breakout
     ),
     dataset=dict(
         env_type='atari',
@@ -44,7 +44,7 @@ Pong_dt_config = dict(
             n_heads=8,
             drop_p=0.1,
             continuous=False,
-            ),
+        ),
         batch_size=128,
         learning_rate=6e-4,
         eval=dict(evaluator=dict(eval_freq=100, ), ),

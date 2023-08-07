@@ -35,9 +35,9 @@ class DTPolicy(Policy):
         max_eval_ep_len=1000,  # max len of one episode
         batch_size=64,  # training batch size
         wt_decay=1e-4,  # decay weight in optimizer
-        warmup_steps=10000, # steps for learning rate warmup
+        warmup_steps=10000,  # steps for learning rate warmup
         context_len=20,  # length of transformer input 
-        learning_rate=1e-4, 
+        learning_rate=1e-4,
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
@@ -54,14 +54,14 @@ class DTPolicy(Policy):
         # rtg_target: max target of `return to go`
         # Our goal is normalize `return to go` to (0, 1), which will favour the covergence.
         # As a result, we usually set rtg_scale == rtg_target.
-        self.rtg_scale = self._cfg.rtg_scale  # normalize returns to go 
+        self.rtg_scale = self._cfg.rtg_scale  # normalize returns to go
         self.rtg_target = self._cfg.rtg_target  # max target reward_to_go
         self.max_eval_ep_len = self._cfg.max_eval_ep_len  # max len of one episode
 
         lr = self._cfg.learning_rate  # learning rate
         wt_decay = self._cfg.wt_decay  # weight decay
         warmup_steps = self._cfg.warmup_steps  # warmup steps for lr scheduler
-        
+
         self.clip_grad_norm_p = self._cfg.clip_grad_norm_p
         self.context_len = self._cfg.model.context_len  # K in decision transformer
 
@@ -86,7 +86,7 @@ class DTPolicy(Policy):
             Returns:
                 - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
-        
+
         timesteps, states, actions, returns_to_go, traj_mask = data
         action_target = torch.clone(actions).detach().to(self._device)
 
@@ -98,9 +98,10 @@ class DTPolicy(Policy):
         # if discrete
         if not self._cfg.model.continuous and 'state_mean' in self._cfg:
             actions = one_hot(actions.squeeze(-1), num=self.act_dim)
-        
+
         state_preds, action_preds, return_preds = self._learn_model.forward(
-            timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go)
+            timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
+        )
 
         if 'state_mean' not in self._cfg:
             action_loss = F.cross_entropy(action_preds.reshape(-1, action_preds.size(-1)), action_target.reshape(-1))
@@ -145,40 +146,72 @@ class DTPolicy(Policy):
         self.eval_batch_size = self._cfg.evaluator_env_num
         self.max_eval_ep_len = self._cfg.max_eval_ep_len
         self.context_len = self._cfg.model.context_len  # K in decision transformer
-        
+
         self.t = [0 for _ in range(self.eval_batch_size)]
         if self._cfg.model.continuous:
-            self.actions = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self._device)
+            self.actions = torch.zeros(
+                (self.eval_batch_size, self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self._device
+            )
         else:
-            self.actions = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.long, device=self._device)
+            self.actions = torch.zeros(
+                (self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.long, device=self._device
+            )
         if 'state_mean' not in self._cfg:
-            self.states = torch.zeros((self.eval_batch_size, self.max_eval_ep_len,) + tuple(self.state_dim), dtype=torch.float32, device=self._device)
+            self.states = torch.zeros(
+                (
+                    self.eval_batch_size,
+                    self.max_eval_ep_len,
+                ) + tuple(self.state_dim),
+                dtype=torch.float32,
+                device=self._device
+            )
             self.running_rtg = [self.rtg_target for _ in range(self.eval_batch_size)]
         else:
             self.running_rtg = [self.rtg_target / self.rtg_scale for _ in range(self.eval_batch_size)]
-            self.states = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self._device)
+            self.states = torch.zeros(
+                (self.eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self._device
+            )
             self.state_mean = torch.from_numpy(self._cfg.state_mean).to(self._device)
             self.state_std = torch.from_numpy(self._cfg.state_std).to(self._device)
-        self.timesteps = torch.arange(start=0, end=self.max_eval_ep_len, step=1).repeat(self.eval_batch_size, 1).to(self._device)
-        self.rewards_to_go = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.float32, device=self._device)
+        self.timesteps = torch.arange(
+            start=0, end=self.max_eval_ep_len, step=1
+        ).repeat(self.eval_batch_size, 1).to(self._device)
+        self.rewards_to_go = torch.zeros(
+            (self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.float32, device=self._device
+        )
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         # save and forward
         data_id = list(data.keys())
-        
+
         self._eval_model.eval()
         with torch.no_grad():
             if 'state_mean' not in self._cfg:
-                states = torch.zeros((self.eval_batch_size, self.context_len,) + tuple(self.state_dim), dtype=torch.float32, device=self._device)
+                states = torch.zeros(
+                    (
+                        self.eval_batch_size,
+                        self.context_len,
+                    ) + tuple(self.state_dim),
+                    dtype=torch.float32,
+                    device=self._device
+                )
                 timesteps = torch.zeros((self.eval_batch_size, 1, 1), dtype=torch.long, device=self._device)
             else:
-                states = torch.zeros((self.eval_batch_size, self.context_len, self.state_dim), dtype=torch.float32, device=self._device)
+                states = torch.zeros(
+                    (self.eval_batch_size, self.context_len, self.state_dim), dtype=torch.float32, device=self._device
+                )
                 timesteps = torch.zeros((self.eval_batch_size, self.context_len), dtype=torch.long, device=self._device)
             if not self._cfg.model.continuous:
-                actions = torch.zeros((self.eval_batch_size, self.context_len, 1), dtype=torch.long, device=self._device)
+                actions = torch.zeros(
+                    (self.eval_batch_size, self.context_len, 1), dtype=torch.long, device=self._device
+                )
             else:
-                actions = torch.zeros((self.eval_batch_size, self.context_len, self.act_dim), dtype=torch.float32, device=self._device)
-            rewards_to_go = torch.zeros((self.eval_batch_size, self.context_len, 1), dtype=torch.float32, device=self._device)
+                actions = torch.zeros(
+                    (self.eval_batch_size, self.context_len, self.act_dim), dtype=torch.float32, device=self._device
+                )
+            rewards_to_go = torch.zeros(
+                (self.eval_batch_size, self.context_len, 1), dtype=torch.float32, device=self._device
+            )
             for i in data_id:
                 if 'state_mean' not in self._cfg:
                     self.states[i, self.t[i]] = data[i]['obs'].to(self._device)
@@ -186,10 +219,12 @@ class DTPolicy(Policy):
                     self.states[i, self.t[i]] = (data[i]['obs'].to(self._device) - self.state_mean) / self.state_std
                 self.running_rtg[i] = self.running_rtg[i] - data[i]['reward'].to(self._device)
                 self.rewards_to_go[i, self.t[i]] = self.running_rtg[i]
-                
+
                 if self.t[i] <= self.context_len:
                     if 'state_mean' not in self._cfg:
-                        timesteps[i] = min(self.t[i], self._cfg.max_timestep) * torch.ones((1, 1), dtype=torch.int64).to(self._device)
+                        timesteps[i] = min(self.t[i],
+                                           self._cfg.max_timestep) * torch.ones((1, 1),
+                                                                                dtype=torch.int64).to(self._device)
                     else:
                         timesteps[i] = self.timesteps[i, :self.context_len]
                     states[i] = self.states[i, :self.context_len]
@@ -197,7 +232,9 @@ class DTPolicy(Policy):
                     rewards_to_go[i] = self.rewards_to_go[i, :self.context_len]
                 else:
                     if 'state_mean' not in self._cfg:
-                        timesteps[i] = min(self.t[i], self._cfg.max_timestep) * torch.ones((1, 1), dtype=torch.int64).to(self._device)
+                        timesteps[i] = min(self.t[i],
+                                           self._cfg.max_timestep) * torch.ones((1, 1),
+                                                                                dtype=torch.int64).to(self._device)
                     else:
                         timesteps[i] = self.timesteps[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     states[i] = self.states[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
@@ -225,31 +262,58 @@ class DTPolicy(Policy):
         # clean data
         if data_id is None:
             self.t = [0 for _ in range(self.eval_batch_size)]
-            self.timesteps = torch.arange(start=0, end=self.max_eval_ep_len, step=1).repeat(self.eval_batch_size, 1).to(self._device)
+            self.timesteps = torch.arange(
+                start=0, end=self.max_eval_ep_len, step=1
+            ).repeat(self.eval_batch_size, 1).to(self._device)
             if not self._cfg.model.continuous:
-                self.actions = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.long, device=self._device)
+                self.actions = torch.zeros(
+                    (self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.long, device=self._device
+                )
             else:
-                self.actions = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self._device)
+                self.actions = torch.zeros(
+                    (self.eval_batch_size, self.max_eval_ep_len, self.act_dim),
+                    dtype=torch.float32,
+                    device=self._device
+                )
             if 'state_mean' not in self._cfg:
-                self.states = torch.zeros((self.eval_batch_size, self.max_eval_ep_len,) + tuple(self.state_dim), dtype=torch.float32, device=self._device)
+                self.states = torch.zeros(
+                    (
+                        self.eval_batch_size,
+                        self.max_eval_ep_len,
+                    ) + tuple(self.state_dim),
+                    dtype=torch.float32,
+                    device=self._device
+                )
                 self.running_rtg = [self.rtg_target for _ in range(self.eval_batch_size)]
             else:
-                self.states = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self._device)
+                self.states = torch.zeros(
+                    (self.eval_batch_size, self.max_eval_ep_len, self.state_dim),
+                    dtype=torch.float32,
+                    device=self._device
+                )
                 self.running_rtg = [self.rtg_target / self.rtg_scale for _ in range(self.eval_batch_size)]
 
-            self.rewards_to_go = torch.zeros((self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.float32, device=self._device)        
+            self.rewards_to_go = torch.zeros(
+                (self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.float32, device=self._device
+            )
         else:
             for i in data_id:
                 self.t[i] = 0
                 if not self._cfg.model.continuous:
                     self.actions[i] = torch.zeros((self.max_eval_ep_len, 1), dtype=torch.long, device=self._device)
                 else:
-                    self.actions[i] = torch.zeros((self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self._device)
+                    self.actions[i] = torch.zeros(
+                        (self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self._device
+                    )
                 if 'state_mean' not in self._cfg:
-                    self.states[i] = torch.zeros((self.max_eval_ep_len,) + tuple(self.state_dim), dtype=torch.float32, device=self._device)
+                    self.states[i] = torch.zeros(
+                        (self.max_eval_ep_len, ) + tuple(self.state_dim), dtype=torch.float32, device=self._device
+                    )
                     self.running_rtg[i] = self.rtg_target
                 else:
-                    self.states[i] = torch.zeros((self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self._device)
+                    self.states[i] = torch.zeros(
+                        (self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self._device
+                    )
                     self.running_rtg[i] = self.rtg_target / self.rtg_scale
                     self.timesteps[i] = torch.arange(start=0, end=self.max_eval_ep_len, step=1).to(self._device)
                 self.rewards_to_go[i] = torch.zeros((self.max_eval_ep_len, 1), dtype=torch.float32, device=self._device)
@@ -264,7 +328,7 @@ class DTPolicy(Policy):
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
-        
+
     def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
         self._eval_model.load_state_dict(state_dict)
 

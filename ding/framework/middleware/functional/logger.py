@@ -93,12 +93,10 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
     return _logger
 
 
-def offline_logger(
-        exp_name: str = None
-) -> Callable:
+def offline_logger(exp_name: str = None) -> Callable:
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
-    writer = SummaryWriter(logdir = exp_name)
+    writer = SummaryWriter(logdir=exp_name)
 
     def _logger(ctx: "OfflineRLContext"):
         if task.finish:

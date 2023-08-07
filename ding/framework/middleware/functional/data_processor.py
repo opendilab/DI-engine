@@ -186,6 +186,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     from queue import Queue
     import time
     stream = torch.cuda.Stream()
+
     def producer(queue, dataset, batch_size, device):
         torch.set_num_threads(8)
         nonlocal stream
@@ -201,12 +202,17 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
                         del idx_iter
                         idx_iter = iter(range(len(dataset)))
                         start_idx = next(idx_iter)
-                    data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx+batch_size)]
+                    data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx + batch_size)]
                     data = [[i[j] for i in data] for j in range(len(data[0]))]
                     data = [torch.stack(x).to(device) for x in data]
                     queue.put(data)
+
     queue = Queue(maxsize=50)
-    producer_thread = Thread(target=producer, args=(queue, dataset, cfg.policy.batch_size, 'cuda:0' if cfg.policy.cuda else 'cpu'), name='cuda_fetcher_producer')
+    producer_thread = Thread(
+        target=producer,
+        args=(queue, dataset, cfg.policy.batch_size, 'cuda:0,1' if cfg.policy.cuda else 'cpu'),
+        name='cuda_fetcher_producer'
+    )
 
     producer_thread.start()
 
@@ -249,9 +255,12 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         except StopIteration:
             ctx.train_epoch += 1
             del dataloader
-            dataloader = iter(DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x))
+            dataloader = iter(
+                DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
+            )
             ctx.train_data = next(dataloader)
         # TODO apply data update (e.g. priority) in offline setting when necessary
+
     return _fetch
 
 

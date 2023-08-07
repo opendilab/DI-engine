@@ -22,7 +22,8 @@ def main():
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OfflineRLContext()):
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: AllinObsWrapper(LunarLanderEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
+            env_fn=[lambda: AllinObsWrapper(LunarLanderEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)],
+            cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)

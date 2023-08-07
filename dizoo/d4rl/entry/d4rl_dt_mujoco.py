@@ -24,7 +24,8 @@ def main():
     # ding_init(cfg)
     with task.start(async_mode=False, ctx=OfflineRLContext()):
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: AllinObsWrapper(D4RLEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
+            env_fn=[lambda: AllinObsWrapper(D4RLEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)],
+            cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
@@ -32,7 +33,8 @@ def main():
         dataset = create_dataset(cfg)
         # env_data_stats = dataset.get_d4rl_dataset_stats(cfg.policy.dataset_name)
         env_data_stats = dataset.get_state_stats()
-        cfg.policy.state_mean, cfg.policy.state_std = np.array(env_data_stats['state_mean']), np.array(env_data_stats['state_std'])
+        cfg.policy.state_mean, cfg.policy.state_std = np.array(env_data_stats['state_mean']
+                                                               ), np.array(env_data_stats['state_std'])
         model = DecisionTransformer(**cfg.policy.model)
         policy = DTPolicy(cfg.policy, model=model)
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
@@ -46,4 +48,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

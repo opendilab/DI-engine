@@ -161,11 +161,7 @@ class AsyncDataLoader(IDataLoader):
                 break
             if cmd == 'get_data':
                 # Main worker asks for data.
-                import time
-                st = time.time()
-                print('in data get at', st)
                 data = self.data_source(self.batch_size)
-                print('already get data at', time.time(), 'cost', time.time()-st)
                 # ``data`` can be callable, e.g. a function to read data from file, therefore we can divide
                 # this job to pieces, assign to every slave worker and accomplish jobs asynchronously.
                 # But if we get a list of dicts, which means the data has already been processed and
