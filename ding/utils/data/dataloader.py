@@ -161,7 +161,11 @@ class AsyncDataLoader(IDataLoader):
                 break
             if cmd == 'get_data':
                 # Main worker asks for data.
+                import time
+                st = time.time()
+                print('in data get at', st)
                 data = self.data_source(self.batch_size)
+                print('already get data at', time.time(), 'cost', time.time()-st)
                 # ``data`` can be callable, e.g. a function to read data from file, therefore we can divide
                 # this job to pieces, assign to every slave worker and accomplish jobs asynchronously.
                 # But if we get a list of dicts, which means the data has already been processed and
@@ -186,6 +190,7 @@ class AsyncDataLoader(IDataLoader):
             - p (:obj:`tm.multiprocessing.connection`): Parent connection.
             - c (:obj:`tm.multiprocessing.connection`): Child connection.
         """
+        torch.set_num_threads(1)
         p.close()  # Close unused p, only use c
         while not self.end_flag:
             if self.num_workers > 1:

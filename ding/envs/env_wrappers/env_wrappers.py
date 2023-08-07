@@ -1192,7 +1192,12 @@ class AllinObsWrapper(gym.Wrapper):
         super().__init__(env)
 
     def reset(self):
-        return {'obs':self.env.reset(), 'reward': [0]}
+        ret = {'obs':self.env.reset(), 'reward': np.array([0])}
+        self._observation_space = gym.spaces.Dict({
+            'obs': self.env.observation_space,
+            'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32)}
+        )
+        return ret
 
     def step(self, action):
         obs, reward, done, info = self.env.step(action)

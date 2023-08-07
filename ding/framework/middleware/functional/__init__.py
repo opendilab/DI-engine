@@ -1,5 +1,5 @@
 from .trainer import trainer, multistep_trainer
-from .data_processor import offpolicy_data_fetcher, data_pusher, offline_data_fetcher, offline_data_saver, \
+from .data_processor import offpolicy_data_fetcher, data_pusher, offline_data_fetcher, offline_data_saver, offline_data_fetcher_from_mem, \
     sqil_data_pusher, buffer_saver
 from .collector import inferencer, rolloutor, TransitionList
 from .evaluator import interaction_evaluator, interaction_evaluator_ttorch

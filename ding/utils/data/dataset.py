@@ -329,12 +329,12 @@ class D4RLTrajectoryDataset(Dataset):
     }
 
     def __init__(self, cfg: dict) -> None:
-        dataset_path = cfg.policy.collect.data_path
-        rtg_scale = cfg.policy.rtg_scale
-        self.context_len = cfg.policy.context_len
-        self.env_type = cfg.policy.env_type
+        dataset_path = cfg.dataset.data_dir_prefix
+        rtg_scale = cfg.dataset.rtg_scale
+        self.context_len = cfg.dataset.context_len
+        self.env_type = cfg.dataset.env_type
 
-        if 'hdf5' in dataset_path:
+        if 'hdf5' in dataset_path: # for mujoco env
             try:
                 import h5py
                 import collections
@@ -501,12 +501,12 @@ class D4RLTrajectoryDataset(Dataset):
 
             transitions_per_buffer = np.zeros(50, dtype=int)
             num_trajectories = 0
-            while len(obss) < cfg.policy.num_steps:
-                buffer_num = np.random.choice(np.arange(50 - cfg.policy.num_buffers, 50), 1)[0]
+            while len(obss) < cfg.dataset.num_steps:
+                buffer_num = np.random.choice(np.arange(50 - cfg.dataset.num_buffers, 50), 1)[0]
                 i = transitions_per_buffer[buffer_num]
                 print('loading from buffer %d which has %d already loaded' % (buffer_num, i))
                 frb = FixedReplayBuffer(
-                    data_dir=cfg.policy.data_dir_prefix + '/1/replay_logs',
+                    data_dir=cfg.dataset.data_dir_prefix + '/1/replay_logs',
                     replay_suffix=buffer_num,
                     observation_shape=(84, 84),
                     stack_size=4,
@@ -518,7 +518,7 @@ class D4RLTrajectoryDataset(Dataset):
                 if frb._loaded_buffers:
                     done = False
                     curr_num_transitions = len(obss)
-                    trajectories_to_load = cfg.policy.trajectories_per_buffer
+                    trajectories_to_load = cfg.dataset.trajectories_per_buffer
                     while not done:
                         states, ac, ret, next_states, next_action, next_reward, terminal, indices = frb.sample_transition_batch(batch_size=1, indices=[i])
                         states = states.transpose((0, 3, 1, 2))[0] # (1, 84, 84, 4) --> (4, 84, 84)
@@ -541,7 +541,7 @@ class D4RLTrajectoryDataset(Dataset):
                             returns[-1] = 0
                             i = transitions_per_buffer[buffer_num]
                             done = True
-                    num_trajectories += (cfg.policy.trajectories_per_buffer - trajectories_to_load)
+                    num_trajectories += (cfg.dataset.trajectories_per_buffer - trajectories_to_load)
                     transitions_per_buffer[buffer_num] = i
                 print('this buffer has %d loaded transitions and there are now %d transitions total divided into %d trajectories' % (i, len(obss), num_trajectories))
 
@@ -560,7 +560,6 @@ class D4RLTrajectoryDataset(Dataset):
                     rtg_j = curr_traj_returns[j-start_index:i-start_index]
                     rtg[j] = sum(rtg_j)
                 start_index = i
-            print('max rtg is %d' % max(rtg))
 
             # -- create timestep dataset
             start_index = 0
@@ -569,7 +568,6 @@ class D4RLTrajectoryDataset(Dataset):
                 i = int(i)
                 timesteps[start_index:i+1] = np.arange(i+1 - start_index)
                 start_index = i+1
-            print('max timestep is %d' % max(timesteps))
 
             self.obss = obss
             self.actions = actions
@@ -640,7 +638,7 @@ class D4RLTrajectoryDataset(Dataset):
                     torch.zeros(padding_len, dtype=torch.long)], dim=0
                 )
             return timesteps, states, actions, returns_to_go, traj_mask
-        else: # mean time cost less than 0.02s
+        else: # mean cost less than 0.001s
             block_size = self.context_len
             done_idx = idx + block_size
             for i in self.done_idxs:
@@ -648,11 +646,11 @@ class D4RLTrajectoryDataset(Dataset):
                     done_idx = min(int(i), done_idx)
                     break
             idx = done_idx - block_size
-            states = torch.tensor(np.array(self.obss[idx:done_idx]), dtype=torch.float32).reshape(block_size, -1) # (block_size, 4*84*84)
+            states = torch.as_tensor(np.array(self.obss[idx:done_idx]), dtype=torch.float32).view(block_size, -1) # (block_size, 4*84*84)
             states = states / 255.
-            actions = torch.tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1) # (block_size, 1)
-            rtgs = torch.tensor(self.rtgs[idx:done_idx], dtype=torch.float32).unsqueeze(1)
-            timesteps = torch.tensor(self.timesteps[idx:idx+1], dtype=torch.int64).unsqueeze(1)
+            actions = torch.as_tensor(self.actions[idx:done_idx], dtype=torch.long).unsqueeze(1) # (block_size, 1)
+            rtgs = torch.as_tensor(self.rtgs[idx:done_idx], dtype=torch.float32).unsqueeze(1)
+            timesteps = torch.as_tensor(self.timesteps[idx:idx+1], dtype=torch.int64).unsqueeze(1)
             traj_mask = torch.ones(self.context_len, dtype=torch.long)
             return timesteps, states, actions, rtgs, traj_mask
         
