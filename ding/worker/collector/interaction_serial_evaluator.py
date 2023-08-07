@@ -31,8 +31,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         ),
         # (str) File path for visualize environment information.
         figure_path=None,
-        # (bool) Whether to return env info in termination step.
-        return_env_info=True,
     )
 
     def __init__(
@@ -253,10 +251,10 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                                 self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
                             reward = t.info['eval_episode_return']
+                            saved_info = {'eval_episode_return': t.info['eval_episode_return']}
                             if 'episode_info' in t.info:
-                                eval_monitor.update_info(env_id, t.info['episode_info'])
-                            elif self._cfg.return_env_info:
-                                eval_monitor.update_info(env_id, t.info)
+                                saved_info.update(t.info['episode_info'])
+                            eval_monitor.update_info(env_id, saved_info)
                             eval_monitor.update_reward(env_id, reward)
                             self._logger.info(
                                 "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
