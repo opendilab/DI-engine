@@ -178,9 +178,9 @@ class Adam(torch.optim.Adam):
 
         if self._optim_type == 'adamw':
             self._weight_decay = weight_decay
-            super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=0, amsgrad=amsgrad)
+            super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=0, amsgrad=amsgrad, foreach=False)
         elif self._optim_type == 'adam':
-            super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, amsgrad=amsgrad)
+            super(Adam, self).__init__(params, lr=lr, betas=betas, eps=eps, weight_decay=weight_decay, amsgrad=amsgrad, foreach=False)
         else:
             raise NotImplementedError(
                 "optimizer type {} is not implemented, support type is {}".format(

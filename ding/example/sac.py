@@ -1,3 +1,4 @@
+# import torch_dipu
 from ditk import logging
 from ding.model import QAC
 from ding.policy import SACPolicy
@@ -16,6 +17,7 @@ from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_confi
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    cfg['policy']['cuda']=True
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(

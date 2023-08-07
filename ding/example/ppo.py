@@ -1,4 +1,8 @@
+from capture_class import my_hook
 import gym
+# from capture_eiengine import insert_capture
+
+# import torch_dipu
 from ditk import logging
 from ding.model import VAC
 from ding.policy import PPOPolicy
@@ -11,12 +15,23 @@ from ding.framework.middleware import multistep_trainer, StepCollector, interact
     gae_estimator, online_logger
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import main_config, create_config
+import os
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    if( os.getenv('ONE_ITER_TOOL_DEVICE', None) != "cpu"):
+        cfg['policy']['cuda']=True
+    else:
+        cfg['policy']['cuda']=False
+    # cfg['seed']=5
+    # cfg['policy']['cuda']=True
+    # cfg['env']['collector_env_num']=1
+    
+    # cfg['policy']['cuda']=True
     ding_init(cfg)
+    cfg.seed = 5
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
             env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
@@ -31,6 +46,7 @@ def main():
 
         model = VAC(**cfg.policy.model)
         policy = PPOPolicy(cfg.policy, model=model)
+        my_hook.insert_capture(policy)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
