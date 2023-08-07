@@ -19,7 +19,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ (matrix.os == 'macos-latest' && matrix.python-version == '3.7') && '3.7.16' || matrix.python-version }}
       - name: do_platform_test
         timeout-minutes: 30
         run: |

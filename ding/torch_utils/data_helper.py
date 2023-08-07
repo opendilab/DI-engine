@@ -309,7 +309,7 @@ def to_item(data: Any, ignore_error: bool = True) -> Any:
             if ignore_error:
                 try:
                     new_data[k] = to_item(v)
-                except ValueError:
+                except (ValueError, RuntimeError):
                     pass
             else:
                 new_data[k] = to_item(v)

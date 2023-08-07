@@ -13,7 +13,7 @@ from typing import Optional, Tuple
 from easydict import EasyDict
 from copy import deepcopy
 
-from ding.utils import deep_merge_dicts
+from ding.utils import deep_merge_dicts, get_rank
 from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
 from ding.policy import get_policy_cls
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, Coordinator, \
@@ -459,7 +459,7 @@ def compile_config(
         cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
-    if save_cfg:
+    if save_cfg and get_rank() == 0:
         if os.path.exists(cfg.exp_name) and renew_dir:
             cfg.exp_name += datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
         try:
