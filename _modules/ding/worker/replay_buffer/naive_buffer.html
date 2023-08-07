@@ -296,6 +296,7 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">hickle</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 
@@ -759,6 +760,103 @@
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">envstep</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_current_buffer_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_buffer_size</span><span class="p">(</span><span class="n">envstep</span><span class="p">)</span>
+
+
+<span class="nd">@BUFFER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sequence&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SequenceReplayBuffer</span><span class="p">(</span><span class="n">NaiveReplayBuffer</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config</span>
+<span class="sd">    Property:</span>
+<span class="sd">        replay_buffer_size, push_count</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">sequence</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">sample_range</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Sample data with length ``size``.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - size (:obj:`int`): The number of the data that will be sampled.</span>
+<span class="sd">            - sequence (:obj:`int`): The length of the sequence of a data that will be sampled.</span>
+<span class="sd">            - cur_learner_iter (:obj:`int`): Learner&#39;s current iteration. \</span>
+<span class="sd">                Not used in naive buffer, but preserved for compatibility.</span>
+<span class="sd">            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \</span>
+<span class="sd">                means only sample among the last 10 data</span>
+<span class="sd">            - replace (:obj:`bool`): Whether sample with replacement</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - sample_data (:obj:`list`): A list of data with length ``size``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">batch</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">can_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_check</span><span class="p">(</span><span class="n">batch</span> <span class="o">*</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">replace</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">can_sample</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_indices</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">,</span> <span class="n">replace</span><span class="p">)</span>
+            <span class="n">sample_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_with_indices</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span><span class="o">.</span><span class="n">sample_data_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample_data</span>
+
+    <span class="k">def</span> <span class="nf">_get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sample_range</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">replace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the sample index list.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - size (:obj:`int`): The number of the data that will be sampled</span>
+<span class="sd">            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \</span>
+<span class="sd">                means only sample among the last 10 data</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span><span class="p">:</span>
+            <span class="n">tail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replay_buffer_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span>
+        <span class="n">episodes</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_valid_count</span> <span class="o">/</span> <span class="mi">500</span><span class="p">)</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">sample_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">batch</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">:</span>
+                <span class="n">episode</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">episodes</span><span class="p">)</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="n">tail</span> <span class="o">-</span> <span class="n">episode</span> <span class="o">*</span> <span class="mi">500</span> <span class="k">if</span> <span class="n">tail</span> <span class="o">-</span> <span class="n">episode</span> <span class="o">*</span> <span class="mi">500</span> <span class="o">&lt;</span> <span class="mi">500</span> <span class="k">else</span> <span class="mi">500</span>
+                <span class="n">available</span> <span class="o">=</span> <span class="n">length</span> <span class="o">-</span> <span class="n">sequence</span>
+                <span class="k">if</span> <span class="n">available</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">episode</span> <span class="o">*</span> <span class="mi">500</span><span class="p">,</span> <span class="n">episode</span> <span class="o">*</span> <span class="mi">500</span> <span class="o">+</span> <span class="n">available</span><span class="p">))</span>
+                <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">episode</span> <span class="o">*</span> <span class="mi">500</span><span class="p">,</span> <span class="n">episode</span> <span class="o">*</span> <span class="mi">500</span> <span class="o">+</span> <span class="n">available</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">batch</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">NotImplemented</span><span class="p">(</span><span class="s2">&quot;sample_range is not implemented in this version&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">indices</span>
+
+    <span class="k">def</span> <span class="nf">_sample_with_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cur_learner_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Sample data with ``indices``.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - indices (:obj:`List[int]`): A list including all the sample indices.</span>
+<span class="sd">            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatibility.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - data (:obj:`list`) Sampled data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="n">idx</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deepcopy</span><span class="p">:</span>
+                <span class="n">copy_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="n">sequence</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">copy_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="n">sequence</span><span class="p">]</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
 </pre></div>
 
               </article>
