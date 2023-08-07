@@ -26,6 +26,7 @@ from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy, SACDiscretePolicy
 from .mbpolicy.mbsac import MBSACPolicy, STEVESACPolicy
+from .mbpolicy.dreamer import DREAMERPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
@@ -300,6 +301,10 @@ class MBSACCommandModePolicy(MBSACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('stevesac_command')
 class STEVESACCommandModePolicy(STEVESACPolicy, DummyCommandModePolicy):
+    pass
+
+@POLICY_REGISTRY.register('dreamer_command')
+class DREAMERCommandModePolicy(DREAMERPolicy, DummyCommandModePolicy):
     pass
 
 
