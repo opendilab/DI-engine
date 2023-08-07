@@ -7,7 +7,7 @@ from ding.world_model.dreamer import DREAMERWorldModel
 from ding.utils import deep_merge_dicts
 
 # arguments
-state_size = [3, 64, 64]
+state_size = [[3, 64, 64]]
 action_size = [6, 1]
 args = list(product(*[state_size, action_size]))
 
