@@ -522,9 +522,8 @@ class D4RLTrajectoryDataset(Dataset):
                     curr_num_transitions = len(obss)
                     trajectories_to_load = cfg.dataset.trajectories_per_buffer
                     while not done:
-                        states, ac, ret, next_states, next_action, next_reward, terminal, indices = frb.sample_transition_batch(
-                            batch_size=1, indices=[i]
-                        )
+                        states, ac, ret, next_states, next_action, next_reward, terminal, indices = \
+                        frb.sample_transition_batch(                         batch_size=1, indices=[i])
                         states = states.transpose((0, 3, 1, 2))[0]  # (1, 84, 84, 4) --> (4, 84, 84)
                         obss.append(states)
                         actions.append(ac[0])
@@ -547,10 +546,6 @@ class D4RLTrajectoryDataset(Dataset):
                             done = True
                     num_trajectories += (cfg.dataset.trajectories_per_buffer - trajectories_to_load)
                     transitions_per_buffer[buffer_num] = i
-                print(
-                    'this buffer has %d loaded transitions and there are now %d transitions total divided into %d trajectories'
-                    % (i, len(obss), num_trajectories)
-                )
 
             actions = np.array(actions)
             returns = np.array(returns)

@@ -6,6 +6,7 @@ import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
+from ding.utils import get_rank
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
@@ -208,9 +209,10 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
                     queue.put(data)
 
     queue = Queue(maxsize=50)
+    device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
     producer_thread = Thread(
         target=producer,
-        args=(queue, dataset, cfg.policy.batch_size, 'cuda:0,1' if cfg.policy.cuda else 'cpu'),
+        args=(queue, dataset, cfg.policy.batch_size, device),
         name='cuda_fetcher_producer'
     )
 
@@ -256,11 +258,10 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
             ctx.train_epoch += 1
             del dataloader
             dataloader = iter(
-                DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
+                DataLoader(dataset, batch_size=cfg.policy.batch_size, shuffle=True, collate_fn=lambda x: x)
             )
             ctx.train_data = next(dataloader)
         # TODO apply data update (e.g. priority) in offline setting when necessary
-
     return _fetch
 
 

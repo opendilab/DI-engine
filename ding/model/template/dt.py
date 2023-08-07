@@ -113,12 +113,12 @@ class DecisionTransformer(nn.Module):
         self.act_dim = act_dim
         self.h_dim = h_dim
 
-        ### transformer blocks
+        # transformer blocks
         input_seq_len = 3 * context_len
         blocks = [Block(h_dim, input_seq_len, n_heads, drop_p) for _ in range(n_blocks)]
         self.transformer = nn.Sequential(*blocks)
 
-        ### projection heads (project to embedding)
+        # projection heads (project to embedding)
         self.embed_ln = nn.LayerNorm(h_dim)
         self.embed_timestep = nn.Embedding(max_timestep, h_dim)
         self.embed_rtg = torch.nn.Linear(1, h_dim)
@@ -142,7 +142,7 @@ class DecisionTransformer(nn.Module):
             self.embed_action = torch.nn.Embedding(act_dim, h_dim)
             use_action_tanh = False  # False for discrete actions
 
-        ### prediction heads
+        # prediction heads
         self.predict_action = nn.Sequential(*([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else [])))
 
     def forward(self, timesteps, states, actions, returns_to_go):
