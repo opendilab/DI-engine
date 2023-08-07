@@ -143,7 +143,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
                 dist="binary",
                 device=self._cfg.device,
             )
-        
+
         if self._cuda:
             self.cuda()
         # to do
@@ -164,7 +164,9 @@ class DREAMERWorldModel(WorldModel, nn.Module):
 
     def train(self, env_buffer, envstep, train_iter, batch_size, batch_length):
         self.last_train_step = envstep
-        data = env_buffer.sample(batch_size, batch_length, train_iter)  # [len=B, ele=[len=T, ele={dict_key: Tensor(any_dims)}]]
+        data = env_buffer.sample(
+            batch_size, batch_length, train_iter
+        )  # [len=B, ele=[len=T, ele={dict_key: Tensor(any_dims)}]]
         data = default_collate(data)  # -> [len=T, ele={dict_key: Tensor(B, any_dims)}]
         data = lists_to_dicts(data, recursive=True)  # -> {some_key: T lists}, each list is [B, some_dim]
         data = {k: torch.stack(data[k], dim=1) for k in data}  # -> {dict_key: Tensor([B, T, any_dims])}
@@ -186,7 +188,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         image = data['image'].reshape([-1] + list(data['image'].shape[-3:]))
         embed = self.encoder(image)
         embed = embed.reshape(list(data['image'].shape[:-3]) + [embed.shape[-1]])
-        
+
         post, prior = self.dynamics.observe(embed, data["action"])
         kl_loss, kl_value, loss_lhs, loss_rhs = self.dynamics.kl_loss(
             post, prior, self._cfg.kl_forward, self._cfg.kl_free, self._cfg.kl_lscale, self._cfg.kl_rscale
@@ -209,7 +211,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         self.optimizer.zero_grad()
         model_loss.backward()
         self.optimizer.step()
-        
+
         self.requires_grad_(requires_grad=False)
         # log
         if self.tb_logger is not None:

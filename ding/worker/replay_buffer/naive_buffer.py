@@ -541,7 +541,7 @@ class SequenceReplayBuffer(NaiveReplayBuffer):
                 indices.append(np.random.randint(episode * 500, episode * 500 + available + 1))
                 batch += 1
         else:
-            raise NotImplemented("sample_range is not implemented in this version")
+            raise NotImplementedError("sample_range is not implemented in this version")
         return indices
 
     def _sample_with_indices(self, indices: List[int], sequence: int, cur_learner_iter: int) -> list:

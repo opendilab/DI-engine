@@ -182,8 +182,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
             import sys
             logging.warning("Please install opencv-python first.")
             sys.exit(1)
-        # to do 
-        # channel_first
+        # deal with channel_first case
         if frame.shape[0] < 10:
             frame = frame.transpose(1, 2, 0)
             frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
@@ -191,7 +190,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         else:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
             frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
-            
+
         return frame
 
 
@@ -265,6 +264,7 @@ class ClipRewardWrapper(gym.RewardWrapper):
         """
         return np.sign(reward)
 
+
 @ENV_WRAPPER_REGISTRY.register('action_repeat')
 class ActionRepeatWrapper(gym.Wrapper):
     """
@@ -275,7 +275,7 @@ class ActionRepeatWrapper(gym.Wrapper):
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
         - ``action_repeat``
-    
+
     """
 
     def __init__(self, env, action_repeat=1):

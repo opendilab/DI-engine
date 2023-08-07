@@ -190,6 +190,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             envstep: int = -1,
             n_episode: Optional[int] = None,
             force_render: bool = False,
+            policy_kwargs: Optional[Dict] = {},
     ) -> Tuple[bool, Dict[str, List]]:
         '''
         Overview:
@@ -228,7 +229,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                         eval_monitor.update_video(self._env.ready_imgs)
 
                     if self._policy_cfg.type == 'dreamer_command':
-                        policy_output = self._policy.forward(obs, **policy_kwargs, reset=self._resets, state=self._states)
+                        policy_output = self._policy.forward(
+                            obs, **policy_kwargs, reset=self._resets, state=self._states
+                        )
                         #self._states = {env_id: output['state'] for env_id, output in policy_output.items()}
                         self._states = [output['state'] for output in policy_output.values()]
                     else:
