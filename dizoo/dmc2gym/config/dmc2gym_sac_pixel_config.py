@@ -72,3 +72,8 @@ dmc2gym_sac_create_config = dict(
 )
 dmc2gym_sac_create_config = EasyDict(dmc2gym_sac_create_config)
 create_config = dmc2gym_sac_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c ant_sac_config.py -s 0 --env-step 1e7`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

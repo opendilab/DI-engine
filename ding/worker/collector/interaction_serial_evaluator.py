@@ -110,6 +110,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         assert hasattr(self, '_env'), "please set env first"
         if _policy is not None:
             self._policy = _policy
+        self._policy_cfg = self._policy.get_attribute('cfg')
         self._policy.reset()
 
     def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[BaseEnvManager] = None) -> None:
@@ -130,6 +131,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self.reset_env(_env)
         if _policy is not None:
             self.reset_policy(_policy)
+        if self._policy_cfg.type == 'dreamer_command':
+            self._states = None
+            self._resets = np.array([False for i in range(self._env_num)])
         self._max_episode_return = float("-inf")
         self._last_eval_iter = -1
         self._end_flag = False
@@ -223,7 +227,12 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                     if render:
                         eval_monitor.update_video(self._env.ready_imgs)
 
-                    policy_output = self._policy.forward(obs)
+                    if self._policy_cfg.type == 'dreamer_command':
+                        policy_output = self._policy.forward(obs, **policy_kwargs, reset=self._resets, state=self._states)
+                        #self._states = {env_id: output['state'] for env_id, output in policy_output.items()}
+                        self._states = [output['state'] for output in policy_output.values()]
+                    else:
+                        policy_output = self._policy.forward(obs, **policy_kwargs)
                     actions = {i: a['action'] for i, a in policy_output.items()}
                     actions = to_ndarray(actions)
                     timesteps = self._env.step(actions)
@@ -233,6 +242,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             # If there is an abnormal timestep, reset all the related variables(including this env).
                             self._policy.reset([env_id])
                             continue
+                        if self._policy_cfg.type == 'dreamer_command':
+                            self._resets[env_id] = t.done
                         if t.done:
                             # Env reset is done by env_manager automatically.
                             if 'figure_path' in self._cfg and self._cfg.figure_path is not None:

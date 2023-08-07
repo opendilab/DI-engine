@@ -2,6 +2,7 @@ import os
 import copy
 from typing import Union, Any, Optional, List
 import numpy as np
+import math
 import hickle
 from easydict import EasyDict
 
@@ -465,3 +466,100 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
 
     def update(self, envstep):
         self._current_buffer_size = self._set_buffer_size(envstep)
+
+
+@BUFFER_REGISTRY.register('sequence')
+class SequenceReplayBuffer(NaiveReplayBuffer):
+    r"""
+    Overview:
+    Interface:
+        start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config
+    Property:
+        replay_buffer_size, push_count
+    """
+
+    def sample(
+            self,
+            batch: int,
+            sequence: int,
+            cur_learner_iter: int,
+            sample_range: slice = None,
+            replace: bool = False
+    ) -> Optional[list]:
+        """
+        Overview:
+            Sample data with length ``size``.
+        Arguments:
+            - size (:obj:`int`): The number of the data that will be sampled.
+            - sequence (:obj:`int`): The length of the sequence of a data that will be sampled.
+            - cur_learner_iter (:obj:`int`): Learner's current iteration. \
+                Not used in naive buffer, but preserved for compatibility.
+            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
+                means only sample among the last 10 data
+            - replace (:obj:`bool`): Whether sample with replacement
+        Returns:
+            - sample_data (:obj:`list`): A list of data with length ``size``.
+        """
+        if batch == 0:
+            return []
+        can_sample = self._sample_check(batch * sequence, replace)
+        if not can_sample:
+            return None
+        with self._lock:
+            indices = self._get_indices(batch, sequence, sample_range, replace)
+            sample_data = self._sample_with_indices(indices, sequence, cur_learner_iter)
+        self._periodic_thruput_monitor.sample_data_count += len(sample_data)
+        return sample_data
+
+    def _get_indices(self, size: int, sequence: int, sample_range: slice = None, replace: bool = False) -> list:
+        r"""
+        Overview:
+            Get the sample index list.
+        Arguments:
+            - size (:obj:`int`): The number of the data that will be sampled
+            - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
+                means only sample among the last 10 data
+        Returns:
+            - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.
+        """
+        assert self._valid_count <= self._replay_buffer_size
+        if self._valid_count == self._replay_buffer_size:
+            tail = self._replay_buffer_size
+        else:
+            tail = self._tail
+        episodes = math.ceil(self._valid_count / 500)
+        batch = 0
+        indices = []
+        if sample_range is None:
+            while batch < size:
+                episode = np.random.choice(episodes)
+                length = tail - episode * 500 if tail - episode * 500 < 500 else 500
+                available = length - sequence
+                if available < 1:
+                    continue
+                list(range(episode * 500, episode * 500 + available))
+                indices.append(np.random.randint(episode * 500, episode * 500 + available + 1))
+                batch += 1
+        else:
+            raise NotImplemented("sample_range is not implemented in this version")
+        return indices
+
+    def _sample_with_indices(self, indices: List[int], sequence: int, cur_learner_iter: int) -> list:
+        r"""
+        Overview:
+            Sample data with ``indices``.
+        Arguments:
+            - indices (:obj:`List[int]`): A list including all the sample indices.
+            - cur_learner_iter (:obj:`int`): Not used in this method, but preserved for compatibility.
+        Returns:
+            - data (:obj:`list`) Sampled data.
+        """
+        data = []
+        for idx in indices:
+            assert self._data[idx] is not None, idx
+            if self._deepcopy:
+                copy_data = copy.deepcopy(self._data[idx:idx + sequence])
+            else:
+                copy_data = self._data[idx:idx + sequence]
+            data.append(copy_data)
+        return data
