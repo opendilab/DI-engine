@@ -1,9 +1,9 @@
 from easydict import EasyDict
 
 main_config = dict(
-    exp_name="halfcheetah_medium_pd_seed0",
+    exp_name="halfcheetah_medium_expert_pd_seed0",
     env=dict(
-        env_id='halfcheetah-medium-v2',
+        env_id='halfcheetah-medium-expert-v2',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -14,7 +14,7 @@ main_config = dict(
         use_padding=True,
         include_returns=True,
         normed=False,
-        stop_value=8000,
+        stop_value=12000,
         horizon=4,
         obs_dim=17,
         action_dim=6,

@@ -31,7 +31,7 @@ class PDPolicy(Policy):
         random_collect_size=10000,
         nstep=1,
         # normalizer type
-        normalizer='CDFNormalizer',
+        normalizer='GaussianNormalizer',
         model=dict(
             diffuser_model='GaussianDiffusion',
             diffuser_model_cfg=dict(
@@ -134,27 +134,17 @@ class PDPolicy(Policy):
             train_epoch=60000,
             # batch_size of every env when eval
             plan_batch_size=64,
+            
+            # step start update target model and frequence
+            step_start_update_target=2000,
+            update_target_freq=10,
+            # update weight of target net
+            target_weight=0.995,
+
+            value_step=200e3,
 
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
-        ),
-        collect=dict(
-            # (int) Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
-        ),
-        eval=dict(
-            # return to go when evaluation
-            test_ret=0.9,
-            ),
-        other=dict(
-            replay_buffer=dict(
-                # (int type) replay_buffer_size: Max size of replay buffer.
-                replay_buffer_size=1000000,
-                # (int type) max_use: Max use times of one data in the buffer.
-                # Data will be removed once used for too many times.
-                # Default to infinite.
-                # max_use=256,
-            ),
         ),
     )
 
@@ -176,14 +166,18 @@ class PDPolicy(Policy):
         self.gradient_accumulate_every = self._cfg.learn.gradient_accumulate_every
         self.plan_batch_szie = self._cfg.learn.plan_batch_size
         self.gradient_steps = 1
-        obs = np.random.rand(1, self.obs_dim)
-        acs = np.random.rand(1, self.action_dim)
-        sets = {'observations': np.array([obs]), 'actions': np.array([acs])}
-        self.normalizer = DatasetNormalizer(sets, self._cfg.normalizer, [1])
+        self.update_target_freq = self._cfg.learn.update_target_freq
+        self.step_start_update_target = self._cfg.learn.step_start_update_target
+        self.target_weight = self._cfg.learn.target_weight
+        self.value_step = self._cfg.learn.value_step
 
         # Optimizers
-        self._optimizer = Adam(
-            self._model.parameters(),
+        self._plan_optimizer = Adam(
+            self._model.diffuser.model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+        )
+        self._value_optimizer = Adam(
+            self._model.value.model.parameters(),
             lr=self._cfg.learn.learning_rate,
         )
 
@@ -192,15 +186,15 @@ class PDPolicy(Policy):
 
         # Main and target models
         self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='momentum',
-            update_kwargs={'theta': self._cfg.learn.target_theta}
-        )
+        # self._target_model = model_wrap(
+        #     self._target_model,
+        #     wrapper_name='target',
+        #     update_type='momentum',
+        #     update_kwargs={'theta': self._cfg.learn.target_theta}
+        # )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
-        self._target_model.reset()
+        # self._target_model.reset()
 
         self._forward_learn_cnt = 0
 
@@ -230,37 +224,68 @@ class PDPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
 
+        self._learn_model.train()
+        # self._target_model.train()
         x = data['trajectories']
 
         batch_size = len(x)
         t = torch.randint(0, self.n_timesteps, (batch_size,), device=x.device).long()
         cond = data['conditions']
         target = data['returns']
-        loss_dict['diffuse_loss'] = self._model.diffuser_loss(x, cond, t)
-        loss_dict['value_loss'] = self._model.value_loss(x, cond, target, t)
-        total_loss = ((loss_dict['diffuse_loss'] + loss_dict['value_loss'])) / self.gradient_accumulate_every
-        total_loss.backward()
+        loss_dict['diffuse_loss'], loss_dict['a0_loss'] = self._model.diffuser_loss(x, cond, t)
+        loss_dict['diffuse_loss'] = loss_dict['diffuse_loss'] / self.gradient_accumulate_every
+        loss_dict['diffuse_loss'].backward()
+        if self._forward_learn_cnt < self.value_step:
+            loss_dict['value_loss'], logs = self._model.value_loss(x, cond, target, t)
+            loss_dict['value_loss'] = loss_dict['value_loss'] / self.gradient_accumulate_every
+            loss_dict['value_loss'].backward()
+            loss_dict.update(logs)
 
         if self.gradient_steps >= self.gradient_accumulate_every:
-            self._optimizer.zero_grad()
-            self._optimizer.step()
+            self._plan_optimizer.step()
+            self._plan_optimizer.zero_grad()
+            if self._forward_learn_cnt < self.value_step:
+                self._value_optimizer.step()
+                self._value_optimizer.zero_grad()
             self.gradient_steps = 1
         else:
             self.gradient_steps += 1
         self._forward_learn_cnt += 1
-        self._target_model.update(self._learn_model.state_dict())
+        if self._forward_learn_cnt % self.update_target_freq == 0:
+            if self._forward_learn_cnt < self.step_start_update_target:
+                self._target_model.load_state_dict(self._model.state_dict())
+            else:
+                self.update_model_average(self._target_model,self._learn_model)
+        loss_dict['max_return'] = target.max().item()
+        loss_dict['min_return'] = target.min().item()
+        loss_dict['mean_return'] = target.mean().item()
+        loss_dict['max_cond'] = val.max().item()
+        loss_dict['min_cond'] = val.min().item()
+        loss_dict['mean_cond'] = val.mean().item()
+        loss_dict['max_traj'] = x.max().item()
+        loss_dict['min_traj'] = x.min().item()
+        loss_dict['mean_traj'] = x.mean().item()
         return loss_dict
     
+    def update_model_average(self, ma_model, current_model):
+        for current_params, ma_params in zip(current_model.parameters(), ma_model.parameters()):
+            old_weight, up_weight = ma_params.data, current_params.data
+            ma_params.data = up_weight if old_weight is None else old_weight\
+                  * self.target_weight + (1 - self.target_weight) * up_weight 
+
     def _monitor_vars_learn(self) -> List[str]:
         return [
-            'diffuse_loss', 'value_loss'
+            'diffuse_loss', 'value_loss', 'max_return', 'min_return', 'mean_return', 'max_cond', 
+            'min_cond', 'mean_cond', 'max_traj', 'min_traj', 'mean_traj', 'mean_pred', 'max_pred',
+            'min_pred', 'a0_loss',
         ]
     
     def _state_dict_learn(self) -> Dict[str, Any]:
         ret = {
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
+            'plan_optimizer': self._plan_optimizer.state_dict(),
+            'value_optimizer': self._value_optimizer.state_dict(),
         }
         return ret
     
@@ -268,32 +293,32 @@ class PDPolicy(Policy):
         self._eval_model = model_wrap(self._target_model, wrapper_name='base')
         self._eval_model.reset()
 
+    def _init_normal(self, normalizer: DatasetNormalizer = None):
+        self.normalizer = normalizer
+
     def _forward_eval(self, data: dict) -> Dict[str, Any]:
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
 
         self._eval_model.eval()
         obs = self.normalizer.normalize(data, 'observations')
-        obs = torch.tensor(obs)
-        if self._cuda:
-            obs = to_device(obs, self._device)
-        conditions = {0: obs}
         with torch.no_grad():
+            obs = torch.tensor(obs)
+            if self._cuda:
+                obs = to_device(obs, self._device)
+            conditions = {0: obs}
+        
             action = self._eval_model.get_eval(conditions, self.plan_batch_szie)
             if self._cuda:
                 action = to_device(action, 'cpu')
             action = self.normalizer.unnormalize(action, 'actions')
-        action = torch.tensor(action).to('cpu')
+            action = torch.tensor(action).to('cpu')
         output = {'action': action}
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _init_collect(self) -> None:
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
-        self._collect_model.reset()
+        pass
 
     def _forward_collect(self, data: dict, **kwargs) -> dict:
         pass

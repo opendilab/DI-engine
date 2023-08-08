@@ -4,7 +4,6 @@ class DatasetNormalizer:
 
     def __init__(self, dataset, normalizer, path_lengths=None):
         dataset = flatten(dataset, path_lengths)
-        print("obs:", dataset['observations'].shape)
 
         self.observation_dim = dataset['observations'].shape[1]
         self.action_dim = dataset['actions'].shape[1]

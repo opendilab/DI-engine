@@ -529,21 +529,15 @@ class SequenceDataset(torch.utils.data.Dataset):
 
     def __init__(self, cfg:dict):
         import gym
-        try:
-            import d4rl  # register d4rl enviroments with open ai gym
-        except ImportError:
-            logging.warning("not found d4rl env, please install it, refer to https://github.com/rail-berkeley/d4rl")
 
         env_id = cfg.env.env_id
         data_path = cfg.policy.collect.get('data_path', None)
         env = gym.make(env_id)
 
-        if data_path:
-            d4rl.set_dataset_path(data_path)
-        dataset = d4rl.qlearning_dataset(env)
+        dataset = env.get_dataset()
         
         self.returns_scale = cfg.env.returns_scale
-        self.horizon = cfg.policy.model.diffuser_model_cfg.horizon
+        self.horizon = cfg.env.horizon
         self.max_path_length = cfg.env.max_path_length
         self.discount = cfg.policy.learn.discount_factor
         self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
@@ -554,6 +548,7 @@ class SequenceDataset(torch.utils.data.Dataset):
 
         fields = {}
         for k in dataset.keys():
+            if 'metadata' in k: continue
             fields[k] = []
         fields['path_lengths'] = []
 
@@ -573,16 +568,20 @@ class SequenceDataset(torch.utils.data.Dataset):
                 fields['rewards'][-1][path_length -1] += cfg.env.termination_penalty
             self.n_episodes += 1
         
-        for k in dataset.keys():
+        for k in fields.keys():
             fields[k] = np.array(fields[k])
 
         self.normalizer = DatasetNormalizer(fields, cfg.policy.normalizer, path_lengths=fields['path_lengths'])
         self.indices = self.make_indices(fields['path_lengths'], self.horizon)
 
-        self.observation_dim = cfg.policy.model.diffuser_model_cfg.obs_dim
-        self.action_dim = cfg.policy.model.diffuser_model_cfg.action_dim
+        self.observation_dim = cfg.env.obs_dim
+        self.action_dim = cfg.env.action_dim
         self.fields = fields
         self.normalize()
+        self.normed = False
+        if cfg.env.normed:
+            self.vmin, self.vmax = self._get_bounds()
+            self.normed = True
 
         # shapes = {key: val.shape for key, val in self.fields.items()}
         # print(f'[ datasets/mujoco ] Dataset fields: {shapes}')
@@ -665,6 +664,24 @@ class SequenceDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.indices)
+    
+    def _get_bounds(self):
+        print('[ datasets/sequence ] Getting value dataset bounds...', end=' ', flush=True)
+        vmin = np.inf
+        vmax = -np.inf
+        for i in range(len(self.indices)):
+            value = self.__getitem__(i)['returns'].item()
+            vmin = min(value, vmin)
+            vmax = max(value, vmax)
+        print('✓')
+        return vmin, vmax
+
+    def normalize_value(self, value):
+        ## [0, 1]
+        normed = (value - self.vmin) / (self.vmax - self.vmin)
+        ## [-1, 1]
+        normed = normed * 2 - 1
+        return normed
 
     def __getitem__(self, idx, eps=1e-4):
         path_ind, start, end = self.indices[idx]
@@ -680,6 +697,8 @@ class SequenceDataset(torch.utils.data.Dataset):
             rewards = self.fields['rewards'][path_ind, start:]
             discounts = self.discounts[:len(rewards)]
             returns = (discounts * rewards).sum()
+            if self.normed:
+                returns = self.normalize_value(returns)
             returns = np.array([returns/self.returns_scale], dtype=np.float32)
             batch = {
                 'trajectories': trajectories,

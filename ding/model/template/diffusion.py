@@ -6,42 +6,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
+from ding.torch_utils.network.diffusion import extract, cosine_beta_schedule, apply_conditioning, \
+    TemporalUnet, TemporalValue, ARInvModel
 
 Sample = namedtuple('Sample', 'trajectories values chains')
-
-def extract(a, t, x_shape):
-    '''
-    Overview:
-        extract output from a through index t.
-    '''
-    b, *_ = t.shape
-    out = a.gather(-1, t)
-    return out.reshape(b, *((1,) * (len(x_shape) - 1)))
-
-def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype = torch.float32):
-    '''
-    Overview:
-        cosine schedule
-        as proposed in https://openreview.net/forum?id=-NEXDKk8gZ
-    Return:
-        Tensor of beta [timesteps,], computing by cosine.
-    '''
-    steps = timesteps + 1
-    x = np.linspace(0, steps, steps)
-    alphas_cumprod = np.cos(((x / steps) + s) / (1 + s) * np.pi * 0.5) ** 2
-    alphas_cumprod = alphas_cumprod / alphas_cumprod[0]
-    betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
-    betas_clipped = np.clip(betas, a_min=0, a_max=0.999)
-    return torch.tensor(betas_clipped, dtype=dtype)
-
-def apply_conditioning(x, conditions, action_dim):
-    '''
-    Overview:
-        add condition into x
-    '''
-    for t, val in conditions.items():
-        x[:, t, action_dim:] = val.clone()
-    return x
 
 def default_sample_fn(self, x, cond, t):
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t)
@@ -88,572 +56,10 @@ def n_step_guided_p_sample(
 
     return model_mean + model_std * noise, y
 
-class Mish(nn.Module):
-    def forward(self, x):
-        return x * (torch.tanh(F.softplus(x)))
-
-class SiLU(nn.Module):
-    def forward(self, x):
-        return x * torch.sigmoid(x)
-
-class conv1d(nn.Module):
-    """
-    Overview:
-        conv1dblock network
-    Interface:
-        __init__, forward
-    """
-    def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            kernel_size: int,
-            padding: int,
-            activation: nn.Module = None,
-            n_groups: int = 8
-    ) -> None:
-        """
-        Overview:
-            Create a 1-dim convlution layer with activation and normalization.
-        Arguments:
-            - in_channels (:obj:`int`): Number of channels in the input tensor
-            - out_channels (:obj:`int`): Number of channels in the output tensor
-            - kernel_size (:obj:`int`): Size of the convolving kernel
-            - padding (:obj:`int`): Zero-padding added to both sides of the input
-            - activation (:obj:`nn.Module`): the optional activation function
-        """
-        super().__init__()
-        self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
-        self.norm = nn.GroupNorm(n_groups, out_channels)
-        self.act = activation
-
-    def forward(self, inputs):
-        """
-        Overview:
-            compute conv1d for inputs.
-        """
-        x = self.conv1(inputs)
-        # [batch, channels, horizon] -> [batch, channels, 1, horizon]
-        x = x.unsqueeze(-2)
-        x = self.norm(x)
-        # [batch, channels, 1, horizon] -> [batch, channels, horizon]
-        x = x.squeeze(-2)
-        out = self.act(x)
-        return out
-
-class SinusoidalPosEmb(nn.Module):
-    '''
-    Overview:
-        compute sin position embeding
-    '''
-    def __init__(self, dim: int,) -> None:
-        super().__init__()
-        self.dim = dim
-    
-    def forward(self, x):
-        device = x.device
-        half_dim = self.dim // 2
-        emb = math.log(10000) / (half_dim - 1)
-        emb = torch.exp(torch.arange(half_dim, device=device) * -emb)
-        emb = x[:, None] * emb[None, :]
-        emb = torch.cat((emb.sin(), emb.cos()), dim=1)
-        return emb
-
-class Residual(nn.Module):
-    def __init__(self,fn):
-        super().__init__()
-        self.fn = fn
-    
-    def forward(self, x, *arg, **kwargs):
-        return self.fn(x, *arg, **kwargs) + x
-
-class LayerNorm(nn.Module):
-    def __init__(self, dim, eps = 1e-5) -> None:
-        super().__init__()
-        self.eps = eps
-        self.g = nn.Parameter(torch.ones(1, dim, 1))
-        self.b = nn.Parameter(torch.zeros(1, dim, 1))
-
-    def forward(self, x):
-        var = torch.var(x, dim=1, unbiased=False, keepdim=True)
-        mean = torch.mean(x, dim=1, keepdim=True)
-        return (x - mean) / (var + self.eps).sqrt() * self.g + self.b
-
-class PreNorm(nn.Module):
-    def __init__(self, dim, fn) -> None:
-        super().__init__()
-        self.fn = fn
-        self.norm = LayerNorm(dim)
-
-    def forward(self, x):
-        x = self.norm(x)
-        return self.fn(x)
-    
-class LinearAttention(nn.Module):
-    def __init__(self, dim, heads=4, dim_head=32) -> None:
-        super().__init__()
-        self.scale = dim_head ** -0.5
-        self.heads = heads
-        hidden_dim = dim_head * heads
-        self.to_qkv = nn.Conv1d(dim, hidden_dim * 3, 1, bias=False)
-        self.to_out = nn.Conv1d(hidden_dim, dim, 1)
-
-    def forward(self, x):
-        qkv = self.to_qkv(x).chunk(3, dim=1)
-        q, k, v = map(lambda t: t.reshape(t.shape[0], self.heads, -1, t.shape[-1]), qkv)
-        q = q * self.scale
-        k = k.softmax(dim=-1)
-        context = torch.einsum('b h d n, b h e n -> b h d e', k, v)
-
-        out = torch.einsum('b h d e, b h d n -> b h e n', context, q)
-        out = out.reshape(out.shape[0], -1, out.shape[-1])
-        return self.to_out(out)
-
-class ResidualTemporalBlock(nn.Module):
-    def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            embed_dim: int,
-            kernel_size: int = 5,
-            mish: bool = True
-    ) -> None:
-        super().__init__()
-        if mish:
-            act = Mish()
-        else:
-            act = SiLU()
-        self.blocks = nn.ModuleList([
-            conv1d(in_channels, out_channels, kernel_size, kernel_size // 2, act),
-            conv1d(out_channels, out_channels, kernel_size, kernel_size // 2, act),
-        ])
-        self.time_mlp = nn.Sequential(
-            act,
-            nn.Linear(embed_dim, out_channels),
-        )
-        self.residual_conv = nn.Conv1d(in_channels, out_channels, 1) \
-            if in_channels != out_channels else nn.Identity()
-        
-    def forward(self, x, t):
-        out = self.blocks[0](x) + self.time_mlp(t).unsqueeze(-1)
-        out = self.blocks[1](out)
-        return out + self.residual_conv(x)
-
-
-class TemporalUnet(nn.Module):
-    def __init__(
-            self,
-            transition_dim: int,
-            dim: int = 32,
-            dim_mults: SequenceType = [1, 2, 4, 8],
-            returns_condition: bool = False,
-            condition_dropout: float = 0.1,
-            calc_energy: bool = False,
-            kernel_size: int = 5,
-            attention: bool = False,
-    ) -> None:
-        super().__init__()
-        dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
-        in_out = list(zip(dims[:-1], dims[1:]))
-        
-        if calc_energy:
-            mish = False
-            act = SiLU()
-        else:
-            mish = True
-            act = Mish()
-
-        self.time_dim = dim
-        self.returns_dim = dim
-        
-        self.time_mlp = nn.Sequential(
-            SinusoidalPosEmb(dim),
-            nn.Linear(dim, dim * 4),
-            act,
-            nn.Linear(dim * 4, dim),
-        )
-
-        self.returns_condition = returns_condition
-        self.condition_dropout = condition_dropout
-        self.cale_energy = calc_energy
-
-        if self.returns_condition:
-            self.returns_mlp = nn.Sequential(
-                nn.Linear(1, dim),
-                act,
-                nn.Linear(dim, dim * 4),
-                act,
-                nn.Linear(dim * 4, dim),
-            )
-            self.mask_dist = torch.distributions.Bernoulli(probs=1 - self.condition_dropout)
-            embed_dim = 2 * dim
-        else:
-            embed_dim = dim
-
-        self.downs = nn.ModuleList([])
-        self.ups = nn.ModuleList([])
-        num_resolution = len(in_out)
-
-        for ind, (dim_in, dim_out) in enumerate(in_out):
-            is_last = ind >= (num_resolution - 1)
-            self.downs.append(nn.ModuleList([
-                ResidualTemporalBlock(dim_in, dim_out, embed_dim, kernel_size, mish=mish),
-                ResidualTemporalBlock(dim_out, dim_out, embed_dim, kernel_size, mish=mish),
-                Residual(PreNorm(dim_out, LinearAttention(dim_out))) if attention else nn.Identity(),
-                nn.Conv1d(dim_out, dim_out, 3, 2, 1) if not is_last else nn.Identity()
-            ]))
-        
-        mid_dim = dims[-1]
-        self.mid_block1 = ResidualTemporalBlock(mid_dim, mid_dim, embed_dim, kernel_size, mish)
-        self.mid_atten = Residual(PreNorm(mid_dim, LinearAttention(mid_dim))) if attention else nn.Identity()
-        self.mid_block2 = ResidualTemporalBlock(mid_dim, mid_dim, embed_dim, kernel_size, mish)
-
-        for ind, (dim_in, dim_out) in enumerate(reversed(in_out[1:])):
-            is_last = ind >= (num_resolution - 1)
-            self.ups.append(nn.ModuleList([
-                ResidualTemporalBlock(dim_out * 2, dim_in, embed_dim, kernel_size, mish=mish),
-                ResidualTemporalBlock(dim_in, dim_in, embed_dim, kernel_size, mish=mish),
-                Residual(PreNorm(dim_in, LinearAttention(dim_in))) if attention else nn.Identity(),
-                nn.ConvTranspose1d(dim_in, dim_in, 4, 2, 1) if not is_last else nn.Identity()
-            ]))
-        
-        self.final_conv = nn.Sequential(
-            conv1d(dim, dim, kernel_size=kernel_size, padding=kernel_size // 2, activation=act),
-            nn.Conv1d(dim, transition_dim, 1),
-        )
-    
-    def forward(self, x, cond, time, returns = None, use_dropout: bool = True, 
-                force_dropout: bool = False):
-        '''
-        Arguments:
-            x (:obj:'tensor') noise trajectory
-            cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
-            time (:obj:'int') timestep of diffusion step
-            returns (:obj:'tensor') condition returns of trajectory, returns is normal return
-            use_dropout (:obj:'bool') Whether use returns condition mask
-            force_dropout (:obj:'bool') Whether use returns condition
-        '''
-        if self.cale_energy:
-            x_inp = x
-
-        # [batch, horizon, transition ] -> [batch, transition , horizon]
-        x = x.transpose(1, 2)
-        t = self.time_mlp(time)
-
-        if self.returns_condition:
-            assert returns is not None
-            returns_embed = self.returns_mlp(returns)
-            if use_dropout:
-                mask = self.mask_dist.sample(sample_shape=(returns_embed.size(0), 1)).to(returns_embed.device)
-                returns_embed = mask * returns_embed
-            if force_dropout:
-                returns_embed = 0 * returns_embed
-            t = torch.cat([t, returns_embed], dim=-1)
-
-        h = []
-
-        for resnet, resnet2, atten, downsample in self.downs:
-            x = resnet(x, t)
-            x = resnet2(x, t)
-            x = atten(x)
-            h.append(x)
-            x = downsample(x)
-
-        x = self.mid_block1(x, t)
-        x = self.mid_atten(x)
-        x = self.mid_block2(x, t)
-
-        for resnet, resnet2, atten, upsample in self.ups:
-            x = torch.cat((x, h.pop()), dim=1)
-            x = resnet(x, t)
-            x = resnet2(x, t)
-            x = atten(x)
-            x = upsample(x)
-
-        x = self.final_conv(x)
-        # [batch, transition , horizon] -> [batch, horizon, transition ]
-        x = x.transpose(1, 2)
-
-        if self.cale_energy:
-            # Energy function 
-            energy = ((x - x_inp) ** 2).mean()
-            grad = torch.autograd.grad(outputs=energy, inputs=x_inp, create_graph=True)
-            return grad[0]
-        else:
-            return x
-        
-    def get_pred(self, x, cond, time, returns: bool = None, use_dropout: bool = True, 
-                 force_dropout: bool = False):
-        # [batch, horizon, transition ] -> [batch, transition , horizon]
-        x = x.transpose(1, 2)
-        t = self.time_mlp(time)
-
-        if self.returns_condition:
-            assert returns is not None
-            returns_embed = self.returns_mlp(returns)
-            if use_dropout:
-                mask = self.mask_dist.sample(sample_shape=(returns_embed.size(0), 1)).to(returns_embed.device)
-                returns_embed = mask * returns_embed
-            if force_dropout:
-                returns_embed = 0 * returns_embed
-            t = torch.cat([t, returns_embed], dim=-1)
-
-        h = []
-
-        for resnet, resnet2, downsample in self.downs:
-            x = resnet(x, t)
-            x = resnet2(x, t)
-            h.append(x)
-            x = downsample(x)
-
-        x = self.mid_block1(x, t)
-        x = self.mid_block2(x, t)
-
-        for resnet, resnet2, upsample in self.ups:
-            x = torch.cat((x, h.pop()), dim=1)
-            x = resnet(x, t)
-            x = resnet2(x, t)
-            x = upsample(x)
-
-        x = self.final_conv(x)
-        # [batch, transition , horizon] -> [batch, horizon, transition ]
-        x = x.transpose(1, 2)
-        return x
-    
-class TemporalValue(nn.Module):
-    def __init__(
-            self,
-            horizon: int,
-            transition_dim: int,
-            dim: int = 32,
-            time_dim: int = None,
-            out_dim: int = 1,
-            kernel_size: int = 5,
-            dim_mults: SequenceType = [1, 2, 4, 8],
-    ) -> None:
-        super().__init__()
-        dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
-        in_out = list(zip(dims[:-1], dims[1:]))
-
-        time_dim = time_dim or dim
-        self.time_mlp = nn.Sequential(
-            SinusoidalPosEmb(dim),
-            nn.Linear(dim, dim * 4),
-            Mish(),
-            nn.Linear(dim * 4, dim),
-        )
-        self.blocks = nn.ModuleList([])
-        num_resolutions = len(in_out)
-        
-        for ind, (dim_in, dim_out) in enumerate(in_out):
-            is_last = ind >= (num_resolutions - 1)
-            self.blocks.append(nn.ModuleList([
-                ResidualTemporalBlock(dim_in, dim_out, kernel_size=kernel_size, embed_dim=time_dim),
-                ResidualTemporalBlock(dim_out, dim_out, kernel_size=kernel_size, embed_dim=time_dim),
-                nn.Conv1d(dim_out, dim_out, 3, 2, 1)
-            ]))
-            
-            if not is_last:
-                horizon = horizon // 2
-
-        mid_dim = dims[-1]
-        mid_dim_2 = mid_dim // 2
-        mid_dim_3 = mid_dim // 4
-
-        self.mid_block1 = ResidualTemporalBlock(mid_dim, mid_dim_2, kernel_size=kernel_size, embed_dim=time_dim)
-        self.mid_down1 = nn.Conv1d(mid_dim_2, mid_dim_2, 3, 2, 1)
-
-        horizon = horizon // 2
-        self.mid_block2 = ResidualTemporalBlock(mid_dim_2, mid_dim_3, kernel_size=kernel_size, embed_dim=time_dim)
-        self.mid_down2 = nn.Conv1d(mid_dim_3, mid_dim_3, 3, 2, 1)
-        horizon = horizon // 2
-        
-        fc_dim = mid_dim_3 * max(horizon, 1)
-        self.final_block = nn.Sequential(
-            nn.Linear(fc_dim + time_dim, fc_dim // 2),
-            Mish(),
-            nn.Linear(fc_dim // 2, out_dim),
-        )
-
-    def forward(self, x, cond, time, *args):
-        # [batch, horizon, transition ] -> [batch, transition , horizon]
-        x = x.transpose(1, 2)
-        t = self.time_mlp(time)
-
-        for resnet, resnet2, downsample in self.blocks:
-            x = resnet(x, t)
-            x = resnet2(x, t)
-            x = downsample(x)
-
-        x = self.mid_block1(x, t)
-        x = self.mid_down1(x)
-
-        x = self.mid_block2(x, t)
-        x = self.mid_down2(x)
-
-        x = x.view(len(x), -1)
-        out = self.final_block(torch.cat([x, t], dim=-1))
-        return out
-
-class MLPnet(nn.Module):
-    def __init__(
-            self,
-            transition_dim: int,
-            cond_dim: int,
-            dim: int = 128,
-            returns_condition: bool = True,
-            condition_dropout: float = 0.1,
-            calc_energy: bool = False,
-    ) -> None:
-        super().__init__()
-        if calc_energy:
-            act = SiLU()
-        else:
-            act = Mish()
-        self.time_dim = dim
-        self.returns_dim = dim
-
-        self.time_mlp = nn.Sequential(
-            SinusoidalPosEmb(dim),
-            nn.Linear(dim, dim * 4),
-            act,
-            nn.Linear(dim * 4, dim),
-        )
-        self.returns_condition = returns_condition
-        self.condition_dropout = condition_dropout
-        self.calc_energy = calc_energy
-        self.transition_dim = transition_dim
-        self.action_dim = transition_dim - cond_dim
-
-        if self.returns_condition:
-            self.returns_mlp = nn.Sequential(
-                nn.Linear(1, dim),
-                act,
-                nn.Linear(dim, dim * 4),
-                act,
-                nn.Linear(dim * 4, dim),
-            )
-            self.mask_dist = torch.distributions.Bernoulli(probs=1 - self.condition_dropout)
-            embed_dim = 2 * dim
-        else:
-            embed_dim = dim
-
-        self.mlp = nn.Sequential(
-            nn.Linear(embed_dim + transition_dim, 1024),
-            act,
-            nn.Linear(1024, 1024),
-            act,
-            nn.Linear(1024, self.action_dim),
-        )
-
-    def forward(self, x, cond, time, returns=None, use_dropout: bool = True, force_dropout: bool = False):
-        t = self.time_mlp(time)
-
-        if self.returns_condition:
-            assert returns is not None
-            returns_embed = self.returns_mlp(returns)
-            if use_dropout:
-                mask = self.mask_dist.sample(sample_shape=(returns_embed.size(0), 1)).to(returns_embed.device)
-                returns_embed = mask * returns_embed
-            else:
-                returns_embed = 0 * returns_embed
-            t = torch.cat([t, returns_embed], dim=-1)
-        
-        inputs = torch.cat([t, cond, x], dim=-1)
-        out = self.mlp(inputs)
-
-        if self.calc_energy:
-            energy = ((out - x) ** 2).mean()
-            grad = torch.autograd.grad(outputs=energy, inputs=x, create_graph=True)
-            return grad[0]
-        else:
-            return out
-        
-class ARInvModel(nn.Module):
-    '''
-    Overview:
-        Action model, return action by given state and next state
-    '''
-    def __init__(
-            self,
-            hidden_dim: int,
-            obs_dim: int,
-            action_dim: int,
-            low_act: float = -1.0,
-            up_act: float = 1.0
-    ) -> None:
-        super().__init__()
-        self.obs_dim = obs_dim
-        self.action_dim = action_dim
-        self.action_embed_hid = 128
-        self.out_lin = 128
-        self.num_bins = 80
-
-        self.up_act = up_act
-        self.low_act = low_act
-        self.bin_size = (self.up_act - self.low_act) / self.num_bins
-        self.ce_loss = nn.CrossEntropyLoss()
-
-        self.state_embed = nn.Sequential(
-            nn.Linear(2 * self.obs_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-        )
-
-        self.lin_mod = nn.ModuleList([nn.Linear(i, self.out_lin) for i in range(1, self.action_dim)])
-        self.act_mod = nn.ModuleList([nn.Sequential(nn.Linear(hidden_dim, self.action_embed_hid), nn.ReLU(),
-                                                    nn.Linear(self.action_embed_hid, self.num_bins))])
-
-        for _ in range(1, self.action_dim):
-            self.act_mod.append(nn.Sequential(nn.Linear(hidden_dim + self.out_lin, self.action_embed_hid), nn.ReLU(),
-                                              nn.Linear(self.action_embed_hid, self.num_bins)))
-
-    def forward(self, comb_state, deterministic = False):
-        state_inp = comb_state
-        state_d = self.state_embed(state_inp)
-        lp_0 = self.act_mod[0](state_d)
-        l_0 = torch.distributions.Categorical(logits=lp_0).sample()
-        if deterministic:
-            a_0 = self.low_act + (l_0 + 0.5) * self.bin_size
-        else:
-            a_0 = torch.distributions.Uniform(self.low_act + l_0 * self.bin_size,
-                                              self.low_act + (l_0 + 1) * self.bin_size).sample()            
-        action = [a_0.unsqueeze(1)]
-
-        for i in range(1, self.action_dim):
-            lp_i = self.act_mod[i](torch.cat[state_d, self.lin_mod[i - 1](torch.cat(action, dim=1))], dim=1)
-            l_i = torch.distributions.Categorical(logits=lp_i).sample()
-            if deterministic:
-                a_i = self.low_act + (l_i + 0.5) * self.bin_size
-            else:
-                a_i = torch.distributions.Uniform(self.low_act + l_i * self.bin_size,
-                                                self.low_act + (l_i + 1) * self.bin_size).sample()
-            action.append(a_i.unsqueeze(1))
-        return torch.cat(action, dim=1)
-    
-    def calc_loss(self, comb_state, action):
-        eps = 1e-8
-        action = torch.clamp(action, min=self.low_act + eps, max=self.up_act - eps)
-        l_action = torch.div((action - self.low_act), self.bin_size, rounding_mode='floor').long()
-        state_inp = comb_state
-
-        state_d = self.state_embed(state_inp)
-        loss = self.ce_loss(self.act_mod[0](state_d), l_action[:, 0])
-
-        for i in range(1, self.action_dim):
-            loss += self.ce_loss(self.act_mod[i](torch.cat([state_d, self.lin_mod[i - 1](action[:, :i])], dim=1)),
-                                     l_action[:, i])
-
-        return loss/self.action_dim
-
 class GaussianDiffusion(nn.Module):
     '''
     Overview:
-            Gaussian diffusion model with Invdyn action model.
+            Gaussian diffusion model
     Arguments:
             - model (:obj:`str`): type of model
             - model_cfg (:obj:'dict') config of model
@@ -785,7 +191,7 @@ class GaussianDiffusion(nn.Module):
         return model_mean, posterior_variance, posterior_log_variance
 
     @torch.no_grad()
-    def p_sample_loop(self, shape, cond, return_chain=False,  sample_fn=default_sample_fn, **sample_kwargs):
+    def p_sample_loop(self, shape, cond, return_chain=False,  sample_fn=default_sample_fn, plan_size=1, **sample_kwargs):
         device = self.betas.device
 
         batch_size = shape[0]
@@ -801,11 +207,11 @@ class GaussianDiffusion(nn.Module):
 
             if return_chain: 
                 chain.append(x)
-
-
-        inds = torch.argsort(values, descending=True)
-        x = x[inds]
-        values = values[inds]
+        values = values.reshape(-1, plan_size, *values.shape[1:])
+        x = x.reshape(-1, plan_size, *x.shape[1:])
+        inds = torch.argsort(values, dim=1, descending=True)
+        x = x[torch.arange(x.size(0)).unsqueeze(1), inds]
+        values = values[torch.arange(values.size(0)).unsqueeze(1), inds]
         if return_chain: 
             chain = torch.stack(chain, dim=1)
         return Sample(x, values, chain)
@@ -852,17 +258,22 @@ class GaussianDiffusion(nn.Module):
 
         if self.predict_epsilon:
             loss = F.mse_loss(x_recon, noise, reduction='none')
+            a0_loss = (loss[:, 0, :self.action_dim] / self.loss_weights[0, :self.action_dim].to(loss.device)).mean()
             loss = (loss * self.loss_weights.to(loss.device)).mean()
         else:
             loss = F.mse_loss(x_recon, x_start, reduction='none')
-            loss = (loss * self.loss_weights.to(loss.device)).mean()
-
-        return loss
+            a0_loss = (loss[:, 0, :self.action_dim] / self.loss_weights[0, :self.action_dim].to(loss.device)).mean()
+            loss = (loss * self.loss_weights.to(loss.device)).mean()        
+        return loss, a0_loss
     
     def forward(self, cond, *args, **kwargs):
         return self.conditional_sample(cond, *args, **kwargs)
 
 class ValueDiffusion(GaussianDiffusion):
+    '''
+    Overview:
+            Gaussian diffusion model for value function.
+    '''
     def p_losses(self, x_start, cond, target, t):
         noise = torch.randn_like(x_start)
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
@@ -870,14 +281,29 @@ class ValueDiffusion(GaussianDiffusion):
 
         pred = self.model(x_noisy, cond, t)
         loss = F.mse_loss(pred, target, reduction='none').mean()
+        log = {
+            'mean_pred':pred.mean().item(),
+            'max_pred':pred.max().item(),
+            'min_pred':pred.min().item(),
+        }
 
-        return loss
+        return loss, log
     
     def forward(self, x, cond, t):
         return self.model(x, cond, t)
     
 @MODEL_REGISTRY.register('pd')
 class PlanDiffuser(nn.Module):
+    '''
+    Overview:
+            Diffuser model for plan.
+    Arguments:
+            - diffuser_model (:obj:`str`): type of plan model
+            - diffuser_model_cfg (:obj:'dict') config of diffuser_model
+            - value_model (:obj:`str`): type of value model
+            - value_model_cfg (:obj:`int`): config of value_model
+            - sample_kwargs : config of sample function
+    '''
     def __init__(
             self,
             diffuser_model: str,
@@ -888,23 +314,23 @@ class PlanDiffuser(nn.Module):
             ):
         super().__init__()
         diffuser_model = eval(diffuser_model)
-        self.diffsuer = diffuser_model(**diffuser_model_cfg)
+        self.diffuser = diffuser_model(**diffuser_model_cfg)
         value_model = eval(value_model)
         self.value = value_model(**value_model_cfg)
         self.sample_kwargs = sample_kwargs
 
     def diffuser_loss(self, x_start, cond, t):
-        return self.diffsuer.p_losses(x_start, cond, t)
+        return self.diffuser.p_losses(x_start, cond, t)
     
     def value_loss(self, x_start, cond, target, t):
         return self.value.p_losses(x_start, cond, target, t)
     
     def get_eval(self, cond, batch_size = 1):
         cond = self.repeat_cond(cond, batch_size)
-        samples = self.diffsuer(cond, sample_fn=n_step_guided_p_sample, guide=self.value, **self.sample_kwargs)
-        # extract action [eval_num * batch_size, horizon, transition_dim]
-        actions = samples.trajectories[:, :, :self.diffsuer.action_dim]
-        actions = actions.reshape(-1, batch_size, *actions.shape[1:])
+        samples = self.diffuser(cond, sample_fn=n_step_guided_p_sample, plan_size=batch_size, 
+                                guide=self.value, **self.sample_kwargs)
+        # extract action [eval_num, batch_size, horizon, transition_dim]
+        actions = samples.trajectories[:, :, :, :self.diffuser.action_dim]
         action = actions[:, 0, 0]
         return action
     

@@ -49,7 +49,6 @@ from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
 from .bcq import BCQPolicy
 from .edac import EDACPolicy
-from .decision_diffuser import DDPolicy
 from .plan_diffuser import PDPolicy
 
 
@@ -319,9 +318,6 @@ class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
 class DTCommandModePolicy(DTPolicy, DummyCommandModePolicy):
     pass
 
-@POLICY_REGISTRY.register('dd_command')
-class DDCommandModePolicy(DDPolicy, DummyCommandModePolicy):
-    pass
 
 @POLICY_REGISTRY.register('qmix_command')
 class QMIXCommandModePolicy(QMIXPolicy, EpsCommandModePolicy):
