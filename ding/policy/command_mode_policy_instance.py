@@ -400,7 +400,7 @@ class EDACCommandModelPolicy(EDACPolicy, DummyCommandModePolicy):
     pass
 
 @POLICY_REGISTRY.register('pd_command')
-class EDACCommandModelPolicy(PDPolicy, DummyCommandModePolicy):
+class PDCommandModelPolicy(PDPolicy, DummyCommandModePolicy):
     pass
 
 

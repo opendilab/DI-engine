@@ -17,6 +17,12 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('pd')
 class PDPolicy(Policy):
+    r"""
+    Overview:
+        Implicit Plan Diffuser
+        https://arxiv.org/pdf/2205.09991.pdf
+
+    """
     config = dict(
         type='pd',
         # (bool) Whether to use cuda for network.
