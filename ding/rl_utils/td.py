@@ -174,6 +174,7 @@ nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'do
 
 def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_gamma: Optional[torch.Tensor] = None):
     reward, next_value, done = data
+    print(f"reward.shape:{reward.shape}")
     assert reward.shape[0] == nstep
     device = reward.device
 

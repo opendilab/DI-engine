@@ -462,6 +462,7 @@ def wandb_offline_logger(
         )
 
     first_plot = True
+
     def _vis_dataset(datasetpath: str):
         try:
             from sklearn.manifold import TSNE

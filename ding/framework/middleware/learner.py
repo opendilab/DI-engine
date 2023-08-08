@@ -43,7 +43,7 @@ class OffPolicyLearner:
         """
         self.cfg = cfg
         self._fetcher = task.wrap(offpolicy_data_fetcher(cfg, buffer_))
-        self._trainer = task.wrap(trainer(cfg, policy))
+        self._trainer = task.wrap(trainer(cfg, policy, log_freq=log_freq))
         if reward_model is not None:
             self._reward_estimator = task.wrap(reward_estimator(cfg, reward_model))
         else:
@@ -63,6 +63,7 @@ class OffPolicyLearner:
                 self._reward_estimator(ctx)
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
+            ctx.train_output_for_post_process = ctx.train_output
         ctx.train_output = train_output_queue
 
 

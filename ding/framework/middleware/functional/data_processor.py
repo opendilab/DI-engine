@@ -169,10 +169,10 @@ def offpolicy_data_fetcher(
                 index = [d.index for d in buffered_data]
                 meta = [d.meta for d in buffered_data]
                 # such as priority
-                if isinstance(ctx.train_output, List):
-                    priority = ctx.train_output.pop()['priority']
+                if isinstance(ctx.train_output_for_post_process, List):
+                    priority = ctx.train_output_for_post_process.pop()['priority']
                 else:
-                    priority = ctx.train_output['priority']
+                    priority = ctx.train_output_for_post_process['priority']
                 for idx, m, p in zip(index, meta, priority):
                     m['priority'] = p
                     buffer_.update(index=idx, data=None, meta=m)
