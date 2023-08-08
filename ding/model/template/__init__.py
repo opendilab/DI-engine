@@ -2,7 +2,7 @@
 from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ
 from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
-from .vac import BaseVAC, VAC
+from .vac import BaseVAC, VAC, DREAMERVAC
 from .bc import DiscreteBC, ContinuousBC
 from .pg import PG
 # algorithm-specific

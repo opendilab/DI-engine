@@ -144,6 +144,9 @@ class SampleSerialCollector(ISerialCollector):
         if _policy is not None:
             self.reset_policy(_policy)
 
+        if self._policy_cfg.type == 'dreamer_command':
+            self._states = None
+            self._resets = np.array([False for i in range(self._env_num)])
         self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
@@ -213,6 +216,7 @@ class SampleSerialCollector(ISerialCollector):
             n_sample: Optional[int] = None,
             train_iter: int = 0,
             drop_extra: bool = True,
+            random_collect: bool = False,
             record_random_collect: bool = True,
             policy_kwargs: Optional[dict] = None,
             level_seeds: Optional[List] = None,
@@ -256,7 +260,12 @@ class SampleSerialCollector(ISerialCollector):
                 self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
-                policy_output = self._policy.forward(obs, **policy_kwargs)
+                if self._policy_cfg.type == 'dreamer_command' and not random_collect:
+                    policy_output = self._policy.forward(obs, **policy_kwargs, reset=self._resets, state=self._states)
+                    #self._states = {env_id: output['state'] for env_id, output in policy_output.items()}
+                    self._states = [output['state'] for output in policy_output.values()]
+                else:
+                    policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
@@ -277,6 +286,8 @@ class SampleSerialCollector(ISerialCollector):
                         self._reset_stat(env_id)
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
+                    if self._policy_cfg.type == 'dreamer_command' and not random_collect:
+                        self._resets[env_id] = timestep.done
                     if self._policy_cfg.type == 'ngu_command':  # for NGU policy
                         transition = self._policy.process_transition(
                             self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
@@ -329,6 +340,7 @@ class SampleSerialCollector(ISerialCollector):
                     # Env reset is done by env_manager automatically
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
+
         collected_duration = sum([d['time'] for d in self._episode_info])
         # reduce data when enables DDP
         if self._world_size > 1:

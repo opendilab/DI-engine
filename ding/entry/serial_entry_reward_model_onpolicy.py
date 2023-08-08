@@ -89,16 +89,16 @@ def serial_pipeline_reward_model_onpolicy(
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     count = 0
-    best_reward = -np.inf
+    best_return = -np.inf
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            reward_mean = np.array([r['eval_episode_return'] for r in reward]).mean()
-            if reward_mean >= best_reward:
+            stop, eval_info = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+            eval_return_mean = np.mean(eval_info['eval_episode_return'])
+            if eval_return_mean >= best_return:
                 reward_model.save(path=cfg.exp_name, name='best')
-                best_reward = reward_mean
+                best_return = eval_return_mean
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
