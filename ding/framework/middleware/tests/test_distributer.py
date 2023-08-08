@@ -53,7 +53,7 @@ def context_exchanger_main():
         task.run(max_step=3)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_context_exchanger():
     Parallel.runner(n_parallel_workers=2)(context_exchanger_main)
 
@@ -170,7 +170,7 @@ def model_exchanger_main():
         task.run(2)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_model_exchanger():
     Parallel.runner(n_parallel_workers=2, startup_interval=0)(model_exchanger_main)
 

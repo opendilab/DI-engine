@@ -32,9 +32,10 @@ from .fast_copy import fastcopy
 from .bfs_helper import get_vi_sequence
 from .normalizer_helper import DatasetNormalizer
 
-if ding.enable_linklink:
+if ding.enable_linklink:  # False as default
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
         allreduce, broadcast, DistContext, allreduce_async, synchronize
 else:
     from .pytorch_ddp_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
-        allreduce, broadcast, DistContext, allreduce_async, synchronize
+        allreduce, broadcast, DDPContext, allreduce_async, synchronize, reduce_data, broadcast_object_list, \
+        to_ddp_config, allreduce_data

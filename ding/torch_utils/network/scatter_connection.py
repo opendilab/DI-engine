@@ -76,18 +76,55 @@ class ScatterConnection(nn.Module):
         """
         device = x.device
         B, M, N = x.shape
+        x = x.permute(0, 2, 1)
         H, W = spatial_size
-        index = location.view(-1, 2)
-        bias = torch.arange(B).mul_(H * W).unsqueeze(1).repeat(1, M).view(-1).to(device)
-        index = index[:, 0] * W + index[:, 1]
-        index += bias
-        index = index.repeat(N, 1)
-        x = x.view(-1, N).permute(1, 0)
-        output = torch.zeros(N, B * H * W, device=device)
+        index = location[:, :, 1] + location[:, :, 0] * W
+        index = index.unsqueeze(dim=1).repeat(1, N, 1)
+        output = torch.zeros(size=(B, N, H, W), device=device).view(B, N, H * W)
         if self.scatter_type == 'cover':
-            output.scatter_(dim=1, index=index, src=x)
+            output.scatter_(dim=2, index=index, src=x)
         elif self.scatter_type == 'add':
-            output.scatter_add_(dim=1, index=index, src=x)
-        output = output.reshape(N, B, H, W)
-        output = output.permute(1, 0, 2, 3).contiguous()
+            output.scatter_add_(dim=2, index=index, src=x)
+        output = output.view(B, N, H, W)
+        return output
+
+    def xy_forward(
+            self, x: torch.Tensor, spatial_size: Tuple[int, int], coord_x: torch.Tensor, coord_y
+    ) -> torch.Tensor:
+        """
+        Overview:
+            scatter x into a spatial feature map
+        Arguments:
+            - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means\
+                the dimension of entity attributes
+            - spatial_size (:obj:`tuple`): Tuple[H, W], the size of spatial feature x will be scattered into
+            - coord_x (:obj:`tensor`): :math: `(B, M)` torch.LongTensor, each location should be x
+            - coord_y (:obj:`tensor`): :math: `(B, M)` torch.LongTensor, each location should be y
+        Returns:
+            - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the\
+                scattered feature map
+        Shapes:
+            - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means\
+                the dimension of entity attributes
+            - Size: Tuple[H, W]
+            - Coord_x: :math: `(B, M)` torch.LongTensor, each location should be x
+            - Coord_y: :math: `(B, M)` torch.LongTensor, each location should be y
+            - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size
+
+        note:
+            when there are some overlapping in locations, ``cover`` mode will result in the loss of information, we
+            use the addition as temporal substitute.
+        """
+        device = x.device
+        B, M, N = x.shape
+        x = x.permute(0, 2, 1)
+        H, W = spatial_size
+        index = (coord_x * W + coord_y).long()
+        index = index.unsqueeze(dim=1).repeat(1, N, 1)
+        output = torch.zeros(size=(B, N, H, W), device=device).view(B, N, H * W)
+        if self.scatter_type == 'cover':
+            output.scatter_(dim=2, index=index, src=x)
+        elif self.scatter_type == 'add':
+            output.scatter_add_(dim=2, index=index, src=x)
+        output = output.view(B, N, H, W)
         return output
