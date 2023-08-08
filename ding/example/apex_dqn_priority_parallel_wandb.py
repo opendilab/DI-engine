@@ -11,7 +11,7 @@ from ding.framework import Parallel
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
     eps_greedy_handler, CkptSaver, ModelExchanger, ContextExchanger, online_logger, \
-    nstep_reward_enhancer, priority_calculator
+    nstep_reward_enhancer, priority_calculator, wandb_online_logger
 from ding.utils import set_pkg_seed
 
 
@@ -54,7 +54,6 @@ def main():
             buffer_.use(PriorityExperienceReplay(buffer_, IS_weight=True))
             policy = DQNPolicy(cfg.policy, model=model)
             task.use(ContextExchanger(skip_n_iter=1))
-            #task.use(PeriodicalModelExchanger(model=policy._model, mode="send"))
             task.use(ModelExchanger(model))
 
         elif task.has_role(task.role.COLLECTOR):
@@ -62,9 +61,7 @@ def main():
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             buffer_.use(PriorityExperienceReplay(buffer_, IS_weight=True))
             policy = DQNPolicy(cfg.policy, model=model)
-            #collect_model_loader=FileModelLoader(model=model, dirname=model_path)
             task.use(ContextExchanger(skip_n_iter=1))
-            #task.use(PeriodicalModelExchanger(model=policy._model, model_loader=collect_model_loader, mode="update"))
             task.use(ModelExchanger(model))
 
         elif task.has_role(task.role.EVALUATOR):
@@ -72,15 +69,26 @@ def main():
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             buffer_.use(PriorityExperienceReplay(buffer_, IS_weight=True))
             policy = DQNPolicy(cfg.policy, model=model)
-            #eval_model_loader=FileModelLoader(model=model, dirname=model_path)
             task.use(ContextExchanger(skip_n_iter=1))
-            #task.use(PeriodicalModelExchanger(model=policy._model, model_loader=eval_model_loader, mode="update"))
             task.use(ModelExchanger(model))
 
         # Here is the part of single process pipeline.
-        task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
+        task.use(
+            interaction_evaluator(
+            cfg, policy.eval_mode, evaluator_env, render=cfg.policy.eval.render \
+                    if hasattr(cfg.policy.eval, "render") else False
+            )
+        )
         task.use(eps_greedy_handler(cfg))
-        task.use(StepCollector(cfg, policy.collect_mode, collector_env))
+        task.use(
+            StepCollector(
+                cfg,
+                policy.collect_mode,
+                collector_env,
+                random_collect_size=cfg.policy.random_collect_size \
+                    if hasattr(cfg.policy, 'random_collect_size') else 0,
+            )
+        )
         print(f"cfg.policy.nstep:{cfg.policy.nstep}")
         if "nstep" in cfg.policy and cfg.policy.nstep > 1:
             if task.has_role(task.role.COLLECTOR):
@@ -112,6 +120,15 @@ def main():
 
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
+        task.use(
+            wandb_online_logger(
+                metric_list=policy.monitor_vars(),
+                model=policy._model,
+                anonymous=True,
+                project_name=cfg.exp_name,
+                wandb_sweep=False,
+            )
+        )
         task.use(online_logger(train_show_freq=10))
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
         task.run()

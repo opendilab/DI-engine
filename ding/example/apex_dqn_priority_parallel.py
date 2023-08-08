@@ -99,7 +99,7 @@ def main():
 
         task.use(
             priority_calculator(
-                func_for_priority_calculation=dqn_priority_calculation(
+                priority_calculation_fn=dqn_priority_calculation(
                     update_target_model_frequency=cfg.policy.learn.target_update_freq
                 ),
             )
