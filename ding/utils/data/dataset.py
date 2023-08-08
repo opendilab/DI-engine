@@ -505,7 +505,6 @@ class D4RLTrajectoryDataset(Dataset):
             while len(obss) < cfg.dataset.num_steps:
                 buffer_num = np.random.choice(np.arange(50 - cfg.dataset.num_buffers, 50), 1)[0]
                 i = transitions_per_buffer[buffer_num]
-                print('loading from buffer %d which has %d already loaded' % (buffer_num, i))
                 frb = FixedReplayBuffer(
                     data_dir=cfg.dataset.data_dir_prefix + '/1/replay_logs',
                     replay_suffix=buffer_num,
@@ -702,7 +701,6 @@ class FixedReplayBuffer(object):
             # pytype: disable=attribute-error
             replay_buffer = circular_replay_buffer.OutOfGraphReplayBuffer(*self._args, **self._kwargs)
             replay_buffer.load(self._data_dir, suffix)
-            print('Loaded replay buffer ckpt {} from {}'.format(suffix, self._data_dir))
             # pytype: enable=attribute-error
             return replay_buffer
         # except tf.errors.NotFoundError:
