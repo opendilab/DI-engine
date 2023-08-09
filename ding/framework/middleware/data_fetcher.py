@@ -19,7 +19,7 @@ class offline_data_fetcher_from_mem_c:
         def producer(queue, dataset, batch_size, device):
             torch.set_num_threads(4)
             nonlocal stream
-            idx_iter = iter(np.random.permutation(len(dataset)))
+            idx_iter = iter(np.random.permutation(len(dataset.obss)-batch_size))
 
             with torch.cuda.stream(stream):
                 while True:
@@ -30,23 +30,16 @@ class offline_data_fetcher_from_mem_c:
                             start_idx = next(idx_iter)
                         except StopIteration:
                             del idx_iter
-                            idx_iter = iter(np.random.permutation(len(dataset)))
+                            idx_iter = iter(np.random.permutation(len(dataset.obss)-batch_size))
                             start_idx = next(idx_iter)
                         
                         data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx + batch_size)]
                         data = [[i[j] for i in data] for j in range(len(data[0]))]
-                        try:
-                            data = [torch.stack(x).to(device) for x in data]
-                        except RuntimeError:
-                            print(len(data))
-                            for i in range(len(data)):
-                                print(len(data[i]))
-                                print(data[i])
+                        data = [torch.stack(x).to(device) for x in data]
                         queue.put(data)
 
         self.queue = Queue(maxsize=50)
         device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
-        print('prepare sample data in device', device)
         self.producer_thread = Thread(
             target=producer,
             args=(self.queue, dataset, cfg.policy.batch_size, device),

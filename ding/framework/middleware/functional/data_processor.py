@@ -189,7 +189,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     stream = torch.cuda.Stream()
 
     def producer(queue, dataset, batch_size, device):
-        torch.set_num_threads(8)
+        torch.set_num_threads(4)
         nonlocal stream
         idx_iter = iter(range(len(dataset)))
         with torch.cuda.stream(stream):
@@ -216,10 +216,11 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
         name='cuda_fetcher_producer'
     )
 
-    producer_thread.start()
-
     def _fetch(ctx: "OfflineRLContext"):
-        nonlocal queue
+        nonlocal queue, producer_thread
+        if not producer_thread.is_alive():
+            time.sleep(5)
+            producer_thread.start()
         while queue.empty():
             time.sleep(0.001)
         ctx.train_data = queue.get()
