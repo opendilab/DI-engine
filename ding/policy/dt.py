@@ -69,7 +69,11 @@ class DTPolicy(Policy):
         self.act_dim = self._cfg.model.act_dim
 
         self._learn_model = self._model
-        self._optimizer = torch.optim.AdamW(self._learn_model.parameters(), lr=lr, weight_decay=wt_decay)
+
+        if 'state_mean' not in self._cfg:
+            self._optimizer = self._learn_model.configure_optimizers(wt_decay, lr)
+        else:
+            self._optimizer = torch.optim.AdamW(self._learn_model.parameters(), lr=lr, weight_decay=wt_decay)
 
         self._scheduler = torch.optim.lr_scheduler.LambdaLR(
             self._optimizer, lambda steps: min((steps + 1) / warmup_steps, 1)
@@ -86,6 +90,7 @@ class DTPolicy(Policy):
             Returns:
                 - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        self._learn_model.train()
 
         timesteps, states, actions, returns_to_go, traj_mask = data
         action_target = torch.clone(actions).detach().to(self._device)
@@ -99,9 +104,14 @@ class DTPolicy(Policy):
         if not self._cfg.model.continuous and 'state_mean' in self._cfg:
             actions = one_hot(actions.squeeze(-1), num=self.act_dim)
 
-        state_preds, action_preds, return_preds = self._learn_model.forward(
-            timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
-        )
+        if 'state_mean' not in self._cfg:
+            state_preds, action_preds, return_preds = self._learn_model.forward(
+                timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go, tar=1
+            )
+        else:
+            state_preds, action_preds, return_preds = self._learn_model.forward(
+                timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
+            )
 
         if 'state_mean' not in self._cfg:
             action_loss = F.cross_entropy(action_preds.reshape(-1, action_preds.size(-1)), action_target.reshape(-1))
@@ -136,7 +146,6 @@ class DTPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
         """
         self._eval_model = self._model
-        # self._eval_model.reset()
         # init data
         self._device = torch.device(self._device)
         self.rtg_scale = self._cfg.rtg_scale  # normalize returns to go
@@ -223,8 +232,7 @@ class DTPolicy(Policy):
                 if self.t[i] <= self.context_len:
                     if 'state_mean' not in self._cfg:
                         timesteps[i] = min(self.t[i],
-                                           self._cfg.max_timestep) * torch.ones((1, 1),
-                                                                                dtype=torch.int64).to(self._device)
+                                           self._cfg.model.max_timestep) * torch.ones((1, 1), dtype=torch.int64).to(self._device)
                     else:
                         timesteps[i] = self.timesteps[i, :self.context_len]
                     states[i] = self.states[i, :self.context_len]
@@ -233,23 +241,28 @@ class DTPolicy(Policy):
                 else:
                     if 'state_mean' not in self._cfg:
                         timesteps[i] = min(self.t[i],
-                                           self._cfg.max_timestep) * torch.ones((1, 1),
-                                                                                dtype=torch.int64).to(self._device)
+                                           self._cfg.model.max_timestep) * torch.ones((1, 1), dtype=torch.int64).to(self._device)
                     else:
                         timesteps[i] = self.timesteps[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     states[i] = self.states[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     actions[i] = self.actions[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     rewards_to_go[i] = self.rewards_to_go[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
-            # if not self._cfg.model.continuous:
-            #     actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+            if not self._cfg.model.continuous and 'state_mean' in self._cfg:
+                actions = one_hot(actions.squeeze(-1), num=self.act_dim)
             _, act_preds, _ = self._eval_model.forward(timesteps, states, actions, rewards_to_go)
             del timesteps, states, actions, rewards_to_go
 
             logits = act_preds[:, -1, :]
             if not self._cfg.model.continuous:
-                act = torch.argmax(logits, axis=1).unsqueeze(1)
+                if 'state_mean' not in self._cfg:
+                    probs = F.softmax(logits, dim=-1)
+                    act = torch.zeros((self.eval_batch_size, 1), dtype=torch.long, device=self._device)
+                    for i in data_id:
+                        act[i] = torch.multinomial(probs[i], num_samples=1)
+                else:
+                    act = torch.argmax(logits, axis=1).unsqueeze(1)
             for i in data_id:
-                self.actions[i, self.t[i]] = act[i]
+                self.actions[i, self.t[i]] = act[i] # TODO: self.actions[i] should be a queue when exceed max_t
                 self.t[i] += 1
 
         if self._cuda:
