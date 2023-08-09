@@ -7,7 +7,6 @@ Pong_dt_config = dict(
         env_id='PongNoFrameskip-v4',
         collector_env_num=1,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=20,
         frame_stack=4,
@@ -16,8 +15,8 @@ Pong_dt_config = dict(
     ),
     dataset=dict(
         env_type='atari',
-        # num_steps=500000,
-        num_steps=500,
+        num_steps=500000,
+        # num_steps=50,
         num_buffers=50,
         rtg_scale=None,
         context_len=30,
@@ -26,6 +25,7 @@ Pong_dt_config = dict(
     ),
     policy=dict(
         cuda=True,
+        multi_gpu=True,
         stop_value=20,
         evaluator_env_num=8,
         env_name='PongNoFrameskip-v4',
