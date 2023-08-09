@@ -28,7 +28,6 @@ Pong_dt_config = dict(
         multi_gpu=True,
         stop_value=20,
         evaluator_env_num=8,
-        env_name='PongNoFrameskip-v4',
         rtg_target=20,  # max target return to go
         max_eval_ep_len=10000,  # max lenght of one episode
         wt_decay=1e-4,

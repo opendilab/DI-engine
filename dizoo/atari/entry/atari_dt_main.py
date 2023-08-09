@@ -41,10 +41,10 @@ def main():
             # model.parallelize()
             policy = DTPolicy(cfg.policy, model=model)
 
+            task.use(termination_checker(max_train_iter=3e4))
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(offline_data_fetcher_from_mem_c(cfg, dataset))
             task.use(trainer(cfg, policy.learn_mode))
-            task.use(termination_checker(max_train_iter=3e4))
             task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
             task.use(offline_logger(cfg.exp_name))
             task.run()

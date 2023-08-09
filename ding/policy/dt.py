@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import torch.nn.functional as F
 import torch
+import numpy as np
 from ding.torch_utils import to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_decollate
@@ -49,7 +50,6 @@ class DTPolicy(Policy):
             Learn mode init method. Called by ``self.__init__``.
             Init the optimizer, algorithm config, main and target models.
         """
-        self.env_name = self._cfg.env_name
         # rtg_scale: scale of `return to go`
         # rtg_target: max target of `return to go`
         # Our goal is normalize `return to go` to (0, 1), which will favour the covergence.
@@ -102,7 +102,9 @@ class DTPolicy(Policy):
 
         # if discrete
         if not self._cfg.model.continuous and 'state_mean' in self._cfg:
-            actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+            # actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+            actions = actions.squeeze(-1)
+            action_target = torch.clone(actions).detach().to(self._device)
 
         if 'state_mean' not in self._cfg:
             state_preds, action_preds, return_preds = self._learn_model.forward(
@@ -180,8 +182,8 @@ class DTPolicy(Policy):
             self.states = torch.zeros(
                 (self.eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self._device
             )
-            self.state_mean = torch.from_numpy(self._cfg.state_mean).to(self._device)
-            self.state_std = torch.from_numpy(self._cfg.state_std).to(self._device)
+            self.state_mean = torch.from_numpy(np.array(self._cfg.state_mean)).to(self._device)
+            self.state_std = torch.from_numpy(np.array(self._cfg.state_std)).to(self._device)
         self.timesteps = torch.arange(
             start=0, end=self.max_eval_ep_len, step=1
         ).repeat(self.eval_batch_size, 1).to(self._device)
@@ -248,7 +250,8 @@ class DTPolicy(Policy):
                     actions[i] = self.actions[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     rewards_to_go[i] = self.rewards_to_go[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
             if not self._cfg.model.continuous and 'state_mean' in self._cfg:
-                actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+                # actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+                actions = actions.squeeze(-1)
             _, act_preds, _ = self._eval_model.forward(timesteps, states, actions, rewards_to_go)
             del timesteps, states, actions, rewards_to_go
 

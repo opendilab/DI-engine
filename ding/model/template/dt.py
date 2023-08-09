@@ -126,12 +126,12 @@ class DecisionTransformer(nn.Module):
         self.global_pos_emb = nn.Parameter(torch.zeros(1, max_timestep + 1, self.h_dim))
 
         if state_encoder == None:
+            self.state_encoder = None
             blocks = [Block(h_dim, input_seq_len, n_heads, drop_p) for _ in range(n_blocks)]
             self.embed_rtg = torch.nn.Linear(1, h_dim)
             self.embed_state = torch.nn.Linear(state_dim, h_dim)
             self.predict_rtg = torch.nn.Linear(h_dim, 1)
             self.predict_state = torch.nn.Linear(h_dim, state_dim)
-            self.predict_action = nn.Sequential(*([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else [])))
             if continuous:
                 # continuous actions
                 self.embed_action = torch.nn.Linear(act_dim, h_dim)
@@ -140,6 +140,7 @@ class DecisionTransformer(nn.Module):
                 # discrete actions
                 self.embed_action = torch.nn.Embedding(act_dim, h_dim)
                 use_action_tanh = False  # False for discrete actions
+            self.predict_action = nn.Sequential(*([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else [])))
         else:
             blocks = [Block(h_dim, input_seq_len+1, n_heads, drop_p) for _ in range(n_blocks)]
             self.state_encoder = state_encoder
