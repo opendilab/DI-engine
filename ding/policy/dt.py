@@ -235,8 +235,9 @@ class DTPolicy(Policy):
 
                 if self.t[i] <= self.context_len:
                     if 'state_mean' not in self._cfg:
-                        timesteps[i] = min(self.t[i],
-                                           self._cfg.model.max_timestep) * torch.ones((1, 1), dtype=torch.int64).to(self._device)
+                        timesteps[i] = min(self.t[i], self._cfg.model.max_timestep) * torch.ones(
+                            (1, 1), dtype=torch.int64
+                        ).to(self._device)
                     else:
                         timesteps[i] = self.timesteps[i, :self.context_len]
                     states[i] = self.states[i, :self.context_len]
@@ -244,8 +245,9 @@ class DTPolicy(Policy):
                     rewards_to_go[i] = self.rewards_to_go[i, :self.context_len]
                 else:
                     if 'state_mean' not in self._cfg:
-                        timesteps[i] = min(self.t[i],
-                                           self._cfg.model.max_timestep) * torch.ones((1, 1), dtype=torch.int64).to(self._device)
+                        timesteps[i] = min(self.t[i], self._cfg.model.max_timestep) * torch.ones(
+                            (1, 1), dtype=torch.int64
+                        ).to(self._device)
                     else:
                         timesteps[i] = self.timesteps[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     states[i] = self.states[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
@@ -267,7 +269,7 @@ class DTPolicy(Policy):
                 else:
                     act = torch.argmax(logits, axis=1).unsqueeze(1)
             for i in data_id:
-                self.actions[i, self.t[i]] = act[i] # TODO: self.actions[i] should be a queue when exceed max_t
+                self.actions[i, self.t[i]] = act[i]  # TODO: self.actions[i] should be a queue when exceed max_t
                 self.t[i] += 1
 
         if self._cuda:

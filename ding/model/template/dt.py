@@ -95,6 +95,7 @@ class Block(nn.Module):
 
 
 class DecisionTransformer(nn.Module):
+
     def __init__(
         self,
         state_dim,
@@ -121,7 +122,7 @@ class DecisionTransformer(nn.Module):
         self.embed_ln = nn.LayerNorm(h_dim)
         self.embed_timestep = nn.Embedding(max_timestep, h_dim)
         self.drop = nn.Dropout(drop_p)
-        
+
         self.pos_emb = nn.Parameter(torch.zeros(1, input_seq_len + 1, self.h_dim))
         self.global_pos_emb = nn.Parameter(torch.zeros(1, max_timestep + 1, self.h_dim))
 
@@ -140,9 +141,11 @@ class DecisionTransformer(nn.Module):
                 # discrete actions
                 self.embed_action = torch.nn.Embedding(act_dim, h_dim)
                 use_action_tanh = False  # False for discrete actions
-            self.predict_action = nn.Sequential(*([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else [])))
+            self.predict_action = nn.Sequential(
+                *([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else []))
+            )
         else:
-            blocks = [Block(h_dim, input_seq_len+1, n_heads, drop_p) for _ in range(n_blocks)]
+            blocks = [Block(h_dim, input_seq_len + 1, n_heads, drop_p) for _ in range(n_blocks)]
             self.state_encoder = state_encoder
             self.embed_rtg = nn.Sequential(nn.Linear(1, h_dim), nn.Tanh())
             self.head = nn.Linear(h_dim, act_dim, bias=False)
@@ -161,9 +164,8 @@ class DecisionTransformer(nn.Module):
 
             # stack rtg, states and actions and reshape sequence as
             # (r_0, s_0, a_0, r_1, s_1, a_1, r_2, s_2, a_2 ...)
-            t_p = torch.stack(
-                (returns_embeddings, state_embeddings, action_embeddings), dim=1
-            ).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
+            t_p = torch.stack((returns_embeddings, state_embeddings, action_embeddings),
+                              dim=1).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
             h = self.embed_ln(t_p)
             # transformer and prediction
             h = self.transformer(h)
@@ -183,20 +185,24 @@ class DecisionTransformer(nn.Module):
             state_embeddings = self.state_encoder(
                 states.reshape(-1, 4, 84, 84).type(torch.float32).contiguous()
             )  # (batch * block_size, h_dim)
-            state_embeddings = state_embeddings.reshape(
-                B, T, self.h_dim
-            )  # (batch, block_size, h_dim)
+            state_embeddings = state_embeddings.reshape(B, T, self.h_dim)  # (batch, block_size, h_dim)
             returns_embeddings = self.embed_rtg(returns_to_go.type(torch.float32))
             action_embeddings = self.embed_action(actions.type(torch.long).squeeze(-1))  # (batch, block_size, h_dim)
 
-            token_embeddings = torch.zeros((B, T*3 - int(tar is None), self.h_dim), dtype=torch.float32, device=state_embeddings.device)
-            token_embeddings[:,::3,:] = returns_embeddings
-            token_embeddings[:,1::3,:] = state_embeddings
-            token_embeddings[:,2::3,:] = action_embeddings[:,-T + int(tar is None):,:]
-            
-            all_global_pos_emb = torch.repeat_interleave(self.global_pos_emb, B, dim=0) # batch_size, traj_length, h_dim
+            token_embeddings = torch.zeros(
+                (B, T * 3 - int(tar is None), self.h_dim), dtype=torch.float32, device=state_embeddings.device
+            )
+            token_embeddings[:, ::3, :] = returns_embeddings
+            token_embeddings[:, 1::3, :] = state_embeddings
+            token_embeddings[:, 2::3, :] = action_embeddings[:, -T + int(tar is None):, :]
 
-            position_embeddings = torch.gather(all_global_pos_emb, 1, torch.repeat_interleave(timesteps, self.h_dim, dim=-1)) + self.pos_emb[:, :token_embeddings.shape[1], :]
+            all_global_pos_emb = torch.repeat_interleave(
+                self.global_pos_emb, B, dim=0
+            )  # batch_size, traj_length, h_dim
+
+            position_embeddings = torch.gather(
+                all_global_pos_emb, 1, torch.repeat_interleave(timesteps, self.h_dim, dim=-1)
+            ) + self.pos_emb[:, :token_embeddings.shape[1], :]
 
             t_p = token_embeddings + position_embeddings
 
@@ -207,7 +213,7 @@ class DecisionTransformer(nn.Module):
 
             return_preds = None
             state_preds = None
-            action_preds = logits[:, 1::3, :] # only keep predictions from state_embeddings
+            action_preds = logits[:, 1::3, :]  # only keep predictions from state_embeddings
 
         return state_preds, action_preds, return_preds
 
@@ -227,7 +233,7 @@ class DecisionTransformer(nn.Module):
         blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
         for mn, m in self.named_modules():
             for pn, p in m.named_parameters():
-                fpn = '%s.%s' % (mn, pn) if mn else pn # full param name
+                fpn = '%s.%s' % (mn, pn) if mn else pn  # full param name
 
                 if pn.endswith('bias'):
                     # all biases will not be decayed
@@ -253,8 +259,14 @@ class DecisionTransformer(nn.Module):
 
         # create the pytorch optimizer object
         optim_groups = [
-            {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": weight_decay},
-            {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
+            {
+                "params": [param_dict[pn] for pn in sorted(list(decay))],
+                "weight_decay": weight_decay
+            },
+            {
+                "params": [param_dict[pn] for pn in sorted(list(no_decay))],
+                "weight_decay": 0.0
+            },
         ]
         optimizer = torch.optim.AdamW(optim_groups, lr=learning_rate, betas=betas)
         return optimizer

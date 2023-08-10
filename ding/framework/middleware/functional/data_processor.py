@@ -211,9 +211,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     queue = Queue(maxsize=50)
     device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
     producer_thread = Thread(
-        target=producer,
-        args=(queue, dataset, cfg.policy.batch_size, device),
-        name='cuda_fetcher_producer'
+        target=producer, args=(queue, dataset, cfg.policy.batch_size, device), name='cuda_fetcher_producer'
     )
 
     def _fetch(ctx: "OfflineRLContext"):
@@ -263,6 +261,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
             )
             ctx.train_data = next(dataloader)
         # TODO apply data update (e.g. priority) in offline setting when necessary
+
     return _fetch
 
 

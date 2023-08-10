@@ -23,6 +23,7 @@ class offline_data_fetcher_from_mem_c:
 
     def __init__(self, cfg: EasyDict, dataset: Dataset):
         stream = torch.cuda.Stream()
+
         def producer(queue, dataset, batch_size, device, event):
             torch.set_num_threads(4)
             nonlocal stream
@@ -30,8 +31,8 @@ class offline_data_fetcher_from_mem_c:
             rank = get_rank()
             idx_list = np.random.permutation(len(dataset))
             temp_idx_list = []
-            for i in range(len(dataset)//(batch_size*num_gpu)):
-                temp_idx_list.extend(idx_list[i+rank*batch_size:i+(rank+1)*batch_size])
+            for i in range(len(dataset) // (batch_size * num_gpu)):
+                temp_idx_list.extend(idx_list[i + rank * batch_size:i + (rank + 1) * batch_size])
             idx_iter = iter(temp_idx_list)
 
             with torch.cuda.stream(stream):
@@ -63,7 +64,7 @@ class offline_data_fetcher_from_mem_c:
             name='cuda_fetcher_producer'
         )
 
-    def __call__(self,ctx: "OfflineRLContext"):
+    def __call__(self, ctx: "OfflineRLContext"):
         if not self.producer_thread.is_alive():
             time.sleep(5)
             self.producer_thread.start()

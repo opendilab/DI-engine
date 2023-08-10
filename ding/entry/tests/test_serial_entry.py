@@ -683,7 +683,10 @@ def test_discrete_dt():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole cartpole_dt')
+
+
 test_discrete_dt()
+
 
 @pytest.mark.platformtest
 @pytest.mark.unittest

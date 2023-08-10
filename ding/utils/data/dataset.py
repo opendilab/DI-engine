@@ -151,9 +151,7 @@ class HDF5Dataset(Dataset):
         block_size = self.context_len
         done_idx = idx + block_size
         idx = done_idx - block_size
-        states = torch.as_tensor(
-            np.array(self._data['obs'][idx:done_idx]), dtype=torch.float32
-        ).view(block_size, -1)  
+        states = torch.as_tensor(np.array(self._data['obs'][idx:done_idx]), dtype=torch.float32).view(block_size, -1)
         actions = torch.as_tensor(self._data['action'][idx:done_idx], dtype=torch.long)
         rtgs = torch.as_tensor(self._data['reward'][idx:done_idx, 0], dtype=torch.float32)
         timesteps = torch.as_tensor(range(idx, done_idx), dtype=torch.int64)
