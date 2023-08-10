@@ -63,10 +63,8 @@ class PoolEnvManager:
             seed=seed,
             episodic_life=self._cfg.episodic_life,
             reward_clip=self._cfg.reward_clip,
-            stack_num=self._cfg.stack_num,
-            gray_scale=self._cfg.gray_scale,
-            frame_skip=self._cfg.frame_skip
         )
+        self.action_space = self._envs.action_space
         self._closed = False
         self.reset()
 

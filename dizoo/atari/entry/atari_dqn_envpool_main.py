@@ -6,14 +6,15 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs.env_manager.envpool_env_manager import PoolEnvManager
 from ding.policy import DQNPolicy
+from ding.entry import random_collect
 from ding.model import DQN
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.atari.config.serial import pong_dqn_envpool_config
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
-    cfg.exp_name = 'atari_dqn_envpool'
+def main(cfg, seed=2, max_iterations=int(1e10)):
+    cfg.exp_name = 'atari_dqn_envpool_pong_two_true_seed2'
     cfg = compile_config(
         cfg,
         PoolEnvManager,
@@ -32,9 +33,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             # env wrappers
             'episodic_life': True,  # collector: True
             'reward_clip': True,  # collector: True
-            'gray_scale': cfg.env.get('gray_scale', True),
-            'stack_num': cfg.env.get('stack_num', 4),
-            'frame_skip': cfg.env.get('frame_skip', 4),
         }
     )
     collector_env = PoolEnvManager(collector_env_cfg)
@@ -46,9 +44,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             # env wrappers
             'episodic_life': False,  # evaluator: False
             'reward_clip': False,  # evaluator: False
-            'gray_scale': cfg.env.get('gray_scale', True),
-            'stack_num': cfg.env.get('stack_num', 4),
-            'frame_skip': cfg.env.get('frame_skip', 4),
         }
     )
     evaluator_env = PoolEnvManager(evaluator_env_cfg)
@@ -72,6 +67,9 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     eps_cfg = cfg.policy.other.eps
     epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
+    if cfg.policy.random_collect_size > 0:
+        collect_kwargs = {'eps': epsilon_greedy(collector.envstep)}
+        random_collect(cfg.policy, policy, collector, collector_env, {}, replay_buffer, collect_kwargs=collect_kwargs)
     while True:
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -85,6 +83,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             train_data = replay_buffer.sample(batch_size, learner.train_iter)
             if train_data is not None:
                 learner.train(train_data, collector.envstep)
+        if collector.envstep >= int(3e6):
+            break
 
 
 if __name__ == "__main__":

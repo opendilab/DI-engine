@@ -1,4 +1,4 @@
-from typing import Optional, Callable, List, Any
+from typing import Optional, Callable, List, Dict, Any
 
 from ding.policy import PolicyFactory
 from ding.worker import IMetric, MetricSerialEvaluator
@@ -46,7 +46,8 @@ def random_collect(
         collector_env: 'BaseEnvManager',  # noqa
         commander: 'BaseSerialCommander',  # noqa
         replay_buffer: 'IBuffer',  # noqa
-        postprocess_data_fn: Optional[Callable] = None
+        postprocess_data_fn: Optional[Callable] = None,
+        collect_kwargs: Optional[Dict] = None,
 ) -> None:  # noqa
     assert policy_cfg.random_collect_size > 0
     if policy_cfg.get('transition_with_policy_data', False):
@@ -55,7 +56,8 @@ def random_collect(
         action_space = collector_env.action_space
         random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
         collector.reset_policy(random_policy)
-    collect_kwargs = commander.step()
+    if collect_kwargs is None:
+        collect_kwargs = commander.step()
     if policy_cfg.collect.collector.type == 'episode':
         new_data = collector.collect(n_episode=policy_cfg.random_collect_size, policy_kwargs=collect_kwargs)
     else:
