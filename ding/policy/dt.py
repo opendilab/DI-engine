@@ -132,6 +132,8 @@ class DTPolicy(Policy):
 
         self._optimizer.zero_grad()
         action_loss.backward()
+        if self._cfg.multi_gpu:
+            self.sync_gradients(self._learn_model)
         torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), self.clip_grad_norm_p)
         self._optimizer.step()
         self._scheduler.step()

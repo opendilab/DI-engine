@@ -3,6 +3,7 @@ from threading import Thread, Event
 from queue import Queue
 import time
 import torch
+import torch.distributed as dist
 from easydict import EasyDict
 from ding.framework import task
 from ding.data import Dataset, DataLoader
@@ -25,20 +26,28 @@ class offline_data_fetcher_from_mem_c:
         def producer(queue, dataset, batch_size, device, event):
             torch.set_num_threads(4)
             nonlocal stream
-            idx_iter = iter(np.random.permutation(len(dataset)-batch_size))
+            num_gpu = dist.get_world_size()
+            rank = get_rank()
+            idx_list = np.random.permutation(len(dataset))
+            temp_idx_list = []
+            for i in range(len(dataset)//(batch_size*num_gpu)):
+                temp_idx_list.extend(idx_list[i+rank*batch_size:i+(rank+1)*batch_size])
+            idx_iter = iter(temp_idx_list)
 
             with torch.cuda.stream(stream):
                 while True:
                     if queue.full():
                         time.sleep(0.1)
                     else:
-                        try:
-                            start_idx = next(idx_iter)
-                        except StopIteration:
-                            del idx_iter
-                            idx_iter = iter(np.random.permutation(len(dataset)-batch_size))
-                            start_idx = next(idx_iter)
-                        data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx + batch_size)]
+                        data = []
+                        for _ in range(batch_size):
+                            try:
+                                data.append(dataset.__getitem__(next(idx_iter)))
+                            except StopIteration:
+                                del idx_iter
+                                idx_list = np.random.permutation(len(dataset))
+                                idx_iter = iter(idx_list)
+                                data.append(dataset.__getitem__(next(idx_iter)))
                         data = [[i[j] for i in data] for j in range(len(data[0]))]
                         data = [torch.stack(x).to(device) for x in data]
                         queue.put(data)
@@ -61,6 +70,8 @@ class offline_data_fetcher_from_mem_c:
         while self.queue.empty():
             time.sleep(0.001)
         ctx.train_data = self.queue.get()
-        if task.finish:
+
+    def __del__(self):
+        if self.producer_thread.is_alive():
             self.event.set()
             del self.queue

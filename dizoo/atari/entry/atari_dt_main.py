@@ -8,20 +8,21 @@ from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_logger, termination_checker, offline_data_fetcher_from_mem_c
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_logger, termination_checker, offline_data_fetcher_from_mem_c, offline_data_fetcher
 from ding.utils import set_pkg_seed, DDPContext, to_ddp_config
 from dizoo.atari.envs import AtariEnv
 from dizoo.atari.config.serial.pong.pong_dt_config import main_config, create_config
+import torch.distributed as dist
 
 
 def main():
     # If you don't have offline data, you need to prepare if first and set the data_path in config
     # For demostration, we also can train a RL policy (e.g. SAC) and collect some data
     logging.getLogger().setLevel(logging.INFO)
-    cmain_config = to_ddp_config(main_config)
-    cfg = compile_config(cmain_config, create_cfg=create_config, auto=True)
-    ding_init(cfg)
     with DDPContext():
+        cmain_config = to_ddp_config(main_config)
+        cfg = compile_config(cmain_config, create_cfg=create_config, auto=True)
+        ding_init(cfg)
         with task.start(async_mode=False, ctx=OfflineRLContext()):
             evaluator_env = SubprocessEnvManagerV2(
                 env_fn=[lambda: AllinObsWrapper(AtariEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)],
@@ -41,10 +42,10 @@ def main():
             # model.parallelize()
             policy = DTPolicy(cfg.policy, model=model)
 
-            task.use(termination_checker(max_train_iter=3e4))
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(offline_data_fetcher_from_mem_c(cfg, dataset))
             task.use(trainer(cfg, policy.learn_mode))
+            task.use(termination_checker(max_train_iter=3e4))
             task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
             task.use(offline_logger(cfg.exp_name))
             task.run()
