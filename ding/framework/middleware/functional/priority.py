@@ -1,20 +1,7 @@
-from typing import TYPE_CHECKING, Optional, Callable, Dict, List, Union
-from ditk import logging
-from easydict import EasyDict
-from matplotlib import pyplot as plt
-from matplotlib import animation
-import os
-import numpy as np
-import torch
-import wandb
-import pickle
-import treetensor.numpy as tnp
-from ding.policy import Policy
-from ding.data import Buffer
-from ding.rl_utils import gae, gae_data
+from typing import TYPE_CHECKING, Callable
 from ding.framework import task
-from ding.utils.data import ttorch_collate
-from ding.torch_utils import to_device
+if TYPE_CHECKING:
+    from ding.framework import OnlineRLContext
 
 
 def priority_calculator(priority_calculation_fn: Callable) -> Callable:

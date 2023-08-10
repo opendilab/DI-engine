@@ -304,12 +304,16 @@ class PeriodicalModelExchanger:
     ) -> None:
         """
         Overview:
-            Exchange model between processes, only the learner will send the model,
-            otherwise the model will only be received.
+            Exchange model between processes, set the mode to "send" or "receive" to specify the role of the process.
             If you are using a shared model on a single host, there is no need to use this middleware.
         Arguments:
             - model (:obj:`torch.nn.Module`): Pytorch module.
-            - model_loader (:obj:`ModelLoader`): Encode model in subprocess.
+            - mode (:obj:`str`): "send" or "receive".
+            - period (:obj:`int`): The period of model exchange.
+            - delay_toleration (:obj:`float`): The permitted time interval for receiving model after being sent.
+            - stale_toleration (:obj:`int`): The permitted number of iterations for receiving model after being sent.
+            - event_name (:obj:`str`): The event name for model exchange.
+            - model_loader (:obj:`ModelLoader`): ModelLoader for this PeriodicalModelExchanger to use.
         """
         self._model = model
         self._model_loader = model_loader
@@ -332,14 +336,10 @@ class PeriodicalModelExchanger:
             task.once("finish", lambda _: model_loader.shutdown())
 
     def _cache_state_dict(self, msg: Dict[str, Any]):
-        # msg: Dict {'id':id,'model':state_dict: Union[object, Storage]}
-        print(f"node_id[{task.router.node_id}] get model msg")
         if msg['id'] % self._period == 0:
             self._state_dict_cache = msg['model']
             self._id_counter = msg['id']
             self._time = msg['time']
-        else:
-            print(f"node_id[{task.router.node_id}] skip save cache")
 
     def __new__(cls, *args, **kwargs):
         return super(PeriodicalModelExchanger, cls).__new__(cls)
@@ -349,17 +349,12 @@ class PeriodicalModelExchanger:
             self._model_loader.start()
 
         if self.mode == "receive":
-            print(f"node_id[{task.router.node_id}] try receive model")
             if ctx.total_step != 0:  # Skip first iteration
                 self._update_model()
-            else:
-                print(f"node_id[{task.router.node_id}] skip first iteration")
         elif self.mode == "send":
             yield
-            print(f"node_id[{task.router.node_id}] try send model")
             if self._id_counter % self._period == 0:
                 self._send_model(id=self._id_counter)
-                print(f"node_id[{task.router.node_id}] model send [{self._id_counter}]")
             self._id_counter += 1
         else:
             raise NotImplementedError
@@ -380,9 +375,7 @@ class PeriodicalModelExchanger:
                 else:
                     sleep(0.01)
             else:
-                #print(f"node_id[{task.router.node_id}] time diff {time()-self._time}")
                 if self._id_counter > self._model_id and time() - self._time < self.delay_toleration:
-                    print(f"node_id[{task.router.node_id}] begin update")
                     if isinstance(self._state_dict_cache, Storage) and self._model_loader is not None:
                         try:
                             self._model.load_state_dict(self._model_loader.load(self._state_dict_cache))
@@ -402,11 +395,9 @@ class PeriodicalModelExchanger:
                         self._model.load_state_dict(self._state_dict_cache)
                         self._state_dict_cache = None
                         self._model_id = self._id_counter
-                        print(f"node_id[{task.router.node_id}] model updated")
                         self.model_stale = 1
                         break
                 else:
-                    print(f"node_id[{task.router.node_id}] same id skip update")
                     self.model_stale += 1
 
     def _send_model(self, id: int):
