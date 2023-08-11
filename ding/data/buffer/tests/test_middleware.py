@@ -111,6 +111,38 @@ def test_priority():
 
 
 @pytest.mark.unittest
+def test_priority_from_collector():
+    N = 5
+    buffer = DequeBuffer(size=10)
+    buffer.use(PriorityExperienceReplay(buffer, IS_weight=True))
+    for _ in range(N):
+        tmp_data = get_data()
+        tmp_data['priority'] = 2.0
+        buffer.push(get_data())
+    assert buffer.count() == N
+    for _ in range(N):
+        tmp_data = get_data()
+        tmp_data['priority'] = 2.0
+        buffer.push(get_data())
+    assert buffer.count() == N + N
+    data = buffer.sample(size=N + N, replace=False)
+    assert len(data) == N + N
+    for item in data:
+        meta = item.meta
+        assert set(meta.keys()).issuperset(set(['priority', 'priority_idx', 'priority_IS']))
+        meta['priority'] = 3.0
+    for item in data:
+        data, index, meta = item.data, item.index, item.meta
+        buffer.update(index, data, meta)
+    data = buffer.sample(size=1)
+    assert data[0].meta['priority'] == 3.0
+    buffer.delete(data[0].index)
+    assert buffer.count() == N + N - 1
+    buffer.clear()
+    assert buffer.count() == 0
+
+
+@pytest.mark.unittest
 def test_padding():
     buffer = DequeBuffer(size=10)
     buffer.use(padding())

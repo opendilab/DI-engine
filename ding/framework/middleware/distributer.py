@@ -319,18 +319,18 @@ class PeriodicalModelExchanger:
         self._model_loader = model_loader
         self._event_name = event_name
         self._period = period
-        self.mode = mode
-        if self.mode == "receive":
+        self._mode = mode
+        if self._mode == "receive":
             self._id_counter = -1
             self._model_id = -1
         else:
             self._id_counter = 0
-        self.stale_toleration = stale_toleration
-        self.model_stale = stale_toleration
-        self.delay_toleration = delay_toleration
+        self._stale_toleration = stale_toleration
+        self._model_stale = stale_toleration
+        self._delay_toleration = delay_toleration
         self._state_dict_cache: Optional[Union[object, Storage]] = None
 
-        if self.mode == "receive":
+        if self._mode == "receive":
             task.on(self._event_name, self._cache_state_dict)
         if model_loader:
             task.once("finish", lambda _: model_loader.shutdown())
@@ -348,10 +348,10 @@ class PeriodicalModelExchanger:
         if self._model_loader:
             self._model_loader.start()
 
-        if self.mode == "receive":
+        if self._mode == "receive":
             if ctx.total_step != 0:  # Skip first iteration
                 self._update_model()
-        elif self.mode == "send":
+        elif self._mode == "send":
             yield
             if self._id_counter % self._period == 0:
                 self._send_model(id=self._id_counter)
@@ -366,22 +366,22 @@ class PeriodicalModelExchanger:
                 return
             if time() - start > 60:
                 logging.warning("Timeout when waiting for new model! Node id: {}".format(task.router.node_id))
-                self.model_stale += 1
+                self._model_stale += 1
                 break
             if self._state_dict_cache is None:
-                if self.model_stale < self.stale_toleration and time() - self._time < self.delay_toleration:
-                    self.model_stale += 1
+                if self._model_stale < self._stale_toleration and time() - self._time < self._delay_toleration:
+                    self._model_stale += 1
                     break
                 else:
                     sleep(0.01)
             else:
-                if self._id_counter > self._model_id and time() - self._time < self.delay_toleration:
+                if self._id_counter > self._model_id and time() - self._time < self._delay_toleration:
                     if isinstance(self._state_dict_cache, Storage) and self._model_loader is not None:
                         try:
                             self._model.load_state_dict(self._model_loader.load(self._state_dict_cache))
                             self._state_dict_cache = None
                             self._model_id = self._id_counter
-                            self.model_stale = 1
+                            self._model_stale = 1
                             break
                         except FileNotFoundError as e:
                             logging.warning(
@@ -395,10 +395,10 @@ class PeriodicalModelExchanger:
                         self._model.load_state_dict(self._state_dict_cache)
                         self._state_dict_cache = None
                         self._model_id = self._id_counter
-                        self.model_stale = 1
+                        self._model_stale = 1
                         break
                 else:
-                    self.model_stale += 1
+                    self._model_stale += 1
 
     def _send_model(self, id: int):
         if self._model_loader:
