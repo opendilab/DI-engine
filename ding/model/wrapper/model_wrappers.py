@@ -429,6 +429,9 @@ class CombinationArgmaxSampleWrapper(IModelWrapper):
             for jj in range(actions.shape[0]):
                 mask[jj][actions[jj]] = -1e8
         # `act` is shaped (shot_num, B)
+        # Next we will transform the action using binary encoding.
+        # For example, if the original action is: ``[[1, 2, 3], [4, 5, 6]]``
+        # Then the transformed action ``real_act`` is: ``[2^1+2^4, 2^2+2^5, 2^3+2^6]``.
         real_act = []
         for b in range(act[0].shape[0]):
             tmp_act = torch.zeros_like(act[0][0])
@@ -456,8 +459,11 @@ class CombinationMultinomialSampleWrapper(IModelWrapper):
             actions = dist.sample()
             act.append(actions)
             for jj in range(actions.shape[0]):
-                mask[jj][actions[jj]] = -1e30
+                mask[jj][actions[jj]] = -1e8
         # `act` is shaped (shot_num, B)
+        # Next we will transform the action using binary encoding.
+        # For example, if the original action is: ``[[1, 2, 3], [4, 5, 6]]``
+        # Then the transformed action ``real_act`` is: ``[2^1+2^4, 2^2+2^5, 2^3+2^6]``.
         real_act = []
         for b in range(act[0].shape[0]):
             tmp_act = torch.zeros_like(act[0][0])

@@ -19,3 +19,7 @@ class TestNLPPretrainedModel:
         model = LanguageTransformer(model_name="bert-base-uncased", add_linear=True, embedding_size=256)
         scores = model(ctxt_list, cands_list)
         assert scores.shape == (1, 3)
+
+        model = LanguageTransformer(model_name="bert-base-uncased", add_linear=False, embedding_size=256)
+        scores = model(ctxt_list, cands_list)
+        assert scores.shape == (1, 3)

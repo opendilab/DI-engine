@@ -1,8 +1,14 @@
+import os
+from functools import lru_cache
+
 import gym
+import openai
+import numpy as np
 
 from ding.utils import ENV_REGISTRY
 from ding.envs import BaseEnv, BaseEnvTimestep
-from dizoo.tabmwp.envs.utils import *
+from dizoo.tabmwp.envs.utils import create_example_from_pid, build_prompt, get_gpt3_output, calc_rwkv, calc_internlm,\
+    extract_prediction, normalize_answer, load_data
 
 
 @ENV_REGISTRY.register('tabmwp')
@@ -27,21 +33,28 @@ class TabMWP(BaseEnv):
 
         # Initialize language model if needed.
         assert self.cfg.engine in ['text-davinci-002', 'glm-10B', 'rwkv-7B', 'internlm-7B']
-        if self.cfg.engine == 'glm-10B' and TabMWP.model is None:
-            from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
-            model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
-            TabMWP.model = model.half()
-        elif self.cfg.engine == 'rwkv-7B' and TabMWP.model is None:
-            from transformers import AutoTokenizer, RwkvForCausalLM
-            TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile", trust_remote_code=True)
-            model = RwkvForCausalLM.from_pretrained("sgugger/rwkv-7b-pile")
-            TabMWP.model = model.half()
-        elif self.cfg.engine == 'internlm-7B' and TabMWP.model is None:
-            from transformers import AutoTokenizer, AutoModelForCausalLM
-            TabMWP.tokenizer = AutoTokenizer.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
-            model = AutoModelForCausalLM.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
-            TabMWP.model = model.eval()
+
+        try:
+            if self.cfg.engine == 'glm-10B' and TabMWP.model is None:
+                from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+                TabMWP.tokenizer = AutoTokenizer.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
+                model = AutoModelForSeq2SeqLM.from_pretrained("THUDM/glm-10b", trust_remote_code=True)
+                TabMWP.model = model.half()
+            elif self.cfg.engine == 'rwkv-7B' and TabMWP.model is None:
+                from transformers import AutoTokenizer, RwkvForCausalLM
+                TabMWP.tokenizer = AutoTokenizer.from_pretrained("sgugger/rwkv-7b-pile", trust_remote_code=True)
+                model = RwkvForCausalLM.from_pretrained("sgugger/rwkv-7b-pile")
+                TabMWP.model = model.half()
+            elif self.cfg.engine == 'internlm-7B' and TabMWP.model is None:
+                from transformers import AutoTokenizer, AutoModelForCausalLM
+                TabMWP.tokenizer = AutoTokenizer.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
+                model = AutoModelForCausalLM.from_pretrained("internlm/internlm-7b", trust_remote_code=True)
+                TabMWP.model = model.eval()
+        except ImportError:
+            import sys
+            from ditk import logging
+            logging.warning("not found transformer, please install it using: pip install transformers")
+            sys.exit(1)
 
     @lru_cache(maxsize=10000)
     def get_output(self, inp: str) -> str:
