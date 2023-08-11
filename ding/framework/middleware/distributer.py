@@ -325,7 +325,7 @@ class PeriodicalModelExchanger:
             self._model_id = -1
         else:
             self._id_counter = 0
-        self.stale_toleration = stale_toleration
+        self._stale_toleration = stale_toleration
         self._model_stale = stale_toleration
         self._delay_toleration = delay_toleration
         self._state_dict_cache: Optional[Union[object, Storage]] = None
@@ -369,7 +369,7 @@ class PeriodicalModelExchanger:
                 self._model_stale += 1
                 break
             if self._state_dict_cache is None:
-                if self._model_stale < self.stale_toleration and time() - self._time < self._delay_toleration:
+                if self._model_stale < self._stale_toleration and time() - self._time < self._delay_toleration:
                     self._model_stale += 1
                     break
                 else:
