@@ -73,7 +73,7 @@ def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRe
 
 def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
 
-    if task.router.is_active and not task.has_role(task.role.LEARNER):
+    if task.router.is_active and (not task.has_role(task.role.LEARNER) and not task.has_role(task.role.COLLECTOR)):
         return task.void()
 
     def _enhance(ctx: "OnlineRLContext"):
