@@ -267,8 +267,3 @@ def periodical_model_exchanger_main():
 @pytest.mark.tmp
 def test_periodical_model_exchanger():
     Parallel.runner(n_parallel_workers=2, startup_interval=0)(periodical_model_exchanger_main)
-
-
-if __name__ == "__main__":
-    #test_model_exchanger()
-    test_periodical_model_exchanger()
