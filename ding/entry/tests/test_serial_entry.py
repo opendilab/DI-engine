@@ -657,7 +657,8 @@ def test_discrete_dt():
         from ding.config import compile_config
         from ding.model.template.dt import DecisionTransformer
         from ding.policy import DTPolicy
-        from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher_from_mem_c, offline_logger, termination_checker
+        from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
+              offline_data_fetcher_from_mem_c, offline_logger, termination_checker
         config = compile_config(config[0], create_cfg=config[1], auto=True)
         with task.start(async_mode=False, ctx=OfflineRLContext()):
             evaluator_env = BaseEnvManagerV2(
@@ -683,9 +684,6 @@ def test_discrete_dt():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole cartpole_dt')
-
-
-test_discrete_dt()
 
 
 @pytest.mark.platformtest

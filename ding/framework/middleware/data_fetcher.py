@@ -22,11 +22,14 @@ class offline_data_fetcher_from_mem_c:
         return super(offline_data_fetcher_from_mem_c, cls).__new__(cls)
 
     def __init__(self, cfg: EasyDict, dataset: Dataset):
-        stream = torch.cuda.Stream()
+        device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
+        if device is not 'cpu':
+            stream = torch.cuda.Stream()
 
         def producer(queue, dataset, batch_size, device, event):
             torch.set_num_threads(4)
-            nonlocal stream
+            if device is not 'cpu':
+                nonlocal stream
             num_gpu = dist.get_world_size()
             rank = get_rank()
             idx_list = np.random.permutation(len(dataset))
@@ -35,7 +38,27 @@ class offline_data_fetcher_from_mem_c:
                 temp_idx_list.extend(idx_list[i + rank * batch_size:i + (rank + 1) * batch_size])
             idx_iter = iter(temp_idx_list)
 
-            with torch.cuda.stream(stream):
+            if device is not 'cpu':
+                with torch.cuda.stream(stream):
+                    while True:
+                        if queue.full():
+                            time.sleep(0.1)
+                        else:
+                            data = []
+                            for _ in range(batch_size):
+                                try:
+                                    data.append(dataset.__getitem__(next(idx_iter)))
+                                except StopIteration:
+                                    del idx_iter
+                                    idx_list = np.random.permutation(len(dataset))
+                                    idx_iter = iter(idx_list)
+                                    data.append(dataset.__getitem__(next(idx_iter)))
+                            data = [[i[j] for i in data] for j in range(len(data[0]))]
+                            data = [torch.stack(x).to(device) for x in data]
+                            queue.put(data)
+                        if event.is_set():
+                            break
+            else:
                 while True:
                     if queue.full():
                         time.sleep(0.1)
@@ -50,14 +73,13 @@ class offline_data_fetcher_from_mem_c:
                                 idx_iter = iter(idx_list)
                                 data.append(dataset.__getitem__(next(idx_iter)))
                         data = [[i[j] for i in data] for j in range(len(data[0]))]
-                        data = [torch.stack(x).to(device) for x in data]
+                        data = [torch.stack(x) for x in data]
                         queue.put(data)
                     if event.is_set():
                         break
 
         self.queue = Queue(maxsize=50)
         self.event = Event()
-        device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
         self.producer_thread = Thread(
             target=producer,
             args=(self.queue, dataset, cfg.policy.batch_size, device, self.event),

@@ -8,7 +8,8 @@ from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, termination_checker, final_ctx_saver
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
+      offline_data_fetcher, offline_logger, termination_checker, final_ctx_saver
 from ding.utils import set_pkg_seed
 from dizoo.box2d.lunarlander.envs.lunarlander_env import LunarLanderEnv
 from dizoo.box2d.lunarlander.config.lunarlander_dt_config import main_config, create_config

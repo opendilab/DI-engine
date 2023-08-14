@@ -126,7 +126,7 @@ class DecisionTransformer(nn.Module):
         self.pos_emb = nn.Parameter(torch.zeros(1, input_seq_len + 1, self.h_dim))
         self.global_pos_emb = nn.Parameter(torch.zeros(1, max_timestep + 1, self.h_dim))
 
-        if state_encoder == None:
+        if state_encoder is None:
             self.state_encoder = None
             blocks = [Block(h_dim, input_seq_len, n_heads, drop_p) for _ in range(n_blocks)]
             self.embed_rtg = torch.nn.Linear(1, h_dim)
@@ -154,7 +154,7 @@ class DecisionTransformer(nn.Module):
 
     def forward(self, timesteps, states, actions, returns_to_go, tar=None):
         B, T = states.shape[0], states.shape[1]
-        if self.state_encoder == None:
+        if self.state_encoder is None:
             time_embeddings = self.embed_timestep(timesteps)
 
             # time embeddings are treated similar to positional embeddings
@@ -254,8 +254,9 @@ class DecisionTransformer(nn.Module):
         inter_params = decay & no_decay
         union_params = decay | no_decay
         assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
-        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
-                                                    % (str(param_dict.keys() - union_params), )
+        assert len(param_dict.keys() - union_params) == 0,\
+              "parameters %s were not separated into either decay/no_decay set!" \
+                % (str(param_dict.keys() - union_params), )
 
         # create the pytorch optimizer object
         optim_groups = [
