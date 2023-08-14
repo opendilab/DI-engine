@@ -215,11 +215,11 @@ class VectorMerge(nn.Module):
     """
 
     def __init__(
-            self,
-            input_sizes: Dict[str, int],
-            output_size: int,
-            gating_type: GatingType = GatingType.NONE,
-            use_layer_norm: bool = True,
+        self,
+        input_sizes: Dict[str, int],
+        output_size: int,
+        gating_type: GatingType = GatingType.NONE,
+        use_layer_norm: bool = True,
     ):
         r"""
         Overview:
@@ -292,8 +292,8 @@ class VectorMerge(nn.Module):
         return gates, outputs
 
     def _compute_gate(
-            self,
-            init_gate: List[Tensor],
+        self,
+        init_gate: List[Tensor],
     ):
         if len(self._input_sizes) == 2:
             gate = [self._gating_linears[name](y) for name, y in zip(self._input_sizes.keys(), init_gate)]
