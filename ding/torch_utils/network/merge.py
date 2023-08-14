@@ -6,7 +6,7 @@ or when we need to merge multiple intermediate embedded representations in the f
 The main classes defined in this code are:
 
     - BilinearGeneral: This class implements a bilinear transformation layer that applies a bilinear transformation to incoming data,
-        as described in the "Multiplicative Interactions and Where to Find Them", published at ICLR 2020.
+        as described in the "Multiplicative Interactions and Where to Find Them", published at ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH.
         The transformation involves two input features and an output feature, and also includes an optional bias term.
 
     - TorchBilinearCustomized: This class implements a bilinear layer similar to the one provided by PyTorch (torch.nn.Bilinear),
@@ -116,23 +116,17 @@ class TorchBilinearCustomized(nn.Module):
         return out.squeeze(-1)
 
 
-class TorchBilinear(nn.Bilinear):
-    """
-    Overview:
-        Implementation of the Bilinear layer as in PyTorch:
-        https://pytorch.org/docs/stable/generated/torch.nn.Bilinear.html#torch.nn.Bilinear
-    Arguments:
-        - in1_features (:obj:`int`): size of each first input sample
-        - in2_features (:obj:`int`): size of each second input sample
-        - out_features (:obj:`int`): size of each output sample
-        - bias (:obj:`bool`): If set to False, the layer will not learn an additive bias. Default: ``True``.
-    """
-
-    def __init__(self, in1_features, in2_features, out_features, bias=True):
-        super(TorchBilinear, self).__init__(in1_features, in2_features, out_features, bias)
-
-    def forward(self, x, z):
-        return super(TorchBilinear, self).forward(x, z)
+"""
+Overview:
+    Implementation of the Bilinear layer as in PyTorch:
+    https://pytorch.org/docs/stable/generated/torch.nn.Bilinear.html#torch.nn.Bilinear
+Arguments:
+    - in1_features (:obj:`int`): size of each first input sample
+    - in2_features (:obj:`int`): size of each second input sample
+    - out_features (:obj:`int`): size of each output sample
+    - bias (:obj:`bool`): If set to False, the layer will not learn an additive bias. Default: ``True``.
+"""
+TorchBilinear = nn.Bilinear
 
 
 class FiLM(nn.Module):
