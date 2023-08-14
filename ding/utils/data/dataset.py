@@ -532,7 +532,7 @@ class D4RLTrajectoryDataset(Dataset):
                     trajectories_to_load = cfg.dataset.trajectories_per_buffer
                     while not done:
                         states, ac, ret, next_states, next_action, next_reward, terminal, indices = \
-                        frb.sample_transition_batch(                         batch_size=1, indices=[i])
+                        frb.sample_transition_batch(batch_size=1, indices=[i])
                         states = states.transpose((0, 3, 1, 2))[0]  # (1, 84, 84, 4) --> (4, 84, 84)
                         obss.append(states)
                         actions.append(ac[0])
