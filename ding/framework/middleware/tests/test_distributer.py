@@ -235,11 +235,8 @@ def periodical_model_exchanger_main():
             task.use(PeriodicalModelExchanger(policy._model, mode="send", period=3))
         else:
             task.add_role(task.role.COLLECTOR)
-            task.use(
-                PeriodicalModelExchanger(
-                    policy._model, mode="receive", period=1, stale_toleration=3, delay_toleration=1.0
-                )
-            )
+            task.use(PeriodicalModelExchanger(policy._model, mode="receive", period=1, stale_toleration=3))
+
         if task.has_role(task.role.LEARNER):
 
             def train(ctx):
@@ -267,8 +264,3 @@ def periodical_model_exchanger_main():
 @pytest.mark.tmp
 def test_periodical_model_exchanger():
     Parallel.runner(n_parallel_workers=2, startup_interval=0)(periodical_model_exchanger_main)
-
-
-if __name__ == "__main__":
-    #test_model_exchanger()
-    test_periodical_model_exchanger()
