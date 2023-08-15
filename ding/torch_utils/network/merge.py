@@ -1,24 +1,28 @@
 """
 This file provides an implementation of several different neural network modules that are used for merging and
-transforming input data in various ways. The following components can be used when we are dealing with data from multiple modes,
-or when we need to merge multiple intermediate embedded representations in the forward process of a model.
+transforming input data in various ways. The following components can be used when we are dealing with
+data from multiple modes, or when we need to merge multiple intermediate embedded representations in
+the forward process of a model.
 
 The main classes defined in this code are:
 
-    - BilinearGeneral: This class implements a bilinear transformation layer that applies a bilinear transformation to incoming data,
-        as described in the "Multiplicative Interactions and Where to Find Them", published at ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH.
-        The transformation involves two input features and an output feature, and also includes an optional bias term.
+    - BilinearGeneral: This class implements a bilinear transformation layer that applies a bilinear transformation to
+        incoming data, as described in the "Multiplicative Interactions and Where to Find Them", pubished at ICLR 2020,
+        https://openreview.net/forum?id=rylnK6VtDH. The transformation involves two input features and an output
+        feature, and also includes an optional bias term.
 
-    - TorchBilinearCustomized: This class implements a bilinear layer similar to the one provided by PyTorch (torch.nn.Bilinear),
-        but with additional customizations. This class can be used as an alternative to the BilinearGeneral class.
+    - TorchBilinearCustomized: This class implements a bilinear layer similar to the one provided by PyTorch
+        (torch.nn.Bilinear), but with additional customizations. This class can be used as an alternative to the
+        BilinearGeneral class.
 
-    - TorchBilinear: This class is a simple wrapper around the PyTorch's built-in nn.Bilinear module. It provides the same
-        functionality as PyTorch's nn.Bilinear but within the structure of the current module.
+    - TorchBilinear: This class is a simple wrapper around the PyTorch's built-in nn.Bilinear module. It provides the
+        same functionality as PyTorch's nn.Bilinear but within the structure of the current module.
 
-    - FiLM: This class implements a Feature-wise Linear Modulation (FiLM) layer. FiLM layers apply an affine transformation
-        to the input data, conditioned on some additional context information.
+    - FiLM: This class implements a Feature-wise Linear Modulation (FiLM) layer. FiLM layers apply an affine
+        transformation to the input data, conditioned on some additional context information.
 
-    - GatingType: This is an enumeration class that defines different types of gating mechanisms that can be used in the modules.
+    - GatingType: This is an enumeration class that defines different types of gating mechanisms that can be used in
+        the modules.
 
     - SumMerge: This class provides a simple summing mechanism to merge input streams.
 
@@ -26,8 +30,8 @@ The main classes defined in this code are:
         The streams are first transformed using layer normalization, a ReLU activation, and a linear layer.
         Then they are merged either by simple summing or by using a gating mechanism.
 
-The implementation of these classes involves PyTorch and Numpy libraries, and the classes use PyTorch's nn.Module as the base class,
-making them compatible with PyTorch's neural network modules and functionalities.
+The implementation of these classes involves PyTorch and Numpy libraries, and the classes use PyTorch's nn.Module as
+the base class, making them compatible with PyTorch's neural network modules and functionalities.
 These modules can be useful building blocks in more complex deep learning architectures.
 """
 
