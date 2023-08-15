@@ -7,7 +7,7 @@ the forward process of a model.
 The main classes defined in this code are:
 
     - BilinearGeneral: This class implements a bilinear transformation layer that applies a bilinear transformation to
-        incoming data, as described in the "Multiplicative Interactions and Where to Find Them", pubished at ICLR 2020,
+        incoming data, as described in the "Multiplicative Interactions and Where to Find Them", published at ICLR 2020,
         https://openreview.net/forum?id=rylnK6VtDH. The transformation involves two input features and an output
         feature, and also includes an optional bias term.
 

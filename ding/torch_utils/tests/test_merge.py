@@ -63,7 +63,8 @@ def test_bilinear_consistency():
     print(f"Mean Squared Error between outputs: {mse.item()}")
 
     # Check if outputs are the same
-    # assert torch.allclose(out_bilinear_customized, out_torch_bilinear), "Outputs of TorchBilinearCustomized and TorchBilinear are not the same."
+    # assert torch.allclose(out_bilinear_customized, out_torch_bilinear),
+    # "Outputs of TorchBilinearCustomized and TorchBilinear are not the same."
 
 
 def test_bilinear_general():
