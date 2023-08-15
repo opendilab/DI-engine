@@ -92,10 +92,11 @@ def test_bilinear_general():
 
     # Check parameter shapes
     assert bilinear_general.W.shape == (
-    out_features, in1_features, in2_features), "Weight W shape does not match expected shape."
+        out_features, in1_features, in2_features
+    ), "Weight W shape does not match expected shape."
     assert bilinear_general.U.shape == (out_features, in2_features), "Weight U shape does not match expected shape."
     assert bilinear_general.V.shape == (out_features, in1_features), "Weight V shape does not match expected shape."
-    assert bilinear_general.b.shape == (out_features,), "Bias shape does not match expected shape."
+    assert bilinear_general.b.shape == (out_features, ), "Bias shape does not match expected shape."
 
     # Check parameter types
     assert isinstance(bilinear_general.W, torch.nn.Parameter), "Weight W is not an instance of torch.nn.Parameter."
