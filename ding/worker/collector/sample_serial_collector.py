@@ -51,7 +51,7 @@ class SampleSerialCollector(ISerialCollector):
         self._deepcopy_obs = cfg.deepcopy_obs  # whether to deepcopy each data
         self._transform_obs = cfg.transform_obs
         self._cfg = cfg
-        self._timer = EasyTimer()
+        self._timer = EasyTimer(cuda=False)
         self._end_flag = False
         self._rank = get_rank()
         self._world_size = get_world_size()
