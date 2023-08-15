@@ -421,6 +421,54 @@ class DQNPolicy(Policy):
     def monitor_vars(self) -> List[str]:
         return ['cur_lr', 'total_loss', 'q_value']
 
+    def calculate_priority(self, data: Dict[int, Any], update_target_model: bool = False) -> Dict[str, Any]:
+        """
+        Overview:
+            Calculate priority for replay buffer.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training.
+        Returns:
+            - priority (:obj:`Dict[str, Any]`): Dict type priority data, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
+            - optional: ``value_gamma``
+        ReturnsKeys:
+            - necessary: ``priority``
+        """
+
+        if update_target_model:
+            self._target_model.load_state_dict(self._learn_model.state_dict())
+
+        data = default_preprocess_learn(
+            data,
+            use_priority=False,
+            use_priority_IS_weight=False,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=True
+        )
+        if self._cuda:
+            data = to_device(data, self._device)
+        # ====================
+        # Q-learning forward
+        # ====================
+        self._learn_model.eval()
+        self._target_model.eval()
+        with torch.no_grad():
+            # Current q value (main model)
+            q_value = self._learn_model.forward(data['obs'])['logit']
+            # Target q value
+            target_q_value = self._target_model.forward(data['next_obs'])['logit']
+            # Max q value action (main model), i.e. Double DQN
+            target_q_action = self._learn_model.forward(data['next_obs'])['action']
+            data_n = q_nstep_td_data(
+                q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+            )
+            value_gamma = data.get('value_gamma')
+            loss, td_error_per_sample = q_nstep_td_error(
+                data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+            )
+        return {'priority': td_error_per_sample.abs().tolist()}
+
 
 @POLICY_REGISTRY.register('dqn_stdim')
 class DQNSTDIMPolicy(DQNPolicy):
