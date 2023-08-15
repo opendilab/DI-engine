@@ -25,7 +25,7 @@ class SampleSerialCollector(ISerialCollector):
         envstep
     """
 
-    config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
+    config = dict(type='sample', deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
 
     def __init__(
             self,
