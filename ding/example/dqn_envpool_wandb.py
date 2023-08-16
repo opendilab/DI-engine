@@ -84,7 +84,15 @@ def main(cfg):
         # Here is the part of single process pipeline.
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
-        task.use(StepCollector(cfg, policy.collect_mode, collector_env))
+        task.use(
+            StepCollector(
+                cfg, 
+                policy.collect_mode, 
+                collector_env,
+                random_collect_size=cfg.policy.random_collect_size \
+                        if hasattr(cfg.policy, 'random_collect_size') else 0,
+                    )
+                )
         if "nstep" in cfg.policy and cfg.policy.nstep > 1:
             task.use(nstep_reward_enhancer(cfg))
         task.use(data_pusher(cfg, buffer_))
