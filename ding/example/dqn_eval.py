@@ -1,14 +1,13 @@
 import gym
+import torch
 from ditk import logging
 from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
-from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver, nstep_reward_enhancer, final_ctx_saver
+from ding.framework.middleware import interaction_evaluator
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
 
@@ -24,12 +23,19 @@ def main():
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-
         model = DQN(**cfg.policy.model)
+
+        # Load the pretrained weights.
+        # First, you should get a pretrained network weights. For example, you can run ``python ding/examples/dqn.py``.
+        pretrained_state_dict = torch.load('cartpole_dqn_seed0/ckpt/final.pth.tar')['model']
+        model.load_state_dict(pretrained_state_dict)
+
         policy = DQNPolicy(cfg.policy, model=model)
 
-        task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
-        task.run()
+        # Define the evaluator middleware.
+        evaluator = interaction_evaluator(cfg, policy.eval_mode, evaluator_env)
+        # Call the evaluator middleware to perform evaluation.
+        evaluator(task.ctx)
 
 
 if __name__ == "__main__":
