@@ -153,11 +153,21 @@ class PoolEnvManager():
 
     @property
     def observation_space(self) -> 'gym.spaces.Space':  # noqa
-        return self._observation_space
+        try:
+            return self._observation_space
+        except AttributeError:
+            self.launch()
+            self.close()
+            return self._observation_space
 
     @property
     def action_space(self) -> 'gym.spaces.Space':  # noqa
-        return self._action_space
+        try:
+            return self._action_space
+        except AttributeError:
+            self.launch()
+            self.close()
+            return self._action_space
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool_v2')
@@ -296,8 +306,18 @@ class PoolEnvManagerV2():
 
     @property
     def observation_space(self) -> 'gym.spaces.Space':  # noqa
-        return self._observation_space
+        try:
+            return self._observation_space
+        except AttributeError:
+            self.launch()
+            self.close()
+            return self._observation_space
 
     @property
     def action_space(self) -> 'gym.spaces.Space':  # noqa
-        return self._action_space
+        try:
+            return self._action_space
+        except AttributeError:
+            self.launch()
+            self.close()
+            return self._action_space
