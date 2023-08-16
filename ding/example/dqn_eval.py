@@ -26,16 +26,16 @@ def main():
         model = DQN(**cfg.policy.model)
 
         # Load the pretrained weights.
-        # First, you should get a pretrained network weights. For example, you can run ``python ding/examples/dqn.py``.
-        pretrained_state_dict = torch.load('cartpole_dqn_seed0/ckpt/final.pth.tar')['model']
+        # First, you should get a pretrained network weights.
+        # For example, you can run ``python3 -u ding/examples/dqn.py``.
+        pretrained_state_dict = torch.load('cartpole_dqn_seed0/ckpt/final.pth.tar', map_location='cpu')['model']
         model.load_state_dict(pretrained_state_dict)
 
         policy = DQNPolicy(cfg.policy, model=model)
 
         # Define the evaluator middleware.
-        evaluator = interaction_evaluator(cfg, policy.eval_mode, evaluator_env)
-        # Call the evaluator middleware to perform evaluation.
-        evaluator(task.ctx)
+        task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
+        task.run(max_step=1)
 
 
 if __name__ == "__main__":
