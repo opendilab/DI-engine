@@ -122,6 +122,7 @@ def sweep_main():
     else:
         import time
         start_time = time.time()
+        pong_dqn_envpool_config.env.stop_value = 2000
         pong_dqn_envpool_config.exp_name = f'Pong-v5-envpool-new-pipeline-speed-test-{wandb.config.collector_env_num}-{wandb.config.collector_batch_size}'
         pong_dqn_envpool_config.env.collector_env_num=wandb.config.collector_env_num
         pong_dqn_envpool_config.env.collector_batch_size=wandb.config.collector_batch_size
