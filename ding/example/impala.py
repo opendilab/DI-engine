@@ -5,24 +5,26 @@ from ding.policy import IMPALAPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
-from ding.framework import task
+from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    CkptSaver
+    CkptSaver, online_logger, termination_checker
 from ding.utils import set_pkg_seed
-from dizoo.classic_control.cartpole.config.cartpole_impala_config import main_config, create_config
+from dizoo.box2d.lunarlander.config.lunarlander_impala_config1 import main_config, create_config
+from dizoo.box2d.lunarlander.envs import LunarLanderEnv
 
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.collector_env_num)],
             cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
+            env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)],
             cfg=cfg.env.manager
         )
 
@@ -36,7 +38,9 @@ def main():
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(data_pusher(cfg, buffer_, group_by_env=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
+        task.use(online_logger(train_show_freq=10))
+        task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
+        task.use(termination_checker(max_env_step=1e7))
         task.run()
 
 
