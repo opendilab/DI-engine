@@ -238,7 +238,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.
     """
     # collate_fn is executed in policy now
-    dataloader = iter(DataLoader(dataset, batch_size=cfg.policy.batch_size, shuffle=True, collate_fn=lambda x: x))
+    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
 
     def _fetch(ctx: "OfflineRLContext"):
         """
@@ -250,16 +250,10 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         Output of ctx:
             - train_data (:obj:`List[Tensor]`): The fetched data batch.
         """
-        nonlocal dataloader
-        try:
-            ctx.train_data = next(dataloader)
-        except StopIteration:
-            ctx.train_epoch += 1
-            del dataloader
-            dataloader = iter(
-                DataLoader(dataset, batch_size=cfg.policy.batch_size, shuffle=True, collate_fn=lambda x: x)
-            )
-            ctx.train_data = next(dataloader)
+        while True:
+            for i, data in enumerate(dataloader):
+                ctx.train_data = data
+                yield
         # TODO apply data update (e.g. priority) in offline setting when necessary
 
     return _fetch

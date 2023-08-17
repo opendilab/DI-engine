@@ -132,7 +132,8 @@ class HDF5Dataset(Dataset):
             logging.warning("not found h5py package, please install it trough `pip install h5py ")
             sys.exit(1)
         data_path = cfg.policy.collect.get('data_path', None)
-        self.context_len = cfg.dataset.context_len
+        if 'dataset' in cfg:
+            self.context_len = cfg.dataset.context_len
         data = h5py.File(data_path, 'r')
         self._load_data(data)
         self._cal_statistics()

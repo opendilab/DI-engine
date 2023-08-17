@@ -93,6 +93,8 @@ class DTPolicy(Policy):
         self._learn_model.train()
 
         timesteps, states, actions, returns_to_go, traj_mask = data
+        if actions.dtype is not torch.long:
+            actions = actions.to(torch.long)
         action_target = torch.clone(actions).detach().to(self._device)
 
         # The shape of `returns_to_go` may differ with different dataset (B x T or B x T x 1),
