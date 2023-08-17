@@ -218,7 +218,10 @@ def to_ndarray(item: Any, dtype: np.dtype = None) -> np.ndarray:
     elif isinstance(item, bool) or isinstance(item, str):
         return item
     elif np.isscalar(item):
-        return np.array(item)
+        if dtype is None:
+            return np.array(item)
+        else:
+            return np.array(item, dtype=dtype)
     elif item is None:
         return None
     else:
