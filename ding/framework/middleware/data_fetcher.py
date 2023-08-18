@@ -30,11 +30,11 @@ class offline_data_fetcher_from_mem_c:
             torch.set_num_threads(4)
             if device != 'cpu':
                 nonlocal stream
-            num_gpu = dist.get_world_size()
+            sbatch_size = batch_size * dist.get_world_size()
             rank = get_rank()
             idx_list = np.random.permutation(len(dataset))
             temp_idx_list = []
-            for i in range(len(dataset) // (batch_size * num_gpu)):
+            for i in range(len(dataset) // sbatch_size):
                 temp_idx_list.extend(idx_list[i + rank * batch_size:i + (rank + 1) * batch_size])
             idx_iter = iter(temp_idx_list)
 
