@@ -202,6 +202,7 @@ class PoolEnvManagerV2():
         self._ready_obs = {}
         self._closed = True
         self._seed = None
+        self._test = False
 
     def launch(self) -> None:
         assert self._closed, "Please first close the env manager"
@@ -221,6 +222,8 @@ class PoolEnvManagerV2():
             kwargs["gray_scale"] = self._cfg.gray_scale
         if "frame_skip" in self._cfg:
             kwargs["frame_skip"] = self._cfg.frame_skip
+        if "test" in self._cfg:
+            self._test = self._cfg.test
 
         self._envs = envpool.make(
             task_id=self._cfg.env_id,
@@ -256,6 +259,8 @@ class PoolEnvManagerV2():
         self._envs.send(action, env_id)
 
         obs, rew, done, info = self._envs.recv()
+        if self._test:
+            assert all(info['env_id'] == env_id)
         obs = obs.astype(np.float32)
         obs /= 255.0
         rew = rew.astype(np.float32)
@@ -311,6 +316,7 @@ class PoolEnvManagerV2():
         except AttributeError:
             self.launch()
             self.close()
+            self._ready_obs = {}
             return self._observation_space
 
     @property
@@ -320,4 +326,5 @@ class PoolEnvManagerV2():
         except AttributeError:
             self.launch()
             self.close()
+            self._ready_obs = {}
             return self._action_space
