@@ -134,6 +134,8 @@ class HDF5Dataset(Dataset):
         data_path = cfg.policy.collect.get('data_path', None)
         if 'dataset' in cfg:
             self.context_len = cfg.dataset.context_len
+        else:
+            self.context_len = 0
         data = h5py.File(data_path, 'r')
         self._load_data(data)
         self._cal_statistics()

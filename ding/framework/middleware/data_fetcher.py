@@ -23,12 +23,12 @@ class offline_data_fetcher_from_mem_c:
 
     def __init__(self, cfg: EasyDict, dataset: Dataset):
         device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
-        if device == 'cpu':
+        if device != 'cpu':
             stream = torch.cuda.Stream()
 
         def producer(queue, dataset, batch_size, device, event):
             torch.set_num_threads(4)
-            if device == 'cpu':
+            if device != 'cpu':
                 nonlocal stream
             num_gpu = dist.get_world_size()
             rank = get_rank()
@@ -38,7 +38,7 @@ class offline_data_fetcher_from_mem_c:
                 temp_idx_list.extend(idx_list[i + rank * batch_size:i + (rank + 1) * batch_size])
             idx_iter = iter(temp_idx_list)
 
-            if device == 'cpu':
+            if device != 'cpu':
                 with torch.cuda.stream(stream):
                     while True:
                         if queue.full():
