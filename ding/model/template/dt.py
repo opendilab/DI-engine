@@ -8,7 +8,7 @@ https://twitter.com/MishaLaskin/status/1481767788775628801?cxt=HHwWgoCzmYD9pZApA
 and its corresponding notebook:
 https://colab.research.google.com/drive/1NUBqyboDcGte5qAJKOl8gaJC28V_73Iv?usp=sharing
 
-** the above colab notebook has a bug while applying masked_fill 
+** the above colab notebook has a bug while applying masked_fill
 which is fixed in the following code
 """
 

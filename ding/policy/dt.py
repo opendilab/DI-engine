@@ -37,7 +37,7 @@ class DTPolicy(Policy):
         batch_size=64,  # training batch size
         wt_decay=1e-4,  # decay weight in optimizer
         warmup_steps=10000,  # steps for learning rate warmup
-        context_len=20,  # length of transformer input 
+        context_len=20,  # length of transformer input
         learning_rate=1e-4,
     )
 
