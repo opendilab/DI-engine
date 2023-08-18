@@ -25,8 +25,8 @@ from dizoo.atari.config.serial import pong_dqn_envpool_config
 def main(cfg):
     logging.getLogger().setLevel(logging.INFO)
     cfg.exp_name = 'Pong-v5-DQN-envpool-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    cfg.env.collector_env_num = 8
-    cfg.env.collector_batch_size = 8
+    cfg.env.collector_env_num = 64
+    cfg.env.collector_batch_size = 64
     cfg.env['test']=True
     collector_env_cfg = EasyDict(
         {
