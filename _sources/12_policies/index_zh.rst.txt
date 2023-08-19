@@ -60,6 +60,7 @@
     
     cql_zh
     edac_zh
+    dt_zh
 
 .. toctree::
     :maxdepth: 2

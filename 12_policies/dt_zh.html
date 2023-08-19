@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>MBPO &mdash; DI-engine 0.1.0 documentation</title>
+  <title>DT &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="PLR" href="plr_zh.html" />
-  <link rel="prev" title="DT" href="dt_zh.html" />
+  <link rel="next" title="MBPO" href="mbpo_zh.html" />
+  <link rel="prev" title="EDAC" href="edac_zh.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -268,13 +268,13 @@
         
           <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
         
-      <li>MBPO</li>
+      <li>DT</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/12_policies/mbpo_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/12_policies/dt_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -298,176 +298,232 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="mbpo">
-<h1>MBPO<a class="headerlink" href="#mbpo" title="Permalink to this headline">¶</a></h1>
+  <section id="dt">
+<h1>DT<a class="headerlink" href="#dt" title="Permalink to this headline">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>Model-based policy optimization (MBPO) 首次在论文 <a class="reference external" href="https://arxiv.org/abs/1906.08253">When to Trust Your Model: Model-Based Policy Optimization</a> 中被提出。
-MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
-具体来说，MBPO 通过训练模型集合来拟合真实环境的 transition ，并利用它生成从真实环境状态开始的短轨迹来进行策略提升。
-对于 RL 策略的选择，MBPO 使用 SAC 作为其 RL 的部分。</p>
-<p>这个 repo <a class="reference external" href="https://github.com/opendilab/awesome-model-based-RL">awesome-model-based-RL</a> 提供了更多 model-based rl 的论文。</p>
+<h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>如果想要将强化学习技术应用在某个决策领域，最重要的就是将原始问题转换为一个合理的 MDP （马尔科夫决策过程）问题，而一旦问题环境本身有一些不那么友好的”特性“（比如部分可观测，非平稳过程等等），常规强化学习方法的效果便可能大打折扣。另一方面，随着近些年来数据驱动范式的发展，大数据和预训练大模型在计算机视觉（Computer Vision）和自然语言处理（Natural Language Processing）领域大放异彩，比如 CLIP，DALL·E 和 GPT-3 等工作都取得了惊人的效果，序列预测技术便是其中的核心模块之一。但对于决策智能，尤其是强化学习（Reinforcement Learning），由于缺少类似 CV 和 NLP 中的大数据集和适合的预训练任务，决策大模型迟迟没有进展。</p>
+<p>在这样的背景下，为了推进决策大模型的发展，提高相关技术的实际落地价值，许多研究者开始关注 Offline RL/Batch RL 这一子领域。具体来说，Offline RL是一种只通过离线数据集（Offline dataset）训练策略（Policy），在训练过程中不与环境交互的强化学习任务。那对于这样的任务，是否可以借鉴 CV 和 NLP 领域的一些研究成果，比如序列预测相关技术呢？</p>
+<p>于是乎，在2021年，以 Decision Transformer[3]/Trajectory Transformer[1-2]为代表的一系列工作出现了，试图将决策问题归于序列预测，将 transformer 结构应用在RL任务上，同时与语言模型，如 GPT-x 和 BERT 等联系起来。不像传统 RL 中计算 value 函数或计算 policy 梯度， DT 通过一个屏蔽后序的 transformer 直接输出最有动作选择。通过指定期望模型达到的reward，同时借助 states 和 actions 信息，就可以给出下一动作并达到期望的 reward。 DT 的达到并超过了 SOTA model-free offline RL 算法在 Atari，D4RL (MuJoCo) 等环境上的效果。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>MBPO 是一种 <strong>基于模型（model-based）的</strong> 强化学习算法。</p></li>
-<li><p>MBPO 用 SAC 作为 RL 策略。</p></li>
-<li><p>MBPO 仅支持 <strong>连续动作空间</strong> 。</p></li>
-<li><p>MBPO 使用了 <strong>model-ensemble</strong>。</p></li>
+<li><p>DT 是一个 <strong>offline</strong> 强化学习算法。</p></li>
+<li><p>DT 支持 <strong>离散（discrete）</strong> 和 <strong>连续（continuous）</strong> 动作空间。</p></li>
+<li><p>DT 使用 transformer 进行动作预测，但是对 self-attention 的结构进行了修改。</p></li>
+<li><p>DT 的数据集结构是由算法特点决定的，在进行模型训练和测试中都要符合其要求。</p></li>
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<section id="predictive-model">
-<h3>预测模型（Predictive Model）<a class="headerlink" href="#predictive-model" title="Permalink to this headline">¶</a></h3>
-<p>MBPO 利用高斯神经网络集合（ensemble of gaussian neural network），集合中的每个成员都是：</p>
-<div class="math notranslate nohighlight">
-\[p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t) = N(\mu_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t), \Sigma_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t))\]</div>
-<p>模型训练中使用的最大似然损失为：</p>
-<div class="math notranslate nohighlight">
-\[L(\theta)=\mathbb{E}\left[log(p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t))\right]\]</div>
-</section>
-<section id="policy-optimization">
-<h3>策略优化（Policy Optimization）<a class="headerlink" href="#policy-optimization" title="Permalink to this headline">¶</a></h3>
-<p>策略评估步骤（Policy evaluation step）：</p>
-<div class="math notranslate nohighlight">
-\[Q^\pi(\boldsymbol{s}_t,\boldsymbol{a}_t) = \mathbb{E}_\pi[{\sum}_{t=0}^{\infty}\gamma^t r(\boldsymbol{s}_t,\boldsymbol{a}_t)]\]</div>
-<p>策略提升步骤（Policy improvement step）：</p>
-<div class="math notranslate nohighlight">
-\[\min J_\pi(\phi, D) = \mathbb{E}_{s_t \sim D}[D_{KL}(\pi \| exp\{Q^\pi - V^\pi\})]\]</div>
-<p>注意：这个更新要保证
-<span class="math notranslate nohighlight">\(Q^{\pi_{new}}(\boldsymbol{s}_t,\boldsymbol{a}_t) \geq Q^{\pi_{old}}(\boldsymbol{s}_t,\boldsymbol{a}_t)\)</span>，
-可以查看原论文中 Appendix B.2 部分 Lemma2 的相关证明 <a class="reference external" href="https://arxiv.org/abs/1801.01290">paper</a>。</p>
-</section>
+<h2>重要公示/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>DT 的结构图如下：</p>
+<img alt="../_images/DT.png" class="align-center" src="../_images/DT.png" />
+<p>图示说明 DT 算法在进行动作 a<sub>t</sub> 的预测时，仅与当前时间步的 r<sub>t</sub> 和 s<sub>t</sub> 以及之前的 r<sub>t-n</sub>, s<sub>t-n</sub>, a<sub>t-n</sub> 相关，与之后的无关， causal transformer 就是用来实现这一效果的模块。</p>
 </section>
 <section id="id4">
 <h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<a class="reference internal image-reference" href="../_images/MBPO.png"><img alt="../_images/MBPO.png" class="align-center" src="../_images/MBPO.png" style="width: 1689.6000000000001px; height: 555.5px;" /></a>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>MBPO 的首次实现只给出了应用于 SAC 的超参数，并不适用于 DDPG 和 TD3 。</p>
-</div>
+<img alt="../_images/DT_algo.png" class="align-center" src="../_images/DT_algo.png" />
 </section>
 <section id="id5">
 <h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<p>默认配置定义如下:</p>
+<p>DQNPolicy 的默认 config 如下所示：</p>
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.mbpolicy.mbsac.</span></span><span class="sig-name descname"><span class="pre">MBSACPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/mbpolicy/mbsac.html#MBSACPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl>
-<dt>Overview:</dt><dd><p>Model based SAC with value expansion (arXiv: 1803.00101)
-and value gradient (arXiv: 1510.09142) w.r.t lambda-return.</p>
-<p><a class="reference external" href="https://arxiv.org/pdf/1803.00101.pdf">https://arxiv.org/pdf/1803.00101.pdf</a>
-<a class="reference external" href="https://arxiv.org/pdf/1510.09142.pdf">https://arxiv.org/pdf/1510.09142.pdf</a></p>
-</dd>
-<dt>Config:</dt><dd><table class="docutils align-default">
-<colgroup>
-<col style="width: 3%" />
-<col style="width: 26%" />
-<col style="width: 10%" />
-<col style="width: 17%" />
-<col style="width: 44%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>ID</p></th>
-<th class="head"><p>Symbol</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default Value</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>1</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">learn._lambda</span></code></p></td>
-<td><p>float</p></td>
-<td><p>0.8</p></td>
-<td><div class="line-block">
-<div class="line">Lambda for TD-lambda return.</div>
-</div>
-</td>
-</tr>
-<tr class="row-odd"><td><p>2</p></td>
-<td><p><a href="#id6"><span class="problematic" id="id7">``</span></a>learn.grad_clip`</p></td>
-<td><p>float</p></td>
-<td><p>100.0</p></td>
-<td><div class="line-block">
-<div class="line">Max norm of gradients.</div>
-</div>
-</td>
-</tr>
-<tr class="row-even"><td><p>3</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">learn.sample_</span></code>
-<code class="docutils literal notranslate"><span class="pre">state</span></code></p></td>
-<td><p>bool</p></td>
-<td><p>True</p></td>
-<td><div class="line-block">
-<div class="line">Whether to sample states or tra-</div>
-<div class="line-block">
-<div class="line">nsitions from env buffer.</div>
-</div>
-</div>
-</td>
-</tr>
-</tbody>
-</table>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.dt.</span></span><span class="sig-name descname"><span class="pre">DTPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/dt.html#DTPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Policy class of Decision Transformer algorithm in discrete environments.
+Paper link: <a class="reference external" href="https://arxiv.org/abs/2106.01345">https://arxiv.org/abs/2106.01345</a></p>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For other configs, please refer to ding.policy.sac.SACPolicy.</p>
-</div>
 </dd></dl>
 
+<p>其中使用的神经网络接口如下所示：</p>
 </section>
-<section id="id8">
-<h2>基准<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id11">
-<caption><span class="caption-text">Benchmark of MBPO algorithm</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<section id="benchmark">
+<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default" id="id7">
+<caption><span class="caption-text">Benchmark and comparison of DT algorithm</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 36%" />
-<col style="width: 43%" />
-<col style="width: 21%" />
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 30%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward (normalized)</p></th>
 <th class="head"><p>evaluation results</p></th>
 <th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Hopper</p></td>
-<td><img alt="../_images/sac_mbpo_hopper.png" src="../_images/sac_mbpo_hopper.png" />
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Hopper</div>
+<div class="line">(Hopper-medium)</div>
+</div>
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mujoco/config/hopper_sac_mbpo_default_config.py">config_link_p</a></p></td>
+<td><p>0.753 +- 0.035</p></td>
+<td><img alt="../_images/hopper_medium_dt.png" src="../_images/hopper_medium_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_dt_config.py">link_2_Hopper-medium</a></p></td>
+<td><p>DT paper</p></td>
 </tr>
-<tr class="row-odd"><td><p>Halfcheetah</p></td>
-<td><img alt="../_images/sac_mbpo_halfcheetah.png" src="../_images/sac_mbpo_halfcheetah.png" />
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Hopper</div>
+<div class="line">(Hopper-expert)</div>
+</div>
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/halfcheetah_sac_mbpo_default_config.py">config_link_q</a></p></td>
+<td><p>1.170 +- 0.003</p></td>
+<td><img alt="../_images/hopper_expert_dt.png" src="../_images/hopper_expert_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_dt_config.py">link_2_Hopper-expert</a></p></td>
+<td><p>DT paper</p></td>
 </tr>
-<tr class="row-even"><td><p>Walker2d</p></td>
-<td><img alt="../_images/sac_mbpo_walker2d.png" src="../_images/sac_mbpo_walker2d.png" />
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Hopper</div>
+<div class="line">(Hopper-medium-replay)</div>
+</div>
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/walker2d_sac_mbpo_default_config.py">config_link_s</a></p></td>
+<td><p>0.651 +- 0.096</p></td>
+<td><img alt="../_images/hopper_medium_replay_dt.png" src="../_images/hopper_medium_replay_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_replay_dt_config.py">link_2_Hopper-medium-replay</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Hopper</div>
+<div class="line">(Hopper-medium-expert)</div>
+</div>
+</td>
+<td><p>1.150 +- 0.016</p></td>
+<td><img alt="../_images/hopper_medium_expert_dt.png" src="../_images/hopper_medium_expert_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_dt_config.py">link_2_Hopper-medium-expert</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Walker2d</div>
+<div class="line">(Walker2d-medium)</div>
+</div>
+</td>
+<td><p>0.829 +- 0.020</p></td>
+<td><img alt="../_images/walker2d_medium_dt.png" src="../_images/walker2d_medium_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_dt_config.py">link_2_Walker2d-medium</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Walker2d</div>
+<div class="line">(Walker2d-expert)</div>
+</div>
+</td>
+<td><p>1.093 +- 0.004</p></td>
+<td><img alt="../_images/walker2d_expert_dt.png" src="../_images/walker2d_expert_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_expert_dt_config.py">link_2_Walker2d-expert</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Walker2d</div>
+<div class="line">(Walker2d-medium-replay)</div>
+</div>
+</td>
+<td><p>0.603 +- 0.014</p></td>
+<td><img alt="../_images/walker2d_medium_replay_dt.png" src="../_images/walker2d_medium_replay_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_replay_dt_config.py">link_2_Walker2d-medium-replay</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Walker2d</div>
+<div class="line">(Walker2d-medium-expert)</div>
+</div>
+</td>
+<td><p>1.091 +- 0.002</p></td>
+<td><img alt="../_images/walker2d_medium_expert_dt.png" src="../_images/walker2d_medium_expert_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_expert_dt_config.py">link_2_Walker2d-medium-expert</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">HalfCheetah</div>
+<div class="line">(HalfCheetah-medium)</div>
+</div>
+</td>
+<td><p>0.433 +- 0.0007</p></td>
+<td><img alt="../_images/halfcheetah_medium_dt.png" src="../_images/halfcheetah_medium_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_dt_config.py">link_2_HalfCheetah-medium</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">HalfCheetah</div>
+<div class="line">(HalfCheetah-expert)</div>
+</div>
+</td>
+<td><p>0.662 +- 0.057</p></td>
+<td><img alt="../_images/halfcheetah_expert_dt.png" src="../_images/halfcheetah_expert_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_expert_dt_config.py">link_2_HalfCheetah-expert</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">HalfCheetah</div>
+<div class="line">(HalfCheetah-medium-replay)</div>
+</div>
+</td>
+<td><p>0.401 +- 0.007</p></td>
+<td><img alt="../_images/halfcheetah_medium_replay_dt.png" src="../_images/halfcheetah_medium_replay_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_replay_dt_config.py">link_2_HalfCheetah-medium-replay</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">HalfCheetah</div>
+<div class="line">(HalfCheetah-medium-expert)</div>
+</div>
+</td>
+<td><p>0.517 +- 0.043</p></td>
+<td><img alt="../_images/halfcheetah_medium_expert_dt.png" src="../_images/halfcheetah_medium_expert_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_expert_dt_config.py">link_2_HalfCheetah-medium-expert</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Pong</div>
+<div class="line">(PongNoFrameskip-v4)</div>
+</div>
+</td>
+<td><p>0.956 +- 0.020</p></td>
+<td><img alt="../_images/pong_dt.png" src="../_images/pong_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_dqn_config.py">link_2_Pong</a></p></td>
+<td><p>DT paper</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Breakout</div>
+<div class="line">(BreakoutNoFrameskip-v4)</div>
+</div>
+</td>
+<td><p>0.976 +- 0.190</p></td>
+<td><img alt="../_images/breakout_dt.png" src="../_images/breakout_dt.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/breakout_dt_config.py">link_2_Breakout</a></p></td>
+<td><p>DT paper</p></td>
 </tr>
 </tbody>
 </table>
-<p>P.S.：</p>
-<ol class="arabic simple">
-<li><p>上述结果是通过在三个不同的随机种子(0,1,2)上运行相同的配置获得的。</p></li>
-</ol>
+<p>注：</p>
+<p>以上结果是在3个不同的随机种子（即123， 213， 321）运行相同的配置得到</p>
 </section>
-<section id="id9">
-<h2>其他公开的实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h2>参考文献<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/facebookresearch/mbrl-lib/blob/main/mbrl/algorithms/mbpo.py">mbrl-lib</a></p></li>
-</ul>
-</section>
-<section id="id10">
-<h2>参考文献<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Michael Janner, Justin Fu, Marvin Zhang, Sergey Levine: “When to Trust Your Model: Model-Based Policy Optimization”, 2019; arXiv:1906.08253.</p></li>
+<li><p>Zheng, Q., Zhang, A., &amp; Grover, A. (2022, June). Online decision transformer. In international conference on machine learning (pp. 27042-27059). PMLR.</p></li>
+<li><p><a class="reference external" href="https://github.com/kzl/decision-transformer">https://github.com/kzl/decision-transformer</a></p></li>
 </ul>
 </section>
 </section>
@@ -480,12 +536,12 @@ and value gradient (arXiv: 1510.09142) w.r.t lambda-return.</p>
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="plr_zh.html" class="btn btn-neutral float-right" title="PLR" accesskey="n"
+    <a href="mbpo_zh.html" class="btn btn-neutral float-right" title="MBPO" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="dt_zh.html" class="btn btn-neutral" title="DT" accesskey="p"
+    <a href="edac_zh.html" class="btn btn-neutral" title="EDAC" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -515,19 +571,14 @@ and value gradient (arXiv: 1510.09142) w.r.t lambda-return.</p>
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">MBPO</a><ul>
-<li><a class="reference internal" href="#id1">概述</a></li>
-<li><a class="reference internal" href="#id2">核心要点</a></li>
-<li><a class="reference internal" href="#id3">关键方程或关键框图</a><ul>
-<li><a class="reference internal" href="#predictive-model">预测模型（Predictive Model）</a></li>
-<li><a class="reference internal" href="#policy-optimization">策略优化（Policy Optimization）</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">DT</a><ul>
+<li><a class="reference internal" href="#id1">综述</a></li>
+<li><a class="reference internal" href="#id2">快速了解</a></li>
+<li><a class="reference internal" href="#id3">重要公示/重要图示</a></li>
 <li><a class="reference internal" href="#id4">伪代码</a></li>
 <li><a class="reference internal" href="#id5">实现</a></li>
-<li><a class="reference internal" href="#id8">基准</a></li>
-<li><a class="reference internal" href="#id9">其他公开的实现</a></li>
-<li><a class="reference internal" href="#id10">参考文献</a></li>
+<li><a class="reference internal" href="#benchmark">实验 Benchmark</a></li>
+<li><a class="reference internal" href="#id6">参考文献</a></li>
 </ul>
 </li>
 </ul>
@@ -550,7 +601,6 @@ and value gradient (arXiv: 1510.09142) w.r.t lambda-return.</p>
   <script src="../_static/jquery.js"></script>
   <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
-  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 
   

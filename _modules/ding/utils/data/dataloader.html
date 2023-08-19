@@ -480,6 +480,7 @@
 <span class="sd">            - p (:obj:`tm.multiprocessing.connection`): Parent connection.</span>
 <span class="sd">            - c (:obj:`tm.multiprocessing.connection`): Child connection.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># Close unused p, only use c</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_flag</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>

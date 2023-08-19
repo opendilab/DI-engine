@@ -300,6 +300,7 @@
 <span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">offline_data_save_type</span>
 <span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
 <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">get_rank</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span><span class="p">,</span> <span class="n">OfflineRLContext</span>
@@ -474,6 +475,51 @@
     <span class="k">return</span> <span class="n">_fetch</span></div>
 
 
+<span class="k">def</span> <span class="nf">offline_data_fetcher_from_mem</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+
+    <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+    <span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">Stream</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">producer</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">nonlocal</span> <span class="n">stream</span>
+        <span class="n">idx_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">stream</span><span class="p">):</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">queue</span><span class="o">.</span><span class="n">full</span><span class="p">():</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">idx_iter</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                        <span class="k">del</span> <span class="n">idx_iter</span>
+                        <span class="n">idx_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span>
+                        <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">idx_iter</span><span class="p">)</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">)]</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="p">[[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+                    <span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="s1">&#39;cuda:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_rank</span><span class="p">()</span> <span class="o">%</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">device_count</span><span class="p">())</span> <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+    <span class="n">producer_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span>
+        <span class="n">target</span><span class="o">=</span><span class="n">producer</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">queue</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">device</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cuda_fetcher_producer&#39;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">queue</span><span class="p">,</span> <span class="n">producer_thread</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">producer_thread</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">producer_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">_fetch</span>
+
+
 <div class="viewcode-block" id="offline_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -502,7 +548,6 @@
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="n">data</span>
                 <span class="k">yield</span>
-            <span class="n">ctx</span><span class="o">.</span><span class="n">train_epoch</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="c1"># TODO apply data update (e.g. priority) in offline setting when necessary</span>
 
     <span class="k">return</span> <span class="n">_fetch</span></div>
