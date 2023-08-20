@@ -39,7 +39,7 @@ lunarlander_dt_config = dict(
         learn=dict(
             dataset_path='DI-engine/dizoo/box2d/lunarlander/offline_data/dt_data/dqn_data_1000eps.pkl',  # TODO
             learning_rate=3e-4,
-            batch_size=64,  # training batch size   
+            batch_size=64,  # training batch size
             target_update_freq=100,
         ),
         collect=dict(
@@ -62,8 +62,3 @@ lunarlander_dt_create_config = dict(
 )
 lunarlander_dt_create_config = EasyDict(lunarlander_dt_create_config)
 create_config = lunarlander_dt_create_config
-
-if __name__ == "__main__":
-    from ding.entry import serial_pipeline_dt, collect_demo_data, eval, serial_pipeline
-    config = deepcopy([main_config, create_config])
-    serial_pipeline_dt(config, seed=0, max_train_iter=1000)

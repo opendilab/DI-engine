@@ -150,16 +150,20 @@ class HDF5Dataset(Dataset):
         return len(self._data['obs']) - self.context_len
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
-        # return {k: self._data[k][idx] for k in self._data.keys()}
-        block_size = self.context_len
-        done_idx = idx + block_size
-        idx = done_idx - block_size
-        states = torch.as_tensor(np.array(self._data['obs'][idx:done_idx]), dtype=torch.float32).view(block_size, -1)
-        actions = torch.as_tensor(self._data['action'][idx:done_idx], dtype=torch.long)
-        rtgs = torch.as_tensor(self._data['reward'][idx:done_idx, 0], dtype=torch.float32)
-        timesteps = torch.as_tensor(range(idx, done_idx), dtype=torch.int64)
-        traj_mask = torch.ones(self.context_len, dtype=torch.long)
-        return timesteps, states, actions, rtgs, traj_mask
+        if self.context_len == 0:  # for other offline RL algorithms
+            return {k: self._data[k][idx] for k in self._data.keys()}
+        else:  # for decision transformer
+            block_size = self.context_len
+            done_idx = idx + block_size
+            idx = done_idx - block_size
+            states = torch.as_tensor(
+                np.array(self._data['obs'][idx:done_idx]), dtype=torch.float32
+            ).view(block_size, -1)
+            actions = torch.as_tensor(self._data['action'][idx:done_idx], dtype=torch.long)
+            rtgs = torch.as_tensor(self._data['reward'][idx:done_idx, 0], dtype=torch.float32)
+            timesteps = torch.as_tensor(range(idx, done_idx), dtype=torch.int64)
+            traj_mask = torch.ones(self.context_len, dtype=torch.long)
+            return timesteps, states, actions, rtgs, traj_mask
 
     def _load_data(self, dataset: Dict[str, np.ndarray]) -> None:
         self._data = {}

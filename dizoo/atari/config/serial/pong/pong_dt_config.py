@@ -66,8 +66,3 @@ Pong_dt_create_config = dict(
 )
 Pong_dt_create_config = EasyDict(Pong_dt_create_config)
 create_config = Pong_dt_create_config
-
-if __name__ == "__main__":
-    from ding.entry import serial_pipeline_dt
-    config = deepcopy([main_config, create_config])
-    serial_pipeline_dt(config, seed=0, max_train_iter=1000)

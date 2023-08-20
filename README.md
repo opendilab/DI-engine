@@ -74,7 +74,7 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
   - [ACE](https://github.com/opendilab/ACE): [AAAI 2023] ACE: Cooperative Multi-agent Q-learning with Bidirectional Action-Dependency
   - [GoBigger](https://github.com/opendilab/GoBigger): [ICLR 2023] Multi-Agent Decision Intelligence Environment
   - [DOS](https://github.com/opendilab/DOS): [CVPR 2023] ReasonNet: End-to-End Driving with Temporal and Global Reasoning
-  - [LightZero](https://github.com/opendilab/LightZero): LightZero: A lightweight and efficient MCTS/AlphaZero/MuZero algorithm toolkit
+  - [LightZero](https://github.com/opendilab/LightZero): A lightweight and efficient MCTS/AlphaZero/MuZero algorithm toolkit
 - Docs and Tutorials
   - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs): Tutorials, best practice and the API reference.
   - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources
@@ -438,7 +438,7 @@ DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as t
 - Discuss on DI-engine [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
 - Discuss on DI-engine's WeChat group (i.e. add us on WeChat: ding314assist) 
   
-  ![WeChat](https://github.com/opendilab/DI-engine/blob/main/assets/wechat.jpeg)
+  ![WeChat](https://github.com/opendilab/DI-engine/blob/main/assets/wechat.jpeg){:height="50%" width="50%"}
 - Contact our email (opendilab@pjlab.org.cn)
 - Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
 

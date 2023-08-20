@@ -181,6 +181,12 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
 
 def to_ddp_config(cfg: EasyDict) -> EasyDict:
     w = get_world_size()
-    cfg.policy.batch_size = int(np.ceil(cfg.policy.batch_size / w))
-    # cfg.policy.collect.n_sample = int(np.ceil(cfg.policy.collect.n_sample) / w)
+    if 'batch_size' in cfg.policy:
+        cfg.policy.batch_size = int(np.ceil(cfg.policy.batch_size / w))
+    if 'batch_size' in cfg.policy.learn:
+        cfg.policy.learn.batch_size = int(np.ceil(cfg.policy.learn.batch_size / w))
+    if 'n_sample' in cfg.policy.collect:
+        cfg.policy.collect.n_sample = int(np.ceil(cfg.policy.collect.n_sample / w))
+    if 'n_episode' in cfg.policy.collect:
+        cfg.policy.collect.n_episode = int(np.ceil(cfg.policy.collect.n_episode / w))
     return cfg
