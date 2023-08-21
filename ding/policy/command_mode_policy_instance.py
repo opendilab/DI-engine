@@ -43,7 +43,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
-from .decision_transformer import DTPolicy
+from .dt import DTPolicy
 from .pdqn import PDQNPolicy
 from .sac import SQILSACPolicy
 from .madqn import MADQNPolicy

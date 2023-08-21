@@ -57,6 +57,7 @@ class Role(str, enum.Enum):
     LEARNER = "learner"
     COLLECTOR = "collector"
     EVALUATOR = "evaluator"
+    FETCHER = 'fetcher'
 
 
 class VoidMiddleware:

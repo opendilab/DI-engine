@@ -27,15 +27,13 @@ def main():
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     num_seed = 4
     for seed_i in range(num_seed):
-        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed'+str(seed_i)))
+        tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed' + str(seed_i)))
         with task.start(async_mode=False, ctx=OnlineRLContext()):
             collector_env = BaseEnvManagerV2(
-                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.collector_env_num)],
-                cfg=cfg.env.manager
+                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
             )
             evaluator_env = BaseEnvManagerV2(
-                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)],
-                cfg=cfg.env.manager
+                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
             )
 
             # evaluator_env.enable_save_replay()
