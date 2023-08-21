@@ -69,8 +69,10 @@ class DTPolicy(Policy):
         self.act_dim = self._cfg.model.act_dim
 
         self._learn_model = self._model
+        self._atari_env = 'state_mean' not in self._cfg
+        self._basic_discrete_env = not self._cfg.model.continuous and 'state_mean' in self._cfg
 
-        if 'state_mean' not in self._cfg:
+        if self._atari_env:
             self._optimizer = self._learn_model.configure_optimizers(wt_decay, lr)
         else:
             self._optimizer = torch.optim.AdamW(self._learn_model.parameters(), lr=lr, weight_decay=wt_decay)
@@ -93,22 +95,18 @@ class DTPolicy(Policy):
         self._learn_model.train()
 
         timesteps, states, actions, returns_to_go, traj_mask = data
-        if actions.dtype is not torch.long:
-            actions = actions.to(torch.long)
-        action_target = torch.clone(actions).detach().to(self._device)
 
         # The shape of `returns_to_go` may differ with different dataset (B x T or B x T x 1),
         # and we need a 3-dim tensor
         if len(returns_to_go.shape) == 2:
             returns_to_go = returns_to_go.unsqueeze(-1)
 
-        # if discrete
-        if not self._cfg.model.continuous and 'state_mean' in self._cfg:
-            # actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+        if self._basic_discrete_env:
+            actions = actions.to(torch.long)
             actions = actions.squeeze(-1)
             action_target = torch.clone(actions).detach().to(self._device)
 
-        if 'state_mean' not in self._cfg:
+        if self._atari_env:
             state_preds, action_preds, return_preds = self._learn_model.forward(
                 timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go, tar=1
             )
@@ -117,7 +115,7 @@ class DTPolicy(Policy):
                 timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
             )
 
-        if 'state_mean' not in self._cfg:
+        if self._atari_env:
             action_loss = F.cross_entropy(action_preds.reshape(-1, action_preds.size(-1)), action_target.reshape(-1))
         else:
             traj_mask = traj_mask.view(-1, )
@@ -171,7 +169,9 @@ class DTPolicy(Policy):
             self.actions = torch.zeros(
                 (self.eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.long, device=self._device
             )
-        if 'state_mean' not in self._cfg:
+        self._atari_env = 'state_mean' not in self._cfg
+        self._basic_discrete_env = not self._cfg.model.continuous and 'state_mean' in self._cfg
+        if self._atari_env:
             self.states = torch.zeros(
                 (
                     self.eval_batch_size,
@@ -201,7 +201,7 @@ class DTPolicy(Policy):
 
         self._eval_model.eval()
         with torch.no_grad():
-            if 'state_mean' not in self._cfg:
+            if self._atari_env:
                 states = torch.zeros(
                     (
                         self.eval_batch_size,
@@ -228,7 +228,7 @@ class DTPolicy(Policy):
                 (self.eval_batch_size, self.context_len, 1), dtype=torch.float32, device=self._device
             )
             for i in data_id:
-                if 'state_mean' not in self._cfg:
+                if self._atari_env:
                     self.states[i, self.t[i]] = data[i]['obs'].to(self._device)
                 else:
                     self.states[i, self.t[i]] = (data[i]['obs'].to(self._device) - self.state_mean) / self.state_std
@@ -236,7 +236,7 @@ class DTPolicy(Policy):
                 self.rewards_to_go[i, self.t[i]] = self.running_rtg[i]
 
                 if self.t[i] <= self.context_len:
-                    if 'state_mean' not in self._cfg:
+                    if self._atari_env:
                         timesteps[i] = min(self.t[i], self._cfg.model.max_timestep) * torch.ones(
                             (1, 1), dtype=torch.int64
                         ).to(self._device)
@@ -246,7 +246,7 @@ class DTPolicy(Policy):
                     actions[i] = self.actions[i, :self.context_len]
                     rewards_to_go[i] = self.rewards_to_go[i, :self.context_len]
                 else:
-                    if 'state_mean' not in self._cfg:
+                    if self._atari_env:
                         timesteps[i] = min(self.t[i], self._cfg.model.max_timestep) * torch.ones(
                             (1, 1), dtype=torch.int64
                         ).to(self._device)
@@ -255,15 +255,14 @@ class DTPolicy(Policy):
                     states[i] = self.states[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     actions[i] = self.actions[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
                     rewards_to_go[i] = self.rewards_to_go[i, self.t[i] - self.context_len + 1:self.t[i] + 1]
-            if not self._cfg.model.continuous and 'state_mean' in self._cfg:
-                # actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+            if self._basic_discrete_env:
                 actions = actions.squeeze(-1)
             _, act_preds, _ = self._eval_model.forward(timesteps, states, actions, rewards_to_go)
             del timesteps, states, actions, rewards_to_go
 
             logits = act_preds[:, -1, :]
             if not self._cfg.model.continuous:
-                if 'state_mean' not in self._cfg:
+                if self._atari_env:
                     probs = F.softmax(logits, dim=-1)
                     act = torch.zeros((self.eval_batch_size, 1), dtype=torch.long, device=self._device)
                     for i in data_id:
@@ -297,7 +296,7 @@ class DTPolicy(Policy):
                     dtype=torch.float32,
                     device=self._device
                 )
-            if 'state_mean' not in self._cfg:
+            if self._atari_env:
                 self.states = torch.zeros(
                     (
                         self.eval_batch_size,
@@ -327,7 +326,7 @@ class DTPolicy(Policy):
                     self.actions[i] = torch.zeros(
                         (self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self._device
                     )
-                if 'state_mean' not in self._cfg:
+                if self._atari_env:
                     self.states[i] = torch.zeros(
                         (self.max_eval_ep_len, ) + tuple(self.state_dim), dtype=torch.float32, device=self._device
                     )

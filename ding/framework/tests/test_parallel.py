@@ -24,7 +24,7 @@ def parallel_main():
     time.sleep(0.7)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_parallel_run():
     Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(parallel_main)
     Parallel.runner(n_parallel_workers=2, protocol="tcp", startup_interval=0.1)(parallel_main)
