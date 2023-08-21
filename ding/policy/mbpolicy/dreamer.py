@@ -225,22 +225,6 @@ class DREAMERPolicy(Policy):
             #state = default_collate(list(state.values()))
             latent = to_device(default_collate(list(zip(*state))[0]), self._device)
             action = to_device(default_collate(list(zip(*state))[1]), self._device)
-            if world_model.action_type == 'discrete':
-                def make_one_hot(x, num_classes):
-                    """Convert class index tensor to one hot encoding tensor.
-                    Args:
-                        input: A tensor of shape [bs, 1, *]
-                        num_classes: An int of number of class
-                    Returns:
-                        A tensor of shape [bs, num_classes, *]
-                    """
-                    x = x.to(torch.int64)
-                    shape = (*tuple(x.shape), num_classes)
-                    x = x.unsqueeze(-1)
-                    res = torch.zeros(shape).to(x)
-                    res = res.scatter_(-1, x, 1)
-                    return res.float()
-                action = make_one_hot(action, world_model.action_size)
             if len(action.shape) == 1:
                 action = action.unsqueeze(-1)
             if reset.any():
@@ -262,15 +246,18 @@ class DREAMERPolicy(Policy):
         logprob = actor.log_prob(action)
         latent = {k: v.detach() for k, v in latent.items()}
         action = action.detach()
-        if world_model.action_type == 'discrete':
-            action = torch.where(action==1)[1]
 
         state = (latent, action)
+        if world_model.action_type == 'discrete':
+            action = torch.where(action==1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
 
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
+        if world_model.action_type == 'discrete':
+            for l in range(len(output)):
+                output[l]['action'] = output[l]['action'].squeeze(0)
         return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
