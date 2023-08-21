@@ -2,24 +2,23 @@ from typing import TYPE_CHECKING
 from threading import Thread, Event
 from queue import Queue
 import time
+import numpy as np
 import torch
-import torch.distributed as dist
 from easydict import EasyDict
 from ding.framework import task
 from ding.data import Dataset, DataLoader
-from ding.utils import get_rank
-import numpy as np
+from ding.utils import get_rank, get_world_size
 
 if TYPE_CHECKING:
     from ding.framework import OfflineRLContext
 
 
-class offline_data_fetcher_from_mem_c:
+class OfflineMemoryDataFetcher:
 
     def __new__(cls, *args, **kwargs):
         if task.router.is_active and not task.has_role(task.role.FETCHER):
             return task.void()
-        return super(offline_data_fetcher_from_mem_c, cls).__new__(cls)
+        return super(OfflineMemoryDataFetcher, cls).__new__(cls)
 
     def __init__(self, cfg: EasyDict, dataset: Dataset):
         device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
@@ -30,7 +29,7 @@ class offline_data_fetcher_from_mem_c:
             torch.set_num_threads(4)
             if device != 'cpu':
                 nonlocal stream
-            sbatch_size = batch_size * dist.get_world_size()
+            sbatch_size = batch_size * get_world_size()
             rank = get_rank()
             idx_list = np.random.permutation(len(dataset))
             temp_idx_list = []
