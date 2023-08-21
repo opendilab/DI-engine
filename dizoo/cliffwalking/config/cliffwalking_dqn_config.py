@@ -6,7 +6,7 @@ cliffwalking_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=-13,    # the optimal value of cliffwalking env
+        stop_value=-13,  # the optimal value of cliffwalking env
         max_episode_steps=300,
     ),
     policy=dict(

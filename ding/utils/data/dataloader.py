@@ -186,6 +186,7 @@ class AsyncDataLoader(IDataLoader):
             - p (:obj:`tm.multiprocessing.connection`): Parent connection.
             - c (:obj:`tm.multiprocessing.connection`): Child connection.
         """
+        torch.set_num_threads(1)
         p.close()  # Close unused p, only use c
         while not self.end_flag:
             if self.num_workers > 1:

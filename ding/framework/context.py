@@ -82,6 +82,7 @@ class OfflineRLContext(Context):
 
     # common
     total_step: int = 0
+    env_step: int = 0
     train_epoch: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None

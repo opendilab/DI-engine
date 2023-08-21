@@ -30,7 +30,7 @@ cheetah_run_dreamer_config = dict(
         model=dict(
             obs_shape=(3, 64, 64),
             action_shape=6,
-            actor_dist = 'normal',
+            actor_dist='normal',
         ),
         learn=dict(
             lambda_=0.95,
@@ -48,7 +48,7 @@ cheetah_run_dreamer_config = dict(
             collect_dyn_sample=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=5000, )), 
+        eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             # environment buffer
             replay_buffer=dict(replay_buffer_size=500000, periodic_thruput_seconds=60),
@@ -56,7 +56,7 @@ cheetah_run_dreamer_config = dict(
     ),
     world_model=dict(
         pretrain=100,
-        train_freq=2, 
+        train_freq=2,
         cuda=cuda,
         model=dict(
             state_size=(3, 64, 64),  # has to be specified
