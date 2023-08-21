@@ -5,7 +5,7 @@ from torch import nn
 
 from ding.utils import WORLD_MODEL_REGISTRY, lists_to_dicts
 from ding.utils.data import default_collate
-from ding.model import ConvEncoder
+from ding.model import ConvEncoder, FCEncoder
 from ding.world_model.base_world_model import WorldModel
 from ding.world_model.model.networks import RSSM, ConvDecoder
 from ding.torch_utils import to_device
@@ -37,6 +37,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             norm='LayerNorm',
             grad_heads=['image', 'reward', 'discount'],
             units=512,
+            image_dec_layers=2,
             reward_layers=2,
             discount_layers=2,
             value_layers=2,
@@ -72,21 +73,26 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         self._cfg.norm = nn.modules.normalization.LayerNorm  # nn.LayerNorm
         self.state_size = self._cfg.state_size
         self.action_size = self._cfg.action_size
+        self.action_type = self._cfg.action_type
         self.reward_size = self._cfg.reward_size
         self.hidden_size = self._cfg.hidden_size
         self.batch_size = self._cfg.batch_size
+        if type(self.state_size) == int or len(self.state_size) == 1:
+            self.encoder = FCEncoder(self.state_size, self._cfg.encoder_hidden_size_list, activation=torch.nn.SiLU())
+            self.embed_size = self._cfg.encoder_hidden_size_list[-1]
+        elif len(self.state_size) == 3:
+            self.encoder = ConvEncoder(
+                self.state_size,
+                hidden_size_list=[32, 64, 128, 256, 4096],  # to last layer 128?
+                activation=torch.nn.SiLU(),
+                kernel_size=self._cfg.encoder_kernels,
+                layer_norm=True
+            )
+            self.embed_size = (
+                (self.state_size[1] // 2 ** (len(self._cfg.encoder_kernels))) ** 2 * self._cfg.cnn_depth *
+                2 ** (len(self._cfg.encoder_kernels) - 1)
+            )
 
-        self.encoder = ConvEncoder(
-            self.state_size,
-            hidden_size_list=[32, 64, 128, 256, 4096],  # to last layer 128?
-            activation=torch.nn.SiLU(),
-            kernel_size=self._cfg.encoder_kernels,
-            layer_norm=True
-        )
-        self.embed_size = (
-            (self.state_size[1] // 2 ** (len(self._cfg.encoder_kernels))) ** 2 * self._cfg.cnn_depth *
-            2 ** (len(self._cfg.encoder_kernels) - 1)
-        )
         self.dynamics = RSSM(
             self._cfg.dyn_stoch,
             self._cfg.dyn_deter,
@@ -113,14 +119,28 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             feat_size = self._cfg.dyn_stoch * self._cfg.dyn_discrete + self._cfg.dyn_deter
         else:
             feat_size = self._cfg.dyn_stoch + self._cfg.dyn_deter
-        self.heads["image"] = ConvDecoder(
-            feat_size,  # pytorch version
-            self._cfg.cnn_depth,
-            self._cfg.act,
-            self._cfg.norm,
-            self.state_size,
-            self._cfg.decoder_kernels,
-        )
+        
+        if type(self.state_size) == int or len(self.state_size) == 1:
+            self.heads['image'] = DenseHead(
+                feat_size,
+                (self.state_size, ),
+                self._cfg.image_dec_layers,
+                self._cfg.units,
+                'SiLU',  # self._cfg.act
+                'LN',  # self._cfg.norm
+                dist='binary',
+                outscale=0.0,
+                device=self._cfg.device,
+            )
+        elif len(self.state_size) == 3:
+            self.heads["image"] = ConvDecoder(
+                feat_size,  # pytorch version
+                self._cfg.cnn_depth,
+                self._cfg.act,
+                self._cfg.norm,
+                self.state_size,
+                self._cfg.decoder_kernels,
+            )
         self.heads["reward"] = DenseHead(
             feat_size,  # dyn_stoch * dyn_discrete + dyn_deter
             (255, ),
@@ -174,7 +194,28 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         data['discount'] = data.get('discount', 1.0 - data['done'].float())
         data['discount'] *= 0.997
         data['weight'] = data.get('weight', None)
-        data['image'] = data['obs'] - 0.5
+        if type(self.state_size) != int and len(self.state_size) == 3:
+            data['image'] = data['obs'] - 0.5
+        else:
+            data['image'] = data['obs']
+        if self.action_type == 'continuous':
+            data['action'] *= (1.0 / torch.clip(torch.abs(data['action']), min=1.0))
+        else:
+            def make_one_hot(x, num_classes):
+                """Convert class index tensor to one hot encoding tensor.
+                Args:
+                    input: A tensor of shape [bs, 1, *]
+                    num_classes: An int of number of class
+                Returns:
+                    A tensor of shape [bs, num_classes, *]
+                """
+                x = x.to(torch.int64)
+                shape = (*tuple(x.shape), num_classes)
+                x = x.unsqueeze(-1)
+                res = torch.zeros(shape).to(x)
+                res = res.scatter_(-1, x, 1)
+                return res.float()
+            data['action'] = make_one_hot(data['action'], self.action_size)
         data = to_device(data, self._cfg.device)
         if len(data['reward'].shape) == 2:
             data['reward'] = data['reward'].unsqueeze(-1)
@@ -185,9 +226,9 @@ class DREAMERWorldModel(WorldModel, nn.Module):
 
         self.requires_grad_(requires_grad=True)
 
-        image = data['image'].reshape([-1] + list(data['image'].shape[-3:]))
+        image = data['image'].reshape([-1] + list(data['image'].shape[2:]))
         embed = self.encoder(image)
-        embed = embed.reshape(list(data['image'].shape[:-3]) + [embed.shape[-1]])
+        embed = embed.reshape(list(data['image'].shape[:2]) + [embed.shape[-1]])
 
         post, prior = self.dynamics.observe(embed, data["action"])
         kl_loss, kl_value, loss_lhs, loss_rhs = self.dynamics.kl_loss(

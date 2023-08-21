@@ -1,11 +1,12 @@
 import math
 import numpy as np
+from typing import Optional, Dict, Union, List
 
 import torch
 from torch import nn
 import torch.nn.functional as F
 from torch import distributions as torchd
-
+from ding.utils import SequenceType
 from ding.torch_utils.network.dreamer import weight_init, uniform_weight_init, static_scan, \
     OneHotDist, ContDist, SymlogDist, DreamerLayerNorm
 
@@ -179,7 +180,7 @@ class RSSM(nn.Module):
     def obs_step(self, prev_state, prev_action, embed, sample=True):
         # if shared is True, prior and post both use same networks(inp_layers, _img_out_layers, _ims_stat_layer)
         # otherwise, post use different network(_obs_out_layers) with prior[deter] and embed as inputs
-        prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
+        # prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
         prior = self.img_step(prev_state, prev_action, None, sample)
         if self._shared:
             post = self.img_step(prev_state, prev_action, embed, sample)
@@ -202,7 +203,7 @@ class RSSM(nn.Module):
     # this is used for making future image
     def img_step(self, prev_state, prev_action, embed=None, sample=True):
         # (batch, stoch, discrete_num)
-        prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
+        # prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
         prev_stoch = prev_state["stoch"]
         if self._discrete:
             shape = list(prev_stoch.shape[:-2]) + [self._stoch * self._discrete]
@@ -357,7 +358,7 @@ class ConvDecoder(nn.Module):
         outpad = pad * 2 - val
         return pad, outpad
 
-    def __call__(self, features, dtype=None):
+    def __call__(self, features):
         x = self._linear_layer(features)  # feature:[batch, time, stoch*discrete + deter]
         x = x.reshape([-1, 4, 4, self._embed_size // 16])
         x = x.permute(0, 3, 1, 2)

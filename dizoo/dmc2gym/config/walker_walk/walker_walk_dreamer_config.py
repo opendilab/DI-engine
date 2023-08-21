@@ -28,7 +28,6 @@ walker_walk_dreamer_config = dict(
         # it is better to put random_collect_size in policy.other
         random_collect_size=2500,
         model=dict(
-            obs_shape=(3, 64, 64),
             action_shape=6,
             actor_dist = 'normal',
         ),
@@ -61,6 +60,7 @@ walker_walk_dreamer_config = dict(
         model=dict(
             state_size=(3, 64, 64),  # has to be specified
             action_size=6,  # has to be specified
+            action_type='continuous',
             reward_size=1,
             batch_size=16,
         ),

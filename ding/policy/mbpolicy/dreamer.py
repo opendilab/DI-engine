@@ -225,6 +225,22 @@ class DREAMERPolicy(Policy):
             #state = default_collate(list(state.values()))
             latent = to_device(default_collate(list(zip(*state))[0]), self._device)
             action = to_device(default_collate(list(zip(*state))[1]), self._device)
+            if world_model.action_type == 'discrete':
+                def make_one_hot(x, num_classes):
+                    """Convert class index tensor to one hot encoding tensor.
+                    Args:
+                        input: A tensor of shape [bs, 1, *]
+                        num_classes: An int of number of class
+                    Returns:
+                        A tensor of shape [bs, num_classes, *]
+                    """
+                    x = x.to(torch.int64)
+                    shape = (*tuple(x.shape), num_classes)
+                    x = x.unsqueeze(-1)
+                    res = torch.zeros(shape).to(x)
+                    res = res.scatter_(-1, x, 1)
+                    return res.float()
+                action = make_one_hot(action, world_model.action_size)
             if len(action.shape) == 1:
                 action = action.unsqueeze(-1)
             if reset.any():
@@ -235,7 +251,8 @@ class DREAMERPolicy(Policy):
                 for i in range(len(action)):
                     action[i] *= mask[i]
 
-        data = data - 0.5
+        if type(world_model.state_size) != int and len(world_model.state_size) == 3:
+            data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
         feat = world_model.dynamics.get_feat(latent)
@@ -245,6 +262,8 @@ class DREAMERPolicy(Policy):
         logprob = actor.log_prob(action)
         latent = {k: v.detach() for k, v in latent.items()}
         action = action.detach()
+        if world_model.action_type == 'discrete':
+            action = torch.where(action==1)[1]
 
         state = (latent, action)
         output = {"action": action, "logprob": logprob, "state": state}
@@ -272,7 +291,7 @@ class DREAMERPolicy(Policy):
             # TODO(zp) random_collect just have action
             #'logprob': model_output['logprob'],
             'reward': timestep.reward,
-            'discount': timestep.info['discount'],
+            'discount': 1. - timestep.done, # timestep.info['discount'],
             'done': timestep.done,
         }
         return transition
