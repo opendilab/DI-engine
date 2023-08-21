@@ -10,6 +10,7 @@ from .functional import inferencer, rolloutor, TransitionList
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
 
+import time
 
 class StepCollector:
     """
@@ -49,6 +50,7 @@ class StepCollector:
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
+        start=time.time()
         old = ctx.env_step
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old
@@ -66,6 +68,8 @@ class StepCollector:
                 ctx.trajectories, ctx.trajectory_end_idx = self._transitions.to_trajectories()
                 self._transitions.clear()
                 break
+
+        ctx.collector_time += time.time()-start
 
 
 class PPOFStepCollector:

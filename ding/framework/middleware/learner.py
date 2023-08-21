@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ding.policy import Policy
     from ding.reward_model import BaseRewardModel
 
+import time
 
 class OffPolicyLearner:
     """
@@ -54,6 +55,7 @@ class OffPolicyLearner:
         Output of ctx:
             - train_output (:obj:`Deque`): The training output in deque.
         """
+        start=time.time()
         train_output_queue = []
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)
@@ -65,6 +67,7 @@ class OffPolicyLearner:
             train_output_queue.append(ctx.train_output)
             ctx.train_output_for_post_process = ctx.train_output
         ctx.train_output = train_output_queue
+        ctx.learner_time += time.time()-start
 
 
 class HERLearner:

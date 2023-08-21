@@ -31,5 +31,6 @@ def epoch_timer(print_per: int = 1, smooth_window: int = 10):
                     np.mean(records) * 1000
                 )
             )
+        ctx.total_time += time_cost
 
     return _epoch_timer

@@ -16,7 +16,7 @@ from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
     eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, nstep_reward_enhancer, \
-    termination_checker, wandb_online_logger
+    termination_checker, wandb_online_logger, epoch_timer
 from ding.utils import set_pkg_seed
 
 from dizoo.atari.config.serial import pong_dqn_envpool_config
@@ -83,6 +83,8 @@ def main(cfg):
             # Sync their context and model between each worker.
             task.use(ContextExchanger(skip_n_iter=1))
             task.use(ModelExchanger(model))
+
+        task.use(epoch_timer())
 
         # Here is the part of single process pipeline.
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))

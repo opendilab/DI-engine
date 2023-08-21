@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from ding.reward_model import BaseRewardModel, HerRewardModel
     from ding.data import Buffer
 
+import time
+
 
 def reward_estimator(cfg: EasyDict, reward_model: "BaseRewardModel") -> Callable:
     """
@@ -77,6 +79,8 @@ def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
         return task.void()
 
     def _enhance(ctx: "OnlineRLContext"):
+
+        start=time.time()
         nstep = cfg.policy.nstep
         gamma = cfg.policy.discount_factor
         L = len(ctx.trajectories)
@@ -98,6 +102,8 @@ def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
         for i in range(L):
             ctx.trajectories[i].reward = nstep_rewards[i]
             ctx.trajectories[i].value_gamma = value_gamma[i]
+
+        ctx.nstep_time += time.time()-start
 
     return _enhance
 
