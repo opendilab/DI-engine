@@ -658,7 +658,7 @@ def test_discrete_dt():
         from ding.model.template.dt import DecisionTransformer
         from ding.policy import DTPolicy
         from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
-            offline_data_fetcher_from_mem_c, offline_logger, termination_checker
+            OfflineMemoryDataFetcher, offline_logger, termination_checker
         config = compile_config(config[0], create_cfg=config[1], auto=True)
         with task.start(async_mode=False, ctx=OfflineRLContext()):
             evaluator_env = BaseEnvManagerV2(
@@ -675,7 +675,7 @@ def test_discrete_dt():
 
             task.use(termination_checker(max_train_iter=1))
             task.use(interaction_evaluator(config, policy.eval_mode, evaluator_env))
-            task.use(offline_data_fetcher_from_mem_c(config, dataset))
+            task.use(OfflineMemoryDataFetcher(config, dataset))
             task.use(trainer(config, policy.learn_mode))
             task.use(CkptSaver(policy, config.exp_name, train_freq=100))
             task.use(offline_logger(config.exp_name))

@@ -8,7 +8,8 @@ from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_logger, termination_checker, offline_data_fetcher_from_mem_c, offline_data_fetcher
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_logger, termination_checker, \
+    OfflineMemoryDataFetcher
 from ding.utils import set_pkg_seed, DDPContext, to_ddp_config
 from dizoo.atari.envs import AtariEnv
 from dizoo.atari.config.serial.pong.pong_dt_config import main_config, create_config
@@ -43,7 +44,7 @@ def main():
             policy = DTPolicy(cfg.policy, model=model)
 
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
-            task.use(offline_data_fetcher_from_mem_c(cfg, dataset))
+            task.use(OfflineMemoryDataFetcher(cfg, dataset))
             task.use(trainer(cfg, policy.learn_mode))
             task.use(termination_checker(max_train_iter=3e4))
             task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
