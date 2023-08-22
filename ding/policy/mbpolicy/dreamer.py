@@ -315,7 +315,8 @@ class DREAMERPolicy(Policy):
                 for i in range(len(action)):
                     action[i] *= mask[i]
 
-        data = data - 0.5
+        if type(world_model.state_size) != int and len(world_model.state_size) == 3:
+            data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
         feat = world_model.dynamics.get_feat(latent)
@@ -327,11 +328,16 @@ class DREAMERPolicy(Policy):
         action = action.detach()
 
         state = (latent, action)
+        if world_model.action_type == 'discrete':
+            action = torch.where(action==1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
 
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
+        if world_model.action_type == 'discrete':
+            for l in range(len(output)):
+                output[l]['action'] = output[l]['action'].squeeze(0)
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:

@@ -6,7 +6,7 @@ cuda = False
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_dreamer_config = dict(
-    exp_name='minigrid_dreamer',
+    exp_name='minigrid_dreamer_empty',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -14,7 +14,7 @@ minigrid_dreamer_config = dict(
         # typical MiniGrid env id:
         # {'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'},
         # please refer to https://github.com/Farama-Foundation/MiniGrid for details.
-        env_id='MiniGrid-DoorKey-8x8-v0',
+        env_id='MiniGrid-Empty-8x8-v0',
         # env_id='MiniGrid-AKTDT-7x7-1-v0',
         max_step=100,
         stop_value=20,  # run fixed env_steps
@@ -54,7 +54,7 @@ minigrid_dreamer_config = dict(
         ),
     ),
     world_model=dict(
-        pretrain=1,
+        pretrain=100,
         train_freq=2, 
         cuda=cuda,
         model=dict(
