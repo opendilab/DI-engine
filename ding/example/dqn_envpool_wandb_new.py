@@ -1,31 +1,25 @@
-import shutil
 import datetime
-import wandb
-import numpy as np
 from easydict import EasyDict
 from ditk import logging
-from ding.data.model_loader import FileModelLoader
-from ding.data.storage_loader import FileStorageLoader
 from ding.model import DQN
-from ding.policy import DQNPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2
-from ding.envs.env_manager.envpool_env_manager import PoolEnvManager, PoolEnvManagerV2
+from ding.policy import DQNFastPolicy
+from ding.envs.env_manager.envpool_env_manager import PoolEnvManagerV3
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
+from ding.framework.middleware import OffPolicyLearner, interaction_evaluator, data_pusher, \
     eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, nstep_reward_enhancer, \
-    termination_checker, wandb_online_logger
+    termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollector
 from ding.utils import set_pkg_seed
 
 from dizoo.atari.config.serial import pong_dqn_envpool_config
 
 
-def main(cfg, seed=0, max_env_step=int(1e7)):
+def main(cfg):
     logging.getLogger().setLevel(logging.INFO)
-    cfg.exp_name = 'Pong-v5-DQN-envpool-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    cfg.seed = seed
+    cfg.exp_name = 'Pong-v5-DQN-envpool-new-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
     collector_env_cfg = EasyDict(
         {
             'env_id': cfg.env.env_id,
@@ -52,18 +46,18 @@ def main(cfg, seed=0, max_env_step=int(1e7)):
         }
     )
     cfg.env["evaluator_env_cfg"] = evaluator_env_cfg
-    cfg = compile_config(cfg, PoolEnvManagerV2, DQNPolicy, save_cfg=task.router.node_id == 0)
+    cfg = compile_config(cfg, PoolEnvManagerV3, DQNFastPolicy, save_cfg=task.router.node_id == 0)
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = PoolEnvManagerV2(cfg.env.collector_env_cfg)
-        evaluator_env = PoolEnvManagerV2(cfg.env.evaluator_env_cfg)
+        collector_env = PoolEnvManagerV3(cfg.env.collector_env_cfg)
+        evaluator_env = PoolEnvManagerV3(cfg.env.evaluator_env_cfg)
         collector_env.seed(cfg.seed)
         evaluator_env.seed(cfg.seed)
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         model = DQN(**cfg.policy.model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
-        policy = DQNPolicy(cfg.policy, model=model)
+        policy = DQNFastPolicy(cfg.policy, model=model)
 
         # Consider the case with multiple processes
         if task.router.is_active:
@@ -80,16 +74,18 @@ def main(cfg, seed=0, max_env_step=int(1e7)):
             task.use(ContextExchanger(skip_n_iter=1))
             task.use(ModelExchanger(model))
 
+        task.use(epoch_timer())
+
         # Here is the part of single process pipeline.
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(
-            StepCollector(
+            EnvpoolStepCollector(
                 cfg,
                 policy.collect_mode,
                 collector_env,
                 random_collect_size=cfg.policy.random_collect_size \
-                        if hasattr(cfg.policy, 'random_collect_size') else 0,
+                       if hasattr(cfg.policy, 'random_collect_size') else 0,
                     )
                 )
         if "nstep" in cfg.policy and cfg.policy.nstep > 1:
@@ -108,50 +104,26 @@ def main(cfg, seed=0, max_env_step=int(1e7)):
         )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
-        task.use(termination_checker(max_env_step=max_env_step))
+        task.use(termination_checker(max_env_step=10000000))
 
         task.run()
 
 
-def sweep_main():
-    wandb.init()
-
-    good_pair = (wandb.config.collector_env_num % wandb.config.collector_batch_size == 0)
-
-    if not good_pair:
-        wandb.log({"time": 0.0})
-    else:
-        import time
-        start_time = time.time()
-        pong_dqn_envpool_config.env.stop_value = 2000
-        pong_dqn_envpool_config.exp_name = f'Pong-v5-envpool-new-pipeline-speed-test-{wandb.config.collector_env_num}-{wandb.config.collector_batch_size}'
-        pong_dqn_envpool_config.env.collector_env_num = wandb.config.collector_env_num
-        pong_dqn_envpool_config.env.collector_batch_size = wandb.config.collector_batch_size
-        main(EasyDict(pong_dqn_envpool_config), max_env_step=10000000)
-        print(time.time() - start_time)
-        wandb.log({"time_cost": time.time() - start_time})
-        #remove the directory named as exp_name
-        shutil.rmtree(pong_dqn_envpool_config.exp_name)
-
-
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, default=0, help="random seed")
+    parser.add_argument("--collector_env_num", type=int, default=8, help="collector env number")
+    parser.add_argument("--collector_batch_size", type=int, default=8, help="collector batch size")
+    arg = parser.parse_args()
 
-    sweep_configuration = {
-        'method': 'grid',
-        'metric': {
-            'goal': 'maximize',
-            'name': 'time_cost'
-        },
-        'parameters': {
-            'collector_env_num': {
-                'values': [64]
-            },
-            'collector_batch_size': {
-                'values': [64, 32, 16, 8]
-            },
-        }
-    }
+    pong_dqn_envpool_config.env.collector_env_num = arg.collector_env_num
+    pong_dqn_envpool_config.env.collector_batch_size = arg.collector_batch_size
+    pong_dqn_envpool_config.seed = arg.seed
+    pong_dqn_envpool_config.env.stop_value = 2000
+    pong_dqn_envpool_config.policy.nstep = 1
+    pong_dqn_envpool_config.nstep = 1
 
-    sweep_id = wandb.sweep(sweep=sweep_configuration, project='Pong-v5-envpool-new-pipeline-speed-test')
+    pong_dqn_envpool_config.seed = arg.seed
 
-    wandb.agent(sweep_id, function=sweep_main)
+    main(pong_dqn_envpool_config)

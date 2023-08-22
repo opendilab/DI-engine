@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 import time
 
+
 def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = None):
     """
     Overview:
@@ -32,7 +33,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             - trajectories (:obj:`List[Dict]`): Trajectories.
             - episodes (:obj:`List[Dict]`): Episodes.
         """
-        start=time.time()
+        start = time.time()
         if ctx.trajectories is not None:  # each data in buffer is a transition
             if group_by_env:
                 for i, t in enumerate(ctx.trajectories):
@@ -48,7 +49,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         else:
             raise RuntimeError("Either ctx.trajectories or ctx.episodes should be not None.")
 
-        ctx.data_pusher_time += time.time()-start
+        ctx.data_pusher_time += time.time() - start
 
     return _push
 

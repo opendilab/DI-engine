@@ -87,8 +87,8 @@ def main(cfg):
         task.use(eps_greedy_handler(cfg))
         task.use(
             StepCollector(
-                cfg, 
-                policy.collect_mode, 
+                cfg,
+                policy.collect_mode,
                 collector_env,
                 random_collect_size=cfg.policy.random_collect_size \
                         if hasattr(cfg.policy, 'random_collect_size') else 0,
@@ -106,7 +106,8 @@ def main(cfg):
                 anonymous=True,
                 project_name=cfg.exp_name,
                 wandb_sweep=False,
-            ))
+            )
+        )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.use(termination_checker(max_env_step=10000000))
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0, help="random seed")
     parser.add_argument("--collector_env_num", type=int, default=8, help="collector env number")
     parser.add_argument("--collector_batch_size", type=int, default=8, help="collector batch size")
-    arg=parser.parse_args()
+    arg = parser.parse_args()
 
     pong_dqn_envpool_config.env.collector_env_num = arg.collector_env_num
     pong_dqn_envpool_config.env.collector_batch_size = arg.collector_batch_size

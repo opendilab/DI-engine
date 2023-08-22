@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 import time
 
+
 class StepCollector:
     """
     Overview:
@@ -50,7 +51,7 @@ class StepCollector:
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
-        start=time.time()
+        start = time.time()
         old = ctx.env_step
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old
@@ -69,7 +70,51 @@ class StepCollector:
                 self._transitions.clear()
                 break
 
-        ctx.collector_time += time.time()-start
+        ctx.collector_time += time.time() - start
+
+
+class EnvpoolStepCollector:
+
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not task.has_role(task.role.COLLECTOR):
+            return task.void()
+        return super(EnvpoolStepCollector, cls).__new__(cls)
+
+    def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+            - random_collect_size (:obj:`int`): The count of samples that will be collected randomly, \
+                typically used in initial runs.
+        """
+        self.cfg = cfg
+        self.env = env
+        self.policy = policy
+        self.random_collect_size = random_collect_size
+
+    def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Overview:
+            An encapsulation of inference and rollout middleware. Stop when completing \
+                the target number of steps.
+        Input of ctx:
+            - env_step (:obj:`int`): The env steps which will increase during collection.
+        """
+        start = time.time()
+        old = ctx.env_step
+        if self.random_collect_size > 0 and old < self.random_collect_size:
+            target_size = self.random_collect_size - old
+            trajectories = self.env.collect_data(target_size)
+        else:
+            # compatible with old config, a train sample = unroll_len step
+            target_size = self.cfg.policy.collect.n_sample * self.cfg.policy.collect.unroll_len
+            trajectories = self.env.collect_data(target_size, self.policy, policy_forward_kwargs=ctx.collect_kwargs)
+        ctx.trajectories = trajectories
+        ctx.env_step += len(ctx.trajectories)
+        ctx.collector_time += time.time() - start
 
 
 class PPOFStepCollector:

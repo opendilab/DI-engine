@@ -2,7 +2,8 @@ from typing import List, Any
 import torch
 import treetensor.torch as ttorch
 from ding.utils.data import default_collate
-from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze
+from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze, to_device
+import time
 
 
 def default_preprocess_learn(
@@ -48,6 +49,62 @@ def default_preprocess_learn(
         data['reward'] = reward.permute(1, 0).contiguous()
 
     return data
+
+
+def fast_preprocess_learn(
+        data: List[Any],
+        use_priority_IS_weight: bool = False,
+        use_priority: bool = False,
+        cuda: bool = False,
+        device: str = 'cpu',
+) -> dict:
+    # data preprocess
+    processes_data = {}
+
+    action = torch.stack([data[i]['action'] for i in range(len(data))])
+    if cuda:
+        action = to_device(action, device=device)
+    if action.ndim == 2 and action.shape[1] == 1:
+        action = action.squeeze(1)
+    processes_data['action'] = action
+
+    obs = torch.stack([data[i]['obs'] for i in range(len(data))])
+    if cuda:
+        obs = to_device(obs, device=device)
+    processes_data['obs'] = obs
+
+    next_obs = torch.stack([data[i]['next_obs'] for i in range(len(data))])
+    if cuda:
+        next_obs = to_device(next_obs, device=device)
+    processes_data['next_obs'] = next_obs
+
+    reward = torch.stack([data[i]['reward'] for i in range(len(data))])
+    if cuda:
+        reward = to_device(reward, device=device)
+    reward = reward.permute(1, 0).contiguous()
+    processes_data['reward'] = reward
+
+    done = torch.tensor([data[i]['done'] for i in range(len(data))], dtype=torch.float32)
+    if cuda:
+        done = to_device(done, device=device)
+    processes_data['done'] = done
+
+    if use_priority and use_priority_IS_weight:
+        if 'priority_IS' in data:
+            weight = data['priority_IS']
+        else:  # for compability
+            weight = data['IS']
+    else:
+        if 'weight' in data[0]:
+            weight = torch.tensor([data[i]['weight'] for i in range(len(data))])
+        else:
+            weight = None
+
+    if weight and cuda:
+        weight = to_device(weight, device=device)
+    processes_data['weight'] = weight
+
+    return processes_data
 
 
 def single_env_forward_wrapper(forward_fn):

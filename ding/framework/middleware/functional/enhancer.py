@@ -80,7 +80,7 @@ def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
 
     def _enhance(ctx: "OnlineRLContext"):
 
-        start=time.time()
+        start = time.time()
         nstep = cfg.policy.nstep
         gamma = cfg.policy.discount_factor
         L = len(ctx.trajectories)
@@ -103,7 +103,7 @@ def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
             ctx.trajectories[i].reward = nstep_rewards[i]
             ctx.trajectories[i].value_gamma = value_gamma[i]
 
-        ctx.nstep_time += time.time()-start
+        ctx.nstep_time += time.time() - start
 
     return _enhance
 

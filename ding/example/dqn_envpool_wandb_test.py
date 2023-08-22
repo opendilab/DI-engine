@@ -27,7 +27,7 @@ def main(cfg):
     cfg.exp_name = 'Pong-v5-DQN-envpool-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     cfg.env.collector_env_num = 64
     cfg.env.collector_batch_size = 64
-    cfg.env['test']=True
+    cfg.env['test'] = True
     collector_env_cfg = EasyDict(
         {
             'env_id': cfg.env.env_id,
@@ -91,8 +91,8 @@ def main(cfg):
         task.use(eps_greedy_handler(cfg))
         task.use(
             StepCollector(
-                cfg, 
-                policy.collect_mode, 
+                cfg,
+                policy.collect_mode,
                 collector_env,
                 random_collect_size=cfg.policy.random_collect_size \
                         if hasattr(cfg.policy, 'random_collect_size') else 0,
@@ -110,7 +110,8 @@ def main(cfg):
                 anonymous=True,
                 project_name=cfg.exp_name,
                 wandb_sweep=False,
-            ))
+            )
+        )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.use(termination_checker(max_env_step=10000000))

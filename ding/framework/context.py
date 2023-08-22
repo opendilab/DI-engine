@@ -69,12 +69,12 @@ class OnlineRLContext(Context):
     eval_output: List = dataclasses.field(default_factory=dict)
     # wandb
     wandb_url: str = ""
-    evaluator_time=0.0
-    collector_time=0.0
-    learner_time=0.0
-    data_pusher_time=0.0
-    nstep_time=0.0
-    total_time=0.0
+    evaluator_time = 0.0
+    collector_time = 0.0
+    learner_time = 0.0
+    data_pusher_time = 0.0
+    nstep_time = 0.0
+    total_time = 0.0
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,

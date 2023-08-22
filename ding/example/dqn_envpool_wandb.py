@@ -86,8 +86,8 @@ def main(cfg):
         task.use(eps_greedy_handler(cfg))
         task.use(
             StepCollector(
-                cfg, 
-                policy.collect_mode, 
+                cfg,
+                policy.collect_mode,
                 collector_env,
                 random_collect_size=cfg.policy.random_collect_size \
                         if hasattr(cfg.policy, 'random_collect_size') else 0,
@@ -105,7 +105,8 @@ def main(cfg):
                 anonymous=True,
                 project_name=cfg.exp_name,
                 wandb_sweep=False,
-            ))
+            )
+        )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.use(termination_checker(max_env_step=10000000))
