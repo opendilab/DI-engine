@@ -49,8 +49,9 @@ class DQN(nn.Module):
             head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list,
-                                     activation=activation, norm_type=norm_type, dropout=dropout)
+            self.encoder = FCEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type, dropout=dropout
+            )
         # Conv Encoder
         elif len(obs_shape) == 3:
             self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
@@ -76,8 +77,12 @@ class DQN(nn.Module):
             )
         else:
             self.head = head_cls(
-                head_hidden_size, action_shape, head_layer_num,
-                activation=activation, norm_type=norm_type, dropout=dropout
+                head_hidden_size,
+                action_shape,
+                head_layer_num,
+                activation=activation,
+                norm_type=norm_type,
+                dropout=dropout
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
