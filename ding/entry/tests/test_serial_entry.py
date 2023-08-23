@@ -45,6 +45,7 @@ from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_config i
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_config, pendulum_cql_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_dt_config import cartpole_discrete_dt_config, cartpole_discrete_dt_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_ibc_config import pendulum_ibc_config, pendulum_ibc_create_config
@@ -619,6 +620,70 @@ def test_discrete_cql():
         assert False, "pipeline fail"
     finally:
         os.popen('rm -rf cartpole cartpole_cql')
+
+
+@pytest.mark.platformtest
+@pytest.mark.unittest
+def test_discrete_dt():
+    # train expert
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'dt_cartpole'
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+    # collect expert data
+    import torch
+    config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
+    state_dict = torch.load('./dt_cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
+    try:
+        collect_demo_data(config, seed=0, collect_count=1000, state_dict=state_dict)
+    except Exception as e:
+        assert False, "pipeline fail"
+        print(repr(e))
+
+    # train dt
+    config = [deepcopy(cartpole_discrete_dt_config), deepcopy(cartpole_discrete_dt_create_config)]
+    config[0].policy.eval.evaluator.eval_freq = 5
+    try:
+        from ding.framework import task
+        from ding.framework.context import OfflineRLContext
+        from ding.envs import SubprocessEnvManagerV2, BaseEnvManagerV2
+        from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
+        from dizoo.classic_control.cartpole.envs import CartPoleEnv
+        from ding.utils import set_pkg_seed
+        from ding.data import create_dataset
+        from ding.config import compile_config
+        from ding.model.template.dt import DecisionTransformer
+        from ding.policy import DTPolicy
+        from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
+            OfflineMemoryDataFetcher, offline_logger, termination_checker
+        config = compile_config(config[0], create_cfg=config[1], auto=True)
+        with task.start(async_mode=False, ctx=OfflineRLContext()):
+            evaluator_env = BaseEnvManagerV2(
+                env_fn=[lambda: AllinObsWrapper(CartPoleEnv(config.env)) for _ in range(config.env.evaluator_env_num)],
+                cfg=config.env.manager
+            )
+
+            set_pkg_seed(config.seed, use_cuda=config.policy.cuda)
+
+            dataset = create_dataset(config)
+
+            model = DecisionTransformer(**config.policy.model)
+            policy = DTPolicy(config.policy, model=model)
+
+            task.use(termination_checker(max_train_iter=1))
+            task.use(interaction_evaluator(config, policy.eval_mode, evaluator_env))
+            task.use(OfflineMemoryDataFetcher(config, dataset))
+            task.use(trainer(config, policy.learn_mode))
+            task.use(CkptSaver(policy, config.exp_name, train_freq=100))
+            task.use(offline_logger(config.exp_name))
+            task.run()
+    except Exception:
+        assert False, "pipeline fail"
+    finally:
+        os.popen('rm -rf cartpole cartpole_dt')
 
 
 @pytest.mark.platformtest

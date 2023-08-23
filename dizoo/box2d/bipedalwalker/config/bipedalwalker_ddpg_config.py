@@ -29,13 +29,9 @@ bipedalwalker_ddpg_config = dict(
             learning_rate_critic=0.0003,
             target_theta=0.005,
             discount_factor=0.99,
-            learner=dict(
-                hook=dict(log_show_after_iter=1000, )
-            )
+            learner=dict(hook=dict(log_show_after_iter=1000, ))
         ),
-        collect=dict(
-            n_sample=64,
-        ),
+        collect=dict(n_sample=64, ),
         other=dict(replay_buffer=dict(replay_buffer_size=300000, ), ),
     ),
 )

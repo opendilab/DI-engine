@@ -11,6 +11,7 @@ import torch
 import wandb
 import pickle
 import treetensor.numpy as tnp
+from tensorboardX import SummaryWriter
 from ding.framework import task
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
@@ -92,10 +93,10 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
     return _logger
 
 
-def offline_logger() -> Callable:
+def offline_logger(exp_name: str = None) -> Callable:
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
-    writer = DistributedWriter.get_instance()
+    writer = SummaryWriter(logdir=exp_name)
 
     def _logger(ctx: "OfflineRLContext"):
         if task.finish:

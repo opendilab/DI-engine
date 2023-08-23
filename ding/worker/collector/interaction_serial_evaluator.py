@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Dict, List
 from collections import namedtuple
 import numpy as np
 import torch
@@ -22,14 +22,14 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     """
 
     config = dict(
-        # Evaluate every "eval_freq" training iterations.
+        # (int) Evaluate every "eval_freq" training iterations.
         eval_freq=1000,
         render=dict(
             # Tensorboard video render is disabled by default.
             render_freq=-1,
             mode='train_iter',
         ),
-        # File path for visualize environment information.
+        # (str) File path for visualize environment information.
         figure_path=None,
     )
 
@@ -44,7 +44,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     ) -> None:
         """
         Overview:
-            Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components,
+            Init method. Load config and use ``self._cfg`` setting to build common serial evaluator components, \
             e.g. logger helper, timer.
         Arguments:
             - cfg (:obj:`EasyDict`): Configuration EasyDict.
@@ -108,6 +108,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         assert hasattr(self, '_env'), "please set env first"
         if _policy is not None:
             self._policy = _policy
+        self._policy_cfg = self._policy.get_attribute('cfg')
         self._policy.reset()
 
     def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[BaseEnvManager] = None) -> None:
@@ -128,6 +129,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self.reset_env(_env)
         if _policy is not None:
             self.reset_policy(_policy)
+        if self._policy_cfg.type == 'dreamer_command':
+            self._states = None
+            self._resets = np.array([False for i in range(self._env_num)])
         self._max_episode_return = float("-inf")
         self._last_eval_iter = -1
         self._end_flag = False
@@ -184,7 +188,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             envstep: int = -1,
             n_episode: Optional[int] = None,
             force_render: bool = False,
-    ) -> Tuple[bool, dict]:
+            policy_kwargs: Optional[Dict] = {},
+    ) -> Tuple[bool, Dict[str, List]]:
         '''
         Overview:
             Evaluate policy and store the best policy based on whether it reaches the highest historical reward.
@@ -195,10 +200,10 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
-            - return_info (:obj:`dict`): Current evaluation return information.
+            - episode_info (:obj:`Dict[str, List]`): Current evaluation episode information.
         '''
         # evaluator only work on rank0
-        stop_flag, return_info = False, []
+        stop_flag = False
         if get_rank() == 0:
             if n_episode is None:
                 n_episode = self._default_n_episode
@@ -221,7 +226,14 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                     if render:
                         eval_monitor.update_video(self._env.ready_imgs)
 
-                    policy_output = self._policy.forward(obs)
+                    if self._policy_cfg.type == 'dreamer_command':
+                        policy_output = self._policy.forward(
+                            obs, **policy_kwargs, reset=self._resets, state=self._states
+                        )
+                        #self._states = {env_id: output['state'] for env_id, output in policy_output.items()}
+                        self._states = [output['state'] for output in policy_output.values()]
+                    else:
+                        policy_output = self._policy.forward(obs, **policy_kwargs)
                     actions = {i: a['action'] for i, a in policy_output.items()}
                     actions = to_ndarray(actions)
                     timesteps = self._env.step(actions)
@@ -231,16 +243,19 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                             # If there is an abnormal timestep, reset all the related variables(including this env).
                             self._policy.reset([env_id])
                             continue
+                        if self._policy_cfg.type == 'dreamer_command':
+                            self._resets[env_id] = t.done
                         if t.done:
                             # Env reset is done by env_manager automatically.
                             if 'figure_path' in self._cfg and self._cfg.figure_path is not None:
                                 self._env.enable_save_figure(env_id, self._cfg.figure_path)
                             self._policy.reset([env_id])
                             reward = t.info['eval_episode_return']
+                            saved_info = {'eval_episode_return': t.info['eval_episode_return']}
                             if 'episode_info' in t.info:
-                                eval_monitor.update_info(env_id, t.info['episode_info'])
+                                saved_info.update(t.info['episode_info'])
+                            eval_monitor.update_info(env_id, saved_info)
                             eval_monitor.update_reward(env_id, reward)
-                            return_info.append(t.info)
                             self._logger.info(
                                 "[EVALUATOR]env {} finish episode, final reward: {:.4f}, current episode: {}".format(
                                     env_id, eval_monitor.get_latest_reward(env_id), eval_monitor.get_current_episode()
@@ -298,9 +313,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 )
 
         if get_world_size() > 1:
-            objects = [stop_flag, return_info]
+            objects = [stop_flag, episode_info]
             broadcast_object_list(objects, src=0)
-            stop_flag, return_info = objects
+            stop_flag, episode_info = objects
 
-        return_info = to_item(return_info)
-        return stop_flag, return_info
+        episode_info = to_item(episode_info)
+        return stop_flag, episode_info

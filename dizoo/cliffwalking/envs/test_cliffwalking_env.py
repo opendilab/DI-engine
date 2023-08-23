@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from dizoo.cliffwalking.envs import CliffWalkingEnv
 
+
 @pytest.mark.envtest
 class TestCliffWalkingEnv:
 

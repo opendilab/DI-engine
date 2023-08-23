@@ -3,13 +3,15 @@ import gym
 from gym.spaces import Box
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 import dmc2gym
-from ding.envs import WarpFrameWrapper, ScaledFloatFrameWrapper, ClipRewardWrapper, FrameStackWrapper
+from ding.envs import WarpFrameWrapper, ScaledFloatFrameWrapper, ClipRewardWrapper, ActionRepeatWrapper, FrameStackWrapper
 
 
 def dmc2gym_observation_space(dim, minimum=-np.inf, maximum=np.inf, dtype=np.float32) -> Callable:
+
     def observation_space(from_pixels=True, height=84, width=84, channels_first=True) -> Box:
         if from_pixels:
             shape = [3, height, width] if channels_first else [height, width, 3]
@@ -29,6 +31,7 @@ def dmc2gym_action_space(dim, minimum=-1, maximum=1, dtype=np.float32) -> Box:
 
 
 def dmc2gym_reward_space(minimum=0, maximum=1, dtype=np.float32) -> Callable:
+
     def reward_space(frame_skip=1) -> Box:
         return Box(
             np.repeat(minimum * frame_skip, 1).astype(dtype),
@@ -114,12 +117,14 @@ class DMC2GymEnv(BaseEnv):
             'warp_frame': False,
             'scale': False,
             'clip_rewards': False,
+            'action_repeat': 1,
             "frame_stack": 3,
             "from_pixels": True,
             "visualize_reward": False,
             "height": 84,
             "width": 84,
             "channels_first": True,
+            "resize": 84,
         }
 
         self._cfg.update(cfg)
@@ -154,11 +159,13 @@ class DMC2GymEnv(BaseEnv):
 
             # optional env wrapper
             if self._cfg['warp_frame']:
-                self._env = WarpFrameWrapper(self._env)
+                self._env = WarpFrameWrapper(self._env, size=self._cfg['resize'])
             if self._cfg['scale']:
                 self._env = ScaledFloatFrameWrapper(self._env)
             if self._cfg['clip_rewards']:
                 self._env = ClipRewardWrapper(self._env)
+            if self._cfg['action_repeat']:
+                self._env = ActionRepeatWrapper(self._env, self._cfg['action_repeat'])
             if self._cfg['frame_stack'] > 1:
                 self._env = FrameStackWrapper(self._env, self._cfg['frame_stack'])
 
@@ -206,6 +213,7 @@ class DMC2GymEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = action.astype('float32')
+        action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         self._eval_episode_return += rew
         if done:

@@ -2,7 +2,7 @@
 from .q_learning import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ
 from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
-from .vac import VAC
+from .vac import VAC, DREAMERVAC
 from .bc import DiscreteBC, ContinuousBC
 from .pg import PG
 # algorithm-specific
@@ -21,7 +21,7 @@ from .qac_dist import QACDIST
 from .maqac import MAQAC, ContinuousMAQAC
 from .madqn import MADQN
 from .vae import VanillaVAE
-from .decision_transformer import DecisionTransformer
+from .dt import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import QACEnsemble

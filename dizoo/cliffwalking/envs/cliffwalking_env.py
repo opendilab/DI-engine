@@ -17,7 +17,7 @@ class CliffWalkingEnv(BaseEnv):
         self._cfg = EasyDict(
             env_id='CliffWalking',
             render_mode='rgb_array',
-            max_episode_steps=300,    # default max trajectory length to truncate possible infinite attempts
+            max_episode_steps=300,  # default max trajectory length to truncate possible infinite attempts
         )
         self._cfg.update(cfg)
         self._init_flag = False

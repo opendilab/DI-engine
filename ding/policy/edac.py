@@ -36,7 +36,7 @@ class EDACPolicy(SACPolicy):
               | ``embedding_size``                             | network.                        |
            5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |
               | ``embedding_size``                             | network.                        |
-           6  | ``model.ensemble``  int         10             | Number of Q-ensemble network    |
+           6  | ``model.emsemble``  int         10             | Number of Q-ensemble network    |
               | ``_num``                                       |                                 |
               |                                                |                                 | is False.
            7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
@@ -52,8 +52,7 @@ class EDACPolicy(SACPolicy):
               |                                                | coefficient.                    | zation for auto
               |                                                |                                 | `alpha`, when
               |                                                |                                 | auto_alpha is True
-           11 | ``learn.eta``       bool        True           | Parameter of EDAC algorithm     |Defalut to 1.0
-              |                                                |                                 |
+           11 | ``learn.eta``       bool        True           | Parameter of EDAC algorithm     | Defalut to 1.0
            12 | ``learn.``          bool        True           | Determine whether to use        | Temperature parameter
               | ``auto_alpha``                                 | auto temperature parameter      | determines the
               |                                                | `alpha`.                        | relative importance

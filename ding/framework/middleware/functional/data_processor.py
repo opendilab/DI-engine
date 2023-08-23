@@ -6,6 +6,7 @@ import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
+from ding.utils import get_rank
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
@@ -180,6 +181,51 @@ def offpolicy_data_fetcher(
     return _fetch
 
 
+def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
+
+    from threading import Thread
+    from queue import Queue
+    import time
+    stream = torch.cuda.Stream()
+
+    def producer(queue, dataset, batch_size, device):
+        torch.set_num_threads(4)
+        nonlocal stream
+        idx_iter = iter(range(len(dataset)))
+        with torch.cuda.stream(stream):
+            while True:
+                if queue.full():
+                    time.sleep(0.1)
+                else:
+                    try:
+                        start_idx = next(idx_iter)
+                    except StopIteration:
+                        del idx_iter
+                        idx_iter = iter(range(len(dataset)))
+                        start_idx = next(idx_iter)
+                    data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx + batch_size)]
+                    data = [[i[j] for i in data] for j in range(len(data[0]))]
+                    data = [torch.stack(x).to(device) for x in data]
+                    queue.put(data)
+
+    queue = Queue(maxsize=50)
+    device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
+    producer_thread = Thread(
+        target=producer, args=(queue, dataset, cfg.policy.batch_size, device), name='cuda_fetcher_producer'
+    )
+
+    def _fetch(ctx: "OfflineRLContext"):
+        nonlocal queue, producer_thread
+        if not producer_thread.is_alive():
+            time.sleep(5)
+            producer_thread.start()
+        while queue.empty():
+            time.sleep(0.001)
+        ctx.train_data = queue.get()
+
+    return _fetch
+
+
 def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
     """
     Overview:
@@ -193,6 +239,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
     """
     # collate_fn is executed in policy now
     dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
+    dataloader = iter(dataloader)
 
     def _fetch(ctx: "OfflineRLContext"):
         """
@@ -204,11 +251,17 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         Output of ctx:
             - train_data (:obj:`List[Tensor]`): The fetched data batch.
         """
-        while True:
-            for i, data in enumerate(dataloader):
-                ctx.train_data = data
-                yield
+        nonlocal dataloader
+        try:
+            ctx.train_data = next(dataloader)  # noqa
+        except StopIteration:
             ctx.train_epoch += 1
+            del dataloader
+            dataloader = DataLoader(
+                dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x
+            )
+            dataloader = iter(dataloader)
+            ctx.train_data = next(dataloader)
         # TODO apply data update (e.g. priority) in offline setting when necessary
 
     return _fetch

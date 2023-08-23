@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 
 from ding.model.template import DecisionTransformer
-from ding.torch_utils import is_differentiable, one_hot
+from ding.torch_utils import is_differentiable
 
 args = ['continuous', 'discrete']
 
@@ -23,6 +23,7 @@ def test_decision_transformer(action_space):
         context_len=T,
         n_heads=2,
         drop_p=0.1,
+        continuous=(action_space == 'continuous')
     )
 
     is_continuous = True if action_space == 'continuous' else False
@@ -40,15 +41,11 @@ def test_decision_transformer(action_space):
     # all ones since no padding
     traj_mask = torch.ones([B, T], dtype=torch.long)  # B x T
 
-    # if discrete
-    if not is_continuous:
-        actions = one_hot(actions.squeeze(-1), num=act_dim)
-
-    assert actions.shape == (B, T, act_dim)
     if is_continuous:
         assert action_target.shape == (B, T, act_dim)
     else:
         assert action_target.shape == (B, T, 1)
+        actions = actions.squeeze(-1)
 
     returns_to_go = returns_to_go.float()
     state_preds, action_preds, return_preds = DT_model.forward(

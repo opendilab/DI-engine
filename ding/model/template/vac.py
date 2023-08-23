@@ -6,6 +6,7 @@ from copy import deepcopy
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder, IMPALAConvEncoder
+from ding.torch_utils.network.dreamer import ActionHead, DenseHead
 
 
 @MODEL_REGISTRY.register('vac')
@@ -356,3 +357,90 @@ class VAC(nn.Module):
             action_type = self.actor_head[0](actor_embedding)
             action_args = self.actor_head[1](actor_embedding)
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}, 'value': value}
+
+
+@MODEL_REGISTRY.register('dreamervac')
+class DREAMERVAC(nn.Module):
+    r"""
+    Overview:
+        The VAC model.
+    Interfaces:
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+    """
+    mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType, EasyDict],
+            dyn_stoch=32,
+            dyn_deter=512,
+            dyn_discrete=32,
+            actor_layers=2,
+            value_layers=2,
+            units=512,
+            act='SiLU',
+            norm='LayerNorm',
+            actor_dist='normal',
+            actor_init_std=1.0,
+            actor_min_std=0.1,
+            actor_max_std=1.0,
+            actor_temp=0.1,
+            action_unimix_ratio=0.01,
+    ) -> None:
+        r"""
+        Overview:
+            Init the VAC Model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - action_space (:obj:`str`): Choose action head in ['discrete', 'continuous', 'hybrid']
+            - share_encoder (:obj:`bool`): Whether share encoder.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
+            - actor_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for actor's nn.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
+            - critic_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+        """
+        super(DREAMERVAC, self).__init__()
+        obs_shape: int = squeeze(obs_shape)
+        action_shape = squeeze(action_shape)
+        self.obs_shape, self.action_shape = obs_shape, action_shape
+
+        if dyn_discrete:
+            feat_size = dyn_stoch * dyn_discrete + dyn_deter
+        else:
+            feat_size = dyn_stoch + dyn_deter
+        self.actor = ActionHead(
+            feat_size,  # pytorch version
+            action_shape,
+            actor_layers,
+            units,
+            act,
+            norm,
+            actor_dist,
+            actor_init_std,
+            actor_min_std,
+            actor_max_std,
+            actor_temp,
+            outscale=1.0,
+            unimix_ratio=action_unimix_ratio,
+        )
+        self.critic = DenseHead(
+            feat_size,  # pytorch version
+            (255, ),
+            value_layers,
+            units,
+            'SiLU',  # act
+            'LN',  # norm
+            'twohot_symlog',
+            outscale=0.0,
+            device='cuda' if torch.cuda.is_available() else 'cpu',
+        )

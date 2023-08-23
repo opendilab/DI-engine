@@ -11,4 +11,5 @@ from .resnet import resnet18, ResNet
 from .gumbel_softmax import GumbelSoftmax
 from .gtrxl import GTrXL, GRUGatingUnit
 from .popart import PopArt
+#from .dreamer import Conv2dSame, DreamerLayerNorm, ActionHead, DenseHead
 from .merge import GatingType, SumMerge, VectorMerge
