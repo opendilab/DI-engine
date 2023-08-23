@@ -350,12 +350,12 @@ class DequeBuffer(Buffer):
             seq_data = sampled_data[group]
             # Filter records by unroll_len
             if unroll_len:
-                start_indice = random.choice(range(max(1, len(seq_data)//unroll_len)))
-                if start_indice == len(seq_data)//unroll_len:
+                start_indice = random.choice(range(max(1, len(seq_data) // unroll_len)))
+                if start_indice == len(seq_data) // unroll_len:
                     seq_data = seq_data[-unroll_len:]
                 else:
-                    seq_data = seq_data[start_indice*unroll_len:start_indice*unroll_len + unroll_len]
-                
+                    seq_data = seq_data[start_indice * unroll_len:start_indice * unroll_len + unroll_len]
+
             final_sampled_data.append(seq_data)
 
         return final_sampled_data

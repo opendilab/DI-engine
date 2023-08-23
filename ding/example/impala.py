@@ -10,7 +10,7 @@ from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
     CkptSaver, online_logger, termination_checker
 from ding.utils import set_pkg_seed
-from dizoo.box2d.lunarlander.config.lunarlander_impala_config1 import main_config, create_config
+from dizoo.box2d.lunarlander.config.lunarlander_impala_config import main_config, create_config
 from dizoo.box2d.lunarlander.envs import LunarLanderEnv
 
 
