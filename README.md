@@ -35,7 +35,7 @@
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-yellow)](https://huggingface.co/OpenDILabCommunity)
 [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/header/openxlab_models.svg)](https://openxlab.org.cn/models?search=opendilab)
 
-Updated on 2023.05.25 DI-engine-v0.4.8
+Updated on 2023.08.23 DI-engine-v0.4.9
 
 
 ## Introduction to DI-engine
@@ -167,11 +167,6 @@ The detailed documentation are hosted on [doc](https://di-engine-docs.readthedoc
 
 [测试/部署 **强化学习策略** 的样例](https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/entry/cartpole_c51_deploy.py)
 
-**Bonus: Train RL agent in one line code:**
-
-```bash
-ding -m serial -e cartpole -p dqn -s 0
-```
 
 ## Feature
 ### Algorithm Versatility
@@ -438,7 +433,7 @@ DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as t
 - Discuss on DI-engine [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
 - Discuss on DI-engine's WeChat group (i.e. add us on WeChat: ding314assist) 
   
-  ![WeChat](https://github.com/opendilab/DI-engine/blob/main/assets/wechat.jpeg){:height="50%" width="50%"}
+  <img src=https://github.com/opendilab/DI-engine/blob/main/assets/wechat.jpeg width=35% />
 - Contact our email (opendilab@pjlab.org.cn)
 - Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/issues/548)
 
