@@ -43,7 +43,8 @@ class DQNPolicy(Policy):
            | ``_hidden``         (int)    64, 128]       | subsequent conv layers and the        | is [8, 4, 3]
            | ``_size_list``                               | final dense layer.                   | default stride is
                                                                                                  | [4, 2 ,1]
-        10 | ``model.dropout``   float    None           | Dropout rate for dropout layers.      | If set to ``None``
+        10 | ``model.dropout``   float    None           | Dropout rate for dropout layers.      | [0,1]
+                                                                                                 | If set to ``None``
                                                                                                  | means no dropout
         11 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary
            | ``per_collect``                             | after collector's one collection.     | from envs. Bigger val
