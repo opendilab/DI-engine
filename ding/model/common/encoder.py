@@ -141,7 +141,8 @@ class FCEncoder(nn.Module):
             hidden_size_list: SequenceType,
             res_block: bool = False,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            dropout: Optional[float] = None
     ) -> None:
         """
         Overview:
@@ -153,6 +154,7 @@ class FCEncoder(nn.Module):
             - activation (:obj:`nn.Module`): Type of activation to use in ``ResFCBlock``. Default is ``nn.ReLU()``.
             - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResFCBlock`` \
                 for more details. Default is ``None``.
+            - dropout (:obj:`float`): Dropout rate of the dropout layer. If ``None`` then default no dropout layer.
         """
         super(FCEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -162,7 +164,7 @@ class FCEncoder(nn.Module):
         if res_block:
             assert len(set(hidden_size_list)) == 1, "Please indicate the same hidden size for res block parts"
             if len(hidden_size_list) == 1:
-                self.main = ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type)
+                self.main = ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type, dropout=dropout)
             else:
                 layers = []
                 for i in range(len(hidden_size_list)):
@@ -173,6 +175,8 @@ class FCEncoder(nn.Module):
             for i in range(len(hidden_size_list) - 1):
                 layers.append(nn.Linear(hidden_size_list[i], hidden_size_list[i + 1]))
                 layers.append(self.act)
+                if dropout is not None:
+                    layers.append(nn.Dropout(dropout))
             self.main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

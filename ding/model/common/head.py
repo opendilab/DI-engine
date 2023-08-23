@@ -28,6 +28,7 @@ class DiscreteHead(nn.Module):
         layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
+        dropout: Optional[float] = None,
         noise: Optional[bool] = False,
     ) -> None:
         """
@@ -41,6 +42,7 @@ class DiscreteHead(nn.Module):
                 If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
             - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
                 for more details. Default ``None``.
+            - dropout (:obj:`float`): The dropout rate, default set to None.
             - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
                 Default ``False``.
         """
@@ -55,6 +57,8 @@ class DiscreteHead(nn.Module):
                 layer_num,
                 layer_fn=layer,
                 activation=activation,
+                use_dropout=dropout is not None,
+                dropout_probability=dropout,
                 norm_type=norm_type
             ), block(hidden_size, output_size)
         )
@@ -800,6 +804,7 @@ class DuelingHead(nn.Module):
         v_layer_num: Optional[int] = None,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
+        dropout: Optional[float] = None,
         noise: Optional[bool] = False,
     ) -> None:
         """
@@ -814,6 +819,7 @@ class DuelingHead(nn.Module):
                 If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
             - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
                 for more details. Default ``None``.
+            - dropout (:obj:`float`): The dropout rate of dropout layer. Default ``None``.
             - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
                 Default ``False``.
         """
@@ -832,6 +838,8 @@ class DuelingHead(nn.Module):
                 a_layer_num,
                 layer_fn=layer,
                 activation=activation,
+                use_dropout=dropout is not None,
+                dropout_probability=dropout,
                 norm_type=norm_type
             ), block(hidden_size, output_size)
         )
@@ -843,6 +851,8 @@ class DuelingHead(nn.Module):
                 v_layer_num,
                 layer_fn=layer,
                 activation=activation,
+                use_dropout=dropout is not None,
+                dropout_probability=dropout,
                 norm_type=norm_type
             ), block(hidden_size, 1)
         )

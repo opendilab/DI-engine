@@ -21,7 +21,8 @@ class DQN(nn.Module):
             head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            dropout: Optional[float] = None
     ) -> None:
         """
         Overview:
@@ -35,9 +36,11 @@ class DQN(nn.Module):
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
             - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
-                if ``None`` then default set it to ``nn.ReLU()``
+                if ``None`` then default set it to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
+            - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \
+                if ``None`` then default no dropout layer.
         """
         super(DQN, self).__init__()
         # Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4
@@ -46,7 +49,8 @@ class DQN(nn.Module):
             head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list,
+                                     activation=activation, norm_type=norm_type, dropout=dropout)
         # Conv Encoder
         elif len(obs_shape) == 3:
             self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
@@ -67,11 +71,13 @@ class DQN(nn.Module):
                 action_shape,
                 layer_num=head_layer_num,
                 activation=activation,
-                norm_type=norm_type
+                norm_type=norm_type,
+                dropout=dropout
             )
         else:
             self.head = head_cls(
-                head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
+                head_hidden_size, action_shape, head_layer_num,
+                activation=activation, norm_type=norm_type, dropout=dropout
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
