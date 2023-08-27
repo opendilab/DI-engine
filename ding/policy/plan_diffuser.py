@@ -176,6 +176,8 @@ class PDPolicy(Policy):
         self.step_start_update_target = self._cfg.learn.step_start_update_target
         self.target_weight = self._cfg.learn.target_weight
         self.value_step = self._cfg.learn.value_step
+        self.use_target = False
+        self.horizon = self._cfg.model.diffuser_model_cfg.horizon
 
         # Optimizers
         self._plan_optimizer = Adam(
@@ -216,15 +218,12 @@ class PDPolicy(Policy):
         )
         
         conds = {}
-        val = data['condition_val']
-        id = data['condition_id']
-        for i in range(len(val)):
-            if id[i].item() in conds:
-                conds[id[i].item()].append(val[i])
-            else:
-                conds[id[i].item()] = [val[i]]
-        for key in conds:
-            conds[key] = torch.stack(conds[key])
+        vals = data['condition_val']
+        ids = data['condition_id']
+        for i in range(len(ids)):
+            conds[ids[i][0].item()] = vals[i]
+        if len(ids) > 1:
+            self.use_target = True
         data['conditions'] = conds
         data['returns'] = data['returns'].unsqueeze(-1)
         if self._cuda:
@@ -265,9 +264,6 @@ class PDPolicy(Policy):
         loss_dict['max_return'] = target.max().item()
         loss_dict['min_return'] = target.min().item()
         loss_dict['mean_return'] = target.mean().item()
-        loss_dict['max_cond'] = val.max().item()
-        loss_dict['min_cond'] = val.min().item()
-        loss_dict['mean_cond'] = val.mean().item()
         loss_dict['max_traj'] = x.max().item()
         loss_dict['min_traj'] = x.min().item()
         loss_dict['mean_traj'] = x.mean().item()
@@ -281,8 +277,8 @@ class PDPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return [
-            'diffuse_loss', 'value_loss', 'max_return', 'min_return', 'mean_return', 'max_cond', 
-            'min_cond', 'mean_cond', 'max_traj', 'min_traj', 'mean_traj', 'mean_pred', 'max_pred',
+            'diffuse_loss', 'value_loss', 'max_return', 'min_return', 'mean_return', 
+            'max_traj', 'min_traj', 'mean_traj', 'mean_pred', 'max_pred',
             'min_pred', 'a0_loss',
         ]
     
@@ -307,12 +303,25 @@ class PDPolicy(Policy):
         data = default_collate(list(data.values()))
 
         self._eval_model.eval()
-        obs = self.normalizer.normalize(data, 'observations')
+        if self.use_target:
+            cur_obs = self.normalizer.normalize(data[:,:self.obs_dim], 'observations')
+            target_obs = self.normalizer.normalize(data[:,self.obs_dim:], 'observations')
+        else:
+            obs = self.normalizer.normalize(data, 'observations')
         with torch.no_grad():
-            obs = torch.tensor(obs)
-            if self._cuda:
-                obs = to_device(obs, self._device)
-            conditions = {0: obs}
+            if self.use_target:
+                cur_obs = torch.tensor(cur_obs)
+                target_obs = torch.tensor(target_obs)
+                if self._cuda:
+                    cur_obs = to_device(cur_obs, self._device)
+                    target_obs = to_device(target_obs, self._device)
+                conditions = {0: cur_obs, 
+                              self.horizon - 1: target_obs}
+            else:
+                obs = torch.tensor(obs)
+                if self._cuda:
+                    obs = to_device(obs, self._device)
+                conditions = {0: obs}
         
             action = self._eval_model.get_eval(conditions, self.plan_batch_szie)
             if self._cuda:

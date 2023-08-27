@@ -434,18 +434,15 @@ class TemporalValue(nn.Module):
             nn.Linear(dim * 4, dim),
         )
         self.blocks = nn.ModuleList([])
-        num_resolutions = len(in_out)
         
         for ind, (dim_in, dim_out) in enumerate(in_out):
-            is_last = ind >= (num_resolutions - 1)
             self.blocks.append(nn.ModuleList([
                 ResidualTemporalBlock(dim_in, dim_out, kernel_size=kernel_size, embed_dim=time_dim),
                 ResidualTemporalBlock(dim_out, dim_out, kernel_size=kernel_size, embed_dim=time_dim),
                 nn.Conv1d(dim_out, dim_out, 3, 2, 1)
             ]))
             
-            if not is_last:
-                horizon = horizon // 2
+            horizon = horizon // 2
 
         mid_dim = dims[-1]
         mid_dim_2 = mid_dim // 2
@@ -470,7 +467,6 @@ class TemporalValue(nn.Module):
         # [batch, horizon, transition ] -> [batch, transition , horizon]
         x = x.transpose(1, 2)
         t = self.time_mlp(time)
-
         for resnet, resnet2, downsample in self.blocks:
             x = resnet(x, t)
             x = resnet2(x, t)
@@ -481,7 +477,6 @@ class TemporalValue(nn.Module):
 
         x = self.mid_block2(x, t)
         x = self.mid_down2(x)
-
         x = x.view(len(x), -1)
         out = self.final_block(torch.cat([x, t], dim=-1))
         return out

@@ -543,8 +543,12 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
         self.use_padding = cfg.env.use_padding
         self.include_returns = cfg.env.include_returns
+        self.env_id = cfg.env.env_id
         itr = self.sequence_dataset(env, dataset)
         self.n_episodes = 0
+        if 'maze' in env_id:
+            target = env.get_target()
+            self.target_obs = env.reset_to_location(target)
 
         fields = {}
         for k in dataset.keys():
@@ -557,6 +561,8 @@ class SequenceDataset(torch.utils.data.Dataset):
             assert path_length <= self.max_path_length
             fields['path_lengths'].append(path_length)
             for key, val in episode.items():
+                if not key in fields:
+                    fields[key] = []
                 if val.ndim < 2:
                     val = np.expand_dims(val, axis=-1)
                 shape = (self.max_path_length, val.shape[-1])
@@ -660,7 +666,13 @@ class SequenceDataset(torch.utils.data.Dataset):
         '''
             condition on current observation for planning
         '''
-        return {0: observations[0]}
+        if 'maze2d' in self.env_id:
+            return {'condition_id': [0, self.horizon - 1],
+            'condition_val': [observations[0], self.target_obs],
+            }
+        else:
+            return {'condition_id': [0],
+            'condition_val': [observations[0]],}
 
     def __len__(self):
         return len(self.indices)
@@ -702,19 +714,16 @@ class SequenceDataset(torch.utils.data.Dataset):
             returns = np.array([returns/self.returns_scale], dtype=np.float32)
             batch = {
                 'trajectories': trajectories,
-                'condition_id': 0,
-                'condition_val': observations[0],
                 'returns': returns,
                 'done': done,
             }
         else:
             batch = {
                 'trajectories': trajectories,
-                'condition_id': 0,
-                'condition_val': observations[0],
                 'done': done,
             }
 
+        batch.update(self.get_conditions(observations))
         return batch
 
 def hdf5_save(exp_data, expert_data_path):
