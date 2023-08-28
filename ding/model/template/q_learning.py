@@ -54,6 +54,7 @@ class DQN(nn.Module):
             )
         # Conv Encoder
         elif len(obs_shape) == 3:
+            assert dropout is None, "dropout is not supported in ConvEncoder"
             self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         else:
             raise RuntimeError(

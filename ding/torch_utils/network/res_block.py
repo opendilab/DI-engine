@@ -127,6 +127,8 @@ class ResFCBlock(nn.Module):
         self.act = activation
         if dropout is not None:
             self.dropout = nn.Dropout(dropout)
+        else:
+            self.dropout = None
         self.fc1 = fc_block(in_channels, in_channels, activation=self.act, norm_type=norm_type)
         self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
 
@@ -143,6 +145,6 @@ class ResFCBlock(nn.Module):
         x = self.fc1(x)
         x = self.fc2(x)
         x = self.act(x + identity)
-        if hasattr(self, 'dropout'):
+        if self.dropout is not None:
             x = self.dropout(x)
         return x

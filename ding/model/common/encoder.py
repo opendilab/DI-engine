@@ -168,7 +168,9 @@ class FCEncoder(nn.Module):
             else:
                 layers = []
                 for i in range(len(hidden_size_list)):
-                    layers.append(ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type))
+                    layers.append(
+                        ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type, dropout=dropout)
+                    )
                 self.main = nn.Sequential(*layers)
         else:
             layers = []

@@ -100,8 +100,6 @@ class DQNPolicy(Policy):
         model=dict(
             #(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
-            # (float) Dropout rate for dropout layers. When set to ``None`` means no dropout layers.
-            dropout=None,
         ),
         learn=dict(
             # (int) How many updates(iterations) to train after collector's one collection.
