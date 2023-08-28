@@ -48,7 +48,6 @@ All pages relative to our algorithms are grouped by category and follow the stru
     rnd
     her
     icm
-    mcts
 
 .. toctree::
     :maxdepth: 2

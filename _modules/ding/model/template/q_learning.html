@@ -315,7 +315,8 @@
             <span class="n">head_hidden_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">dropout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -329,9 +330,11 @@
 <span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.</span>
 <span class="sd">            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output</span>
 <span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \</span>
-<span class="sd">                if ``None`` then default set it to ``nn.ReLU()``</span>
+<span class="sd">                if ``None`` then default set it to ``nn.ReLU()``.</span>
 <span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \</span>
 <span class="sd">                ``ding.torch_utils.fc_block`` for more details. you can choose one of [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, &#39;LN&#39;]</span>
+<span class="sd">            - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \</span>
+<span class="sd">                if ``None`` then default no dropout layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4</span>
@@ -340,9 +343,12 @@
             <span class="n">head_hidden_size</span> <span class="o">=</span> <span class="n">encoder_hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># FC Encoder</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span>
+                <span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span>
+            <span class="p">)</span>
         <span class="c1"># Conv Encoder</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">dropout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;dropout is not supported in ConvEncoder&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
@@ -361,11 +367,17 @@
                 <span class="n">action_shape</span><span class="p">,</span>
                 <span class="n">layer_num</span><span class="o">=</span><span class="n">head_layer_num</span><span class="p">,</span>
                 <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
+                <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
-                <span class="n">head_hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="n">head_hidden_size</span><span class="p">,</span>
+                <span class="n">action_shape</span><span class="p">,</span>
+                <span class="n">head_layer_num</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
+                <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span>
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="DQN.forward"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.template.q_learning.DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
