@@ -1,15 +1,13 @@
 from typing import Dict, Any, List
 from functools import partial
-import copy
 
 import torch
 from torch import Tensor
 from torch import nn
-from torch.distributions import Normal, Independent, TransformedDistribution, TanhTransform
-from easydict import EasyDict
+from torch.distributions import Normal, Independent
 
 from ding.torch_utils import to_device, fold_batch, unfold_batch, unsqueeze_repeat
-from ding.utils import POLICY_REGISTRY, deep_merge_dicts
+from ding.utils import POLICY_REGISTRY
 from ding.policy import SACPolicy
 from ding.rl_utils import generalized_lambda_returns
 from ding.policy.common_utils import default_preprocess_learn
@@ -33,11 +31,12 @@ class MBSACPolicy(SACPolicy):
         == ====================   ========    =============  ==================================
         1  ``learn._lambda``      float       0.8            | Lambda for TD-lambda return.
         2  ``learn.grad_clip`     float       100.0          | Max norm of gradients.
-        3  ``learn.sample_``      bool        True           | Whether to sample states or tra-
-           ``state``                                         |   nsitions from env buffer.
+        3  | ``learn.sample``     bool        True           | Whether to sample states or
+           | ``_state``                                      | transitions from env buffer.
         == ====================   ========    =============  ==================================
 
     .. note::
+
         For other configs, please refer to ding.policy.sac.SACPolicy.
     """
 

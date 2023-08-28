@@ -41,7 +41,7 @@ class DQNPolicy(Policy):
         8  | ``model.dueling``   bool     True           | dueling head architecture
         9  | ``model.encoder``   list     [32, 64,       | Sequence of ``hidden_size`` of        | default kernel_size
            | ``_hidden``         (int)    64, 128]       | subsequent conv layers and the        | is [8, 4, 3]
-           | ``_size_list``                               | final dense layer.                   | default stride is
+           | ``_size_list``                              | final dense layer.                    | default stride is
                                                                                                  | [4, 2 ,1]
         10 | ``model.dropout``   float    None           | Dropout rate for dropout layers.      | [0,1]
                                                                                                  | If set to ``None``
