@@ -690,7 +690,7 @@
         <span class="c1"># The last layer uses the same activation as front layers.</span>
         <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">use_dropout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">use_dropout</span><span class="p">:</span>
             <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_probability</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">last_linear_layer_init_zero</span><span class="p">:</span>
