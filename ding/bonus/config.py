@@ -11,8 +11,9 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
     if algorithm == 'PPOF':
         cfg = PPOFPolicy.default_config()
         if env == 'lunarlander_discrete':
-            cfg.n_sample = 400
+            cfg.n_sample = 512
             cfg.value_norm = 'popart'
+            cfg.entropy_weight = 1e-3
         elif env == 'lunarlander_continuous':
             cfg.action_space = 'continuous'
             cfg.n_sample = 400
