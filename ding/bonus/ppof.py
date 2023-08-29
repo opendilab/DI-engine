@@ -134,10 +134,10 @@ class PPOF:
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
+            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
             task.use(ppof_adv_estimator(self.policy))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
-            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),

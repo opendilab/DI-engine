@@ -108,6 +108,7 @@ class DQNAgent:
                         if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
+            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(eps_greedy_handler(self.cfg))
             task.use(
                 StepCollector(
@@ -122,7 +123,6 @@ class DQNAgent:
                 task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),

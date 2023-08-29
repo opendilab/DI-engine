@@ -105,6 +105,7 @@ class TD3Agent:
                         if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
+            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 StepCollector(
                     self.cfg,
@@ -115,7 +116,6 @@ class TD3Agent:
             )
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
