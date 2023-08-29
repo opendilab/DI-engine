@@ -41,36 +41,39 @@ class DQNPolicy(Policy):
         8  | ``model.dueling``   bool     True           | dueling head architecture
         9  | ``model.encoder``   list     [32, 64,       | Sequence of ``hidden_size`` of        | default kernel_size
            | ``_hidden``         (int)    64, 128]       | subsequent conv layers and the        | is [8, 4, 3]
-           | ``_size_list``                               | final dense layer.                   | default stride is
+           | ``_size_list``                              | final dense layer.                    | default stride is
                                                                                                  | [4, 2 ,1]
-        10 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary
+        10 | ``model.dropout``   float    None           | Dropout rate for dropout layers.      | [0,1]
+                                                                                                 | If set to ``None``
+                                                                                                 | means no dropout
+        11 | ``learn.update``    int      3              | How many updates(iterations) to train | This args can be vary
            | ``per_collect``                             | after collector's one collection.     | from envs. Bigger val
                                                          | Only valid in serial training         | means more off-policy
-        11 | ``learn.batch_``    int      64             | The number of samples of an iteration
+        12 | ``learn.batch_``    int      64             | The number of samples of an iteration
            | ``size``
-        12 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.
+        13 | ``learn.learning``  float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        13 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update
+        14 | ``learn.target_``   int      100            | Frequence of target network update.   | Hard(assign) update
            | ``update_freq``
-        14 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update
+        15 | ``learn.target_``   float    0.005          | Frequence of target network update.   | Soft(assign) update
            | ``theta``                                   | Only one of [target_update_freq,
            |                                             | target_theta] should be set
-        15 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some
+        16 | ``learn.ignore_``   bool     False          | Whether ignore done for target value  | Enable it for some
            | ``done``                                    | calculation.                          | fake termination env
-        16 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from
+        17 ``collect.n_sample``  int      [8, 128]       | The number of training samples of a   | It varies from
                                                          | call of collector.                    | different envs
-        17 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample
+        18 ``collect.n_episode`` int      8              | The number of training episodes of a  | only one of [n_sample
                                                          | call of collector                     | ,n_episode] should
                                                          |                                       | be set
-        18 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len>1
+        19 | ``collect.unroll``  int      1              | unroll length of an iteration         | In RNN, unroll_len>1
            | ``_len``
-        19 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support ['exp',
+        20 | ``other.eps.type``  str      exp            | exploration rate decay type           | Support ['exp',
                                                                                                  | 'linear'].
-        20 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]
+        21 | ``other.eps.``      float    0.95           | start value of exploration rate       | [0,1]
            | ``start``
-        21 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]
+        22 | ``other.eps.``      float    0.1            | end value of exploration rate         | [0,1]
            | ``end``
-        22 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set
+        23 | ``other.eps.``      int      10000          | decay length of exploration           | greater than 0. set
            | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
