@@ -11,8 +11,6 @@ cfg = dict(
         n_evaluator_episode=8,
         stop_value=11000,
         env_wrapper='mujoco_default',
-        act_scale=True,
-        rew_clip=True,
     ),
     policy=dict(
         cuda=True,
