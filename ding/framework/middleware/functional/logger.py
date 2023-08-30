@@ -284,7 +284,7 @@ def wandb_online_logger(
             if cfg.video_logger:
                 if 'replay_video' in ctx.eval_output:
                     # save numpy array "images" of shape (N,1212,3,224,320) to N video files in mp4 format
-                    # The numpy tensor must be either 4 dimensional or 5 dimensional. 
+                    # The numpy tensor must be either 4 dimensional or 5 dimensional.
                     # Channels should be (time, channel, height, width) or (batch, time, channel, height width)
                     video_images = ctx.eval_output['replay_video']
                     video_images = video_images.astype(np.uint8)
@@ -575,7 +575,7 @@ def wandb_offline_logger(
             if cfg.video_logger:
                 if 'replay_video' in ctx.eval_output:
                     # save numpy array "images" of shape (N,1212,3,224,320) to N video files in mp4 format
-                    # The numpy tensor must be either 4 dimensional or 5 dimensional. 
+                    # The numpy tensor must be either 4 dimensional or 5 dimensional.
                     # Channels should be (time, channel, height, width) or (batch, time, channel, height width)
                     video_images = ctx.eval_output['replay_video']
                     video_images = video_images.astype(np.uint8)
