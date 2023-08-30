@@ -51,8 +51,8 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         # action shape (B,) for discete action, (B, D,) for continuous action
         # reward shape (B,) done shape (B,) value shape (B,)
         data = ttorch_collate(ctx.trajectories, cat_1dim=True)
-        if data['action'].dtype in [torch.float16,torch.float32,torch.double] \
-            and data['action'].dim() == 1 :
+        if data['action'].dtype in [torch.float16, torch.float32, torch.double] \
+                and data['action'].dim() == 1:
             # action shape
             data['action'] = data['action'].unsqueeze(-1)
 
@@ -91,7 +91,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
             else:
                 raise RuntimeError("The shape of obs is {}, which is not same as config.".format(data[0]['obs'].shape))
 
-            if data[0]['action'].dtype in [torch.float16,torch.float32,torch.double] \
+            if data[0]['action'].dtype in [torch.float16, torch.float32, torch.double] \
                     and data[0]['action'].dim() == 2:
                 for d in data:
                     d['action'] = d['action'].squeeze(0)
@@ -106,8 +106,8 @@ def ppof_adv_estimator(policy: Policy) -> Callable:
 
     def _estimator(ctx: "OnlineRLContext"):
         data = ttorch_collate(ctx.trajectories, cat_1dim=True)
-        if data['action'].dtype in [torch.float16,torch.float32,torch.double] \
-            and data['action'].dim() == 1 :
+        if data['action'].dtype in [torch.float16, torch.float32, torch.double] \
+                and data['action'].dim() == 1:
             data['action'] = data['action'].unsqueeze(-1)
         traj_flag = data.done.clone()
         traj_flag[ctx.trajectory_end_idx] = True
@@ -123,8 +123,8 @@ def pg_estimator(policy: Policy) -> Callable:
         train_data = []
         for episode in ctx.episodes:
             data = ttorch_collate(episode, cat_1dim=True)
-            if data['action'].dtype in [torch.float16,torch.float32,torch.double] \
-                and data['action'].dim() == 1 :
+            if data['action'].dtype in [torch.float16, torch.float32, torch.double] \
+                    and data['action'].dim() == 1:
                 data['action'] = data['action'].unsqueeze(-1)
             data = policy.get_train_sample(data)
             train_data.append(data)
