@@ -1,4 +1,6 @@
 from easydict import EasyDict
+from functools import partial
+import ding.envs.gym_env
 
 cfg = dict(
     exp_name='LunarLanderContinuous-v2-SAC',
@@ -39,6 +41,4 @@ cfg = dict(
 
 cfg = EasyDict(cfg)
 
-import ding.envs.gym_env
-from functools import partial
 env = partial(ding.envs.gym_env.env, continuous=True)

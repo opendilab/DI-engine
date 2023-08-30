@@ -104,8 +104,10 @@ class DQNAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(
                 interaction_evaluator(
-                self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
-                        if hasattr(self.cfg.policy.eval, "render") else False
+                    self.cfg,
+                    self.policy.eval_mode,
+                    evaluator_env,
+                    render=self.cfg.policy.eval.render if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))

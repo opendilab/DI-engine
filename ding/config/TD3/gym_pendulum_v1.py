@@ -1,4 +1,5 @@
 from easydict import EasyDict
+import ding.envs.gym_env
 
 cfg = dict(
     exp_name='Pendulum-v1-TD3',
@@ -50,5 +51,4 @@ cfg = dict(
 
 cfg = EasyDict(cfg)
 
-import ding.envs.gym_env
 env = ding.envs.gym_env.env

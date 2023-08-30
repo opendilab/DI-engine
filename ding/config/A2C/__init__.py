@@ -3,7 +3,6 @@ from . import gym_bipedalwalker_v3
 from . import gym_halfcheetah_v3
 from . import gym_hopper_v3
 from . import gym_lunarlander_v2
-from . import gym_pendulum_v1
 from . import gym_walker2d_v3
 
 supported_env_cfg = {

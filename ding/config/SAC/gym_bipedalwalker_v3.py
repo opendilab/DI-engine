@@ -1,4 +1,5 @@
 from easydict import EasyDict
+import ding.envs.gym_env
 
 cfg = dict(
     exp_name='BipedalWalker-v3-SAC',
@@ -43,5 +44,4 @@ cfg = dict(
 
 cfg = EasyDict(cfg)
 
-import ding.envs.gym_env
 env = ding.envs.gym_env.env

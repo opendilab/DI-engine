@@ -1,4 +1,6 @@
 from easydict import EasyDict
+from functools import partial
+import ding.envs.gym_env
 
 action_shape = 2
 obs_shape = 8
@@ -104,6 +106,4 @@ cfg = dict(
 
 cfg = EasyDict(cfg)
 
-import ding.envs.gym_env
-from functools import partial
 env = partial(ding.envs.gym_env.env, continuous=True)
