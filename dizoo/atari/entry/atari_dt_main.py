@@ -48,7 +48,7 @@ def main():
             task.use(trainer(cfg, policy.learn_mode))
             task.use(termination_checker(max_train_iter=3e4))
             task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
-            task.use(offline_logger(cfg.exp_name))
+            task.use(offline_logger())
             task.run()
 
 

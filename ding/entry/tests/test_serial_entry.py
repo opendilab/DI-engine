@@ -647,7 +647,7 @@ def test_discrete_dt():
     config = [deepcopy(cartpole_discrete_dt_config), deepcopy(cartpole_discrete_dt_create_config)]
     config[0].policy.eval.evaluator.eval_freq = 5
     try:
-        from ding.framework import task
+        from ding.framework import task, ding_init
         from ding.framework.context import OfflineRLContext
         from ding.envs import SubprocessEnvManagerV2, BaseEnvManagerV2
         from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
@@ -659,6 +659,7 @@ def test_discrete_dt():
         from ding.policy import DTPolicy
         from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
             OfflineMemoryDataFetcher, offline_logger, termination_checker
+        ding_init(config[0])
         config = compile_config(config[0], create_cfg=config[1], auto=True)
         with task.start(async_mode=False, ctx=OfflineRLContext()):
             evaluator_env = BaseEnvManagerV2(
@@ -678,7 +679,7 @@ def test_discrete_dt():
             task.use(OfflineMemoryDataFetcher(config, dataset))
             task.use(trainer(config, policy.learn_mode))
             task.use(CkptSaver(policy, config.exp_name, train_freq=100))
-            task.use(offline_logger(config.exp_name))
+            task.use(offline_logger())
             task.run()
     except Exception:
         assert False, "pipeline fail"
