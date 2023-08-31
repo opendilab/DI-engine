@@ -26,7 +26,6 @@ unittest:
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${DURATIONS_COMMAND} \
-		${WORKERS_COMMAND} \
 		-sv -m unittest \
 
 algotest:
