@@ -60,7 +60,7 @@ def load_data(args: dict) -> tuple:
     data_root = 'dizoo/tabmwp/data'
     if not os.path.exists(os.path.join(data_root, f'problems_train.json')):
         os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/problems_train.json -O '
-                  + os.path.join(data_root, f'problems_train.json'))
+                  + os.path.join(data_root, f'problems_train.json') + ' --no-check-certificate')
     problems = json.load(open(os.path.join(data_root, f'problems_train.json')))
 
     pids = list(problems.keys())

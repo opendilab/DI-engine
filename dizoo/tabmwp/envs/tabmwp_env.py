@@ -93,14 +93,14 @@ class TabMWP(BaseEnv):
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_train.txt'
                 if not os.path.exists(model_io_path):
                     os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_train.txt -O '
-                              + model_io_path)
+                              + model_io_path + ' --no-check-certificate')
             else:
                 self.train_pids = ['21037', '22976', '2224', '14145', '27962', '26553', '22110', '16541', '26044',
                                    '19492', '31882', '11991', '27594', '7637', '15394', '7666', '5177', '33761',
                                    '13703', '29105']
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_eval.txt'
                 os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_eval.txt -O '
-                          + model_io_path)
+                          + model_io_path + ' --no-check-certificate')
 
             self.cfg.cand_number = len(self.cand_pids)
             self.cfg.train_number = len(self.train_pids)
@@ -171,17 +171,7 @@ class TabMWP(BaseEnv):
         self._init_flag = False
 
     def step(self, action: np.array) -> BaseEnvTimestep:
-        cids = []
-        act = action.item()
-        # Convert action of one scalar in to indexes.
-        idx = 0
-        while act > 0:
-            if act % 2 != 0:
-                cids.append(idx)
-            act = act // 2
-            idx += 1
-
-        shot_pids = [self.cand_pids[cid] for cid in cids]
+        shot_pids = [self.cand_pids[cid] for cid in action]
         pid = self.train_pids[self.problem_id]
 
         # generate the prompt input

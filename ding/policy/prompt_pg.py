@@ -97,24 +97,8 @@ class PromptPGPolicy(Policy):
             return_ = batch['return']
 
             # calculate PG loss
-            real_act = []
-            for b in range(batch['action'].shape[0]):
-                tmp_act = []
-                act = batch['action'][b].item()
-                # The action is a combination of indexes of all selected prompts.
-                # For example, if [3, 6] is selected, action = 2 ** 3 + 2 ** 6 = 8 + 64 = 72.
-                # In this step, we calculate all the indexes.
-                idx = 0
-                while act > 0:
-                    if act % 2 != 0:
-                        tmp_act.append(idx)
-                    act = act // 2
-                    idx += 1
-                assert len(tmp_act) == self._cfg.shot_number
-                real_act.append(tmp_act)
-            real_act = torch.tensor(real_act, device=self._device)  # shape: (B, shot_number)
+            real_act = batch['action']  # shape: (B, shot_number)
             # Calculate loss.
-            total_loss = 0
             total_policy_loss, total_entropy_loss = 0, 0
             for ii in range(self._cfg.shot_number):
                 log_prob = output['dist'].log_prob(real_act[:, ii])

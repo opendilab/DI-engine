@@ -428,18 +428,9 @@ class CombinationArgmaxSampleWrapper(IModelWrapper):
             act.append(actions)
             for jj in range(actions.shape[0]):
                 mask[jj][actions[jj]] = -1e8
-        # `act` is shaped (shot_num, B)
-        # Next we will transform the action using binary encoding.
-        # For example, if the original action is: ``[[1, 2, 3], [4, 5, 6]]``
-        # Then the transformed action ``real_act`` is: ``[2^1+2^4, 2^2+2^5, 2^3+2^6]``.
-        real_act = []
-        for b in range(act[0].shape[0]):
-            tmp_act = torch.zeros_like(act[0][0])
-            for shot in act:
-                tmp_act += 2 ** shot[b].item()
-            real_act.append(tmp_act)
-        real_act = torch.stack(real_act, dim=0)
-        output['action'] = real_act
+        # `act` is shaped: (B, shot_number)
+        act = torch.stack(act, dim=1)
+        output['action'] = act
         return output
 
 
@@ -460,18 +451,10 @@ class CombinationMultinomialSampleWrapper(IModelWrapper):
             act.append(actions)
             for jj in range(actions.shape[0]):
                 mask[jj][actions[jj]] = -1e8
-        # `act` is shaped (shot_num, B)
-        # Next we will transform the action using binary encoding.
-        # For example, if the original action is: ``[[1, 2, 3], [4, 5, 6]]``
-        # Then the transformed action ``real_act`` is: ``[2^1+2^4, 2^2+2^5, 2^3+2^6]``.
-        real_act = []
-        for b in range(act[0].shape[0]):
-            tmp_act = torch.zeros_like(act[0][0])
-            for shot in act:
-                tmp_act += 2 ** shot[b].item()
-            real_act.append(tmp_act)
-        real_act = torch.stack(real_act, dim=0)
-        output['action'] = real_act
+
+        # `act` is shaped: (B, shot_number)
+        act = torch.stack(act, dim=1)
+        output['action'] = act
         return output
 
 
