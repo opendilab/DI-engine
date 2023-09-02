@@ -54,3 +54,5 @@ from .bcq import BCQPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy
+
+from .averaged_dqn import AveragedDQNPolicy, EnsembleDQNPolicy

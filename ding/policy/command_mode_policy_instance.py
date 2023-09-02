@@ -50,6 +50,7 @@ from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
 from .bcq import BCQPolicy
 from .edac import EDACPolicy
+from .averaged_dqn import AveragedDQNPolicy, EnsembleDQNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -438,3 +439,11 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
 
     def _get_setting_eval(self, command_info: dict) -> dict:
         return {}
+
+@POLICY_REGISTRY.register('averaged_dqn_command')
+class AveragedDQNCommandModePolicy(AveragedDQNPolicy, EpsCommandModePolicy):
+    pass
+
+@POLICY_REGISTRY.register('ensemble_dqn_command')
+class EnsembleDQNCommandModePolicy(EnsembleDQNPolicy, EpsCommandModePolicy):
+    pass
