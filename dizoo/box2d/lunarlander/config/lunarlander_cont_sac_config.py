@@ -28,9 +28,7 @@ lunarlander_sac_config = dict(
             learning_rate_alpha=3e-4,
             auto_alpha=True,
         ),
-        collect=dict(
-            n_sample=256,
-        ),
+        collect=dict(n_sample=256, ),
         eval=dict(evaluator=dict(eval_freq=1000, ), ),
         other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
     ),

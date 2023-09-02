@@ -1,4 +1,5 @@
 import pytest
+import os
 import torch
 from easydict import EasyDict
 from ding.world_model.base_world_model import DreamWorldModel, DynaWorldModel
@@ -10,8 +11,8 @@ class TestDynaWorldModel:
 
     @pytest.mark.parametrize('buffer_type', [NaiveReplayBuffer, EpisodeReplayBuffer])
     def test_fill_img_buffer(self, buffer_type):
-        env_buffer = buffer_type(buffer_type.default_config(), None, 'exp_name', 'env_buffer_for_test')
-        img_buffer = buffer_type(buffer_type.default_config(), None, 'exp_name', 'img_buffer_for_test')
+        env_buffer = buffer_type(buffer_type.default_config(), None, 'dyna_exp_name', 'env_buffer_for_test')
+        img_buffer = buffer_type(buffer_type.default_config(), None, 'dyna_exp_name', 'img_buffer_for_test')
         fake_config = EasyDict(
             train_freq=250,  # w.r.t environment step
             eval_freq=250,  # w.r.t environment step
@@ -74,6 +75,7 @@ class TestDynaWorldModel:
         )
 
         super(FakeModel, fake_model).fill_img_buffer(policy, env_buffer, img_buffer, 0, 0)
+        os.popen("rm -rf dyna_exp_name")
 
 
 @pytest.mark.unittest

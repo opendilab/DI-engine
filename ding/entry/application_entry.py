@@ -72,8 +72,7 @@ def eval(
 
     # Evaluate
     _, episode_info = evaluator.eval()
-    reward = [e['eval_episode_return'] for e in episode_info]
-    episode_return = np.mean(to_ndarray(reward))
+    episode_return = np.mean(episode_info['eval_episode_return'])
     print('Eval is over! The performance of your RL policy is {}'.format(episode_return))
     return episode_return
 

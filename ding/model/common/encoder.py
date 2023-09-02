@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 from ding.torch_utils import ResFCBlock, ResBlock, Flatten, normed_linear, normed_conv2d
+from ding.torch_utils.network.dreamer import Conv2dSame, DreamerLayerNorm
 from ding.utils import SequenceType
 
 
@@ -35,6 +36,7 @@ class ConvEncoder(nn.Module):
             kernel_size: SequenceType = [8, 4, 3],
             stride: SequenceType = [4, 2, 1],
             padding: Optional[SequenceType] = None,
+            layer_norm: Optional[bool] = False,
             norm_type: Optional[str] = None
     ) -> None:
         """
@@ -50,6 +52,7 @@ class ConvEncoder(nn.Module):
             - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.
             - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \
                 See ``nn.Conv2d`` for more details. Default is ``None``.
+            - layer_norm (:obj:`bool`): Whether to use ``DreamerLayerNorm``.
             - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResBlock`` \
                 for more details. Default is ``None``.
         """
@@ -63,17 +66,35 @@ class ConvEncoder(nn.Module):
         layers = []
         input_size = obs_shape[0]  # in_channel
         for i in range(len(kernel_size)):
-            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
-            layers.append(self.act)
+            if layer_norm:
+                layers.append(
+                    Conv2dSame(
+                        in_channels=input_size,
+                        out_channels=hidden_size_list[i],
+                        kernel_size=(kernel_size[i], kernel_size[i]),
+                        stride=(2, 2),
+                        bias=False,
+                    )
+                )
+                layers.append(DreamerLayerNorm(hidden_size_list[i]))
+                layers.append(self.act)
+            else:
+                layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
+                layers.append(self.act)
             input_size = hidden_size_list[i]
-        assert len(set(hidden_size_list[3:-1])) <= 1, "Please indicate the same hidden size for res block parts"
-        for i in range(3, len(self.hidden_size_list) - 1):
-            layers.append(ResBlock(self.hidden_size_list[i], activation=self.act, norm_type=norm_type))
+        if len(self.hidden_size_list) >= len(kernel_size) + 2:
+            assert self.hidden_size_list[len(kernel_size) - 1] == self.hidden_size_list[
+                len(kernel_size)], "Please indicate the same hidden size between conv and res block"
+        assert len(
+            set(hidden_size_list[len(kernel_size):-1])
+        ) <= 1, "Please indicate the same hidden size for res block parts"
+        for i in range(len(kernel_size), len(self.hidden_size_list) - 1):
+            layers.append(ResBlock(self.hidden_size_list[i - 1], activation=self.act, norm_type=norm_type))
         layers.append(Flatten())
         self.main = nn.Sequential(*layers)
 
         flatten_size = self._get_flatten_size()
-        self.output_size = hidden_size_list[-1]
+        self.output_size = hidden_size_list[-1]  # outside to use
         self.mid = nn.Linear(flatten_size, hidden_size_list[-1])
 
     def _get_flatten_size(self) -> int:
@@ -120,7 +141,8 @@ class FCEncoder(nn.Module):
             hidden_size_list: SequenceType,
             res_block: bool = False,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            dropout: Optional[float] = None
     ) -> None:
         """
         Overview:
@@ -132,6 +154,7 @@ class FCEncoder(nn.Module):
             - activation (:obj:`nn.Module`): Type of activation to use in ``ResFCBlock``. Default is ``nn.ReLU()``.
             - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResFCBlock`` \
                 for more details. Default is ``None``.
+            - dropout (:obj:`float`): Dropout rate of the dropout layer. If ``None`` then default no dropout layer.
         """
         super(FCEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -141,17 +164,21 @@ class FCEncoder(nn.Module):
         if res_block:
             assert len(set(hidden_size_list)) == 1, "Please indicate the same hidden size for res block parts"
             if len(hidden_size_list) == 1:
-                self.main = ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type)
+                self.main = ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type, dropout=dropout)
             else:
                 layers = []
                 for i in range(len(hidden_size_list)):
-                    layers.append(ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type))
+                    layers.append(
+                        ResFCBlock(hidden_size_list[0], activation=self.act, norm_type=norm_type, dropout=dropout)
+                    )
                 self.main = nn.Sequential(*layers)
         else:
             layers = []
             for i in range(len(hidden_size_list) - 1):
                 layers.append(nn.Linear(hidden_size_list[i], hidden_size_list[i + 1]))
                 layers.append(self.act)
+                if dropout is not None:
+                    layers.append(nn.Dropout(dropout))
             self.main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

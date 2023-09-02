@@ -182,8 +182,16 @@ class WarpFrameWrapper(gym.ObservationWrapper):
             import sys
             logging.warning("Please install opencv-python first.")
             sys.exit(1)
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+        # deal with channel_first case
+        if frame.shape[0] < 10:
+            frame = frame.transpose(1, 2, 0)
+            frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+            frame = frame.transpose(2, 0, 1)
+        else:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+            frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
+
+        return frame
 
 
 @ENV_WRAPPER_REGISTRY.register('scaled_float_frame')
@@ -255,6 +263,39 @@ class ClipRewardWrapper(gym.RewardWrapper):
             - reward(:obj:`Float`): Clipped Reward
         """
         return np.sign(reward)
+
+
+@ENV_WRAPPER_REGISTRY.register('action_repeat')
+class ActionRepeatWrapper(gym.Wrapper):
+    """
+    Overview:
+        Repeat the action to step with env.
+    Interface:
+        ``__init__``, ``step``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+        - ``action_repeat``
+
+    """
+
+    def __init__(self, env, action_repeat=1):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+        self.action_repeat = action_repeat
+
+    def step(self, action):
+        reward = 0
+        for _ in range(self.action_repeat):
+            obs, rew, done, info = self.env.step(action)
+            reward += rew or 0
+            if done:
+                break
+        return obs, reward, done, info
 
 
 @ENV_WRAPPER_REGISTRY.register('delay_reward')
@@ -1172,6 +1213,43 @@ class GymToGymnasiumWrapper(gym.Wrapper):
             return self.env.reset(seed=self._seed)
         else:
             return self.env.reset()
+
+
+@ENV_WRAPPER_REGISTRY.register('reward_in_obs')
+class AllinObsWrapper(gym.Wrapper):
+    """
+    Overview:
+       This wrapper is used in policy DT.
+       Set a dict {'obs': obs, 'reward': reward}
+       as the new wrapped observation,
+       which including the current obs, previous reward.
+    Interface:
+        ``__init__``, ``reset``, ``step``, ``seed``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+
+    def reset(self):
+        ret = {'obs': self.env.reset(), 'reward': np.array([0])}
+        self._observation_space = gym.spaces.Dict(
+            {
+                'obs': self.env.observation_space,
+                'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32)
+            }
+        )
+        return ret
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        obs = {'obs': obs, 'reward': reward}
+        from ding.envs import BaseEnvTimestep
+        return BaseEnvTimestep(obs, reward, done, info)
+
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+        self.env.seed(seed, dynamic_seed)
 
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):

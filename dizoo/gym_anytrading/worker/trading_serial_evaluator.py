@@ -6,7 +6,7 @@ import numpy as np
 
 from ding.envs import BaseEnvManager
 from ding.worker import VectorEvalMonitor, InteractionSerialEvaluator
-from ding.torch_utils import to_tensor, to_ndarray
+from ding.torch_utils import to_tensor, to_ndarray, to_item
 from ding.utils import SERIAL_EVALUATOR_REGISTRY, import_module
 
 
@@ -32,13 +32,13 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
     )
 
     def __init__(
-        self,
-        cfg: dict,
-        env: BaseEnvManager = None,
-        policy: namedtuple = None,
-        tb_logger: 'SummaryWriter' = None,  # noqa
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'evaluator',
+            self,
+            cfg: dict,
+            env: BaseEnvManager = None,
+            policy: namedtuple = None,
+            tb_logger: 'SummaryWriter' = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'evaluator',
     ) -> None:
         """
         Overview:
@@ -49,12 +49,12 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
         super().__init__(cfg, env, policy, tb_logger, exp_name, instance_name)
 
     def eval(
-        self,
-        save_ckpt_fn: Callable = None,
-        train_iter: int = -1,
-        envstep: int = -1,
-        n_episode: Optional[int] = None,
-        force_render: bool = False,
+            self,
+            save_ckpt_fn: Callable = None,
+            train_iter: int = -1,
+            envstep: int = -1,
+            n_episode: Optional[int] = None,
+            force_render: bool = False,
     ) -> Tuple[bool, dict]:
         '''
         Overview:
@@ -66,7 +66,7 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
             - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
-            - return_info (:obj:`dict`): Current evaluation return information.
+            - episode_info (:obj:`dict`): Current evaluation return information.
         '''
 
         if n_episode is None:
@@ -74,7 +74,6 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
         info = {}
-        return_info = []
         eval_monitor = TradingEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         self._policy.reset()
@@ -105,10 +104,8 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
                         # Env reset is done by env_manager automatically.
                         self._policy.reset([env_id])
                         reward = t.info['eval_episode_return']
-                        if 'episode_info' in t.info:
-                            eval_monitor.update_info(env_id, t.info['episode_info'])
+                        eval_monitor.update_info(env_id, t.info)
                         eval_monitor.update_reward(env_id, reward)
-                        return_info.append(t.info)
 
                         #========== only used by anytrading =======
                         if 'max_possible_profit' in t.info:
@@ -185,7 +182,8 @@ class TradingSerialEvaluator(InteractionSerialEvaluator):
                 "Current episode_return: {} is greater than stop_value: {}".format(episode_return, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, return_info
+        episode_info = to_item(episode_info)
+        return stop_flag, episode_info
 
 
 class TradingEvalMonitor(VectorEvalMonitor):

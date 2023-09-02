@@ -218,7 +218,10 @@ def to_ndarray(item: Any, dtype: np.dtype = None) -> np.ndarray:
     elif isinstance(item, bool) or isinstance(item, str):
         return item
     elif np.isscalar(item):
-        return np.array(item)
+        if dtype is None:
+            return np.array(item)
+        else:
+            return np.array(item, dtype=dtype)
     elif item is None:
         return None
     else:
@@ -309,7 +312,7 @@ def to_item(data: Any, ignore_error: bool = True) -> Any:
             if ignore_error:
                 try:
                     new_data[k] = to_item(v)
-                except ValueError:
+                except (ValueError, RuntimeError):
                     pass
             else:
                 new_data[k] = to_item(v)

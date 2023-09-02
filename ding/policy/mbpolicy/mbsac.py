@@ -1,15 +1,13 @@
 from typing import Dict, Any, List
 from functools import partial
-import copy
 
 import torch
 from torch import Tensor
 from torch import nn
-from torch.distributions import Normal, Independent, TransformedDistribution, TanhTransform
-from easydict import EasyDict
+from torch.distributions import Normal, Independent
 
 from ding.torch_utils import to_device, fold_batch, unfold_batch, unsqueeze_repeat
-from ding.utils import POLICY_REGISTRY, deep_merge_dicts
+from ding.utils import POLICY_REGISTRY
 from ding.policy import SACPolicy
 from ding.rl_utils import generalized_lambda_returns
 from ding.policy.common_utils import default_preprocess_learn
@@ -19,27 +17,28 @@ from .utils import q_evaluation
 
 @POLICY_REGISTRY.register('mbsac')
 class MBSACPolicy(SACPolicy):
-    r"""
-       Overview:
-           Model based SAC with value expansion (arXiv: 1803.00101)
-           and value gradient (arXiv: 1510.09142) w.r.t lambda-return.
+    """
+    Overview:
+        Model based SAC with value expansion (arXiv: 1803.00101)
+        and value gradient (arXiv: 1510.09142) w.r.t lambda-return.
 
-           https://arxiv.org/pdf/1803.00101.pdf
-           https://arxiv.org/pdf/1510.09142.pdf
+        https://arxiv.org/pdf/1803.00101.pdf
+        https://arxiv.org/pdf/1510.09142.pdf
 
-       Config:
-           == ====================   ========    =============  ==================================
-           ID Symbol                 Type        Default Value  Description
-           == ====================   ========    =============  ==================================
-           1  ``learn._lambda``      float       0.8            | Lambda for TD-lambda return.
-           2  ``learn.grad_clip`     float       100.0          | Max norm of gradients.
-           3  ``learn.sample_state`` bool        True           | Whether to sample states or tra-
-                                                                |   nsitions from environment buffer.
-           == ====================   ========    =============  ==================================
+    Config:
+        == ====================   ========    =============  ==================================
+        ID Symbol                 Type        Default Value  Description
+        == ====================   ========    =============  ==================================
+        1  ``learn._lambda``      float       0.8            | Lambda for TD-lambda return.
+        2  ``learn.grad_clip`     float       100.0          | Max norm of gradients.
+        3  | ``learn.sample``     bool        True           | Whether to sample states or
+           | ``_state``                                      | transitions from env buffer.
+        == ====================   ========    =============  ==================================
 
-        .. note::
-            For other configs, please refer to ding.policy.sac.SACPolicy.
-       """
+    .. note::
+
+        For other configs, please refer to ding.policy.sac.SACPolicy.
+    """
 
     config = dict(
         learn=dict(

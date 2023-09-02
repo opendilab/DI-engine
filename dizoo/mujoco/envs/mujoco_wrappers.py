@@ -6,10 +6,10 @@ from ding.envs import ObsNormWrapper, RewardNormWrapper, DelayRewardWrapper, Eva
 
 
 def wrap_mujoco(
-    env_id,
-    norm_obs: Dict = dict(use_norm=False, ),
-    norm_reward: Dict = dict(use_norm=False, ),
-    delay_reward_step: int = 1
+        env_id,
+        norm_obs: Dict = dict(use_norm=False, ),
+        norm_reward: Dict = dict(use_norm=False, ),
+        delay_reward_step: int = 1
 ) -> gym.Env:
     r"""
     Overview:

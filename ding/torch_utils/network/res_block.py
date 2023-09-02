@@ -111,7 +111,9 @@ class ResFCBlock(nn.Module):
         forward
     """
 
-    def __init__(self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN'):
+    def __init__(
+        self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN', dropout: float = None
+    ):
         r"""
         Overview:
             Init the fully connected layer residual block.
@@ -119,9 +121,14 @@ class ResFCBlock(nn.Module):
             - in_channels (:obj:`int`): The number of channels in the input tensor.
             - activation (:obj:`nn.Module`): The optional activation function.
             - norm_type (:obj:`str`): The type of the normalization, default set to 'BN'.
+            - dropout (:obj:`float`): The dropout rate, default set to None.
         """
         super(ResFCBlock, self).__init__()
         self.act = activation
+        if dropout is not None:
+            self.dropout = nn.Dropout(dropout)
+        else:
+            self.dropout = None
         self.fc1 = fc_block(in_channels, in_channels, activation=self.act, norm_type=norm_type)
         self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
 
@@ -138,4 +145,6 @@ class ResFCBlock(nn.Module):
         x = self.fc1(x)
         x = self.fc2(x)
         x = self.act(x + identity)
+        if self.dropout is not None:
+            x = self.dropout(x)
         return x

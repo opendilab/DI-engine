@@ -12,6 +12,7 @@ from .d4pg import D4PGPolicy
 from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
+from .dt import DTPolicy
 
 from .pg import PGPolicy
 from .a2c import A2CPolicy
@@ -48,6 +49,8 @@ from .bc import BehaviourCloningPolicy
 from .ibc import IBCPolicy
 
 from .pc import ProcedureCloningBFSPolicy
+
+from .bcq import BCQPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy

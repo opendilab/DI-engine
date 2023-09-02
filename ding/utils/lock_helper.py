@@ -4,7 +4,6 @@ import threading
 import platform
 from enum import Enum, unique
 
-from readerwriterlock import rwlock
 from pathlib import Path
 if platform.system().lower() != 'windows':
     import fcntl
@@ -82,6 +81,13 @@ def get_rw_file_lock(name: str, op: str):
         - (:obj:`RWLockFairD`) Generated rwlock
     '''
     assert op in ['read', 'write']
+    try:
+        from readerwriterlock import rwlock
+    except ImportError:
+        import sys
+        from ditk import logging
+        logging.warning("Please install readerwriterlock first, such as `pip3 install readerwriterlock`.")
+        sys.exit(1)
     if name not in rw_lock_mapping:
         rw_lock_mapping[name] = rwlock.RWLockFairD()
     lock = rw_lock_mapping[name]
