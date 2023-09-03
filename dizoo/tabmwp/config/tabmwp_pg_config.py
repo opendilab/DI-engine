@@ -37,6 +37,7 @@ tabmwp_prompt_pg_config = dict(
             learning_rate=0.001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             entropy_weight=0.001,
+            weight_decay=5e-3,
             grad_norm=0.5,
         ),
         collect=dict(
