@@ -6,6 +6,7 @@ from ding.model.template.nlp_pretrained_model import NLPPretrainedModel
 
 @pytest.mark.unittest
 class TestNLPPretrainedModel:
+
     def check_model(self):
         test_pids = [1]
         cand_pids = [0, 2, 4]
