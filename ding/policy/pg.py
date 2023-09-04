@@ -169,7 +169,7 @@ class PGPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        assert data[-1]['done'] == True, "PG needs a complete epsiode"
+        assert data[-1]['done'], "PG needs a complete epsiode"
 
         if self._cfg.learn.ignore_done:
             raise NotImplementedError
