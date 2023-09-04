@@ -8,7 +8,13 @@ import torch
 
 import numpy as np
 import openai
-import transformers
+try:
+    import transformers
+except ImportError:
+    import sys
+    from ditk import logging
+    logging.warning("not found transformer, please install it using: pip install transformers")
+    sys.exit(1)
 
 
 def sample_logits(out: torch.Tensor, temperature: float = 1.0, top_p: float = 0.8) -> int:

@@ -240,5 +240,5 @@ if __name__ == '__main__':
     env.seed(0)
     env.reset()
     env.parse_all_answers()
-    # env.search_answer('22976', ['32889', '8044'])
+    env.search_answer('22976', ['32889', '8044'])
 
