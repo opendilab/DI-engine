@@ -24,5 +24,6 @@ jobs:
           python -m pip install .
           python -m pip install ".[test,k8s]"
           python -m pip install ".[envpool]"
+          python -m pip install transformers
           ./ding/scripts/install-k8s-tools.sh
           make envpooltest
