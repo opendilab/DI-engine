@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, List
+from typing import Optional, Union, List
 from ditk import logging
 from easydict import EasyDict
 import os
@@ -117,8 +117,8 @@ class DQNAgent:
                     self.cfg,
                     self.policy.collect_mode,
                     collector_env,
-                    random_collect_size=self.cfg.policy.random_collect_size \
-                        if hasattr(self.cfg.policy, 'random_collect_size') else 0,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                    if hasattr(self.cfg.policy, 'random_collect_size') else 0,
                 )
             )
             if "nstep" in self.cfg.policy and self.cfg.policy.nstep > 1:

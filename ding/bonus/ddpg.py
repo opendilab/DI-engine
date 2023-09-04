@@ -117,6 +117,7 @@ class DDPGAgent:
                     self.policy.collect_mode,
                     collector_env,
                     random_collect_size=self.cfg.policy.random_collect_size
+                    if hasattr(self.cfg.policy, 'random_collect_size') else 0,
                 )
             )
             task.use(data_pusher(self.cfg, self.buffer_))

@@ -108,7 +108,15 @@ class A2CAgent:
                 )
             )
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
-            task.use(StepCollector(self.cfg, self.policy.collect_mode, collector_env))
+            task.use(
+                StepCollector(
+                    self.cfg,
+                    self.policy.collect_mode,
+                    collector_env,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                    if hasattr(self.cfg.policy, 'random_collect_size') else 0,
+                )
+            )
             task.use(gae_estimator(self.cfg, self.policy.collect_mode))
             task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(
