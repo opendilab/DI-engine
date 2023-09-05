@@ -1153,7 +1153,10 @@ class PPOOffPolicy(Policy):
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
-        return get_train_sample(data, self._unroll_len)
+        if not self._nstep_return:
+            return get_train_sample(data, self._unroll_len)
+        else:
+            return get_nstep_return_data(data, self._nstep)
 
     def _init_eval(self) -> None:
         r"""

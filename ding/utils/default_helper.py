@@ -448,6 +448,8 @@ def split_fn(data, indices, start, end):
         return [split_fn(d, indices, start, end) for d in data]
     elif isinstance(data, dict):
         return {k1: split_fn(v1, indices, start, end) for k1, v1 in data.items()}
+    elif isinstance(data, str):
+        return data
     else:
         return data[indices[start:end]]
 
@@ -461,7 +463,10 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
         elif k in ['prev_state', 'prev_actor_state', 'prev_critic_state']:
             length.append(len(v))
         elif isinstance(v, list) or isinstance(v, tuple):
-            length.append(get_shape0(v[0]))
+            if isinstance(v[0], str):
+                continue
+            else:
+                length.append(get_shape0(v[0]))
         elif isinstance(v, dict):
             length.append(len(v[list(v.keys())[0]]))
         else:
