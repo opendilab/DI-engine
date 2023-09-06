@@ -640,6 +640,8 @@ class CQLDiscretePolicy(DQNPolicy):
         )
         if self._cuda:
             data = to_device(data, self._device)
+        if data['action'].dim() == 2 and data['action'].shape[-1] == 1:
+            data['action'] = data['action'].squeeze(-1)
         # ====================
         # Q-learning forward
         # ====================
