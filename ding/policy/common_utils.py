@@ -78,11 +78,23 @@ def fast_preprocess_learn(
         next_obs = to_device(next_obs, device=device)
     processes_data['next_obs'] = next_obs
 
+    if 'next_n_obs' in data[0]:
+        next_n_obs = torch.stack([data[i]['next_n_obs'] for i in range(len(data))])
+        if cuda:
+            next_n_obs = to_device(next_n_obs, device=device)
+        processes_data['next_n_obs'] = next_n_obs
+
     reward = torch.stack([data[i]['reward'] for i in range(len(data))])
     if cuda:
         reward = to_device(reward, device=device)
     reward = reward.permute(1, 0).contiguous()
     processes_data['reward'] = reward
+
+    if 'value_gamma' in data[0]:
+        value_gamma = torch.stack([data[i]['value_gamma'] for i in range(len(data))])
+        if cuda:
+            value_gamma = to_device(value_gamma, device=device)
+        processes_data['value_gamma'] = value_gamma
 
     done = torch.tensor([data[i]['done'] for i in range(len(data))], dtype=torch.float32)
     if cuda:

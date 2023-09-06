@@ -84,7 +84,7 @@ def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
         nstep = cfg.policy.nstep
         gamma = cfg.policy.discount_factor
         L = len(ctx.trajectories)
-        reward_template = ctx.trajectories[0].reward
+        reward_template = ctx.trajectories[0]["reward"]
         nstep_rewards = []
         value_gamma = []
         for i in range(L):

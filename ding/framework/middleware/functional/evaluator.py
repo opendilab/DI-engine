@@ -310,6 +310,130 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
     return _evaluate
 
 
+def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False) -> Callable:
+    """
+    Overview:
+        The middleware that executes the evaluation.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - policy (:obj:`Policy`): The policy to be evaluated.
+        - env (:obj:`BaseEnvManager`): The env for the evaluation.
+        - render (:obj:`bool`): Whether to render env images and policy logits.
+    """
+    if task.router.is_active and not task.has_role(task.role.EVALUATOR):
+        return task.void()
+
+    env.seed(cfg.seed, dynamic_seed=False)
+
+    def _evaluate(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
+        """
+        Overview:
+            - The evaluation will be executed if the task begins and enough train_iter passed \
+                since last evaluation.
+        Input of ctx:
+            - last_eval_iter (:obj:`int`): Last evaluation iteration.
+            - train_iter (:obj:`int`): Current train iteration.
+        Output of ctx:
+            - eval_value (:obj:`float`): The average reward in the current evaluation.
+        """
+
+        # evaluation will be executed if the task begins or enough train_iter after last evaluation
+        start = time.time()
+        if ctx.last_eval_iter != -1 and \
+           (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
+            return
+
+        ready_obs_receive = {}
+        ready_obs_send = {}
+        ready_action_send = {}
+        trajectory = {i:[] for i in range(env.env_num)}
+
+        if env.closed:
+            ready_obs_receive=env.launch()
+        else:
+            ready_obs_receive=env.reset()
+        policy.reset()
+        eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
+
+        while not eval_monitor.is_finished():
+
+            if len(ready_obs_receive.keys()) > 0:
+                action_to_send = policy.forward(ready_obs_receive)
+                output = [v for v in action_to_send.values()]
+                
+                ready_obs_send.update(ready_obs_receive)
+                ready_obs_receive = {}
+                ready_action_send.update(action_to_send)
+
+                action_send = np.array([action_to_send[i]['action'] for i in action_to_send.keys()])
+                if action_send.ndim == 2 and action_send.shape[1] == 1:
+                    action_send = action_send.squeeze(1)
+                env_id_send = np.array(list(action_to_send.keys()))
+                env.send_action(action_send, env_id_send)
+
+            next_obs, rew, done, info = env.receive_data()
+            env_id_receive = info['env_id']
+            ready_obs_receive.update({i: next_obs[i] for i in range(len(next_obs))})
+
+            #todo 
+            for i in range(len(env_id_receive)):
+                current_reward=ttorch.tensor(np.array([rew[i]]))
+                trajectory[env_id_receive[i]].append(
+                    {
+                        'obs': ttorch.tensor(ready_obs_send[env_id_receive[i]]),
+                        'action': ttorch.tensor(ready_action_send[env_id_receive[i]]['action']),
+                        'next_obs': ttorch.tensor(next_obs[i]),
+                        # n-step reward
+                        'reward': [current_reward],
+                        'done': ttorch.tensor(done[i])
+                    }
+                )
+
+                if done[i]==True:
+                    episode_return_i = 0.0
+                    for item in trajectory[env_id_receive[i]]:
+                        episode_return_i+=item['reward'][0]
+                    eval_monitor.update_reward(env_id_receive[i], episode_return_i)
+                    policy.reset([env_id_receive[i]])
+                    trajectory[env_id_receive[i]]=[]
+
+        episode_return = eval_monitor.get_episode_return()
+        episode_return_min = np.min(episode_return)
+        episode_return_max = np.max(episode_return)
+        episode_return_std = np.std(episode_return)
+        episode_return = np.mean(episode_return)
+        stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
+        if isinstance(ctx, OnlineRLContext):
+            logging.info(
+                'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
+                    ctx.train_iter, ctx.env_step, episode_return
+                )
+            )
+        elif isinstance(ctx, OfflineRLContext):
+            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, episode_return))
+        else:
+            raise TypeError("not supported ctx type: {}".format(type(ctx)))
+        ctx.last_eval_iter = ctx.train_iter
+        ctx.eval_value = episode_return
+        ctx.eval_value_min = episode_return_min
+        ctx.eval_value_max = episode_return_max
+        ctx.eval_value_std = episode_return_std
+        ctx.last_eval_value = ctx.eval_value
+        ctx.eval_output = {'episode_return': episode_return}
+        episode_info = eval_monitor.get_episode_info()
+        if episode_info is not None:
+            ctx.eval_output['episode_info'] = episode_info
+
+        ctx.eval_output['output'] = output  # for compatibility
+
+        if stop_flag:
+            task.finish = True
+
+        ctx.evaluator_time += time.time() - start
+
+    return _evaluate
+
+
 def interaction_evaluator_ttorch(
         seed: int,
         policy: Policy,

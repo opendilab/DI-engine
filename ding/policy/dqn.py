@@ -689,13 +689,13 @@ class DQNFastPolicy(Policy):
 
         start = time.time()
 
-        data = fast_preprocess_learn(
-            data,
-            use_priority=self._priority,
-            use_priority_IS_weight=self._cfg.priority_IS_weight,
-            cuda=self._cuda,
-            device=self._device,
-        )
+        # data = fast_preprocess_learn(
+        #     data,
+        #     use_priority=self._priority,
+        #     use_priority_IS_weight=self._cfg.priority_IS_weight,
+        #     cuda=self._cuda,
+        #     device=self._device,
+        # )
 
         time_data_process = time.time() - start
         start = time.time()
@@ -714,12 +714,12 @@ class DQNFastPolicy(Policy):
         q_value = self._learn_model.forward(data['obs'])['logit']
         # Target q value
         with torch.no_grad():
-            target_q_value = self._target_model.forward(data['next_obs'])['logit']
+            target_next_n_q_value = self._target_model.forward(data['next_obs'])['logit']
             # Max q value action (main model), i.e. Double DQN
-            target_q_action = self._learn_model.forward(data['next_obs'])['action']
+            target_next_n_action = self._learn_model.forward(data['next_obs'])['action']
 
         data_n = q_nstep_td_data(
-            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+            q_value, target_next_n_q_value, data['action'], target_next_n_action, data['reward'], data['done'], data['weight']
         )
 
         if self._cfg.nstep==1:
@@ -745,14 +745,13 @@ class DQNFastPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
 
         time_learn = time.time() - start
-        # print("time_data_process:",time_data_process)
-        # print("time_learn:",time_learn)
+        # print(f"time_data_process:time_learn={time_data_process}:{time_learn}={time_data_process/time_learn}")
 
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
-            'target_q_value': target_q_value.mean().item(),
+            'target_q_value': target_next_n_q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],

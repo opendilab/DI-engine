@@ -8,14 +8,14 @@ from easydict import EasyDict
 from ditk import logging
 from ding.model import DQN
 from ding.policy import DQNFastPolicy
-from ding.envs.env_manager.envpool_env_manager import PoolEnvManagerV3
+from ding.envs.env_manager.envpool_env_manager import PoolEnvManagerV4
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import OffPolicyLearner, interaction_evaluator, data_pusher, \
+from ding.framework.middleware import OffPolicyLearner, envpool_evaluator, data_pusher, \
     eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, nstep_reward_enhancer, \
-    termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollector, OffPolicyLearnerV2
+    termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollectorV2, OffPolicyLearnerV2
 from ding.utils import set_pkg_seed
 
 from dizoo.atari.config.serial import pong_dqn_envpool_config
@@ -51,11 +51,11 @@ def main(cfg):
         }
     )
     cfg.env["evaluator_env_cfg"] = evaluator_env_cfg
-    cfg = compile_config(cfg, PoolEnvManagerV3, DQNFastPolicy, save_cfg=task.router.node_id == 0)
+    cfg = compile_config(cfg, PoolEnvManagerV4, DQNFastPolicy, save_cfg=task.router.node_id == 0)
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = PoolEnvManagerV3(cfg.env.collector_env_cfg)
-        evaluator_env = PoolEnvManagerV3(cfg.env.evaluator_env_cfg)
+        collector_env = PoolEnvManagerV4(cfg.env.collector_env_cfg)
+        evaluator_env = PoolEnvManagerV4(cfg.env.evaluator_env_cfg)
         collector_env.seed(cfg.seed)
         evaluator_env.seed(cfg.seed)
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
@@ -82,10 +82,10 @@ def main(cfg):
         task.use(epoch_timer())
 
         # Here is the part of single process pipeline.
-        task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
+        task.use(envpool_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(
-            EnvpoolStepCollector(
+            EnvpoolStepCollectorV2(
                 cfg,
                 policy.collect_mode,
                 collector_env,
@@ -93,22 +93,20 @@ def main(cfg):
                        if hasattr(cfg.policy, 'random_collect_size') else 0,
                     )
                 )
-        if "nstep" in cfg.policy and cfg.policy.nstep > 1:
-            task.use(nstep_reward_enhancer(cfg))
         task.use(data_pusher(cfg, buffer_))
         #task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(OffPolicyLearnerV2(cfg, policy, buffer_))
         task.use(online_logger(train_show_freq=10))
-        # task.use(
-            # wandb_online_logger(
-            #     metric_list=policy.monitor_vars(),
-            #     model=policy._model,
-            #     exp_config=cfg,
-            #     anonymous=True,
-            #     project_name=cfg.exp_name,
-            #     wandb_sweep=False,
-            # )
-        # )
+        task.use(
+            wandb_online_logger(
+                metric_list=policy.monitor_vars(),
+                model=policy._model,
+                exp_config=cfg,
+                anonymous=True,
+                project_name=cfg.exp_name,
+                wandb_sweep=False,
+            )
+        )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.use(termination_checker(max_env_step=10000000))
@@ -130,8 +128,8 @@ if __name__ == "__main__":
     pong_dqn_envpool_config.seed = arg.seed
     pong_dqn_envpool_config.env.stop_value = 2000
     pong_dqn_envpool_config.policy.nstep = 1
-    pong_dqn_envpool_config.nstep = 1
-
+    pong_dqn_envpool_config.nstep = 3
+    pong_dqn_envpool_config.policy.nstep = 3
     pong_dqn_envpool_config.seed = arg.seed
 
     main(pong_dqn_envpool_config)

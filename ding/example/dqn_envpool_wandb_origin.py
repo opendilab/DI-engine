@@ -103,6 +103,7 @@ def main(cfg):
             wandb_online_logger(
                 metric_list=policy.monitor_vars(),
                 model=policy._model,
+                exp_config=cfg,
                 anonymous=True,
                 project_name=cfg.exp_name,
                 wandb_sweep=False,
