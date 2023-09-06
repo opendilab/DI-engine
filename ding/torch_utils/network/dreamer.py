@@ -113,7 +113,7 @@ class DenseHead(nn.Module):
         elif self._dist == "binary":
             return Bernoulli(torchd.independent.Independent(torchd.bernoulli.Bernoulli(logits=mean), len(self._shape)))
         elif self._dist == "twohot_symlog":
-            return TwoHotDistSymlog(logits=mean, device=self._device)
+            return TwoHotDistSymlog(logits=mean, low=-1., high=1., device=self._device)
         raise NotImplementedError(self._dist)
 
 

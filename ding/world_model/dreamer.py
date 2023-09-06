@@ -192,7 +192,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         data = {k: torch.stack(data[k], dim=1) for k in data}  # -> {dict_key: Tensor([B, T, any_dims])}
 
         data['discount'] = data.get('discount', 1.0 - data['done'].float())
-        data['discount'] *= 0.997
+        # data['discount'] *= 0.997
         data['weight'] = data.get('weight', None)
         if type(self.state_size) != int and len(self.state_size) == 3:
             data['image'] = data['obs'] - 0.5
