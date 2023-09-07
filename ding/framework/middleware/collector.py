@@ -171,8 +171,12 @@ class EnvpoolStepCollectorV2:
 
         counter=0
 
+        time_send=0.0
+        time_receive=0.0
+        time_process=0.0
+
         while True:
-            
+            start_send=time.time()
             if len(self._ready_obs_receive.keys()) > 0:
                 if random:
                     action_to_send = {i: {"action": np.array([self.env.action_space.sample()])} for i in self._ready_obs_receive.keys()}
@@ -188,35 +192,39 @@ class EnvpoolStepCollectorV2:
                     action_send = action_send.squeeze(1)
                 env_id_send = np.array(list(action_to_send.keys()))
                 self.env.send_action(action_send, env_id_send)
+            time_send+=time.time()-start_send
 
+            start_receive=time.time()
             next_obs, rew, done, info = self.env.receive_data()
             env_id_receive = info['env_id']
             counter+=len(env_id_receive)
             self._ready_obs_receive.update({i: next_obs[i] for i in range(len(next_obs))})
+            time_receive+=time.time()-start_receive
 
+            start_process=time.time()
             #todo 
             for i in range(len(env_id_receive)):
-                current_reward=ttorch.tensor(np.array([rew[i]]))
+                current_reward=rew[i]
                 if self._nsteps>1:
                     self._trajectory[env_id_receive[i]].append(
                         {
-                            'obs': ttorch.tensor(self._ready_obs_send[env_id_receive[i]]),
-                            'action': ttorch.tensor(self._ready_action_send[env_id_receive[i]]['action']),
-                            'next_obs': ttorch.tensor(next_obs[i]),
+                            'obs': self._ready_obs_send[env_id_receive[i]],
+                            'action': self._ready_action_send[env_id_receive[i]]['action'],
+                            'next_obs': next_obs[i],
                             # n-step reward
                             'reward': [current_reward],
-                            'done': ttorch.tensor(done[i])
+                            'done': done[i],
                         }
                     )
                 else:
                     self._trajectory[env_id_receive[i]].append(
                         {
-                            'obs': ttorch.tensor(self._ready_obs_send[env_id_receive[i]]),
-                            'action': ttorch.tensor(self._ready_action_send[env_id_receive[i]]['action']),
-                            'next_obs': ttorch.tensor(next_obs[i]),
+                            'obs': self._ready_obs_send[env_id_receive[i]],
+                            'action': self._ready_action_send[env_id_receive[i]]['action'],
+                            'next_obs': next_obs[i],
                             # n-step reward
-                            'reward': ttorch.tensor(current_reward),
-                            'done': ttorch.tensor(done[i])
+                            'reward': current_reward,
+                            'done': done[i],
                         }
                     )
 
@@ -236,8 +244,8 @@ class EnvpoolStepCollectorV2:
                                     self._trajectory[env_id_receive[i]][-j]['reward'].append(current_reward)
                         
                         if real_reverse_record_position==self._nsteps:
-                            self._trajectory[env_id_receive[i]][-real_reverse_record_position]['next_n_obs']=ttorch.tensor(next_obs[i])
-                            self._trajectory[env_id_receive[i]][-real_reverse_record_position]['value_gamma']=ttorch.tensor(self._discount_ratio_list[real_reverse_record_position-1])
+                            self._trajectory[env_id_receive[i]][-real_reverse_record_position]['next_n_obs']=next_obs[i]
+                            self._trajectory[env_id_receive[i]][-real_reverse_record_position]['value_gamma']=self._discount_ratio_list[real_reverse_record_position-1]
 
                     else: # done[i] == True or counter >= target_size
 
@@ -246,29 +254,32 @@ class EnvpoolStepCollectorV2:
 
                         for j in range(1,reverse_record_position+1):
                             if j==1:
-                                self._trajectory[env_id_receive[i]][-j]['reward'].extend([ttorch.zeros_like(current_reward) for _ in range(self._nsteps-len(self._trajectory[env_id_receive[i]][-j]['reward']))])
-                                self._trajectory[env_id_receive[i]][-j]['next_n_obs']=ttorch.tensor(next_obs[i])
-                                self._trajectory[env_id_receive[i]][-j]['value_gamma']=ttorch.tensor(self._discount_ratio_list[j-1])
+                                self._trajectory[env_id_receive[i]][-j]['reward'].extend([np.zeros_like(current_reward) for _ in range(self._nsteps-len(self._trajectory[env_id_receive[i]][-j]['reward']))])
+                                self._trajectory[env_id_receive[i]][-j]['next_n_obs']=next_obs[i]
+                                self._trajectory[env_id_receive[i]][-j]['value_gamma']=self._discount_ratio_list[j-1]
                             else:
                                 if self._trajectory[env_id_receive[i]][-j]['done']==True:
                                     real_reverse_record_position=j
                                     break
                                 else:
                                     self._trajectory[env_id_receive[i]][-j]['reward'].append(current_reward)
-                                    self._trajectory[env_id_receive[i]][-j]['reward'].extend([ttorch.zeros_like(current_reward) for _ in range(self._nsteps-len(self._trajectory[env_id_receive[i]][-j]['reward']))])
-                                    self._trajectory[env_id_receive[i]][-j]['next_n_obs']=ttorch.tensor(next_obs[i])
-                                    self._trajectory[env_id_receive[i]][-j]['value_gamma']=ttorch.tensor(self._discount_ratio_list[j-1])
+                                    self._trajectory[env_id_receive[i]][-j]['reward'].extend([np.zeros_like(current_reward) for _ in range(self._nsteps-len(self._trajectory[env_id_receive[i]][-j]['reward']))])
+                                    self._trajectory[env_id_receive[i]][-j]['next_n_obs']=next_obs[i]
+                                    self._trajectory[env_id_receive[i]][-j]['value_gamma']=self._discount_ratio_list[j-1]
 
 
                 else:
-                    self._trajectory[env_id_receive[i]][-1]['value_gamma']=ttorch.tensor(self._discount_ratio_list[0])
+                    self._trajectory[env_id_receive[i]][-1]['value_gamma']=self._discount_ratio_list[0]
 
+            time_process+=time.time()-start_process
             if counter >= target_size:
-                # transform reward to ttorch.tensor
-                for i in range(self.env.env_num):
-                    for j in range(len(self._trajectory[i])):
-                        self._trajectory[i][j]['reward']=ttorch.concat(self._trajectory[env_id_receive[i]][j]['reward'])
+                # if self._nsteps>1:
+                #     # transform reward to ttorch.tensor
+                #     for i in range(self.env.env_num):
+                #         for j in range(len(self._trajectory[i])):
+                #             self._trajectory[i][j]['reward']=np.concatenate(self._trajectory[env_id_receive[i]][j]['reward'])
                 break
+            
         
         ctx.trajectories=[]
         for i in range(self.env.env_num):
@@ -277,6 +288,9 @@ class EnvpoolStepCollectorV2:
         ctx.env_step += len(ctx.trajectories)
         ctx.collector_time += time.time() - start
 
+        print(f'time_send:[{time_send}]')
+        print(f'time_receive:[{time_receive}]')
+        print(f'time_process:[{time_process}]')
 
 class PPOFStepCollector:
     """
