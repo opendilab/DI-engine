@@ -127,7 +127,6 @@ if __name__ == "__main__":
     pong_dqn_envpool_config.env.collector_batch_size = arg.collector_batch_size
     pong_dqn_envpool_config.seed = arg.seed
     pong_dqn_envpool_config.env.stop_value = 2000
-    pong_dqn_envpool_config.policy.nstep = 1
     pong_dqn_envpool_config.nstep = 3
     pong_dqn_envpool_config.policy.nstep = 3
     pong_dqn_envpool_config.seed = arg.seed

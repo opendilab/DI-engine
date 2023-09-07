@@ -714,9 +714,9 @@ class DQNFastPolicy(Policy):
         q_value = self._learn_model.forward(data['obs'])['logit']
         # Target q value
         with torch.no_grad():
-            target_next_n_q_value = self._target_model.forward(data['next_obs'])['logit']
+            target_next_n_q_value = self._target_model.forward(data['next_n_obs'])['logit']
             # Max q value action (main model), i.e. Double DQN
-            target_next_n_action = self._learn_model.forward(data['next_obs'])['action']
+            target_next_n_action = self._learn_model.forward(data['next_n_obs'])['action']
 
         data_n = q_nstep_td_data(
             q_value, target_next_n_q_value, data['action'], target_next_n_action, data['reward'], data['done'], data['weight']
