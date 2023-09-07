@@ -308,7 +308,8 @@
 
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="sd">Env Wrapper List:</span>
 <span class="sd">    - NoopResetWrapper: Sample initial states by taking random number of no-ops on reset.</span>
 <span class="sd">    - MaxAndSkipWrapper: Max pooling across time steps</span>
@@ -323,10 +324,13 @@
 <span class="sd">    - RamWrapper: Wrap ram env into image-like env</span>
 <span class="sd">    - EpisodicLifeWrapper: Make end-of-life == end-of-episode, but only reset on true game over.</span>
 <span class="sd">    - FireResetWrapper: Take fire action at environment reset.</span>
-<span class="sd">    - GymHybridDictActionWrapper: Transform Gym-Hybrid&#39;s original ``gym.spaces.Tuple`` action space</span>
-<span class="sd">        to ``gym.spaces.Dict``.</span>
+<span class="sd">    - GymHybridDictActionWrapper: Transform the original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.</span>
 <span class="sd">    - FlatObsWrapper: Flatten image and language observation into a vector.</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    - StaticObsNormWrapper</span>
+<span class="sd">    - EvalEpisodeReturnWrapper</span>
+<span class="sd">    - GymToGymnasiumWrapper</span>
+<span class="sd">    - AllinObsWrapper</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="NoopResetWrapper"><a class="viewcode-back" href="../../../../05_api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;noop_reset&#39;</span><span class="p">)</span>
@@ -634,7 +638,7 @@
 
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">EvalEpisodeReturnEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">EvalEpisodeReturnWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Accumulate rewards at every timestep, and return at the end of the episode in `info`.</span>
@@ -1297,19 +1301,6 @@
         <span class="n">action_type</span><span class="p">,</span> <span class="n">action_mask</span><span class="p">,</span> <span class="n">action_args</span> <span class="o">=</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">],</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">((</span><span class="n">action_type</span><span class="p">,</span> <span class="n">action_args</span><span class="p">))</span>
 
-    <span class="c1"># @staticmethod</span>
-    <span class="c1"># def new_shape(obs_shape, act_shape, rew_shape, size=84):</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     Overview:</span>
-    <span class="c1">#         Get new shape of observation, acton, and reward; in this case only  \</span>
-    <span class="c1">#             observation space wrapped to (4, 84, 84); others unchanged.</span>
-    <span class="c1">#     Arguments:</span>
-    <span class="c1">#         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-    <span class="c1">#     Returns:</span>
-    <span class="c1">#         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     return (size, size), act_shape, rew_shape</span>
-
 
 <span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_plus_prev_action_reward&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ObsPlusPrevActRewWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
@@ -1565,7 +1556,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_env_wrapper</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">,</span> <span class="n">env_wrapper_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create an env wrapper according to env_wrapper_cfg and env instance.</span>
 <span class="sd">    Arguments:</span>
@@ -1580,19 +1571,6 @@
         <span class="n">import_module</span><span class="p">(</span><span class="n">env_wrapper_cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">))</span>
     <span class="n">env_wrapper_type</span> <span class="o">=</span> <span class="n">env_wrapper_cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">env_wrapper_type</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="o">**</span><span class="n">env_wrapper_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwargs&#39;</span><span class="p">,</span> <span class="p">{}))</span>
-
-
-<span class="k">def</span> <span class="nf">get_env_wrapper_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Get an env wrapper class according to cfg.</span>
-<span class="sd">    Arguments:</span>
-<span class="sd">        - cfg (:obj:`EasyDict`): Env wrapper config.</span>
-<span class="sd">    ArgumentsKeys:</span>
-<span class="sd">        - necessary: `type`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
-    <span class="k">return</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
 </pre></div>
 
               </article>

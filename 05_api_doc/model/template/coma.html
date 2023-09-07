@@ -307,12 +307,174 @@
 <p>Please Reference ding/model/template/coma.py for usage</p>
 <section id="comaactornetwork">
 <h2>COMAActorNetwork<a class="headerlink" href="#comaactornetwork" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMAActorNetwork">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.coma.</span></span><span class="sig-name descname"><span class="pre">COMAActorNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMAActorNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMAActorNetwork" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Decentralized actor network in COMA</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMAActorNetwork.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMAActorNetwork.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMAActorNetwork.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize COMA actor network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of each agent’s observation state</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of action shape</p></li>
+<li><p>hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of hidden size, default to [128, 128, 64]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMAActorNetwork.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMAActorNetwork.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMAActorNetwork.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">obs</span></code> { <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> }, <code class="docutils literal notranslate"><span class="pre">prev_state</span></code></p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">logit</span></code>, <code class="docutils literal notranslate"><span class="pre">next_state</span></code>, <code class="docutils literal notranslate"><span class="pre">action_mask</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="comacriticnetwork">
 <h2>COMACriticNetwork<a class="headerlink" href="#comacriticnetwork" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMACriticNetwork">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.coma.</span></span><span class="sig-name descname"><span class="pre">COMACriticNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMACriticNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMACriticNetwork" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Centralized critic network in COMA</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMACriticNetwork.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">128</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMACriticNetwork.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMACriticNetwork.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize COMA critic network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>input_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the size of input global observation</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the dimension of action shape</p></li>
+<li><p>hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of hidden size, default to 128</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMACriticNetwork._preprocess_data">
+<span class="sig-name descname"><span class="pre">_preprocess_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMACriticNetwork._preprocess_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMACriticNetwork._preprocess_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>preprocess data to make it can be used by MLP net</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</p></li>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the masked action</p></li>
+</ul>
+</dd>
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">obs</span></code> { <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">global_state</span></code>} , <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">prev_state</span></code></p></li>
+</ul>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the data can be used by MLP net, including                 <code class="docutils literal notranslate"><span class="pre">global_state</span></code>, <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">last_action</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">agent_id</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMACriticNetwork.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMACriticNetwork.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMACriticNetwork.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of qmix network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</p></li>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the masked action</p></li>
+</ul>
+</dd>
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">obs</span></code> { <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">global_state</span></code> }, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">prev_state</span></code></p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">q_value</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="coma">
 <h2>COMA<a class="headerlink" href="#coma" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMA">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.coma.</span></span><span class="sig-name descname"><span class="pre">COMA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMA" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>COMA network is QAC-type actor-critic.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMA.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMA.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMA.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>initialize COMA network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>agent_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the number of agent</p></li>
+<li><p>obs_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): the observation information, including agent_state and                 global_state</p></li>
+<li><p>action_shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[int,</span> <span class="pre">SequenceType]</span></code>): the dimension of action shape</p></li>
+<li><p>actor_hidden_size_list (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceType</span></code>): the list of hidden size</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.template.coma.COMA.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../../../_modules/ding/model/template/coma.html#COMA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.template.coma.COMA.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">obs</span></code> { <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">global_state</span></code>, <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> }, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">prev_state</span></code></p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>necessary:</dt><dd><ul>
+<li><p>compute_critic: <code class="docutils literal notranslate"><span class="pre">q_value</span></code></p></li>
+<li><p>compute_actor: <code class="docutils literal notranslate"><span class="pre">logit</span></code>, <code class="docutils literal notranslate"><span class="pre">next_state</span></code>, <code class="docutils literal notranslate"><span class="pre">action_mask</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

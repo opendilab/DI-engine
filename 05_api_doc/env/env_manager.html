@@ -309,19 +309,35 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">BaseEnvManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Create a BaseEnvManager to manage multiple environments.</p>
+<dd><dl>
+<dt>Overview:</dt><dd><p>The basic class of env manager to manage multiple vectorized environments. BaseEnvManager define all the
+necessary interfaces and derived class must extend this basic class.</p>
+<p>The class is implemented by the pseudo-parallelism (i.e. serial) mechanism, therefore, this class is only
+used in some tiny environments and for debug purpose.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done, reward_shaping,         enable_save_figure</p>
+<dt>Interfaces:</dt><dd><p>reset, step, seed, close, enable_save_replay, launch, default_config, reward_shaping, enable_save_figure</p>
 </dd>
-<dt>Properties:</dt><dd><p>env_num, ready_obs, done, method_name_list, observation_space, action_space, reward_space</p>
+<dt>Properties:</dt><dd><p>env_num, env_ref, ready_obs, ready_obs_id, ready_imgs, done, closed, method_name_list, observation_space,         action_space, reward_space</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.close">
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Release the environment resources.</p>
+<dt>Overview:</dt><dd><p>Close the env manager and release all the environment resources.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the deepcopyed default config of env manager.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): The default config of env manager.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -343,10 +359,10 @@
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.launch">
 <span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.launch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.launch" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Set up the environments and their parameters.</p>
+<dt>Overview:</dt><dd><p>Launch the env manager, instantiate the sub-environments and set up the environments and their parameters.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>reset_param (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Dict]</span></code>): Dict of reset parameters for each environment, key is the env_id,                 value is the cooresponding reset parameters.</p></li>
+<li><p>reset_param (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Dict]</span></code>): A dict of reset parameters for each environment, key is the env_id,                 value is the corresponding reset parameter, defaults to None.</p></li>
 </ul>
 </dd>
 </dl>
@@ -356,15 +372,17 @@
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ready_obs</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.ready_obs" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Get the ready (next) observation, which is uniform for both aysnc/sync scenarios.</p>
+<dt>Overview:</dt><dd><p>Get the ready (next) observation, which is a special design to unify both aysnc/sync env manager.
+For each interaction between policy and env, the policy will input the ready_obs and output the action.
+Then the env_manager will <code class="docutils literal notranslate"><span class="pre">step</span></code> with the action and prepare the next ready_obs.</p>
 </dd>
-<dt>Return:</dt><dd><ul class="simple">
-<li><p>ready_obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]:</span></code>): Dict with env_id keys and observation values.</p></li>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ready_obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): A dict with env_id keys and observation values.</p></li>
 </ul>
 </dd>
 <dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">ready_obs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stacked_obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>  <span class="c1"># model input np obs and output np action</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">policy</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>  <span class="c1"># here policy inputs np obs and outputs np action</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">a</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">action</span><span class="p">)}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">timesteps</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 </pre></div>
@@ -377,10 +395,10 @@
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.reset">
 <span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.reset" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Reset the environments their parameters.</p>
+<dt>Overview:</dt><dd><p>Forcely reset the sub-environments their corresponding parameters. Because in env manager all the             sub-environments usually are reset automatically as soon as they are done, this method is only called when             the caller must forcely reset all the sub-environments, such as in evaluation.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>reset_param (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): Dict of reset parameters for each environment, key is the env_id,                 value is the cooresponding reset parameters.</p></li>
+<li><p>reset_param (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): Dict of reset parameters for each environment, key is the env_id,                 value is the corresponding reset parameters.</p></li>
 </ul>
 </dd>
 </dl>
@@ -390,33 +408,38 @@
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.seed">
 <span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.seed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Set the seed for each environment.</p>
+<dt>Overview:</dt><dd><p>Set the random seed for each environment.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Dict[int,</span> <span class="pre">int],</span> <span class="pre">List[int],</span> <span class="pre">int]</span></code>): List of seeds for each environment;                 Or one seed for the first environment and other seeds are generated automatically.</p></li>
+<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Dict[int,</span> <span class="pre">int],</span> <span class="pre">List[int],</span> <span class="pre">int]</span></code>): Dict or List of seeds for each environment;                 If only one seed is provided, it will be used in the same way for all environments.</p></li>
+<li><p>dynamic_seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use dynamic seed.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more details about <code class="docutils literal notranslate"><span class="pre">dynamic_seed</span></code>, please refer to the best practice document of DI-engine             (<a class="reference external" href="../04_best_practice/random_seed.html">en link</a>).</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.step">
-<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.envs.env.base_env.BaseEnvTimestep</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.step" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.envs.env.base_env.BaseEnvTimestep</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.step" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Execute env step according to input actions. And reset an env if done.</p>
+<dt>Overview:</dt><dd><p>Execute env step according to input actions. If some sub-environments are done after this execution,             they will be reset automatically when <code class="docutils literal notranslate"><span class="pre">self._auto_reset</span></code> is True, otherwise they need to be reset when             the caller use the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method of env manager.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>actions (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): actions came from outer caller like policy</p></li>
+<li><p>actions (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): A dict of actions, key is the env_id, value is corresponding action.                 action can be any type, it depends on the env, and the env will handle it. Ususlly, the action is                 a dict of numpy array, and the value is generated by the outer caller like <code class="docutils literal notranslate"><span class="pre">policy</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>timesteps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[int,</span> <span class="pre">BaseEnvTimestep]]</span></code>): Each timestep is a BaseEnvTimestep object,                 usually including observation, reward, done, info.</p></li>
+<li><p>timesteps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">BaseEnvTimestep]</span></code>): Each timestep is a <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span></code> object,                 usually including observation, reward, done, info. Some special customized environments will have                 the special timestep definition. The length of timesteps is the same as the length of actions in                 synchronous env manager.</p></li>
 </ul>
 </dd>
 <dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">timesteps</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timesteps</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timesteps</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Env </span><span class="si">{}</span><span class="s1"> is done&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Env </span><span class="si">{}</span><span class="s1"> is done&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">))</span>
 </pre></div>
 </div>
 </dd>
@@ -430,20 +453,29 @@
 <h3>create_env_manager<a class="headerlink" href="#create-env-manager" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.create_env_manager">
-<span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">create_env_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#create_env_manager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.create_env_manager" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">create_env_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><span class="pre">ding.envs.env_manager.base_env_manager.BaseEnvManager</span></a></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#create_env_manager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.create_env_manager" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Create an env manager according to manager cfg and env function.</p>
+<dt>Overview:</dt><dd><p>Create an env manager according to <code class="docutils literal notranslate"><span class="pre">manager_cfg</span></code> and env functions.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>manager_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Env manager config.</p></li>
-<li><p>env_fn (:obj:` List[Callable]`): A list of envs’ functions.</p></li>
+<li><p>manager_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Final merged env manager config.</p></li>
+<li><p>env_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Callable]</span></code>): A list of functions to create <code class="docutils literal notranslate"><span class="pre">env_num</span></code> sub-environments.</p></li>
 </ul>
 </dd>
 <dt>ArgumentsKeys:</dt><dd><ul class="simple">
-<li><p><cite>manager_cfg</cite>’s necessary: <cite>type</cite></p></li>
+<li><p>type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Env manager type set in <code class="docutils literal notranslate"><span class="pre">ENV_MANAGER_REGISTRY.register</span></code> , such as <code class="docutils literal notranslate"><span class="pre">base</span></code> .</p></li>
+<li><p>import_names (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[str]</span></code>): A list of module names (paths) to import before creating env manager, such             as <code class="docutils literal notranslate"><span class="pre">ding.envs.env_manager.base_env_manager</span></code> .</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>env_manager (<a class="reference internal" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager" title="ding.envs.env_manager.base_env_manager.BaseEnvManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseEnvManager</span></code></a>): The created env manager.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>This method will not modify the <code class="docutils literal notranslate"><span class="pre">manager_cfg</span></code> , it will deepcopy the <code class="docutils literal notranslate"><span class="pre">manager_cfg</span></code> and then modify it.</p>
+</div>
 </dd></dl>
 
 </section>
@@ -453,14 +485,19 @@
 <dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.get_env_manager_cls">
 <span class="sig-prename descclassname"><span class="pre">ding.envs.env_manager.base_env_manager.</span></span><span class="sig-name descname"><span class="pre">get_env_manager_cls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">type</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#get_env_manager_cls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.get_env_manager_cls" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Get an env manager class according to cfg.</p>
+<dt>Overview:</dt><dd><p>Get the env manager class according to config, which is used to access related class variables/methods.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Env manager config.</p></li>
+<li><p>manager_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Final merged env manager config.</p></li>
 </ul>
 </dd>
 <dt>ArgumentsKeys:</dt><dd><ul class="simple">
-<li><p>necessary: <cite>type</cite></p></li>
+<li><p>type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Env manager type set in <code class="docutils literal notranslate"><span class="pre">ENV_MANAGER_REGISTRY.register</span></code> , such as <code class="docutils literal notranslate"><span class="pre">base</span></code> .</p></li>
+<li><p>import_names (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[str]</span></code>): A list of module names (paths) to import before creating env manager, such             as <code class="docutils literal notranslate"><span class="pre">ding.envs.env_manager.base_env_manager</span></code> .</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>env_manager_cls (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): The corresponding env manager class.</p></li>
 </ul>
 </dd>
 </dl>
@@ -561,6 +598,19 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the deepcopyed default config of env manager.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): The default config of env manager.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.enable_save_replay">
 <span class="sig-name descname"><span class="pre">enable_save_replay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">replay_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.enable_save_replay" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -621,13 +671,18 @@
 <dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.seed">
 <span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.seed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Set the seed for each environment.</p>
+<dt>Overview:</dt><dd><p>Set the random seed for each environment.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Dict[int,</span> <span class="pre">int],</span> <span class="pre">List[int],</span> <span class="pre">int]</span></code>): List of seeds for each environment;                 Or one seed for the first environment and other seeds are generated automatically.</p></li>
+<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Dict[int,</span> <span class="pre">int],</span> <span class="pre">List[int],</span> <span class="pre">int]</span></code>): Dict or List of seeds for each environment;                 If only one seed is provided, it will be used in the same way for all environments.</p></li>
+<li><p>dynamic_seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use dynamic seed.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more details about <code class="docutils literal notranslate"><span class="pre">dynamic_seed</span></code>, please refer to the best practice document of DI-engine             (<a class="reference external" href="../04_best_practice/random_seed.html">en link</a>).</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -681,6 +736,19 @@ Each Environment is run by a respective subprocess.</p>
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/subprocess_env_manager.html#AsyncSubprocessEnvManager.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>CLose the env manager and release all related resources.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the deepcopyed default config of env manager.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): The default config of env manager.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -746,13 +814,18 @@ Each Environment is run by a respective subprocess.</p>
 <dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.seed">
 <span class="sig-name descname"><span class="pre">seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.seed" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Set the seed for each environment.</p>
+<dt>Overview:</dt><dd><p>Set the random seed for each environment.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Dict[int,</span> <span class="pre">int],</span> <span class="pre">List[int],</span> <span class="pre">int]</span></code>): List of seeds for each environment;                 Or one seed for the first environment and other seeds are generated automatically.</p></li>
+<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Dict[int,</span> <span class="pre">int],</span> <span class="pre">List[int],</span> <span class="pre">int]</span></code>): Dict or List of seeds for each environment;                 If only one seed is provided, it will be used in the same way for all environments.</p></li>
+<li><p>dynamic_seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use dynamic seed.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more details about <code class="docutils literal notranslate"><span class="pre">dynamic_seed</span></code>, please refer to the best practice document of DI-engine             (<a class="reference external" href="../04_best_practice/random_seed.html">en link</a>).</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
