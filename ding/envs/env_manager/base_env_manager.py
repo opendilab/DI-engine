@@ -11,7 +11,7 @@ import time
 import treetensor.numpy as tnp
 from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog, \
     remove_illegal_item
-from ding.envs.env import BaseEnvTimestep
+from ding.envs import BaseEnv, BaseEnvTimestep
 
 global space_log_flag
 space_log_flag = True
@@ -64,27 +64,45 @@ def timeout_wrapper(func: Callable = None, timeout: Optional[int] = None) -> Cal
 class BaseEnvManager(object):
     """
     Overview:
-        Create a BaseEnvManager to manage multiple environments.
+        The basic class of env manager to manage multiple vectorized environments. BaseEnvManager define all the
+        necessary interfaces and derived class must extend this basic class.
+
+        The class is implemented by the pseudo-parallelism (i.e. serial) mechanism, therefore, this class is only
+        used in some tiny environments and for debug purpose.
     Interfaces:
-        reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done, reward_shaping, \
-        enable_save_figure
+        reset, step, seed, close, enable_save_replay, launch, default_config, reward_shaping, enable_save_figure
     Properties:
-        env_num, ready_obs, done, method_name_list, observation_space, action_space, reward_space
+        env_num, env_ref, ready_obs, ready_obs_id, ready_imgs, done, closed, method_name_list, observation_space, \
+        action_space, reward_space
     """
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
+        """
+        Overview:
+            Return the deepcopyed default config of env manager.
+        Returns:
+            - cfg (:obj:`EasyDict`): The default config of env manager.
+        """
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
 
     config = dict(
+        # (int) The total episode number to be executed, defaults to inf, which means no episode limits.
         episode_num=float("inf"),
+        # (int) The maximum retry times when the env is in error state, defaults to 1, i.e. no retry.
         max_retry=1,
+        # (str) The retry type when the env is in error state, including ['reset', 'renew'], defaults to 'reset'.
+        # The former is to reset the env to the last reset state, while the latter is to create a new env.
         retry_type='reset',
+        # (bool) Whether to automatically reset sub-environments when they are done, defaults to True.
         auto_reset=True,
+        # (float) WatchDog timeout (second) for ``step`` method, defaults to None, which means no timeout.
         step_timeout=None,
+        # (float) WatchDog timeout (second) for ``reset`` method, defaults to None, which means no timeout.
         reset_timeout=None,
+        # (float) The interval waiting time for automatically retry mechanism, defaults to 0.1.
         retry_waiting_time=0.1,
     )
 
@@ -95,10 +113,18 @@ class BaseEnvManager(object):
     ) -> None:
         """
         Overview:
-            Initialize the BaseEnvManager.
+            Initialize the base env manager with callable the env function and the EasyDict-type config. Here we use
+            ``env_fn`` to ensure the lazy initialization of sub-environments, which is benetificial to resource
+            allocation and parallelism. ``cfg`` is the merged result between the default config of this class
+            and user's config.
+            This construction function is in lazy-initialization mode, the actual initialization is in ``launch``.
         Arguments:
-            - env_fn (:obj:`List[Callable]`): The function to create environment
-            - cfg (:obj:`EasyDict`): Config
+            - env_fn (:obj:`List[Callable]`): A list of functions to create ``env_num`` sub-environments.
+            - cfg (:obj:`EasyDict`): Final merged config.
+
+        .. note::
+            For more details about how to merge config, please refer to the system document of DI-engine \
+            (`en link <../03_system/config.html>`_).
         """
         self._cfg = cfg
         self._env_fn = env_fn
@@ -135,35 +161,67 @@ class BaseEnvManager(object):
 
     @property
     def env_num(self) -> int:
+        """
+        Overview:
+            ``env_num`` is the number of sub-environments in env manager.
+        Returns:
+            - env_num (:obj:`int`): The number of sub-environments.
+        """
         return self._env_num
 
     @property
-    def env_ref(self) -> int:
+    def env_ref(self) -> 'BaseEnv':
+        """
+        Overview:
+            ``env_ref`` is used to acquire some common attributes of env, like obs_shape and act_shape.
+        Returns:
+            - env_ref (:obj:`BaseEnv`): The reference of sub-environment.
+        """
         return self._env_ref
 
     @property
     def observation_space(self) -> 'gym.spaces.Space':  # noqa
+        """
+        Overview:
+            ``observation_space`` is the observation space of sub-environment, following the format of gym.spaces.
+        Returns:
+            - observation_space (:obj:`gym.spaces.Space`): The observation space of sub-environment.
+        """
         return self._observation_space
 
     @property
     def action_space(self) -> 'gym.spaces.Space':  # noqa
+        """
+        Overview:
+            ``action_space`` is the action space of sub-environment, following the format of gym.spaces.
+        Returns:
+            - action_space (:obj:`gym.spaces.Space`): The action space of sub-environment.
+        """
         return self._action_space
 
     @property
     def reward_space(self) -> 'gym.spaces.Space':  # noqa
+        """
+        Overview:
+            ``reward_space`` is the reward space of sub-environment, following the format of gym.spaces.
+        Returns:
+            - reward_space (:obj:`gym.spaces.Space`): The reward space of sub-environment.
+        """
         return self._reward_space
 
     @property
     def ready_obs(self) -> Dict[int, Any]:
         """
         Overview:
-            Get the ready (next) observation, which is uniform for both aysnc/sync scenarios.
-        Return:
-            - ready_obs (:obj:`Dict[int, Any]:`): Dict with env_id keys and observation values.
+            Get the ready (next) observation, which is a special design to unify both aysnc/sync env manager.
+            For each interaction between policy and env, the policy will input the ready_obs and output the action.
+            Then the env_manager will ``step`` with the action and prepare the next ready_obs.
+        Returns:
+            - ready_obs (:obj:`Dict[int, Any]`): A dict with env_id keys and observation values.
         Example:
             >>> obs = env_manager.ready_obs
             >>> stacked_obs = np.concatenate(list(obs.values()))
-            >>> action = model(obs)  # model input np obs and output np action
+            >>> action = policy(obs)  # here policy inputs np obs and outputs np action
             >>> action = {env_id: a for env_id, a in zip(obs.keys(), action)}
             >>> timesteps = env_manager.step(action)
         """
@@ -172,6 +230,12 @@ class BaseEnvManager(object):
 
     @property
     def ready_obs_id(self) -> List[int]:
+        """
+        Overview:
+            Get the ready (next) observation id, which is a special design to unify both aysnc/sync env manager.
+        Returns:
+            - ready_obs_id (:obj:`List[int]`): A list of env_ids for ready observations.
+        """
         # In BaseEnvManager, if env_episode_count equals episode_num, this env is done.
         return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
@@ -179,20 +243,40 @@ class BaseEnvManager(object):
     def ready_imgs(self, render_mode: Optional[str] = 'rgb_array') -> Dict[int, Any]:
         """
         Overview:
-            Get the next ready renderd frame and corresponding env id.
-        Return:
-            - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
+            Sometimes, we need to render the envs, this function is used to get the next ready renderd frame and \
+            corresponding env id.
+        Arguments:
+            - render_mode (:obj:`Optional[str]`): The render mode, can be 'rgb_array' or 'depth_array', which follows \
+                the definition in the ``render`` function of ``ding.utils`` .
+        Returns:
+            - ready_imgs (:obj:`Dict[int, np.ndarray]`): A dict with env_id keys and rendered frames.
         """
         from ding.utils import render
-        assert render_mode in ['rgb_array', 'depth_array']
-        return {i: render(self._envs[i], render_mode) for i in self.ready_obs.keys()}
+        assert render_mode in ['rgb_array', 'depth_array'], render_mode
+        return {i: render(self._envs[i], render_mode) for i in self.ready_obs_id}
 
     @property
     def done(self) -> bool:
+        """
+        Overview:
+            ``done`` is a flag to indicate whether env manager is done, i.e., whether all sub-environments have \
+            executed enough episodes.
+        Returns:
+            - done (:obj:`bool`): Whether env manager is done.
+        """
         return all([s == EnvState.DONE for s in self._env_states.values()])
 
     @property
     def method_name_list(self) -> list:
+        """
+        Overview:
+            The public methods list of sub-environments that can be directly called from the env manager level. Other \
+            methods and attributes will be accessed with the ``__getattr__`` method.
+            Methods defined in this list can be regarded as the vectorized extension of methods in sub-environments.
+            Sub-class of ``BaseEnvManager`` can override this method to add more methods.
+        Returns:
+            - method_name_list (:obj:`list`): The public methods list of sub-environments.
+        """
         return [
             'reset', 'step', 'seed', 'close', 'enable_save_replay', 'render', 'reward_shaping', 'enable_save_figure'
         ]
@@ -224,10 +308,10 @@ class BaseEnvManager(object):
     def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
-            Set up the environments and their parameters.
+            Launch the env manager, instantiate the sub-environments and set up the environments and their parameters.
         Arguments:
-            - reset_param (:obj:`Optional[Dict]`): Dict of reset parameters for each environment, key is the env_id, \
-                value is the cooresponding reset parameters.
+            - reset_param (:obj:`Optional[Dict]`): A dict of reset parameters for each environment, key is the env_id, \
+                value is the corresponding reset parameter, defaults to None.
         """
         assert self._closed, "Please first close the env manager"
         try:
@@ -260,10 +344,12 @@ class BaseEnvManager(object):
     def reset(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
-            Reset the environments their parameters.
+            Forcely reset the sub-environments their corresponding parameters. Because in env manager all the \
+            sub-environments usually are reset automatically as soon as they are done, this method is only called when \
+            the caller must forcely reset all the sub-environments, such as in evaluation.
         Arguments:
             - reset_param (:obj:`List`): Dict of reset parameters for each environment, key is the env_id, \
-                value is the cooresponding reset parameters.
+                value is the corresponding reset parameters.
         """
         self._check_closed()
         # set seed if necessary
@@ -327,20 +413,26 @@ class BaseEnvManager(object):
         runtime_error.__traceback__ = exceptions[-1].__traceback__
         raise runtime_error
 
-    def step(self, actions: Dict[int, Any]) -> List[Dict[int, BaseEnvTimestep]]:
+    def step(self, actions: Dict[int, Any]) -> Dict[int, BaseEnvTimestep]:
         """
         Overview:
-            Execute env step according to input actions. And reset an env if done.
+            Execute env step according to input actions. If some sub-environments are done after this execution, \
+            they will be reset automatically when ``self._auto_reset`` is True, otherwise they need to be reset when \
+            the caller use the ``reset`` method of env manager.
         Arguments:
-            - actions (:obj:`Dict[int, Any]`): actions came from outer caller like policy
+            - actions (:obj:`Dict[int, Any]`): A dict of actions, key is the env_id, value is corresponding action. \
+                action can be any type, it depends on the env, and the env will handle it. Ususlly, the action is \
+                a dict of numpy array, and the value is generated by the outer caller like ``policy``.
         Returns:
-            - timesteps (:obj:`List[Dict[int, BaseEnvTimestep]]`): Each timestep is a BaseEnvTimestep object, \
-                usually including observation, reward, done, info.
+            - timesteps (:obj:`Dict[int, BaseEnvTimestep]`): Each timestep is a ``BaseEnvTimestep`` object, \
+                usually including observation, reward, done, info. Some special customized environments will have \
+                the special timestep definition. The length of timesteps is the same as the length of actions in \
+                synchronous env manager.
         Example:
             >>> timesteps = env_manager.step(action)
-            >>> for i, timestep in enumerate(timesteps):
+            >>> for env_id, timestep in enumerate(timesteps):
             >>>     if timestep.done:
-            >>>         print('Env {} is done'.format(timestep.env_id))
+            >>>         print('Env {} is done'.format(env_id))
         """
         self._check_closed()
         timesteps = {}
@@ -384,10 +476,15 @@ class BaseEnvManager(object):
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
         """
         Overview:
-            Set the seed for each environment.
+            Set the random seed for each environment.
         Arguments:
-            - seed (:obj:`Union[Dict[int, int], List[int], int]`): List of seeds for each environment; \
-                Or one seed for the first environment and other seeds are generated automatically.
+            - seed (:obj:`Union[Dict[int, int], List[int], int]`): Dict or List of seeds for each environment; \
+                If only one seed is provided, it will be used in the same way for all environments.
+            - dynamic_seed (:obj:`bool`): Whether to use dynamic seed.
+
+        .. note::
+            For more details about ``dynamic_seed``, please refer to the best practice document of DI-engine \
+            (`en link <../04_best_practice/random_seed.html>`_).
         """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
@@ -433,7 +530,7 @@ class BaseEnvManager(object):
     def close(self) -> None:
         """
         Overview:
-            Release the environment resources.
+            Close the env manager and release all the environment resources.
         """
         if self._closed:
             return
@@ -444,10 +541,25 @@ class BaseEnvManager(object):
         self._closed = True
 
     def reward_shaping(self, env_id: int, transitions: List[dict]) -> List[dict]:
+        """
+        Overview:
+            Execute reward shaping for a specific environment, which is often called when a episode terminates.
+        Arguments:
+            - env_id (:obj:`int`): The id of the environment to be shaped.
+            - transitions (:obj:`List[dict]`): The transition data list of the environment to be shaped.
+        Returns:
+            - transitions (:obj:`List[dict]`): The shaped transition data list.
+        """
         return self._envs[env_id].reward_shaping(transitions)
 
     @property
     def closed(self) -> bool:
+        """
+        Overview:
+            ``closed`` is a property that returns whether the env manager is closed.
+        Returns:
+            - closed (:obj:`bool`): Whether the env manager is closed.
+        """
         return self._closed
 
 
@@ -455,48 +567,65 @@ class BaseEnvManager(object):
 class BaseEnvManagerV2(BaseEnvManager):
     """
     Overview:
-        BaseEnvManager for new task pipeline and interfaces coupled with treetensor.
+        The basic class of env manager to manage multiple vectorized environments. BaseEnvManager define all the
+        necessary interfaces and derived class must extend this basic class.
+
+        The class is implemented by the pseudo-parallelism (i.e. serial) mechanism, therefore, this class is only
+        used in some tiny environments and for debug purpose.
+
+        ``V2`` means this env manager is designed for new task pipeline and interfaces coupled with treetensor.`
+
+    .. note::
+        For more details about new task pipeline, please refer to the system document of DI-engine \
+        (`en link <../03_system/index.html>`_).
+    Interfaces:
+        reset, step, seed, close, enable_save_replay, launch, default_config, reward_shaping, enable_save_figure
+    Properties:
+        env_num, env_ref, ready_obs, ready_obs_id, ready_imgs, done, closed, method_name_list, observation_space, \
+        action_space, reward_space
     """
 
     @property
     def ready_obs(self) -> tnp.array:
         """
         Overview:
-            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.
+            Get the ready (next) observation, which is a special design to unify both aysnc/sync env manager.
+            For each interaction between policy and env, the policy will input the ready_obs and output the action.
+            Then the env_manager will ``step`` with the action and prepare the next ready_obs.
+            For ``V2`` version, the observation is transformed and packed up into ``tnp.array`` type, which allows
+            more convenient operations.
         Return:
             - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.
         Example:
             >>> obs = env_manager.ready_obs
-            >>> action = model(obs)  # model input np obs and output np action
+            >>> action = policy(obs)  # here policy inputs treenp obs and output np action
             >>> timesteps = env_manager.step(action)
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
         obs = [self._ready_obs[i] for i in active_env]
-        if isinstance(obs[0], dict):
+        if isinstance(obs[0], dict):  # transform each element to treenumpy array
             obs = [tnp.array(o) for o in obs]
         return tnp.stack(obs)
-
-    @property
-    def ready_imgs(self, render_mode: Optional[str] = 'rgb_array') -> Dict[int, Any]:
-        """
-        Overview:
-            Get the next ready renderd frame and corresponding env id.
-        Return:
-            - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
-        """
-        from ding.utils import render
-        assert render_mode in ['rgb_array', 'depth_array']
-        return {i: render(self._envs[i], render_mode) for i in range(self.ready_obs.shape[0])}
 
     def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
         """
         Overview:
-            Execute env step according to input actions. And reset an env if done.
+            Execute env step according to input actions. If some sub-environments are done after this execution, \
+            they will be reset automatically by default.
         Arguments:
-            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy
+            - actions (:obj:`List[tnp.ndarray]`): A list of treenumpy-type actions, the value is generated by the \
+                outer caller like ``policy``.
         Returns:
-            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
-                info, env_id.
+            - timesteps (:obj:`List[tnp.ndarray]`): A list of timestep, Each timestep is a ``tnp.ndarray`` object, \
+                usually including observation, reward, done, info, env_id. Some special environments will have \
+                the special timestep definition. The length of timesteps is the same as the length of actions in \
+                synchronous env manager. For the compatibility of treenumpy, here we use ``make_key_as_identifier`` \
+                and ``remove_illegal_item`` functions to modify the original timestep.
+        Example:
+            >>> timesteps = env_manager.step(action)
+            >>> for timestep in timesteps:
+            >>>     if timestep.done:
+            >>>         print('Env {} is done'.format(timestep.env_id))
         """
         actions = {env_id: a for env_id, a in zip(self.ready_obs_id, actions)}
         timesteps = super().step(actions)
@@ -511,15 +640,22 @@ class BaseEnvManagerV2(BaseEnvManager):
         return new_data
 
 
-def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:
-    r"""
+def create_env_manager(manager_cfg: EasyDict, env_fn: List[Callable]) -> BaseEnvManager:
+    """
     Overview:
-        Create an env manager according to manager cfg and env function.
+        Create an env manager according to ``manager_cfg`` and env functions.
     Arguments:
-        - manager_cfg (:obj:`EasyDict`): Env manager config.
-        - env_fn (:obj:` List[Callable]`): A list of envs' functions.
+        - manager_cfg (:obj:`EasyDict`): Final merged env manager config.
+        - env_fn (:obj:`List[Callable]`): A list of functions to create ``env_num`` sub-environments.
     ArgumentsKeys:
-        - `manager_cfg`'s necessary: `type`
+        - type (:obj:`str`): Env manager type set in ``ENV_MANAGER_REGISTRY.register`` , such as ``base`` .
+        - import_names (:obj:`List[str]`): A list of module names (paths) to import before creating env manager, such \
+            as ``ding.envs.env_manager.base_env_manager`` .
+    Returns:
+        - env_manager (:obj:`BaseEnvManager`): The created env manager.
+
+    .. tip::
+        This method will not modify the ``manager_cfg`` , it will deepcopy the ``manager_cfg`` and then modify it.
     """
     manager_cfg = copy.deepcopy(manager_cfg)
     if 'import_names' in manager_cfg:
@@ -529,13 +665,17 @@ def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvMana
 
 
 def get_env_manager_cls(cfg: EasyDict) -> type:
-    r"""
+    """
     Overview:
-        Get an env manager class according to cfg.
+        Get the env manager class according to config, which is used to access related class variables/methods.
     Arguments:
-        - cfg (:obj:`EasyDict`): Env manager config.
+        - manager_cfg (:obj:`EasyDict`): Final merged env manager config.
     ArgumentsKeys:
-        - necessary: `type`
+        - type (:obj:`str`): Env manager type set in ``ENV_MANAGER_REGISTRY.register`` , such as ``base`` .
+        - import_names (:obj:`List[str]`): A list of module names (paths) to import before creating env manager, such \
+            as ``ding.envs.env_manager.base_env_manager`` .
+    Returns:
+        - env_manager_cls (:obj:`type`): The corresponding env manager class.
     """
     import_module(cfg.get('import_names', []))
     return ENV_MANAGER_REGISTRY.get(cfg.type)

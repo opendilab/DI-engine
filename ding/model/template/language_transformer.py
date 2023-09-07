@@ -5,10 +5,8 @@ from torch import nn
 try:
     from transformers import AutoTokenizer, AutoModelForTokenClassification
 except ImportError:
-    import sys
     from ditk import logging
     logging.warning("not found transformer, please install it using: pip install transformers")
-    sys.exit(1)
 
 
 @MODEL_REGISTRY.register('language_transformer')
