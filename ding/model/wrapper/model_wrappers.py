@@ -411,6 +411,53 @@ class ArgmaxSampleWrapper(IModelWrapper):
         return output
 
 
+class CombinationArgmaxSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Used to help the model to sample combination argmax action.
+    """
+
+    def forward(self, shot_number, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        # Generate actions.
+        act = []
+        mask = torch.zeros_like(output['logit'])
+        for ii in range(shot_number):
+            masked_logit = output['logit'] + mask
+            actions = masked_logit.argmax(dim=-1)
+            act.append(actions)
+            for jj in range(actions.shape[0]):
+                mask[jj][actions[jj]] = -1e8
+        # `act` is shaped: (B, shot_number)
+        act = torch.stack(act, dim=1)
+        output['action'] = act
+        return output
+
+
+class CombinationMultinomialSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Used to help the model to sample combination multinomial action.
+    """
+
+    def forward(self, shot_number, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        # Generate actions.
+        act = []
+        mask = torch.zeros_like(output['logit'])
+        for ii in range(shot_number):
+            dist = torch.distributions.Categorical(logits=output['logit'] + mask)
+            actions = dist.sample()
+            act.append(actions)
+            for jj in range(actions.shape[0]):
+                mask[jj][actions[jj]] = -1e8
+
+        # `act` is shaped: (B, shot_number)
+        act = torch.stack(act, dim=1)
+        output['action'] = act
+        return output
+
+
 class HybridArgmaxSampleWrapper(IModelWrapper):
     r"""
     Overview:
@@ -906,6 +953,8 @@ wrapper_name_map = {
     # model wrapper
     'target': TargetNetworkWrapper,
     'teacher': TeacherNetworkWrapper,
+    'combination_argmax_sample': CombinationArgmaxSampleWrapper,
+    'combination_multinomial_sample': CombinationMultinomialSampleWrapper,
 }
 
 

@@ -5,6 +5,7 @@ from .pdqn import PDQN
 from .vac import BaseVAC, VAC, DREAMERVAC
 from .bc import DiscreteBC, ContinuousBC
 from .pg import PG
+from .language_transformer import LanguageTransformer
 # algorithm-specific
 from .ppg import PPG
 from .qmix import Mixer, QMix

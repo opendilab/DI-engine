@@ -50,6 +50,7 @@ from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
 from .bcq import BCQPolicy
 from .edac import EDACPolicy
+from .prompt_pg import PromptPGPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -438,3 +439,8 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
 
     def _get_setting_eval(self, command_info: dict) -> dict:
         return {}
+
+
+@POLICY_REGISTRY.register('prompt_pg_command')
+class PromptPGCommandModePolicy(PromptPGPolicy, DummyCommandModePolicy):
+    pass
