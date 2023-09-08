@@ -18,12 +18,12 @@ from ding.framework.middleware import OffPolicyLearner, envpool_evaluator, data_
     termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollectorV2, OffPolicyLearnerV2
 from ding.utils import set_pkg_seed
 
-from dizoo.atari.config.serial.spaceinvaders import spaceinvaders_dqn_envpool_config
+from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_envpool_config import spaceinvaders_dqn_envpool_config
 
 
 def main(cfg):
     logging.getLogger().setLevel(logging.INFO)
-    cfg.exp_name = 'Pong-v5-DQN-envpool-spaceinvaders-new-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    cfg.exp_name = 'Spaceinvaders-v5-DQN-envpool-new-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     collector_env_cfg = EasyDict(
         {
