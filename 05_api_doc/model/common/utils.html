@@ -311,17 +311,21 @@
 <dt class="sig sig-object py" id="ding.model.common.utils.create_model">
 <span class="sig-prename descclassname"><span class="pre">ding.model.common.utils.</span></span><span class="sig-name descname"><span class="pre">create_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="reference internal" href="../../../_modules/ding/model/common/utils.html#create_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.common.utils.create_model" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Create a model given a config dictionary.</p>
+<dt>Overview:</dt><dd><p>Create a neural network model according to the given EasyDict-type <code class="docutils literal notranslate"><span class="pre">cfg</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Training configuration. The key <code class="docutils literal notranslate"><span class="pre">import_name</span></code> is             used to import modules, and they key <code class="docutils literal notranslate"><span class="pre">type</span></code> is used to build the model.</p></li>
+<li><p>cfg: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): User’s model config. The key <code class="docutils literal notranslate"><span class="pre">import_name</span></code> is             used to import modules, and they key <code class="docutils literal notranslate"><span class="pre">type</span></code> is used to indicate the model.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>) Training configuration corresponding model.</p></li>
+<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>): The created neural network model.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>This method will not modify the <code class="docutils literal notranslate"><span class="pre">cfg</span></code> , it will deepcopy the <code class="docutils literal notranslate"><span class="pre">cfg</span></code> and then modify it.</p>
+</div>
 </dd></dl>
 
 </section>

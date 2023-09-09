@@ -307,9 +307,9 @@
 
 <span class="k">def</span> <span class="nf">prod</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Product of all elements.(To be deprecated soon.)</span>
-<span class="sd">    This function denifition is for supporting python version that under 3.8.</span>
-<span class="sd">    In python3.8 and larger, &#39;math.prod()&#39; is recommended.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Product of all elements.(To be deprecated soon.) This function denifition is for supporting python version \</span>
+<span class="sd">        that under 3.8. In Python3.8 and larger, &#39;math.prod()&#39; is recommended.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
@@ -317,9 +317,9 @@
 <div class="viewcode-block" id="ConvEncoder"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder">[docs]</a><span class="k">class</span> <span class="nc">ConvEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``Convolution Encoder`` used to encode raw 2-dim observations.</span>
+<span class="sd">        The ``Convolution Encoder`` used to encode raw 2-dim image observations (e.g. Atari/Procgen). </span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``__init__``, ``_get_flatten_size``, ``forward``.</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ConvEncoder.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -335,7 +335,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the ``Convolution Encoder`` according to the provided arguments.</span>
+<span class="sd">            Initialize the ``Convolution Encoder`` according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, plus one or more ``input size``.</span>
 <span class="sd">            - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent conv layers \</span>
@@ -346,7 +346,8 @@
 <span class="sd">            - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.</span>
 <span class="sd">            - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \</span>
 <span class="sd">                See ``nn.Conv2d`` for more details. Default is ``None``.</span>
-<span class="sd">            - layer_norm (:obj:`bool`): Whether to use ``DreamerLayerNorm``.</span>
+<span class="sd">            - layer_norm (:obj:`bool`): Whether to use ``DreamerLayerNorm``, which is kind of special trick \</span>
+<span class="sd">                proposed in DreamerV3.</span>
 <span class="sd">            - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResBlock`` \</span>
 <span class="sd">                for more details. Default is ``None``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -408,13 +409,14 @@
 <div class="viewcode-block" id="ConvEncoder.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return output embedding tensor of the env observation.</span>
+<span class="sd">            Return output 1D embedding tensor of the env&#39;s 2D image observation.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation.</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Raw 2D observation of the environment.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`torch.Tensor`): Output embedding tensor.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.</span>
+<span class="sd">            - x : :math:`(B, C, H, W)`, where ``B`` is batch size, ``C`` is channel, ``H`` is height, ``W`` is width.</span>
+<span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]`` .</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -424,7 +426,7 @@
 <div class="viewcode-block" id="FCEncoder"><a class="viewcode-back" href="../../../../05_api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder">[docs]</a><span class="k">class</span> <span class="nc">FCEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``FCEncoder`` used in models to encode raw 1-dim observations.</span>
+<span class="sd">        The ``FCEncoder`` used in models to encode raw 1-dim observations (e.g. MuJoCo).</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -484,6 +486,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`torch.Tensor`): Output embedding tensor.</span>
 <span class="sd">        Shapes:</span>
+<span class="sd">            - x : :math:`(B, M)`, where ``M = obs_shape``.</span>
 <span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
@@ -501,17 +504,18 @@
 
 <span class="k">class</span> <span class="nc">IMPALACnnResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Residual basic block (without batchnorm) in IMPALA cnn encoder.</span>
-<span class="sd">    Preserves channel number and shape</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Residual basic block (without batchnorm) in IMPALA CNN encoder, which preserves the channel number and shape.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channnel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">batch_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channnel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init every impala cnn residual block.</span>
+<span class="sd">            Init the IMPALA CNN residual block according to arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - in_channnel (:obj:`int`): Channel number of input features.</span>
-<span class="sd">            - scale (:obj:`float`): Scale of module.</span>
+<span class="sd">            - scale (:obj:`float`): Scale of module, defaults to 1.</span>
+<span class="sd">            - batch_norm (:obj:`bool`): Whether use batch normalization, defaults to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span> <span class="o">=</span> <span class="n">in_channnel</span>
@@ -523,7 +527,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">bn0</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="c1"># inplace should be False for the first relu, so that it does not change the input,</span>
         <span class="c1"># which will be used for skip connection.</span>
         <span class="c1"># getattr is for backwards compatibility with loaded models</span>
@@ -537,13 +541,22 @@
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return output tensor of the residual block, keep the shape and channel number unchanged.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): Output tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">IMPALACnnDownStack</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Downsampling stack from Impala CNN</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Downsampling stack from IMPALA CNN encoder, which reduces the spatial size by 2 with maxpooling.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channnel</span><span class="p">,</span> <span class="n">nblock</span><span class="p">,</span> <span class="n">out_channel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -565,7 +578,16 @@
         <span class="n">s</span> <span class="o">=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nblock</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">IMPALACnnResidualBlock</span><span class="p">(</span><span class="n">out_channel</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nblock</span><span class="p">)])</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return output tensor of the downsampling stack. The output shape is different from input shape. And you \</span>
+<span class="sd">            can refer to the ``output_shape`` method to get the output shape.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): Output tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstconv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">max_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -573,7 +595,11 @@
             <span class="n">x</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span>
 
-    <span class="k">def</span> <span class="nf">output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inshape</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inshape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the output shape of the downsampling stack according to input shape and related arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">c</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">inshape</span>
         <span class="k">assert</span> <span class="n">c</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_channnel</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="p">:</span>
@@ -583,24 +609,39 @@
 
 
 <span class="k">class</span> <span class="nc">IMPALAConvEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        IMPALA CNN encoder, which is used in IMPALA algorithm. \</span>
+<span class="sd">        IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, \</span>
+<span class="sd">        https://arxiv.org/pdf/1802.01561.pdf,</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``forward``, ``output_shape``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;IMPALAConvEncoder&quot;</span>  <span class="c1"># put it here to preserve pickle compat</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">outsize</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">scale_ob</span><span class="o">=</span><span class="mf">255.0</span><span class="p">,</span> <span class="n">nblock</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">final_relu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">):</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">obs_shape</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span>
+            <span class="n">channels</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+            <span class="n">outsize</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+            <span class="n">scale_ob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">255.0</span><span class="p">,</span>
+            <span class="n">nblock</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">final_relu</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the Encoder described in paper, \</span>
-<span class="sd">            IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, \</span>
-<span class="sd">            https://arxiv.org/pdf/1802.01561.pdf,</span>
+<span class="sd">            Init the IMPALA CNN encoder according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`int`): Observation shape.</span>
-<span class="sd">            - channels (:obj:`SequenceType`): Channel number of each impala cnn block. \</span>
-<span class="sd">                The size of it is the number of impala cnn blocks in the encoder</span>
-<span class="sd">            - outsize (:obj:`int`): Out feature of the encoder.</span>
-<span class="sd">            - scale_ob (:obj:`float`): Scale of each pixel.</span>
-<span class="sd">            - nblock (:obj:`int`): Residual Block number in each block.</span>
-<span class="sd">            - final_relu (:obj:`bool`): Whether to use Relu in the end of encoder.</span>
+<span class="sd">            - obs_shape (:obj:`SequenceType`): 2D image observation shape.</span>
+<span class="sd">            - channels (:obj:`SequenceType`): The channel number of a series of  impala cnn blocks. \</span>
+<span class="sd">                Each element of the sequence is the output channel number of a impala cnn block.</span>
+<span class="sd">            - outsize (:obj:`int`): The output size the final linear layer, which means the dimension of the \</span>
+<span class="sd">                1D embedding vector.</span>
+<span class="sd">            - scale_ob (:obj:`float`): The scale of the input observation, which is used to normalize the input \</span>
+<span class="sd">                observation, such as dividing 255.0 for the raw image observation.</span>
+<span class="sd">            - nblock (:obj:`int`): The number of Residual Block in each block.</span>
+<span class="sd">            - final_relu (:obj:`bool`): Whether to use ReLU activation in the final output of encoder.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scale_ob</span> <span class="o">=</span> <span class="n">scale_ob</span>
@@ -616,7 +657,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">outsize</span> <span class="o">=</span> <span class="n">outsize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">final_relu</span> <span class="o">=</span> <span class="n">final_relu</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the 1D embedding vector of the input 2D observation.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input 2D observation tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): Output 1D embedding vector.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, C, H, W)`, where B is batch size, C is channel number, H is height \</span>
+<span class="sd">                and W is width.</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): :math:`(B, outsize)`, where B is batch size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_ob</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stacks</span><span class="p">):</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>

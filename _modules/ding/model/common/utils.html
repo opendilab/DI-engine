@@ -300,15 +300,19 @@
 <div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../../../05_api_doc/model/common/utils.html#ding.model.common.utils.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Create a model given a config dictionary.</span>
+<span class="sd">        Create a neural network model according to the given EasyDict-type ``cfg``.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - cfg: (:obj:`dict`): Training configuration. The key ``import_name`` is \</span>
-<span class="sd">            used to import modules, and they key ``type`` is used to build the model.</span>
+<span class="sd">        - cfg: (:obj:`EasyDict`): User&#39;s model config. The key ``import_name`` is \</span>
+<span class="sd">            used to import modules, and they key ``type`` is used to indicate the model.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - (:obj:`torch.nn.Module`) Training configuration corresponding model.</span>
+<span class="sd">        - (:obj:`torch.nn.Module`): The created neural network model.</span>
+
+<span class="sd">    .. tip::</span>
+<span class="sd">        This method will not modify the ``cfg`` , it will deepcopy the ``cfg`` and then modify it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
     <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
-    <span class="c1"># must use pop</span>
+    <span class="c1"># here we must use the pop opeartion to ensure compatibility</span>
     <span class="k">return</span> <span class="n">MODEL_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">cfg</span><span class="p">)</span></div>
 </pre></div>
 

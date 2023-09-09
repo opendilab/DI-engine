@@ -307,12 +307,11 @@
 
 <div class="viewcode-block" id="DiscreteHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead">[docs]</a><span class="k">class</span> <span class="nc">DiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``DiscreteHead`` used to output discrete actions logit. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``DiscreteHead`` used to output discrete actions logit or Q-value logit, which is often used in DQN \</span>
+<span class="sd">        and policy head in actor-critic algorithms for discrete action space.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DiscreteHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -381,13 +380,10 @@
 
 <div class="viewcode-block" id="DistributionHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead">[docs]</a><span class="k">class</span> <span class="nc">DistributionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``DistributionHead`` used to output Q-value distribution. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">        outputs ``logit`` and ``distribution``.</span>
-
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``DistributionHead`` used to output Q-value distribution, which is often used in C51 algorithm.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DistributionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -473,6 +469,12 @@
 
 
 <span class="k">class</span> <span class="nc">BranchingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``BranchingHead`` used to output different branches Q-value, which is used in Branch DQN.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -489,10 +491,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``BranchingHead`` layers according to the provided arguments. \</span>
-<span class="sd">                This head achieves a linear increase of the number of network outputs \</span>
-<span class="sd">                with the number of degrees of freedom by allowing a level of independence \</span>
-<span class="sd">                for each individual action dimension.</span>
-<span class="sd">                Therefore, this head is suitable for high dimensional action Spaces.</span>
+<span class="sd">            This head achieves a linear increase of the number of network outputs \</span>
+<span class="sd">            with the number of degrees of freedom by allowing a level of independence for each individual action.</span>
+<span class="sd">            Therefore, this head is suitable for high dimensional action Spaces.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``BranchingHead``.</span>
 <span class="sd">            - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension.</span>
@@ -573,10 +574,8 @@
         <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
             <span class="n">action_out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="n">action_scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">action_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">            From the paper, this implementation performs better than both the naive alternative (Q = V + A) \</span>
-<span class="sd">            and the local maximum reduction method (Q = V + max(A)).</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># From the paper, this implementation performs better than both the naive alternative (Q = V + A) \</span>
+        <span class="c1"># and the local maximum reduction method (Q = V + max(A)).</span>
         <span class="n">action_scores</span> <span class="o">=</span> <span class="n">action_scores</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">action_scores</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">value_out</span> <span class="o">+</span> <span class="n">action_scores</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">}</span>
@@ -584,12 +583,10 @@
 
 <div class="viewcode-block" id="RainbowHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead">[docs]</a><span class="k">class</span> <span class="nc">RainbowHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``RainbowHead`` used to output Q-value distribution. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            outputs ``logit`` and ``distribution``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN. </span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RainbowHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -690,12 +687,10 @@
 
 <div class="viewcode-block" id="QRDQNHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead">[docs]</a><span class="k">class</span> <span class="nc">QRDQNHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``, ``q``, and ``tau``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles. </span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="QRDQNHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -776,12 +771,10 @@
 
 <div class="viewcode-block" id="QuantileHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead">[docs]</a><span class="k">class</span> <span class="nc">QuantileHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``QuantileHead`` used to output action quantiles. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``, ``q``, and ``quantiles``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``, ``quantile_net``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``QuantileHead`` used to output action quantiles, which is used in IQN.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``quantile_net``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="QuantileHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -909,12 +902,10 @@
 
 <span class="k">class</span> <span class="nc">FQFHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``FQFHead`` used to output action quantiles. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``, ``q``, ``quantiles``, ``quantiles_hats``, ``q_tau_i`` and ``entropies``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``, ``quantile_net``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``FQFHead`` used to output action quantiles, which is used in ``FQF``.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``quantile_net``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1081,12 +1072,10 @@
 
 <div class="viewcode-block" id="DuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead">[docs]</a><span class="k">class</span> <span class="nc">DuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``DuelingHead`` used to output discrete actions logit. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``DuelingHead`` used to output discrete actions logit, which is used in Dueling DQN.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DuelingHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1178,13 +1167,11 @@
 
 <span class="k">class</span> <span class="nc">StochasticDuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \</span>
-<span class="sd">            Dueling network architecture in continuous action space. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            outputs ``q_value`` and ``v_value``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \</span>
+<span class="sd">        That is to say, dueling network architecture in continuous action space.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1311,12 +1298,11 @@
 
 <div class="viewcode-block" id="RegressionHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead">[docs]</a><span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``RegressionHead`` used to output actions Q-value.</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``pred``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``RegressionHead`` used to output continuous actions Q-value (DDPG critic), state value (A2C/PPO), and \</span>
+<span class="sd">        directly predict continuous action (DDPG actor).</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RegressionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1381,12 +1367,10 @@
 
 <div class="viewcode-block" id="ReparameterizationHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.ReparameterizationHead">[docs]</a><span class="k">class</span> <span class="nc">ReparameterizationHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``.</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            outputs ``mu`` and ``sigma``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``, which is often used in PPO and SAC.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">default_sigma_type</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fixed&#39;</span><span class="p">,</span> <span class="s1">&#39;independent&#39;</span><span class="p">,</span> <span class="s1">&#39;conditioned&#39;</span><span class="p">]</span>
@@ -1482,22 +1466,19 @@
 
 <span class="k">class</span> <span class="nc">PopArtVHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``PopArtVHead`` used to output discrete actions logit with the last layer as popart. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``PopArtVHead`` used to output adaptive normalized state value, which is used in PPO/IMPALA.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -1510,11 +1491,8 @@
 <span class="sd">                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.</span>
 <span class="sd">            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \</span>
 <span class="sd">                for more details. Default ``None``.</span>
-<span class="sd">            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks&#39; MLP. \</span>
-<span class="sd">                Default ``False``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PopArtVHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="n">layer</span> <span class="o">=</span> <span class="n">NoiseLinearLayer</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">popart</span> <span class="o">=</span> <span class="n">PopArt</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
             <span class="n">MLP</span><span class="p">(</span>
@@ -1522,7 +1500,7 @@
                 <span class="n">hidden_size</span><span class="p">,</span>
                 <span class="n">hidden_size</span><span class="p">,</span>
                 <span class="n">layer_num</span><span class="p">,</span>
-                <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                <span class="n">layer_fn</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">,</span>
                 <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
             <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">popart</span>
@@ -1553,11 +1531,34 @@
 
 
 <span class="k">class</span> <span class="nc">AttentionPolicyHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Cross-attention-type discrete action policy head, which is often used in variable discrete action space.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AttentionPolicyHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use attention-like mechanism to combine key and query tensor to output discrete action logit.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - key (:obj:`torch.Tensor`): Tensor containing key embedding.</span>
+<span class="sd">            - query (:obj:`torch.Tensor`): Tensor containing query embedding.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Tensor containing output discrete action logit.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - key: :math:`(B, N, K)`, where ``B = batch_size``, ``N = possible discrete action choices`` and \</span>
+<span class="sd">                ``K = hidden_size``.</span>
+<span class="sd">            - query: :math:`(B, K)`.</span>
+<span class="sd">            - logit: :math:`(B, N)`.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            In this head, we assume that the ``key`` and ``query`` tensor are both normalized.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">logit</span> <span class="o">=</span> <span class="p">(</span><span class="n">key</span> <span class="o">*</span> <span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -1566,12 +1567,11 @@
 
 <div class="viewcode-block" id="MultiHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead">[docs]</a><span class="k">class</span> <span class="nc">MultiHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            The ``MultiHead`` used to output actions logit. \</span>
-<span class="sd">            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">            output ``logit``.</span>
-<span class="sd">        Interfaces:</span>
-<span class="sd">            ``__init__``, ``forward``.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ``MultiHead`` used to output multiple similar results. For example, we can combine ``Distribution``  and \</span>
+<span class="sd">        ``MultiHead`` to output multi-discrete action space logit.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MultiHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="o">**</span><span class="n">head_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1623,9 +1623,7 @@
 <span class="k">class</span> <span class="nc">EnsembleHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``EnsembleHead`` used to output action Q-value for Q-ensemble. \</span>
-<span class="sd">        Input is a (:obj:`torch.Tensor`) of shape &#39;&#39;(B, N * ensemble_num, 1)&#39;&#39; and returns a (:obj:`Dict`) containing \</span>
-<span class="sd">        output ``pred``.</span>
+<span class="sd">        The ``EnsembleHead`` used to output action Q-value for Q-ensemble in model-based RL algorithms.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1694,6 +1692,16 @@
 
 
 <span class="k">def</span> <span class="nf">independent_normal_dist</span><span class="p">(</span><span class="n">logits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The compatibility function to convert different types logit to independent normal distribution.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - logits (:obj:`Union[List, Dict]`): The logits to be converted.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - dist (:obj:`torch.distributions.Distribution`): The converted normal distribution.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">        - TypeError: If the type of logits is not ``list`` or ``dict``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="o">*</span><span class="n">logits</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -1711,11 +1719,14 @@
     <span class="s1">&#39;rainbow&#39;</span><span class="p">:</span> <span class="n">RainbowHead</span><span class="p">,</span>
     <span class="s1">&#39;qrdqn&#39;</span><span class="p">:</span> <span class="n">QRDQNHead</span><span class="p">,</span>
     <span class="s1">&#39;quantile&#39;</span><span class="p">:</span> <span class="n">QuantileHead</span><span class="p">,</span>
+    <span class="s1">&#39;fqf&#39;</span><span class="p">:</span> <span class="n">FQFHead</span><span class="p">,</span>
+    <span class="s1">&#39;branch&#39;</span><span class="p">:</span> <span class="n">BranchingHead</span><span class="p">,</span>
     <span class="s1">&#39;attention_policy&#39;</span><span class="p">:</span> <span class="n">AttentionPolicyHead</span><span class="p">,</span>
     <span class="c1"># continuous</span>
     <span class="s1">&#39;regression&#39;</span><span class="p">:</span> <span class="n">RegressionHead</span><span class="p">,</span>
     <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span> <span class="n">ReparameterizationHead</span><span class="p">,</span>
     <span class="s1">&#39;popart&#39;</span><span class="p">:</span> <span class="n">PopArtVHead</span><span class="p">,</span>
+    <span class="s1">&#39;sdn&#39;</span><span class="p">:</span> <span class="n">StochasticDuelingHead</span><span class="p">,</span>
     <span class="c1"># multi</span>
     <span class="s1">&#39;multi&#39;</span><span class="p">:</span> <span class="n">MultiHead</span><span class="p">,</span>
     <span class="s1">&#39;ensemble&#39;</span><span class="p">:</span> <span class="n">EnsembleHead</span><span class="p">,</span>
