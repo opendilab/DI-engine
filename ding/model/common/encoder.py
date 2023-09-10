@@ -23,7 +23,7 @@ def prod(iterable):
 class ConvEncoder(nn.Module):
     """
     Overview:
-        The ``Convolution Encoder`` used to encode raw 2-dim image observations (e.g. Atari/Procgen). 
+        The ``Convolution Encoder`` used to encode raw 2-dim image observations (e.g. Atari/Procgen).
     Interfaces:
         ``__init__``, ``forward``.
     """

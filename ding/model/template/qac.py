@@ -9,11 +9,11 @@ from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, Multi
     FCEncoder, ConvEncoder
 
 
-@MODEL_REGISTRY.register('qac')
-class QAC(nn.Module):
-    r"""
+@MODEL_REGISTRY.register('continuous_qac')
+class ContinuousQAC(nn.Module):
+    """
     Overview:
-        The QAC network, which is used in DDPG/TD3/SAC.
+        The continuous Q-value Actor Critic (QAC) network, which is used in DDPG/TD3/SAC.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -56,7 +56,7 @@ class QAC(nn.Module):
                 see ``ding.torch_utils.network`` for more details.
             - share_encoder (:obj:`Optional[bool]`): Whether to share encoder between actor and critic.
         """
-        super(QAC, self).__init__()
+        super(ContinuousQAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
@@ -237,12 +237,12 @@ class QAC(nn.Module):
                 ``action_shape.action_args_shape``.
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = ContinuousQAC(64, 64, 'regression')
             >>> obs = torch.randn(4, 64)
             >>> actor_outputs = model(obs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = ContinuousQAC(64, 64, 'reparameterization')
             >>> obs = torch.randn(4, 64)
             >>> actor_outputs = model(obs,'compute_actor')
             >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
@@ -293,7 +293,7 @@ class QAC(nn.Module):
 
         Examples:
             >>> inputs = {'obs': torch.randn(4, 8), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(8, ),action_shape=1, action_space='regression')
+            >>> model = ContinuousQAC(obs_shape=(8, ),action_shape=1, action_space='regression')
             >>> model(inputs, mode='compute_critic')['q_value']  # q value
             ... tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
         """
@@ -325,9 +325,9 @@ class QAC(nn.Module):
 
 @MODEL_REGISTRY.register('discrete_qac')
 class DiscreteQAC(nn.Module):
-    r"""
+    """
     Overview:
-        The Discrete QAC model, used in DiscreteSAC.
+        The discrete action Q-value Actor-Critic (QAC) model, used in DiscreteSAC.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """

@@ -38,7 +38,7 @@ class ActorMLP(torch.nn.Module):
         self.bn1 = nn.BatchNorm1d(4)
         self.fc2 = nn.Linear(4, 6)
         self.act = nn.ReLU()
-        self.out = nn.Softmax()
+        self.out = nn.Softmax(dim=-1)
 
     def forward(self, inputs, tmp=0):
         x = self.fc1(inputs['obs'])
@@ -61,7 +61,7 @@ class HybridActorMLP(torch.nn.Module):
         self.bn1 = nn.BatchNorm1d(4)
         self.fc2 = nn.Linear(4, 6)
         self.act = nn.ReLU()
-        self.out = nn.Softmax()
+        self.out = nn.Softmax(dim=-1)
 
         self.fc2_cont = nn.Linear(4, 6)
         self.act_cont = nn.ReLU()
@@ -93,7 +93,7 @@ class HybridReparamActorMLP(torch.nn.Module):
         self.bn1 = nn.BatchNorm1d(4)
         self.fc2 = nn.Linear(4, 6)
         self.act = nn.ReLU()
-        self.out = nn.Softmax()
+        self.out = nn.Softmax(dim=-1)
 
         self.fc2_cont_mu = nn.Linear(4, 6)
         self.act_cont_mu = nn.ReLU()
@@ -131,7 +131,6 @@ class ReparamActorMLP(torch.nn.Module):
         self.bn1 = nn.BatchNorm1d(4)
         self.fc2 = nn.Linear(4, 6)
         self.act = nn.ReLU()
-        self.out = nn.Softmax()
 
         self.fc2_cont_mu = nn.Linear(4, 6)
         self.fc2_cont_sigma = nn.Linear(4, 6)
@@ -553,13 +552,15 @@ class TestModelWrappers:
     def test_combination_argmax_sample_wrapper(self):
         model = model_wrap(ActorMLP(), wrapper_name='combination_argmax_sample')
         data = {'obs': torch.randn(4, 3)}
-        output = model.forward(shot_number=2, inputs=data)
-        assert output['action'].shape == (4, )
+        shot_number = 2
+        output = model.forward(shot_number=shot_number, inputs=data)
+        assert output['action'].shape == (4, shot_number)
         assert (output['action'] >= 0).all() and (output['action'] < 64).all()
 
     def test_combination_multinomial_sample_wrapper(self):
         model = model_wrap(ActorMLP(), wrapper_name='combination_multinomial_sample')
         data = {'obs': torch.randn(4, 3)}
-        output = model.forward(shot_number=2, inputs=data)
-        assert output['action'].shape == (4, )
+        shot_number = 2
+        output = model.forward(shot_number=shot_number, inputs=data)
+        assert output['action'].shape == (4, shot_number)
         assert (output['action'] >= 0).all() and (output['action'] < 64).all()

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from itertools import product
 
-from ding.model.template import QAC, MAQAC, DiscreteQAC
+from ding.model.template import ContinuousQAC, DiscreteMAQAC, DiscreteQAC
 from ding.torch_utils import is_differentiable
 from ding.utils import squeeze
 
@@ -18,12 +18,12 @@ args = list(product(*[action_shape_args, [True, False], ['regression', 'reparame
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('action_shape, twin, action_space', args)
-class TestQAC:
+class TestContinuousQAC:
 
     def test_fcqac(self, action_shape, twin, action_space):
         N = 32
         inputs = {'obs': torch.randn(B, N), 'action': torch.randn(B, squeeze(action_shape))}
-        model = QAC(
+        model = ContinuousQAC(
             obs_shape=(N, ),
             action_shape=action_shape,
             action_space=action_space,
@@ -98,7 +98,7 @@ args = list(product(*[agent_obs_shape, global_obs_shape]))
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('agent_obs_shape, global_obs_shape', args)
-class TestMAQAC:
+class TestDiscreteMAQAC:
 
     def output_check(self, model, outputs, action_shape):
         if isinstance(action_shape, tuple):
@@ -115,7 +115,7 @@ class TestMAQAC:
                 'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
             }
         }
-        model = MAQAC(agent_obs_shape, global_obs_shape, action_shape)
+        model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape)
 
         logit = model(data, mode='compute_actor')['logit']
         value = model(data, mode='compute_critic')['q_value']
@@ -143,11 +143,11 @@ args = list(product(*[action_shape_args, [True, False], [True, False]]))
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('action_shape, twin, share_encoder', args)
-class TestQACPixel:
+class TestContinuousQACPixel:
 
     def test_qacpixel(self, action_shape, twin, share_encoder):
         inputs = {'obs': torch.randn(B, 3, 84, 84), 'action': torch.randn(B, squeeze(action_shape))}
-        model = QAC(
+        model = ContinuousQAC(
             obs_shape=(3, 84, 84),
             action_shape=action_shape,
             action_space='reparameterization',
