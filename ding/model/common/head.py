@@ -290,7 +290,7 @@ class BranchingHead(nn.Module):
 class RainbowHead(nn.Module):
     """
     Overview:
-        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN. 
+        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -394,7 +394,7 @@ class RainbowHead(nn.Module):
 class QRDQNHead(nn.Module):
     """
     Overview:
-        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles. 
+        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles.
     Interfaces:
         ``__init__``, ``forward``.
     """
