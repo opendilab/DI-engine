@@ -33,7 +33,21 @@ class MockPolicy(Mock):
 
 
 def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, buffer: Optional[Buffer] = None):
-    cfg = EasyDict({'policy': {'collect': {'discount_factor': 0.9, 'gae_lambda': 0.95}, 'cuda': False}})
+    cfg = EasyDict(
+        {
+            'policy': {
+                'model': {
+                    'obs_shape': 4,
+                    'action_shape': 2,
+                },
+                'collect': {
+                    'discount_factor': 0.9,
+                    'gae_lambda': 0.95
+                },
+                'cuda': False
+            }
+        }
+    )
 
     ctx = OnlineRLContext()
     assert trajectory_end_idx_size <= batch_size
@@ -64,9 +78,9 @@ def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, b
     if buffer is not None:
         train_data = [d.data for d in list(buffer.storage)]
         for d in train_data:
-            d.logit = d.logit[0]
-            d.next_obs = d.next_obs[0]
-            d.obs = d.obs[0]
+            d.logit = d.logit
+            d.next_obs = d.next_obs
+            d.obs = d.obs
         ctx.train_data = ttorch_collate(train_data, cat_1dim=True)
 
     assert ctx.trajectories is None
