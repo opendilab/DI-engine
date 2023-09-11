@@ -464,6 +464,8 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
             length.append(len(v))
         elif isinstance(v, list) or isinstance(v, tuple):
             if isinstance(v[0], str):
+                # some buffer data contains useless string infos, such as 'buffer_id',
+                # which should not be split, so we just skip it
                 continue
             else:
                 length.append(get_shape0(v[0]))

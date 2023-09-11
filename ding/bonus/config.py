@@ -3,7 +3,7 @@ import os
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
+    EvalEpisodeReturnWrapper, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
 from ding.policy import PPOFPolicy
 
 
@@ -199,7 +199,7 @@ def get_instance_env(env: str) -> BaseEnv:
             cfg={
                 'env_wrapper': [
                     lambda env: TimeLimitWrapper(env, max_limit=300),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )
@@ -215,7 +215,7 @@ def get_instance_env(env: str) -> BaseEnv:
                     lambda env: ScaledFloatFrameWrapper(env),
                     lambda env: FrameStackWrapper(env, n_frames=4),
                     lambda env: TimeLimitWrapper(env, max_limit=200),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )
@@ -229,7 +229,7 @@ def get_instance_env(env: str) -> BaseEnv:
                 'env_wrapper': [
                     lambda env: TransposeWrapper(env),
                     lambda env: ScaledFloatFrameWrapper(env),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             },
             seed_api=False,
@@ -302,7 +302,7 @@ def get_instance_env(env: str) -> BaseEnv:
                     lambda env: GymToGymnasiumWrapper(env),
                     lambda env: FlatObsWrapper(env),
                     lambda env: TimeLimitWrapper(env, max_limit=300),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )

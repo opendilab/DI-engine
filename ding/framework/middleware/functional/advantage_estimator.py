@@ -5,7 +5,7 @@ import torch
 import treetensor.torch as ttorch
 from ding.policy import Policy
 from ding.data import Buffer
-from ding.rl_utils import gae, gae_data
+from ding.rl_utils import gae, gae_data, get_train_sample
 from ding.framework import task
 from ding.utils.data import ttorch_collate
 from ding.torch_utils import to_device
@@ -117,7 +117,29 @@ def ppof_adv_estimator(policy: Policy) -> Callable:
     return _estimator
 
 
-def pg_estimator(policy: Policy) -> Callable:
+def montecarlo_return_estimator(policy: Policy) -> Callable:
+
+    def pg_policy_get_train_sample(data):
+        assert data[-1]['done'], "PG needs a complete epsiode"
+
+        if policy._cfg.learn.ignore_done:
+            raise NotImplementedError
+
+        R = 0.
+        if isinstance(data, list):
+            for i in reversed(range(len(data))):
+                R = policy._gamma * R + data[i]['reward']
+                data[i]['return'] = R
+            return get_train_sample(data, policy._unroll_len)
+        elif isinstance(data, ttorch.Tensor):
+            data_size = data['done'].shape[0]
+            data['return'] = ttorch.Tensor([0.0 for i in range(data_size)])
+            for i in reversed(range(data_size)):
+                R = policy._gamma * R + data['reward'][i]
+                data['return'][i] = R
+            return get_train_sample(data, policy._unroll_len)
+        else:
+            raise ValueError
 
     def _estimator(ctx: "OnlineRLContext"):
         train_data = []
@@ -126,7 +148,7 @@ def pg_estimator(policy: Policy) -> Callable:
             if data['action'].dtype in [torch.float16, torch.float32, torch.double] \
                     and data['action'].dim() == 1:
                 data['action'] = data['action'].unsqueeze(-1)
-            data = policy.get_train_sample(data)
+            data = pg_policy_get_train_sample(data)
             train_data.append(data)
         ctx.train_data = ttorch.cat(train_data, dim=0)
 

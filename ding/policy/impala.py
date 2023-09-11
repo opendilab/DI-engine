@@ -444,6 +444,3 @@ class IMPALAPolicy(Policy):
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss']
-
-    def monitor_vars(self):
-        return self._monitor_vars_learn()

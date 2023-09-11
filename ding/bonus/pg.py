@@ -8,7 +8,7 @@ import treetensor.torch as ttorch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, \
-    pg_estimator, final_ctx_saver, EpisodeCollector
+    montecarlo_return_estimator, final_ctx_saver, EpisodeCollector
 from ding.envs import BaseEnv
 from ding.envs import setup_ding_env_manager
 from ding.policy import PGPolicy
@@ -109,11 +109,11 @@ class PGAgent:
             )
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(EpisodeCollector(self.cfg, self.policy.collect_mode, collector_env))
-            task.use(pg_estimator(self.policy.collect_mode))
+            task.use(montecarlo_return_estimator(self.policy))
             task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(
                 wandb_online_logger(
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,

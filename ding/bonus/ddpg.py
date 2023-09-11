@@ -124,7 +124,7 @@ class DDPGAgent:
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
             task.use(
                 wandb_online_logger(
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,

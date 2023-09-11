@@ -131,7 +131,7 @@ class PPOOffPolicyAgent:
                 wandb_online_logger(
                     cfg=self.cfg.wandb_logger,
                     exp_config=self.cfg,
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,
