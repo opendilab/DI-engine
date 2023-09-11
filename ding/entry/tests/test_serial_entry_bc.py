@@ -80,10 +80,6 @@ def test_serial_pipeline_bc_ppo():
     os.popen('rm -rf ' + expert_data_path)
 
 
-if __name__ == '__main__':
-    test_serial_pipeline_bc_ppo()
-
-
 @POLICY_REGISTRY.register('dqn_bc')
 class DQNILPolicy(BehaviourCloningPolicy):
 
