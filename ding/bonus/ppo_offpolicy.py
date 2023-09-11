@@ -14,8 +14,7 @@ from ding.policy import PPOOffPolicy
 from ding.utils import set_pkg_seed
 from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
-from ding.model import BaseVAC, VAC
-from ding.model import StochasticPolicy, VModel
+from ding.model import VAC
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
@@ -75,12 +74,7 @@ class PPOOffPolicyAgent:
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         if model is None:
-            if hasattr(self.cfg.policy.model, "customized_model") and self.cfg.policy.model.customized_model:
-                actor = StochasticPolicy(self.cfg.policy.model.actor)
-                critic = VModel(self.cfg.policy.model.critic)
-                model = BaseVAC(actor=actor, critic=critic, action_space=self.cfg.policy.action_space)
-            else:
-                model = VAC(**self.cfg.policy.model)
+            model = VAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = PPOOffPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:

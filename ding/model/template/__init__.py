@@ -26,5 +26,3 @@ from .dt import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import QACEnsemble
-from .value_network import QModel, VModel
-from .stochastic_policy import StochasticPolicy
