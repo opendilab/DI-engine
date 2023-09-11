@@ -821,7 +821,7 @@ class PPOOffPolicy(Policy):
         self._learn_model.train()
 
         with torch.no_grad():
-            if self._value_norm:
+            if hasattr(self, "_value_norm") and self._value_norm:
                 unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
                 data['return'] = unnormalized_return / self._running_mean_std.std
                 self._running_mean_std.update(unnormalized_return.cpu().numpy())
@@ -1066,7 +1066,7 @@ class PPOOffPolicy(Policy):
                 )['value']
             if len(last_value.shape) == 2:  # multi_agent case:
                 last_value = last_value.squeeze(0)
-        if self._value_norm:
+        if hasattr(self, "_value_norm") and self._value_norm:
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
@@ -1077,7 +1077,7 @@ class PPOOffPolicy(Policy):
             gae_lambda=self._gae_lambda,
             cuda=False,
         )
-        if self._value_norm:
+        if hasattr(self, "_value_norm") and self._value_norm:
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
