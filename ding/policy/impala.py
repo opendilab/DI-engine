@@ -203,7 +203,9 @@ class IMPALAPolicy(Policy):
         # IMPALA forward
         # ====================
         self._learn_model.train()
-        output = self._learn_model.forward(data['obs_plus_1'].view((-1, )+data['obs_plus_1'].shape[2:]), mode='compute_actor_critic')
+        output = self._learn_model.forward(
+            data['obs_plus_1'].view((-1, ) + data['obs_plus_1'].shape[2:]), mode='compute_actor_critic'
+        )
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)

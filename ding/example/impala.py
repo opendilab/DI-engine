@@ -13,24 +13,25 @@ from ding.utils import set_pkg_seed
 from dizoo.box2d.lunarlander.config.lunarlander_impala_config import main_config, create_config
 from dizoo.box2d.lunarlander.envs import LunarLanderEnv
 
+
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.collector_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
         cfg.seed = 133
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         model = VAC(**cfg.policy.model)
-        buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size, sliced=cfg.policy.other.replay_buffer.sliced)
+        buffer_ = DequeBuffer(
+            size=cfg.policy.other.replay_buffer.replay_buffer_size, sliced=cfg.policy.other.replay_buffer.sliced
+        )
         policy = IMPALAPolicy(cfg.policy, model=model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))

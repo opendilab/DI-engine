@@ -13,6 +13,7 @@ from ding.utils import set_pkg_seed
 from dizoo.atari.config.serial.pong.pong_impala_config import main_config, create_config
 from dizoo.atari.envs import AtariEnv
 
+
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
@@ -21,21 +22,23 @@ def main():
         collector_env_cfg = AtariEnv.create_collector_env_cfg(cfg.env)
         evaluator_env_cfg = AtariEnv.create_evaluator_env_cfg(cfg.env)
         collector_env = SubprocessEnvManagerV2(
-            env_fn=[lambda: AtariEnv(cfg=c) for c in collector_env_cfg],
-            cfg=cfg.env.manager
+            env_fn=[lambda: AtariEnv(cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager
         )
         evaluator_env = SubprocessEnvManagerV2(
-            env_fn=[lambda: AtariEnv(cfg=c) for c in evaluator_env_cfg],
-            cfg=cfg.env.manager
+            env_fn=[lambda: AtariEnv(cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager
         )
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         model = VAC(**cfg.policy.model)
-        buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size, sliced=cfg.policy.other.replay_buffer.sliced)
+        buffer_ = DequeBuffer(
+            size=cfg.policy.other.replay_buffer.replay_buffer_size, sliced=cfg.policy.other.replay_buffer.sliced
+        )
         policy = IMPALAPolicy(cfg.policy, model=model)
 
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
-        task.use(StepCollector(cfg, policy.collect_mode, collector_env, random_collect_size=cfg.policy.random_collect_size))
+        task.use(
+            StepCollector(cfg, policy.collect_mode, collector_env, random_collect_size=cfg.policy.random_collect_size)
+        )
         task.use(data_pusher(cfg, buffer_, group_by_env=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(online_logger(train_show_freq=300))
