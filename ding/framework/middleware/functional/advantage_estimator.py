@@ -28,6 +28,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
     """
 
     model = policy.get_attribute('model')
+    # Unify the shape of obs and action
     obs_shape = cfg['policy']['model']['obs_shape']
     obs_shape = torch.Size(torch.tensor(obs_shape)) if isinstance(obs_shape, list) \
         else torch.Size(torch.tensor(obs_shape).unsqueeze(0))
@@ -106,8 +107,7 @@ def ppof_adv_estimator(policy: Policy) -> Callable:
 
     def _estimator(ctx: "OnlineRLContext"):
         data = ttorch_collate(ctx.trajectories, cat_1dim=True)
-        if data['action'].dtype in [torch.float16, torch.float32, torch.double] \
-                and data['action'].dim() == 1:
+        if data['action'].dtype == torch.float32 and data['action'].dim() == 1:
             data['action'] = data['action'].unsqueeze(-1)
         traj_flag = data.done.clone()
         traj_flag[ctx.trajectory_end_idx] = True

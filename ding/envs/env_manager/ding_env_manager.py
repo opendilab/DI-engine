@@ -1,5 +1,5 @@
-from .env_manager import BaseEnvManagerV2, SubprocessEnvManagerV2
-from .env import DingEnvWrapper
+from . import BaseEnvManagerV2, SubprocessEnvManagerV2
+from ..env import DingEnvWrapper
 from typing import Optional
 from functools import partial
 

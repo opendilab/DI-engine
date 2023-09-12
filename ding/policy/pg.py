@@ -182,7 +182,7 @@ class PGPolicy(Policy):
             return get_train_sample(data, self._unroll_len)
         elif isinstance(data, ttorch.Tensor):
             data_size = data['done'].shape[0]
-            data['return'] = ttorch.Tensor([0.0 for i in range(data_size)])
+            data['return'] = ttorch.torch.zeros(data_size)
             for i in reversed(range(data_size)):
                 R = self._gamma * R + data['reward'][i]
                 data['return'][i] = R
