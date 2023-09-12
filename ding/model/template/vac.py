@@ -60,7 +60,7 @@ class VAC(nn.Module):
             - actor_head_layer_num (:obj:`int`): The num of layers used in the ``actor_head`` network to compute action.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``critic_head`` network, defaults \
                 to 64, it must match the last element of ``encoder_hidden_size_list``.
-            - critic_head_layer_num (:obj:`int`): The num of layers used in the ``critic_head`` network to.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the ``critic_head`` network.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
                 if ``None`` then default set it to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
@@ -190,7 +190,6 @@ class VAC(nn.Module):
             )
             self.actor_head = nn.ModuleList([actor_action_type, actor_action_args])
 
-        # must use list, not nn.ModuleList
         if self.share_encoder:
             self.actor = [self.encoder, self.actor_head]
             self.critic = [self.encoder, self.critic_head]

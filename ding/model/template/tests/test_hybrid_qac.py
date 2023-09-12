@@ -50,8 +50,8 @@ class TestHybridContinuousQAC:
         # compute_q
         q = model(inputs, mode='compute_critic')['q_value']
         if twin:
-            is_differentiable(q[0].sum(), model.critic[0])
-            is_differentiable(q[1].sum(), model.critic[1])
+            is_differentiable(q[0].sum(), model.critic[1][0])
+            is_differentiable(q[1].sum(), model.critic[1][1])
         else:
             is_differentiable(q.sum(), model.critic)
 
