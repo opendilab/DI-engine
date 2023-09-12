@@ -263,7 +263,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
             dataloader = iter(dataloader)
             ctx.train_data = next(dataloader)
         # TODO apply data update (e.g. priority) in offline setting when necessary
-        ctx.env_step += len(ctx.train_data)
+        ctx.trained_env_step += len(ctx.train_data)
 
     return _fetch
 

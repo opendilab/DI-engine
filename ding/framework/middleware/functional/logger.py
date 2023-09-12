@@ -632,7 +632,7 @@ def wandb_offline_logger(
                     info_for_logging.update({"video": wandb.Video(video_path, format="mp4")})
 
             if cfg.action_logger:
-                action_path = os.path.join(record_path, (str(ctx.env_step) + "_action.gif"))
+                action_path = os.path.join(record_path, (str(ctx.trained_env_step) + "_action.gif"))
                 if all(['logit' in v for v in eval_output]) or hasattr(eval_output, "logit"):
                     if isinstance(eval_output, tnp.ndarray):
                         action_prob = softmax(eval_output.logit)
@@ -661,7 +661,7 @@ def wandb_offline_logger(
                         info_for_logging.update({"actions_of_trajectory_{}".format(i): fig})
 
             if cfg.return_logger:
-                return_path = os.path.join(record_path, (str(ctx.env_step) + "_return.gif"))
+                return_path = os.path.join(record_path, (str(ctx.trained_env_step) + "_return.gif"))
                 fig, ax = plt.subplots()
                 ax = plt.gca()
                 ax.set_ylim([0, 1])
@@ -673,7 +673,7 @@ def wandb_offline_logger(
                 info_for_logging.update({"return distribution": wandb.Video(return_path, format="gif")})
 
         if bool(info_for_logging):
-            wandb.log(data=info_for_logging, step=ctx.env_step)
+            wandb.log(data=info_for_logging, step=ctx.trained_env_step)
         plt.clf()
 
     return _plot
