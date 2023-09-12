@@ -126,12 +126,7 @@ def montecarlo_return_estimator(policy: Policy) -> Callable:
             raise NotImplementedError
 
         R = 0.
-        if isinstance(data, list):
-            for i in reversed(range(len(data))):
-                R = policy._gamma * R + data[i]['reward']
-                data[i]['return'] = R
-            return get_train_sample(data, policy._unroll_len)
-        elif isinstance(data, ttorch.Tensor):
+        if isinstance(data, ttorch.Tensor):
             data_size = data['done'].shape[0]
             data['return'] = ttorch.Tensor([0.0 for i in range(data_size)])
             for i in reversed(range(data_size)):

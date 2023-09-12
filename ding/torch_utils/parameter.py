@@ -16,7 +16,7 @@ class NonegativeParameter(nn.Module):
 
     @property
     def data(self):
-        return torch.exp(self.log_data)
+        return self.forward()
 
 
 class TanhParameter(nn.Module):
@@ -34,4 +34,4 @@ class TanhParameter(nn.Module):
 
     @property
     def data(self):
-        return self.transform(self.data_inv)
+        return self.forward()
