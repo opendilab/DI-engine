@@ -23,7 +23,6 @@ from .serial_entry_preference_based_irl \
       import serial_pipeline_preference_based_irl
 from .serial_entry_preference_based_irl_onpolicy \
       import serial_pipeline_preference_based_irl_onpolicy
-from .application_entry_drex_collect_data import drex_collecting_data
 from .serial_entry_mbrl import serial_pipeline_dyna, serial_pipeline_dream, serial_pipeline_dreamer
 from .serial_entry_bco import serial_pipeline_bco
 from .serial_entry_pc import serial_pipeline_pc

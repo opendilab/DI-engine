@@ -17,6 +17,7 @@ cartpole_dqn_config = dict(
             action_shape=2,
             encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
+            # dropout=0.1,
         ),
         nstep=1,
         discount_factor=0.97,

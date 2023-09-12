@@ -25,6 +25,7 @@ jobs:
           python -m pip install box2d-py
           python -m pip install .
           python -m pip install ".[test,k8s]"
+          python -m pip install transformers
           ./ding/scripts/install-k8s-tools.sh
           make unittest
       - name: Upload coverage to Codecov
@@ -53,5 +54,6 @@ jobs:
         run: |
           python -m pip install .
           python -m pip install ".[test,k8s]"
+          python -m pip install transformers
           ./ding/scripts/install-k8s-tools.sh
           make benchmark

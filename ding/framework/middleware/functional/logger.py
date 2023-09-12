@@ -11,7 +11,6 @@ import torch
 import wandb
 import pickle
 import treetensor.numpy as tnp
-from tensorboardX import SummaryWriter
 from ding.framework import task
 from ding.envs import BaseEnvManagerV2
 from ding.utils import DistributedWriter
@@ -22,7 +21,115 @@ if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
 
 
-def softmax(logit):
+def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
+    """
+    Overview:
+        Create an online RL tensorboard logger for recording training and evaluation metrics.
+    Arguments:
+        - record_train_iter (:obj:`bool`): Whether to record training iteration. Default is False.
+        - train_show_freq (:obj:`int`): Frequency of showing training logs. Default is 100.
+    Returns:
+        - _logger (:obj:`Callable`): A logger function that takes an OnlineRLContext object as input.
+    Raises:
+        - RuntimeError: If writer is None.
+        - NotImplementedError: If the key of train_output is not supported, such as "scalars".
+
+    Examples:
+        >>> task.use(online_logger(record_train_iter=False, train_show_freq=1000))
+    """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
+    writer = DistributedWriter.get_instance()
+    if writer is None:
+        raise RuntimeError("logger writer is None, you should call `ding_init(cfg)` at the beginning of training.")
+    last_train_show_iter = -1
+
+    def _logger(ctx: "OnlineRLContext"):
+        if task.finish:
+            writer.close()
+        nonlocal last_train_show_iter
+
+        if not np.isinf(ctx.eval_value):
+            if record_train_iter:
+                writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
+                writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
+            else:
+                writer.add_scalar('basic/eval_episode_return_mean', ctx.eval_value, ctx.env_step)
+        if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
+            last_train_show_iter = ctx.train_iter
+            if isinstance(ctx.train_output, List):
+                output = ctx.train_output.pop()  # only use latest output for some algorithms, like PPO
+            else:
+                output = ctx.train_output
+            for k, v in output.items():
+                if k in ['priority', 'td_error_priority']:
+                    continue
+                if "[scalars]" in k:
+                    new_k = k.split(']')[-1]
+                    raise NotImplementedError
+                elif "[histogram]" in k:
+                    new_k = k.split(']')[-1]
+                    writer.add_histogram(new_k, v, ctx.env_step)
+                    if record_train_iter:
+                        writer.add_histogram(new_k, v, ctx.train_iter)
+                else:
+                    if record_train_iter:
+                        writer.add_scalar('basic/train_{}-train_iter'.format(k), v, ctx.train_iter)
+                        writer.add_scalar('basic/train_{}-env_step'.format(k), v, ctx.env_step)
+                    else:
+                        writer.add_scalar('basic/train_{}'.format(k), v, ctx.env_step)
+
+    return _logger
+
+
+def offline_logger(train_show_freq: int = 100) -> Callable:
+    """
+    Overview:
+        Create an offline RL tensorboard logger for recording training and evaluation metrics.
+    Arguments:
+        - train_show_freq (:obj:`int`): Frequency of showing training logs. Defaults to 100.
+    Returns:
+        - _logger (:obj:`Callable`): A logger function that takes an OfflineRLContext object as input.
+    Raises:
+        - RuntimeError: If writer is None.
+        - NotImplementedError: If the key of train_output is not supported, such as "scalars".
+
+    Examples:
+        >>> task.use(offline_logger(train_show_freq=1000))
+    """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
+    writer = DistributedWriter.get_instance()
+    if writer is None:
+        raise RuntimeError("logger writer is None, you should call `ding_init(cfg)` at the beginning of training.")
+    last_train_show_iter = -1
+
+    def _logger(ctx: "OfflineRLContext"):
+        nonlocal last_train_show_iter
+        if task.finish:
+            writer.close()
+        if not np.isinf(ctx.eval_value):
+            writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
+        if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
+            last_train_show_iter = ctx.train_iter
+            output = ctx.train_output
+            for k, v in output.items():
+                if k in ['priority']:
+                    continue
+                if "[scalars]" in k:
+                    new_k = k.split(']')[-1]
+                    raise NotImplementedError
+                elif "[histogram]" in k:
+                    new_k = k.split(']')[-1]
+                    writer.add_histogram(new_k, v, ctx.train_iter)
+                else:
+                    writer.add_scalar('basic/train_{}-train_iter'.format(k), v, ctx.train_iter)
+
+    return _logger
+
+
+# four utility functions for wandb logger
+def softmax(logit: np.ndarray) -> np.ndarray:
     v = np.exp(logit)
     return v / v.sum(axis=-1, keepdims=True)
 
@@ -49,77 +156,6 @@ def return_distribution(episode_return):
     return hist / num, x_dim
 
 
-def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
-    if task.router.is_active and not task.has_role(task.role.LEARNER):
-        return task.void()
-    writer = DistributedWriter.get_instance()
-    last_train_show_iter = -1
-
-    def _logger(ctx: "OnlineRLContext"):
-        if task.finish:
-            writer.close()
-        nonlocal last_train_show_iter
-
-        if not np.isinf(ctx.eval_value):
-            if record_train_iter:
-                writer.add_scalar('basic/eval_episode_return_mean-env_step', ctx.eval_value, ctx.env_step)
-                writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
-            else:
-                writer.add_scalar('basic/eval_episode_return_mean', ctx.eval_value, ctx.env_step)
-        if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
-            last_train_show_iter = ctx.train_iter
-            if isinstance(ctx.train_output, List):
-                output = ctx.train_output.pop()  # only use latest output
-            else:
-                output = ctx.train_output
-            for k, v in output.items():
-                if k in ['priority', 'td_error_priority']:
-                    continue
-                if "[scalars]" in k:
-                    new_k = k.split(']')[-1]
-                    raise NotImplementedError
-                elif "[histogram]" in k:
-                    new_k = k.split(']')[-1]
-                    writer.add_histogram(new_k, v, ctx.env_step)
-                    if record_train_iter:
-                        writer.add_histogram(new_k, v, ctx.train_iter)
-                else:
-                    if record_train_iter:
-                        writer.add_scalar('basic/train_{}-train_iter'.format(k), v, ctx.train_iter)
-                        writer.add_scalar('basic/train_{}-env_step'.format(k), v, ctx.env_step)
-                    else:
-                        writer.add_scalar('basic/train_{}'.format(k), v, ctx.env_step)
-
-    return _logger
-
-
-def offline_logger(exp_name: str = None) -> Callable:
-    if task.router.is_active and not task.has_role(task.role.LEARNER):
-        return task.void()
-    writer = SummaryWriter(logdir=exp_name)
-
-    def _logger(ctx: "OfflineRLContext"):
-        if task.finish:
-            writer.close()
-        if not np.isinf(ctx.eval_value):
-            writer.add_scalar('basic/eval_episode_return_mean-train_iter', ctx.eval_value, ctx.train_iter)
-        if ctx.train_output is not None:
-            output = ctx.train_output
-            for k, v in output.items():
-                if k in ['priority']:
-                    continue
-                if "[scalars]" in k:
-                    new_k = k.split(']')[-1]
-                    raise NotImplementedError
-                elif "[histogram]" in k:
-                    new_k = k.split(']')[-1]
-                    writer.add_histogram(new_k, v, ctx.train_iter)
-                else:
-                    writer.add_scalar('basic/train_{}-train_iter'.format(k), v, ctx.train_iter)
-
-    return _logger
-
-
 def wandb_online_logger(
         record_path: str = None,
         cfg: Union[dict, EasyDict] = None,
@@ -129,7 +165,7 @@ def wandb_online_logger(
         anonymous: bool = False,
         project_name: str = 'default-project',
 ) -> Callable:
-    '''
+    """
     Overview:
         Wandb visualizer to track the experiment.
     Arguments:
@@ -143,10 +179,12 @@ def wandb_online_logger(
         - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Policy neural network model.
-        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
-            The anonymous mode allows visualization of data without wandb count.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not. The anonymous mode allows visualization \
+            of data without wandb count.
         - project_name (:obj:`str`): The name of wandb project.
-    '''
+    Returns:
+        - _plot (:obj:`Callable`): A logger function that takes an OnlineRLContext object as input.
+    """
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
@@ -294,7 +332,7 @@ def wandb_offline_logger(
         anonymous: bool = False,
         project_name: str = 'default-project',
 ) -> Callable:
-    '''
+    """
     Overview:
         Wandb visualizer to track the experiment.
     Arguments:
@@ -309,10 +347,12 @@ def wandb_offline_logger(
         - metric_list (:obj:`Optional[List[str]]`): Logged metric list, specialized by different policies.
         - env (:obj:`BaseEnvManagerV2`): Evaluator environment.
         - model (:obj:`nn.Module`): Policy neural network model.
-        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not.
-            The anonymous mode allows visualization of data without wandb count.
+        - anonymous (:obj:`bool`): Open the anonymous mode of wandb or not. The anonymous mode allows visualization \
+            of data without wandb count.
         - project_name (:obj:`str`): The name of wandb project.
-    '''
+    Returns:
+        - _plot (:obj:`Callable`): A logger function that takes an OfflineRLContext object as input.
+    """
     if task.router.is_active and not task.has_role(task.role.LEARNER):
         return task.void()
     color_list = ["orange", "red", "blue", "purple", "green", "darkcyan"]
