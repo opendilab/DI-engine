@@ -19,8 +19,8 @@ from ding.model import DQN
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.config.SQL import supported_env_cfg
-from ding.config.SQL import supported_env
+from ding.config.example.SQL import supported_env_cfg
+from ding.config.example.SQL import supported_env
 
 
 class SQLAgent:

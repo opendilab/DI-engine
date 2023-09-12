@@ -17,8 +17,8 @@ from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
 from ding.model import PG
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.config.PG import supported_env_cfg
-from ding.config.PG import supported_env
+from ding.config.example.PG import supported_env_cfg
+from ding.config.example.PG import supported_env
 
 
 class PGAgent:
