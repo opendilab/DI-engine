@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 lunarlander_impala_config = dict(
-    exp_name='impala_log/lunarlander_impala_seed30_cudaTRUE_vgpu_randcollect1024',
+    exp_name='impala_log/lunarlander_impala_seed0',
     env=dict(
         env_id='LunarLander-v2',
         collector_env_num=8,
@@ -12,7 +12,7 @@ lunarlander_impala_config = dict(
     policy=dict(
         cuda=True,
         # (int) the trajectory length to calculate v-trace target
-        unroll_len=16,
+        unroll_len=32,
         random_collect_size=256,
         model=dict(
             obs_shape=8,
@@ -24,7 +24,7 @@ lunarlander_impala_config = dict(
             # here we follow ppo serial pipeline
             update_per_collect=10,
             # (int) the number of data for a train iteration
-            batch_size=64,
+            batch_size=128,
             grad_clip_type='clip_norm',
             clip_value=5,
             learning_rate=0.0003,

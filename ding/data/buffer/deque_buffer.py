@@ -355,8 +355,6 @@ class DequeBuffer(Buffer):
                 if sliced:
                     start_indice = random.choice(range(max(1, len(seq_data))))
                     start_indice = start_indice // unroll_len
-                    # start_indice = random.choice(range(max(1, len(seq_data)//unroll_len)))
-                    # if start_indice == len(seq_data)//unroll_len-1:
                     if start_indice == (len(seq_data)-1)//unroll_len:
                         seq_data = seq_data[-unroll_len:]
                     else:

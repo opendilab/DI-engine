@@ -29,7 +29,7 @@ pong_impala_config = dict(
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
-            update_per_collect=10,
+            update_per_collect=2,
             # (int) the number of data for a train iteration
             batch_size=128,
             # optim_type='rmsprop',
@@ -41,7 +41,7 @@ pong_impala_config = dict(
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
+            discount_factor=0.99,
             # (float) additional discounting parameter
             lambda_=0.95,
             # (float) clip ratio of importance weights
