@@ -9,7 +9,8 @@ from ditk import logging
 
 from ding.torch_utils import get_lstm
 from ding.torch_utils.network.gtrxl import GTrXL
-from ding.model import model_wrap, register_wrapper, IModelWrapper, BaseModelWrapper
+from ding.model import model_wrap, register_wrapper, IModelWrapper
+from ding.model.wrapper.model_wrappers import BaseModelWrapper
 
 
 class TempMLP(torch.nn.Module):
