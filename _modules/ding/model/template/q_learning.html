@@ -305,6 +305,19 @@
 
 <div class="viewcode-block" id="DQN"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.template.q_learning.DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural nework structure and computation graph of Deep Q Network (DQN) algorithm, which is the most classic \</span>
+<span class="sd">        value-based RL algorithm for discrete action. The DQN is composed of two parts: ``encoder`` and ``head``. \</span>
+<span class="sd">        The ``encoder`` is used to extract the feature from various observation, and the ``head`` is used to compute \</span>
+<span class="sd">        the Q value of each action dimension.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Current ``DQN`` supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``, two types of head: \</span>
+<span class="sd">        ``DiscreteHead`` and ``DuelingHead``. You can customize your own encoder or head by inheriting this class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DQN.__init__"><a class="viewcode-back" href="../../../../12_policies/dqfd.html#ding.model.template.q_learning.DQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -320,21 +333,22 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the DQN (encoder + head) Model according to input arguments.</span>
+<span class="sd">            initialize the DQN (encoder + head) Model according to corresponding input arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].</span>
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].</span>
 <span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \</span>
 <span class="sd">                the last element must match ``head_hidden_size``.</span>
-<span class="sd">            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.</span>
-<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.</span>
-<span class="sd">            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output</span>
+<span class="sd">            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead (default)``.</span>
+<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \</span>
+<span class="sd">                then it will be set to the last element of ``encoder_hidden_size_list``.</span>
+<span class="sd">            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.</span>
 <span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \</span>
 <span class="sd">                if ``None`` then default set it to ``nn.ReLU()``.</span>
 <span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \</span>
 <span class="sd">                ``ding.torch_utils.fc_block`` for more details. you can choose one of [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, &#39;LN&#39;]</span>
 <span class="sd">            - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \</span>
-<span class="sd">                if ``None`` then default no dropout layer.</span>
+<span class="sd">                if ``None`` then default disable dropout layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4</span>
@@ -385,19 +399,23 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            DQN forward computation graph, input observation tensor to predict q_value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Observation inputs</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input observation tensor data.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): DQN forward outputs, such as q_value.</span>
+<span class="sd">            - outputs (:obj:`Dict`): The output of DQN&#39;s forward, including q_value.</span>
 <span class="sd">        ReturnsKeys:</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each action dimension.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.</span>
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``</span>
-<span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; model = DQN(32, 6)  # arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 32)</span>
 <span class="sd">            &gt;&gt;&gt; outputs = model(inputs)</span>
 <span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict) and outputs[&#39;logit&#39;].shape == torch.Size([4, 6])</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For consistency and compatibility, we name all the outputs of the network which are related to action \</span>
+<span class="sd">            selections as ``logit``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -501,6 +519,18 @@
 
 <div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.template.q_learning.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">C51DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural network structure and computation graph of C51DQN, which combines distributional RL and DQN. \</span>
+<span class="sd">        You can refer to https://arxiv.org/pdf/1707.06887.pdf for more details. The C51DQN is composed of \</span>
+<span class="sd">        ``encoder`` and ``head``. ``encoder`` is used to extract the feature of observation, and ``head`` is \</span>
+<span class="sd">        used to compute the distribution of Q-value.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Current C51DQN supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -515,21 +545,27 @@
         <span class="n">v_max</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
         <span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">51</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the C51 Model according to input arguments.</span>
+<span class="sd">            initialize the C51 Model according to corresponding input arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
-<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action&#39;s space.</span>
-<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``</span>
-<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.</span>
-<span class="sd">            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`):</span>
-<span class="sd">                The type of activation function to use in ``MLP`` the after ``layer_fn``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`</span>
-<span class="sd">            - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].</span>
+<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \</span>
+<span class="sd">                the last element must match ``head_hidden_size``.</span>
+<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \</span>
+<span class="sd">                then it will be set to the last element of ``encoder_hidden_size_list``.</span>
+<span class="sd">            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \</span>
+<span class="sd">                if ``None`` then default set it to ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \</span>
+<span class="sd">                ``ding.torch_utils.fc_block`` for more details. you can choose one of [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, &#39;LN&#39;]</span>
+<span class="sd">            - v_min (:obj:`Optional[float]`): The minimum value of the support of the distribution, which is related \</span>
+<span class="sd">                to the value (discounted sum of reward) scale of the specific environment. Defaults to -10.</span>
+<span class="sd">            - v_max (:obj:`Optional[float]`): The maximum value of the support of the distribution, which is related \</span>
+<span class="sd">                to the value (discounted sum of reward) scale of the specific environment. Defaults to 10.</span>
+<span class="sd">            - n_atom (:obj:`Optional[int]`): The number of atoms in the prediction distribution, 51 is the default \</span>
+<span class="sd">                value in the paper, you can also try other values such as 301.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">C51DQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># For compatibility: 1, (1, ), [4, 32, 32]</span>
@@ -573,24 +609,28 @@
             <span class="p">)</span>
 
 <div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.template.q_learning.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Use observation tensor to predict C51DQN&#39;s output.</span>
-<span class="sd">            Parameter updates with C51DQN&#39;s MLPs forward setup.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`):</span>
-<span class="sd">                The encoded embedding tensor w/ ``(B, N=head_hidden_size)``.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`):</span>
-<span class="sd">                Run with encoder and head. Return the result prediction dictionary.</span>
-
+<span class="sd">            - outputs (:obj:`Dict`): The output of DQN&#39;s forward, including q_value.</span>
 <span class="sd">        ReturnsKeys:</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.</span>
-<span class="sd">            - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            C51DQN forward computation graph, input observation tensor to predict q_value and its distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): The output of DQN&#39;s forward, including q_value, and distribution.</span>
+<span class="sd">        ReturnsKeys:</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.</span>
+<span class="sd">            - distribution (:obj:`torch.Tensor`): Q-Value discretized distribution, i.e., probability of each \</span>
+<span class="sd">                uniformly spaced atom Q-value, such as dividing [-10, 10] into 51 uniform spaces.</span>
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.</span>
-<span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.</span>
-<span class="sd">            - distribution(:obj:`torch.FloatTensor`): :math:`(B, M, P)`, where P is n_atom.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where M is action_shape.</span>
+<span class="sd">            - distribution(:obj:`torch.Tensor`): :math:`(B, M, P)`, where P is n_atom.</span>
 
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; model = C51DQN(128, 64)  # arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
@@ -601,6 +641,14 @@
 <span class="sd">            &gt;&gt;&gt; assert outputs[&#39;logit&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">            &gt;&gt;&gt; # default n_atom: int = 51</span>
 <span class="sd">            &gt;&gt;&gt; assert outputs[&#39;distribution&#39;].shape == torch.Size([4, 64, 51])</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For consistency and compatibility, we name all the outputs of the network which are related to action \</span>
+<span class="sd">            selections as ``logit``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For convenience, we recommend that the number of atoms should be odd, so that the middle atom is exactly \</span>
+<span class="sd">            the value of the Q-value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -934,7 +982,7 @@
 <span class="sd">        RainbowDQN network (C51 + Dueling + Noisy Block)</span>
 
 <span class="sd">    .. note::</span>
-<span class="sd">        RainbowDQN contains dueling architecture by default</span>
+<span class="sd">        RainbowDQN contains dueling architecture by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1081,7 +1129,18 @@
 <span class="k">class</span> <span class="nc">DRQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        DQN + RNN = DRQN</span>
+<span class="sd">        The neural network structure and computation graph of DRQN (DQN + RNN = DRQN) algorithm, which is the most \</span>
+<span class="sd">        common DQN variant for sequential data and paratially observable environment. The DRQN is composed of three \</span>
+<span class="sd">        parts: ``encoder``, ``head`` and ``rnn``. The ``encoder`` is used to extract the feature from various \</span>
+<span class="sd">        observation, the ``rnn`` is used to process the sequential observation and other data, and the ``head`` is \</span>
+<span class="sd">        used to compute the Q value of each action dimension.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Current ``DRQN`` supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``, two types of head: \</span>
+<span class="sd">        ``DiscreteHead`` and ``DuelingHead``, three types of rnn: ``normal (LSTM with LayerNorm)``, ``pytorch`` and \</span>
+<span class="sd">        ``gru``. You can customize your own encoder, rnn or head by inheriting this class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1097,21 +1156,25 @@
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">res_link</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the DRQN Model according to arguments.</span>
+<span class="sd">            Initialize the DRQN Model according to the corresponding input arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
-<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action&#39;s space.</span>
-<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``</span>
-<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.</span>
-<span class="sd">            - lstm_type (:obj:`Optional[str]`): Version of rnn cell, now support [&#39;normal&#39;, &#39;pytorch&#39;, &#39;hpc&#39;, &#39;gru&#39;]</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`):</span>
-<span class="sd">                The type of activation function to use in ``MLP`` the after ``layer_fn``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`</span>
-<span class="sd">            - res_link (:obj:`bool`): use the residual link or not, default to False</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].</span>
+<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \</span>
+<span class="sd">                the last element must match ``head_hidden_size``.</span>
+<span class="sd">            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead (default)``.</span>
+<span class="sd">            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \</span>
+<span class="sd">                then it will be set to the last element of ``encoder_hidden_size_list``.</span>
+<span class="sd">            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.</span>
+<span class="sd">            - lstm_type (:obj:`Optional[str]`): The type of RNN module, now support [&#39;normal&#39;, &#39;pytorch&#39;, &#39;gru&#39;].</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \</span>
+<span class="sd">                if ``None`` then default set it to ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \</span>
+<span class="sd">                ``ding.torch_utils.fc_block`` for more details. you can choose one of [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;, &#39;LN&#39;]</span>
+<span class="sd">            - res_link (:obj:`bool`): Whether to enable the residual link, which is the skip connnection between \</span>
+<span class="sd">                single frame data and the sequential data, defaults to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DRQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># For compatibility: 1, (1, ), [4, 32, 32]</span>
@@ -1152,34 +1215,26 @@
             <span class="p">)</span>
 
 <div class="viewcode-block" id="DRQN.forward"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.template.q_learning.DRQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Use observation tensor to predict DRQN output.</span>
-<span class="sd">            Parameter updates with DRQN&#39;s MLPs forward setup.</span>
+<span class="sd">            DRQN forward computation graph, input observation tensor to predict q_value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`Dict`):</span>
-<span class="sd">            - inference: (:obj:&#39;bool&#39;): if inference is True, we unroll the one timestep transition,</span>
-<span class="sd">                if inference is False, we unroll the sequence transitions.</span>
-<span class="sd">            - saved_state_timesteps: (:obj:&#39;Optional[list]&#39;): when inference is False,</span>
-<span class="sd">                we unroll the sequence transitions, then we would save rnn hidden states at timesteps</span>
-<span class="sd">                that are listed in list saved_state_timesteps.</span>
-
-<span class="sd">       ArgumentsKeys:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): Encoded observation</span>
-<span class="sd">            - prev_state (:obj:`list`): Previous state&#39;s tensor of size ``(B, N)``</span>
-
+<span class="sd">            - inputs (:obj:`torch.Tensor`): The dict of input data, including observation and previous rnn state.</span>
+<span class="sd">            - inference: (:obj:&#39;bool&#39;): Whether to enable inference forward mode, if True, we unroll the one timestep \</span>
+<span class="sd">                transition, otherwise, we unroll the eentire sequence transitions.</span>
+<span class="sd">            - saved_state_timesteps: (:obj:&#39;Optional[list]&#39;): When inference is False, we unroll the sequence \</span>
+<span class="sd">                transitions, then we would use this list to indicate how to save and return hidden state.</span>
+<span class="sd">        ArgumentsKeys:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): The raw observation tensor.</span>
+<span class="sd">            - prev_state (:obj:`list`): The previous rnn state tensor, whose structure depends on ``lstm_type``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`):</span>
-<span class="sd">                Run ``MLP`` with ``DRQN`` setups and return the result prediction dictionary.</span>
-
+<span class="sd">            - outputs (:obj:`Dict`): The output of DRQN&#39;s forward, including logit (q_value) and next state.</span>
 <span class="sd">        ReturnsKeys:</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``obs``.</span>
-<span class="sd">            - next_state (:obj:`list`): Next state&#39;s tensor of size ``(B, N)``</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.</span>
+<span class="sd">            - next_state (:obj:`list`): The next rnn state tensor, whose structure depends on ``lstm_type``.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N=obs_space)`, where B is batch size.</span>
-<span class="sd">            - prev_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`</span>
-<span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`</span>
-<span class="sd">            - next_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
 
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
@@ -1252,18 +1307,24 @@
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">saved_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># the selected saved hidden states, including the hidden state (h) and the cell state (c)</span>
-                <span class="c1"># in r2d2, set &#39;saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]&#39;,</span>
+                <span class="c1"># in r2d2, set &#39;saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]&#39;,</span>
                 <span class="c1"># then saved_state will record the hidden_state for main_obs and target_obs to</span>
                 <span class="c1"># initialize their lstm (h c)</span>
                 <span class="n">x</span><span class="p">[</span><span class="s1">&#39;saved_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_state</span>
             <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxl_discrete&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">GTrXLDiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxldqn&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GTrXLDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Add a discrete head on top of the GTrXL module.</span>
+<span class="sd">        The neural network structure and computation graph of Gated Transformer-XL DQN algorithm, which is the \</span>
+<span class="sd">        enhanced version of DRQN, using Transformer-XL to improve long-term sequential modelling ability. The \</span>
+<span class="sd">        GTrXL-DQN is composed of three parts: ``encoder``, ``head`` and ``core``. The ``encoder`` is used to extract \</span>
+<span class="sd">        the feature from various observation, the ``core`` is used to process the sequential observation and other \</span>
+<span class="sd">        data, and the ``head`` is used to compute the Q value of each action dimension.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``reset_memory``, ``get_memory`` .</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1286,11 +1347,15 @@
         <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
         <span class="n">encoder_norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the model according to arguments.</span>
+<span class="sd">            Initialize the GTrXLDQN model accoding to corresponding input arguments.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            You can refer to GTrXl class in ``ding.torch_utils.network.gtrxl`` for more details about the input \</span>
+<span class="sd">            arguments.</span>
+
 <span class="sd">        Arguments:</span>
-<span class="sd">            Refer to GTrXl class in `ding.torch_utils.network.gtrxl` for more details about the input arguments.</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Used by Transformer. Observation&#39;s space.</span>
 <span class="sd">            - action_shape (:obj:Union[int, SequenceType]): Used by Head. Action&#39;s space.</span>
 <span class="sd">            - head_layer_num (:obj:`int`): Used by Head. Number of layers.</span>
@@ -1300,20 +1365,20 @@
 <span class="sd">            - att_mlp_num (:obj:`int`): Used by Transformer.</span>
 <span class="sd">            - att_layer_num (:obj:`int`): Used by Transformer.</span>
 <span class="sd">            - memory_len (:obj:`int`): Used by Transformer.</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to</span>
-<span class="sd">             ``nn.ReLU()``.</span>
-<span class="sd">            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see</span>
-<span class="sd">             ``ding.torch_utils.fc_block`` for more details`.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to \</span>
+<span class="sd">                ``nn.ReLU()``.</span>
+<span class="sd">            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see \</span>
+<span class="sd">                ``ding.torch_utils.fc_block`` for more details`.</span>
 <span class="sd">            - dropout (:obj:`bool`): Used by Transformer.</span>
 <span class="sd">            - gru_gating (:obj:`bool`): Used by Transformer.</span>
 <span class="sd">            - gru_bias (:obj:`float`): Used by Transformer.</span>
 <span class="sd">            - dueling (:obj:`bool`): Used by Head. Make the head dueling.</span>
-<span class="sd">            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if using</span>
-<span class="sd">              a custom convolutional encoder.</span>
-<span class="sd">            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see</span>
+<span class="sd">            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if \</span>
+<span class="sd">                using a custom convolutional encoder.</span>
+<span class="sd">            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see \</span>
 <span class="sd">             ``ding.torch_utils.fc_block`` for more details`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">GTrXLDiscreteHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GTrXLDQN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">GTrXL</span><span class="p">(</span>
             <span class="n">input_dim</span><span class="o">=</span><span class="n">obs_shape</span><span class="p">,</span>
             <span class="n">head_dim</span><span class="o">=</span><span class="n">att_head_dim</span><span class="p">,</span>
@@ -1329,7 +1394,7 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">pass</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">))</span>
         <span class="c1"># replace the embedding layer of Transformer with Conv Encoder</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">encoder_hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">hidden_size</span>
@@ -1363,19 +1428,17 @@
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Let input tensor go through GTrXl and the Head sequentially.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.</span>
-<span class="sd">            Necessary Keys:</span>
-<span class="sd">                - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension.</span>
-<span class="sd">                 Shape is (bs, action_space)</span>
-<span class="sd">                - memory (:obj:`torch.Tensor`):</span>
-<span class="sd">                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``</span>
-<span class="sd">                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.</span>
+<span class="sd">        ReturnKeys:</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension, shape is (B, action_space).</span>
+<span class="sd">            - memory (:obj:`torch.Tensor`): memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``.</span>
+<span class="sd">            - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
 <span class="sd">            &gt;&gt;&gt; obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4</span>
@@ -1396,30 +1459,26 @@
         <span class="n">out</span><span class="p">[</span><span class="s1">&#39;transformer_out&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>  <span class="c1"># output of gtrxl, out[&#39;logit&#39;] is final output</span>
         <span class="k">return</span> <span class="n">out</span>
 
-    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Clear or set the memory of GTrXL.</span>
-<span class="sd">         Arguments:</span>
-<span class="sd">            - batch_size (:obj:`Optional[int]`): batch size</span>
-<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): input memory.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            Clear or reset the memory of GTrXL.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - batch_size (:obj:`Optional[int]`): The number of samples in a training batch.</span>
+<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): The input memory data, whose shape is \</span>
+<span class="sd">                (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">reset_memory</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the memory of GTrXL.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized, \</span>
+<span class="sd">                whose shape is (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span>
-
-
-<span class="k">class</span> <span class="nc">GeneralQNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="k">pass</span>
 </pre></div>
 
               </article>
