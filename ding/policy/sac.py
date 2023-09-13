@@ -143,7 +143,7 @@ class SACDiscretePolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         if self._cfg.multi_agent:
-            return 'maqac', ['ding.model.template.maqac']
+            return 'discrete_maqac', ['ding.model.template.maqac']
         else:
             return 'discrete_qac', ['ding.model.template.qac']
 
@@ -227,7 +227,7 @@ class SACDiscretePolicy(Policy):
         action = data['action']
 
         # 1. predict q value
-        q_value = self._learn_model.forward({'obs': obs}, mode='compute_critic')['q_value']
+        q_value = self._learn_model.forward(obs, mode='compute_critic')['q_value']
         dist = torch.distributions.categorical.Categorical(logits=logit)
         dist_entropy = dist.entropy()
         entropy = dist_entropy.mean()
@@ -236,12 +236,12 @@ class SACDiscretePolicy(Policy):
 
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
-            policy_output_next = self._learn_model.forward({'obs': next_obs}, mode='compute_actor')
+            policy_output_next = self._learn_model.forward(next_obs, mode='compute_actor')
             if self._cfg.multi_agent:
                 policy_output_next['logit'][policy_output_next['action_mask'] == 0.0] = -1e8
             prob = F.softmax(policy_output_next['logit'], dim=-1)
             log_prob = torch.log(prob + 1e-8)
-            target_q_value = self._target_model.forward({'obs': next_obs}, mode='compute_critic')['q_value']
+            target_q_value = self._target_model.forward(next_obs, mode='compute_critic')['q_value']
             # the value of a policy according to the maximum entropy objective
             if self._twin_critic:
                 # find min one as target q value
@@ -270,7 +270,7 @@ class SACDiscretePolicy(Policy):
         self._optimizer_q.step()
 
         # 5. evaluate to get action distribution
-        policy_output = self._learn_model.forward({'obs': data['obs']}, mode='compute_actor')
+        policy_output = self._learn_model.forward(obs, mode='compute_actor')
         # 6. apply discrete action mask in multi_agent setting
         if self._cfg.multi_agent:
             policy_output['logit'][policy_output['action_mask'] == 0.0] = -1e8
@@ -279,7 +279,7 @@ class SACDiscretePolicy(Policy):
         log_prob = F.log_softmax(logit, dim=-1)
 
         with torch.no_grad():
-            new_q_value = self._learn_model.forward({'obs': data['obs']}, mode='compute_critic')['q_value']
+            new_q_value = self._learn_model.forward(obs, mode='compute_critic')['q_value']
             if self._twin_critic:
                 new_q_value = torch.min(new_q_value[0], new_q_value[1])
         # 7. compute policy loss
@@ -363,7 +363,7 @@ class SACDiscretePolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward({'obs': data}, mode='compute_actor', eps=eps)
+            output = self._collect_model.forward(data, mode='compute_actor', eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -394,7 +394,7 @@ class SACDiscretePolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward({'obs': data}, mode='compute_actor')
+            output = self._eval_model.forward(data, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -543,9 +543,9 @@ class SACPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         if self._cfg.multi_agent:
-            return 'maqac_continuous', ['ding.model.template.maqac']
+            return 'continuous_maqac', ['ding.model.template.maqac']
         else:
-            return 'qac', ['ding.model.template.qac']
+            return 'continuous_qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
         self._priority = self._cfg.priority
@@ -554,10 +554,10 @@ class SACPolicy(Policy):
 
         # Weight Init for the last output layer
         init_w = self._cfg.learn.init_w
-        self._model.actor[-1].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[-1].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].mu.weight.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].mu.bias.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
         self._optimizer_q = Adam(
             self._model.critic.parameters(),
@@ -838,10 +838,10 @@ class SQILSACPolicy(SACPolicy):
 
         # Weight Init for the last output layer
         init_w = self._cfg.learn.init_w
-        self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].mu.weight.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].mu.bias.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
         self._optimizer_q = Adam(
             self._model.critic.parameters(),

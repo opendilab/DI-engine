@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from itertools import product
 
-from ding.model.template import MAQAC, ContinuousMAQAC
+from ding.model.template import DiscreteMAQAC, ContinuousMAQAC
 from ding.torch_utils import is_differentiable
 from ding.utils.default_helper import squeeze
 
@@ -17,7 +17,7 @@ args = list(product(*[agent_obs_shape, global_obs_shape, [False, True]]))
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('agent_obs_shape, global_obs_shape, twin_critic', args)
-class TestMAQAC:
+class TestDiscreteMAQAC:
 
     def output_check(self, model, outputs, action_shape):
         if isinstance(action_shape, tuple):
@@ -34,7 +34,7 @@ class TestMAQAC:
                 'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
             }
         }
-        model = MAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=twin_critic)
+        model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=twin_critic)
 
         logit = model(data, mode='compute_actor')['logit']
         value = model(data, mode='compute_critic')['q_value']
