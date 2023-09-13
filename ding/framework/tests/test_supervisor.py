@@ -29,7 +29,7 @@ class MockEnv():
         sleep(1)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
 def test_supervisor(type_):
     sv = Supervisor(type_=type_)
@@ -74,7 +74,7 @@ def test_supervisor(type_):
     sv.shutdown()
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_supervisor_spawn():
     sv = Supervisor(type_=ChildType.PROCESS, mp_ctx=mp.get_context("spawn"))
     for _ in range(3):
@@ -103,7 +103,7 @@ class MockCrashEnv(MockEnv):
         return self._counter
 
 
-# @pytest.mark.unittest
+@pytest.mark.tmp
 @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
 def test_crash_supervisor(type_):
     sv = Supervisor(type_=type_)
@@ -143,7 +143,7 @@ def test_crash_supervisor(type_):
     sv.shutdown()
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
 def test_recv_all(type_):
     sv = Supervisor(type_=type_)

@@ -62,7 +62,7 @@ class IModelWrapper(ABC):
             else:
                 return '{}'.format(self._model.__class__.__name__)
 
-    def reset(self, data_id: List[int] = None) -> None:
+    def reset(self, data_id: List[int] = None, **kwargs) -> None:
         """
         Overview
             Basic interface, reset some stateful varaibles in the model wrapper, such as hidden state of RNN.
