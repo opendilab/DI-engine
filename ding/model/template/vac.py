@@ -3,7 +3,6 @@ from easydict import EasyDict
 import torch
 import torch.nn as nn
 from copy import deepcopy
-from ding.torch_utils import get_activation
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder, IMPALAConvEncoder

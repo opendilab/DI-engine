@@ -14,9 +14,8 @@ class NonegativeParameter(nn.Module):
     def forward(self):
         return torch.exp(self.log_data)
 
-    @property
-    def data(self):
-        return self.forward()
+    def set_data(self, data):
+        self.log_data = nn.Parameter(torch.log(data + 1e-8), requires_grad=self.log_data.requires_grad)
 
 
 class TanhParameter(nn.Module):
@@ -32,6 +31,5 @@ class TanhParameter(nn.Module):
     def forward(self):
         return self.transform(self.data_inv)
 
-    @property
-    def data(self):
-        return self.forward()
+    def set_data(self, data):
+        self.data_inv = nn.Parameter(self.transform.inv(data), requires_grad=self.data_inv.requires_grad)
