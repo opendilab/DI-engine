@@ -1,6 +1,5 @@
 import copy
 import torch
-import copy
 from easydict import EasyDict
 from ding.utils import import_module, MODEL_REGISTRY
 

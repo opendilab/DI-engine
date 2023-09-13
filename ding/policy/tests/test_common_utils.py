@@ -106,7 +106,7 @@ def test_default_preprocess_learn_reward_done_adv_1d():
 
     assert data['reward'].shape == torch.Size([10])
     assert data['done'].shape == torch.Size([10])
-    assert data['weight'] == None
+    assert data['weight'] is None
     assert data['value'].shape == torch.Size([10])
     assert data['adv'].shape == torch.Size([10])
 
