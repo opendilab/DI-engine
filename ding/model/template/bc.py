@@ -177,10 +177,10 @@ class ContinuousBC(nn.Module):
         """
         Overview:
             The unique execution (forward) method of ContinuousBC method.
-            Arguments:
-                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
-            Returns:
-                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
+        Returns:
+            - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
         """
         if self.action_space == 'regression':
             x = self.actor(inputs)

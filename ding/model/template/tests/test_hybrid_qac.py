@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from itertools import product
 
-from ding.model.template import QAC
+from ding.model.template import ContinuousQAC
 from ding.torch_utils import is_differentiable
 from ding.utils import squeeze
 from easydict import EasyDict
@@ -21,7 +21,7 @@ hybrid_args = {
 
 
 @pytest.mark.unittest
-class TestHybridQAC:
+class TestHybridContinuousQAC:
 
     def test_hybrid_qac(
         self,
@@ -39,7 +39,7 @@ class TestHybridQAC:
             },
             'logit': torch.randn(B, squeeze(action_shape.action_type_shape))
         }
-        model = QAC(
+        model = ContinuousQAC(
             obs_shape=(N, ),
             action_shape=action_shape,
             action_space=action_space,
@@ -50,8 +50,8 @@ class TestHybridQAC:
         # compute_q
         q = model(inputs, mode='compute_critic')['q_value']
         if twin:
-            is_differentiable(q[0].sum(), model.critic[0])
-            is_differentiable(q[1].sum(), model.critic[1])
+            is_differentiable(q[0].sum(), model.critic[1][0])
+            is_differentiable(q[1].sum(), model.critic[1][1])
         else:
             is_differentiable(q.sum(), model.critic)
 

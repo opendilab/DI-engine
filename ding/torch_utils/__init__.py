@@ -1,7 +1,8 @@
 from .activation import get_activation
 from .checkpoint_helper import build_checkpoint_helper, CountVar, auto_checkpoint
 from .data_helper import to_device, to_tensor, to_ndarray, to_list, to_dtype, same_shape, tensor_to_list, \
-    build_log_buffer, CudaFetcher, get_tensor_data, unsqueeze, squeeze, get_null_data, get_shape0, to_item
+    build_log_buffer, CudaFetcher, get_tensor_data, unsqueeze, squeeze, get_null_data, get_shape0, to_item, \
+    zeros_like
 from .distribution import CategoricalPd, CategoricalPdPytorch
 from .metric import levenshtein_distance, hamming_distance
 from .network import *
