@@ -2,7 +2,7 @@ import gym
 from ditk import logging
 from ding.model import VAC
 from ding.policy import IMPALAPolicy
-from ding.envs import BaseEnvManagerV2, SubprocessEnvManagerV2
+from ding.envs import SubprocessEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task, ding_init
@@ -19,13 +19,12 @@ def main():
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = BaseEnvManagerV2(
+        collector_env = SubprocessEnvManagerV2(
             env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
-        evaluator_env = BaseEnvManagerV2(
+        evaluator_env = SubprocessEnvManagerV2(
             env_fn=[lambda: LunarLanderEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
-        cfg.seed = 133
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
         model = VAC(**cfg.policy.model)
@@ -40,7 +39,7 @@ def main():
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(online_logger(train_show_freq=300))
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=10000))
-        task.use(termination_checker(max_env_step=15e5))
+        task.use(termination_checker(max_env_step=2e6))
         task.run()
 
 

@@ -54,12 +54,13 @@ class DequeBuffer(Buffer):
         A buffer implementation based on the deque structure.
     """
 
-    def __init__(self, size: int, sliced: bool) -> None:
+    def __init__(self, size: int, sliced: bool = False) -> None:
         """
         Overview:
             The initialization method of DequeBuffer.
         Arguments:
             - size (:obj:`int`): The maximum number of objects that the buffer can hold.
+            - sliced (:obj:`bool`): The flag whether slice data by unroll_len when sample by group
         """
         super().__init__(size=size)
         self.storage = deque(maxlen=size)
@@ -352,6 +353,7 @@ class DequeBuffer(Buffer):
             seq_data = sampled_data[group]
             # Filter records by unroll_len
             if unroll_len:
+                # slice b unroll_len. If don’t do this, more likely obtain duplicate data, and the training will easily crash.
                 if sliced:
                     start_indice = random.choice(range(max(1, len(seq_data))))
                     start_indice = start_indice // unroll_len
