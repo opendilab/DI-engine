@@ -253,7 +253,7 @@ def test_wandb_offline_logger():
     record_path = './video_pendulum_cql'
     cfg = EasyDict(dict(gradient_logger=True, plot_logger=True, action_logger=True, vis_dataset=True))
     env = TheEnvClass()
-    ctx = OnlineRLContext()
+    ctx = OfflineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
     model = TheModelClass()
     wandb.init(config=cfg, anonymous="must")
