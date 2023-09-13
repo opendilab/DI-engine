@@ -10,59 +10,6 @@ from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, Multi
 from ding.torch_utils.network.dreamer import ActionHead, DenseHead
 
 
-@MODEL_REGISTRY.register('base_vac')
-class BaseVAC(nn.Module):
-    r"""
-    Overview:
-        The VAC model.
-    Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
-    """
-    mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
-
-    def __init__(
-            self,
-            actor: nn.Module,
-            critic: nn.Module,
-            action_space: str,
-    ) -> None:
-        super(BaseVAC, self).__init__()
-        self.actor = actor
-        self.critic = critic
-        self.action_space = action_space
-
-    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str):
-        assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
-        return getattr(self, mode)(inputs)
-
-    def compute_actor(self, x: torch.Tensor):
-        if self.action_space == 'discrete':
-            raise NotImplementedError
-        elif self.action_space == 'continuous':
-            raise NotImplementedError
-        elif self.action_space == 'general':
-            action, log_prob = self.actor(x)
-            return {'action': action, 'log_prob': log_prob}
-        else:
-            raise NotImplementedError
-
-    def compute_critic(self, x: torch.Tensor):
-        value = self.critic(x)
-        return {'value': value}
-
-    def compute_actor_critic(self, x: torch.Tensor):
-        if self.action_space == 'discrete':
-            raise NotImplementedError
-        elif self.action_space == 'continuous':
-            raise NotImplementedError
-        elif self.action_space == 'general':
-            action, log_prob = self.actor(x)
-            value = self.critic(x)
-            return {'action': action, 'log_prob': log_prob, 'value': value}
-        else:
-            raise NotImplementedError
-
-
 @MODEL_REGISTRY.register('vac')
 class VAC(nn.Module):
     """
