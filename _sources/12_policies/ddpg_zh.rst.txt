@@ -145,9 +145,9 @@ DDPG 可以与以下技术相结合使用:
 
 模型
 ~~~~~~~~~~~~~~~~~
-在这里，我们提供了 `QAC` 模型作为 `DDPG` 的默认模型的示例。
+在这里，我们提供了 `ContinuousQAC` 模型作为 `DDPG` 的默认模型的示例。
 
-.. autoclass:: ding.model.template.qac.QAC
+.. autoclass:: ding.model.ContinuousQAC
     :members: forward, compute_actor, compute_critic
     :noindex:
 

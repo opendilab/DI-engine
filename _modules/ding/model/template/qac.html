@@ -1,0 +1,953 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.model.template.qac &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.model.template.qac</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.model.template.qac</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">squeeze</span><span class="p">,</span> <span class="n">MODEL_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">RegressionHead</span><span class="p">,</span> <span class="n">ReparameterizationHead</span><span class="p">,</span> <span class="n">DiscreteHead</span><span class="p">,</span> <span class="n">MultiHead</span><span class="p">,</span> \
+    <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span>
+
+
+<div class="viewcode-block" id="ContinuousQAC"><a class="viewcode-back" href="../../../../12_policies/td3_zh.html#ding.model.ContinuousQAC">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;continuous_qac&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ContinuousQAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural network and computation graph of algorithms related to Q-value Actor-Critic (QAC), such as \</span>
+<span class="sd">        DDPG/TD3/SAC. This model now supports continuous and hybrid action space. The ContinuousQAC is composed of \</span>
+<span class="sd">        four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and ``critic_head``. Encoders are used to \</span>
+<span class="sd">        extract the feature from various observation. Heads are used to predict corresponding Q-value or action logit. \</span>
+<span class="sd">        In high-dimensional observation space like 2D image, we often use a shared encoder for both ``actor_encoder`` \</span>
+<span class="sd">        and ``critic_encoder``. In low-dimensional observation space like 1D vector, we often use different encoders.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ContinuousQAC.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ContinuousQAC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">EasyDict</span><span class="p">],</span>
+        <span class="n">action_space</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">twin_critic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SequenceType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">share_encoder</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initailize the ContinuousQAC Model according to input arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s shape, such as 128, (156, ).</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s shape, such as 4, (3, ), \</span>
+<span class="sd">                EasyDict({&#39;action_type_shape&#39;: 3, &#39;action_args_shape&#39;: 4}).</span>
+<span class="sd">            - action_space (:obj:`str`): The type of action space, including [``regression``, ``reparameterization``, \</span>
+<span class="sd">                ``hybrid``], ``regression`` is used for DDPG/TD3, ``reparameterization`` is used for SAC and \</span>
+<span class="sd">                ``hybrid`` for PADDPG.</span>
+<span class="sd">            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.</span>
+<span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.</span>
+<span class="sd">            - actor_head_layer_num (:obj:`int`): The num of layers used in the actor network to compute action.</span>
+<span class="sd">            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.</span>
+<span class="sd">            - critic_head_layer_num (:obj:`int`): The num of layers used in the critic network to compute Q-value.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \</span>
+<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \</span>
+<span class="sd">                see ``ding.torch_utils.network`` for more details.</span>
+<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \</span>
+<span class="sd">                the last element must match ``head_hidden_size``, this argument is only used in image observation.</span>
+<span class="sd">            - share_encoder (:obj:`Optional[bool]`): Whether to share encoder between actor and critic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ContinuousQAC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+        <span class="n">action_shape</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span> <span class="o">=</span> <span class="n">action_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">=</span> <span class="n">action_space</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">,</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span>
+
+        <span class="c1"># encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span> <span class="o">=</span> <span class="n">share_encoder</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">,</span> <span class="s2">&quot;Vector observation doesn&#39;t need share encoder.&quot;</span>
+            <span class="k">assert</span> <span class="n">encoder_hidden_size_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Vector obs encoder only uses one layer nn.Linear&quot;</span>
+            <span class="c1"># Because there is already a layer nn.Linear in the head, so we use nn.Identity here to keep</span>
+            <span class="c1"># compatible with the image observation and avoid adding an extra layer nn.Linear.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+            <span class="n">encoder_output_size</span> <span class="o">=</span> <span class="n">obs_shape</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">setup_conv_encoder</span><span class="p">():</span>
+                <span class="n">kernel_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoder_hidden_size_list</span><span class="p">))]</span>
+                <span class="n">stride</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoder_hidden_size_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="k">return</span> <span class="n">ConvEncoder</span><span class="p">(</span>
+                    <span class="n">obs_shape</span><span class="p">,</span>
+                    <span class="n">encoder_hidden_size_list</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
+                    <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+                    <span class="n">stride</span><span class="o">=</span><span class="n">stride</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
+                <span class="n">encoder</span> <span class="o">=</span> <span class="n">setup_conv_encoder</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">encoder</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span> <span class="o">=</span> <span class="n">setup_conv_encoder</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">setup_conv_encoder</span><span class="p">()</span>
+            <span class="n">encoder_output_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="o">.</span><span class="n">output_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;not support observation shape: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">))</span>
+        <span class="c1"># head</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>  <span class="c1"># DDPG, TD3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">RegressionHead</span><span class="p">(</span>
+                    <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="p">,</span>
+                    <span class="n">actor_head_layer_num</span><span class="p">,</span>
+                    <span class="n">final_tanh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>  <span class="c1"># SAC</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">ReparameterizationHead</span><span class="p">(</span>
+                    <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="p">,</span>
+                    <span class="n">actor_head_layer_num</span><span class="p">,</span>
+                    <span class="n">sigma_type</span><span class="o">=</span><span class="s1">&#39;conditioned&#39;</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>  <span class="c1"># PADDPG</span>
+            <span class="c1"># hybrid action space: action_type(discrete) + action_args(continuous),</span>
+            <span class="c1"># such as {&#39;action_type_shape&#39;: torch.LongTensor([0]), &#39;action_args_shape&#39;: torch.FloatTensor([0.1, -0.27])}</span>
+            <span class="n">action_shape</span><span class="o">.</span><span class="n">action_args_shape</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="o">.</span><span class="n">action_args_shape</span><span class="p">)</span>
+            <span class="n">action_shape</span><span class="o">.</span><span class="n">action_type_shape</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="o">.</span><span class="n">action_type_shape</span><span class="p">)</span>
+            <span class="n">actor_action_args</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">RegressionHead</span><span class="p">(</span>
+                    <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="o">.</span><span class="n">action_args_shape</span><span class="p">,</span>
+                    <span class="n">actor_head_layer_num</span><span class="p">,</span>
+                    <span class="n">final_tanh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">actor_action_type</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">DiscreteHead</span><span class="p">(</span>
+                    <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="o">.</span><span class="n">action_type_shape</span><span class="p">,</span>
+                    <span class="n">actor_head_layer_num</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">actor_action_type</span><span class="p">,</span> <span class="n">actor_action_args</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span> <span class="o">=</span> <span class="n">twin_critic</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
+            <span class="n">critic_input_size</span> <span class="o">=</span> <span class="n">encoder_output_size</span> <span class="o">+</span> <span class="n">action_shape</span><span class="o">.</span><span class="n">action_type_shape</span> <span class="o">+</span> <span class="n">action_shape</span><span class="o">.</span><span class="n">action_args_shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">critic_input_size</span> <span class="o">=</span> <span class="n">encoder_output_size</span> <span class="o">+</span> <span class="n">action_shape</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                        <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">critic_input_size</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                        <span class="n">RegressionHead</span><span class="p">(</span>
+                            <span class="n">critic_head_hidden_size</span><span class="p">,</span>
+                            <span class="mi">1</span><span class="p">,</span>
+                            <span class="n">critic_head_layer_num</span><span class="p">,</span>
+                            <span class="n">final_tanh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                            <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">critic_input_size</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">RegressionHead</span><span class="p">(</span>
+                    <span class="n">critic_head_hidden_size</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">critic_head_layer_num</span><span class="p">,</span>
+                    <span class="n">final_tanh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Convenient for calling some apis (e.g. self.critic.parameters()),</span>
+        <span class="c1"># but may cause misunderstanding when `print(self)`</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ContinuousQAC.forward"><a class="viewcode-back" href="../../../../12_policies/td3_zh.html#ding.model.ContinuousQAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            QAC forward computation graph, input observation tensor to predict Q-value or action logit. Different \</span>
+<span class="sd">            ``mode`` will forward with different network modules to get different outputs and save computation.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`Union[torch.Tensor, Dict[str, torch.Tensor]]`): The input data for forward computation \</span>
+<span class="sd">                graph, for ``compute_actor``, it is the observation tensor, for ``compute_critic``, it is the \</span>
+<span class="sd">                dict data including obs and action tensor.</span>
+<span class="sd">            - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of QAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">        Examples (Actor):</span>
+<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 6, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 6])</span>
+<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 6, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;][0].shape == torch.Size([4, 6])  # mu</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape == torch.Size([4, 6]) # sigma</span>
+
+<span class="sd">        Examples (Critic):</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 8), &#39;action&#39;: torch.randn(4, 1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(obs_shape=(8, ),action_shape=1, action_space=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;].shape == (4, )  # q value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ContinuousQAC.compute_actor"><a class="viewcode-back" href="../../../../12_policies/td3_zh.html#ding.model.ContinuousQAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            QAC forward computation graph for actor part, input observation tensor to predict action or action logit.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]`): Actor output dict varying \</span>
+<span class="sd">                from action_space: ``regression``, ``reparameterization``, ``hybrid``.</span>
+<span class="sd">        ReturnsKeys (regression):</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): Continuous action with same size as ``action_shape``, usually in DDPG/TD3.</span>
+<span class="sd">        ReturnsKeys (reparameterization):</span>
+<span class="sd">            - logit (:obj:`Dict[str, torch.Tensor]`): The predictd reparameterization action logit, usually in SAC. \</span>
+<span class="sd">                It is a list containing two tensors: ``mu`` and ``sigma``. The former is the mean of the gaussian \</span>
+<span class="sd">                distribution, the latter is the standard deviation of the gaussian distribution.</span>
+<span class="sd">        ReturnsKeys (hybrid):</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): The predicted discrete action type logit, it will be the same dimension \</span>
+<span class="sd">                as ``action_type_shape``, i.e., all the possible discrete action types.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): Continuous action arguments with same size as ``action_args_shape``.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``obs_shape``.</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.</span>
+<span class="sd">            - logit.mu (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.</span>
+<span class="sd">            - logit.sigma (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
+<span class="sd">                ``action_shape.action_type_shape``.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \</span>
+<span class="sd">                ``action_shape.action_args_shape``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 6, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 6])</span>
+<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 6, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;][0].shape == torch.Size([4, 6])  # mu</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape == torch.Size([4, 6]) # sigma</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]]}</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
+            <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">obs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span></div>
+
+<div class="viewcode-block" id="ContinuousQAC.compute_critic"><a class="viewcode-back" href="../../../../12_policies/td3_zh.html#ding.model.ContinuousQAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            QAC forward computation graph for critic part, input observation and action tensor to predict Q-value.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The dict of input data, including ``obs`` and ``action`` \</span>
+<span class="sd">                tensor, also contains ``logit`` and ``action_args`` tensor in hybrid action_space.</span>
+<span class="sd">        ArgumentsKeys:</span>
+<span class="sd">            - obs: (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data.</span>
+<span class="sd">            - action (:obj:`Union[torch.Tensor, Dict]`): Continuous action with same size as ``action_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete action logit, only in hybrid action_space.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): Continuous action arguments, only in hybrid action_space.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict[str, torch.Tensor]`): The output dict of QAC&#39;s forward computation graph for critic, \</span>
+<span class="sd">                including ``q_value``.</span>
+<span class="sd">        ReturnKeys:</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
+<span class="sd">                ``action_shape.action_type_shape``.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \</span>
+<span class="sd">                ``action_shape.action_args_shape``.</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N4)`, where B is batch size and N4 is ``action_shape``.</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 8), &#39;action&#39;: torch.randn(4, 1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(obs_shape=(8, ),action_shape=1, action_space=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;].shape == (4, )  # q value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obs</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
+            <span class="n">action_type_logit</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+            <span class="n">action_type_logit</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">action_type_logit</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">action_args</span> <span class="o">=</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;action_args&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">action_args</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">action_args</span> <span class="o">=</span> <span class="n">action_args</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">obs</span><span class="p">,</span> <span class="n">action_type_logit</span><span class="p">,</span> <span class="n">action_args</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># (B, ) -&gt; (B, 1)</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">obs</span><span class="p">,</span> <span class="n">action</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="s1">&#39;pred&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="DiscreteQAC"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteQAC">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;discrete_qac&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DiscreteQAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural network and computation graph of algorithms related to discrete action Q-value Actor-Critic (QAC), \</span>
+<span class="sd">        such as DiscreteSAC. This model now supports only discrete action space. The DiscreteQAC is composed of \</span>
+<span class="sd">        four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and ``critic_head``. Encoders are used to \</span>
+<span class="sd">        extract the feature from various observation. Heads are used to predict corresponding Q-value or action logit. \</span>
+<span class="sd">        In high-dimensional observation space like 2D image, we often use a shared encoder for both ``actor_encoder`` \</span>
+<span class="sd">        and ``critic_encoder``. In low-dimensional observation space like 1D vector, we often use different encoders.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="DiscreteQAC.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteQAC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">twin_critic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">share_encoder</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initailize the DiscreteQAC Model according to input arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s shape, such as 128, (156, ).</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s shape, such as 4, (3, ).</span>
+<span class="sd">            - twin_critic (:obj:`bool`): Whether to use twin critic.</span>
+<span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.</span>
+<span class="sd">            - actor_head_layer_num (:obj:`int`): The num of layers used in the actor network to compute action.</span>
+<span class="sd">            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.</span>
+<span class="sd">            - critic_head_layer_num (:obj:`int`): The num of layers used in the critic network to compute Q-value.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \</span>
+<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \</span>
+<span class="sd">                see ``ding.torch_utils.network`` for more details.</span>
+<span class="sd">            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \</span>
+<span class="sd">                the last element must match ``head_hidden_size``, this argument is only used in image observation.</span>
+<span class="sd">            - share_encoder (:obj:`Optional[bool]`): Whether to share encoder between actor and critic.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DiscreteQAC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">)</span>
+        <span class="c1"># encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span> <span class="o">=</span> <span class="n">share_encoder</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">,</span> <span class="s2">&quot;Vector observation doesn&#39;t need share encoder.&quot;</span>
+            <span class="k">assert</span> <span class="n">encoder_hidden_size_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Vector obs encoder only uses one layer nn.Linear&quot;</span>
+            <span class="c1"># Because there is already a layer nn.Linear in the head, so we use nn.Identity here to keep</span>
+            <span class="c1"># compatible with the image observation and avoid adding an extra layer nn.Linear.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+            <span class="n">encoder_output_size</span> <span class="o">=</span> <span class="n">obs_shape</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">setup_conv_encoder</span><span class="p">():</span>
+                <span class="n">kernel_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoder_hidden_size_list</span><span class="p">))]</span>
+                <span class="n">stride</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">encoder_hidden_size_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="k">return</span> <span class="n">ConvEncoder</span><span class="p">(</span>
+                    <span class="n">obs_shape</span><span class="p">,</span>
+                    <span class="n">encoder_hidden_size_list</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
+                    <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+                    <span class="n">stride</span><span class="o">=</span><span class="n">stride</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">share_encoder</span><span class="p">:</span>
+                <span class="n">encoder</span> <span class="o">=</span> <span class="n">setup_conv_encoder</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">encoder</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span> <span class="o">=</span> <span class="n">setup_conv_encoder</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span> <span class="o">=</span> <span class="n">setup_conv_encoder</span><span class="p">()</span>
+            <span class="n">encoder_output_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="o">.</span><span class="n">output_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;not support observation shape: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">))</span>
+
+        <span class="c1"># head</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+            <span class="n">DiscreteHead</span><span class="p">(</span>
+                <span class="n">actor_head_hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">actor_head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span> <span class="o">=</span> <span class="n">twin_critic</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                        <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                        <span class="n">DiscreteHead</span><span class="p">(</span>
+                            <span class="n">critic_head_hidden_size</span><span class="p">,</span>
+                            <span class="n">action_shape</span><span class="p">,</span>
+                            <span class="n">critic_head_layer_num</span><span class="p">,</span>
+                            <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                            <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">encoder_output_size</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">DiscreteHead</span><span class="p">(</span>
+                    <span class="n">critic_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="p">,</span>
+                    <span class="n">critic_head_layer_num</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="c1"># Convenient for calling some apis (e.g. self.critic.parameters()),</span>
+        <span class="c1"># but may cause misunderstanding when `print(self)`</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="DiscreteQAC.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteQAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            QAC forward computation graph, input observation tensor to predict Q-value or action logit. Different \</span>
+<span class="sd">            ``mode`` will forward with different network modules to get different outputs and save computation.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">            - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of QAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">        Examples (Actor):</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 6)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;].shape == torch.Size([4, 6])</span>
+
+<span class="sd">        Examples(Critic):</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 6, twin_critic=False)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_critic&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;q_value&#39;].shape == torch.Size([4, 6])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DiscreteQAC.compute_actor"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteQAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            QAC forward computation graph for actor part, input observation tensor to predict action or action logit.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict[str, torch.Tensor]`): The output dict of QAC forward computation graph for actor, \</span>
+<span class="sd">                including discrete action ``logit``.</span>
+<span class="sd">        ReturnsKeys:</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): The predicted discrete action type logit, it will be the same dimension \</span>
+<span class="sd">                as ``action_shape``, i.e., all the possible discrete action choices.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``obs_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
+<span class="sd">                ``action_shape``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 6)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;].shape == torch.Size([4, 6])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_encoder</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]}</span></div>
+
+<div class="viewcode-block" id="DiscreteQAC.compute_critic"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteQAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            QAC forward computation graph for critic part, input observation to predict Q-value for each possible \</span>
+<span class="sd">            discrete action choices.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): The input observation tensor data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict[str, torch.Tensor]`): The output dict of QAC forward computation graph for critic, \</span>
+<span class="sd">                including ``q_value`` for each possible discrete action choices.</span>
+<span class="sd">        ReturnKeys:</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): The predicted Q-value for each possible discrete action choices, it will \</span>
+<span class="sd">                be the same dimension as ``action_shape`` and used to calculate the loss.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``.</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 6, twin_critic=False)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_critic&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;q_value&#39;].shape == torch.Size([4, 6])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_encoder</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span></div></div>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/jquery.js"></script>
+  <script src="../../../../_static/underscore.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

@@ -299,6 +299,16 @@
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 
 
+<span class="k">class</span> <span class="nc">Lambda</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Lambda</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="GLU"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.activation.GLU">[docs]</a><span class="k">class</span> <span class="nc">GLU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -389,7 +399,8 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        Return the activation module according to the given type.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - activation (:obj:`str`): the type of activation module, now supports [&#39;relu&#39;, &#39;glu&#39;, &#39;prelu&#39;]</span>
+<span class="sd">        - activation (:obj:`str`): the type of activation module, now supports \</span>
+<span class="sd">        [&#39;relu&#39;, &#39;glu&#39;, &#39;prelu&#39;, &#39;swish&#39;, &#39;gelu&#39;, &#39;tanh&#39;, &#39;sigmoid&#39;, &#39;softplus&#39;, &#39;elu&#39;, &#39;square&#39;, &#39;identity&#39;]</span>
 <span class="sd">        - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default ``None``</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - act_func (:obj:`nn.module`): the corresponding activation module</span>
@@ -398,8 +409,20 @@
         <span class="k">assert</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="s1">&#39;inplace argument is not compatible with </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">inplace</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">act_func</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;relu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">),</span> <span class="s1">&#39;glu&#39;</span><span class="p">:</span> <span class="n">GLU</span><span class="p">,</span> <span class="s1">&#39;prelu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span> <span class="s1">&#39;swish&#39;</span><span class="p">:</span> <span class="n">Swish</span><span class="p">(),</span> <span class="s1">&#39;gelu&#39;</span><span class="p">:</span> <span class="n">GELU</span><span class="p">()}</span>
-    <span class="k">if</span> <span class="n">activation</span> <span class="ow">in</span> <span class="n">act_func</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">act_func</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;relu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">),</span>
+        <span class="s1">&#39;glu&#39;</span><span class="p">:</span> <span class="n">GLU</span><span class="p">,</span>
+        <span class="s1">&#39;prelu&#39;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span>
+        <span class="s1">&#39;swish&#39;</span><span class="p">:</span> <span class="n">Swish</span><span class="p">(),</span>
+        <span class="s1">&#39;gelu&#39;</span><span class="p">:</span> <span class="n">GELU</span><span class="p">(),</span>
+        <span class="s2">&quot;tanh&quot;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span>
+        <span class="s2">&quot;sigmoid&quot;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">(),</span>
+        <span class="s2">&quot;softplus&quot;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Softplus</span><span class="p">(),</span>
+        <span class="s2">&quot;elu&quot;</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">(),</span>
+        <span class="s2">&quot;square&quot;</span><span class="p">:</span> <span class="n">Lambda</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s2">&quot;identity&quot;</span><span class="p">:</span> <span class="n">Lambda</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">activation</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">act_func</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="k">return</span> <span class="n">act_func</span><span class="p">[</span><span class="n">activation</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid key for activation: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">activation</span><span class="p">))</span>

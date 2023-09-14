@@ -350,13 +350,14 @@ This class does a thing like this:</p>
 </section>
 <section id="module-ding.torch_utils.network.activation.build_activation">
 <span id="build-activation"></span><h2>build_activation<a class="headerlink" href="#module-ding.torch_utils.network.activation.build_activation" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Return the activation module according to the given type.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the type of activation module, now supports [‘relu’, ‘glu’, ‘prelu’]</p></li>
-<li><p>inplace (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): can optionally do the operation in-place in relu. Default <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the type of activation module, now supports </p></li>
 </ul>
+<p>[‘relu’, ‘glu’, ‘prelu’, ‘swish’, ‘gelu’, ‘tanh’, ‘sigmoid’, ‘softplus’, ‘elu’, ‘square’, ‘identity’]
+- inplace (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): can optionally do the operation in-place in relu. Default <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>act_func (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.module</span></code>): the corresponding activation module</p></li>

@@ -123,9 +123,9 @@ The default config is defined as follows:
 .. autoclass:: ding.policy.td3.TD3Policy
 
 1. Model
-   Here we provide examples of `QAC` model as default model for `TD3`.
+   Here we provide examples of `ContinuousQAC` model as default model for `TD3`.
 
-    .. autoclass:: ding.model.template.qac.QAC
+    .. autoclass:: ding.model.ContinuousQAC
         :members: forward, compute_actor, compute_critic
         :noindex:
 

@@ -305,7 +305,7 @@
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">lists_to_dicts</span><span class="p">,</span> <span class="n">SequenceType</span>
 
 
-<div class="viewcode-block" id="DiscreteHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead">[docs]</a><span class="k">class</span> <span class="nc">DiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="DiscreteHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteHead">[docs]</a><span class="k">class</span> <span class="nc">DiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``DiscreteHead`` used to output discrete actions logit or Q-value logit, which is often used in DQN \</span>
@@ -314,7 +314,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DiscreteHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DiscreteHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -356,7 +356,7 @@
             <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="DiscreteHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DiscreteHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="DiscreteHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``DiscreteHead`` and return the prediction dictionary.</span>
@@ -378,7 +378,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="DistributionHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead">[docs]</a><span class="k">class</span> <span class="nc">DistributionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="DistributionHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DistributionHead">[docs]</a><span class="k">class</span> <span class="nc">DistributionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``DistributionHead`` used to output Q-value distribution, which is often used in C51 algorithm.</span>
@@ -386,7 +386,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DistributionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DistributionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DistributionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -437,7 +437,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">v_max</span> <span class="o">=</span> <span class="n">v_max</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>  <span class="c1"># for numerical stability</span></div>
 
-<div class="viewcode-block" id="DistributionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DistributionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="DistributionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DistributionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``DistributionHead`` and return the prediction dictionary.</span>
@@ -468,7 +468,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s1">&#39;distribution&#39;</span><span class="p">:</span> <span class="n">dist</span><span class="p">}</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">BranchingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="BranchingHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BranchingHead">[docs]</a><span class="k">class</span> <span class="nc">BranchingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``BranchingHead`` used to output different branches Q-value, which is used in Branch DQN.</span>
@@ -476,7 +476,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="BranchingHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BranchingHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">num_branches</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -548,9 +548,9 @@
                     <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">action_output_dim</span><span class="p">)</span>
                 <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span><span class="p">)</span>
             <span class="p">]</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="BranchingHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BranchingHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``BranchingHead`` and return the prediction dictionary.</span>
@@ -578,10 +578,10 @@
         <span class="c1"># and the local maximum reduction method (Q = V + max(A)).</span>
         <span class="n">action_scores</span> <span class="o">=</span> <span class="n">action_scores</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">action_scores</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">value_out</span> <span class="o">+</span> <span class="n">action_scores</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="RainbowHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead">[docs]</a><span class="k">class</span> <span class="nc">RainbowHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="RainbowHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RainbowHead">[docs]</a><span class="k">class</span> <span class="nc">RainbowHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN.</span>
@@ -589,7 +589,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="RainbowHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="RainbowHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RainbowHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -651,7 +651,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">v_max</span> <span class="o">=</span> <span class="n">v_max</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span></div>
 
-<div class="viewcode-block" id="RainbowHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RainbowHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="RainbowHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RainbowHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``RainbowHead`` and return the prediction dictionary.</span>
@@ -685,7 +685,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s1">&#39;distribution&#39;</span><span class="p">:</span> <span class="n">dist</span><span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="QRDQNHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead">[docs]</a><span class="k">class</span> <span class="nc">QRDQNHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="QRDQNHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QRDQNHead">[docs]</a><span class="k">class</span> <span class="nc">QRDQNHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles.</span>
@@ -693,7 +693,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="QRDQNHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="QRDQNHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QRDQNHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -735,7 +735,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_quantiles</span> <span class="o">=</span> <span class="n">num_quantiles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span> <span class="o">=</span> <span class="n">output_size</span></div>
 
-<div class="viewcode-block" id="QRDQNHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QRDQNHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QRDQNHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QRDQNHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``QRDQNHead`` and return the prediction dictionary.</span>
@@ -769,7 +769,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s1">&#39;tau&#39;</span><span class="p">:</span> <span class="n">tau</span><span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="QuantileHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead">[docs]</a><span class="k">class</span> <span class="nc">QuantileHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="QuantileHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QuantileHead">[docs]</a><span class="k">class</span> <span class="nc">QuantileHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``QuantileHead`` used to output action quantiles, which is used in IQN.</span>
@@ -777,7 +777,7 @@
 <span class="sd">        ``__init__``, ``forward``, ``quantile_net``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="QuantileHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="QuantileHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QuantileHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -827,7 +827,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">iqn_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quantile_embedding_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beta_function</span> <span class="o">=</span> <span class="n">beta_function_map</span><span class="p">[</span><span class="n">beta_function_type</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="QuantileHead.quantile_net"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead.quantile_net">[docs]</a>    <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="QuantileHead.quantile_net"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QuantileHead.quantile_net">[docs]</a>    <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Deterministic parametric function trained to reparameterize samples from a base distribution. \</span>
@@ -854,7 +854,7 @@
         <span class="n">quantile_net</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">quantile_net</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">quantile_net</span></div>
 
-<div class="viewcode-block" id="QuantileHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.QuantileHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QuantileHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QuantileHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``QuantileHead`` and return the prediction dictionary.</span>
@@ -900,7 +900,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s1">&#39;quantiles&#39;</span><span class="p">:</span> <span class="n">q_quantiles</span><span class="p">}</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">FQFHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="FQFHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQFHead">[docs]</a><span class="k">class</span> <span class="nc">FQFHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``FQFHead`` used to output action quantiles, which is used in ``FQF``.</span>
@@ -908,7 +908,7 @@
 <span class="sd">        ``__init__``, ``forward``, ``quantile_net``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="FQFHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQFHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -962,9 +962,9 @@
         <span class="n">quantiles_proposal_fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">quantiles_proposal</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quantiles_proposal</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">quantiles_proposal_fc</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">LogSoftmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="FQFHead.quantile_net"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQFHead.quantile_net">[docs]</a>    <span class="k">def</span> <span class="nf">quantile_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Deterministic parametric function trained to reparameterize samples from the quantiles_proposal network. \</span>
@@ -984,9 +984,9 @@
         <span class="n">batch_size</span><span class="p">,</span> <span class="n">num_quantiles</span> <span class="o">=</span> <span class="n">quantiles</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">quantile_net</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_pi</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span> <span class="o">*</span> <span class="n">quantiles</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">quantile_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fqf_fc</span><span class="p">(</span><span class="n">quantile_net</span><span class="p">)</span>  <span class="c1"># (batch_size, num_quantiles, hidden_size)</span>
-        <span class="k">return</span> <span class="n">quantile_net</span>
+        <span class="k">return</span> <span class="n">quantile_net</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="FQFHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQFHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">num_quantiles</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``FQFHead`` and return the prediction dictionary.</span>
@@ -1067,10 +1067,10 @@
             <span class="s1">&#39;quantiles_hats&#39;</span><span class="p">:</span> <span class="n">q_quantiles_hats</span><span class="p">,</span>
             <span class="s1">&#39;q_tau_i&#39;</span><span class="p">:</span> <span class="n">q_tau_i</span><span class="p">,</span>
             <span class="s1">&#39;entropies&#39;</span><span class="p">:</span> <span class="n">entropies</span>
-        <span class="p">}</span>
+        <span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="DuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead">[docs]</a><span class="k">class</span> <span class="nc">DuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="DuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DuelingHead">[docs]</a><span class="k">class</span> <span class="nc">DuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``DuelingHead`` used to output discrete actions logit, which is used in Dueling DQN.</span>
@@ -1078,7 +1078,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DuelingHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DuelingHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DuelingHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1140,7 +1140,7 @@
             <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="DuelingHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.DuelingHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="DuelingHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DuelingHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``DuelingHead`` and return the prediction dictionary.</span>
@@ -1165,7 +1165,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">q_value</span><span class="p">}</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">StochasticDuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="StochasticDuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.StochasticDuelingHead">[docs]</a><span class="k">class</span> <span class="nc">StochasticDuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \</span>
@@ -1174,7 +1174,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="StochasticDuelingHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.StochasticDuelingHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1238,9 +1238,9 @@
         <span class="k">if</span> <span class="n">last_tanh</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="StochasticDuelingHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.StochasticDuelingHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">s</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
             <span class="n">a</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -1293,10 +1293,10 @@
         <span class="n">a_val_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">(</span><span class="n">state_cat_action_sample</span><span class="p">)</span>  <span class="c1"># size (B, sample_size, 1)</span>
         <span class="n">q_value</span> <span class="o">=</span> <span class="n">v_value</span> <span class="o">+</span> <span class="n">a_value</span> <span class="o">-</span> <span class="n">a_val_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># size (B, 1)</span>
 
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">q_value</span><span class="p">,</span> <span class="s1">&#39;v_value&#39;</span><span class="p">:</span> <span class="n">v_value</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">q_value</span><span class="p">,</span> <span class="s1">&#39;v_value&#39;</span><span class="p">:</span> <span class="n">v_value</span><span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="RegressionHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead">[docs]</a><span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="RegressionHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RegressionHead">[docs]</a><span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``RegressionHead`` used to output continuous actions Q-value (DDPG critic), state value (A2C/PPO), and \</span>
@@ -1305,7 +1305,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="RegressionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="RegressionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RegressionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1337,7 +1337,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_tanh</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RegressionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.RegressionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="RegressionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RegressionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``RegressionHead`` and return the prediction dictionary.</span>
@@ -1365,7 +1365,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;pred&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span></div></div>
 
 
-<div class="viewcode-block" id="ReparameterizationHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.ReparameterizationHead">[docs]</a><span class="k">class</span> <span class="nc">ReparameterizationHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="ReparameterizationHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparameterizationHead">[docs]</a><span class="k">class</span> <span class="nc">ReparameterizationHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``, which is often used in PPO and SAC.</span>
@@ -1376,7 +1376,7 @@
     <span class="n">default_sigma_type</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fixed&#39;</span><span class="p">,</span> <span class="s1">&#39;independent&#39;</span><span class="p">,</span> <span class="s1">&#39;conditioned&#39;</span><span class="p">]</span>
     <span class="n">default_bound_type</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tanh&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
 
-<div class="viewcode-block" id="ReparameterizationHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.ReparameterizationHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="ReparameterizationHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparameterizationHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1426,7 +1426,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_type</span> <span class="o">==</span> <span class="s1">&#39;conditioned&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_sigma_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ReparameterizationHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.ReparameterizationHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="ReparameterizationHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparameterizationHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``ReparameterizationHead`` and return the prediction \</span>
@@ -1530,7 +1530,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
 
-<span class="k">class</span> <span class="nc">AttentionPolicyHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="AttentionPolicyHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.AttentionPolicyHead">[docs]</a><span class="k">class</span> <span class="nc">AttentionPolicyHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Cross-attention-type discrete action policy head, which is often used in variable discrete action space.</span>
@@ -1538,10 +1538,10 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AttentionPolicyHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<div class="viewcode-block" id="AttentionPolicyHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.AttentionPolicyHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AttentionPolicyHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="AttentionPolicyHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.AttentionPolicyHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use attention-like mechanism to combine key and query tensor to output discrete action logit.</span>
@@ -1562,10 +1562,10 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">logit</span> <span class="o">=</span> <span class="p">(</span><span class="n">key</span> <span class="o">*</span> <span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">logit</span>
+        <span class="k">return</span> <span class="n">logit</span></div></div>
 
 
-<div class="viewcode-block" id="MultiHead"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead">[docs]</a><span class="k">class</span> <span class="nc">MultiHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultiHead">[docs]</a><span class="k">class</span> <span class="nc">MultiHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The ``MultiHead`` used to output multiple similar results. For example, we can combine ``Distribution``  and \</span>
@@ -1574,7 +1574,7 @@
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MultiHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="o">**</span><span class="n">head_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="MultiHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultiHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="o">**</span><span class="n">head_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the ``MultiHead`` layers according to the provided arguments.</span>
@@ -1590,7 +1590,7 @@
         <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">output_size_list</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pred</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">head_cls</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="o">**</span><span class="n">head_kwargs</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="MultiHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model/common/head.html#ding.model.common.head.MultiHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="MultiHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultiHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to run MLP with ``MultiHead`` and return the prediction dictionary.</span>
@@ -1691,7 +1691,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;pred&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">independent_normal_dist</span><span class="p">(</span><span class="n">logits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">:</span>
+<div class="viewcode-block" id="independent_normal_dist"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.independent_normal_dist">[docs]</a><span class="k">def</span> <span class="nf">independent_normal_dist</span><span class="p">(</span><span class="n">logits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The compatibility function to convert different types logit to independent normal distribution.</span>
@@ -1707,7 +1707,7 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">logits</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">logits</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid logits type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">logits</span><span class="p">)))</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid logits type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">logits</span><span class="p">)))</span></div>
 
 
 <span class="n">head_cls_map</span> <span class="o">=</span> <span class="p">{</span>

@@ -59,9 +59,9 @@ The default config is defined as follows:
 
 Model
 ~~~~~~~~~~~~~~~~~
-Here we provide examples of `td3_bc` model as default model for `TD3BC`.
+Here we provide examples of `ContinuousQAC` model as default model for `TD3BC`.
 
-.. autoclass:: ding.model.template.qac.QAC
+.. autoclass:: ding.model.ContinuousQAC
     :members: forward, compute_actor, compute_critic
     :noindex:
 

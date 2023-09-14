@@ -136,9 +136,9 @@ The default config is defined as follows:
 
 Model
 ~~~~~~~~~~~~~~~~~
-Here we provide examples of `QAC` model as default model for `DDPG`.
+Here we provide examples of `ContinuousQAC` model as default model for `DDPG`.
 
-.. autoclass:: ding.model.template.qac.QAC
+.. autoclass:: ding.model.ContinuousQAC
     :members: forward, compute_actor, compute_critic
     :noindex:
 

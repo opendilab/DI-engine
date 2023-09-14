@@ -557,6 +557,7 @@
             <span class="n">dataloader</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
         <span class="c1"># TODO apply data update (e.g. priority) in offline setting when necessary</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">trained_env_step</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">_fetch</span></div>
 
