@@ -221,18 +221,18 @@ class CQLPolicy(SACPolicy):
 
         # Weight Init
         init_w = self._cfg.learn.init_w
-        self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].mu.weight.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].mu.bias.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        self._model.actor_head[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
         if self._twin_critic:
-            self._model.critic[0][2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic[0][2].last.bias.data.uniform_(-init_w, init_w)
-            self._model.critic[1][2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic[1][2].last.bias.data.uniform_(-init_w, init_w)
+            self._model.critic_head[0][-1].last.weight.data.uniform_(-init_w, init_w)
+            self._model.critic_head[0][-1].last.bias.data.uniform_(-init_w, init_w)
+            self._model.critic_head[1][-1].last.weight.data.uniform_(-init_w, init_w)
+            self._model.critic_head[1][-1].last.bias.data.uniform_(-init_w, init_w)
         else:
-            self._model.critic[2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic[2].last.bias.data.uniform_(-init_w, init_w)
+            self._model.critic_head[2].last.weight.data.uniform_(-init_w, init_w)
+            self._model.critic_head[-1].last.bias.data.uniform_(-init_w, init_w)
 
         # Optimizers
         if self._value_network:
@@ -640,6 +640,8 @@ class CQLDiscretePolicy(DQNPolicy):
         )
         if self._cuda:
             data = to_device(data, self._device)
+        if data['action'].dim() == 2 and data['action'].shape[-1] == 1:
+            data['action'] = data['action'].squeeze(-1)
         # ====================
         # Q-learning forward
         # ====================

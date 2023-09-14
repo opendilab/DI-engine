@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
 import torch
+import treetensor as ttorch
 
 from ding.rl_utils import get_gae_with_default_last_value, get_train_sample
 from ding.torch_utils import Adam, to_device
@@ -94,7 +95,6 @@ class PGPolicy(Policy):
             output = self._learn_model.forward(batch['obs'])
             return_ = batch['return']
             dist = output['dist']
-
             # calculate PG loss
             log_prob = dist.log_prob(batch['action'])
             policy_loss = -(log_prob * return_).mean()
@@ -169,16 +169,26 @@ class PGPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        assert data[-1]['done'] is True, "PG needs a complete epsiode"
+        assert data[-1]['done'], "PG needs a complete epsiode"
 
         if self._cfg.learn.ignore_done:
             raise NotImplementedError
 
         R = 0.
-        for i in reversed(range(len(data))):
-            R = self._gamma * R + data[i]['reward']
-            data[i]['return'] = R
-        return get_train_sample(data, self._unroll_len)
+        if isinstance(data, list):
+            for i in reversed(range(len(data))):
+                R = self._gamma * R + data[i]['reward']
+                data[i]['return'] = R
+            return get_train_sample(data, self._unroll_len)
+        elif isinstance(data, ttorch.Tensor):
+            data_size = data['done'].shape[0]
+            data['return'] = ttorch.torch.zeros(data_size)
+            for i in reversed(range(data_size)):
+                R = self._gamma * R + data['reward'][i]
+                data['return'][i] = R
+            return get_train_sample(data, self._unroll_len)
+        else:
+            raise ValueError
 
     def _init_eval(self) -> None:
         pass

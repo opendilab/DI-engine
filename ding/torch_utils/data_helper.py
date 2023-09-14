@@ -461,3 +461,14 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         data['reward'].zero_()
         ret.append(data)
     return ret
+
+
+def zeros_like(h):
+    if isinstance(h, torch.Tensor):
+        return torch.zeros_like(h)
+    elif isinstance(h, (list, tuple)):
+        return [zeros_like(t) for t in h]
+    elif isinstance(h, dict):
+        return {k: zeros_like(v) for k, v in h.items()}
+    else:
+        raise TypeError("not support type: {}".format(h))

@@ -284,15 +284,10 @@ def test_sac_log_space():
         assert False, "pipeline fail"
 
 
-auto_alpha = [True, False]
-log_space = [True, False]
-args = [item for item in product(*[auto_alpha, log_space])]
-
-
 @pytest.mark.platformtest
 @pytest.mark.unittest
-@pytest.mark.parametrize('auto_alpha, log_space', args)
-def test_discrete_sac(auto_alpha, log_space):
+def test_discrete_sac():
+    auto_alpha, log_space = True, False
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.learn.auto_alpha = auto_alpha

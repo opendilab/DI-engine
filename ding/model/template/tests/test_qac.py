@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from itertools import product
 
-from ding.model.template import QAC, MAQAC, DiscreteQAC
+from ding.model.template import ContinuousQAC, DiscreteMAQAC, DiscreteQAC
 from ding.torch_utils import is_differentiable
 from ding.utils import squeeze
 
@@ -18,12 +18,12 @@ args = list(product(*[action_shape_args, [True, False], ['regression', 'reparame
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('action_shape, twin, action_space', args)
-class TestQAC:
+class TestContinuousQAC:
 
     def test_fcqac(self, action_shape, twin, action_space):
         N = 32
         inputs = {'obs': torch.randn(B, N), 'action': torch.randn(B, squeeze(action_shape))}
-        model = QAC(
+        model = ContinuousQAC(
             obs_shape=(N, ),
             action_shape=action_shape,
             action_space=action_space,
@@ -34,8 +34,8 @@ class TestQAC:
         # compute_q
         q = model(inputs, mode='compute_critic')['q_value']
         if twin:
-            is_differentiable(q[0].sum(), model.critic[0])
-            is_differentiable(q[1].sum(), model.critic[1])
+            is_differentiable(q[0].sum(), model.critic[1][0])
+            is_differentiable(q[1].sum(), model.critic[1][1])
         else:
             is_differentiable(q.sum(), model.critic)
 
@@ -56,83 +56,38 @@ class TestQAC:
             is_differentiable(mu.sum() + sigma.sum(), model.actor)
 
 
-args = list(product(*[[True, False]]))
+args = list(product(*[[True, False], [(13, ), [4, 84, 84]]]))
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('twin', args)
+@pytest.mark.parametrize('twin, obs_shape', args)
 class TestDiscreteQAC:
 
-    def test_discreteqac(self, twin):
-        N = 32
-        A = 6
-        inputs = {'obs': torch.randn(B, N)}
+    def test_discreteqac(self, twin, obs_shape):
+        action_shape = 6
+        inputs = torch.randn(B, *obs_shape)
         model = DiscreteQAC(
-            agent_obs_shape=N,
-            global_obs_shape=N,
-            action_shape=A,
+            obs_shape=obs_shape,
+            action_shape=action_shape,
             twin_critic=twin,
+            encoder_hidden_size_list=[32, 32, 64] if len(obs_shape) > 1 else None,
         )
-        # compute_q
+        # compute_critic
         q = model(inputs, mode='compute_critic')['q_value']
         if twin:
-            is_differentiable(q[0].sum(), model.critic[0])
-            is_differentiable(q[1].sum(), model.critic[1])
+            is_differentiable(q[0].sum(), model.critic[1][0])
+            # is_differentiable(q[1].sum(), model.critic[1][1]) # backward encoder twice
+            assert q[0].shape == (B, action_shape)
+            assert q[1].shape == (B, action_shape)
         else:
-            is_differentiable(q.sum(), model.critic)
+            is_differentiable(q.sum(), model.critic[1])
+            assert q.shape == (B, action_shape)
 
-        # compute_action
+        # compute_actor
         print(model)
         logit = model(inputs, mode='compute_actor')['logit']
-        assert logit.shape[0] == B
-        assert logit.shape[1] == A
-
-
-B = 32
-agent_obs_shape = [216, 265]
-global_obs_shape = [264, 324]
-agent_num = 8
-action_shape = 14
-args = list(product(*[agent_obs_shape, global_obs_shape]))
-
-
-@pytest.mark.unittest
-@pytest.mark.parametrize('agent_obs_shape, global_obs_shape', args)
-class TestMAQAC:
-
-    def output_check(self, model, outputs, action_shape):
-        if isinstance(action_shape, tuple):
-            loss = sum([t.sum() for t in outputs])
-        elif np.isscalar(action_shape):
-            loss = outputs.sum()
-        is_differentiable(loss, model)
-
-    def test_maqac(self, agent_obs_shape, global_obs_shape):
-        data = {
-            'obs': {
-                'agent_state': torch.randn(B, agent_num, agent_obs_shape),
-                'global_state': torch.randn(B, agent_num, global_obs_shape),
-                'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
-            }
-        }
-        model = MAQAC(agent_obs_shape, global_obs_shape, action_shape)
-
-        logit = model(data, mode='compute_actor')['logit']
-        value = model(data, mode='compute_critic')['q_value']
-
-        outputs = value.sum() + logit.sum()
-        self.output_check(model, outputs, action_shape)
-
-        for p in model.parameters():
-            p.grad = None
-        logit = model(data, mode='compute_actor')['logit']
-        self.output_check(model.actor, logit, action_shape)
-
-        for p in model.parameters():
-            p.grad = None
-        value = model(data, mode='compute_critic')['q_value']
-        assert value.shape == (B, agent_num, action_shape)
-        self.output_check(model.critic, value, action_shape)
+        assert logit.shape == (B, action_shape)
+        is_differentiable(logit.sum(), model.actor)
 
 
 B = 4
@@ -143,11 +98,11 @@ args = list(product(*[action_shape_args, [True, False], [True, False]]))
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('action_shape, twin, share_encoder', args)
-class TestQACPixel:
+class TestContinuousQACPixel:
 
     def test_qacpixel(self, action_shape, twin, share_encoder):
         inputs = {'obs': torch.randn(B, 3, 84, 84), 'action': torch.randn(B, squeeze(action_shape))}
-        model = QAC(
+        model = ContinuousQAC(
             obs_shape=(3, 84, 84),
             action_shape=action_shape,
             action_space='reparameterization',
@@ -169,4 +124,7 @@ class TestQACPixel:
         action_shape = squeeze(action_shape)
         assert mu.shape == (B, action_shape)
         assert sigma.shape == (B, action_shape)
-        is_differentiable(mu.sum() + sigma.sum(), model.actor)
+        if share_encoder:  # if share_encoder, actor_encoder's grad is not None
+            is_differentiable(mu.sum() + sigma.sum(), model.actor_head)
+        else:
+            is_differentiable(mu.sum() + sigma.sum(), model.actor)

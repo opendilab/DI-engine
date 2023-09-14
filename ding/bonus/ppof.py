@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional, Union, List
 from ditk import logging
 from easydict import EasyDict
 from functools import partial
@@ -16,15 +15,7 @@ from ding.utils import set_pkg_seed
 from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
-
-
-@dataclass
-class TrainingReturn:
-    '''
-    Attributions
-    wandb_url: The weight & biases (wandb) project url of the trainning experiment.
-    '''
-    wandb_url: str
+from ding.bonus.common import TrainingReturn, EvalReturn
 
 
 class PPOF:
@@ -50,6 +41,11 @@ class PPOF:
         'atari_qbert',
         'atari_kangaroo',
         'atari_bowling',
+        'PongNoFrameskip',
+        'SpaceInvadersNoFrameskip',
+        'QbertNoFrameskip',
+        # mujoco
+        'hopper',
     ]
 
     def __init__(
@@ -111,17 +107,19 @@ class PPOF:
         self.policy = PPOFPolicy(self.cfg, model=model)
         if policy_state_dict is not None:
             self.policy.load_state_dict(policy_state_dict)
+        self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
 
     def train(
-            self,
-            step: int = int(1e7),
-            collector_env_num: int = 4,
-            evaluator_env_num: int = 4,
-            n_iter_log_show: int = 500,
-            n_iter_save_ckpt: int = 1000,
-            context: Optional[str] = None,
-            reward_model: Optional[str] = None,
-            debug: bool = False
+        self,
+        step: int = int(1e7),
+        collector_env_num: int = 4,
+        evaluator_env_num: int = 4,
+        n_iter_log_show: int = 500,
+        n_iter_save_ckpt: int = 1000,
+        context: Optional[str] = None,
+        reward_model: Optional[str] = None,
+        debug: bool = False,
+        wandb_sweep: bool = False,
     ) -> TrainingReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
@@ -136,16 +134,17 @@ class PPOF:
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
+            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
             task.use(ppof_adv_estimator(self.policy))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
-            task.use(CkptSaver(self.policy, save_dir=self.exp_name, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
                     model=self.policy._model,
                     anonymous=True,
-                    project_name=self.exp_name
+                    project_name=self.exp_name,
+                    wandb_sweep=wandb_sweep,
                 )
             )
             task.use(termination_checker(max_env_step=step))
@@ -153,11 +152,11 @@ class PPOF:
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> None:
+    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> float:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
-        env = self.env.clone()
+        env = self.env.clone(caller='evaluator')
         env.seed(self.seed, dynamic_seed=False)
 
         if enable_save_replay and replay_save_path:
@@ -167,7 +166,11 @@ class PPOF:
         else:
             logging.warning('No video would be generated during the deploy.')
 
-        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval)
+        forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.cuda)
+
+        # reset first to make sure the env is in the initial state
+        # env will be reset again in the main loop
+        env.reset()
 
         # main loop
         return_ = 0.
@@ -181,6 +184,10 @@ class PPOF:
             if done:
                 break
         logging.info(f'PPOF deploy is finished, final episode return with {step} steps is: {return_}')
+
+        env.close()
+
+        return return_
 
     def collect_data(
             self,
@@ -215,11 +222,16 @@ class PPOF:
             n_evaluator_episode: int = 4,
             context: Optional[str] = None,
             debug: bool = False,
-    ) -> None:
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self._setup_env_manager(env_num, context, debug, 'evaluator')
+
+        # reset first to make sure the env is in the initial state
+        # env will be reset again in the main loop
+        env.launch()
+        env.reset()
 
         # main execution task
         with task.start(ctx=OnlineRLContext()):
@@ -230,6 +242,8 @@ class PPOF:
                 n_evaluator_episode,
             ))
             task.run(max_step=1)
+
+        return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     def _setup_env_manager(
             self,
@@ -248,3 +262,12 @@ class PPOF:
             if context is not None:
                 manager_cfg.context = context
         return env_cls([partial(self.env.clone, caller) for _ in range(env_num)], manager_cfg)
+
+    @property
+    def best(self):
+        best_model_file_path = os.path.join(self.checkpoint_save_dir, "eval.pth.tar")
+        # Load best model if it exists
+        if os.path.exists(best_model_file_path):
+            policy_state_dict = torch.load(best_model_file_path, map_location=torch.device("cpu"))
+            self.policy.learn_mode.load_state_dict(policy_state_dict)
+        return self

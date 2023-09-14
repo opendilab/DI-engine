@@ -3,15 +3,16 @@ import os
 import gym
 from ding.envs import BaseEnv, DingEnvWrapper
 from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
-    EvalEpisodeReturnEnv, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
-from ding.policy import PPOFPolicy, TD3Policy
+    EvalEpisodeReturnWrapper, TransposeWrapper, TimeLimitWrapper, FlatObsWrapper, GymToGymnasiumWrapper
+from ding.policy import PPOFPolicy
 
 
 def get_instance_config(env: str, algorithm: str) -> EasyDict:
-    if algorithm == 'PPO':
+    if algorithm == 'PPOF':
         cfg = PPOFPolicy.default_config()
         if env == 'lunarlander_discrete':
             cfg.n_sample = 512
+            cfg.value_norm = 'popart'
             cfg.entropy_weight = 1e-3
         elif env == 'lunarlander_continuous':
             cfg.action_space = 'continuous'
@@ -93,6 +94,39 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                 critic_head_hidden_size=128,
                 critic_head_layer_num=2,
             )
+        elif env == 'PongNoFrameskip':
+            cfg.n_sample = 3200
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 3e-4
+            cfg.model = dict(
+                encoder_hidden_size_list=[64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+            )
+        elif env == 'SpaceInvadersNoFrameskip':
+            cfg.n_sample = 320
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 1
+            cfg.learning_rate = 1e-3
+            cfg.entropy_weight = 0.01
+            cfg.lr_scheduler = (2000, 0.1)
+            cfg.model = dict(
+                encoder_hidden_size_list=[64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+            )
+        elif env == 'QbertNoFrameskip':
+            cfg.n_sample = 3200
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 5e-4
+            cfg.lr_scheduler = (1000, 0.1)
+            cfg.model = dict(
+                encoder_hidden_size_list=[64, 64, 128],
+                actor_head_hidden_size=128,
+                critic_head_hidden_size=128,
+            )
         elif env == 'minigrid_fourroom':
             cfg.n_sample = 3200
             cfg.batch_size = 320
@@ -112,44 +146,12 @@ def get_instance_config(env: str, algorithm: str) -> EasyDict:
                 critic_head_hidden_size=128,
                 critic_head_layer_num=2,
             )
-        else:
-            raise KeyError("not supported env type: {}".format(env))
-    elif algorithm == 'TD3':
-        cfg = TD3Policy.default_config()
-        if env == 'hopper':
-            cfg.update(
-                dict(
-                    exp_name='hopper_td3',
-                    seed=0,
-                    env=dict(
-                        env_id='Hopper-v3',
-                        collector_env_num=8,
-                        evaluator_env_num=8,
-                        n_evaluator_episode=8,
-                        stop_value=6000,
-                    ),
-                    policy=dict(
-                        cuda=True,
-                        random_collect_size=25000,
-                        model=dict(
-                            obs_shape=11,
-                            action_shape=3,
-                            actor_head_hidden_size=256,
-                            critic_head_hidden_size=256,
-                            action_space='regression',
-                        ),
-                        collect=dict(n_sample=1, ),
-                        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
-                    ),
-                    wandb_logger=dict(
-                        gradient_logger=True,
-                        video_logger=True,
-                        plot_logger=True,
-                        action_logger=True,
-                        return_logger=False
-                    ),
-                )
-            )
+        elif env in ['hopper']:
+            cfg.action_space = "continuous"
+            cfg.n_sample = 3200
+            cfg.batch_size = 320
+            cfg.epoch_per_collect = 10
+            cfg.learning_rate = 3e-4
         else:
             raise KeyError("not supported env type: {}".format(env))
     else:
@@ -164,7 +166,9 @@ def get_instance_env(env: str) -> BaseEnv:
     elif env == 'lunarlander_continuous':
         return DingEnvWrapper(gym.make('LunarLander-v2', continuous=True))
     elif env == 'bipedalwalker':
-        return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True})
+        return DingEnvWrapper(gym.make('BipedalWalker-v3'), cfg={'act_scale': True, 'rew_clip': True})
+    elif env == 'pendulum':
+        return DingEnvWrapper(gym.make('Pendulum-v1'), cfg={'act_scale': True})
     elif env == 'acrobot':
         return DingEnvWrapper(gym.make('Acrobot-v1'))
     elif env == 'rocket_landing':
@@ -195,7 +199,7 @@ def get_instance_env(env: str) -> BaseEnv:
             cfg={
                 'env_wrapper': [
                     lambda env: TimeLimitWrapper(env, max_limit=300),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )
@@ -211,7 +215,7 @@ def get_instance_env(env: str) -> BaseEnv:
                     lambda env: ScaledFloatFrameWrapper(env),
                     lambda env: FrameStackWrapper(env, n_frames=4),
                     lambda env: TimeLimitWrapper(env, max_limit=200),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )
@@ -225,31 +229,69 @@ def get_instance_env(env: str) -> BaseEnv:
                 'env_wrapper': [
                     lambda env: TransposeWrapper(env),
                     lambda env: ScaledFloatFrameWrapper(env),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             },
             seed_api=False,
         )
     elif env == 'hopper':
-        from dizoo.mujoco.envs import MujocoEnv
         cfg = EasyDict(
             env_id='Hopper-v3',
             env_wrapper='mujoco_default',
+            act_scale=True,
+            rew_clip=True,
         )
-        return DingEnvWrapper(cfg=cfg)
-    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling']:
+        return DingEnvWrapper(gym.make('Hopper-v3'), cfg=cfg)
+    elif env == 'HalfCheetah':
+        cfg = EasyDict(
+            env_id='HalfCheetah-v3',
+            env_wrapper='mujoco_default',
+            act_scale=True,
+            rew_clip=True,
+        )
+        return DingEnvWrapper(gym.make('HalfCheetah-v3'), cfg=cfg)
+    elif env == 'Walker2d':
+        cfg = EasyDict(
+            env_id='Walker2d-v3',
+            env_wrapper='mujoco_default',
+            act_scale=True,
+            rew_clip=True,
+        )
+        return DingEnvWrapper(gym.make('Walker2d-v3'), cfg=cfg)
+    elif env == "SpaceInvadersNoFrameskip":
+        cfg = EasyDict({
+            'env_id': "SpaceInvadersNoFrameskip-v4",
+            'env_wrapper': 'atari_default',
+        })
+        return DingEnvWrapper(gym.make("SpaceInvadersNoFrameskip-v4"), cfg=cfg)
+    elif env == "PongNoFrameskip":
+        cfg = EasyDict({
+            'env_id': "PongNoFrameskip-v4",
+            'env_wrapper': 'atari_default',
+        })
+        return DingEnvWrapper(gym.make("PongNoFrameskip-v4"), cfg=cfg)
+    elif env == "QbertNoFrameskip":
+        cfg = EasyDict({
+            'env_id': "QbertNoFrameskip-v4",
+            'env_wrapper': 'atari_default',
+        })
+        return DingEnvWrapper(gym.make("QbertNoFrameskip-v4"), cfg=cfg)
+    elif env in ['atari_qbert', 'atari_kangaroo', 'atari_bowling', 'atari_breakout', 'atari_spaceinvader',
+                 'atari_gopher']:
         from dizoo.atari.envs.atari_env import AtariEnv
         atari_env_list = {
             'atari_qbert': 'QbertNoFrameskip-v4',
             'atari_kangaroo': 'KangarooNoFrameskip-v4',
-            'atari_bowling': 'BowlingNoFrameskip-v4'
+            'atari_bowling': 'BowlingNoFrameskip-v4',
+            'atari_breakout': 'BreakoutNoFrameskip-v4',
+            'atari_spaceinvader': 'SpaceInvadersNoFrameskip-v4',
+            'atari_gopher': 'GopherNoFrameskip-v4'
         }
         cfg = EasyDict({
             'env_id': atari_env_list[env],
             'env_wrapper': 'atari_default',
         })
         ding_env_atari = DingEnvWrapper(gym.make(atari_env_list[env]), cfg=cfg)
-        ding_env_atari.enable_save_replay(env + '_log/')
         return ding_env_atari
     elif env == 'minigrid_fourroom':
         import gymnasium
@@ -260,7 +302,7 @@ def get_instance_env(env: str) -> BaseEnv:
                     lambda env: GymToGymnasiumWrapper(env),
                     lambda env: FlatObsWrapper(env),
                     lambda env: TimeLimitWrapper(env, max_limit=300),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )

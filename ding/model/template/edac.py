@@ -10,10 +10,10 @@ from ding.utils import MODEL_REGISTRY
 
 
 @MODEL_REGISTRY.register('edac')
-class QACEnsemble(nn.Module):
-    r"""
+class EDAC(nn.Module):
+    """
     Overview:
-        The QAC network with ensemble, which is used in EDAC.
+        The Q-value Actor-Critic network with the ensemble mechanism, which is used in EDAC.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -51,7 +51,7 @@ class QACEnsemble(nn.Module):
             - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \
                 see ``ding.torch_utils.network`` for more details.
         """
-        super(QACEnsemble, self).__init__()
+        super(EDAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
@@ -94,6 +94,7 @@ class QACEnsemble(nn.Module):
                 - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
             Returns:
                 - output (:obj:`Dict`): Output dict data, including q_value tensor.
+
         .. note::
             For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
         """
@@ -125,7 +126,7 @@ class QACEnsemble(nn.Module):
             - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \
                 ``action_shape.action_args_shape``.
         Examples:
-            >>> model = QACEnsemble(64, 64,)
+            >>> model = EDAC(64, 64,)
             >>> obs = torch.randn(4, 64)
             >>> actor_outputs = model(obs,'compute_actor')
             >>> assert actor_outputs['logit'][0].shape == torch.Size([4, 64])  # mu
