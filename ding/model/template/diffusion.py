@@ -7,20 +7,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 from ding.torch_utils.network.diffusion import extract, cosine_beta_schedule, apply_conditioning, \
-    TemporalUnet, TemporalValue, ARInvModel
+    DiffusionUNet1d, TemporalValue
 
 Sample = namedtuple('Sample', 'trajectories values chains')
 
-def default_sample_fn(self, x, cond, t):
-        model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t)
-        model_std = torch.exp(0.5 * model_log_variance)
-
-        # no noise when t == 0
-        noise = torch.randn_like(x)
-        noise[t == 0] = 0
-
-        values = torch.zeros(len(x), device=x.device)
-        return model_mean + model_std * noise, values
+def default_sample_fn(model, x, cond, t):
+    b, *_, device = *x.shape, x.device
+    model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t,)
+    noise = 0.5*torch.randn_like(x)
+    # no noise when t == 0
+    nonzero_mask = (1 - (t == 0).float()).reshape(b, *((1,) * (len(x.shape) - 1)))
+    values = torch.zeros(len(x), device=device)
+    return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise, values
 
 def get_guide_output(guide, x, cond, t):
     x.requires_grad_()
@@ -57,7 +55,7 @@ def n_step_guided_p_sample(
     return model_mean + model_std * noise, y
 
 class GaussianDiffusion(nn.Module):
-    '''
+    """
     Overview:
             Gaussian diffusion model
     Arguments:
@@ -72,7 +70,7 @@ class GaussianDiffusion(nn.Module):
             - clip_denoised (:obj:'bool'): Whether use clip_denoised
             - action_weight (:obj:'float'): weight of action
             - loss_weights (:obj:'dict'): weight of loss
-    '''
+    """
     def __init__(
             self,
             model: str,
@@ -131,14 +129,14 @@ class GaussianDiffusion(nn.Module):
         self.loss_weights = self.get_loss_weights(action_weight, loss_discount, loss_weights)
     
     def get_loss_weights(self, action_weight: float, discount: float, weights_dict: dict):
-        '''
+        """
         Overview:
             sets loss coefficients for trajectory
         Arguments:
             - action_weight (:obj:'float') coefficient on first action loss
             - discount (:obj:'float') multiplies t^th timestep of trajectory loss by discount**t
             - weights_dict (:obj:'dict') { i: c } multiplies dimension i of observation loss by c
-        '''
+        """
         self.action_weight = action_weight
         dim_weights = torch.ones(self.transition_dim, dtype=torch.float32)
 
@@ -157,10 +155,10 @@ class GaussianDiffusion(nn.Module):
         return loss_weights
     
     def predict_start_from_noise(self, x_t, t, noise):
-        '''
+        """
             if self.predict_epsilon, model output is (scaled) noise;
             otherwise, model predicts x0 directly
-        '''
+        """
         if self.predict_epsilon:
             return (
                 extract(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t -
@@ -170,6 +168,14 @@ class GaussianDiffusion(nn.Module):
             return noise
 
     def q_posterior(self, x_start, x_t, t):
+        """
+        Overview:
+            give noise and step, compute mean, variance.
+        Arguments:
+            x_start (:obj:'tensor') noise trajectory in timestep 0
+            x_t (:obj:'tuple') noise trajectory in timestep t
+            t (:obj:'int') timestep of diffusion step
+        """
         posterior_mean = (
             extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
             extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
@@ -209,18 +215,19 @@ class GaussianDiffusion(nn.Module):
                 chain.append(x)
         values = values.reshape(-1, plan_size, *values.shape[1:])
         x = x.reshape(-1, plan_size, *x.shape[1:])
-        inds = torch.argsort(values, dim=1, descending=True)
-        x = x[torch.arange(x.size(0)).unsqueeze(1), inds]
-        values = values[torch.arange(values.size(0)).unsqueeze(1), inds]
+        if plan_size > 1:
+            inds = torch.argsort(values, dim=1, descending=True)
+            x = x[torch.arange(x.size(0)).unsqueeze(1), inds]
+            values = values[torch.arange(values.size(0)).unsqueeze(1), inds]
         if return_chain: 
             chain = torch.stack(chain, dim=1)
         return Sample(x, values, chain)
 
     @torch.no_grad()
     def conditional_sample(self, cond, horizon=None, **sample_kwargs):
-        '''
+        """
             conditions : [ (time, state), ... ]
-        '''
+        """
         device = self.betas.device
         batch_size = len(cond[0])
         horizon = horizon or self.horizon
@@ -229,12 +236,12 @@ class GaussianDiffusion(nn.Module):
         return self.p_sample_loop(shape, cond, **sample_kwargs)
     
     def q_sample(self, x_start, t, noise=None):
-        '''
+        """
         Arguments:
             conditions (:obj:'tuple') [ (time, state), ... ] conditions of diffusion
             t (:obj:'int') timestep of diffusion
             noise (:obj:'tensor.float') timestep's noise of diffusion
-        '''
+        """
         if noise is None:
             noise = torch.randn_like(x_start)
 
@@ -270,10 +277,10 @@ class GaussianDiffusion(nn.Module):
         return self.conditional_sample(cond, *args, **kwargs)
 
 class ValueDiffusion(GaussianDiffusion):
-    '''
+    """
     Overview:
             Gaussian diffusion model for value function.
-    '''
+    """
     def p_losses(self, x_start, cond, target, t):
         noise = torch.randn_like(x_start)
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
@@ -294,16 +301,16 @@ class ValueDiffusion(GaussianDiffusion):
     
 @MODEL_REGISTRY.register('pd')
 class PlanDiffuser(nn.Module):
-    '''
+    """
     Overview:
             Diffuser model for plan.
     Arguments:
             - diffuser_model (:obj:`str`): type of plan model
             - diffuser_model_cfg (:obj:'dict') config of diffuser_model
-            - value_model (:obj:`str`): type of value model
+            - value_model (:obj:`str`): type of value model, if haven't use, set it as None
             - value_model_cfg (:obj:`int`): config of value_model
             - sample_kwargs : config of sample function
-    '''
+    """
     def __init__(
             self,
             diffuser_model: str,
@@ -315,8 +322,10 @@ class PlanDiffuser(nn.Module):
         super().__init__()
         diffuser_model = eval(diffuser_model)
         self.diffuser = diffuser_model(**diffuser_model_cfg)
-        value_model = eval(value_model)
-        self.value = value_model(**value_model_cfg)
+        self.value = None
+        if value_model:
+            value_model = eval(value_model)
+            self.value = value_model(**value_model_cfg)
         self.sample_kwargs = sample_kwargs
 
     def diffuser_loss(self, x_start, cond, t):
@@ -327,12 +336,16 @@ class PlanDiffuser(nn.Module):
     
     def get_eval(self, cond, batch_size = 1):
         cond = self.repeat_cond(cond, batch_size)
-        samples = self.diffuser(cond, sample_fn=n_step_guided_p_sample, plan_size=batch_size, 
+        if self.value:
+            samples = self.diffuser(cond, sample_fn=n_step_guided_p_sample, plan_size=batch_size, 
                                 guide=self.value, **self.sample_kwargs)
-        # extract action [eval_num, batch_size, horizon, transition_dim]
-        actions = samples.trajectories[:, :, :, :self.diffuser.action_dim]
-        action = actions[:, 0, 0]
-        return action
+            # extract action [eval_num, batch_size, horizon, transition_dim]
+            actions = samples.trajectories[:, :, :, :self.diffuser.action_dim]
+            action = actions[:, 0, 0]
+            return action
+        else:
+            samples = self.diffuser(cond, plan_size=batch_size)
+            return samples.trajectories[:, :, :, self.diffuser.action_dim:].squeeze(1)
     
     def repeat_cond(self, cond, batch_size):
         for k,v in cond.items():
@@ -341,7 +354,7 @@ class PlanDiffuser(nn.Module):
 
 @MODEL_REGISTRY.register('dd')
 class GaussianInvDynDiffusion(nn.Module):
-    '''
+    """
     Overview:
             Gaussian diffusion model with Invdyn action model.
     Arguments:
@@ -358,7 +371,7 @@ class GaussianInvDynDiffusion(nn.Module):
             - predict_epsilon (:obj:'bool'): Whether predict epsilon
             - condition_guidance_w (:obj:'float'): weight of condition guidance
             - loss_discount (:obj:'float'): discount of loss
-    '''
+    """
     def __init__(
             self,
             model: str,
@@ -388,16 +401,15 @@ class GaussianInvDynDiffusion(nn.Module):
         self.train_only_inv = train_only_inv
         self.predict_epsilon = predict_epsilon
         self.condition_guidance_w = condition_guidance_w
-        if ar_inv:
-            self.inv_model = ARInvModel(hidden_dim, obs_dim, action_dim)
-        else:
-            self.inv_model = nn.Sequential(
-                nn.Linear(2 * self.obs_dim, hidden_dim),
-                nn.ReLU(),
-                nn.Linear(hidden_dim, hidden_dim),
-                nn.ReLU(),
-                nn.Linear(hidden_dim, self.action_dim),
-            )
+
+        self.inv_model = nn.Sequential(
+            nn.Linear(2 * self.obs_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, self.action_dim),
+        )
+
         self.returns_condition = returns_condition
         self.clip_denoised = clip_denoised
 
@@ -448,10 +460,10 @@ class GaussianInvDynDiffusion(nn.Module):
         return loss_weights
 
     def predict_start_from_noise(self, x_t, t, noise):
-        '''
+        """
             if self.predict_epsilon, model output is (scaled) noise;
             otherwise, model predicts x0 directly
-        '''
+        """
         if self.predict_epsilon:
             return (
                 extract(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t -
@@ -461,12 +473,12 @@ class GaussianInvDynDiffusion(nn.Module):
             return noise
 
     def q_posterior(self, x_start, x_t, t):
-        '''
+        """
         Arguments:
             x_start (:obj:'tensor') noise trajectory in timestep 0
             x_t (:obj:'tuple') noise trajectory in timestep t
             t (:obj:'int') timestep of diffusion step
-        '''
+        """
         posterior_mean = (
             extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
             extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
@@ -476,7 +488,7 @@ class GaussianInvDynDiffusion(nn.Module):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(self, x, cond, t, returns=None):
-        '''
+        """
         Arguments:
             x (:obj:'tensor') noise trajectory in timestep t
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
@@ -486,7 +498,7 @@ class GaussianInvDynDiffusion(nn.Module):
             model_mean (:obj:'tensor.float') 
             posterior_variance (:obj:'float')
             posterior_log_variance (:obj:'float')
-        '''
+        """
         if self.returns_condition:
             # epsilon could be epsilon or x0 itself
             epsilon_cond = self.model(x, cond, t, returns, use_dropout=False)
@@ -509,13 +521,13 @@ class GaussianInvDynDiffusion(nn.Module):
 
     @torch.no_grad()
     def p_sample(self, x, cond, t, returns=None):
-        '''
+        """
         Arguments:
             x (:obj:'tensor') noise trajectory in timestep t
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
             t (:obj:'int') timestep of diffusion step
             returns (:obj:'tensor') condition returns of trajectory, returns is normal return
-        '''
+        """
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t, returns=returns)
         noise = 0.5*torch.randn_like(x)
@@ -525,7 +537,7 @@ class GaussianInvDynDiffusion(nn.Module):
 
     @torch.no_grad()
     def p_sample_loop(self, shape, cond, returns=None, verbose=True, return_diffusion=False):
-        '''
+        """
         Arguments:
             shape (:obj:'tuple') (batch_size, horizon, self.obs_dim)
             cond (:obj:'tuple') [ (time, state), ... ] state is init state of env, time = 0
@@ -533,7 +545,7 @@ class GaussianInvDynDiffusion(nn.Module):
             horizon (:obj:'int') horizon of trajectory
             verbose (:obj:'bool') whether log diffusion progress
             return_diffusion (:obj:'bool') whether use return diffusion
-        '''
+        """
         device = self.betas.device
 
         batch_size = shape[0]
@@ -559,14 +571,14 @@ class GaussianInvDynDiffusion(nn.Module):
 
     @torch.no_grad()
     def conditional_sample(self, cond, returns=None, horizon=None, *args, **kwargs):
-        '''
+        """
         Arguments:
             conditions (:obj:'tuple') [ (time, state), ... ] state is init state of env, time is timestep of trajectory
             returns (:obj:'tensor') condition returns of trajectory, returns is normal return
             horizon (:obj:'int') horizon of trajectory
         returns:
             x (:obj:'tensor') tarjctory of env
-        '''
+        """
         device = self.betas.device
         batch_size = len(cond[0])
         horizon = horizon or self.horizon
@@ -575,12 +587,12 @@ class GaussianInvDynDiffusion(nn.Module):
         return self.p_sample_loop(shape, cond, returns, *args, **kwargs)
     
     def q_sample(self, x_start, t, noise=None):
-        '''
+        """
         Arguments:
             conditions (:obj:'tuple') [ (time, state), ... ] conditions of diffusion
             t (:obj:'int') timestep of diffusion
             noise (:obj:'tensor.float') timestep's noise of diffusion
-        '''
+        """
         if noise is None:
             noise = torch.randn_like(x_start)
 

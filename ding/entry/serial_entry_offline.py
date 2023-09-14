@@ -76,7 +76,7 @@ def serial_pipeline_offline(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'eval'])
     if cfg.policy.collect.data_type == 'diffuser_traj':
-        policy._init_normal(dataset.normalizer)
+        policy.init_data_normalizer(dataset.normalizer)
 
     if hasattr(policy, 'set_statistic'):
         # useful for setting action bounds for ibc

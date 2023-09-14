@@ -8,22 +8,22 @@ import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 
 def extract(a, t, x_shape):
-    '''
+    """
     Overview:
         extract output from a through index t.
-    '''
+    """
     b, *_ = t.shape
     out = a.gather(-1, t)
     return out.reshape(b, *((1,) * (len(x_shape) - 1)))
 
 def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype = torch.float32):
-    '''
+    """
     Overview:
         cosine schedule
         as proposed in https://openreview.net/forum?id=-NEXDKk8gZ
     Return:
         Tensor of beta [timesteps,], computing by cosine.
-    '''
+    """
     steps = timesteps + 1
     x = np.linspace(0, steps, steps)
     alphas_cumprod = np.cos(((x / steps) + s) / (1 + s) * np.pi * 0.5) ** 2
@@ -33,21 +33,15 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype = torch.float32
     return torch.tensor(betas_clipped, dtype=dtype)
 
 def apply_conditioning(x, conditions, action_dim):
-    '''
+    """
     Overview:
         add condition into x
-    '''
+    """
     for t, val in conditions.items():
         x[:, t, action_dim:] = val.clone()
     return x
 
-class conv1d(nn.Module):
-    """
-    Overview:
-        conv1dblock network
-    Interface:
-        __init__, forward
-    """
+class DiffusionConv1d(nn.Module):
     def __init__(
             self,
             in_channels: int,
@@ -59,7 +53,8 @@ class conv1d(nn.Module):
     ) -> None:
         """
         Overview:
-            Create a 1-dim convlution layer with activation and normalization.
+            Create a 1-dim convlution layer with activation and normalization. This Conv1d have GropuNorm.
+            And need add 1-dim when compute norm
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor
             - out_channels (:obj:`int`): Number of channels in the output tensor
@@ -87,10 +82,10 @@ class conv1d(nn.Module):
         return out
 
 class SinusoidalPosEmb(nn.Module):
-    '''
+    """
     Overview:
         compute sin position embeding
-    '''
+    """
     def __init__(self, dim: int,) -> None:
         super().__init__()
         self.dim = dim
@@ -113,9 +108,9 @@ class Residual(nn.Module):
         return self.fn(x, *arg, **kwargs) + x
 
 class LayerNorm(nn.Module):
-    '''
+    """
     Overview: LayerNorm, compute dim = 1, because Temporal input x [batch, dim, horizon]
-    '''
+    """
     def __init__(self, dim, eps = 1e-5) -> None:
         super().__init__()
         self.eps = eps
@@ -139,14 +134,14 @@ class PreNorm(nn.Module):
         return self.fn(x)
     
 class LinearAttention(nn.Module):
-    '''
+    """
     Overview:
         Linear Attention head
     Arguments:
         - dim (:obj:'int'): dim of input
         - heads (:obj:'int'): num of head
         - dim_head (:obj:'int'): dim of head
-    '''
+    """
     def __init__(self, dim, heads=4, dim_head=32) -> None:
         super().__init__()
         self.scale = dim_head ** -0.5
@@ -167,7 +162,7 @@ class LinearAttention(nn.Module):
         return self.to_out(out)
 
 class ResidualTemporalBlock(nn.Module):
-    '''
+    """
     Overview:
         Residual block of temporal
     Arguments:
@@ -176,7 +171,7 @@ class ResidualTemporalBlock(nn.Module):
         - embed_dim (:obj:'int'): dim of embeding layer
         - kernel_size (:obj:'int'): kernel_size of conv1d
         - mish (:obj:'bool'): whether use mish as a activate function
-    '''
+    """
     def __init__(
             self,
             in_channels: int,
@@ -191,8 +186,8 @@ class ResidualTemporalBlock(nn.Module):
         else:
             act = nn.SiLU()
         self.blocks = nn.ModuleList([
-            conv1d(in_channels, out_channels, kernel_size, kernel_size // 2, act),
-            conv1d(out_channels, out_channels, kernel_size, kernel_size // 2, act),
+            DiffusionConv1d(in_channels, out_channels, kernel_size, kernel_size // 2, act),
+            DiffusionConv1d(out_channels, out_channels, kernel_size, kernel_size // 2, act),
         ])
         self.time_mlp = nn.Sequential(
             act,
@@ -207,20 +202,7 @@ class ResidualTemporalBlock(nn.Module):
         return out + self.residual_conv(x)
 
 
-class TemporalUnet(nn.Module):
-    '''
-    Overview:
-        temporal net
-    Arguments:
-        - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim
-        - dim (:obj:'int'): dim of layer
-        - dim_mults (:obj:'SequenceType'): mults of dim
-        - returns_condition (:obj:'bool'): whether use return as a condition
-        - condition_dropout (:obj:'float'): dropout of returns condition
-        - calc_energy (:obj:'bool'): whether use calc_energy
-        - kernel_size (:obj:'int'): kernel_size of conv1d
-        - attention (:obj:'bool'): whether use attention
-    '''
+class DiffusionUNet1d(nn.Module):
     def __init__(
             self,
             transition_dim: int,
@@ -232,6 +214,19 @@ class TemporalUnet(nn.Module):
             kernel_size: int = 5,
             attention: bool = False,
     ) -> None:
+        """
+        Overview:
+            temporal net
+        Arguments:
+            - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim
+            - dim (:obj:'int'): dim of layer
+            - dim_mults (:obj:'SequenceType'): mults of dim
+            - returns_condition (:obj:'bool'): whether use return as a condition
+            - condition_dropout (:obj:'float'): dropout of returns condition
+            - calc_energy (:obj:'bool'): whether use calc_energy
+            - kernel_size (:obj:'int'): kernel_size of conv1d
+            - attention (:obj:'bool'): whether use attention
+        """
         super().__init__()
         dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
         in_out = list(zip(dims[:-1], dims[1:]))
@@ -298,13 +293,13 @@ class TemporalUnet(nn.Module):
             ]))
         
         self.final_conv = nn.Sequential(
-            conv1d(dim, dim, kernel_size=kernel_size, padding=kernel_size // 2, activation=act),
+            DiffusionConv1d(dim, dim, kernel_size=kernel_size, padding=kernel_size // 2, activation=act),
             nn.Conv1d(dim, transition_dim, 1),
         )
     
     def forward(self, x, cond, time, returns = None, use_dropout: bool = True, 
                 force_dropout: bool = False):
-        '''
+        """
         Arguments:
             x (:obj:'tensor'): noise trajectory
             cond (:obj:'tuple'): [ (time, state), ... ] state is init state of env, time = 0
@@ -312,7 +307,7 @@ class TemporalUnet(nn.Module):
             returns (:obj:'tensor'): condition returns of trajectory, returns is normal return
             use_dropout (:obj:'bool'): Whether use returns condition mask
             force_dropout (:obj:'bool'): Whether use returns condition
-        '''
+        """
         if self.cale_energy:
             x_inp = x
 
@@ -401,7 +396,7 @@ class TemporalUnet(nn.Module):
         return x
     
 class TemporalValue(nn.Module):
-    '''
+    """
     Overview:
         temporal net for value function
     Arguments:
@@ -411,7 +406,7 @@ class TemporalValue(nn.Module):
         - time_dim (:obj:'): dim of time
         - dim_mults (:obj:'SequenceType'): mults of dim
         - kernel_size (:obj:'int'): kernel_size of conv1d
-    '''
+    """
     def __init__(
             self,
             horizon: int,
@@ -480,162 +475,3 @@ class TemporalValue(nn.Module):
         x = x.view(len(x), -1)
         out = self.final_block(torch.cat([x, t], dim=-1))
         return out
-
-class MLPnet(nn.Module):
-    '''
-    Overview:
-        temporal net for mlp
-    '''
-    def __init__(
-            self,
-            transition_dim: int,
-            cond_dim: int,
-            dim: int = 128,
-            returns_condition: bool = True,
-            condition_dropout: float = 0.1,
-            calc_energy: bool = False,
-    ) -> None:
-        super().__init__()
-        if calc_energy:
-            act = nn.SiLU()
-        else:
-            act = nn.Mish()
-        self.time_dim = dim
-        self.returns_dim = dim
-
-        self.time_mlp = nn.Sequential(
-            SinusoidalPosEmb(dim),
-            nn.Linear(dim, dim * 4),
-            act,
-            nn.Linear(dim * 4, dim),
-        )
-        self.returns_condition = returns_condition
-        self.condition_dropout = condition_dropout
-        self.calc_energy = calc_energy
-        self.transition_dim = transition_dim
-        self.action_dim = transition_dim - cond_dim
-
-        if self.returns_condition:
-            self.returns_mlp = nn.Sequential(
-                nn.Linear(1, dim),
-                act,
-                nn.Linear(dim, dim * 4),
-                act,
-                nn.Linear(dim * 4, dim),
-            )
-            self.mask_dist = torch.distributions.Bernoulli(probs=1 - self.condition_dropout)
-            embed_dim = 2 * dim
-        else:
-            embed_dim = dim
-
-        self.mlp = nn.Sequential(
-            nn.Linear(embed_dim + transition_dim, 1024),
-            act,
-            nn.Linear(1024, 1024),
-            act,
-            nn.Linear(1024, self.action_dim),
-        )
-
-    def forward(self, x, cond, time, returns=None, use_dropout: bool = True, force_dropout: bool = False):
-        t = self.time_mlp(time)
-
-        if self.returns_condition:
-            assert returns is not None
-            returns_embed = self.returns_mlp(returns)
-            if use_dropout:
-                mask = self.mask_dist.sample(sample_shape=(returns_embed.size(0), 1)).to(returns_embed.device)
-                returns_embed = mask * returns_embed
-            else:
-                returns_embed = 0 * returns_embed
-            t = torch.cat([t, returns_embed], dim=-1)
-        
-        inputs = torch.cat([t, cond, x], dim=-1)
-        out = self.mlp(inputs)
-
-        if self.calc_energy:
-            energy = ((out - x) ** 2).mean()
-            grad = torch.autograd.grad(outputs=energy, inputs=x, create_graph=True)
-            return grad[0]
-        else:
-            return out
-        
-class ARInvModel(nn.Module):
-    '''
-    Overview:
-        Action model, return action by given state and next state
-    '''
-    def __init__(
-            self,
-            hidden_dim: int,
-            obs_dim: int,
-            action_dim: int,
-            low_act: float = -1.0,
-            up_act: float = 1.0
-    ) -> None:
-        super().__init__()
-        self.obs_dim = obs_dim
-        self.action_dim = action_dim
-        self.action_embed_hid = 128
-        self.out_lin = 128
-        self.num_bins = 80
-
-        self.up_act = up_act
-        self.low_act = low_act
-        self.bin_size = (self.up_act - self.low_act) / self.num_bins
-        self.ce_loss = nn.CrossEntropyLoss()
-
-        self.state_embed = nn.Sequential(
-            nn.Linear(2 * self.obs_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim),
-        )
-
-        self.lin_mod = nn.ModuleList([nn.Linear(i, self.out_lin) for i in range(1, self.action_dim)])
-        self.act_mod = nn.ModuleList([nn.Sequential(nn.Linear(hidden_dim, self.action_embed_hid), nn.ReLU(),
-                                                    nn.Linear(self.action_embed_hid, self.num_bins))])
-
-        for _ in range(1, self.action_dim):
-            self.act_mod.append(nn.Sequential(nn.Linear(hidden_dim + self.out_lin, self.action_embed_hid), nn.ReLU(),
-                                              nn.Linear(self.action_embed_hid, self.num_bins)))
-
-    def forward(self, comb_state, deterministic = False):
-        state_inp = comb_state
-        state_d = self.state_embed(state_inp)
-        lp_0 = self.act_mod[0](state_d)
-        l_0 = torch.distributions.Categorical(logits=lp_0).sample()
-        if deterministic:
-            a_0 = self.low_act + (l_0 + 0.5) * self.bin_size
-        else:
-            a_0 = torch.distributions.Uniform(self.low_act + l_0 * self.bin_size,
-                                              self.low_act + (l_0 + 1) * self.bin_size).sample()            
-        action = [a_0.unsqueeze(1)]
-
-        for i in range(1, self.action_dim):
-            lp_i = self.act_mod[i](torch.cat[state_d, self.lin_mod[i - 1](torch.cat(action, dim=1))], dim=1)
-            l_i = torch.distributions.Categorical(logits=lp_i).sample()
-            if deterministic:
-                a_i = self.low_act + (l_i + 0.5) * self.bin_size
-            else:
-                a_i = torch.distributions.Uniform(self.low_act + l_i * self.bin_size,
-                                                self.low_act + (l_i + 1) * self.bin_size).sample()
-            action.append(a_i.unsqueeze(1))
-        return torch.cat(action, dim=1)
-    
-    def calc_loss(self, comb_state, action):
-        eps = 1e-8
-        action = torch.clamp(action, min=self.low_act + eps, max=self.up_act - eps)
-        l_action = torch.div((action - self.low_act), self.bin_size, rounding_mode='floor').long()
-        state_inp = comb_state
-
-        state_d = self.state_embed(state_inp)
-        loss = self.ce_loss(self.act_mod[0](state_d), l_action[:, 0])
-
-        for i in range(1, self.action_dim):
-            loss += self.ce_loss(self.act_mod[i](torch.cat([state_d, self.lin_mod[i - 1](action[:, :i])], dim=1)),
-                                     l_action[:, i])
-
-        return loss/self.action_dim

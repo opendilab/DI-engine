@@ -2,7 +2,7 @@ import numpy as np
 
 class DatasetNormalizer:
 
-    def __init__(self, dataset, normalizer, path_lengths=None):
+    def __init__(self, dataset: np.ndarray, normalizer: str, path_lengths: int=None):
         dataset = flatten(dataset, path_lengths)
 
         self.observation_dim = dataset['observations'].shape[1]
@@ -26,9 +26,6 @@ class DatasetNormalizer:
             string += f'{key}: {normalizer}]\n'
         return string
 
-    def __call__(self, *args, **kwargs):
-        return self.normalize(*args, **kwargs)
-
     def normalize(self, x, key):
         return self.normalizers[key].normalize(x)
 
@@ -36,10 +33,10 @@ class DatasetNormalizer:
         return self.normalizers[key].unnormalize(x)
 
 def flatten(dataset, path_lengths):
-    '''
+    """
         flattens dataset of { key: [ n_episodes x max_path_lenth x dim ] }
             to { key : [ (n_episodes * sum(path_lengths)) x dim ]}
-    '''
+    """
     flattened = {}
     for key, xs in dataset.items():
         assert len(xs) == len(path_lengths)
@@ -52,9 +49,9 @@ def flatten(dataset, path_lengths):
     return flattened
 
 class Normalizer:
-    '''
+    """
         parent class, subclass by defining the `normalize` and `unnormalize` methods
-    '''
+    """
 
     def __init__(self, X):
         self.X = X.astype(np.float32)
@@ -77,9 +74,9 @@ class Normalizer:
         raise NotImplementedError()
 
 class GaussianNormalizer(Normalizer):
-    '''
+    """
         normalizes to zero mean and unit variance
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -101,9 +98,9 @@ class GaussianNormalizer(Normalizer):
         return x * self.stds + self.means
 
 class CDFNormalizer(Normalizer):
-    '''
+    """
         makes training data uniform (over each dimension) by transforming it with marginal CDFs
-    '''
+    """
 
     def __init__(self, X):
         super().__init__(atleast_2d(X))
@@ -132,9 +129,9 @@ class CDFNormalizer(Normalizer):
         return self.wrap('unnormalize', x)
 
 class CDFNormalizer1d:
-    '''
+    """
         CDF normalizer for a single dimension
-    '''
+    """
 
     def __init__(self, X):
         import scipy.interpolate as interpolate
@@ -168,9 +165,9 @@ class CDFNormalizer1d:
         return y
 
     def unnormalize(self, x, eps=1e-4):
-        '''
-            X : [ -1, 1 ]
-        '''
+        """
+             X : [ -1, 1 ]
+        """
         ## [ -1, 1 ] --> [ 0, 1 ]
         if self.constant:
             return x
@@ -206,3 +203,28 @@ def atleast_2d(x):
     if x.ndim < 2:
         x = x[:,None]
     return x
+
+class LimitsNormalizer(Normalizer):
+    '''
+        maps [ xmin, xmax ] to [ -1, 1 ]
+    '''
+
+    def normalize(self, x):
+        ## [ 0, 1 ]
+        x = (x - self.mins) / (self.maxs - self.mins)
+        ## [ -1, 1 ]
+        x = 2 * x - 1
+        return x
+
+    def unnormalize(self, x, eps=1e-4):
+        '''
+            x : [ -1, 1 ]
+        '''
+        if x.max() > 1 + eps or x.min() < -1 - eps:
+            # print(f'[ datasets/mujoco ] Warning: sample out of range | ({x.min():.4f}, {x.max():.4f})')
+            x = np.clip(x, -1, 1)
+
+        ## [ -1, 1 ] --> [ 0, 1 ]
+        x = (x + 1) / 2.
+
+        return x * (self.maxs - self.mins) + self.mins

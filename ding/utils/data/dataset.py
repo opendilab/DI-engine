@@ -546,9 +546,6 @@ class SequenceDataset(torch.utils.data.Dataset):
         self.env_id = cfg.env.env_id
         itr = self.sequence_dataset(env, dataset)
         self.n_episodes = 0
-        if 'maze' in env_id:
-            target = env.get_target()
-            self.target_obs = env.reset_to_location(target)
 
         fields = {}
         for k in dataset.keys():
@@ -595,6 +592,8 @@ class SequenceDataset(torch.utils.data.Dataset):
     def sequence_dataset(self, env, dataset=None):
         import collections
         N = dataset['rewards'].shape[0]
+        if 'maze2d' in env.spec.id:
+            dataset = self.maze2d_set_terminals(env, dataset)
         data_ = collections.defaultdict(list)
 
         # The newer version of the dataset adds an explicit
@@ -625,6 +624,31 @@ class SequenceDataset(torch.utils.data.Dataset):
 
             episode_step += 1
 
+    def maze2d_set_terminals(self, env, dataset):
+        goal = env.get_target()
+        threshold = 0.5
+
+        xy = dataset['observations'][:,:2]
+        distances = np.linalg.norm(xy - goal, axis=-1)
+        at_goal = distances < threshold
+        timeouts = np.zeros_like(dataset['timeouts'])
+
+        ## timeout at time t iff
+        ##      at goal at time t and
+        ##      not at goal at time t + 1
+        timeouts[:-1] = at_goal[:-1] * ~at_goal[1:]
+
+        timeout_steps = np.where(timeouts)[0]
+        path_lengths = timeout_steps[1:] - timeout_steps[:-1]
+
+        print(
+            f'[ utils/preprocessing ] Segmented {env.spec.id} | {len(path_lengths)} paths | '
+            f'min length: {path_lengths.min()} | max length: {path_lengths.max()}'
+        )
+
+        dataset['timeouts'] = timeouts
+        return dataset
+
     def process_maze2d_episode(self, episode):
         '''
             adds in `next_observations` field to episode
@@ -643,7 +667,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         '''
         for key in keys:
             array = self.fields[key].reshape(self.n_episodes*self.max_path_length, -1)
-            normed = self.normalizer(array, key)
+            normed = self.normalizer.normalize(array, key)
             self.fields[f'normed_{key}'] = normed.reshape(self.n_episodes, self.max_path_length, -1)
 
     def make_indices(self, path_lengths, horizon):
@@ -668,7 +692,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         '''
         if 'maze2d' in self.env_id:
             return {'condition_id': [0, self.horizon - 1],
-            'condition_val': [observations[0], self.target_obs],
+            'condition_val': [observations[0], observations[-1]],
             }
         else:
             return {'condition_id': [0],

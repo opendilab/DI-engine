@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional, Tuple, Union
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import copy
 import numpy as np
 import torch
@@ -149,6 +149,9 @@ class PDPolicy(Policy):
 
             value_step=200e3,
 
+            # dataset weight include returns
+            include_returns=True,
+
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
         ),
@@ -170,24 +173,26 @@ class PDPolicy(Policy):
         self.obs_dim = self._cfg.model.diffuser_model_cfg.obs_dim
         self.n_timesteps = self._cfg.model.diffuser_model_cfg.n_timesteps
         self.gradient_accumulate_every = self._cfg.learn.gradient_accumulate_every
-        self.plan_batch_szie = self._cfg.learn.plan_batch_size
+        self.plan_batch_size = self._cfg.learn.plan_batch_size
         self.gradient_steps = 1
         self.update_target_freq = self._cfg.learn.update_target_freq
         self.step_start_update_target = self._cfg.learn.step_start_update_target
         self.target_weight = self._cfg.learn.target_weight
         self.value_step = self._cfg.learn.value_step
-        self.use_target = False
+        self.use_target = True
         self.horizon = self._cfg.model.diffuser_model_cfg.horizon
+        self.include_returns = self._cfg.learn.include_returns
 
         # Optimizers
         self._plan_optimizer = Adam(
             self._model.diffuser.model.parameters(),
             lr=self._cfg.learn.learning_rate,
         )
-        self._value_optimizer = Adam(
-            self._model.value.model.parameters(),
-            lr=self._cfg.learn.learning_rate,
-        )
+        if self._model.value:
+            self._value_optimizer = Adam(
+                self._model.value.model.parameters(),
+                lr=self._cfg.learn.learning_rate,
+            )
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
@@ -225,7 +230,8 @@ class PDPolicy(Policy):
         if len(ids) > 1:
             self.use_target = True
         data['conditions'] = conds
-        data['returns'] = data['returns'].unsqueeze(-1)
+        if 'returns' in data.keys():
+            data['returns'] = data['returns'].unsqueeze(-1)
         if self._cuda:
             data = to_device(data, self._device)
 
@@ -236,11 +242,12 @@ class PDPolicy(Policy):
         batch_size = len(x)
         t = torch.randint(0, self.n_timesteps, (batch_size,), device=x.device).long()
         cond = data['conditions']
-        target = data['returns']
+        if 'returns' in data.keys():
+            target = data['returns']
         loss_dict['diffuse_loss'], loss_dict['a0_loss'] = self._model.diffuser_loss(x, cond, t)
         loss_dict['diffuse_loss'] = loss_dict['diffuse_loss'] / self.gradient_accumulate_every
         loss_dict['diffuse_loss'].backward()
-        if self._forward_learn_cnt < self.value_step:
+        if self._forward_learn_cnt < self.value_step and self._model.value:
             loss_dict['value_loss'], logs = self._model.value_loss(x, cond, target, t)
             loss_dict['value_loss'] = loss_dict['value_loss'] / self.gradient_accumulate_every
             loss_dict['value_loss'].backward()
@@ -249,7 +256,7 @@ class PDPolicy(Policy):
         if self.gradient_steps >= self.gradient_accumulate_every:
             self._plan_optimizer.step()
             self._plan_optimizer.zero_grad()
-            if self._forward_learn_cnt < self.value_step:
+            if self._forward_learn_cnt < self.value_step and self._model.value:
                 self._value_optimizer.step()
                 self._value_optimizer.zero_grad()
             self.gradient_steps = 1
@@ -261,9 +268,11 @@ class PDPolicy(Policy):
                 self._target_model.load_state_dict(self._model.state_dict())
             else:
                 self.update_model_average(self._target_model,self._learn_model)
-        loss_dict['max_return'] = target.max().item()
-        loss_dict['min_return'] = target.min().item()
-        loss_dict['mean_return'] = target.mean().item()
+
+        if 'returns' in data.keys():
+            loss_dict['max_return'] = target.max().item()
+            loss_dict['min_return'] = target.min().item()
+            loss_dict['mean_return'] = target.mean().item()
         loss_dict['max_traj'] = x.max().item()
         loss_dict['min_traj'] = x.min().item()
         loss_dict['mean_traj'] = x.mean().item()
@@ -283,19 +292,28 @@ class PDPolicy(Policy):
         ]
     
     def _state_dict_learn(self) -> Dict[str, Any]:
-        ret = {
-            'model': self._learn_model.state_dict(),
-            'target_model': self._target_model.state_dict(),
-            'plan_optimizer': self._plan_optimizer.state_dict(),
-            'value_optimizer': self._value_optimizer.state_dict(),
-        }
-        return ret
+        if self._model.value:
+            return {
+                'model': self._learn_model.state_dict(),
+                'target_model': self._target_model.state_dict(),
+                'plan_optimizer': self._plan_optimizer.state_dict(),
+                'value_optimizer': self._value_optimizer.state_dict(),
+            }
+        else:
+            return {
+                'model': self._learn_model.state_dict(),
+                'target_model': self._target_model.state_dict(),
+                'plan_optimizer': self._plan_optimizer.state_dict(),
+            }
     
     def _init_eval(self):
         self._eval_model = model_wrap(self._target_model, wrapper_name='base')
         self._eval_model.reset()
+        if self.use_target:
+            self._plan_seq = []
+            
 
-    def _init_normal(self, normalizer: DatasetNormalizer = None):
+    def init_data_normalizer(self, normalizer: DatasetNormalizer = None):
         self.normalizer = normalizer
 
     def _forward_eval(self, data: dict) -> Dict[str, Any]:
@@ -322,15 +340,44 @@ class PDPolicy(Policy):
                 if self._cuda:
                     obs = to_device(obs, self._device)
                 conditions = {0: obs}
-        
-            action = self._eval_model.get_eval(conditions, self.plan_batch_szie)
-            if self._cuda:
-                action = to_device(action, 'cpu')
-            action = self.normalizer.unnormalize(action, 'actions')
+
+            if self.use_target:
+                if self._plan_seq == [] or 0 in self._eval_t:
+                    plan_traj = self._eval_model.get_eval(conditions, self.plan_batch_size)
+                    plan_traj = to_device(plan_traj, 'cpu').numpy()
+                    if self._plan_seq == []:
+                        self._plan_seq = plan_traj
+                        self._eval_t = [0] * len(data_id)
+                    else:
+                        for id in data_id:
+                            if self._eval_t[id] == 0:
+                                self._plan_seq[id] = plan_traj[id]
+                action = []
+                for id in data_id:
+                    if self._eval_t[id] < len(self._plan_seq[id]) - 1:
+                        next_waypoint = self._plan_seq[id][self._eval_t[id] + 1]
+                    else:
+                        next_waypoint = self._plan_seq[id][-1].copy()
+                        next_waypoint[2:] = 0
+                    cur_ob = cur_obs[id]
+                    cur_ob = to_device(cur_ob, 'cpu').numpy()
+                    act = next_waypoint[:2] - cur_ob[:2] + (next_waypoint[2:] - cur_ob[2:])
+                    action.append(act)
+                    self._eval_t[id] += 1
+            else:
+                action = self._eval_model.get_eval(conditions, self.plan_batch_size)
+                if self._cuda:
+                    action = to_device(action, 'cpu')
+                action = self.normalizer.unnormalize(action, 'actions')
             action = torch.tensor(action).to('cpu')
         output = {'action': action}
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
+    
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        if self.use_target and data_id:
+            for id in data_id:
+                self._eval_t[id] = 0
 
     def _init_collect(self) -> None:
         pass
@@ -342,13 +389,4 @@ class PDPolicy(Policy):
         pass
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-            Overview:
-                Get the trajectory and the n step return data, then sample from the n_step return data
-            Arguments:
-                - data (:obj:`list`): The trajectory's cache
-            Returns:
-                - samples (:obj:`dict`): The training samples generated
-            """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
+        pass

@@ -25,4 +25,3 @@ from .decision_transformer import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import QACEnsemble
-from .diffusion import GaussianInvDynDiffusion
