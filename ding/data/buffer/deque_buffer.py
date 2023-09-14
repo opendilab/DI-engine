@@ -353,7 +353,8 @@ class DequeBuffer(Buffer):
             seq_data = sampled_data[group]
             # Filter records by unroll_len
             if unroll_len:
-                # slice b unroll_len. If don’t do this, more likely obtain duplicate data, and the training will easily crash.
+                # slice b unroll_len. If don’t do this, more likely obtain duplicate data, \
+                #  and the training will easily crash.
                 if sliced:
                     start_indice = random.choice(range(max(1, len(seq_data))))
                     start_indice = start_indice // unroll_len
