@@ -268,6 +268,9 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
                     if 'episode_info' in timestep.info:
                         eval_monitor.update_info(env_id, timestep.info.episode_info)
         episode_return = eval_monitor.get_episode_return()
+        episode_return_min = np.min(episode_return)
+        episode_return_max = np.max(episode_return)
+        episode_return_std = np.std(episode_return)
         episode_return = np.mean(episode_return)
         stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
         if isinstance(ctx, OnlineRLContext):
@@ -282,6 +285,9 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return
+        ctx.eval_value_min = episode_return_min
+        ctx.eval_value_max = episode_return_max
+        ctx.eval_value_std = episode_return_std
         ctx.last_eval_value = ctx.eval_value
         ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()
@@ -366,6 +372,7 @@ def interaction_evaluator_ttorch(
                     if 'episode_info' in timestep.info:
                         eval_monitor.update_info(env_id, timestep.info.episode_info)
         episode_return = eval_monitor.get_episode_return()
+        episode_return_std = np.std(episode_return)
         episode_return_mean = np.mean(episode_return)
         stop_flag = episode_return_mean >= stop_value and ctx.train_iter > 0
         logging.info(
@@ -375,6 +382,7 @@ def interaction_evaluator_ttorch(
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = episode_return_mean
+        ctx.eval_value_std = episode_return_std
         ctx.last_eval_value = ctx.eval_value
         ctx.eval_output = {'episode_return': episode_return}
         episode_info = eval_monitor.get_episode_info()

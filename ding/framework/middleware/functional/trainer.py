@@ -30,19 +30,20 @@ def trainer(cfg: EasyDict, policy: Policy, log_freq: int = 100) -> Callable:
 
         if ctx.train_data is None:
             return
-        data = ctx.train_data
         train_output = policy.forward(ctx.train_data)
         if ctx.train_iter % log_freq == 0:
+            if isinstance(train_output, list):
+                train_output_loss = np.mean([item['total_loss'] for item in train_output])
+            else:
+                train_output_loss = train_output['total_loss']
             if isinstance(ctx, OnlineRLContext):
                 logging.info(
                     'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(
-                        ctx.train_iter, ctx.env_step, train_output['total_loss']
+                        ctx.train_iter, ctx.env_step, train_output_loss
                     )
                 )
             elif isinstance(ctx, OfflineRLContext):
-                logging.info(
-                    'Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, train_output['total_loss'])
-                )
+                logging.info('Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, train_output_loss))
             else:
                 raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.train_iter += 1

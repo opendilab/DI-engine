@@ -8,7 +8,7 @@ from rocket_recycling.rocket import Rocket
 from ditk import logging
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2, EvalEpisodeReturnEnv
+from ding.envs import DingEnvWrapper, BaseEnvManagerV2, EvalEpisodeReturnWrapper
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
@@ -33,7 +33,7 @@ def wrapped_rocket_env(task, max_steps):
         Rocket(task=task, max_steps=max_steps),
         cfg={'env_wrapper': [
             lambda env: RocketLandingWrapper(env),
-            lambda env: EvalEpisodeReturnEnv(env),
+            lambda env: EvalEpisodeReturnWrapper(env),
         ]}
     )
 

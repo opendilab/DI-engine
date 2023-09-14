@@ -107,6 +107,10 @@ setup(
             'numpy-stl',
             'numba>=0.53.0',
         ],
+        'video':[
+            'moviepy',
+            'imageio[ffmpeg]',
+        ],
         'dist': [
             'redis-py-cluster==2.1.0',
         ],

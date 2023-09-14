@@ -34,7 +34,10 @@ class CkptSaver:
         """
         self.policy = policy
         self.train_freq = train_freq
-        self.prefix = '{}/ckpt'.format(save_dir)
+        if str(os.path.basename(os.path.normpath(save_dir))) != "ckpt":
+            self.prefix = '{}/ckpt'.format(os.path.normpath(save_dir))
+        else:
+            self.prefix = '{}/'.format(os.path.normpath(save_dir))
         if not os.path.exists(self.prefix):
             os.makedirs(self.prefix)
         self.last_save_iter = 0
@@ -63,7 +66,7 @@ class CkptSaver:
 
         # best episode return so far
         if ctx.eval_value is not None and ctx.eval_value > self.max_eval_value:
-            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.eval_mode.state_dict())
+            save_file("{}/eval.pth.tar".format(self.prefix), self.policy.learn_mode.state_dict())
             self.max_eval_value = ctx.eval_value
 
         # finish

@@ -1,6 +1,7 @@
 from collections import namedtuple
 from typing import Optional, Tuple
 import torch
+import torch.nn as nn
 from torch.distributions import Independent, Normal
 from ding.hpc_rl import hpc_wrapper
 
