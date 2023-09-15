@@ -30,7 +30,7 @@ def q_1step_td_error(
 ) -> torch.Tensor:
     """
     Overview:
-        1 step td_error for DQN algorithm, support single agent case and multi agent case.
+        1 step td_error, support single agent case and multi agent case.
     Arguments:
         - data (:obj:`q_1step_td_data`): The input data, q_1step_td_data to calculate loss
         - gamma (:obj:`float`): Discount factor
@@ -149,7 +149,7 @@ def q_v_1step_td_error(
         - gamma (:obj:`float`): Discount factor
         - criterion (:obj:`torch.nn.modules`): Loss function criterion
     Returns:
-        - loss (:obj:`torch.Tensor`): 1step td error
+        - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
     Shapes:
         - data (:obj:`q_v_1step_td_data`): the q_v_1step_td_data containing\
              ['q', 'v', 'act', 'reward', 'done', 'weight']
