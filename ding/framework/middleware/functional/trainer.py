@@ -16,6 +16,8 @@ def trainer(cfg: EasyDict, policy: Policy, log_freq: int = 100) -> Callable:
         - policy (:obj:`Policy`): The policy to be trained in step-by-step mode.
         - log_freq (:obj:`int`): The frequency (iteration) of showing log.
     """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
@@ -60,6 +62,8 @@ def multistep_trainer(policy: Policy, log_freq: int = 100) -> Callable:
         - policy (:obj:`Policy`): The policy specialized for multi-step training.
         - log_freq (:obj:`int`): The frequency (iteration) of showing log.
     """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
     last_log_iter = -1
 
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
