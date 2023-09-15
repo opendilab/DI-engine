@@ -326,12 +326,10 @@ class HAVAC(nn.Module):
 
                 Necessary Keys:
                     - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-                    - critic_next_state: (B,)
-                    - hidden_state:
+                    - logits
         Shapes:
             - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-            - critic_next_state: (B,)
-            - hidden_state:
+            - logits
 
         Examples:
             >>> model = HAVAC(
