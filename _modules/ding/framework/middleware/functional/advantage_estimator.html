@@ -320,6 +320,8 @@
 <span class="sd">        - policy (:obj:`Policy`): Policy in `policy.collect_mode`, used to get model to calculate value.</span>
 <span class="sd">        - buffer\_ (:obj:`Optional[Buffer]`): The `buffer_` to push the processed data in if `buffer_` is not None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="n">model</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">)</span>
     <span class="c1"># Unify the shape of obs and action</span>
@@ -398,6 +400,8 @@
 
 
 <span class="k">def</span> <span class="nf">ppof_adv_estimator</span><span class="p">(</span><span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_estimator</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">ttorch_collate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">trajectories</span><span class="p">,</span> <span class="n">cat_1dim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -412,6 +416,8 @@
 
 
 <span class="k">def</span> <span class="nf">montecarlo_return_estimator</span><span class="p">(</span><span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">pg_policy_get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="s2">&quot;PG needs a complete epsiode&quot;</span>

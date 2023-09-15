@@ -310,6 +310,8 @@
 <span class="sd">        - policy (:obj:`Policy`): The policy to be trained in step-by-step mode.</span>
 <span class="sd">        - log_freq (:obj:`int`): The frequency (iteration) of showing log.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">,</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -354,6 +356,8 @@
 <span class="sd">        - policy (:obj:`Policy`): The policy specialized for multi-step training.</span>
 <span class="sd">        - log_freq (:obj:`int`): The frequency (iteration) of showing log.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">has_role</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">role</span><span class="o">.</span><span class="n">LEARNER</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">task</span><span class="o">.</span><span class="n">void</span><span class="p">()</span>
     <span class="n">last_log_iter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">,</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">]):</span>
