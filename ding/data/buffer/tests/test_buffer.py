@@ -328,7 +328,7 @@ def test_insufficient_unroll_len_in_group():
         assert isinstance(result, BufferedData), "Not continuous"
 
 
-@pytest.marl.unittest
+@pytest.mark.unittest
 def test_slice_unroll_len_in_group():
     buffer = DequeBuffer(size=100, sliced=True)
     data_len = 10
