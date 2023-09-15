@@ -82,7 +82,7 @@ class OfflineRLContext(Context):
 
     # common
     total_step: int = 0
-    env_step: int = 0
+    trained_env_step: int = 0
     train_epoch: int = 0
     train_iter: int = 0
     train_data: Union[Dict, List] = None
@@ -90,6 +90,7 @@ class OfflineRLContext(Context):
     # eval
     eval_value: float = -np.inf
     last_eval_iter: int = -1
+    last_eval_value: int = -np.inf
     eval_output: List = dataclasses.field(default_factory=dict)
     # wandb
     wandb_url: str = ""
@@ -98,4 +99,4 @@ class OfflineRLContext(Context):
         # This method is called just after __init__ method. Here, concretely speaking,
         # this method is called just after the object initialize its fields.
         # We use this method here to keep the fields needed for each iteration.
-        self.keep('train_iter', 'last_eval_iter', 'wandb_url')
+        self.keep('trained_env_step', 'train_iter', 'last_eval_iter', 'last_eval_value', 'wandb_url')

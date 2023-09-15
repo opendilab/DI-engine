@@ -83,7 +83,7 @@ class VAC(nn.Module):
         self.share_encoder = share_encoder
 
         # Encoder Type
-        def new_encoder(outsize):
+        def new_encoder(outsize, activation):
             if impala_cnn_encoder:
                 return IMPALAConvEncoder(obs_shape=obs_shape, channels=encoder_hidden_size_list, outsize=outsize)
             else:
@@ -116,7 +116,7 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.encoder = new_encoder(actor_head_hidden_size)
+                self.encoder = new_encoder(actor_head_hidden_size, activation)
         else:
             if encoder:
                 if isinstance(encoder, torch.nn.Module):
@@ -125,8 +125,8 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.actor_encoder = new_encoder(actor_head_hidden_size)
-                self.critic_encoder = new_encoder(critic_head_hidden_size)
+                self.actor_encoder = new_encoder(actor_head_hidden_size, activation)
+                self.critic_encoder = new_encoder(critic_head_hidden_size, activation)
 
         # Head Type
         self.critic_head = RegressionHead(

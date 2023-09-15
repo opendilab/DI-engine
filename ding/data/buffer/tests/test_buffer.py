@@ -326,3 +326,27 @@ def test_insufficient_unroll_len_in_group():
         # Ensure samples in each group is continuous
         result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
         assert isinstance(result, BufferedData), "Not continuous"
+
+
+@pytest.mark.unittest
+def test_slice_unroll_len_in_group():
+    buffer = DequeBuffer(size=100, sliced=True)
+    data_len = 10
+    unroll_len = 4
+    start_index = list(range(0, data_len, unroll_len)) + [data_len - unroll_len]
+    for i in range(data_len):
+        for env_id in list("ABC"):
+            buffer.push(i, {"env": env_id})
+
+    sampled_data = buffer.sample(3, groupby="env", unroll_len=unroll_len)
+    assert len(sampled_data) == 3
+    for grouped_data in sampled_data:
+        assert len(grouped_data) == 4
+        # Ensure each group has the same env
+        env_ids = set(map(lambda sample: sample.meta["env"], grouped_data))
+        assert len(env_ids) == 1
+        # Ensure samples in each group is continuous
+        result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
+        assert isinstance(result, BufferedData), "Not continuous"
+        # Ensure data after sliced start from correct index
+        assert grouped_data[0].data in start_index

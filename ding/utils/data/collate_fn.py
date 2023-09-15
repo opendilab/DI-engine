@@ -17,7 +17,7 @@ default_collate_err_msg_format = (
 )
 
 
-def ttorch_collate(x, json=False):
+def ttorch_collate(x, json: bool = False, cat_1dim: bool = True):
 
     def inplace_fn(t):
         for k in t.keys():
@@ -28,7 +28,8 @@ def ttorch_collate(x, json=False):
                 inplace_fn(t[k])
 
     x = ttorch.stack(x)
-    inplace_fn(x)
+    if cat_1dim:
+        inplace_fn(x)
     if json:
         x = x.json()
     return x
@@ -86,7 +87,7 @@ def default_collate(batch: Sequence,
         else:
             return torch.stack(batch, 0, out=out)
     elif isinstance(elem, ttorch.Tensor):
-        return ttorch_collate(batch, json=True)
+        return ttorch_collate(batch, json=True, cat_1dim=cat_1dim)
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
             and elem_type.__name__ != 'string_':
         if elem_type.__name__ == 'ndarray':

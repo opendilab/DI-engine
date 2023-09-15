@@ -15,6 +15,7 @@
 
 pkg/
 src/
+impala_log/
 
 ### CVS template
 /CVS/*

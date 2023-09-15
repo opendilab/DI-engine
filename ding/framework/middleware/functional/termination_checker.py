@@ -17,10 +17,11 @@ def termination_checker(max_env_step: Optional[int] = None, max_train_iter: Opti
 
     def _check(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         # ">" is better than ">=" when taking logger result into consideration
-        if ctx.env_step > max_env_step:
+        assert hasattr(ctx, "env_step") or hasattr(ctx, "train_iter"), "Context must have env_step or train_iter"
+        if hasattr(ctx, "env_step") and ctx.env_step > max_env_step:
             task.finish = True
             logging.info('Exceeded maximum number of env_step({}), program is terminated'.format(ctx.env_step))
-        if ctx.train_iter > max_train_iter:
+        elif hasattr(ctx, "train_iter") and ctx.train_iter > max_train_iter:
             task.finish = True
             logging.info('Exceeded maximum number of train_iter({}), program is terminated'.format(ctx.train_iter))
 

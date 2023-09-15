@@ -22,6 +22,8 @@ def final_ctx_saver(name: str) -> Callable:
                 if ctx.has_attr('env_step'):
                     final_data['env_step'] = ctx.env_step
                     final_data['env_episode'] = ctx.env_episode
+                if ctx.has_attr('trained_env_step'):
+                    final_data['trained_env_step'] = ctx.trained_env_step
                 pickle.dump(final_data, f)
 
     return _save
