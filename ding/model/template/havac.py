@@ -5,12 +5,19 @@ import torch.nn as nn
 from ding.torch_utils import get_lstm
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ding.model.template.q_learning import parallel_wrapper
-from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
+from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, \
     FCEncoder, ConvEncoder
 
 
 class RNNLayer(nn.Module):
-    def __init__(self, lstm_type, input_size, hidden_size, res_link: bool = False):
+
+    def __init__(
+            self,
+            lstm_type,
+            input_size,
+            hidden_size,
+            res_link: bool = False
+            ):
         super(RNNLayer, self).__init__()
         self.rnn = get_lstm(lstm_type, input_size=input_size, hidden_size=hidden_size)
         self.res_link = res_link
@@ -18,7 +25,7 @@ class RNNLayer(nn.Module):
     def forward(self, x, prev_state, inference: bool = False):
         # x: obs_embedding
         if self.res_link:
-                a = x
+            a = x
         if inference:
             x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
             # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
@@ -26,7 +33,7 @@ class RNNLayer(nn.Module):
             x = x.squeeze(0)  # to delete the seq_len dim to match head network input
             if self.res_link:
                 x = x + a
-            return {'output':x, 'next_state':next_state}
+            return {'output': x, 'next_state': next_state}
         else:
             # lstm_embedding stores all hidden_state
             lstm_embedding = []
@@ -42,8 +49,8 @@ class RNNLayer(nn.Module):
             if self.res_link:
                 x = x + a
             all_hidden_state = torch.cat(hidden_state_list, dim=0)
-            return {'output':x, 'next_state':prev_state, 'hidden_state':all_hidden_state}
-        
+            return {'output': x, 'next_state': prev_state, 'hidden_state': all_hidden_state}
+
 
 @MODEL_REGISTRY.register('havac')
 class HAVAC(nn.Module):
@@ -60,7 +67,6 @@ class HAVAC(nn.Module):
         agent_obs_shape: Union[int, SequenceType],
         global_obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
-        agent_num: int,
         use_lstm: bool = True,
         lstm_type: str = 'gru',
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
@@ -141,24 +147,26 @@ class HAVAC(nn.Module):
         # RNN part
         self.use_lstm = use_lstm
         if self.use_lstm:
-            self.actor_rnn = RNNLayer(lstm_type, input_size=encoder_hidden_size_list[-1], hidden_size=actor_head_hidden_size, res_link=res_link)
-            self.critic_rnn = RNNLayer(lstm_type, input_size=encoder_hidden_size_list[-1], hidden_size=critic_head_hidden_size, res_link=res_link)
+            self.actor_rnn = RNNLayer(
+                lstm_type,
+                input_size=encoder_hidden_size_list[-1],
+                hidden_size=actor_head_hidden_size,
+                res_link=res_link
+            )
+            self.critic_rnn = RNNLayer(
+                lstm_type,
+                input_size=encoder_hidden_size_list[-1],
+                hidden_size=critic_head_hidden_size,
+                res_link=res_link
+            )
         # Head Type
         self.critic_head = RegressionHead(
-            critic_head_hidden_size,
-            1,
-            critic_head_layer_num,
-            activation=activation,
-            norm_type=norm_type
+            critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
         assert self.action_space in ['discrete', 'continuous'], self.action_space
         if self.action_space == 'discrete':
             self.actor_head = DiscreteHead(
-                actor_head_hidden_size,
-                action_shape,
-                actor_head_layer_num,
-                activation=activation,
-                norm_type=norm_type
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
             )
         elif self.action_space == 'continuous':
             self.actor_head = ReparameterizationHead(
@@ -236,24 +244,40 @@ class HAVAC(nn.Module):
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = actor_head_hidden_size``
+                input data dict with keys ['obs'(with keys ['agent_state', 'global_state', 'action_mask']),
+                  'actor_prev_state']
         Returns:
             - outputs (:obj:`Dict`):
-                Run with encoder and head.
+                Run with encoder RNN(optional) and head.
 
         ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+            - logit (:obj:`torch.Tensor`): Logit encoding tensor.
+            - actor_next_state: 
+            - hidden_state
         Shapes:
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - actor_next_state: (B,)
+            - hidden_state:
 
         Examples:
-            >>> model = VAC(64,64)
-            >>> inputs = torch.randn(4, 64)
+            >>> model = HAVAC(
+                    agent_obs_shape=obs_dim,
+                    global_obs_shape=global_obs_dim,
+                    action_shape=action_dim,
+                    use_lstm = True,
+                    )
+            >>> inputs = {
+                    'obs': {
+                        'agent_state': torch.randn(T, bs, obs_dim),
+                        'global_state': torch.randn(T, bs, global_obs_dim),
+                        'action_mask': torch.randint(0, 2, size=(T, bs, action_dim))
+                    },
+                    'actor_prev_state': [None for _ in range(bs)],
+                }
             >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+            >>> assert actor_outputs['logit'].shape == (T, bs, action_dim)
         """
-        x = inputs['agent_state']
+        x = inputs['obs']['agent_state']
         rnn_actor_prev_state = inputs['actor_prev_state']
         output = {}
         if self.use_lstm:
@@ -266,20 +290,20 @@ class HAVAC(nn.Module):
                 # output: 'logit'/'next_state'
             else:
                 assert len(x.shape) in [3, 5], x.shape
-                x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
+                x = parallel_wrapper(self.actor_encoder)(x)  # (T, B, N)
                 rnn_output = self.actor_rnn(x, rnn_actor_prev_state, inference)
                 x = rnn_output['output']
-                x = parallel_wrapper(self.head)(x)
-                output['next_state'] = rnn_output['next_state']
+                x = parallel_wrapper(self.actor_head)(x)
+                output['actor_next_state'] = rnn_output['next_state']
                 output['hidden_state'] = rnn_output['hidden_state']
-                # output: 'logit'/'next_state'/'hidden_state'
+                # output: 'logit'/'actor_next_state'/'hidden_state'
         else:
             x = self.actor_encoder(x)
             x = self.actor_head(x)
             # output: 'logit'
 
         if self.action_space == 'discrete':
-            action_mask = x['action_mask']
+            action_mask = inputs['obs']['action_mask']
             logit = x['logit']
             logit[action_mask == 0.0] = -99999999
         elif self.action_space == 'continuous':
@@ -287,66 +311,81 @@ class HAVAC(nn.Module):
         output['logit'] = logit
         return output
 
-
-    def compute_critic(self, x: Dict, inference: bool = False) -> Dict:
+    def compute_critic(self, inputs: Dict, inference: bool = False) -> Dict:
         r"""
         Overview:
             Execute parameter updates with ``'compute_critic'`` mode
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`Dict`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = critic_head_hidden_size``
+                input data dict with keys ['obs'(with keys ['agent_state', 'global_state', 'action_mask']),
+                  'critic_prev_state'(when you are using rnn)]
         Returns:
             - outputs (:obj:`Dict`):
-                Run with encoder and head.
+                Run with encoder [rnn] and head.
 
                 Necessary Keys:
                     - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+                    - critic_next_state: (B,)
+                    - hidden_state:
         Shapes:
             - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - critic_next_state: (B,)
+            - hidden_state:
 
         Examples:
-            >>> model = VAC(64,64)
-            >>> inputs = torch.randn(4, 64)
+            >>> model = HAVAC(
+                    agent_obs_shape=obs_dim,
+                    global_obs_shape=global_obs_dim,
+                    action_shape=action_dim,
+                    use_lstm = True,
+                    )
+            >>> inputs = {
+                    'obs': {
+                        'agent_state': torch.randn(T, bs, obs_dim),
+                        'global_state': torch.randn(T, bs, global_obs_dim),
+                        'action_mask': torch.randint(0, 2, size=(T, bs, action_dim))
+                    },
+                    'critic_prev_state': [None for _ in range(bs)],
+                }
             >>> critic_outputs = model(inputs,'compute_critic')
-            >>> critic_outputs['value']
-            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert critic_outputs['value'].shape == (T, bs))
         """
-        global_obs = x['global_state']
-        rnn_critic_prev_state = x['critic_prev_state']
+        global_obs = inputs['obs']['global_state']
+        rnn_critic_prev_state = inputs['critic_prev_state']
         output = {}
         if self.use_lstm:
             if inference:
-                x = self.actor_encoder(global_obs)
-                rnn_output = self.actor_rnn(x, rnn_critic_prev_state, inference)
+                x = self.critic_encoder(global_obs)
+                rnn_output = self.critic_rnn(x, rnn_critic_prev_state, inference)
                 x = rnn_output['output']
-                x = self.head(x)
+                x = self.critic_head(x)
                 output['next_state'] = rnn_output['next_state']
                 # output: 'value'/'next_state'
             else:
-                assert len(x.shape) in [3, 5], x.shape
-                x = parallel_wrapper(self.encoder)(global_obs)  # (T, B, N)
-                rnn_output = self.actor_rnn(x, rnn_critic_prev_state, inference)
+                assert len(global_obs.shape) in [3, 5], global_obs.shape
+                x = parallel_wrapper(self.critic_encoder)(global_obs)  # (T, B, N)
+                rnn_output = self.critic_rnn(x, rnn_critic_prev_state, inference)
                 x = rnn_output['output']
-                x = parallel_wrapper(self.head)(x)
-                output['next_state'] = rnn_output['next_state']
+                x = parallel_wrapper(self.critic_head)(x)
+                output['critic_next_state'] = rnn_output['next_state']
                 output['hidden_state'] = rnn_output['hidden_state']
-                # output: 'value'/'next_state'/'hidden_state'
+                # output: 'value'/'critic_next_state'/'hidden_state'
         else:
-            x = self.critic_encoder(x['global_state'])
+            x = self.critic_encoder(global_obs)
             x = self.critic_head(x)
             # output: 'value'
         output['value'] = x['pred']
         return output
 
-    def compute_actor_critic(self, x: Dict, inference: bool = False) -> Dict:
+    def compute_actor_critic(self, inputs: Dict, inference: bool = False) -> Dict:
         r"""
         Overview:
             Execute parameter updates with ``'compute_actor_critic'`` mode
             Use encoded embedding tensor to predict output.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
+            - inputs (:dict): input data dict with keys ['obs'(with keys ['agent_state', 'global_state', 'action_mask']),
+                  'actor_prev_state', 'critic_prev_state'(when you are using rnn)]
 
         Returns:
             - outputs (:obj:`Dict`):
@@ -373,6 +412,7 @@ class HAVAC(nn.Module):
             Returning the combination dictionry.
 
         """
-        logit = self.compute_actor(x, inference)['logit']
-        value = self.compute_critic(x, inference)['value']
+        logit = self.compute_actor(inputs, inference)['logit']
+        value = self.compute_critic(inputs, inference)['value']
+        # ？这里需要next_state之类的吗
         return {'logit': logit, 'value': value}
