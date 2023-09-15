@@ -28,6 +28,26 @@ def q_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
+    """
+    Overview:
+        1 step td_error for DQN algorithm, support single agent case and multi agent case.
+    Arguments:
+        - data (:obj:`q_1step_td_data`): The input data, q_1step_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+    Returns:
+        - loss (:obj:`torch.Tensor`): 1step td error
+    Shapes:
+        - data (:obj:`q_1step_td_data`): the q_1step_td_data containing\
+             ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`( , B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    """
     q, next_q, act, next_act, reward, done, weight = data
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
@@ -129,7 +149,7 @@ def q_v_1step_td_error(
         - gamma (:obj:`float`): Discount factor
         - criterion (:obj:`torch.nn.modules`): Loss function criterion
     Returns:
-        - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
+        - loss (:obj:`torch.Tensor`): 1step td error
     Shapes:
         - data (:obj:`q_v_1step_td_data`): the q_v_1step_td_data containing\
              ['q', 'v', 'act', 'reward', 'done', 'weight']
@@ -173,6 +193,24 @@ nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'do
 
 
 def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_gamma: Optional[torch.Tensor] = None):
+    '''
+    Overview:
+        Calculate nstep return for DQN algorithm, support single agent case and multi agent case.
+    Arguments:
+        - data (:obj:`nstep_return_data`): The input data, nstep_return_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - nstep (:obj:`int`): nstep num
+        - value_gamma (:obj:`torch.Tensor`): Discount factor for value
+    Returns:
+        - return_ (:obj:`torch.Tensor`): nstep return
+    Shapes:
+        - data (:obj:`nstep_return_data`): the nstep_return_data containing\
+             ['reward', 'next_value', 'done']
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - next_value (:obj:`torch.FloatTensor`): :math:`(, B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    '''
+
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
@@ -426,6 +464,24 @@ def v_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
+    '''
+    Overview:
+        1 step td_error for distributed value based algorithm
+    Arguments:
+        - data (:obj:`v_1step_td_data`): The input data, v_1step_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+    Returns:
+        - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`v_1step_td_data`): the v_1step_td_data containing\
+            ['v', 'next_v', 'reward', 'done', 'weight']
+        - v (:obj:`torch.FloatTensor`): :math:`(B, )` i.e. [batch_size, ]
+        - next_v (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(, B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    '''
     v, next_v, reward, done, weight = data
     if weight is None:
         weight = torch.ones_like(v)
