@@ -1,23 +1,30 @@
 import pytest
 from itertools import product
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
 from ding.model.template import DecisionTransformer
 from ding.torch_utils import is_differentiable
 
-args = ['continuous', 'discrete']
-
+action_space = ['continuous', 'discrete']
+state_encoder = [None, nn.Sequential(nn.Flatten(), nn.Linear(8, 8), nn.Tanh())]
+args = list(product(*[action_space, state_encoder]))
+args.pop(1)
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('action_space', args)
-def test_decision_transformer(action_space):
+@pytest.mark.parametrize('action_space, state_encoder', args)
+def test_decision_transformer(action_space, state_encoder):
     B, T = 4, 6
-    state_dim = 3
+    if state_encoder:
+        state_dim = (2, 2, 2)
+    else:
+        state_dim = 3
     act_dim = 2
     DT_model = DecisionTransformer(
         state_dim=state_dim,
         act_dim=act_dim,
+        state_encoder=state_encoder,
         n_blocks=3,
         h_dim=8,
         context_len=T,
@@ -27,8 +34,14 @@ def test_decision_transformer(action_space):
     )
 
     is_continuous = True if action_space == 'continuous' else False
-    timesteps = torch.randint(0, 100, [B, T], dtype=torch.long)  # B x T
-    states = torch.randn([B, T, state_dim])  # B x T x state_dim
+    if state_encoder:
+        timesteps = torch.randint(0, 100, [B, 3*T-1, 1], dtype=torch.long)  # B x T
+    else:
+        timesteps = torch.randint(0, 100, [B, T], dtype=torch.long)  # B x T
+    if isinstance(state_dim, int):
+        states = torch.randn([B, T, state_dim])  # B x T x state_dim
+    else:
+        states = torch.randn([B, T, *state_dim])  # B x T x state_dim
     if action_space == 'continuous':
         actions = torch.randn([B, T, act_dim])  # B x T x act_dim
         action_target = torch.randn([B, T, act_dim])
@@ -51,12 +64,19 @@ def test_decision_transformer(action_space):
     state_preds, action_preds, return_preds = DT_model.forward(
         timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
     )
-    assert state_preds.shape == (B, T, state_dim)
+    if state_encoder:
+        assert state_preds == None
+        assert return_preds == None
+    else:
+        assert state_preds.shape == (B, T, state_dim)
+        assert return_preds.shape == (B, T, 1)
     assert action_preds.shape == (B, T, act_dim)
-    assert return_preds.shape == (B, T, 1)
 
     # only consider non padded elements
-    action_preds = action_preds.view(-1, act_dim)[traj_mask.view(-1, ) > 0]
+    if state_encoder:
+        action_preds = action_preds.reshape(-1, act_dim)
+    else:
+        action_preds = action_preds.view(-1, act_dim)[traj_mask.view(-1, ) > 0]
 
     if is_continuous:
         action_target = action_target.view(-1, act_dim)[traj_mask.view(-1, ) > 0]
@@ -68,11 +88,17 @@ def test_decision_transformer(action_space):
     else:
         action_loss = F.cross_entropy(action_preds, action_target)
 
-    # print(action_loss)
-    # is_differentiable(action_loss, DT_model)
-    is_differentiable(
+    if state_encoder:
+        is_differentiable(
+        action_loss, [
+            DT_model.transformer, DT_model.embed_action, DT_model.embed_rtg,
+            DT_model.state_encoder
+        ]
+    )
+    else:
+        is_differentiable(
         action_loss, [
             DT_model.transformer, DT_model.embed_action, DT_model.predict_action, DT_model.embed_rtg,
             DT_model.embed_state
         ]
-    )  # pass
+    )
