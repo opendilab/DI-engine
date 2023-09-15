@@ -64,9 +64,6 @@ class Normalizer:
             f'''{np.round(self.mins, 2)}\n    +: {np.round(self.maxs, 2)}\n'''
         )
 
-    def __call__(self, x):
-        return self.normalize(x)
-
     def normalize(self, *args, **kwargs):
         raise NotImplementedError()
 
