@@ -47,3 +47,17 @@ class TestNGU:
         elif len(act_shape) == 1:
             assert outputs['logit'].shape == (B, *act_shape, *act_shape)
         self.output_check(model, outputs['logit'])
+
+        inputs = {'obs': inputs_obs, 'prev_state': None,
+                  'action': inputs_prev_action, 
+                  'reward': inputs_prev_reward_extrinsic,
+                  'prev_reward_extrinsic':inputs_prev_reward_extrinsic,
+                  'beta': inputs_beta}
+        model = NGU(obs_shape, act_shape, collector_env_num=3)
+        outputs = model(inputs)
+        assert isinstance(outputs, dict)
+        if isinstance(act_shape, int):
+            assert outputs['logit'].shape == (B, act_shape, act_shape)
+        elif len(act_shape) == 1:
+            assert outputs['logit'].shape == (B, *act_shape, *act_shape)
+        self.output_check(model, outputs['logit'])
