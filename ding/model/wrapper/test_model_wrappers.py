@@ -523,7 +523,7 @@ class TestModelWrappers:
         out = model.forward(inputs1)
         info = model.info('info')
         info = model.info('x')
-    
+
     def test_transformer_memory_wrapper(self):
         seq_len, bs, obs_shape = 12, 8, 32
         layer_num, memory_len, emb_dim = 3, 4, 4

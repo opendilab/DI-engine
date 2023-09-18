@@ -5,11 +5,11 @@ from itertools import product
 from ding.model.template import EDAC
 from ding.torch_utils import is_differentiable
 
-
 B = 4
 obs_shape = [4, (8, )]
 act_shape = [3, (6, )]
 args = list(product(*[obs_shape, act_shape]))
+
 
 @pytest.mark.unittest
 class TestEDAC:
@@ -55,4 +55,3 @@ class TestEDAC:
             assert outputs_a['logit'][1].shape == (B, *act_shape)
         outputs = {'mu': outputs_a['logit'][0], 'sigma': outputs_a['logit'][1]}
         self.output_check(model.actor, outputs)
-

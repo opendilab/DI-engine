@@ -286,8 +286,8 @@ class TestQLearning:
 
     @pytest.mark.tmp
     def test_GTrXLDQN(self):
-        obs_dim, seq_len, bs, action_dim = [4,64,64], 64, 32, 4
+        obs_dim, seq_len, bs, action_dim = [4, 64, 64], 64, 32, 4
         obs = torch.rand(seq_len, bs, *obs_dim)
-        model = GTrXLDQN(obs_dim, action_dim,encoder_hidden_size_list=[16,16,16])
+        model = GTrXLDQN(obs_dim, action_dim, encoder_hidden_size_list=[16, 16, 16])
         outputs = model(obs)
         assert isinstance(outputs, dict)

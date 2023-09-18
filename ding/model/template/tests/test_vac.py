@@ -33,7 +33,8 @@ def model_check(model, inputs):
     if model.action_space == 'continuous':
         outputs = value.sum() + logit['mu'].sum() + logit['sigma'].sum()
     elif model.action_space == 'hybrid':
-        outputs = value.sum() + logit['action_type'].sum() + logit['action_args']['mu'].sum() + logit['action_args']['sigma'].sum()
+        outputs = value.sum() + logit['action_type'].sum() + logit['action_args']['mu'].sum(
+        ) + logit['action_args']['sigma'].sum()
     else:
         if model.multi_head:
             outputs = value.sum() + sum([t.sum() for t in logit])

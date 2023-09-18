@@ -34,10 +34,14 @@ class TestNGU:
         else:
             inputs_prev_action = torch.ones(B, *act_shape).long()
         inputs_prev_reward_extrinsic = torch.randn(B, H, 1)
-        inputs_beta = 2*torch.ones([4,4], dtype=torch.long)
-        inputs = {'obs': inputs_obs, 'prev_state': None,
-                  'prev_action': inputs_prev_action, 'prev_reward_extrinsic':inputs_prev_reward_extrinsic,
-                  'beta': inputs_beta}
+        inputs_beta = 2 * torch.ones([4, 4], dtype=torch.long)
+        inputs = {
+            'obs': inputs_obs,
+            'prev_state': None,
+            'prev_action': inputs_prev_action,
+            'prev_reward_extrinsic': inputs_prev_reward_extrinsic,
+            'beta': inputs_beta
+        }
 
         model = NGU(obs_shape, act_shape, collector_env_num=3)
         outputs = model(inputs)
@@ -48,11 +52,14 @@ class TestNGU:
             assert outputs['logit'].shape == (B, *act_shape, *act_shape)
         self.output_check(model, outputs['logit'])
 
-        inputs = {'obs': inputs_obs, 'prev_state': None,
-                  'action': inputs_prev_action, 
-                  'reward': inputs_prev_reward_extrinsic,
-                  'prev_reward_extrinsic':inputs_prev_reward_extrinsic,
-                  'beta': inputs_beta}
+        inputs = {
+            'obs': inputs_obs,
+            'prev_state': None,
+            'action': inputs_prev_action,
+            'reward': inputs_prev_reward_extrinsic,
+            'prev_reward_extrinsic': inputs_prev_reward_extrinsic,
+            'beta': inputs_beta
+        }
         model = NGU(obs_shape, act_shape, collector_env_num=3)
         outputs = model(inputs)
         assert isinstance(outputs, dict)

@@ -5,11 +5,11 @@ from itertools import product
 from ding.model.template import ACER
 from ding.torch_utils import is_differentiable
 
-
 B = 4
 obs_shape = [4, (8, ), (4, 64, 64)]
 act_shape = [3, (6, )]
 args = list(product(*[obs_shape, act_shape]))
+
 
 @pytest.mark.unittest
 class TestACER:
@@ -39,4 +39,3 @@ class TestACER:
         outputs = {**outputs_a, **outputs_c}
         loss = sum([v.sum() for v in outputs.values()])
         is_differentiable(loss, model)
-

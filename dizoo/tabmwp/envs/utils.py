@@ -31,7 +31,12 @@ def sample_logits(out: torch.Tensor, temperature: float = 1.0, top_p: float = 0.
     return out
 
 
-def calc_rwkv(model: transformers.RwkvForCausalLM, tokenizer: transformers.AutoTokenizer, prompt: str, max_len: int = 10) -> str:
+def calc_rwkv(
+        model: transformers.RwkvForCausalLM,
+        tokenizer: transformers.AutoTokenizer,
+        prompt: str,
+        max_len: int = 10
+) -> str:
     # Use RWKV to generate sentence.
     orig_len = len(prompt)
     inputs = tokenizer(prompt, return_tensors="pt").to('cuda')
@@ -53,8 +58,13 @@ def calc_internlm(model, tokenizer, prompt: str, args):
     inputs = tokenizer(prompt, return_tensors="pt")
     for k, v in inputs.items():
         inputs[k] = v.cuda()
-    gen_kwargs = {"max_length": args.max_tokens, "top_p": args.top_p, "temperature": args.temperature, "do_sample": True,
-                  "repetition_penalty": args.frequency_penalty}
+    gen_kwargs = {
+        "max_length": args.max_tokens,
+        "top_p": args.top_p,
+        "temperature": args.temperature,
+        "do_sample": True,
+        "repetition_penalty": args.frequency_penalty
+    }
     output = model.generate(**inputs, **gen_kwargs)
     output = tokenizer.decode(output)
     return output
@@ -69,8 +79,10 @@ def load_data(args: dict) -> tuple:
         os.mkdir(data_root)
 
     if not os.path.exists(os.path.join(data_root, f'problems_train.json')):
-        os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/problems_train.json -O '
-                  + os.path.join(data_root, f'problems_train.json') + ' --no-check-certificate')
+        os.system(
+            f'wget https://opendilab.net/download/DI-zoo/tabmwp/problems_train.json -O ' +
+            os.path.join(data_root, f'problems_train.json') + ' --no-check-certificate'
+        )
     problems = json.load(open(os.path.join(data_root, f'problems_train.json')))
 
     pids = list(problems.keys())
@@ -81,24 +93,30 @@ def load_data(args: dict) -> tuple:
 
 
 def get_gpt3_output(prompt: str, args: dict) -> str:
-    return call_gpt3(args.engine, prompt, args.temperature, args.max_tokens, args.top_p, args.frequency_penalty,
-                     args.presence_penalty)
+    return call_gpt3(
+        args.engine, prompt, args.temperature, args.max_tokens, args.top_p, args.frequency_penalty,
+        args.presence_penalty
+    )
 
 
 @lru_cache(maxsize=10000)
-def call_gpt3(engine: str, prompt: str, temperature: float, max_tokens: int, top_p: float,
-              frequency_penalty: float, presence_penalty: float) -> str:
+def call_gpt3(
+        engine: str, prompt: str, temperature: float, max_tokens: int, top_p: float, frequency_penalty: float,
+        presence_penalty: float
+) -> str:
     patience = 100
     while True:
         try:
-            response = openai.Completion.create(engine=engine,
-                                                prompt=prompt,
-                                                temperature=temperature,
-                                                max_tokens=max_tokens,
-                                                top_p=top_p,
-                                                frequency_penalty=frequency_penalty,
-                                                presence_penalty=presence_penalty,
-                                                stop=["\n"])
+            response = openai.Completion.create(
+                engine=engine,
+                prompt=prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                stop=["\n"]
+            )
             output = response["choices"][0]["text"].strip()
             break
         except Exception:
@@ -146,8 +164,9 @@ def get_solution_text(problem: dict) -> str:
     return solution
 
 
-def create_one_example(format: str, table: str, question: str, answer: str,
-                       solution: str, test_example:bool = True) -> str:
+def create_one_example(
+        format: str, table: str, question: str, answer: str, solution: str, test_example: bool = True
+) -> str:
     # Using template to generate one prompt example.
     input_format, output_format = format.split("-")  # e.g., "TQ-A"
 

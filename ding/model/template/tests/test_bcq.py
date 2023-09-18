@@ -4,7 +4,6 @@ import torch
 from ding.model.template import BCQ
 from ding.torch_utils import is_differentiable
 
-
 B = 4
 obs_shape = [4, (8, )]
 act_shape = [3, (6, )]

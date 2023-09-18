@@ -26,9 +26,7 @@ class TabMWP(BaseEnv):
         openai.api_key = cfg.api_key
         self.observation_space = gym.spaces.Dict()
         self.action_space = gym.spaces.Discrete(self.cfg.cand_number * (self.cfg.cand_number - 1))
-        self.reward_space = gym.spaces.Box(
-            low=-1, high=1, shape=(1,), dtype=np.float32
-        )
+        self.reward_space = gym.spaces.Box(low=-1, high=1, shape=(1, ), dtype=np.float32)
         self.correct_num = 0
 
         # Initialize language model if needed.
@@ -61,8 +59,12 @@ class TabMWP(BaseEnv):
         inputs = TabMWP.tokenizer(inp + " [MASK].", return_tensors="pt")
         inputs = TabMWP.tokenizer.build_inputs_for_generation(inputs, max_gen_length=512)
         inputs = {key: value.cuda() for key, value in inputs.items()}
-        outputs = TabMWP.model.generate(**inputs, max_length=512, eos_token_id=TabMWP.tokenizer.eop_token_id,
-                                        pad_token_id=TabMWP.tokenizer.eos_token_id)
+        outputs = TabMWP.model.generate(
+            **inputs,
+            max_length=512,
+            eos_token_id=TabMWP.tokenizer.eop_token_id,
+            pad_token_id=TabMWP.tokenizer.eos_token_id
+        )
         outputs = TabMWP.tokenizer.decode(outputs[0].tolist())
 
         t0 = outputs.find('<|startofpiece|>') + 16
@@ -78,29 +80,37 @@ class TabMWP(BaseEnv):
         if TabMWP.model is not None:
             TabMWP.model = TabMWP.model.cuda()
         if self.enable_replay:
-            self.cand_pids = ['32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514',
-                              '19270', '23713', '17209', '33379', '34987', '11177']
+            self.cand_pids = [
+                '32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514', '19270', '23713',
+                '17209', '33379', '34987', '11177'
+            ]
             if self.cfg.seed == 0:  # train
-                self.train_pids = ['14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433',
-                                   '26979', '18135', '13347', '17679', '38426', '3454', '10432', '31011', '12162',
-                                   '13063', '7812', '29661', '24482', '4970', '4405', '17405', '27781', '26724', '5993',
-                                   '16442', '30148', '15895', '6855', '29903', '18107', '29504', '11106', '32964',
-                                   '29891', '32104', '15712', '24287', '4997', '32581', '21020', '17247', '31455',
-                                   '13245', '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198',
-                                   '26039', '3791', '4909', '37056', '7144', '8185', '2131', '4398', '38199', '29520',
-                                   '37329', '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229',
-                                   '22918', '31680', '15024', '24607', '26930']
+                self.train_pids = [
+                    '14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433', '26979', '18135',
+                    '13347', '17679', '38426', '3454', '10432', '31011', '12162', '13063', '7812', '29661', '24482',
+                    '4970', '4405', '17405', '27781', '26724', '5993', '16442', '30148', '15895', '6855', '29903',
+                    '18107', '29504', '11106', '32964', '29891', '32104', '15712', '24287', '4997', '32581', '21020',
+                    '17247', '31455', '13245', '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198',
+                    '26039', '3791', '4909', '37056', '7144', '8185', '2131', '4398', '38199', '29520', '37329',
+                    '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229', '22918', '31680', '15024',
+                    '24607', '26930'
+                ]
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_train.txt'
                 if not os.path.exists(model_io_path):
-                    os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_train.txt -O '
-                              + model_io_path + ' --no-check-certificate')
+                    os.system(
+                        f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_train.txt -O ' +
+                        model_io_path + ' --no-check-certificate'
+                    )
             else:
-                self.train_pids = ['21037', '22976', '2224', '14145', '27962', '26553', '22110', '16541', '26044',
-                                   '19492', '31882', '11991', '27594', '7637', '15394', '7666', '5177', '33761',
-                                   '13703', '29105']
+                self.train_pids = [
+                    '21037', '22976', '2224', '14145', '27962', '26553', '22110', '16541', '26044', '19492', '31882',
+                    '11991', '27594', '7637', '15394', '7666', '5177', '33761', '13703', '29105'
+                ]
                 model_io_path = 'dizoo/tabmwp/data/model_in_out_eval.txt'
-                os.system(f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_eval.txt -O '
-                          + model_io_path + ' --no-check-certificate')
+                os.system(
+                    f'wget https://opendilab.net/download/DI-zoo/tabmwp/model_in_out_eval.txt -O ' + model_io_path +
+                    ' --no-check-certificate'
+                )
 
             self.cfg.cand_number = len(self.cand_pids)
             self.cfg.train_number = len(self.train_pids)
@@ -135,8 +145,19 @@ class TabMWP(BaseEnv):
         raise ValueError('item does not exists.')
 
     def parse_all_answers(self):
-        self.cand_pids = ['32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514', '19270', '23713', '17209', '33379', '34987', '11177', '30218', '26066', '24169', '28492']
-        self.train_pids = ['14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433', '26979', '18135', '13347', '17679', '38426', '3454', '10432', '31011', '12162', '13063', '7812', '29661', '24482', '4970', '4405', '17405', '27781', '26724', '5993', '16442', '30148', '15895', '6855', '29903', '18107', '29504', '11106', '32964', '29891', '32104', '15712', '24287', '4997', '32581', '21020', '17247', '31455', '13245', '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198', '26039', '3791', '4909', '37056', '7144', '8185', '2131', '4398', '38199', '29520', '37329', '21388', '28659', '15044', '28510', '12903', '11794', '37095', '32229', '22918', '31680', '15024', '24607', '26930']
+        self.cand_pids = [
+            '32889', '8044', '16892', '5408', '4051', '37355', '17962', '25807', '30602', '5514', '19270', '23713',
+            '17209', '33379', '34987', '11177', '30218', '26066', '24169', '28492'
+        ]
+        self.train_pids = [
+            '14229', '3409', '29980', '799', '5086', '21778', '36441', '34146', '69', '33433', '26979', '18135',
+            '13347', '17679', '38426', '3454', '10432', '31011', '12162', '13063', '7812', '29661', '24482', '4970',
+            '4405', '17405', '27781', '26724', '5993', '16442', '30148', '15895', '6855', '29903', '18107', '29504',
+            '11106', '32964', '29891', '32104', '15712', '24287', '4997', '32581', '21020', '17247', '31455', '13245',
+            '15850', '10011', '10313', '10158', '1817', '33479', '35842', '14198', '26039', '3791', '4909', '37056',
+            '7144', '8185', '2131', '4398', '38199', '29520', '37329', '21388', '28659', '15044', '28510', '12903',
+            '11794', '37095', '32229', '22918', '31680', '15024', '24607', '26930'
+        ]
         self.problem_id = 0
         self.cfg.train_number = len(self.train_pids)
         n = len(self.cand_pids)
@@ -221,24 +242,25 @@ class TabMWP(BaseEnv):
 
 if __name__ == '__main__':
     from easydict import EasyDict
-    env_cfg = EasyDict(dict(
-        cand_number=16,
-        train_number=20,
-        engine='text-davinci-002',
-        temperature=0.,
-        max_tokens=512,
-        top_p=1.,
-        frequency_penalty=0.,
-        presence_penalty=0.,
-        option_inds=["A", "B", "C", "D", "E", "F"],
-        api_key='xxx',
-        prompt_format='TQ-A',
-        enable_replay=True,
-        seed=0,
-    ))
+    env_cfg = EasyDict(
+        dict(
+            cand_number=16,
+            train_number=20,
+            engine='text-davinci-002',
+            temperature=0.,
+            max_tokens=512,
+            top_p=1.,
+            frequency_penalty=0.,
+            presence_penalty=0.,
+            option_inds=["A", "B", "C", "D", "E", "F"],
+            api_key='xxx',
+            prompt_format='TQ-A',
+            enable_replay=True,
+            seed=0,
+        )
+    )
     env = TabMWP(env_cfg)
     env.seed(0)
     env.reset()
     env.parse_all_answers()
     env.search_answer('22976', ['32889', '8044'])
-

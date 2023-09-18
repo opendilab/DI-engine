@@ -12,6 +12,7 @@ state_encoder = [None, nn.Sequential(nn.Flatten(), nn.Linear(8, 8), nn.Tanh())]
 args = list(product(*[action_space, state_encoder]))
 args.pop(1)
 
+
 @pytest.mark.unittest
 @pytest.mark.parametrize('action_space, state_encoder', args)
 def test_decision_transformer(action_space, state_encoder):
@@ -36,7 +37,7 @@ def test_decision_transformer(action_space, state_encoder):
 
     is_continuous = True if action_space == 'continuous' else False
     if state_encoder:
-        timesteps = torch.randint(0, 100, [B, 3*T-1, 1], dtype=torch.long)  # B x T
+        timesteps = torch.randint(0, 100, [B, 3 * T - 1, 1], dtype=torch.long)  # B x T
     else:
         timesteps = torch.randint(0, 100, [B, T], dtype=torch.long)  # B x T
     if isinstance(state_dim, int):
@@ -91,15 +92,12 @@ def test_decision_transformer(action_space, state_encoder):
 
     if state_encoder:
         is_differentiable(
-        action_loss, [
-            DT_model.transformer, DT_model.embed_action, DT_model.embed_rtg,
-            DT_model.state_encoder
-        ]
-    )
+            action_loss, [DT_model.transformer, DT_model.embed_action, DT_model.embed_rtg, DT_model.state_encoder]
+        )
     else:
         is_differentiable(
-        action_loss, [
-            DT_model.transformer, DT_model.embed_action, DT_model.predict_action, DT_model.embed_rtg,
-            DT_model.embed_state
-        ]
-    )
+            action_loss, [
+                DT_model.transformer, DT_model.embed_action, DT_model.predict_action, DT_model.embed_rtg,
+                DT_model.embed_state
+            ]
+        )
