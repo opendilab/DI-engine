@@ -32,6 +32,7 @@ def test_decision_transformer(action_space, state_encoder):
         drop_p=0.1,
         continuous=(action_space == 'continuous')
     )
+    DT_model.configure_optimizers(1.0, 0.0003)
 
     is_continuous = True if action_space == 'continuous' else False
     if state_encoder:
