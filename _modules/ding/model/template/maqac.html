@@ -439,12 +439,12 @@
 <span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Regression mode</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 64, &#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 64, &#39;reparameterization&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
@@ -623,12 +623,12 @@
 
 <span class="sd">        Actor Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Regression mode</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;reparameterization&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
@@ -670,12 +670,12 @@
 <span class="sd">                (action_args are continuous real value)</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Regression mode</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;reparameterization&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
