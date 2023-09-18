@@ -21,9 +21,9 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class PPOF:
     supported_env_list = [
         # common
-        'lunarlander_discrete',
-        'lunarlander_continuous',
-        'bipedalwalker',
+        'LunarLander-v2',
+        'LunarLanderContinuous-v2',
+        'BipedalWalker-v3',
         'acrobot',
         # ch2: action
         'rocket_landing',
@@ -38,42 +38,64 @@ class PPOF:
         'minigrid_fourroom',
         'metadrive',
         # atari
-        'atari_qbert',
-        'atari_kangaroo',
-        'atari_bowling',
-        'PongNoFrameskip',
-        'SpaceInvadersNoFrameskip',
-        'QbertNoFrameskip',
+        'BowlingNoFrameskip-v4',
+        'BreakoutNoFrameskip-v4',
+        'GopherNoFrameskip-v4'
+        'KangarooNoFrameskip-v4',
+        'PongNoFrameskip-v4',
+        'QbertNoFrameskip-v4',
+        'SpaceInvadersNoFrameskip-v4',
         # mujoco
-        'hopper',
+        'Hopper-v3',
+        'HalfCheetah-v3',
+        'Walker2d-v3',
     ]
 
     def __init__(
             self,
-            env: Union[str, BaseEnv],
+            env_id: str = None,
+            env: BaseEnv = None,
             seed: int = 0,
-            exp_name: str = 'default_experiment',
+            exp_name: str = None,
             model: Optional[torch.nn.Module] = None,
-            cfg: Optional[EasyDict] = None,
-            policy_state_dict: str = None,
+            cfg: Optional[Union[EasyDict, dict]] = None,
+            policy_state_dict: str = None
     ) -> None:
-        if isinstance(env, str):
-            assert env in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
-            self.env = get_instance_env(env)
+        assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
+
+        if cfg is not None and not isinstance(cfg, EasyDict):
+            cfg = EasyDict(cfg)
+
+        if env_id is not None:
+            assert env_id in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
             if cfg is None:
-                # 'It should be default env tuned config'
-                self.cfg = get_instance_config(env, algorithm="PPO")
-            else:
-                self.cfg = cfg
-        elif isinstance(env, BaseEnv):
-            self.cfg = cfg
-            raise NotImplementedError
+                cfg = get_instance_config(env_id, algorithm="PPOF")
+
+            if not hasattr(cfg, "env_id"):
+                cfg.env_id = env_id
+            assert cfg.env_id == env_id, "env_id in cfg should be the same as env_id in args."
         else:
-            raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
+            assert hasattr(cfg, "env_id"), "Please specify env_id in cfg."
+            assert cfg.env_id in PPOF.supported_env_list, "Please use supported envs: {}".format(
+                PPOF.supported_env_list
+            )
+
+        if exp_name is not None:
+            cfg.exp_name = exp_name
+        elif not hasattr(cfg, "exp_name"):
+            cfg.exp_name = "{}-{}".format(cfg.env_id, "PPO")
+        self.cfg = cfg
+        self.exp_name = self.cfg.exp_name
+
+        if env is None:
+            self.env = get_instance_env(self.cfg.env_id)
+        else:
+            self.env = env
+
         logging.getLogger().setLevel(logging.INFO)
         self.seed = seed
-        set_pkg_seed(self.seed)
-        self.exp_name = exp_name
+        set_pkg_seed(self.seed, use_cuda=self.cfg.cuda)
+
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
