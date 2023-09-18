@@ -10,7 +10,7 @@ from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEva
 from ding.envs import BaseEnvManager
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.policy import DDPGPolicy
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.mujoco.envs.mujoco_env import MujocoEnv
@@ -41,7 +41,7 @@ def main(main_cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = QAC(**cfg.policy.model)
+    model = ContinuousQAC(**cfg.policy.model)
     policy = DDPGPolicy(cfg.policy, model=model)
     policy.eval_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cpu'))
 

@@ -7,7 +7,7 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DDPGPolicy
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.utils import set_pkg_seed
 from dizoo.mujoco.envs.mujoco_env import MujocoEnv
 from dizoo.mujoco.config.hopper_ddpg_config import hopper_ddpg_config
@@ -37,7 +37,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
-    model = QAC(**cfg.policy.model)
+    model = ContinuousQAC(**cfg.policy.model)
     policy = DDPGPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)

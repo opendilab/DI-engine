@@ -5,7 +5,7 @@ import metadrive
 import gym
 from ding.envs import BaseEnvManager, SyncSubprocessEnvManager
 from ding.config import compile_config
-from ding.model.template import QAC, VAC
+from ding.model.template import ContinuousQAC, VAC
 from ding.policy import PPOPolicy
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, BaseLearner
 from dizoo.metadrive.env.drive_env import MetaDrivePPOOriginEnv
