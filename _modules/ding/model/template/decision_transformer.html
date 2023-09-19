@@ -12,7 +12,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ding.model.template.dt &mdash; DI-engine 0.1.0 documentation</title>
+  <title>ding.model.template.decision_transformer &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
@@ -265,7 +265,7 @@
         
           <li><a href="../../../index.html">Module code</a> &gt;</li>
         
-      <li>ding.model.template.dt</li>
+      <li>ding.model.template.decision_transformer</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -291,7 +291,7 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <h1>Source code for ding.model.template.dt</h1><div class="highlight"><pre>
+  <h1>Source code for ding.model.template.decision_transformer</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">this extremely minimal Decision Transformer model is based on</span>
 <span class="sd">the following causal transformer (GPT) implementation:</span>
@@ -388,7 +388,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
 
-<div class="viewcode-block" id="DecisionTransformer"><a class="viewcode-back" href="../../../../12_policies/dt_zh.html#ding.model.DecisionTransformer">[docs]</a><span class="k">class</span> <span class="nc">DecisionTransformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="DecisionTransformer"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DecisionTransformer">[docs]</a><span class="k">class</span> <span class="nc">DecisionTransformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
 <div class="viewcode-block" id="DecisionTransformer.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DecisionTransformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -446,7 +446,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">embed_action</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">act_dim</span><span class="p">,</span> <span class="n">h_dim</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="DecisionTransformer.forward"><a class="viewcode-back" href="../../../../12_policies/dt_zh.html#ding.model.DecisionTransformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">returns_to_go</span><span class="p">,</span> <span class="n">tar</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DecisionTransformer.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DecisionTransformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">returns_to_go</span><span class="p">,</span> <span class="n">tar</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_encoder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">time_embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_timestep</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
@@ -477,7 +477,7 @@
             <span class="n">action_preds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_action</span><span class="p">(</span><span class="n">h</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># predict action given r, s</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">state_embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_encoder</span><span class="p">(</span>
-                <span class="n">states</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">)</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+                <span class="n">states</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">)</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
             <span class="p">)</span>  <span class="c1"># (batch * block_size, h_dim)</span>
             <span class="n">state_embeddings</span> <span class="o">=</span> <span class="n">state_embeddings</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h_dim</span><span class="p">)</span>  <span class="c1"># (batch, block_size, h_dim)</span>
             <span class="n">returns_embeddings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_rtg</span><span class="p">(</span><span class="n">returns_to_go</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>

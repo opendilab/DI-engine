@@ -1443,7 +1443,7 @@
 <span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
 <span class="sd">            &gt;&gt;&gt; obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4</span>
 <span class="sd">            &gt;&gt;&gt; obs = torch.rand(seq_len, bs, obs_dim)</span>
-<span class="sd">            &gt;&gt;&gt; model = GTrXLDiscreteHead(obs_dim, action_dim)</span>
+<span class="sd">            &gt;&gt;&gt; model = GTrXLDQN(obs_dim, action_dim)</span>
 <span class="sd">            &gt;&gt;&gt; outputs = model(obs)</span>
 <span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
