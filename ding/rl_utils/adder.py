@@ -4,7 +4,7 @@ import copy
 import torch
 
 from ding.utils import list_split, lists_to_dicts
-from .gae import gae, gae_data
+from ding.rl_utils.gae import gae, gae_data
 
 
 class Adder(object):
@@ -30,6 +30,14 @@ class Adder(object):
             - cuda (:obj:`bool`): Whether use cuda in GAE computation
         Returns:
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
+        Examples:
+            >>> B, T = 2, 3 # batch_size, timestep
+            >>> data = [dict(value=torch.randn(B), reward=torch.randn(B)) for _ in range(T)]
+            >>> last_value = torch.randn(B)
+            >>> gamma = 0.99
+            >>> gae_lambda = 0.95
+            >>> cuda = False
+            >>> data = Adder.get_gae(data, last_value, gamma, gae_lambda, cuda)
         """
         value = torch.stack([d['value'] for d in data])
         next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
@@ -66,6 +74,14 @@ class Adder(object):
         Returns:
             - data (:obj:`List[Dict[str, Any]]`): transitions list like input one, but each element owns \
                 extra advantage key 'adv'
+        Examples:
+            >>> B, T = 2, 3 # batch_size, timestep
+            >>> data = [dict(value=torch.randn(B), reward=torch.randn(B)) for _ in range(T)]
+            >>> done = False
+            >>> gamma = 0.99
+            >>> gae_lambda = 0.95
+            >>> cuda = False
+            >>> data = Adder.get_gae_with_default_last_value(data, done, gamma, gae_lambda, cuda)
         """
         if done:
             last_value = torch.zeros_like(data[-1]['value'])
@@ -92,6 +108,10 @@ class Adder(object):
                 Otherwise update with nstep value.
         Returns:
             - data (:obj:`deque`): Transitions list like input one, but each element updated with nstep value.
+        Examples:
+            >>> data = [dict(obs=torch.randn(B), reward=torch.randn(1), next_obs=torch.randn(B), done=False) for _ in range(T)]
+            >>> nstep = 2
+            >>> data = Adder.get_nstep_return_data(data, nstep)
         """
         if nstep == 1:
             return data

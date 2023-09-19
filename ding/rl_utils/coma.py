@@ -1,7 +1,7 @@
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
-from .td import generalized_lambda_returns
+from ding.rl_utils.td import generalized_lambda_returns
 
 coma_data = namedtuple('coma_data', ['logit', 'action', 'q_value', 'target_q_value', 'reward', 'weight'])
 coma_loss = namedtuple('coma_loss', ['policy_loss', 'q_value_loss', 'entropy_loss'])
@@ -26,6 +26,18 @@ def coma_error(data: namedtuple, gamma: float, lambda_: float) -> namedtuple:
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
         - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> action_dim = 4
+        >>> agent_num = 3
+        >>> data = coma_data(
+        >>>     logit=torch.randn(2, 3, agent_num, action_dim),
+        >>>     action=torch.randint(0, action_dim, (2, 3, agent_num)),
+        >>>     q_value=torch.randn(2, 3, agent_num, action_dim),
+        >>>     target_q_value=torch.randn(2, 3, agent_num, action_dim),
+        >>>     reward=torch.randn(2, 3),
+        >>>     weight=torch.ones(2, 3, agent_num),
+        >>> )
+        >>> loss = coma_error(data, 0.99, 0.99)
     """
     logit, action, q_value, target_q_value, reward, weight = data
     if weight is None:

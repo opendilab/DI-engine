@@ -39,6 +39,12 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
         - next_value (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - adv (:obj:`torch.FloatTensor`): :math:`(T, B)`
+    Examples:
+        >>> value = torch.randn(2, 3)
+        >>> next_value = torch.randn(2, 3)
+        >>> reward = torch.randn(2, 3)
+        >>> data = gae_data(value, next_value, reward, None, None)
+        >>> adv = gae(data)
     """
     value, next_value, reward, done, traj_flag = data
     if done is None:
