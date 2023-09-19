@@ -145,12 +145,12 @@ class DiscreteMAQAC(nn.Module):
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = DiscreteQAC(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = DiscreteQAC(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu
@@ -329,12 +329,12 @@ class ContinuousMAQAC(nn.Module):
 
         Actor Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = ContinuousQAC(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = ContinuousQAC(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu
@@ -376,12 +376,12 @@ class ContinuousMAQAC(nn.Module):
                 (action_args are continuous real value)
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = ContinuousQAC(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = ContinuousQAC(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu

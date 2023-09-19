@@ -1,7 +1,7 @@
 import gym
 from ditk import logging
 import torch
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.policy import SACPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import offline_data_save_type
@@ -22,7 +22,7 @@ def main():
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        model = QAC(**cfg.policy.model)
+        model = ContinuousQAC(**cfg.policy.model)
         policy = SACPolicy(cfg.policy, model=model, enable_field=['collect'])
         state_dict = torch.load(cfg.policy.collect.state_dict_path, map_location='cpu')
         policy.collect_mode.load_state_dict(state_dict)

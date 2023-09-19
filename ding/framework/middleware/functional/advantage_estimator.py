@@ -26,6 +26,8 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         - policy (:obj:`Policy`): Policy in `policy.collect_mode`, used to get model to calculate value.
         - buffer\_ (:obj:`Optional[Buffer]`): The `buffer_` to push the processed data in if `buffer_` is not None.
     """
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     model = policy.get_attribute('model')
     # Unify the shape of obs and action
@@ -104,6 +106,8 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
 
 
 def ppof_adv_estimator(policy: Policy) -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def _estimator(ctx: "OnlineRLContext"):
         data = ttorch_collate(ctx.trajectories, cat_1dim=True)
@@ -118,6 +122,8 @@ def ppof_adv_estimator(policy: Policy) -> Callable:
 
 
 def montecarlo_return_estimator(policy: Policy) -> Callable:
+    if task.router.is_active and not task.has_role(task.role.LEARNER):
+        return task.void()
 
     def pg_policy_get_train_sample(data):
         assert data[-1]['done'], "PG needs a complete epsiode"

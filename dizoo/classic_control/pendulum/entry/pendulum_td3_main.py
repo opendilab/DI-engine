@@ -7,7 +7,7 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DDPGPolicy
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.pendulum.envs import PendulumEnv
 from dizoo.classic_control.pendulum.config.pendulum_td3_config import pendulum_td3_config
@@ -40,7 +40,7 @@ def main(cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = QAC(**cfg.policy.model)
+    model = ContinuousQAC(**cfg.policy.model)
     policy = DDPGPolicy(cfg.policy, model=model)
     # lr_scheduler demo
     lr_scheduler = LambdaLR(

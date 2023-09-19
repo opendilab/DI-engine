@@ -15,7 +15,7 @@ from ding.policy import DDPGPolicy
 from ding.utils import set_pkg_seed
 from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
 from ding.config.example.DDPG import supported_env_cfg
@@ -74,7 +74,7 @@ class DDPGAgent:
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         if model is None:
-            model = QAC(**self.cfg.policy.model)
+            model = ContinuousQAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = DDPGPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
