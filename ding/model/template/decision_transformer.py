@@ -183,7 +183,7 @@ class DecisionTransformer(nn.Module):
             action_preds = self.predict_action(h[:, 1])  # predict action given r, s
         else:
             state_embeddings = self.state_encoder(
-                states.reshape(-1, 4, 84, 84).type(torch.float32).contiguous()
+                states.reshape(-1, *self.state_dim).type(torch.float32).contiguous()
             )  # (batch * block_size, h_dim)
             state_embeddings = state_embeddings.reshape(B, T, self.h_dim)  # (batch, block_size, h_dim)
             returns_embeddings = self.embed_rtg(returns_to_go.type(torch.float32))

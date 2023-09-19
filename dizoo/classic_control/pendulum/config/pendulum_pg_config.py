@@ -18,7 +18,7 @@ pendulum_pg_config = dict(
             action_shape=1,
         ),
         learn=dict(
-            batch_size=400
+            batch_size=400,
             learning_rate=0.001,
             entropy_weight=0.001,
         ),

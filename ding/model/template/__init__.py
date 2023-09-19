@@ -22,7 +22,7 @@ from .qac_dist import QACDIST
 from .maqac import DiscreteMAQAC, ContinuousMAQAC
 from .madqn import MADQN
 from .vae import VanillaVAE
-from .dt import DecisionTransformer
+from .decision_transformer import DecisionTransformer
 from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import EDAC

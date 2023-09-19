@@ -1,7 +1,7 @@
 import pytest
 from itertools import product
 import torch
-from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ
+from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN, BDQ, GTrXLDQN
 from ding.torch_utils import is_differentiable
 
 T, B = 3, 4
@@ -283,3 +283,11 @@ class TestQLearning:
         assert all([len(t) == 2 for t in outputs['next_state']])
         assert all([t['h'].shape == (1, 1, 64) for t in outputs['next_state']])
         self.output_check(model, outputs['logit'])
+
+    @pytest.mark.tmp
+    def test_GTrXLDQN(self):
+        obs_dim, seq_len, bs, action_dim = [4, 64, 64], 64, 32, 4
+        obs = torch.rand(seq_len, bs, *obs_dim)
+        model = GTrXLDQN(obs_dim, action_dim, encoder_hidden_size_list=[16, 16, 16])
+        outputs = model(obs)
+        assert isinstance(outputs, dict)

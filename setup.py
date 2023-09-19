@@ -107,7 +107,7 @@ setup(
             'numpy-stl',
             'numba>=0.53.0',
         ],
-        'video':[
+        'video': [
             'moviepy',
             'imageio[ffmpeg]',
         ],

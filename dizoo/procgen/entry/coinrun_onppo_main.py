@@ -60,10 +60,12 @@ def wrapped_procgen_env(cfg):
             num_levels=default_cfg.num_levels
         ) if default_cfg.control_level else
         gym.make('procgen:procgen-' + default_cfg.env_id + '-v0', start_level=0, num_levels=1),
-        cfg={'env_wrapper': [
-            lambda env: CoinrunWrapper(env, default_cfg),
-            lambda env: EvalEpisodeReturnWrapper(env),
-        ]}
+        cfg={
+            'env_wrapper': [
+                lambda env: CoinrunWrapper(env, default_cfg),
+                lambda env: EvalEpisodeReturnWrapper(env),
+            ]
+        }
     )
 
 
