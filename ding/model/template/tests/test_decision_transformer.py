@@ -67,8 +67,8 @@ def test_decision_transformer(action_space, state_encoder):
         timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
     )
     if state_encoder:
-        assert state_preds == None
-        assert return_preds == None
+        assert state_preds is None
+        assert return_preds is None
     else:
         assert state_preds.shape == (B, T, state_dim)
         assert return_preds.shape == (B, T, 1)

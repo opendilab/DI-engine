@@ -650,7 +650,7 @@ def test_discrete_dt():
         from ding.utils import set_pkg_seed
         from ding.data import create_dataset
         from ding.config import compile_config
-        from ding.model.template.decision_transformer import DecisionTransformer
+        from ding.model import DecisionTransformer
         from ding.policy import DTPolicy
         from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
             OfflineMemoryDataFetcher, offline_logger, termination_checker
