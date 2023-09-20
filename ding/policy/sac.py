@@ -16,8 +16,8 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
 
-@POLICY_REGISTRY.register('sac_discrete')
-class SACDiscretePolicy(Policy):
+@POLICY_REGISTRY.register('discrete_sac')
+class DiscreteSACPolicy(Policy):
     r"""
        Overview:
            Policy class of discrete SAC algorithm. Paper link: https://arxiv.org/pdf/1910.07207.pdf.
@@ -26,10 +26,10 @@ class SACDiscretePolicy(Policy):
            == ====================  ========    =============  ================================= =======================
            ID Symbol                Type        Default Value  Description                       Other
            == ====================  ========    =============  ================================= =======================
-           1  ``type``              str         sac_discrete   | RL policy register name, refer  | this arg is optional,
+           1  ``type``              str         discrete_sac   | RL policy register name, refer  | this arg is optional,
                                                                | to registry ``POLICY_REGISTRY`` | a placeholder
            2  ``cuda``              bool        True           | Whether to use cuda for network |
-           3  ``on_policy``         bool        False          | SACDiscrete is an off-policy    |
+           3  ``on_policy``         bool        False          | DiscreteSAC is an off-policy    |
                                                                | algorithm.                      |
            4  ``priority``          bool        False          | Whether to use priority         |
                                                                | sampling in buffer.             |
@@ -62,12 +62,12 @@ class SACDiscretePolicy(Policy):
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='sac_discrete',
+        type='discrete_sac',
         # (bool) Whether to use cuda for network and loss computation.
         cuda=False,
-        # (bool) Whether to belong to on-policy or off-policy algorithm, SACDiscrete is an off-policy algorithm.
+        # (bool) Whether to belong to on-policy or off-policy algorithm, DiscreteSAC is an off-policy algorithm.
         on_policy=False,
-        # (bool) Whether to use priority sampling in buffer. Default to False in SACDiscrete.
+        # (bool) Whether to use priority sampling in buffer. Default to False in DiscreteSAC.
         priority=False,
         # (bool) Whether use Importance Sampling weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
@@ -170,7 +170,7 @@ class SACDiscretePolicy(Policy):
         self._gamma = self._cfg.learn.discount_factor
         if self._cfg.learn.auto_alpha:
             if self._cfg.learn.target_entropy is None:
-                assert 'action_shape' in self._cfg.model, "SACDiscrete need network model with action_shape variable"
+                assert 'action_shape' in self._cfg.model, "DiscreteSAC need network model with action_shape variable"
                 self._target_entropy = -np.prod(self._cfg.model.action_shape)
             else:
                 self._target_entropy = self._cfg.learn.target_entropy
@@ -856,7 +856,7 @@ class SQILSACPolicy(SACPolicy):
         self._gamma = self._cfg.learn.discount_factor
         if self._cfg.learn.auto_alpha:
             if self._cfg.learn.target_entropy is None:
-                assert 'action_shape' in self._cfg.model, "SACDiscrete need network model with action_shape variable"
+                assert 'action_shape' in self._cfg.model, "SQILSACPolicy need network model with action_shape variable"
                 self._target_entropy = -np.prod(self._cfg.model.action_shape)
             else:
                 self._target_entropy = self._cfg.learn.target_entropy

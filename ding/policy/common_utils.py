@@ -13,6 +13,10 @@ def default_preprocess_learn(
         use_nstep: bool = False,
         ignore_done: bool = False,
 ) -> dict:
+    """
+    Overview:
+        Default data pre-processing in policy's ``_forward_learn``.
+    """
     # data preprocess
     if data[0]['action'].dtype in [np.int8, np.int16, np.int32, np.int64, torch.int8, torch.int16, torch.int32,
                                    torch.int64]:
@@ -56,6 +60,10 @@ def default_preprocess_learn(
 
 
 def single_env_forward_wrapper(forward_fn):
+    """
+    Overview:
+        Wrap policy to support gym-style interaction between policy and environment.
+    """
 
     def _forward(obs):
         obs = {0: unsqueeze(to_tensor(obs))}
@@ -67,6 +75,10 @@ def single_env_forward_wrapper(forward_fn):
 
 
 def single_env_forward_wrapper_ttorch(forward_fn, cuda=True):
+    """
+    Overview:
+        Wrap policy to support gym-style interaction between policy and environment for treetensor (ttorch) data.
+    """
 
     def _forward(obs):
         # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)

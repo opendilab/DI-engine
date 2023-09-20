@@ -101,6 +101,7 @@ class DQNPolicy(Policy):
             #(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
         ),
+        # learn_mode config
         learn=dict(
             # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
@@ -134,7 +135,7 @@ class DQNPolicy(Policy):
             # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
         ),
-        eval=dict(),
+        eval=dict(),  # for compability
         # other config
         other=dict(
             # Epsilon greedy with decay.
@@ -149,7 +150,7 @@ class DQNPolicy(Policy):
                 decay=10000,
             ),
             replay_buffer=dict(
-                # (int) Maximum size of replay buffer. Usually, larger buffer size is good.
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
                 replay_buffer_size=10000,
             ),
         ),
@@ -158,13 +159,15 @@ class DQNPolicy(Policy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Return this algorithm default model setting for demonstration.
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
         Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
 
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
+            by import_names path. For example about DQN, its registered name is ``dqn`` and the import_names is \
+            ``ding.model.template.q_learning``.
         """
         return 'dqn', ['ding.model.template.q_learning']
 
@@ -273,14 +276,21 @@ class DQNPolicy(Policy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return ['cur_lr', 'total_loss', 'q_value', 'target_q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
         Overview:
-            Return the state_dict of learn mode, usually including model and optimizer.
+            Return the state_dict of learn mode, usually including model, target_model and optimizer.
         Returns:
-            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
         """
         return {
             'model': self._learn_model.state_dict(),
@@ -293,7 +303,7 @@ class DQNPolicy(Policy):
         Overview:
             Load the state_dict variable into policy learn mode.
         Arguments:
-            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
 
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
@@ -474,7 +484,7 @@ class DQNPolicy(Policy):
 class DQNSTDIMPolicy(DQNPolicy):
     """
     Overview:
-        Policy class of DQN algorithm, extended by auxiliary objectives.
+        Policy class of DQN algorithm, extended by ST-DIM auxiliary objectives.
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -529,68 +539,71 @@ class DQNSTDIMPolicy(DQNPolicy):
     """
 
     config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='dqn_stdim',
-        # (bool) Whether use cuda in policy
+        # (bool) Whether to use cuda in policy.
         cuda=False,
-        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
+        # (bool) Whether to learning policy is the same as collecting data policy (on-policy).
         on_policy=False,
-        # (bool) Whether enable priority experience sample
+        # (bool) Whether to enable priority experience sample.
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        # (float) Discount factor(gamma) for returns
+        # (float) Discount factor(gamma) for returns.
         discount_factor=0.97,
-        # (int) The number of step for calculating target q_value
+        # (int) The number of step for calculating target q_value.
         nstep=1,
+        # (float) The weight of auxiliary loss to main loss.
+        aux_loss_weight=0.001,
+        # learn_mode config
         learn=dict(
-
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
-            # (int) How many samples in a training batch
+            # (int) How many samples in a training batch.
             batch_size=64,
-            # (float) The step size of gradient descent
+            # (float) The step size of gradient descent.
             learning_rate=0.001,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (bool) Whether ignore done(usually for max step termination env)
+            # (bool) Whether ignore done(usually for max step termination env).
             ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
-        eval=dict(),
+        eval=dict(),  # for compability
         # other config
         other=dict(
             # Epsilon greedy with decay.
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
-                # (float) Epsilon start value
+                # (float) Epsilon start value.
                 start=0.95,
-                # (float) Epsilon end value
+                # (float) Epsilon end value.
                 end=0.1,
-                # (int) Decay length(env step)
+                # (int) Decay length (env step).
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
+                replay_buffer_size=10000,
+            ),
         ),
-        aux_loss_weight=0.001,
     )
 
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.
+            Learn mode init method. Called by ``self.__init__``. First call super class's ``_init_lear`` method, then \
+            nitialize the auxiliary model, its optimizer, and the axuliary loss weight to the main loss.
         """
         super()._init_learn()
         x_size, y_size = self._get_encoding_size()
@@ -600,12 +613,12 @@ class DQNSTDIMPolicy(DQNPolicy):
         self._aux_optimizer = Adam(self._aux_model.parameters(), lr=self._cfg.learn.learning_rate)
         self._aux_loss_weight = self._cfg.aux_loss_weight
 
-    def _get_encoding_size(self):
+    def _get_encoding_size(self) -> Tuple[Tuple[int], Tuple[int]]:
         """
         Overview:
             Get the input encoding size of the ST-DIM axuiliary model.
         Returns:
-            - info_dict (:obj:`[Tuple, Tuple]`): The encoding size without the first (Batch) dimension.
+            - info_dict (:obj:`Tuple[Tuple[int], Tuple[int]]`): The encoding size without the first (Batch) dimension.
         """
         obs = self._cfg.model.obs_shape
         if isinstance(obs, int):
@@ -620,16 +633,15 @@ class DQNSTDIMPolicy(DQNPolicy):
             x, y = self._model_encode(test_data)
         return x.size()[1:], y.size()[1:]
 
-    def _model_encode(self, data):
+    def _model_encode(self, data: dict) -> Tuple[torch.Tensor]:
         """
         Overview:
             Get the encoding of the main model as input for the auxiliary model.
         Arguments:
             - data (:obj:`dict`): Dict type data, same as the _forward_learn input.
         Returns:
-            - (:obj:`Tuple[Tensor]`): the tuple of two tensors to apply contrastive embedding learning.
-                In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs`\
-                respectively.
+            - (:obj:`Tuple[torch.Tensor]`): the tuple of two tensors to apply contrastive embedding learning. \
+                In ST-DIM algorithm, these two variables are the dqn encoding of `obs` and `next_obs` respectively.
         """
         assert hasattr(self._model, "encoder")
         x = self._model.encoder(data["obs"])
@@ -735,6 +747,13 @@ class DQNSTDIMPolicy(DQNPolicy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return ['cur_lr', 'bellman_loss', 'aux_loss_learn', 'aux_loss_eval', 'total_loss', 'q_value']
 
     def _state_dict_learn(self) -> Dict[str, Any]:

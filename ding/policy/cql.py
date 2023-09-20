@@ -539,16 +539,16 @@ class CQLPolicy(SACPolicy):
         return new_q_value
 
 
-@POLICY_REGISTRY.register('cql_discrete')
-class CQLDiscretePolicy(DQNPolicy):
+@POLICY_REGISTRY.register('discrete_cql')
+class DiscreteCQLPolicy(DQNPolicy):
     """
         Overview:
-            Policy class of CQL algorithm in discrete environments.
+            Policy class of discrete CQL algorithm in discrete environments.
     """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='cql_discrete',
+        type='discrete_cql',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.

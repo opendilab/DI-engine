@@ -12,11 +12,28 @@ from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_
 
 
 class Policy(ABC):
+    """
+    Overview:
+        The basic class of Reinforcement Learning (RL) and Imitation Learning (IL) policy in DI-engine.
+    Property:
+        ``cfg``, ``learn_mode``, ``collect_mode``, ``eval_mode``
+    """
 
     @classmethod
     def default_config(cls: type) -> EasyDict:
+        """
+        Overview:
+            Get the default config of policy. This method is used to create the default config of policy.
+        Returns:
+            cfg (:obj:`EasyDict`): The default config of corresponding policy. For the derived policy class, \
+                it will recursively merge the default config of base class and its own default config.
+
+        .. tip::
+            This method will deepcopy the ``config`` attribute of the class and return the result. So users don't need \
+            to worry about the modification of the returned config.
+        """
         if cls == Policy:
-            raise RuntimeError
+            raise RuntimeError("Basic class Policy doesn't have completed default_config")
 
         base_cls = cls.__base__
         if base_cls == Policy:
@@ -74,10 +91,31 @@ class Policy(ABC):
 
     def __init__(
             self,
-            cfg: dict,
-            model: Optional[Union[type, torch.nn.Module]] = None,
+            cfg: EasyDict,
+            model: Optional[torch.nn.Module] = None,
             enable_field: Optional[List[str]] = None
     ) -> None:
+        """
+        Overview:
+            Initialize policy instance according to input configures and model. This method will initialize differnent \
+            fields in policy, including ``learn``, ``collect``, ``eval``. The ``learn`` field is used to train the \
+            policy, the ``collect`` field is used to collect data for training, and the ``eval`` field is used to \
+            evaluate the policy. The ``enable_field`` is used to specify which field to initialize, if it is None, \
+            then all fields will be initialized.
+        Arguments:
+            - cfg (:obj:`EasyDict`): The final merged config used to initialize policy. For the default config, \
+                see the ``config`` attribute and its comments of policy class.
+            - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. If it \
+                is None, then the model will be created according to ``default_model`` method and ``cfg.model`` field. \
+                Otherwise, the model will be set to the ``model`` instance created by outside caller.
+            - enable_field (:obj:`Optional[List[str]]`): The field list to initialize. If it is None, then all fields \
+                will be initialized. Otherwise, only the fields in ``enable_field`` will be initialized, which is \
+                beneficial to save resources.
+
+        .. note::
+            For the derived policy class, it should implement the ``_init_learn``, ``_init_collect``, ``_init_eval`` \
+            method to initialize the corresponding field.
+        """
         self._cfg = cfg
         self._on_policy = self._cfg.on_policy
         if enable_field is None:
@@ -202,9 +240,32 @@ class Policy(ABC):
         )
 
     def _set_attribute(self, name: str, value: Any) -> None:
+        """
+        Overview:
+            In order to control the access of the policy attributes, we expose different modes to outside rather than \
+            directly use the policy instance. And we also provide a method to set the attribute of the policy in \
+            different modes. And the new attribute will named as ``_{name}``.
+        Arguments:
+            - name (:obj:`str`): The name of the attribute.
+            - value (:obj:`Any`): The value of the attribute.
+        """
         setattr(self, '_' + name, value)
 
     def _get_attribute(self, name: str) -> Any:
+        """
+        Overview:
+            In order to control the access of the policy attributes, we expose different modes to outside rather than \
+            directly use the policy instance. And we also provide a method to get the attribute of the policy in \
+            different modes.
+        Arguments:
+            - name (:obj:`str`): The name of the attribute.
+        Returns:
+            - value (:obj:`Any`): The value of the attribute.
+
+        .. note::
+            DI-engine's policy will first try to access `_get_{name}` method, and then try to access `_{name}` \
+            attribute. If both of them are not found, it will raise a ``NotImplementedError``.
+        """
         if hasattr(self, '_get_' + name):
             return getattr(self, '_get_' + name)()
         elif hasattr(self, '_' + name):
@@ -213,9 +274,27 @@ class Policy(ABC):
             raise NotImplementedError
 
     def __repr__(self) -> str:
+        """
+        Overview:
+            Get the string representation of the policy.
+        Returns:
+            - repr (:obj:`str`): The string representation of the policy.
+        """
         return "DI-engine DRL Policy\n{}".format(repr(self._model))
 
     def sync_gradients(self, model: torch.nn.Module) -> None:
+        """
+        Overview:
+            Synchronize (allreduce) gradients of model parameters in data-parallel multi-gpu training.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): The model to synchronize gradients.
+
+        .. note::
+            This method is only used in multi-gpu training, and it shoule be called after ``backward`` method and \
+            before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \
+            gradients allreduce and optimizer updates.
+        """
+
         if self._bp_update_sync:
             for name, param in model.named_parameters():
                 if param.requires_grad:
@@ -225,6 +304,18 @@ class Policy(ABC):
 
     # don't need to implement default_model method by force
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For example about DQN, its registered name is ``dqn`` and the import_names is \
+            ``ding.model.template.q_learning.DQN``
+        """
         raise NotImplementedError
 
     # *************************************** learn function ************************************
@@ -238,15 +329,43 @@ class Policy(ABC):
         pass
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+
+        .. tip::
+            The default implementation is ``['cur_lr', 'total_loss']``. Other derived classes can overwrite this \
+            method to add their own keys if necessary.
+        """
         return ['cur_lr', 'total_loss']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
@@ -311,6 +430,17 @@ class Policy(ABC):
 
 
 class CommandModePolicy(Policy):
+    """
+    Overview:
+        Policy with command mode, which can be used in old version of DI-engine pipeline: ``serial_pipeline``. \
+        ``CommandModePolicy`` uses ``_get_setting_learn``, ``_get_setting_collect``, ``_get_setting_eval`` methods \
+        to exchange information between different workers.
+
+    Interface:
+        ``_init_command``, ``_get_setting_learn``, ``_get_setting_collect``, ``_get_setting_eval``
+    Property:
+        ``command_mode``
+    """
     command_function = namedtuple('command_function', ['get_setting_learn', 'get_setting_collect', 'get_setting_eval'])
     total_field = set(['learn', 'collect', 'eval', 'command'])
 
@@ -338,12 +468,43 @@ class CommandModePolicy(Policy):
         raise NotImplementedError
 
 
-def create_policy(cfg: dict, **kwargs) -> Policy:
-    cfg = EasyDict(cfg)
+def create_policy(cfg: EasyDict, **kwargs) -> Policy:
+    """
+    Overview:
+        Create a policy instance according to ``cfg`` and other kwargs.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Final merged policy config.
+    ArgumentsKeys:
+        - type (:obj:`str`): Policy type set in ``POLICY_REGISTRY.register`` method , such as ``dqn`` .
+        - import_names (:obj:`List[str]`): A list of module names (paths) to import before creating policy, such \
+            as ``ding.policy.dqn`` .
+    Returns:
+        - policy (:obj:`Policy`): The created policy instance.
+
+    .. tip::
+        ``kwargs`` contains other arguments that need to be passed to the policy constructor. You can refer to \
+        the ``__init__`` method of the corresponding policy class for details.
+
+    .. note::
+        For more details about how to merge config, please refer to the system document of DI-engine \
+        (`en link <../03_system/config.html>`_).
+    """
     import_module(cfg.get('import_names', []))
     return POLICY_REGISTRY.build(cfg.type, cfg=cfg, **kwargs)
 
 
 def get_policy_cls(cfg: EasyDict) -> type:
+    """
+    Overview:
+        Get policy class according to ``cfg``, which is used to access related class variables/methods.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Final merged policy config.
+    ArgumentsKeys:
+        - type (:obj:`str`): Policy type set in ``POLICY_REGISTRY.register`` method , such as ``dqn`` .
+        - import_names (:obj:`List[str]`): A list of module names (paths) to import before creating policy, such \
+            as ``ding.policy.dqn`` .
+    Returns:
+        - policy (:obj:`type`): The policy class.
+    """
     import_module(cfg.get('import_names', []))
     return POLICY_REGISTRY.get(cfg.type)

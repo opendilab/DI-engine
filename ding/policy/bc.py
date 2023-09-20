@@ -20,6 +20,11 @@ from ding.torch_utils.loss.cross_entropy_loss import LabelSmoothCELoss
 
 @POLICY_REGISTRY.register('bc')
 class BehaviourCloningPolicy(Policy):
+    """
+    Overview:
+        Behaviour Cloning (BC) policy class, which supports both discrete and continuous action space. \
+        The policy is trained by supervised learning, and the data is a offline dataset collected by expert.
+    """
 
     config = dict(
         type='bc',
@@ -57,6 +62,18 @@ class BehaviourCloningPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For example about discrete BC, its registered name is ``discrete_bc`` and the \
+            import_names is ``ding.model.template.bc``.
+        """
         if self._cfg.continuous:
             return 'continuous_bc', ['ding.model.template.bc']
         else:
@@ -184,6 +201,13 @@ class BehaviourCloningPolicy(Policy):
         }
 
     def _monitor_vars_learn(self):
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return ['cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
 
     def _init_eval(self):
@@ -220,15 +244,13 @@ class BehaviourCloningPolicy(Policy):
             return {i: d for i, d in zip(data_id, output)}
 
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample
+            BC policy uses offline dataset so it does not need to collect data. However, sometimes we need to use the \
+            trained BC policy to collect data for other purposes.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         if self._cfg.continuous:
-            # self._collect_model = model_wrap(self._model, wrapper_name='base')
             self._collect_model = model_wrap(
                 self._model,
                 wrapper_name='action_noise',
@@ -244,14 +266,6 @@ class BehaviourCloningPolicy(Policy):
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
-        r"""
-        Overview:
-            Forward function for collect mode with eps_greedy
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
-        Returns:
-            - data (:obj:`dict`): The collected data
-        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -269,17 +283,6 @@ class BehaviourCloningPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
-        Overview:
-            Generate dict type transition data from inputs.
-        Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
-        Returns:
-            - transition (:obj:`dict`): Dict type transition data.
-        """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
@@ -290,21 +293,5 @@ class BehaviourCloningPolicy(Policy):
         return EasyDict(transition)
 
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Overview:
-            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
-            or some continuous transitions(DRQN).
-        Arguments:
-            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
-                format as the return value of ``self._process_transition`` method.
-        Returns:
-            - samples (:obj:`dict`): The list of training samples.
-
-        .. note::
-            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
-            And the user can customize the this data processing procecure by overriding this two methods and collector \
-            itself.
-        """
         data = get_nstep_return_data(data, 1, 1)
         return get_train_sample(data, self._unroll_len)
