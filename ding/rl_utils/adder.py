@@ -25,8 +25,9 @@ class Adder(object):
         Arguments:
             - data (:obj:`list`): Transitions list, each element is a transition dict with at least ['value', 'reward']
             - last_value (:obj:`torch.Tensor`): The last value(i.e.: the T+1 timestep)
-            - gamma (:obj:`float`): The future discount factor
-            - gae_lambda (:obj:`float`): GAE lambda parameter
+            - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.
+            - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, when lambda -> 0, \
+            it induces bias, but when lambda -> 1, it has high variance due to the sum of terms.
             - cuda (:obj:`bool`): Whether use cuda in GAE computation
         Returns:
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
@@ -68,8 +69,9 @@ class Adder(object):
             - data (:obj:`deque`): Transitions list, each element is a transition dict with \
                 at least['value', 'reward']
             - done (:obj:`bool`): Whether the transition reaches the end of an episode(i.e. whether the env is done)
-            - gamma (:obj:`float`): The future discount factor
-            - gae_lambda (:obj:`float`): GAE lambda parameter
+            - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.
+            - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, when lambda -> 0, \
+            it induces bias, but when lambda -> 1, it has high variance due to the sum of terms.
             - cuda (:obj:`bool`): Whether use cuda in GAE computation
         Returns:
             - data (:obj:`List[Dict[str, Any]]`): transitions list like input one, but each element owns \

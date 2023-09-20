@@ -84,7 +84,7 @@ def ppo_error(
         >>>     return_=torch.randn(3),
         >>>     weight=torch.ones(3),
         >>> )
-        >>> loss = ppo_error(data, 0.99, 0.99)
+        >>> loss, info = ppo_error(data)
 
     .. note::
 
@@ -135,7 +135,7 @@ def ppo_policy_error(data: namedtuple,
         >>>     adv=torch.randn(3),
         >>>     weight=torch.ones(3),
         >>> )
-        >>> loss = ppo_policy_error(data, 0.99, 0.99)
+        >>> loss, info = ppo_policy_error(data)
     '''
     logit_new, logit_old, action, adv, weight = data
     if weight is None:
@@ -196,7 +196,7 @@ def ppo_value_error(
         >>>     return_=torch.randn(3),
         >>>     weight=torch.ones(3),
         >>> )
-        >>> loss = ppo_value_error(data, 0.99, 0.99)
+        >>> loss, info = ppo_value_error(data)
     '''
     value_new, value_old, return_, weight = data
     if weight is None:
@@ -254,7 +254,7 @@ def ppo_error_continuous(
         >>>     return_=torch.randn(3),
         >>>     weight=torch.ones(3),
         >>> )
-        >>> loss = ppo_error(data, 0.99, 0.99)
+        >>> loss, info = ppo_error(data)
 
     .. note::
 
@@ -332,7 +332,7 @@ def ppo_policy_error_continuous(data: namedtuple,
         >>>     adv=torch.randn(3),
         >>>     weight=torch.ones(3),
         >>> )
-        >>> loss = ppo_policy_error_continuous(data)
+        >>> loss, info = ppo_policy_error_continuous(data)
     """
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
