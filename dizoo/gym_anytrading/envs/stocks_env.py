@@ -69,7 +69,7 @@ class StocksEnv(TradingEnv):
         # validate index
         if start_idx is None:
             if self.train_range == None or self.test_range == None:
-                self.start_idx = np.random.randint(self.window_size, len(self.df) - self._cfg.eps_length)
+                self.start_idx = np.random.randint(self.window_size - 1, len(self.df) - self._cfg.eps_length)
             elif self._env_id[-1] == 'e':
                 boundary = int(len(self.df) * (1 + self.test_range))
                 assert len(self.df) - self._cfg.eps_length > boundary + self.window_size,\
