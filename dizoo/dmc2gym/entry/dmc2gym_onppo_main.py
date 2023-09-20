@@ -71,10 +71,12 @@ def wrapped_dmc2gym_env(cfg):
             width=default_cfg["width"],
             frame_skip=default_cfg["frame_skip"]
         ),
-        cfg={'env_wrapper': [
-            lambda env: Dmc2GymWrapper(env, default_cfg),
-            lambda env: EvalEpisodeReturnWrapper(env),
-        ]}
+        cfg={
+            'env_wrapper': [
+                lambda env: Dmc2GymWrapper(env, default_cfg),
+                lambda env: EvalEpisodeReturnWrapper(env),
+            ]
+        }
     )
 
 

@@ -3,14 +3,16 @@ import numpy as np
 import torch
 from itertools import product
 
-from ding.model import VAC
+from ding.model import VAC, DREAMERVAC
 from ding.torch_utils import is_differentiable
 
 from ding.model import ConvEncoder
+from easydict import EasyDict
 
+ezD = EasyDict({'action_args_shape': (3, ), 'action_type_shape': 4})
 B, C, H, W = 4, 3, 128, 128
 obs_shape = [4, (8, ), (4, 64, 64)]
-act_args = [[6, 'discrete'], [(3, ), 'continuous'], [[2, 3, 6], 'discrete']]
+act_args = [[6, 'discrete'], [(3, ), 'continuous'], [[2, 3, 6], 'discrete'], [ezD, 'hybrid']]
 # act_args = [[(3, ), True]]
 args = list(product(*[obs_shape, act_args, [False, True]]))
 
@@ -20,6 +22,8 @@ def output_check(model, outputs, action_shape):
         loss = sum([t.sum() for t in outputs])
     elif np.isscalar(action_shape):
         loss = outputs.sum()
+    elif isinstance(action_shape, dict):
+        loss = outputs.sum()
     is_differentiable(loss, model)
 
 
@@ -28,6 +32,9 @@ def model_check(model, inputs):
     value, logit = outputs['value'], outputs['logit']
     if model.action_space == 'continuous':
         outputs = value.sum() + logit['mu'].sum() + logit['sigma'].sum()
+    elif model.action_space == 'hybrid':
+        outputs = value.sum() + logit['action_type'].sum() + logit['action_args']['mu'].sum(
+        ) + logit['action_args']['sigma'].sum()
     else:
         if model.multi_head:
             outputs = value.sum() + sum([t.sum() for t in logit])
@@ -40,6 +47,8 @@ def model_check(model, inputs):
     logit = model(inputs, mode='compute_actor')['logit']
     if model.action_space == 'continuous':
         logit = logit['mu'].sum() + logit['sigma'].sum()
+    elif model.action_space == 'hybrid':
+        logit = logit['action_type'].sum() + logit['action_args']['mu'].sum() + logit['action_args']['sigma'].sum()
     output_check(model.actor, logit, model.action_shape)
 
     for p in model.parameters():
@@ -47,6 +56,15 @@ def model_check(model, inputs):
     value = model(inputs, mode='compute_critic')['value']
     assert value.shape == (B, )
     output_check(model.critic, value, 1)
+
+
+@pytest.mark.unittest
+class TestDREAMERVAC:
+
+    def test_DREAMERVAC(self):
+        obs_shape = 8
+        act_shape = 6
+        model = DREAMERVAC(obs_shape, act_shape)
 
 
 @pytest.mark.unittest
