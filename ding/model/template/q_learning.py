@@ -1149,7 +1149,7 @@ class GTrXLDQN(nn.Module):
             >>> # Init input's Keys:
             >>> obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4
             >>> obs = torch.rand(seq_len, bs, obs_dim)
-            >>> model = GTrXLDiscreteHead(obs_dim, action_dim)
+            >>> model = GTrXLDQN(obs_dim, action_dim)
             >>> outputs = model(obs)
             >>> assert isinstance(outputs, dict)
         """

@@ -1,6 +1,6 @@
 import gym
 from ditk import logging
-from ding.model.template.dt import DecisionTransformer
+from ding.model import DecisionTransformer
 from ding.policy import DTPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManager, BaseEnvManagerV2
 from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
