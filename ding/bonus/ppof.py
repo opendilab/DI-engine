@@ -5,6 +5,7 @@ from functools import partial
 import os
 import gym
 import gymnasium
+import numpy as np
 import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
@@ -12,6 +13,7 @@ from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepColl
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import PPOFPolicy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
+from ding.utils import get_env_fps, render
 from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
@@ -174,19 +176,36 @@ class PPOF:
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> float:
+    def deploy(
+            self,
+            enable_save_replay: bool = False,
+            concatenate_all_replay: bool = False,
+            replay_save_path: str = None,
+            seed: Optional[Union[int, List]] = None,
+            debug: bool = False
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self.env.clone(caller='evaluator')
-        env.seed(self.seed, dynamic_seed=False)
 
-        if enable_save_replay and replay_save_path:
+        if seed is not None and isinstance(seed, int):
+            seeds = [seed]
+        elif seed is not None and isinstance(seed, list):
+            seeds = seed
+        else:
+            seeds = [self.seed]
+
+        returns = []
+        images = []
+        if enable_save_replay:
+            replay_save_path = os.path.join(self.exp_name, 'videos') if replay_save_path is None else replay_save_path
             env.enable_save_replay(replay_path=replay_save_path)
-        elif enable_save_replay:
-            env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
         else:
             logging.warning('No video would be generated during the deploy.')
+            if concatenate_all_replay:
+                logging.warning('concatenate_all_replay is set to False because enable_save_replay is False.')
+                concatenate_all_replay = False
 
         forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.cuda)
 
@@ -194,22 +213,31 @@ class PPOF:
         # env will be reset again in the main loop
         env.reset()
 
-        # main loop
-        return_ = 0.
-        step = 0
-        obs = env.reset()
-        while True:
-            action = forward_fn(obs)
-            obs, rew, done, info = env.step(action)
-            return_ += rew
-            step += 1
-            if done:
-                break
-        logging.info(f'PPOF deploy is finished, final episode return with {step} steps is: {return_}')
+        for seed in seeds:
+            env.seed(seed, dynamic_seed=False)
+            return_ = 0.
+            step = 0
+            obs = env.reset()
+            images.append(render(env)[None]) if concatenate_all_replay else None
+            while True:
+                action = forward_fn(obs)
+                obs, rew, done, info = env.step(action)
+                images.append(render(env)[None]) if concatenate_all_replay else None
+                return_ += rew
+                step += 1
+                if done:
+                    break
+            logging.info(f'DQN deploy is finished, final episode return with {step} steps is: {return_}')
+            returns.append(return_)
 
         env.close()
 
-        return return_
+        if concatenate_all_replay:
+            images = np.concatenate(images, axis=0)
+            import imageio
+            imageio.mimwrite(os.path.join(replay_save_path, 'deploy.mp4'), images, fps=get_env_fps(env))
+
+        return EvalReturn(eval_value=np.mean(returns), eval_value_std=np.std(returns))
 
     def collect_data(
             self,
