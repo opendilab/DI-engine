@@ -26,7 +26,7 @@ class TestHAVAC:
             use_lstm=True,
         )
         output = model(data, mode='compute_actor')
-        assert set(output.keys()) == set(['logit', 'actor_next_state', 'hidden_state'])
+        assert set(output.keys()) == set(['logit', 'actor_next_state', 'actor_hidden_state'])
         assert output['logit'].shape == (T, bs, action_dim)
         assert len(output['actor_next_state']) == bs
         print(output['actor_next_state'][0]['h'].shape)
@@ -52,7 +52,7 @@ class TestHAVAC:
             use_lstm=True,
         )
         output = model(data, mode='compute_critic')
-        assert set(output.keys()) == set(['value', 'critic_next_state', 'hidden_state'])
+        assert set(output.keys()) == set(['value', 'critic_next_state', 'critic_hidden_state'])
         assert output['value'].shape == (T, bs)
         assert len(output['critic_next_state']) == bs
         print(output['critic_next_state'][0]['h'].shape)
@@ -79,6 +79,8 @@ class TestHAVAC:
             use_lstm=True,
         )
         output = model(data, mode='compute_actor_critic')
+        assert set(output.keys()) == set(['logit', 'actor_next_state', 'actor_hidden_state', \
+                                          'value', 'critic_next_state', 'critic_hidden_state'])
         assert output['logit'].shape == (T, bs, action_dim)
         assert output['value'].shape == (T, bs)
         loss = output['logit'].sum() + output['value'].sum()

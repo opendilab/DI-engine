@@ -11,18 +11,17 @@ from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, \
 
 class RNNLayer(nn.Module):
 
-    def __init__(
-            self,
-            lstm_type,
-            input_size,
-            hidden_size,
-            res_link: bool = False
-            ):
+    def __init__(self, lstm_type, input_size, hidden_size, res_link: bool = False):
         super(RNNLayer, self).__init__()
         self.rnn = get_lstm(lstm_type, input_size=input_size, hidden_size=hidden_size)
         self.res_link = res_link
 
     def forward(self, x, prev_state, inference: bool = False):
+        """
+        Forward pass of the RNN layer.
+        If inference is True, sequence length of input is set to 1.
+        If res_link is True, a residual link is added to the output.
+        """
         # x: obs_embedding
         if self.res_link:
             a = x
@@ -56,9 +55,9 @@ class RNNLayer(nn.Module):
 class HAVAC(nn.Module):
     r"""
     Overview:
-        The HAVAC model.
+        The HAVAC model for HAPPO.
     Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``, ``compute_actor_critic``
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
@@ -295,7 +294,7 @@ class HAVAC(nn.Module):
                 x = rnn_output['output']
                 x = parallel_wrapper(self.actor_head)(x)
                 output['actor_next_state'] = rnn_output['next_state']
-                output['hidden_state'] = rnn_output['hidden_state']
+                output['actor_hidden_state'] = rnn_output['hidden_state']
                 # output: 'logit'/'actor_next_state'/'hidden_state'
         else:
             x = self.actor_encoder(x)
@@ -367,7 +366,7 @@ class HAVAC(nn.Module):
                 x = rnn_output['output']
                 x = parallel_wrapper(self.critic_head)(x)
                 output['critic_next_state'] = rnn_output['next_state']
-                output['hidden_state'] = rnn_output['hidden_state']
+                output['critic_hidden_state'] = rnn_output['hidden_state']
                 # output: 'value'/'critic_next_state'/'hidden_state'
         else:
             x = self.critic_encoder(global_obs)
@@ -382,8 +381,9 @@ class HAVAC(nn.Module):
             Execute parameter updates with ``'compute_actor_critic'`` mode
             Use encoded embedding tensor to predict output.
         Arguments:
-            - inputs (:dict): input data dict with keys ['obs'(with keys ['agent_state', 'global_state', 'action_mask']),
-                  'actor_prev_state', 'critic_prev_state'(when you are using rnn)]
+            - inputs (:dict): input data dict with keys
+                ['obs'(with keys ['agent_state', 'global_state', 'action_mask']),
+                'actor_prev_state', 'critic_prev_state'(when you are using rnn)]
 
         Returns:
             - outputs (:obj:`Dict`):
@@ -410,7 +410,19 @@ class HAVAC(nn.Module):
             Returning the combination dictionry.
 
         """
-        logit = self.compute_actor(inputs, inference)['logit']
-        value = self.compute_critic(inputs, inference)['value']
-        # ？这里需要next_state之类的吗
-        return {'logit': logit, 'value': value}
+        actor_output = self.compute_actor(inputs, inference)
+        critic_output = self.compute_critic(inputs, inference)
+        if self.use_lstm:
+            return {
+                'logit': actor_output['logit'],
+                'value': critic_output['value'],
+                'actor_next_state': actor_output['actor_next_state'],
+                'actor_hidden_state': actor_output['actor_hidden_state'],
+                'critic_next_state': critic_output['critic_next_state'],
+                'critic_hidden_state': critic_output['critic_hidden_state'],
+            }
+        else:
+            return {
+                'logit': actor_output['logit'],
+                'value': critic_output['value'],
+            }
