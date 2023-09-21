@@ -152,9 +152,21 @@ class Policy(ABC):
             getattr(self, '_init_' + field)()
 
     def _init_multi_gpu_setting(self, model: torch.nn.Module, bp_update_sync: bool) -> None:
+        """
+        Overview:
+            Initialize multi-gpu data parallel training setting, including broadcast model parameters at the beginning \
+            of the training, and prepare the hook function to allreduce the gradients of model parameters.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): The neural network model to be trained.
+            - bp_update_sync (:obj:`bool`): Whether to synchronize update the model parameters after allreduce the \
+                gradients of model parameters. Async update can be parallel in different network layers like pipeline \
+                so that it can save time.
+        """
         for name, param in model.state_dict().items():
             assert isinstance(param.data, torch.Tensor), type(param.data)
             broadcast(param.data, 0)
+        # here we manually set the gradient to zero tensor at the beginning of the training, which is necessary for
+        # the case that different GPUs have different computation graph.
         for name, param in model.named_parameters():
             setattr(param, 'grad', torch.zeros_like(param))
         if not bp_update_sync:
@@ -172,7 +184,22 @@ class Policy(ABC):
                     grad_acc = p_tmp.grad_fn.next_functions[0][0]
                     grad_acc.register_hook(make_hook(name, p))
 
-    def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
+    def _create_model(self, cfg: EasyDict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
+        """
+        Overview:
+            Create neural network model according to input configures and model. If the input model is None, then \
+            the model will be created according to ``default_model`` method and ``cfg.model`` field. Otherwise, the \
+            model will be set to the ``model`` instance created by outside caller.
+        Arguments:
+            - cfg (:obj:`EasyDict`): The final merged config used to initialize policy.
+            - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. User can refer to \
+                the default model defined in corresponding policy to customize its own model.
+        Returns:
+            - model (:obj:`torch.nn.Module`): The created neural network model. Then different modes of policy will \
+                add wrappers and plugins to the model, which is used to train, collect and evaluate.
+        Raises:
+            - RuntimeError: If the input model is not None and is not an instance of ``torch.nn.Module``.
+        """
         if model is None:
             model_cfg = cfg.model
             if 'type' not in model_cfg:
@@ -192,14 +219,59 @@ class Policy(ABC):
 
     @abstractmethod
     def _init_learn(self) -> None:
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. This method will be \
+            called in ``__init__`` method if ``learn`` field is in ``enable_field``. Almost different policies have \
+            its own learn mode, so this method must be overrided in subclass.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def _init_collect(self) -> None:
+        """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. This method will be \
+            called in ``__init__`` method if ``collect`` field is in ``enable_field``. Almost different policies have \
+            its own collect mode, so this method must be overrided in subclass.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_collect`` \
+            and ``_load_state_dict_collect`` methods.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def _init_eval(self) -> None:
+        """
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules. This method will be \
+            called in ``__init__`` method if ``eval`` field is in ``enable_field``. Almost different policies have \
+            its own eval mode, so this method must be overrided in subclass.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_eval`` \
+            and ``_load_state_dict_eval`` methods.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+        """
         raise NotImplementedError
 
     @property
@@ -383,7 +455,25 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(
+            self, obs: Union[torch.Tensor, Dict[str, torch.Tensor]], policy_output: Dict[str, torch.Tensor],
+            timestep: namedtuple
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Process and pack one timestep transition data into a dict, such as <s, a, r, s', done>. Some policies \
+            need to do some special process and pack its own necessary attributes (e.g. hidden state and logit), \
+            so this method is left to be implemented by the subclass.
+        Arguments:
+            - obs (:obj:`Union[torch.Tensor, Dict[str, torch.Tensor]]`): The observation of the current timestep.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. Usually, it contains the action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
+        Returns:
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+        """
         raise NotImplementedError
 
     @abstractmethod

@@ -345,24 +345,32 @@ class PPOPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Generate dict type transition data from inputs.
+            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            saved in replay buffer. For PPO, it contains obs, next_obs, action, reward, done, logit, value.
         Arguments:
-            - obs (:obj:`Any`): Env observation.
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action'].
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For PPO, it contains the state value, action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+
+        .. note::
+            ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
+            You can delete this field to save memory occupancy if you do not need nstep return.
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'logit': model_output['logit'],
-            'value': model_output['value'],
+            'action': policy_output['action'],
+            'logit': policy_output['logit'],
+            'value': policy_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -644,11 +652,26 @@ class PPOPGPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            saved in replay buffer. For PPOPG, it contains obs, action, reward, done, logit.
+        Arguments:
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For PPOPG, it contains the action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
+        Returns:
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+        """
         transition = {
             'obs': obs,
-            'action': model_output['action'],
-            'logit': model_output['logit'],
+            'action': policy_output['action'],
+            'logit': policy_output['logit'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -1065,25 +1088,33 @@ class PPOOffPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Generate dict type transition data from inputs.
+            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            saved in replay buffer. For PPO, it contains obs, next_obs, action, reward, done, logit, value.
         Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For PPO, it contains the state value, action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+
+        .. note::
+            ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
+            You can delete this field to save memory occupancy if you do not need nstep return.
         """
 
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'logit': model_output['logit'],
-            'action': model_output['action'],
-            'value': model_output['value'],
+            'logit': policy_output['logit'],
+            'action': policy_output['action'],
+            'value': policy_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }

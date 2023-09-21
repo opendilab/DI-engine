@@ -374,18 +374,21 @@ class DQNPolicy(Policy):
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
 
-    def _process_transition(self, obs: Any, policy_output: Dict[str, Any], timestep: namedtuple) -> Dict[str, Any]:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Generate a transition(e.g.: <s, a, s', r, d>) for this algorithm training.
+            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            saved in replay buffer. For DQN, it contains obs, next_obs, action, reward, done.
         Arguments:
-            - obs (:obj:`Any`): Env observation.
-            - policy_output (:obj:`Dict[str, Any]`): The output of policy collect mode(``self._forward_collect``),\
-                including at least ``action``.
-            - timestep (:obj:`namedtuple`): The output after env step(execute policy output action), including at \
-                least ``obs``, ``reward``, ``done``, (here obs indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For DQN, it contains the action and the logit (q_value) of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
         """
         transition = {
             'obs': obs,

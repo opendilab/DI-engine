@@ -14,17 +14,11 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('ddpg')
 class DDPGPolicy(Policy):
-    r"""
+    """
     Overview:
-        Policy class of DDPG algorithm.
-
-        https://arxiv.org/pdf/1509.02971.pdf
-
-    Property:
-        learn_mode, collect_mode, eval_mode
+        Policy class of DDPG algorithm. Paper link: https://arxiv.org/abs/1509.02971.
 
     Config:
-
         == ====================  ========    =============  =================================   =======================
         ID Symbol                Type        Default Value  Description                         Other(Shape)
         == ====================  ========    =============  =================================   =======================
@@ -68,28 +62,27 @@ class DDPGPolicy(Policy):
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='ddpg',
-        # (bool) Whether to use cuda for network.
+        # (bool) Whether to use cuda in policy.
         cuda=False,
-        # (bool type) on_policy: Determine whether on-policy or off-policy.
-        # on-policy setting influences the behaviour of buffer.
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy).
         # Default False in DDPG.
         on_policy=False,
-        # (bool) Whether use priority(priority sample, IS weight, update priority)
-        # Default False in DDPG.
+        # (bool) Whether to enable priority experience sample.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
-        # (bool) Whether to need policy data in process transition
+        # (bool) Whether to need policy data in process transition.
         transition_with_policy_data=False,
-        # (str) Action space type
-        action_space='continuous',  # ['continuous', 'hybrid']
-        # (bool) Whether use batch normalization for reward
+        # (str) Action space type, including ['continuous', 'hybrid'].
+        action_space='continuous',
+        # (bool) Whether use batch normalization for reward.
         reward_batch_norm=False,
-        # (bool) Whether to enable multi-agent training setting
+        # (bool) Whether to enable multi-agent training setting.
         multi_agent=False,
+        # learn_mode config
         learn=dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
@@ -109,7 +102,7 @@ class DDPGPolicy(Policy):
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
             ignore_done=False,
-            # (float type) target_theta: Used for soft update of the target network,
+            # (float) target_theta: Used for soft update of the target network,
             # aka. Interpolation factor in polyak averaging for target networks.
             # Default to 0.005.
             target_theta=0.005,
@@ -124,29 +117,33 @@ class DDPGPolicy(Policy):
             # Default True for TD3, False for DDPG.
             noise=False,
         ),
+        # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             # n_sample=1,
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
         ),
-        eval=dict(
-            evaluator=dict(
-                # (int) Evaluate every "eval_freq" training iterations.
-                eval_freq=5000,
-            ),
-        ),
+        eval=dict(),  # for compability
         other=dict(
             replay_buffer=dict(
-                # (int) Maximum size of replay buffer.
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
                 replay_buffer_size=100000,
             ),
         ),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
         if self._cfg.multi_agent:
             return 'continuous_maqac', ['ding.model.template.maqac']
         else:
@@ -209,9 +206,10 @@ class DDPGPolicy(Policy):
         Overview:
             Forward and backward function of learn mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
+            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs'].
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
         """
         loss_dict = {}
         data = default_preprocess_learn(
@@ -314,6 +312,12 @@ class DDPGPolicy(Policy):
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model, target_model and optimizers.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
@@ -322,6 +326,17 @@ class DDPGPolicy(Policy):
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
@@ -374,27 +389,31 @@ class DDPGPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
-        r"""
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
         Overview:
-            Generate dict type transition data from inputs.
+            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            saved in replay buffer. For DDPG, it contains obs, next_obs, action, reward, done.
         Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step, i.e. next_obs).
-        Return:
-            - transition (:obj:`Dict[str, Any]`): Dict type transition data.
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For DDPG, it contains the action and the logit of the action (in hybrid action space).
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
+        Returns:
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': model_output['action'],
+            'action': policy_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         if self._cfg.action_space == 'hybrid':
-            transition['logit'] = model_output['logit']
+            transition['logit'] = policy_output['logit']
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
@@ -412,7 +431,7 @@ class DDPGPolicy(Policy):
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
-        r"""
+        """
         Overview:
             Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
@@ -437,11 +456,12 @@ class DDPGPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
-        r"""
+        """
         Overview:
-            Return variables' names if variables are to used in monitor.
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
         Returns:
-            - vars (:obj:`List[str]`): Variables' name list.
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
         """
         ret = [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
