@@ -159,7 +159,9 @@ The detailed documentation are hosted on [doc](https://di-engine-docs.readthedoc
 
 [3 Minutes Kickoff](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/first_rl_program.html)
 
-[3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing)
+[3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1_7L-QFDfeCvMvLJzRyBRUW5_Q6ESXcZ4)
+
+[DI-engine Huggingface Kickoff (colab)](https://colab.research.google.com/drive/1UH1GQOjcHrmNSaW77hnLGxFJrLSLwCOk)
 
 [How to migrate a new **RL Env**](https://di-engine-docs.readthedocs.io/en/latest/11_dizoo/index.html) | [如何迁移一个新的**强化学习环境**](https://di-engine-docs.readthedocs.io/zh_CN/latest/11_dizoo/index_zh.html)
 
