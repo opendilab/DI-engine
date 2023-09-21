@@ -59,7 +59,7 @@ If profit or loss occurs, it means that one of the following two cycles in state
 
 According to the above definition, we can easily know that the formula of accumulative profit is: 
 
-$\prod_{buying\ long}(r_{curr}/r_{pre}\ *\ cost) + \prod_{short\ selling}((2-r_{curr}/r_{pre})\ *\ cost)$
+$\prod_{buying\ long}(r_{curr}/r_{pre}\ *\ cost) * \prod_{short\ selling}((2-r_{curr}/r_{pre})\ *\ cost)$
 
 
 ### Reward Function
