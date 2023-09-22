@@ -85,11 +85,11 @@ class DQNPolicy(Policy):
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='dqn',
-        # (bool) Whether use cuda in policy.
+        # (bool) Whether to use cuda in policy.
         cuda=False,
         # (bool) Whether learning policy is the same as collecting data policy(on-policy).
         on_policy=False,
-        # (bool) Whether enable priority experience sample.
+        # (bool) Whether to enable priority experience sample.
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
@@ -354,25 +354,24 @@ class DQNPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Overview:
-            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
-            or some continuous transitions(DRQN).
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In DQN with nstep TD, a train sample is a processed transition. \
+            This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
         Arguments:
-            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
-                format as the return value of ``self._process_transition`` method.
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
         Returns:
-            - samples (:obj:`dict`): The list of training samples.
-
-        .. note::
-            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
-            And the user can customize the this data processing procecure by overriding this two methods and collector \
-            itself.
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as nstep reward and target obs.
         """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
+        transitions = get_nstep_return_data(transitions, self._nstep, gamma=self._gamma)
+        return get_train_sample(transitions, self._unroll_len)
 
     def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:

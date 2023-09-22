@@ -416,8 +416,19 @@ class DDPGPolicy(Policy):
             transition['logit'] = policy_output['logit']
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        return get_train_sample(data, self._unroll_len)
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In DDPG, a train sample is a processed transition (unroll_len=1).
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training.
+        """
+        return get_train_sample(transitions, self._unroll_len)
 
     def _init_eval(self) -> None:
         r"""

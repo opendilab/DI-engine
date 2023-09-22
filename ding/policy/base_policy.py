@@ -477,7 +477,27 @@ class Policy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. A train sample can be a processed transition (DQN with nstep TD) \
+            or some multi-timestep transitions (DRQN). This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as nstep reward, advantage, etc.
+
+        .. note::
+            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
+            And the user can customize the this data processing procecure by overriding this two methods and collector \
+            itself
+        """
         raise NotImplementedError
 
     # don't need to implement _reset_collect method by force
@@ -485,18 +505,41 @@ class Policy(ABC):
         pass
 
     def _state_dict_collect(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of collect mode, only including model in usual, which is necessary for distributed \
+            training scenarios to auto-recover collectors.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy collect state, for saving and restoring.
+
+        .. tip::
+            Not all the scenarios need to auto-recover collectors, sometimes, we can directly shutdown the crashed \
+            collector and renew a new one.
+        """
         return {'model': self._collect_model.state_dict()}
 
     def _load_state_dict_collect(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy collect mode, such as load pretrained state_dict, auto-recover \
+            checkpoint, or model replica from learner in distributed training scenarios.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy collect state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._collect_model.load_state_dict(state_dict['model'], strict=True)
 
-    def _get_n_sample(self):
+    def _get_n_sample(self) -> Union[int, None]:
         if 'n_sample' in self._cfg:
             return self._cfg.n_sample
         else:  # for compatibility
             return self._cfg.collect.get('n_sample', None)  # for some adpative collecting data case
 
-    def _get_n_episode(self):
+    def _get_n_episode(self) -> Union[int, None]:
         if 'n_episode' in self._cfg:
             return self._cfg.n_episode
         else:  # for compatibility
@@ -513,9 +556,32 @@ class Policy(ABC):
         pass
 
     def _state_dict_eval(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of eval mode, only including model in usual, which is necessary for distributed \
+            training scenarios to auto-recover evaluators.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy eval state, for saving and restoring.
+
+        .. tip::
+            Not all the scenarios need to auto-recover evaluators, sometimes, we can directly shutdown the crashed \
+            evaluator and renew a new one.
+        """
         return {'model': self._eval_model.state_dict()}
 
     def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy eval mode, such as load auto-recover \
+            checkpoint, or model replica from learner in distributed training scenarios.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy eval state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._eval_model.load_state_dict(state_dict['model'], strict=True)
 
 
@@ -542,6 +608,16 @@ class CommandModePolicy(Policy):
 
     @abstractmethod
     def _init_command(self) -> None:
+        """
+        Overview:
+            Initialize the command mode of policy, including related attributes and modules. This method will be \
+            called in ``__init__`` method if ``command`` field is in ``enable_field``. Almost different policies have \
+            its own command mode, so this method must be overrided in subclass.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_command`` method, you'd better name them \
+            with prefix ``_command_`` to avoid conflict with other modes, such as ``self._command_attr1``.
+        """
         raise NotImplementedError
 
     # *************************************** command function ************************************

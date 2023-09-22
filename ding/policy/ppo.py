@@ -376,15 +376,23 @@ class PPOPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and calculate GAE, return one data to cache for next time calculation.
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache.
-        Returns:
-            - samples (:obj:`dict`): The training samples generated.
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In PPO, a train sample is a processed transition with new computed \
+            ``traj_flag`` and ``adv`` field. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as GAE advantage.
+        """
+        data = transitions
         data = to_device(data, self._device)
         for transition in data:
             transition['traj_flag'] = copy.deepcopy(transition['done'])
@@ -677,7 +685,22 @@ class PPOPGPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given entire episode data (a list of transition), process it into a list of sample that \
+            can be used for training directly. In PPOPG, a train sample is a processed transition with new computed \
+            ``return`` field. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]`): The episode data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as discounted episode return.
+        """
         assert data[-1]['done'] is True, "PPO-PG needs a complete epsiode"
 
         if self._cfg.learn.ignore_done:
@@ -1120,15 +1143,23 @@ class PPOOffPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Overview:
-            Get the trajectory and calculate GAE, return one data to cache for next time calculation.
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In PPO, a train sample is a processed transition with new computed \
+            ``traj_flag`` and ``adv`` field. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
         Arguments:
-            - data (:obj:`list`): The trajectory's cache.
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
         Returns:
-            - samples (:obj:`dict`): The training samples generated.
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as GAE advantage.
         """
+        data = transitions
         data = to_device(data, self._device)
         for transition in data:
             transition['traj_flag'] = copy.deepcopy(transition['done'])
@@ -1146,7 +1177,7 @@ class PPOOffPolicy(Policy):
                 )['value']
             if len(last_value.shape) == 2:  # multi_agent case:
                 last_value = last_value.squeeze(0)
-        if hasattr(self, "_value_norm") and self._value_norm:
+        if self._value_norm:
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
@@ -1157,7 +1188,7 @@ class PPOOffPolicy(Policy):
             gae_lambda=self._gae_lambda,
             cuda=False,
         )
-        if hasattr(self, "_value_norm") and self._value_norm:
+        if self._value_norm:
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
