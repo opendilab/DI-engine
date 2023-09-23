@@ -91,7 +91,7 @@ class DQNPolicy(Policy):
         on_policy=False,
         # (bool) Whether to enable priority experience sample.
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (float) Discount factor(gamma) for returns.
         discount_factor=0.97,

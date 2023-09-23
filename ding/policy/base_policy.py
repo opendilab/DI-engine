@@ -398,6 +398,19 @@ class Policy(ABC):
 
     # don't need to implement _reset_learn method by force
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for learn mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different trajectories in ``data_id`` will have different hidden state in RNN.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                specified by ``data_id``.
+
+        .. note::
+            This method is not mandatory to be implemented. The sub-class can overwrite this method if necessary.
+        """
         pass
 
     def _monitor_vars_learn(self) -> List[str]:
@@ -502,6 +515,19 @@ class Policy(ABC):
 
     # don't need to implement _reset_collect method by force
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for collect mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in collecting in ``data_id`` will have different hidden state in RNN.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                specified by ``data_id``.
+
+        .. note::
+            This method is not mandatory to be implemented. The sub-class can overwrite this method if necessary.
+        """
         pass
 
     def _state_dict_collect(self) -> Dict[str, Any]:
@@ -553,6 +579,19 @@ class Policy(ABC):
 
     # don't need to implement _reset_eval method by force
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for eval mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in evaluation in ``data_id`` will have different hidden state in RNN.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                specified by ``data_id``.
+
+        .. note::
+            This method is not mandatory to be implemented. The sub-class can overwrite this method if necessary.
+        """
         pass
 
     def _state_dict_eval(self) -> Dict[str, Any]:
@@ -622,15 +661,48 @@ class CommandModePolicy(Policy):
 
     # *************************************** command function ************************************
     @abstractmethod
-    def _get_setting_learn(self, command_info: dict) -> dict:
+    def _get_setting_learn(self, command_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Overview:
+            Accoding to ``command_info``, i.e., global training information (e.g. training iteration, collected env \
+            step, evaluation results, etc.), return the setting of learn mode, which contains dynamically changed \
+            hyperparameters for learn mode, such as ``batch_size``, ``learning_rate``, etc.
+        Arguments:
+            - command_info (:obj:`Dict[str, Any]`): The global training information, which is defined in ``commander``.
+        Returns:
+            - setting (:obj:`Dict[str, Any]`): The latest setting of learn mode, which is usually used as extra \
+                arguments of the ``policy._forward_learn`` method.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def _get_setting_collect(self, command_info: dict) -> dict:
+    def _get_setting_collect(self, command_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Overview:
+            Accoding to ``command_info``, i.e., global training information (e.g. training iteration, collected env \
+            step, evaluation results, etc.), return the setting of collect mode, which contains dynamically changed \
+            hyperparameters for collect mode, such as ``eps``, ``temperature``, etc.
+        Arguments:
+            - command_info (:obj:`Dict[str, Any]`): The global training information, which is defined in ``commander``.
+        Returns:
+            - setting (:obj:`Dict[str, Any]`): The latest setting of collect mode, which is usually used as extra \
+                arguments of the ``policy._forward_collect`` method.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def _get_setting_eval(self, command_info: dict) -> dict:
+    def _get_setting_eval(self, command_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Overview:
+            Accoding to ``command_info``, i.e., global training information (e.g. training iteration, collected env \
+            step, evaluation results, etc.), return the setting of eval mode, which contains dynamically changed \
+            hyperparameters for eval mode, such as ``temperature``, etc.
+        Arguments:
+            - command_info (:obj:`Dict[str, Any]`): The global training information, which is defined in ``commander``.
+        Returns:
+            - setting (:obj:`Dict[str, Any]`): The latest setting of eval mode, which is usually used as extra \
+                arguments of the ``policy._forward_eval`` method.
+        """
         raise NotImplementedError
 
 
