@@ -14,7 +14,7 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('pdqn')
 class PDQNPolicy(Policy):
-    """:
+    """
     Overview:
         Policy class of PDQN algorithm, which extends the DQN algorithm on discrete-continuous hybrid action spaces.
         Paper link: https://arxiv.org/abs/1810.06394.
@@ -59,12 +59,12 @@ class PDQNPolicy(Policy):
            | ``_sigma``                                 | during collection
         17 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
                                                                                                  | 'linear'].
-        18 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]
-           |  start``
-        19 | ``other.eps.       float    0.05           | end value of exploration rate          | [0,1]
-           |  end``
-        20 | ``other.eps.       int      10000          | decay length of exploration            | greater than 0. set
-           |  decay``                                                                            | decay=10000 means
+        18 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]
+           | ``start``
+        19 | ``other.eps.``     float    0.05           | end value of exploration rate          | [0,1]
+           | ``end``
+        20 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set
+           | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
                                                                                                  | value to end value

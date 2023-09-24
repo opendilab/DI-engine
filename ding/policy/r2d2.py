@@ -15,11 +15,11 @@ from .base_policy import Policy
 
 @POLICY_REGISTRY.register('r2d2')
 class R2D2Policy(Policy):
-    r"""
+    """
     Overview:
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
-        R2D2 proposes that several tricks should be used to improve upon DRQN,
-        namely some recurrent experience replay tricks such as burn-in.
+        R2D2 proposes that several tricks should be used to improve upon DRQN, namely some recurrent experience replay \
+        tricks and the burn-in mechanism for off-policy training.
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -72,9 +72,6 @@ class R2D2Policy(Policy):
         priority=True,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=True,
-        # ==============================================================
-        # The following configs are algorithm-specific
-        # ==============================================================
         # (float) Reward's future discount factor, aka. gamma.
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
@@ -85,49 +82,82 @@ class R2D2Policy(Policy):
         # (int) the trajectory length to unroll the RNN network minus
         # the timestep of burnin operation
         learn_unroll_len=80,
+        # learn_mode config
         learn=dict(
+            # (int) How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
+            # (int) How many samples in a training batch.
             batch_size=64,
+            # (float) The step size of gradient descent.
             learning_rate=0.0001,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
             # (int) Frequence of target network update.
             # target_update_freq=100,
             target_update_theta=0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
+            # (bool) Whether ignore done(usually for max step termination env).
+            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
+            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
+            # However, interaction with HalfCheetah always gets done with done is False,
+            # Since we inplace done==True with done==False to keep
+            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
+            # when the episode step is greater than max episode step.
             ignore_done=False,
         ),
+        # collect_mode config
         collect=dict(
-            # NOTE: It is important that set key traj_len_inf=True here,
+            # (int) How many training samples collected in one collection procedure.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            # (bool) It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
             # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
-            # In each collect phase, we collect a total of <n_sample> sequence samples.
-            n_sample=32,
             traj_len_inf=True,
-            # `env_num` is used in hidden state, should equal to that one in env config.
+            # (int) `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
         ),
+        # eval_mdoe config
         eval=dict(
-            # `env_num` is used in hidden state, should equal to that one in env config.
+            # (int) `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
         ),
         other=dict(
+            # Epsilon greedy with decay.
             eps=dict(
+                # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
+                # (float) Epsilon start value.
                 start=0.95,
+                # (float) Epsilon end value.
                 end=0.05,
+                # (int) Decay length(env step).
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For example about DQN, its registered name is ``drqn`` and the import_names is \
+            ``ding.model.template.q_learning``.
+        """
         return 'drqn', ['ding.model.template.q_learning']
 
     def _init_learn(self) -> None:
@@ -175,7 +205,7 @@ class R2D2Policy(Policy):
         self._target_model.reset()
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
-        r"""
+        """
         Overview:
             Preprocess the data to fit the required data format for learning
         Arguments:
@@ -242,7 +272,7 @@ class R2D2Policy(Policy):
         return data
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
+        """
         Overview:
             Forward and backward function of learn mode.
             Acquire the data, calculate the loss and optimize learner model.
@@ -343,16 +373,46 @@ class R2D2Policy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for learn mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different trajectories in ``data_id`` will have different hidden state in RNN.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                (i.e. RNN hidden_state in R2D2) specified by ``data_id``.
+        """
+
         self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model, target_model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -375,18 +435,34 @@ class R2D2Policy(Policy):
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict, eps: float) -> dict:
-        r"""
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function for collect mode with eps_greedy
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs. Besides, this policy also needs ``eps`` argument for \
+            exploration, i.e., classic epsilon-greedy exploration strategy.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value if the corresponding data of the env.
+            - eps (:obj:`float`): The epsilon value for exploration.
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (prev_state) for learn mode defined in ``self._process_transition`` method. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            RNN's hidden states are maintained in the policy, so we don't need pass them into data but to reset the \
+            hidden states with ``_reset_collect`` method when episode ends. Besides, the previous hidden states are \
+            necessary for training, so we need to return them in ``_process_transition`` method.
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for R2D2Policy: ``ding.policy.tests.test_r2d2``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -404,40 +480,62 @@ class R2D2Policy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for eval mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in evaluation in ``data_id`` will have different hidden state in RNN.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                (i.e., RNN hidden_state in R2D2) specified by ``data_id``.
+        """
         self._collect_model.reset(data_id=data_id)
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
         Overview:
-            Generate dict type transition data from inputs.
+            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            saved in replay buffer. For DQN, it contains obs, action, prev_state, reward, done.
         Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['reward', 'done'] \
-                (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For DQN, it contains the action and the prev_state of RNN.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
         """
         transition = {
             'obs': obs,
-            'action': model_output['action'],
-            'prev_state': model_output['prev_state'],
+            'action': policy_output['action'],
+            'prev_state': policy_output['prev_state'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and the n step return data, then sample from the n_step return data
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In R2D2, a train sample is processed transitions with unroll_len \
+            length. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each sample is a fixed-length \
+                trajectory, and each element in a sample is the similar format as input transitions, but may contain \
+                more data for training, such as nstep reward and value_gamma factor.
+        """
+        transitions = get_nstep_return_data(transitions, self._nstep, gamma=self._gamma)
+        return get_train_sample(transitions, self._unroll_len)
 
     def _init_eval(self) -> None:
         r"""
@@ -449,17 +547,32 @@ class R2D2Policy(Policy):
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs. ``_forward_eval`` often use argmax sample method to get actions that \
+            q_value is the highest.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value if the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            RNN's hidden states are maintained in the policy, so we don't need pass them into data but to reset the \
+            hidden states with ``_reset_eval`` method when the episode ends.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for R2D2Policy: ``ding.policy.tests.test_r2d2``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -475,9 +588,26 @@ class R2D2Policy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for eval mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in evaluation in ``data_id`` will have different hidden state in RNN.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                (i.e., RNN hidden_state in R2D2) specified by ``data_id``.
+        """
         self._eval_model.reset(data_id=data_id)
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return super()._monitor_vars_learn() + [
             'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
         ]

@@ -464,7 +464,22 @@ class Policy(ABC):
     # *************************************** collect function ************************************
 
     @abstractmethod
-    def _forward_collect(self, data: dict, **kwargs) -> dict:
+    def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs, or the action logits to calculate the loss in learn \
+            mode. This method is left to be implemented by the subclass, and more arguments can be added in ``kwargs`` \
+            part if necessary.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value if the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                dict is the same as the input data, i.e. environment id.
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -574,7 +589,20 @@ class Policy(ABC):
     # *************************************** eval function ************************************
 
     @abstractmethod
-    def _forward_eval(self, data: dict) -> Dict[str, Any]:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of eval mode (evaluation policy performance, such as interacting with envs or \
+            computing metrics on validation dataset). Forward means that the policy gets some necessary data (mainly \
+            observation) from the envs and then returns the output data, such as the action to interact with the envs. \
+            This method is left to be implemented by the subclass.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value if the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+        """
         raise NotImplementedError
 
     # don't need to implement _reset_eval method by force
