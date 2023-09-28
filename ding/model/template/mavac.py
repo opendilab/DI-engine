@@ -9,11 +9,11 @@ from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, Multi
 
 @MODEL_REGISTRY.register('mavac')
 class MAVAC(nn.Module):
-    r"""
+    """
     Overview:
         The MAVAC model.
     Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``.
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
@@ -33,7 +33,7 @@ class MAVAC(nn.Module):
         sigma_type: Optional[str] = 'independent',
         bound_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
             Init the VAC Model according to arguments.
         Arguments:
@@ -41,7 +41,7 @@ class MAVAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
             - share_encoder (:obj:`bool`): Whether share encoder.
             - continuous (:obj:`bool`): Whether collect continuously.
-            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
                 The num of layers used in the network to compute Q value output for actor's nn.
@@ -49,10 +49,10 @@ class MAVAC(nn.Module):
             - critic_head_layer_num (:obj:`int`):
                 The num of layers used in the network to compute Q value output for critic's nn.
             - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
+                The type of activation function to use in ``MLP`` the after ``layer_fn``, \
+                if ``None`` then default set to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`.
         """
         super(MAVAC, self).__init__()
         agent_obs_shape: int = squeeze(agent_obs_shape)
@@ -126,7 +126,7 @@ class MAVAC(nn.Module):
         self.critic = nn.ModuleList(self.critic)
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict output.
             Parameter updates with VAC's MLPs forward setup.
@@ -145,8 +145,8 @@ class MAVAC(nn.Module):
                 Forward with ``'compute_critic'``, Necessary Keys:
                     - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
         Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding ``hidden_size``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding ``hidden_size``.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``.
             - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
 
         Actor Examples:
@@ -175,14 +175,14 @@ class MAVAC(nn.Module):
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_actor'`` mode
+            Execute parameter updates with ``'compute_actor'`` mode.
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`torch.Tensor`):
                 The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = actor_head_hidden_size``
+                ``hidden_size = actor_head_hidden_size``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head.
@@ -190,7 +190,7 @@ class MAVAC(nn.Module):
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
         Shapes:
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``.
 
         Examples:
             >>> model = VAC(64,64)
@@ -213,14 +213,14 @@ class MAVAC(nn.Module):
         return {'logit': logit}
 
     def compute_critic(self, x: Dict) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
+            Execute parameter updates with ``'compute_critic'`` mode.
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`Dict`):
                 The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = critic_head_hidden_size``
+                ``hidden_size = critic_head_hidden_size``.
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head.
@@ -243,9 +243,9 @@ class MAVAC(nn.Module):
         return {'value': x['pred']}
 
     def compute_actor_critic(self, x: Dict) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_actor_critic'`` mode
+            Execute parameter updates with ``'compute_actor_critic'`` mode.
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
@@ -258,7 +258,7 @@ class MAVAC(nn.Module):
             - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
             - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
         Shapes:
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``.
             - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
 
         Examples:

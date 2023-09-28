@@ -11,6 +11,12 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, Regressi
 
 @MODEL_REGISTRY.register('pdqn')
 class PDQN(nn.Module):
+    """
+    Overview:
+        PDQN network.
+    Interface:
+        ``__init__``, ``forward``, ``compute_discrete``, ``compute_continuous``.
+    """
     mode = ['compute_discrete', 'compute_continuous']
 
     def __init__(
@@ -26,7 +32,7 @@ class PDQN(nn.Module):
             multi_pass: Optional[bool] = False,
             action_mask: Optional[list] = None
     ) -> None:
-        r"""
+        """
         Overview:
             Init the PDQN (encoder + head) Model according to input arguments.
         Arguments:
@@ -37,17 +43,17 @@ class PDQN(nn.Module):
                 the last element must match ``head_hidden_size``.
             - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
-            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
+            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
-                if ``None`` then default set it to ``nn.ReLU()``
+                if ``None`` then default set it to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details.
             - multi_pass (:obj:`Optional[bool]`): Whether to use multi pass version.
-            - action_mask: (:obj:`Optional[list]`): An action mask indicating how action args are
-                associated to each discrete action. For example, if there are 3 discrete action,
-                4 continous action args, and the first discrete action associates with the first
-                continuous action args, the second discrete action associates with the second continuous
-                action args, and the third discrete action associates with the remaining 2 action args,
+            - action_mask: (:obj:`Optional[list]`): An action mask indicating how action args are \
+                associated to each discrete action. For example, if there are 3 discrete action, \
+                4 continous action args, and the first discrete action associates with the first \
+                continuous action args, the second discrete action associates with the second continuous \
+                action args, and the third discrete action associates with the remaining 2 action args, \
                 the action mask will be like: [[1,0,0,0],[0,1,0,0],[0,0,1,1]] with shape 3*4.
         """
         super(PDQN, self).__init__()
@@ -123,30 +129,30 @@ class PDQN(nn.Module):
         self.encoder = nn.ModuleList([self.cont_encoder, self.cont_encoder])
 
     def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
             PDQN forward computation graph, input observation tensor to predict q_value for \
-            discrete actions and values for continuous action_args
+            discrete actions and values for continuous action_args.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): Observation inputs
+            - inputs (:obj:`torch.Tensor`): Observation inputs.
             - mode (:obj:`str`): Name of the forward mode.
         Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``.
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_continuous(self, inputs: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use observation tensor to predict continuous action args.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): Observation inputs
+            - inputs (:obj:`torch.Tensor`): Observation inputs.
         Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``.
         Returns:
-            - outputs (:obj:`Dict`): A dict with key 'action_args'
-                -  'action_args': the continuous action args
+            - outputs (:obj:`Dict`): A dict with key 'action_args'.
+                -  'action_args': The continuous action args.
         """
         cont_x = self.encoder[1](inputs)  # size (B, encoded_state_shape)
         action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
@@ -154,15 +160,15 @@ class PDQN(nn.Module):
         return outputs
 
     def compute_discrete(self, inputs: Union[Dict, EasyDict]) -> Dict:
-        r"""
+        """
         Overview:
             Use observation tensor and continuous action args to predict discrete action types.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): A dict with keys 'state', 'action_args'
+            - inputs (:obj:`torch.Tensor`): A dict with keys 'state', 'action_args'.
         Returns:
-            - outputs (:obj:`Dict`): A dict with keys 'logit', 'action_args'
-                -  'logit': the logit value for each discrete action,
-                -  'action_args': the continuous action args(same as the inputs['action_args']) for later usage
+            - outputs (:obj:`Dict`): A dict with keys 'logit', 'action_args'.
+                -  'logit': The logit value for each discrete action.
+                -  'action_args': The continuous action args(same as the inputs['action_args']) for later usage.
         """
         dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
         action_args = inputs['action_args']  # size (B, action_args_shape)
