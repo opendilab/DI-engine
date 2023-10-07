@@ -112,9 +112,9 @@ class Adder(object):
             - data (:obj:`deque`): Transitions list like input one, but each element updated with nstep value.
         Examples:
             >>> data = [dict(
-            >>>     obs=torch.randn(B), 
-            >>>     reward=torch.randn(1), 
-            >>>     next_obs=torch.randn(B), 
+            >>>     obs=torch.randn(B),
+            >>>     reward=torch.randn(1),
+            >>>     next_obs=torch.randn(B),
             >>>     done=False) for _ in range(T)]
             >>> nstep = 2
             >>> data = Adder.get_nstep_return_data(data, nstep)
