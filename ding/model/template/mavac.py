@@ -3,8 +3,7 @@ import torch
 import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
-from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder
+from ..common import ReparameterizationHead, RegressionHead, DiscreteHead
 
 
 @MODEL_REGISTRY.register('mavac')
@@ -13,9 +12,9 @@ class MAVAC(nn.Module):
     Overview:
         The neural network and computation graph of algorithms related to (state) Value Actor-Critic (VAC) for \
         multi-agent, such as MAPPO. This model now supports discrete and continuous action space. \
-        The MAVAC is composed of four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and ``critic_head``. \
-        Encoders are used to extract the feature from various observation. Heads are used to predict corresponding \
-        value or action logit.
+        The MAVAC is composed of four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and \
+        ``critic_head``. Encoders are used to extract the feature from various observation. \
+        Heads are used to predict corresponding value or action logit.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``, ``compute_actor_critic``.
     """
@@ -40,7 +39,8 @@ class MAVAC(nn.Module):
         Overview:
             Init the MAVAC Model according to arguments.
         Arguments:
-            - agent_obs_shape (:obj:`Union[int, SequenceType]`): Observation's space for single agent, such as 8 or [4, 84, 84].
+            - agent_obs_shape (:obj:`Union[int, SequenceType]`): Observation's space for single agent, \
+                such as 8 or [4, 84, 84].
             - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``actor_head`` network, defaults \
@@ -50,10 +50,11 @@ class MAVAC(nn.Module):
                 to 512, it must match the last element of ``global_obs_shape``.
             - critic_head_layer_num (:obj:`int`):
                 The num of layers used in the network to compute Q value output for critic's nn.
-            - action_space (:obj:`Union[int, SequenceType]`): The type of different action spaces, including ['discrete', 'continuous'], \
-                then will instantiate corresponding head, including ``DiscreteHead`` and ``ReparameterizationHead``.
-            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after ``layer_fn``, \
-                if ``None`` then default set to ``nn.ReLU()``.
+            - action_space (:obj:`Union[int, SequenceType]`): The type of different action spaces, including \
+                ['discrete', 'continuous'], then will instantiate corresponding head, including ``DiscreteHead`` \
+                and ``ReparameterizationHead``.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
+                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN'].
             - sigma_type (:obj:`Optional[str]`): The type of sigma in continuous action space, see \
@@ -117,8 +118,9 @@ class MAVAC(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         """
         Overview:
-            MAVAC forward computation graph, input observation tensor to predict state value or action logit. Different \
-            ``mode`` will forward with different network modules to get different outputs and save computation.
+            MAVAC forward computation graph, input observation tensor to predict state value or action logit. \
+            Different ``mode`` will forward with different network modules to get different outputs and save \
+            computation.
         Arguments:
             - inputs (:obj:`Dict`): The input dict including observation and related info, \
             whose key-values vary from different ``mode``.
@@ -212,7 +214,8 @@ class MAVAC(nn.Module):
         Arguments:
             - x (:obj:`Dict`): The input dict must contain key ``global_state``.
         Returns:
-            - outputs (:obj:`Dict`): The output dict of MAVAC's forward computation graph for critic, including ``value``.
+            - outputs (:obj:`Dict`): The output dict of MAVAC's forward computation graph for critic, \
+                including ``value``.
         ReturnsKeys:
             - value (:obj:`torch.Tensor`): The predicted state value tensor.
         Shapes:

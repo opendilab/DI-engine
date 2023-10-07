@@ -50,5 +50,3 @@ class TestVAC:
         value = model(data, mode='compute_critic')['value']
         assert value.shape == (B, agent_num)
         self.output_check(model.critic, value, action_shape)
-
-# test_vac(265, 324)
