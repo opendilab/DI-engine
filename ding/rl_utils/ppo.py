@@ -181,7 +181,8 @@ def ppo_value_error(
         - clip_ratio (:obj:`float`): clip value for ratio
         - use_value_clip (:obj:`bool`): whether use value clip
     Returns:
-        - value_loss (:obj:`torch.FloatTensor`): the ppo value loss item, all of them are the differentiable 0-dim tensor
+        - value_loss (:obj:`torch.FloatTensor`): the ppo value loss item, \
+            all of them are the differentiable 0-dim tensor
     Shapes:
         - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size
         - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`

@@ -914,11 +914,11 @@ def dqfd_nstep_td_error(
         >>> q = torch.randn(4, 3).requires_grad_(True)
         >>> reward = torch.rand(nstep, 4)
         >>> data = dqfd_nstep_td_data(
-        >>>     q, next_q, action, next_action, reward, done, done_1, None, 
+        >>>     q, next_q, action, next_action, reward, done, done_1, None,
         >>>     next_q_one_step, next_action_one_step, is_expert
         >>> )
         >>> loss, td_error_per_sample, loss_statistics = dqfd_nstep_td_error(
-        >>>     data, 0.95, lambda_n_step_td=1, lambda_supervised_loss=1, 
+        >>>     data, 0.95, lambda_n_step_td=1, lambda_supervised_loss=1,
         >>>     margin_function=0.8, nstep=nstep
         >>> )
     """
