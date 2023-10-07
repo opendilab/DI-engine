@@ -329,7 +329,7 @@ class PPOPolicy(Policy):
             data, such as the action to interact with the envs.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
                 other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
@@ -472,7 +472,7 @@ class PPOPolicy(Policy):
             exploitation.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
                 key of the dict is the same as the input data, i.e. environment id.
@@ -682,7 +682,7 @@ class PPOPGPolicy(Policy):
             data, such as the action to interact with the envs.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
                 other necessary data (action logit) for learn mode defined in ``self._process_transition`` \
@@ -785,7 +785,7 @@ class PPOPGPolicy(Policy):
             exploitation.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
                 key of the dict is the same as the input data, i.e. environment id.
@@ -1171,7 +1171,7 @@ class PPOOffPolicy(Policy):
             data, such as the action to interact with the envs.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
                 other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
@@ -1314,7 +1314,7 @@ class PPOOffPolicy(Policy):
             exploitation.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
                 key of the dict is the same as the input data, i.e. environment id.

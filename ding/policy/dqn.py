@@ -98,7 +98,7 @@ class DQNPolicy(Policy):
         # (int) The number of step for calculating target q_value.
         nstep=1,
         model=dict(
-            #(list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
+            # (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
             encoder_hidden_size_list=[128, 128, 64],
         ),
         # learn_mode config
@@ -335,7 +335,7 @@ class DQNPolicy(Policy):
             exploration, i.e., classic epsilon-greedy exploration strategy.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
             - eps (:obj:`float`): The epsilon value for exploration.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
@@ -423,7 +423,7 @@ class DQNPolicy(Policy):
             action to interact with the envs.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
                 key of the dict is the same as the input data, i.e. environment id.

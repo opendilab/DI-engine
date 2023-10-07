@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Dict
 import torch
 import numpy as np
 import treetensor.torch as ttorch
@@ -12,14 +12,24 @@ def default_preprocess_learn(
         use_priority: bool = False,
         use_nstep: bool = False,
         ignore_done: bool = False,
-) -> dict:
+) -> Dict[str, torch.Tensor]:
     """
     Overview:
-        Default data pre-processing in policy's ``_forward_learn``.
+        Default data pre-processing in policy's ``_forward_learn`` method, including stacking batch data, preprocess \
+        ignore done, nstep and priority IS weight.
+    Arguments:
+        - data (:obj:`List[Any]`): The list of a training batch samples, each sample is a dict of PyTorch Tensor.
+        - use_priority_IS_weight (:obj:`bool`): Whether to use priority IS weight correction, if True, this function \
+            will set the weight of each sample to the priority IS weight.
+        - use_priority (:obj:`bool`): Whether to use priority, if True, this function will set the priority IS weight.
+        - use_nstep (:obj:`bool`): Whether to use nstep TD error, if True, this function will reshape the reward.
+        - ignore_done (:obj:`bool`): Whether to ignore done, if True, this function will set the done to 0.
+    Returns:
+        - data (:obj:`Dict[str, torch.Tensor]`): The preprocessed dict data whose values can be directly used for \
+            the following model forward and loss computation.
     """
     # data preprocess
-    if data[0]['action'].dtype in [np.int8, np.int16, np.int32, np.int64, torch.int8, torch.int16, torch.int32,
-                                   torch.int64]:
+    if data[0]['action'].dtype in [np.int64, torch.int64]:
         data = default_collate(data, cat_1dim=True)  # for discrete action
     else:
         data = default_collate(data, cat_1dim=False)  # for continuous action

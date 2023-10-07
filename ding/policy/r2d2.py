@@ -444,7 +444,7 @@ class R2D2Policy(Policy):
             exploration, i.e., classic epsilon-greedy exploration strategy.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
             - eps (:obj:`float`): The epsilon value for exploration.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
@@ -556,7 +556,7 @@ class R2D2Policy(Policy):
             q_value is the highest.
         Arguments:
             - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
-                key of the dict is environment id and the value if the corresponding data of the env.
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
                 key of the dict is the same as the input data, i.e. environment id.
