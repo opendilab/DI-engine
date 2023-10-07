@@ -78,10 +78,10 @@ class PCTransformer(nn.Module):
 @MODEL_REGISTRY.register('pc_mcts')
 class ProcedureCloningMCTS(nn.Module):
     """
-        Overview:
-            The neural network of algorithms related to Procedure cloning (PC).
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The neural network of algorithms related to Procedure cloning (PC).
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(

@@ -22,7 +22,7 @@ from ding.utils import SequenceType
 
 
 class MaskedCausalAttention(nn.Module):
-    r"""
+    """
     Overview:
         The implementation of masked causal attention in decision transformer.
     Interfaces:

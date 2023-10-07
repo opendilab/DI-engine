@@ -10,7 +10,7 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
 
 @MODEL_REGISTRY.register('discrete_bc')
 class DiscreteBC(nn.Module):
-    r"""
+    """
     Overview:
         The DiscreteBC network.
     Interfaces:
@@ -88,7 +88,7 @@ class DiscreteBC(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             DiscreteBC forward computation graph, input observation tensor to predict q_value.
         Arguments:
@@ -113,7 +113,7 @@ class DiscreteBC(nn.Module):
 
 @MODEL_REGISTRY.register('continuous_bc')
 class ContinuousBC(nn.Module):
-    r"""
+    """
     Overview:
         The ContinuousBC network.
     Interfaces:

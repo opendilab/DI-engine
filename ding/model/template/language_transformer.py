@@ -12,7 +12,7 @@ from ding.utils import MODEL_REGISTRY
 
 @MODEL_REGISTRY.register('language_transformer')
 class LanguageTransformer(nn.Module):
-    r"""
+    """
     Overview:
         The LanguageTransformer network. Download a pre-trained language model and add head on it.
     Interfaces:
