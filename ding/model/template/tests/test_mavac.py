@@ -32,7 +32,7 @@ class TestVAC:
             'global_state': torch.randn(B, agent_num, global_obs_shape),
             'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
         }
-        model = MAVAC(agent_obs_shape, global_obs_shape, action_shape, agent_num)
+        model = MAVAC(agent_obs_shape, global_obs_shape, action_shape)
 
         logit = model(data, mode='compute_actor_critic')['logit']
         value = model(data, mode='compute_actor_critic')['value']
@@ -50,3 +50,5 @@ class TestVAC:
         value = model(data, mode='compute_critic')['value']
         assert value.shape == (B, agent_num)
         self.output_check(model.critic, value, action_shape)
+
+# test_vac(265, 324)
