@@ -306,7 +306,7 @@
 <h2>coma<a class="headerlink" href="#coma" title="Permalink to this headline">¶</a></h2>
 <section id="module-ding.rl_utils.coma.coma_error">
 <span id="coma-error"></span><h3>coma_error<a class="headerlink" href="#module-ding.rl_utils.coma.coma_error" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Implementation of COMA</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -328,6 +328,20 @@
 <li><p>value_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
 <li><p>entropy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">action_dim</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">agent_num</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">coma_data</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">logit</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">action</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">)),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">q_value</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">target_q_value</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">reward</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weight</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">coma_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </section>

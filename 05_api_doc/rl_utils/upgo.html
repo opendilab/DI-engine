@@ -306,7 +306,7 @@
 <h2>UPGO<a class="headerlink" href="#upgo" title="Permalink to this headline">¶</a></h2>
 <section id="module-ding.rl_utils.upgo.upgo_returns">
 <span id="upgo-returns"></span><h3>upgo_returns<a class="headerlink" href="#module-ding.rl_utils.upgo.upgo_returns" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Computing UPGO return targets. Also notice there is no special handling for the terminal state.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -330,11 +330,18 @@
 </li>
 </ul>
 </dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">N2</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rewards</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bootstrap_values</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">returns</span> <span class="o">=</span> <span class="n">upgo_returns</span><span class="p">(</span><span class="n">rewards</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
 </dl>
 </section>
 <section id="module-ding.rl_utils.upgo.upgo_loss">
 <span id="upgo-loss"></span><h3>upgo_loss<a class="headerlink" href="#module-ding.rl_utils.upgo.upgo_loss" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
 if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.</p>
 </dd>
@@ -357,6 +364,12 @@ if the last state in trajectory is the terminal, just pass a 0 as bootstrap_term
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Computed importance sampled UPGO loss, averaged over the samples, of size []</p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">N2</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rhos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">upgo_loss</span><span class="p">(</span><span class="n">logit</span><span class="p">,</span> <span class="n">rhos</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">bootstrap_values</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </section>

@@ -306,7 +306,7 @@
 <h2>isw<a class="headerlink" href="#isw" title="Permalink to this headline">¶</a></h2>
 <section id="module-ding.rl_utils.isw.compute_importance_weights">
 <span id="compute-importance-weights"></span><h3>compute_importance_weights<a class="headerlink" href="#module-ding.rl_utils.isw.compute_importance_weights" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Computing importance sampling weight with given output and action</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -327,6 +327,13 @@
 <li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 <li><p>rhos (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">target_output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">behaviour_output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rhos</span> <span class="o">=</span> <span class="n">compute_importance_weights</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </section>

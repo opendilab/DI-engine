@@ -298,7 +298,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">list_split</span><span class="p">,</span> <span class="n">lists_to_dicts</span>
-<span class="kn">from</span> <span class="nn">.gae</span> <span class="kn">import</span> <span class="n">gae</span><span class="p">,</span> <span class="n">gae_data</span>
+<span class="kn">from</span> <span class="nn">ding.rl_utils.gae</span> <span class="kn">import</span> <span class="n">gae</span><span class="p">,</span> <span class="n">gae_data</span>
 
 
 <div class="viewcode-block" id="Adder"><a class="viewcode-back" href="../../../05_api_doc/rl_utils/adder.html#ding.rl_utils.adder.Adder">[docs]</a><span class="k">class</span> <span class="nc">Adder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -319,11 +319,20 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`list`): Transitions list, each element is a transition dict with at least [&#39;value&#39;, &#39;reward&#39;]</span>
 <span class="sd">            - last_value (:obj:`torch.Tensor`): The last value(i.e.: the T+1 timestep)</span>
-<span class="sd">            - gamma (:obj:`float`): The future discount factor</span>
-<span class="sd">            - gae_lambda (:obj:`float`): GAE lambda parameter</span>
+<span class="sd">            - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.</span>
+<span class="sd">            - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, \</span>
+<span class="sd">            when lambda -&gt; 0, it induces bias, but when lambda -&gt; 1, it has high variance due to the sum of terms.</span>
 <span class="sd">            - cuda (:obj:`bool`): Whether use cuda in GAE computation</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key &#39;adv&#39;</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; B, T = 2, 3 # batch_size, timestep</span>
+<span class="sd">            &gt;&gt;&gt; data = [dict(value=torch.randn(B), reward=torch.randn(B)) for _ in range(T)]</span>
+<span class="sd">            &gt;&gt;&gt; last_value = torch.randn(B)</span>
+<span class="sd">            &gt;&gt;&gt; gamma = 0.99</span>
+<span class="sd">            &gt;&gt;&gt; gae_lambda = 0.95</span>
+<span class="sd">            &gt;&gt;&gt; cuda = False</span>
+<span class="sd">            &gt;&gt;&gt; data = Adder.get_gae(data, last_value, gamma, gae_lambda, cuda)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
         <span class="n">next_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="p">[</span><span class="n">last_value</span><span class="p">])</span>
@@ -354,12 +363,21 @@
 <span class="sd">            - data (:obj:`deque`): Transitions list, each element is a transition dict with \</span>
 <span class="sd">                at least[&#39;value&#39;, &#39;reward&#39;]</span>
 <span class="sd">            - done (:obj:`bool`): Whether the transition reaches the end of an episode(i.e. whether the env is done)</span>
-<span class="sd">            - gamma (:obj:`float`): The future discount factor</span>
-<span class="sd">            - gae_lambda (:obj:`float`): GAE lambda parameter</span>
+<span class="sd">            - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.</span>
+<span class="sd">            - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, \</span>
+<span class="sd">            when lambda -&gt; 0, it induces bias, but when lambda -&gt; 1, it has high variance due to the sum of terms.</span>
 <span class="sd">            - cuda (:obj:`bool`): Whether use cuda in GAE computation</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - data (:obj:`List[Dict[str, Any]]`): transitions list like input one, but each element owns \</span>
 <span class="sd">                extra advantage key &#39;adv&#39;</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; B, T = 2, 3 # batch_size, timestep</span>
+<span class="sd">            &gt;&gt;&gt; data = [dict(value=torch.randn(B), reward=torch.randn(B)) for _ in range(T)]</span>
+<span class="sd">            &gt;&gt;&gt; done = False</span>
+<span class="sd">            &gt;&gt;&gt; gamma = 0.99</span>
+<span class="sd">            &gt;&gt;&gt; gae_lambda = 0.95</span>
+<span class="sd">            &gt;&gt;&gt; cuda = False</span>
+<span class="sd">            &gt;&gt;&gt; data = Adder.get_gae_with_default_last_value(data, done, gamma, gae_lambda, cuda)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
             <span class="n">last_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
@@ -386,6 +404,14 @@
 <span class="sd">                Otherwise update with nstep value.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - data (:obj:`deque`): Transitions list like input one, but each element updated with nstep value.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; data = [dict(</span>
+<span class="sd">            &gt;&gt;&gt;     obs=torch.randn(B),</span>
+<span class="sd">            &gt;&gt;&gt;     reward=torch.randn(1),</span>
+<span class="sd">            &gt;&gt;&gt;     next_obs=torch.randn(B),</span>
+<span class="sd">            &gt;&gt;&gt;     done=False) for _ in range(T)]</span>
+<span class="sd">            &gt;&gt;&gt; nstep = 2</span>
+<span class="sd">            &gt;&gt;&gt; data = Adder.get_nstep_return_data(data, nstep)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">nstep</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">data</span>

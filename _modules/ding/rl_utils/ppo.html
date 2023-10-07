@@ -302,7 +302,14 @@
 <span class="n">ppo_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s1">&#39;ppo_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;logit_new&#39;</span><span class="p">,</span> <span class="s1">&#39;logit_old&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;value_new&#39;</span><span class="p">,</span> <span class="s1">&#39;value_old&#39;</span><span class="p">,</span> <span class="s1">&#39;adv&#39;</span><span class="p">,</span> <span class="s1">&#39;return_&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">]</span>
 <span class="p">)</span>
+<span class="n">ppo_data_continuous</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s1">&#39;ppo_data_continuous&#39;</span><span class="p">,</span>
+    <span class="p">[</span><span class="s1">&#39;mu_sigma_new&#39;</span><span class="p">,</span> <span class="s1">&#39;mu_sigma_old&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;value_new&#39;</span><span class="p">,</span> <span class="s1">&#39;value_old&#39;</span><span class="p">,</span> <span class="s1">&#39;adv&#39;</span><span class="p">,</span> <span class="s1">&#39;return_&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 <span class="n">ppo_policy_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ppo_policy_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;logit_new&#39;</span><span class="p">,</span> <span class="s1">&#39;logit_old&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;adv&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">])</span>
+<span class="n">ppo_policy_data_continuous</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s1">&#39;ppo_policy_data_continuous&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mu_sigma_new&#39;</span><span class="p">,</span> <span class="s1">&#39;mu_sigma_old&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="s1">&#39;adv&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+<span class="p">)</span>
 <span class="n">ppo_value_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ppo_value_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;value_new&#39;</span><span class="p">,</span> <span class="s1">&#39;value_old&#39;</span><span class="p">,</span> <span class="s1">&#39;return_&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">])</span>
 <span class="n">ppo_loss</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ppo_loss&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;value_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">])</span>
 <span class="n">ppo_policy_loss</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ppo_policy_loss&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">])</span>
@@ -358,6 +365,20 @@
 <span class="sd">        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`</span>
 <span class="sd">        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor</span>
 <span class="sd">        - value_loss (:obj:`torch.FloatTensor`): :math:`()`</span>
+<span class="sd">        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; action_dim = 4</span>
+<span class="sd">        &gt;&gt;&gt; data = ppo_data(</span>
+<span class="sd">        &gt;&gt;&gt;     logit_new=torch.randn(3, action_dim),</span>
+<span class="sd">        &gt;&gt;&gt;     logit_old=torch.randn(3, action_dim),</span>
+<span class="sd">        &gt;&gt;&gt;     action=torch.randint(0, action_dim, (3,)),</span>
+<span class="sd">        &gt;&gt;&gt;     value_new=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     value_old=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     adv=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     return_=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     weight=torch.ones(3),</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; loss, info = ppo_error(data)</span>
 
 <span class="sd">    .. note::</span>
 
@@ -380,6 +401,36 @@
 <div class="viewcode-block" id="ppo_policy_error"><a class="viewcode-back" href="../../../12_policies/ppo.html#ding.rl_utils.ppo.ppo_policy_error">[docs]</a><span class="k">def</span> <span class="nf">ppo_policy_error</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
                      <span class="n">clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
                      <span class="n">dual_clip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">namedtuple</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Get PPO policy loss</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`namedtuple`): ppo input data with fieids shown in ``ppo_policy_data``</span>
+<span class="sd">        - clip_ratio (:obj:`float`): clip value for ratio</span>
+<span class="sd">        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\</span>
+<span class="sd">        defaults to 5.0, if you don&#39;t want to use it, set this parameter to None</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - ppo_policy_loss (:obj:`namedtuple`): the ppo policy loss item, all of them are the differentiable 0-dim tensor</span>
+<span class="sd">        - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - logit_new (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is action dim</span>
+<span class="sd">        - logit_old (:obj:`torch.FloatTensor`): :math:`(B, N)`</span>
+<span class="sd">        - action (:obj:`torch.LongTensor`): :math:`(B, )`</span>
+<span class="sd">        - adv (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
+<span class="sd">        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`</span>
+<span class="sd">        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor</span>
+<span class="sd">        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; action_dim = 4</span>
+<span class="sd">        &gt;&gt;&gt; data = ppo_policy_data(</span>
+<span class="sd">        &gt;&gt;&gt;     logit_new=torch.randn(3, action_dim),</span>
+<span class="sd">        &gt;&gt;&gt;     logit_old=torch.randn(3, action_dim),</span>
+<span class="sd">        &gt;&gt;&gt;     action=torch.randint(0, action_dim, (3,)),</span>
+<span class="sd">        &gt;&gt;&gt;     adv=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     weight=torch.ones(3),</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; loss, info = ppo_policy_error(data)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">logit_new</span><span class="p">,</span> <span class="n">logit_old</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">adv</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
     <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">adv</span><span class="p">)</span>
@@ -416,6 +467,32 @@
         <span class="n">clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
         <span class="n">use_value_clip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Get PPO value loss</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data (:obj:`namedtuple`): ppo input data with fieids shown in ``ppo_value_data``</span>
+<span class="sd">        - clip_ratio (:obj:`float`): clip value for ratio</span>
+<span class="sd">        - use_value_clip (:obj:`bool`): whether use value clip</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - value_loss (:obj:`torch.FloatTensor`): the ppo value loss item, \</span>
+<span class="sd">            all of them are the differentiable 0-dim tensor</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size</span>
+<span class="sd">        - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
+<span class="sd">        - return (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
+<span class="sd">        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`</span>
+<span class="sd">        - value_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; action_dim = 4</span>
+<span class="sd">        &gt;&gt;&gt; data = ppo_value_data(</span>
+<span class="sd">        &gt;&gt;&gt;     value_new=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     value_old=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     return_=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     weight=torch.ones(3),</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; loss, info = ppo_value_error(data)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">value_new</span><span class="p">,</span> <span class="n">value_old</span><span class="p">,</span> <span class="n">return_</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
     <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">value_old</span><span class="p">)</span>
@@ -459,6 +536,20 @@
 <span class="sd">        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`</span>
 <span class="sd">        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor</span>
 <span class="sd">        - value_loss (:obj:`torch.FloatTensor`): :math:`()`</span>
+<span class="sd">        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; action_dim = 4</span>
+<span class="sd">        &gt;&gt;&gt; data = ppo_data_continuous(</span>
+<span class="sd">        &gt;&gt;&gt;     mu_sigma_new= dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),</span>
+<span class="sd">        &gt;&gt;&gt;     mu_sigma_old= dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),</span>
+<span class="sd">        &gt;&gt;&gt;     action=torch.randn(3, action_dim),</span>
+<span class="sd">        &gt;&gt;&gt;     value_new=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     value_old=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     adv=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     return_=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     weight=torch.ones(3),</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; loss, info = ppo_error(data)</span>
 
 <span class="sd">    .. note::</span>
 
@@ -526,6 +617,17 @@
 <span class="sd">        - adv (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
 <span class="sd">        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`</span>
 <span class="sd">        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor</span>
+<span class="sd">        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; action_dim = 4</span>
+<span class="sd">        &gt;&gt;&gt; data = ppo_policy_data_continuous(</span>
+<span class="sd">        &gt;&gt;&gt;     mu_sigma_new=dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),</span>
+<span class="sd">        &gt;&gt;&gt;     mu_sigma_old=dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),</span>
+<span class="sd">        &gt;&gt;&gt;     action=torch.randn(3, action_dim),</span>
+<span class="sd">        &gt;&gt;&gt;     adv=torch.randn(3),</span>
+<span class="sd">        &gt;&gt;&gt;     weight=torch.ones(3),</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; loss, info = ppo_policy_error_continuous(data)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">dual_clip</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">dual_clip</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;dual_clip value must be greater than 1.0, but get value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="n">dual_clip</span>

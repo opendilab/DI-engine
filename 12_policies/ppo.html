@@ -571,12 +571,82 @@ so off-policy PPO are able to reuse old data very efficiently, but potentially b
 <div><dl class="py function">
 <dt class="sig sig-object py" id="ding.rl_utils.ppo.ppo_policy_error">
 <span class="sig-prename descclassname"><span class="pre">ding.rl_utils.ppo.</span></span><span class="sig-name descname"><span class="pre">ppo_policy_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_clip</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">,</span> </span><span class="pre">collections.namedtuple</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/rl_utils/ppo.html#ppo_policy_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.ppo.ppo_policy_error" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Get PPO policy loss</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): ppo input data with fieids shown in <code class="docutils literal notranslate"><span class="pre">ppo_policy_data</span></code></p></li>
+<li><p>clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): clip value for ratio</p></li>
+<li><p>dual_clip (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),        defaults to 5.0, if you don’t want to use it, set this parameter to None</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ppo_policy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): the ppo policy loss item, all of them are the differentiable 0-dim tensor</p></li>
+<li><p>ppo_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): the ppo optim information for monitoring, all of them are Python scalar</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>logit_new (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is action dim</p></li>
+<li><p>logit_old (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>adv (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>policy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span>, 0-dim tensor</p></li>
+<li><p>entropy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">action_dim</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ppo_policy_data</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">logit_new</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">logit_old</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">action</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">adv</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weight</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ppo_policy_error</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.rl_utils.ppo.ppo_value_error">
 <span class="sig-prename descclassname"><span class="pre">ding.rl_utils.ppo.</span></span><span class="sig-name descname"><span class="pre">ppo_value_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_value_clip</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../_modules/ding/rl_utils/ppo.html#ppo_value_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.ppo.ppo_value_error" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Get PPO value loss</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): ppo input data with fieids shown in <code class="docutils literal notranslate"><span class="pre">ppo_value_data</span></code></p></li>
+<li><p>clip_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): clip value for ratio</p></li>
+<li><p>use_value_clip (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether use value clip</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>value_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): the ppo value loss item,             all of them are the differentiable 0-dim tensor</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>value_new (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size</p></li>
+<li><p>value_old (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>return (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>value_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span>, 0-dim tensor</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">action_dim</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">ppo_value_data</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">value_new</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">value_old</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">return_</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weight</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">ppo_value_error</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
 
 </div></blockquote>
 </section>

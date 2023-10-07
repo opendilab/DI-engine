@@ -306,7 +306,7 @@
 <h2>vtrace<a class="headerlink" href="#vtrace" title="Permalink to this headline">¶</a></h2>
 <section id="module-ding.rl_utils.vtrace.vtrace_error_discrete_action">
 <span id="vtrace-error-discrete-action"></span><h3>vtrace_error_discrete_action<a class="headerlink" href="#module-ding.rl_utils.vtrace.vtrace_error_discrete_action" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Implementation of vtrace(IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner        Architectures), (arXiv:1802.01561)</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -339,11 +339,22 @@
 <li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 </ul>
 </dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">behaviour_output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">vtrace_data</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">vtrace_error_discrete_action</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rho_clip_ratio</span><span class="o">=</span><span class="mf">1.1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
 </dl>
 </section>
 <section id="module-ding.rl_utils.vtrace.vtrace_error_continuous_action">
 <span id="vtrace-error-continuous-action"></span><h3>vtrace_error_continuous_action<a class="headerlink" href="#module-ding.rl_utils.vtrace.vtrace_error_continuous_action" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Implementation of vtrace(IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner        Architectures), (arXiv:1802.01561)</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -375,6 +386,23 @@
 <li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 <li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">behaviour_output</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">)),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">vtrace_data</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">vtrace_error_continuous_action</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rho_clip_ratio</span><span class="o">=</span><span class="mf">1.1</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </section>

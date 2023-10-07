@@ -306,7 +306,7 @@
 <h2>Temporal Differnece<a class="headerlink" href="#temporal-differnece" title="Permalink to this headline">¶</a></h2>
 <section id="module-ding.rl_utils.td.dist_nstep_td_error">
 <span id="dist-nstep-td-error"></span><h3>dist_nstep_td_error<a class="headerlink" href="#module-ding.rl_utils.td.dist_nstep_td_error" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error for distributed q-learning based algorithm, support single            agent case and multi agent case.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -329,11 +329,22 @@
 <li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
 </ul>
 </dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">51</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">next_n_dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">51</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">done</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">next_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">dist_nstep_td_data</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">next_n_dist</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dist_nstep_td_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
 </dl>
 </section>
 <section id="module-ding.rl_utils.td.q_nstep_td_error">
 <span id="q-nstep-td-error"></span><h3>q_nstep_td_error<a class="headerlink" href="#module-ding.rl_utils.td.q_nstep_td_error" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error for q-learning based algorithm</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -361,11 +372,23 @@
 <li><p>td_error_per_sample (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
 </ul>
 </dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">next_q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">done</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">next_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nstep</span> <span class="o">=</span><span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nstep</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">next_q</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="p">,</span> <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">q_nstep_td_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="n">nstep</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
 </dl>
 </section>
 <section id="module-ding.rl_utils.td.q_nstep_td_error_with_rescale">
 <span id="q-nstep-td-error-with-rescale"></span><h3>q_nstep_td_error_with_rescale<a class="headerlink" href="#module-ding.rl_utils.td.q_nstep_td_error_with_rescale" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error with value rescaling</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -391,11 +414,23 @@
 <li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
 </ul>
 </dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">next_q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">done</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">next_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nstep</span> <span class="o">=</span><span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nstep</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">next_q</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">q_nstep_td_error_with_rescale</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="n">nstep</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
 </dl>
 </section>
 <section id="module-ding.rl_utils.td.td_lambda_error">
 <span id="td-lambda-error"></span><h3>td_lambda_error<a class="headerlink" href="#module-ding.rl_utils.td.td_lambda_error" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
+<dl>
 <dt>Overview:</dt><dd><p>Computing TD(lambda) loss given constant gamma and lambda.
 There is no special handling for terminal state value,
 if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
@@ -417,6 +452,13 @@ if some state has reached the terminal, just fill in zeros for values and reward
 <li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or None): <span class="math notranslate nohighlight">\((B, )\)</span>, the training sample weight</p></li>
 <li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span>, 0-dim tensor</p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">td_lambda_error</span><span class="p">(</span><span class="n">td_lambda_data</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </section>

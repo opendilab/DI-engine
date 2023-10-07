@@ -702,7 +702,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 <dl class="py function">
 <dt class="sig sig-object py">
 <span class="sig-prename descclassname"><span class="pre">ding.rl_utils.td.</span></span><span class="sig-name descname"><span class="pre">m_q_1step_td_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">data:</span> <span class="pre">collections.namedtuple</span></em>, <em class="sig-param"><span class="pre">gamma:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">tau:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">alpha:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">criterion:</span> <span class="pre">&lt;module</span> <span class="pre">'torch.nn.modules'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.8.18/x64/lib/python3.8/site-packages/torch/nn/modules/__init__.py'&gt;</span> <span class="pre">=</span> <span class="pre">MSELoss()</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../_modules/ding/rl_utils/td.html#m_q_1step_td_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="simple">
+<dd><dl>
 <dt>Overview:</dt><dd><p>Munchausen td_error for DQN algorithm, support 1 step td error.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
@@ -727,6 +727,20 @@ Paper link: <a class="reference external" href="https://arxiv.org/abs/2007.14430
 <li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
 <li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or None): <span class="math notranslate nohighlight">\((B, )\)</span>, the training sample weight</p></li>
 </ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">action_dim</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">m_q_1step_td_data</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">q</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">target_q</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">next_q</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">act</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">reward</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">done</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">weight</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">m_q_1step_td_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </dd></dl>
