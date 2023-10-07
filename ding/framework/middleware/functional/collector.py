@@ -85,7 +85,15 @@ def inferencer(seed: int, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
-def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList, collect_print_freq=100, tb_logger: 'SummaryWriter' = None, exp_name: Optional[str] = 'default_experiment',  instance_name: Optional[str] = 'collector') -> Callable:
+def rolloutor(
+        policy: Policy,
+        env: BaseEnvManager,
+        transitions: TransitionList,
+        collect_print_freq=100,
+        tb_logger: 'SummaryWriter' = None,
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'collector'
+) -> Callable:
     """
     Overview:
         The middleware that executes the transition process in the env.
@@ -110,16 +118,10 @@ def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList, 
     episode_info = []
 
     if tb_logger is not None:
-        logger, _ = build_logger(
-            path='./{}/log/{}'.format(exp_name, instance_name),
-            name=instance_name,
-            need_tb=False
-        )
+        logger, _ = build_logger(path='./{}/log/{}'.format(exp_name, instance_name), name=instance_name, need_tb=False)
         tb_logger = tb_logger
     else:
-        logger, tb_logger = build_logger(
-            path='./{}/log/{}'.format(exp_name, instance_name), name=instance_name
-        )
+        logger, tb_logger = build_logger(path='./{}/log/{}'.format(exp_name, instance_name), name=instance_name)
 
     def output_log(train_iter: int) -> None:
         """
@@ -195,7 +197,7 @@ def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList, 
                 collected_sample += len(transition.obs)
                 env_info[timestep.env_id.item()]['step'] += 1
                 env_info[timestep.env_id.item()]['train_sample'] += len(transition.obs)
-            
+
             env_info[timestep.env_id.item()]['time'] += timer.value + interaction_duration
             if timestep.done:
                 info = {
@@ -211,13 +213,13 @@ def rolloutor(policy: Policy, env: BaseEnvManager, transitions: TransitionList, 
                 collected_episode += 1
                 current_id += 1
                 ctx.env_episode += 1
-        
+
         collected_duration = sum([d['time'] for d in episode_info])
         total_envstep_count += collected_step
         total_episode_count += collected_episode
         total_duration += collected_duration
         total_train_sample_count += collected_sample
-        
+
         output_log(ctx.train_iter)
 
     return _rollout
