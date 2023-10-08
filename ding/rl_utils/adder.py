@@ -4,7 +4,7 @@ import copy
 import torch
 
 from ding.utils import list_split, lists_to_dicts
-from .gae import gae, gae_data
+from ding.rl_utils.gae import gae, gae_data
 
 
 class Adder(object):
@@ -25,11 +25,20 @@ class Adder(object):
         Arguments:
             - data (:obj:`list`): Transitions list, each element is a transition dict with at least ['value', 'reward']
             - last_value (:obj:`torch.Tensor`): The last value(i.e.: the T+1 timestep)
-            - gamma (:obj:`float`): The future discount factor
-            - gae_lambda (:obj:`float`): GAE lambda parameter
+            - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.
+            - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, \
+            when lambda -> 0, it induces bias, but when lambda -> 1, it has high variance due to the sum of terms.
             - cuda (:obj:`bool`): Whether use cuda in GAE computation
         Returns:
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
+        Examples:
+            >>> B, T = 2, 3 # batch_size, timestep
+            >>> data = [dict(value=torch.randn(B), reward=torch.randn(B)) for _ in range(T)]
+            >>> last_value = torch.randn(B)
+            >>> gamma = 0.99
+            >>> gae_lambda = 0.95
+            >>> cuda = False
+            >>> data = Adder.get_gae(data, last_value, gamma, gae_lambda, cuda)
         """
         value = torch.stack([d['value'] for d in data])
         next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
@@ -60,12 +69,21 @@ class Adder(object):
             - data (:obj:`deque`): Transitions list, each element is a transition dict with \
                 at least['value', 'reward']
             - done (:obj:`bool`): Whether the transition reaches the end of an episode(i.e. whether the env is done)
-            - gamma (:obj:`float`): The future discount factor
-            - gae_lambda (:obj:`float`): GAE lambda parameter
+            - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.
+            - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, \
+            when lambda -> 0, it induces bias, but when lambda -> 1, it has high variance due to the sum of terms.
             - cuda (:obj:`bool`): Whether use cuda in GAE computation
         Returns:
             - data (:obj:`List[Dict[str, Any]]`): transitions list like input one, but each element owns \
                 extra advantage key 'adv'
+        Examples:
+            >>> B, T = 2, 3 # batch_size, timestep
+            >>> data = [dict(value=torch.randn(B), reward=torch.randn(B)) for _ in range(T)]
+            >>> done = False
+            >>> gamma = 0.99
+            >>> gae_lambda = 0.95
+            >>> cuda = False
+            >>> data = Adder.get_gae_with_default_last_value(data, done, gamma, gae_lambda, cuda)
         """
         if done:
             last_value = torch.zeros_like(data[-1]['value'])
@@ -92,6 +110,14 @@ class Adder(object):
                 Otherwise update with nstep value.
         Returns:
             - data (:obj:`deque`): Transitions list like input one, but each element updated with nstep value.
+        Examples:
+            >>> data = [dict(
+            >>>     obs=torch.randn(B),
+            >>>     reward=torch.randn(1),
+            >>>     next_obs=torch.randn(B),
+            >>>     done=False) for _ in range(T)]
+            >>> nstep = 2
+            >>> data = Adder.get_nstep_return_data(data, nstep)
         """
         if nstep == 1:
             return data

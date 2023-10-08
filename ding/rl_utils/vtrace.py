@@ -107,6 +107,15 @@ def vtrace_error_discrete_action(
         - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - reward (:obj:`torch.LongTensor`): :math:`(T, B)`
         - weight (:obj:`torch.LongTensor`): :math:`(T, B)`
+    Examples:
+        >>> T, B, N = 4, 8, 16
+        >>> value = torch.randn(T + 1, B).requires_grad_(True)
+        >>> reward = torch.rand(T, B)
+        >>> target_output = torch.randn(T, B, N).requires_grad_(True)
+        >>> behaviour_output = torch.randn(T, B, N)
+        >>> action = torch.randint(0, N, size=(T, B))
+        >>> data = vtrace_data(target_output, behaviour_output, action, value, reward, None)
+        >>> loss = vtrace_error_discrete_action(data, rho_clip_ratio=1.1)
     """
     target_output, behaviour_output, action, value, reward, weight = data
     with torch.no_grad():
@@ -168,6 +177,21 @@ def vtrace_error_continuous_action(
         - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - reward (:obj:`torch.LongTensor`): :math:`(T, B)`
         - weight (:obj:`torch.LongTensor`): :math:`(T, B)`
+    Examples:
+        >>> T, B, N = 4, 8, 16
+        >>> value = torch.randn(T + 1, B).requires_grad_(True)
+        >>> reward = torch.rand(T, B)
+        >>> target_output = dict(
+        >>>     'mu': torch.randn(T, B, N).requires_grad_(True),
+        >>>     'sigma': torch.exp(torch.randn(T, B, N).requires_grad_(True)),
+        >>> )
+        >>> behaviour_output = dict(
+        >>>     'mu': torch.randn(T, B, N),
+        >>>     'sigma': torch.exp(torch.randn(T, B, N)),
+        >>> )
+        >>> action = torch.randn((T, B, N))
+        >>> data = vtrace_data(target_output, behaviour_output, action, value, reward, None)
+        >>> loss = vtrace_error_continuous_action(data, rho_clip_ratio=1.1)
     """
     target_output, behaviour_output, action, value, reward, weight = data
     with torch.no_grad():
