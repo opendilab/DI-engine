@@ -25,6 +25,7 @@ class MAVAC(nn.Module):
         agent_obs_shape: Union[int, SequenceType],
         global_obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
+        agent_num: int,
         actor_head_hidden_size: int = 256,
         actor_head_layer_num: int = 2,
         critic_head_hidden_size: int = 512,
@@ -43,6 +44,7 @@ class MAVAC(nn.Module):
                 such as 8 or [4, 84, 84].
             - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
+            - agent_num (:obj:`int`): This parameter is temporarily reserved.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``actor_head`` network, defaults \
                 to 256, it must match the last element of ``agent_obs_shape``.
             - actor_head_layer_num (:obj:`int`): The num of layers used in the ``actor_head`` network to compute action.
@@ -123,7 +125,7 @@ class MAVAC(nn.Module):
             computation.
         Arguments:
             - inputs (:obj:`Dict`): The input dict including observation and related info, \
-            whose key-values vary from different ``mode``.
+                whose key-values vary from different ``mode``.
             - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.
         Returns:
             - outputs (:obj:`Dict`): The output dict of MAVAC's forward computation graph, whose key-values vary from \
@@ -169,9 +171,12 @@ class MAVAC(nn.Module):
         Overview:
             MAVAC forward computation graph for actor part, input observation tensor to predict action logit.
         Arguments:
-            - x (:obj:`Dict`): The input dict must contain key ``agent_state``.
+            - x (:obj:`Dict`): Input data dict with keys ['agent_state', 'action_mask'(optional)].
+                - agent_state: (:obj:`torch.Tensor`): Each agent local state(obs).
+                - action_mask(optional): (:obj:`torch.Tensor`): When ``action_space`` is discrete, action_mask needs \
+                    to be provided to mask illegal actions.
         Returns:
-            - outputs (:obj:`Dict`):
+            - outputs (:obj:`Dict`): 
                 The output dict of MAVAC's forward computation graph for actor, including ``logit``.
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
@@ -212,7 +217,8 @@ class MAVAC(nn.Module):
         Overview:
             MAVAC forward computation graph for critic part, input global observation tensor to predict state value.
         Arguments:
-            - x (:obj:`Dict`): The input dict must contain key ``global_state``.
+            - x (:obj:`Dict`): Input data dict with keys ['global_state'].
+                - global_state: (:obj:`torch.Tensor`): Global state(obs).
         Returns:
             - outputs (:obj:`Dict`): The output dict of MAVAC's forward computation graph for critic, \
                 including ``value``.
