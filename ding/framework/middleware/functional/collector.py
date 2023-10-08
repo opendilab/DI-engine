@@ -90,7 +90,7 @@ def rolloutor(
         env: BaseEnvManager,
         transitions: TransitionList,
         collect_print_freq=100,
-        tb_logger: 'SummaryWriter' = None,
+        tb_logger=None,
         exp_name: Optional[str] = 'default_experiment',
         instance_name: Optional[str] = 'collector'
 ) -> Callable:
@@ -131,7 +131,8 @@ def rolloutor(
         Arguments:
             - train_iter (:obj:`int`): the number of training iteration.
         """
-        nonlocal episode_info, timer, total_episode_count, total_duration, total_envstep_count, total_train_sample_count, last_train_iter
+        nonlocal episode_info, timer, total_episode_count, total_duration, \
+        total_envstep_count, total_train_sample_count, last_train_iter
         if (train_iter - last_train_iter) >= collect_print_freq and len(episode_info) > 0:
             last_train_iter = train_iter
             episode_count = len(episode_info)
@@ -175,7 +176,8 @@ def rolloutor(
                 trajectory stops.
         """
 
-        nonlocal current_id, env_info, episode_info, timer, total_episode_count, total_duration, total_envstep_count, total_train_sample_count, last_train_iter
+        nonlocal current_id, env_info, episode_info, timer, \
+        total_episode_count, total_duration, total_envstep_count, total_train_sample_count, last_train_iter
         timesteps = env.step(ctx.action)
         ctx.env_step += len(timesteps)
         timesteps = [t.tensor() for t in timesteps]
