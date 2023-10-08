@@ -64,8 +64,7 @@ class DDPGPolicy(Policy):
         type='ddpg',
         # (bool) Whether to use cuda in policy.
         cuda=False,
-        # (bool) Whether learning policy is the same as collecting data policy(on-policy).
-        # Default False in DDPG.
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy). Default False in DDPG.
         on_policy=False,
         # (bool) Whether to enable priority experience sample.
         priority=False,
@@ -84,7 +83,7 @@ class DDPGPolicy(Policy):
         multi_agent=False,
         # learn_mode config
         learn=dict(
-            # How many updates(iterations) to train after collector's one collection.
+            # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
@@ -150,7 +149,7 @@ class DDPGPolicy(Policy):
             return 'continuous_qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
             Learn mode init method. Called by ``self.__init__``.
             Init actor and critic optimizers, algorithm config, main and target models.
@@ -202,7 +201,7 @@ class DDPGPolicy(Policy):
         self._forward_learn_cnt = 0  # count iterations
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
+        """
         Overview:
             Forward and backward function of learn mode.
         Arguments:
@@ -343,7 +342,7 @@ class DDPGPolicy(Policy):
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
@@ -365,7 +364,7 @@ class DDPGPolicy(Policy):
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, **kwargs) -> dict:
-        r"""
+        """
         Overview:
             Forward function of collect mode.
         Arguments:
@@ -431,7 +430,7 @@ class DDPGPolicy(Policy):
         return get_train_sample(transitions, self._unroll_len)
 
     def _init_eval(self) -> None:
-        r"""
+        """
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model. Unlike learn and collect model, eval model does not need noise.

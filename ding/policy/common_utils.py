@@ -1,4 +1,4 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Callable
 import torch
 import numpy as np
 import treetensor.torch as ttorch
@@ -56,7 +56,7 @@ def default_preprocess_learn(
     else:
         data['weight'] = data.get('weight', None)
     if use_nstep:
-        # Reward reshaping for n-step
+        # reward reshaping for n-step
         reward = data['reward']
         if len(reward.shape) == 1:
             reward = reward.unsqueeze(1)
@@ -69,10 +69,22 @@ def default_preprocess_learn(
     return data
 
 
-def single_env_forward_wrapper(forward_fn):
+def single_env_forward_wrapper(forward_fn: Callable) -> Callable:
     """
     Overview:
-        Wrap policy to support gym-style interaction between policy and environment.
+        Wrap policy to support gym-style interaction between policy and single environment.
+    Arguments:
+        - forward_fn (:obj:`Callable`): The original forward function of policy.
+    Returns:
+        - wrapped_forward_fn (:obj:`Callable`): The wrapped forward function of policy.
+    Examples:
+        >>> env = gym.make('CartPole-v0')
+        >>> policy = DQNPolicy(...)
+        >>> forward_fn = single_env_forward_wrapper(policy.eval_mode.forward)
+        >>> obs = env.reset()
+        >>> action = forward_fn(obs)
+        >>> next_obs, rew, done, info = env.step(action)
+
     """
 
     def _forward(obs):
@@ -84,10 +96,23 @@ def single_env_forward_wrapper(forward_fn):
     return _forward
 
 
-def single_env_forward_wrapper_ttorch(forward_fn, cuda=True):
+def single_env_forward_wrapper_ttorch(forward_fn: Callable, cuda: bool = True) -> Callable:
     """
     Overview:
-        Wrap policy to support gym-style interaction between policy and environment for treetensor (ttorch) data.
+        Wrap policy to support gym-style interaction between policy and single environment for treetensor (ttorch) data.
+    Arguments:
+        - forward_fn (:obj:`Callable`): The original forward function of policy.
+        - cuda (:obj:`bool`): Whether to use cuda in policy, if True, this function will move the input data to cuda.
+    Returns:
+        - wrapped_forward_fn (:obj:`Callable`): The wrapped forward function of policy.
+
+    Examples:
+        >>> env = gym.make('CartPole-v0')
+        >>> policy = PPOFPolicy(...)
+        >>> forward_fn = single_env_forward_wrapper_ttorch(policy.eval)
+        >>> obs = env.reset()
+        >>> action = forward_fn(obs)
+        >>> next_obs, rew, done, info = env.step(action)
     """
 
     def _forward(obs):

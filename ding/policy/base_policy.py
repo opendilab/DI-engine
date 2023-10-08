@@ -318,8 +318,8 @@ class Policy(ABC):
             to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \
             subclass can override the interfaces to customize its own collect mode.
         Returns:
-            - interfaces (:obj:`Policy.collect_function`): The interfaces of collect mode of policy, it is a namedtuple \
-                whose values of distinct fields are different internal methods.
+            - interfaces (:obj:`Policy.collect_function`): The interfaces of collect mode of policy, it is a \
+                namedtuple whose values of distinct fields are different internal methods.
         Examples:
             >>> policy = Policy(cfg, model)
             >>> policy_collect = policy.collect_mode
