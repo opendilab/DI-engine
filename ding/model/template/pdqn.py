@@ -13,7 +13,11 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, Regressi
 class PDQN(nn.Module):
     """
     Overview:
-        PDQN network.
+        The neural network and computation graph of PDQN and MPDQN algorithms for parameterized action space. \
+        This model supports parameterized action space with discrete ``action_type`` and continuous ``action_arg``. \
+        In principle, PDQN consists of x network (continuous action parameter network) and Q network (discrete \
+        action type network). But for simplicity, the code is split into ``encoder`` and ``actor_head``, which \
+        contain the encoder and head of the above two networks respectively.
     Interface:
         ``__init__``, ``forward``, ``compute_discrete``, ``compute_continuous``.
     """
@@ -126,6 +130,7 @@ class PDQN(nn.Module):
 
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
         # self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
+        # 为什么这里encoder是同一个？
         self.encoder = nn.ModuleList([self.cont_encoder, self.cont_encoder])
 
     def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
@@ -148,11 +153,18 @@ class PDQN(nn.Module):
             Use observation tensor to predict continuous action args.
         Arguments:
             - inputs (:obj:`torch.Tensor`): Observation inputs.
-        Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``.
         Returns:
             - outputs (:obj:`Dict`): A dict with key 'action_args'.
-                -  'action_args': The continuous action args.
+                - 'action_args' (:obj:`torch.Tensor`): The continuous action args.
+        Shapes:
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``.
+            - action_args (:obj:`torch.Tensor`): :math:`(B, M)`, where M is ``action_args_shape``.
+        Examples:
+            >>> act_shape = EasyDict({'action_type_shape': (3, ), 'action_args_shape': (5, )})
+            >>> model = PDQN(4, act_shape)
+            >>> inputs = torch.randn(64, 4)
+            >>> outputs = model.forward(inputs, mode='compute_continuous')
+            >>> assert outputs['action_args'].shape == torch.Size([64, 5])
         """
         cont_x = self.encoder[1](inputs)  # size (B, encoded_state_shape)
         action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
@@ -164,11 +176,21 @@ class PDQN(nn.Module):
         Overview:
             Use observation tensor and continuous action args to predict discrete action types.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): A dict with keys 'state', 'action_args'.
+            - inputs (:obj:`Union[Dict, EasyDict]`): A dict with keys 'state', 'action_args'.
+                - state (:obj:`torch.Tensor`): Observation inputs.
+                - action_args (:obj:`torch.Tensor`): Action parameters are used to concatenate with the observation \
+                    and serve as input to the discrete action type network.
         Returns:
             - outputs (:obj:`Dict`): A dict with keys 'logit', 'action_args'.
                 -  'logit': The logit value for each discrete action.
                 -  'action_args': The continuous action args(same as the inputs['action_args']) for later usage.
+        Examples:
+            >>> act_shape = EasyDict({'action_type_shape': (3, ), 'action_args_shape': (5, )})
+            >>> model = PDQN(4, act_shape)
+            >>> inputs = {'state': torch.randn(64, 4), 'action_args': torch.randn(64, 5)}
+            >>> outputs = model.forward(inputs, mode='compute_discrete')
+            >>> assert outputs['logit'].shape == torch.Size([64, 3])
+            >>> assert outputs['action_args'].shape == torch.Size([64, 5])
         """
         dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
         action_args = inputs['action_args']  # size (B, action_args_shape)
