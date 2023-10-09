@@ -1,3 +1,6 @@
+How to construct environments easily with Env Wrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Why do we need Env Wrapper
 ------------------------------------------------------
 Environment module is one of the most vital modules in reinforcement learning。 We train our agents in these environmnets and we allow them to explore and learn in these envirnments. In addition to a number of benchmark environments (such as atari or mujoco) reinforcement learning may also include a variety of custom environments.Overall，The essence of the Env Wrapper is to add certain generic additional features to our custom environment.
@@ -37,7 +40,8 @@ DI-engine provides a large number of pre-defined and generic Env Wrapper. The us
 
 - FireResetEnv：  Take ``fire`` action when the environment is reset. For more information please click `here <https://github.com/openai/baselines/issues/240>`_
 
-Tip: update_shape：This is a function that helps to identify the shape of observed states, actions and rewards after the env wrapper has been applied.
+.. tip::
+    ``update_shape`` in Env Wrapper: This is a function that helps to identify the shape of observed states, actions and rewards after the env wrapper has been applied.
 
 How to use Env Wrapper
 ------------------------------------
@@ -45,7 +49,7 @@ The next question is how to wrap the environment with Env Wrapper. One solution 
 
 .. code:: python
 
-    env = gym.make(evn_id)
+    env = gym.make(env_id)  # 'PongNoFrameskip-v4'
     env.NoopResetEnv(env, noop_max = 30)
     env = MaxAndSkipEnv(env, skip = 4)
 
@@ -82,12 +86,11 @@ The structure of ObsNormEnv as below：
    class ObsNormEnv(gym.ObservationWrapper):
         """
         Overview:
-        Normalize observations according to running mean and std.
+            Normalize observations according to running mean and std.
         Interface:
             ``__init__``, ``step``, ``reset``, ``observation``, ``new_shape``
         Properties:
-            - env (:obj:`gym.Env`): the environment to wrap.
-
+            - env (:obj:`gym.Env`): The environment to wrap.
             - ``data_count``, ``clip_range``, ``rms``
         """
 
@@ -112,7 +115,6 @@ The structure of ObsNormEnv as below：
 
 - ``reset``: Reset the state of the environment and reset ``data_count``, ``running mean/std``.
 
-If the functionality to be added is not in the Env Wrapper we provide, the user can also follow the example presented above and follow the example + refer to the `Related Documentation <https://www.gymlibrary.dev/api/wrappers/>`_ on Wrappers in the gym to customise a wrapper to meet the requirements.
+If the data pre-processing operations to be added is not in the Env Wrapper we provide, the user can also follow the example presented above and refer to the `Related Documentation <https://www.gymlibrary.dev/api/wrappers/>`_ on Wrappers in the gym to customise a wrapper to meet the requirements.
 
-For more details about env wrapper，please see
-``ding/envs/env_wrappers/env_wrappers.py``
+For more details about env wrapper，please see the code implementation in ``ding/envs/env_wrappers/env_wrappers.py``

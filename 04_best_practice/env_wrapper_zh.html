@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>为什么需要 Env Wrapper &mdash; DI-engine 0.1.0 documentation</title>
+  <title>如何使用 Env Wrapper 快速构建决策环境 &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -268,7 +268,7 @@
         
           <li><a href="index_zh.html">最佳实践</a> &gt;</li>
         
-      <li>为什么需要 Env Wrapper</li>
+      <li>如何使用 Env Wrapper 快速构建决策环境</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -299,12 +299,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="env-wrapper">
-<h1>为什么需要 Env Wrapper<a class="headerlink" href="#env-wrapper" title="Permalink to this headline">¶</a></h1>
+<h1>如何使用 Env Wrapper 快速构建决策环境<a class="headerlink" href="#env-wrapper" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>为什么需要 Env Wrapper<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>环境模块是强化学习领域中最重要的模块之一。 我们在这些环境中训练我们的智能体，让他们在这些环境中探索和学习。强化学习中除了一些基准环境，例如 atari，mujoco 外，还可能包括各种各样自定义的环境。总的来说 Env Wrapper (包裹器) 的本质就是向我们自定义的环境中添加某些通用的附加功能。
 比如说：在训练智能体时，我们经常需要改变环境的定义以追求更好的训练效果， 而这些处理技巧也具备一定的普适性。如对于一些环境，归一化观测状态是非常常见的预处理方式。这样处理会让训练更快并且更加稳定。 如果我们将这个共同的部分提取出来，并将这个预处理放在环境包裹器（Env Wrapper）中，这样就避免了重复的开发。即如果我们以后想修改观测状态归一化的方式，我们只需要在这个环境包裹器进行更改即可。</p>
 <p>因此，如果原始的环境不能完美地适配我们的需求，我们就需要往其中添加相应的功能模块，来对原始环境的功能进行扩充，使得用户能够方便地对环境的输入和输出进行操作或适配。而 Env Wrapper 正是添加功能的一种简明实现方案。</p>
-<section id="id1">
-<h2>我们提供的 Env Wrapper<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<section id="id2">
+<h3>我们提供的 Env Wrapper<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine 提供了大量已经定义好的、通用的 Env Wrapper，用户可以根据自己的需求直接包裹在需要使用的环境之上。在实现时，我们借鉴了 <a class="reference external" href="https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py">OpenAI Baselines</a> ，并且依然遵循 gym.Wrapper 的格式 <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">Gym.Wrapper</a> ，总共包括以下几种:</p>
 <ul class="simple">
 <li><p>NoopResetEnv：为环境添加重置方法。在一些无操作（no-operations）后重置环境.</p></li>
@@ -321,19 +323,23 @@
 <li><p>EpisodicLifeEnv： 让环境中的智能体的死亡来标志一个episode结束（游戏结束）, 并且只有在真正的游戏结束时才会重置游戏。一般来讲， 这样有助于算法的价值估计。</p></li>
 <li><p>FireResetEnv：  在环境重置时采取 <code class="docutils literal notranslate"><span class="pre">fire</span></code> 行动。 相关的讨论查阅 <a class="reference external" href="https://github.com/openai/baselines/issues/240">这里</a></p></li>
 </ul>
-<p>Tip: update_shape： 这是一个有助于在应用 env wrapper 后识别观测状态、动作和奖励的形状的函数。</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Env wrapper 中的 <code class="docutils literal notranslate"><span class="pre">update_shape</span></code> 函数： 这是一个有助于在应用 env wrapper 后识别观测状态、动作和奖励的形状的函数。</p>
+</div>
 </section>
 </section>
-<section id="id3">
-<h1>如何使用 Env Wrapper<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h1>
+<section id="id4">
+<h2>如何使用 Env Wrapper<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>下一个问题是我们如何给环境包裹上 Env Wrapper。最简单的一种方法就是手动地显式对环境进行包裹：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">evn_id</span><span class="p">)</span>
-<span class="n">env</span><span class="o">.</span><span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>  <span class="c1"># &#39;PongNoFrameskip-v4&#39;</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">MaxAndSkipEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">skip</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>如果需要将 gym 格式的环境转化为 DI-engine 的环境格式，并使用相应的多个 Env Wrapper，可以按照如下所示的方法：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span>
+
 <span class="n">env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span>
     <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_id</span><span class="p">),</span>
     <span class="n">cfg</span><span class="o">=</span><span class="p">{</span>
@@ -347,8 +353,8 @@
 </div>
 <p>特别需要说明的是，列表里的 Env Wrapper 是按照顺序包裹在环境外的。如在上面这个例子中，环境先是包裹了一层 MaxAndSkipWrapper ，再包裹了一层 ScaledFloatFrameWrapper。同时 Env Wrapper 的作用是添加功能，但不改变原有的功能。</p>
 </section>
-<section id="id4">
-<h1>如何自定义 Env Wrapper （举例）<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h1>
+<section id="id5">
+<h2>如何自定义 Env Wrapper<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>以 ObsNormEnv wrapper 为例。为了归一化观测状态，我们只需要改变原始环境类中的两个方法：step方法和 reset方法，其余方法保持不变。
 注意有些时候, 由于观测状态经过归一化后的界限改变了，info 也需要做相应的修改。 另请注意，ObsNormEnv wrapper 的本质是向原始环境添加附加功能，这正是包装器的含义. </p>
 <p>另外，由于采样得到数据的分布与策略高度相关，即不同的策略，样本的分布会有很大不同，所以我们使用运行均值和标准差来归一化观测状态，而不是固定均值和标准差 。</p>
@@ -356,12 +362,11 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ObsNormEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
 <span class="w">     </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">     Overview:</span>
-<span class="sd">     Normalize observations according to running mean and std.</span>
+<span class="sd">         Normalize observations according to running mean and std.</span>
 <span class="sd">     Interface:</span>
 <span class="sd">         ``__init__``, ``step``, ``reset``, ``observation``, ``new_shape``</span>
 <span class="sd">     Properties:</span>
-<span class="sd">         - env (:obj:`gym.Env`): the environment to wrap.</span>
-
+<span class="sd">         - env (:obj:`gym.Env`): The environment to wrap.</span>
 <span class="sd">         - ``data_count``, ``clip_range``, ``rms``</span>
 <span class="sd">     &quot;&quot;&quot;</span>
 
@@ -380,13 +385,13 @@
 </div>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: 初始化 <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">clip_range</span></code>, 和 <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean/std</span></code>。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">step</span></code>: 使用给定的动作推进环境，并更新 <code class="docutils literal notranslate"><span class="pre">data_count``和</span> <span class="pre">``running</span> <span class="pre">mean</span> <span class="pre">and</span> <span class="pre">std</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">step</span></code>: 使用给定的动作推进环境，并更新 <code class="docutils literal notranslate"><span class="pre">data_count</span></code> 和 <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean</span> <span class="pre">and</span> <span class="pre">std</span></code>。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">observation</span></code>: 获取观察结果. 如果 <code class="docutils literal notranslate"><span class="pre">data_count</span></code> 总数超过30，则返回归一化的版本。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code>: 重置环境状态并重置 <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean/std</span></code>。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code>: 重置环境状态并重置 <code class="docutils literal notranslate"><span class="pre">data_count</span></code>, <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean/std</span></code> 。</p></li>
 </ul>
-<p>如果需要添加的功能不在我们提供的 Env Wrapper 中，用户也可以按照上面介绍的例子按照例子 + 参考 gym 中关于 Wrapper 的 <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">相关文档</a>，自定义满足需求的包裹器。</p>
-<p>更多关于 env wrapper 的具体实现细节，可以查看该链接
-<code class="docutils literal notranslate"><span class="pre">ding/envs/env_wrappers/env_wrappers.py</span></code></p>
+<p>如果需要添加的功能不在我们提供的 Env Wrapper 中，用户也可以按照上面介绍的示例，并参考 gym 中关于 Wrapper 的 <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">相关文档</a> ，自定义满足需求的包裹器。</p>
+<p>更多关于 env wrapper 的具体实现细节，可以查看该代码文件 <code class="docutils literal notranslate"><span class="pre">ding/envs/env_wrappers/env_wrappers.py</span></code> 。</p>
+</section>
 </section>
 
 
@@ -432,12 +437,15 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">为什么需要 Env Wrapper</a><ul>
-<li><a class="reference internal" href="#id1">我们提供的 Env Wrapper</a></li>
+<li><a class="reference internal" href="#">如何使用 Env Wrapper 快速构建决策环境</a><ul>
+<li><a class="reference internal" href="#id1">为什么需要 Env Wrapper</a><ul>
+<li><a class="reference internal" href="#id2">我们提供的 Env Wrapper</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#id3">如何使用 Env Wrapper</a></li>
-<li><a class="reference internal" href="#id4">如何自定义 Env Wrapper （举例）</a></li>
+<li><a class="reference internal" href="#id4">如何使用 Env Wrapper</a></li>
+<li><a class="reference internal" href="#id5">如何自定义 Env Wrapper</a></li>
+</ul>
+</li>
 </ul>
 
             </div>

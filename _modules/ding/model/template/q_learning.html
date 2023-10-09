@@ -303,7 +303,7 @@
 <span class="kn">from</span> <span class="nn">ding.torch_utils.network.gtrxl</span> <span class="kn">import</span> <span class="n">GTrXL</span>
 
 
-<div class="viewcode-block" id="DQN"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.template.q_learning.DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="DQN"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -319,7 +319,7 @@
 <span class="sd">        ``DiscreteHead`` and ``DuelingHead``. You can customize your own encoder or head by inheriting this class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DQN.__init__"><a class="viewcode-back" href="../../../../12_policies/dqfd.html#ding.model.template.q_learning.DQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DQN.__init__"><a class="viewcode-back" href="../../../../12_policies/dqfd.html#ding.model.DQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -394,7 +394,7 @@
                 <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="DQN.forward"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.template.q_learning.DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="DQN.forward"><a class="viewcode-back" href="../../../../12_policies/dqn_zh.html#ding.model.DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            DQN forward computation graph, input observation tensor to predict q_value.</span>
@@ -422,10 +422,10 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;bdq&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="BDQ"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BDQ">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;bdq&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BDQ</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="BDQ.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BDQ.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">num_branches</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -490,9 +490,9 @@
             <span class="n">v_layer_num</span><span class="o">=</span><span class="n">v_layer_num</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
             <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="BDQ.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BDQ.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            BDQ forward computation graph, input observation tensor to predict q_value.</span>
@@ -514,10 +514,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_branches</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># corresponds to the &quot;Gradient Rescaling&quot; in the paper</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.template.q_learning.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">C51DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -532,7 +532,7 @@
 <span class="sd">        Current C51DQN supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="C51DQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.C51DQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
         <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -606,9 +606,9 @@
                 <span class="n">n_atom</span><span class="o">=</span><span class="n">n_atom</span><span class="p">,</span>
                 <span class="n">v_min</span><span class="o">=</span><span class="n">v_min</span><span class="p">,</span>
                 <span class="n">v_max</span><span class="o">=</span><span class="n">v_max</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-<div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.template.q_learning.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): The output of DQN&#39;s forward, including q_value.</span>
@@ -655,10 +655,10 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../12_policies/qrdqn_zh.html#ding.model.template.q_learning.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../12_policies/qrdqn_zh.html#ding.model.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QRDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="QRDQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QRDQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -720,9 +720,9 @@
                 <span class="n">num_quantiles</span><span class="o">=</span><span class="n">num_quantiles</span><span class="p">,</span>
                 <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-<div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../12_policies/qrdqn_zh.html#ding.model.template.q_learning.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../12_policies/qrdqn_zh.html#ding.model.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict QRDQN&#39;s output.</span>
@@ -758,10 +758,10 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../12_policies/iqn_zh.html#ding.model.template.q_learning.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../12_policies/iqn_zh.html#ding.model.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="IQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -827,9 +827,9 @@
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
                 <span class="n">num_quantiles</span><span class="o">=</span><span class="n">num_quantiles</span><span class="p">,</span>
                 <span class="n">quantile_embedding_size</span><span class="o">=</span><span class="n">quantile_embedding_size</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-<div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../12_policies/iqn_zh.html#ding.model.template.q_learning.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../12_policies/iqn_zh.html#ding.model.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict IQN&#39;s output.</span>
@@ -865,10 +865,10 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="FQF"><a class="viewcode-back" href="../../../../12_policies/fqf_zh.html#ding.model.template.q_learning.FQF">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;fqf&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="FQF"><a class="viewcode-back" href="../../../../12_policies/fqf_zh.html#ding.model.FQF">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;fqf&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">FQF</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="FQF.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQF.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -934,9 +934,9 @@
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
                 <span class="n">num_quantiles</span><span class="o">=</span><span class="n">num_quantiles</span><span class="p">,</span>
                 <span class="n">quantile_embedding_size</span><span class="o">=</span><span class="n">quantile_embedding_size</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-<div class="viewcode-block" id="FQF.forward"><a class="viewcode-back" href="../../../../12_policies/fqf_zh.html#ding.model.template.q_learning.FQF.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="FQF.forward"><a class="viewcode-back" href="../../../../12_policies/fqf_zh.html#ding.model.FQF.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict FQF&#39;s output.</span>
@@ -975,7 +975,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="RainbowDQN"><a class="viewcode-back" href="../../../../12_policies/rainbow_zh.html#ding.model.template.q_learning.RainbowDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rainbowdqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="RainbowDQN"><a class="viewcode-back" href="../../../../12_policies/rainbow_zh.html#ding.model.RainbowDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;rainbowdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">RainbowDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -985,7 +985,7 @@
 <span class="sd">        RainbowDQN contains dueling architecture by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="RainbowDQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RainbowDQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
         <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -1053,9 +1053,9 @@
                 <span class="n">n_atom</span><span class="o">=</span><span class="n">n_atom</span><span class="p">,</span>
                 <span class="n">v_min</span><span class="o">=</span><span class="n">v_min</span><span class="p">,</span>
                 <span class="n">v_max</span><span class="o">=</span><span class="n">v_max</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-<div class="viewcode-block" id="RainbowDQN.forward"><a class="viewcode-back" href="../../../../12_policies/rainbow_zh.html#ding.model.template.q_learning.RainbowDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="RainbowDQN.forward"><a class="viewcode-back" href="../../../../12_policies/rainbow_zh.html#ding.model.RainbowDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict Rainbow output.</span>
@@ -1125,7 +1125,7 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
-<div class="viewcode-block" id="DRQN"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.template.q_learning.DRQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;drqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="DRQN"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.DRQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;drqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DRQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -1143,7 +1143,7 @@
 <span class="sd">        ``gru``. You can customize your own encoder, rnn or head by inheriting this class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="DRQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DRQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -1212,9 +1212,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
                 <span class="n">head_hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-<div class="viewcode-block" id="DRQN.forward"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.template.q_learning.DRQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="DRQN.forward"><a class="viewcode-back" href="../../../../12_policies/r2d2.html#ding.model.DRQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            DRQN forward computation graph, input observation tensor to predict q_value.</span>
@@ -1314,7 +1314,7 @@
             <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxldqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="GTrXLDQN"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.GTrXLDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxldqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">GTrXLDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -1327,7 +1327,7 @@
 <span class="sd">        ``__init__``, ``forward``, ``reset_memory``, ``get_memory`` .</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="GTrXLDQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.GTrXLDQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
         <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -1425,9 +1425,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
                 <span class="n">hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">head_norm_type</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="GTrXLDQN.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.GTrXLDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Let input tensor go through GTrXl and the Head sequentially.</span>
@@ -1457,9 +1457,9 @@
         <span class="c1"># layer_num+1 x memory_len x bs embedding_dim -&gt; bs x layer_num+1 x memory_len x embedding_dim</span>
         <span class="n">out</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">permute</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
         <span class="n">out</span><span class="p">[</span><span class="s1">&#39;transformer_out&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>  <span class="c1"># output of gtrxl, out[&#39;logit&#39;] is final output</span>
-        <span class="k">return</span> <span class="n">out</span>
+        <span class="k">return</span> <span class="n">out</span></div>
 
-    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="GTrXLDQN.reset_memory"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.GTrXLDQN.reset_memory">[docs]</a>    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clear or reset the memory of GTrXL.</span>
@@ -1468,9 +1468,9 @@
 <span class="sd">            - state (:obj:`Optional[torch.Tensor]`): The input memory data, whose shape is \</span>
 <span class="sd">                (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">reset_memory</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">reset_memory</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<div class="viewcode-block" id="GTrXLDQN.get_memory"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.GTrXLDQN.get_memory">[docs]</a>    <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the memory of GTrXL.</span>
@@ -1478,7 +1478,7 @@
 <span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized, \</span>
 <span class="sd">                whose shape is (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span></div></div>
 </pre></div>
 
               </article>
