@@ -24,9 +24,6 @@ class TestProcedureCloning:
             'actions': torch.randn(B, T, action_dim)
         }
         model = ProcedureCloningMCTS(obs_shape=obs_shape, action_dim=action_dim)
-
-        print(model)
-
         goal_preds, action_preds = model(inputs['states'], inputs['goals'], inputs['actions'])
         assert goal_preds.shape == (B, obs_embeddings)
         assert action_preds.shape == (B, T + 1, action_dim)
