@@ -31,7 +31,8 @@ class PCTransformer(nn.Module):
             - drop_p (:obj:`float`): The drop out rate of attention, such as 0.5.
             - max_T (:obj:`int`): The sequence length of procedure cloning, such as 4.
             - n_attn (:obj:`int`): The number of attention layers, such as 4.
-            - feedforward_hidden (:obj:`int`): The number of feedforward layers, such as 4.
+            - feedforward_hidden (:obj:`int`):The dimension of feedforward layers, such as 32.
+            - n_feedforward (:obj:`int`): The number of feedforward layers, such as 4.
         """
         super().__init__()
         self.n_att = n_att
@@ -308,8 +309,8 @@ class ProcedureCloningBFS(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         """
         Overview:
-            The computation graph. Given a 3-dim observation, this function will return a tensor with the same\
-             height and width. The channel number of output will be the ``action_shape``.
+            The computation graph. Given a 3-dim observation, this function will return a tensor with the same \
+            height and width. The channel number of output will be the ``action_shape``.
         Arguments:
             - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:

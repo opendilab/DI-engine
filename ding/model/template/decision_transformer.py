@@ -24,7 +24,9 @@ from ding.utils import SequenceType
 class MaskedCausalAttention(nn.Module):
     """
     Overview:
-        The implementation of masked causal attention in decision transformer.
+        The implementation of masked causal attention in decision transformer. The input of this module is a sequence \
+        of several tokens. For the calculated hidden embedding for the i-th token, it is only related the 0 to i-1 \
+        input tokens by applying a mask to the attention map. Thus, this module is called masked-causal attention.
     Interfaces:
         ``__init__``, ``forward``
     """
@@ -34,7 +36,7 @@ class MaskedCausalAttention(nn.Module):
         Overview:
             Initialize the MaskedCausalAttention Model according to input arguments.
         Arguments:
-            - h_dim (:obj:`int`): The dimension of hidden states, such as 128.
+            - h_dim (:obj:`int`): The dimension of the hidden layers, such as 128.
             - max_T (:obj:`int`): The max context length of the attention, such as 6.
             - n_heads (:obj:`int`): The number of heads in calculating attention, such as 8.
             - drop_p (:obj:`float`): The drop rate of the drop-out layer, such as 0.1.
@@ -115,7 +117,7 @@ class Block(nn.Module):
         Overview:
             Initialize the Block Model according to input arguments.
         Arguments:
-            - h_dim (:obj:`int`): The dimension of hidden states, such as 128.
+            - h_dim (:obj:`int`): The dimension of the hidden layers, such as 128.
             - max_T (:obj:`int`): The max context length of the attention, such as 6.
             - n_heads (:obj:`int`): The number of heads in calculating attention, such as 8.
             - drop_p (:obj:`float`): The drop rate of the drop-out layer, such as 0.1.
@@ -182,16 +184,16 @@ class DecisionTransformer(nn.Module):
         Overview:
             Initialize the DecisionTransformer Model according to input arguments.
         Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Dimension of state, such as 128, (4, 84, 84).
+            - obs_shape (:obj:`Union[int, SequenceType]`): Dimension of state, such as 128 or (4, 84, 84).
             - act_dim (:obj:`int`): The dimension of actions, such as 6.
             - n_blocks (:obj:`int`): The number of transformer blocks in the decision transformer, such as 3.
-            - h_dim (:obj:`int`): The dimension of hidden states, such as 128.
+            - h_dim (:obj:`int`): The dimension of the hidden layers, such as 128.
             - context_len (:obj:`int`): The max context length of the attention, such as 6.
             - n_heads (:obj:`int`): The number of heads in calculating attention, such as 8.
             - drop_p (:obj:`float`): The drop rate of the drop-out layer, such as 0.1.
             - max_timestep (:obj:`int`): The max length of the total sequence, defaults to be 4096.
             - state_encoder (:obj:`Optional[nn.Module]`): The encoder to pre-process the given input. If it is set to \
-            None, the raw state will be pushed into the transformer.
+                None, the raw state will be pushed into the transformer.
             - continuous (:obj:`bool`): Whether the action space is continuous, defaults to be ``False``.
         """
         super().__init__()
@@ -254,7 +256,7 @@ class DecisionTransformer(nn.Module):
             - states (:obj:`torch.Tensor`): The sequence of states.
             - actions (:obj:`torch.Tensor`): The sequence of actions.
             - returns_to_go (:obj:`torch.Tensor`): The sequence of return-to-go.
-            - tar (:obj:`Optional[int]`): The targe index.
+            - tar (:obj:`Optional[int]`): Whether to predict action, regardless of index.
         Returns:
             - output (:obj:`Tuple[torch.Tensor, torch.Tensor, torch.Tensor]`): Output contains three tensors, \
             they are correspondingly the predicted states, predicted actions and predicted return-to-go.

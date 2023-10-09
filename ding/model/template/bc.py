@@ -44,6 +44,8 @@ class DiscreteBC(nn.Module):
                 if ``None`` then default set it to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details.
+            - strides (:obj:`Optional[list]`): The strides for each convolution layers, such as [2, 2, 2]. The length \
+                of this argument should be the same as ``encoder_hidden_size_list``.
         """
         super(DiscreteBC, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -197,8 +199,8 @@ class ContinuousBC(nn.Module):
             >>> model = ContinuousBC(32, 6, action_space='reparameterization')
             >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
-            >>> assert isinstance(outputs, dict) and outputs['logit'][0].shape == torch.Size([4, 6])\
-             and outputs['logit'][1].shape == torch.Size([4, 6])
+            >>> assert isinstance(outputs, dict) and outputs['logit'][0].shape == torch.Size([4, 6])
+            >>> assert outputs['logit'][1].shape == torch.Size([4, 6])
         """
         if self.action_space == 'regression':
             x = self.actor(inputs)
