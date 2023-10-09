@@ -359,7 +359,7 @@ class DecisionTransformer(nn.Module):
 
     def configure_optimizers(
             self, weight_decay: float, learning_rate: float, betas: Tuple[float, float] = (0.9, 0.95)
-    ) -> torch.optim.optimizer.Optimizer:
+    ) -> torch.optim.Optimizer:
         """
         Overview:
             This function returns an optimizer given the input arguments. \
@@ -370,7 +370,7 @@ class DecisionTransformer(nn.Module):
             - learning_rate (:obj:`float`): The learning rate of the optimizer.
             - betas (:obj:`Tuple[float, float]`): The betas for Adam optimizer.
         Outputs:
-            - optimizer (:obj:`torch.optim.optimizer.Optimizer`): The desired optimizer.
+            - optimizer (:obj:`torch.optim.Optimizer`): The desired optimizer.
         """
 
         # separate out all parameters to those that will and won't experience regularizing weight decay
