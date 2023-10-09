@@ -7,11 +7,11 @@ API Doc
     config
     env
     model
+    rl_utils
     policy/index
     framework/index
     data/index
     
-    rl_utils/index
     torch_utils/index
     utils/index
     

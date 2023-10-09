@@ -300,7 +300,7 @@
 <span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">RegressionHead</span><span class="p">,</span> <span class="n">ReparameterizationHead</span><span class="p">,</span> <span class="n">DistributionHead</span>
 
 
-<div class="viewcode-block" id="QACDIST"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.QACDIST">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac_dist&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="QACDIST"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.template.qac_dist.QACDIST">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac_dist&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QACDIST</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -310,7 +310,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="QACDIST.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QACDIST.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
         <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
@@ -393,9 +393,9 @@
                     <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
                     <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
                 <span class="p">)</span>
-            <span class="p">)</span></div>
+            <span class="p">)</span>
 
-<div class="viewcode-block" id="QACDIST.forward"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.QACDIST.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QACDIST.forward"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.template.qac_dist.QACDIST.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation and action tensor to predict output.</span>
@@ -459,7 +459,7 @@
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QACDIST.compute_actor"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.QACDIST.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QACDIST.compute_actor"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.template.qac_dist.QACDIST.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict output.</span>
@@ -503,7 +503,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]]}</span></div>
 
-<div class="viewcode-block" id="QACDIST.compute_critic"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.QACDIST.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QACDIST.compute_critic"><a class="viewcode-back" href="../../../../12_policies/d4pg.html#ding.model.template.qac_dist.QACDIST.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute parameter updates with ``&#39;compute_critic&#39;`` mode</span>
