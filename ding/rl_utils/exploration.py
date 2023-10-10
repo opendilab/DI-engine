@@ -172,6 +172,10 @@ class OUNoise(BaseNoise):
 
     @property
     def x0(self) -> Union[float, torch.Tensor]:
+        """
+        Overview:
+            Get ``self._x0``
+        """
         return self._x0
 
     @x0.setter

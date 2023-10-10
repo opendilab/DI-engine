@@ -37,6 +37,14 @@ def acer_policy_error(
         - ratio (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
         - actor_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
         - bc_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+    Examples:
+        >>> q_values=torch.randn(2, 3, 4),
+        >>> q_retraces=torch.randn(2, 3, 1),
+        >>> v_pred=torch.randn(2, 3, 1),
+        >>> target_pi=torch.randn(2, 3, 4),
+        >>> actions=torch.randint(0, 4, (2, 3)),
+        >>> ratio=torch.randn(2, 3, 4),
+        >>> loss = acer_policy_error(q_values, q_retraces, v_pred, target_pi, actions, ratio)
     """
     actions = actions.unsqueeze(-1)
     with torch.no_grad():
@@ -69,6 +77,12 @@ def acer_value_error(q_values, q_retraces, actions):
         - q_retraces (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
         - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
         - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
+    Examples:
+
+        >>> q_values=torch.randn(2, 3, 4)
+        >>> q_retraces=torch.randn(2, 3, 1)
+        >>> actions=torch.randint(0, 4, (2, 3))
+        >>> loss = acer_value_error(q_values, q_retraces, actions)
     """
     actions = actions.unsqueeze(-1)
     critic_loss = 0.5 * (q_retraces - q_values.gather(-1, actions)).pow(2)
@@ -92,6 +106,12 @@ def acer_trust_region_update(
     Shapes:
         - target_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
         - avg_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
+        - update_gradients (:obj:`list(torch.FloatTensor)`): :math:`(T, B, N)`
+    Examples:
+        >>> actor_gradients=[torch.randn(2, 3, 4)]
+        >>> target_pi=torch.randn(2, 3, 4)
+        >>> avg_pi=torch.randn(2, 3, 4)
+        >>> loss = acer_trust_region_update(actor_gradients, target_pi, avg_pi, 0.1)
     """
     with torch.no_grad():
         KL_gradients = [torch.exp(avg_logit)]
