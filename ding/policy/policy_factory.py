@@ -1,10 +1,10 @@
 from typing import Dict, Any, Callable
 from collections import namedtuple
 from easydict import EasyDict
+import gym
 import torch
 
 from ding.torch_utils import to_device
-import gym
 
 
 class PolicyFactory:

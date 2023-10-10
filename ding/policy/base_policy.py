@@ -1,10 +1,10 @@
+from typing import Optional, List, Dict, Any, Tuple, Union
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Optional, List, Dict, Any, Tuple, Union
-
-import torch
-import copy
 from easydict import EasyDict
+
+import copy
+import torch
 
 from ding.model import create_model
 from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, deep_merge_dicts, \
@@ -446,7 +446,7 @@ class Policy(ABC):
     # *************************************** learn function ************************************
 
     @abstractmethod
-    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \
@@ -455,11 +455,10 @@ class Policy(ABC):
             and so on. This method is left to be implemented by the subclass, and more arguments can be added in \
             ``data`` item if necessary.
         Arguments:
-            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including a batch of training \
-                samples. The key of the dict is the name of data items and the value is the corresponding data. \
-                Usually, the date item is a list of data, and the first dimension is the batch dimension, then in \
-                the ``_forward_learn`` method, the data item should be stacked in the batch dimension by some utility \
-                methods such as ``default_preprocess_learn``.
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, in the ``_forward_learn`` method, data should be stacked in \
+                the batch dimension by some utility functions such as ``default_preprocess_learn``.
         Returns:
             - output (:obj:`Dict[int, Any]`): The training information of policy forward, including some metrics for \
                 monitoring training such as loss, priority, q value, policy entropy, and some data for next step \
