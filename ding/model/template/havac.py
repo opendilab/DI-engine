@@ -53,9 +53,75 @@ class RNNLayer(nn.Module):
 
 @MODEL_REGISTRY.register('havac')
 class HAVAC(nn.Module):
-    r"""
+    """
     Overview:
-        The HAVAC model for HAPPO.
+        The HAVAC model of each agent for HAPPO.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
+    mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
+
+    def __init__(
+        self,
+        agent_obs_shape: Union[int, SequenceType],
+        global_obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        agent_num: int,
+        use_lstm: bool = True,
+        lstm_type: str = 'gru',
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        actor_head_hidden_size: int = 256,
+        actor_head_layer_num: int = 2,
+        critic_head_hidden_size: int = 512,
+        critic_head_layer_num: int = 1,
+        action_space: str = 'discrete',
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        sigma_type: Optional[str] = 'independent',
+        bound_type: Optional[str] = None,
+        res_link: bool = False,
+    ) -> None:
+        r"""
+        Overview:
+            Init the VAC Model for HAPPO according to arguments.
+        Arguments:
+            - agent_obs_shape (:obj:`Union[int, SequenceType]`): Observation's space for single agent.
+            - global_obs_shape (:obj:`Union[int, SequenceType]`): Observation's space for global agent
+            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - agent_num (:obj:`int`): Number of agents.
+            - lstm_type (:obj:`str`): use lstm or gru, default to gru
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
+            - actor_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for actor's nn.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
+            - critic_head_layer_num (:obj:`int`):
+                The num of layers used in the network to compute Q value output for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+            - res_link (:obj:`bool`): use the residual link or not, default to False
+        """
+        super(HAVAC, self).__init__()
+        self.agent_num = agent_num
+        self.agent_models = nn.ModuleList([HAVACAgent(
+            agent_obs_shape = agent_obs_shape,
+            global_obs_shape = global_obs_shape,
+            action_shape = action_shape,
+            use_lstm = use_lstm,
+            ) for _ in range(agent_num)])
+        
+    def forward(self, agent_idx, input_data, mode):
+        selected_agent_model = self.agent_models[agent_idx]
+        output = selected_agent_model(input_data, mode)
+        return output
+
+class HAVACAgent(nn.Module):
+    """
+    Overview:
+        The HAVAC model of each agent for HAPPO.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``, ``compute_actor_critic``
     """
@@ -102,7 +168,7 @@ class HAVAC(nn.Module):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
             - res_link (:obj:`bool`): use the residual link or not, default to False
         """
-        super(HAVAC, self).__init__()
+        super(HAVACAgent, self).__init__()
         agent_obs_shape: int = squeeze(agent_obs_shape)
         global_obs_shape: int = squeeze(global_obs_shape)
         action_shape: int = squeeze(action_shape)
