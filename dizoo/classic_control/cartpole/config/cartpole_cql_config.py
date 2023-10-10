@@ -42,7 +42,7 @@ cartpole_discrete_cql_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='cql_discrete'),
+    policy=dict(type='discrete_cql'),
 )
 cartpole_discrete_cql_create_config = EasyDict(cartpole_discrete_cql_create_config)
 create_config = cartpole_discrete_cql_create_config

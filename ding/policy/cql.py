@@ -275,37 +275,29 @@ class CQLPolicy(SACPolicy):
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
 
         # 2. predict target value
-        if self._value_network:
-            # predict v value
-            v_value = self._learn_model.forward(obs, mode='compute_value_critic')['v_value']
-            with torch.no_grad():
-                next_v_value = self._target_model.forward(next_obs, mode='compute_value_critic')['v_value']
-            target_q_value = next_v_value
-        else:
-            # target q value.
-            with torch.no_grad():
-                (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
+        with torch.no_grad():
+            (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
-                dist = Independent(Normal(mu, sigma), 1)
-                pred = dist.rsample()
-                next_action = torch.tanh(pred)
-                y = 1 - next_action.pow(2) + 1e-6
-                next_log_prob = dist.log_prob(pred).unsqueeze(-1)
-                next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
+            dist = Independent(Normal(mu, sigma), 1)
+            pred = dist.rsample()
+            next_action = torch.tanh(pred)
+            y = 1 - next_action.pow(2) + 1e-6
+            next_log_prob = dist.log_prob(pred).unsqueeze(-1)
+            next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
 
-                next_data = {'obs': next_obs, 'action': next_action}
-                target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
-                # the value of a policy according to the maximum entropy objective
-                if self._twin_critic:
-                    # find min one as target q value
-                    if self._with_q_entropy:
-                        target_q_value = torch.min(target_q_value[0],
-                                                   target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
-                    else:
-                        target_q_value = torch.min(target_q_value[0], target_q_value[1])
+            next_data = {'obs': next_obs, 'action': next_action}
+            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
+            # the value of a policy according to the maximum entropy objective
+            if self._twin_critic:
+                # find min one as target q value
+                if self._with_q_entropy:
+                    target_q_value = torch.min(target_q_value[0],
+                                               target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
                 else:
-                    if self._with_q_entropy:
-                        target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
+                    target_q_value = torch.min(target_q_value[0], target_q_value[1])
+            else:
+                if self._with_q_entropy:
+                    target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
 
         # 3. compute q loss
         if self._twin_critic:
@@ -399,20 +391,6 @@ class CQLPolicy(SACPolicy):
         new_q_value = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
         if self._twin_critic:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
-
-        # 7. (optional)compute value loss
-        if self._value_network:
-            # new_q_value: (bs, ), log_prob: (bs, act_shape) -> target_v_value: (bs, )
-            if self._with_q_entropy:
-                target_v_value = (new_q_value.unsqueeze(-1) - self._alpha * log_prob).mean(dim=-1)
-            else:
-                target_v_value = new_q_value.unsqueeze(-1).mean(dim=-1)
-            loss_dict['value_loss'] = F.mse_loss(v_value, target_v_value.detach())
-
-            # update value network
-            self._optimizer_value.zero_grad()
-            loss_dict['value_loss'].backward()
-            self._optimizer_value.step()
 
         # 8. compute policy loss
         policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
