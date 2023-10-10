@@ -23,3 +23,4 @@ from .retrace import compute_q_retraces
 from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
 from .sampler import ArgmaxSampler, MultinomialSampler, MuSampler, ReparameterizationSampler, HybridStochasticSampler, \
     HybridDeterminsticSampler
+from .happo import happo_data
