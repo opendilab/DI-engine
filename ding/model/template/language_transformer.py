@@ -1,16 +1,23 @@
+from typing import List, Dict
 import torch
-
-from ding.utils import MODEL_REGISTRY
 from torch import nn
+
 try:
     from transformers import AutoTokenizer, AutoModelForTokenClassification
 except ImportError:
     from ditk import logging
     logging.warning("not found transformer, please install it using: pip install transformers")
+from ding.utils import MODEL_REGISTRY
 
 
 @MODEL_REGISTRY.register('language_transformer')
 class LanguageTransformer(nn.Module):
+    """
+    Overview:
+        The LanguageTransformer network. Download a pre-trained language model and add head on it.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
             self,
@@ -19,6 +26,17 @@ class LanguageTransformer(nn.Module):
             embedding_size: int = 128,
             freeze_encoder: bool = True
     ) -> None:
+        """
+        Overview:
+            Init the LanguageTransformer Model according to input arguments.
+        Arguments:
+            - model_name (:obj:`str`): The base language model name in huggingface, such as "bert-base-uncased".
+            - add_linear (:obj:`bool`): Whether to add a linear layer on the top of language model, defaults to be \
+            ``False``.
+            - embedding_size (:obj:`int`): The embedding size of the added linear layer, such as 128.
+            - freeze_encoder (:obj:`bool`): Whether to freeze the encoder language model while training, \
+            defaults to be ``True``.
+        """
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForTokenClassification.from_pretrained(model_name)
@@ -29,7 +47,7 @@ class LanguageTransformer(nn.Module):
                 param.requires_grad = False
 
         if add_linear:
-            # Add an additional small, adjustable linear layer on top of BERT tuned through RL
+            # Add a small, adjustable linear layer on top of language model tuned through RL
             self.embedding_size = embedding_size
             self.linear = nn.Linear(
                 self.model.config.hidden_size, embedding_size
@@ -54,7 +72,30 @@ class LanguageTransformer(nn.Module):
 
         return sentence_embedding
 
-    def forward(self, train_samples: list, candidate_samples: list) -> dict:
+    def forward(self, train_samples: List[str], candidate_samples: List[str]) -> Dict:
+        """
+        Overview:
+            LanguageTransformer forward computation graph, input two lists of strings and predict their matching scores.
+        Arguments:
+            - train_samples (:obj:`List[str]`): One list of strings.
+            - candidate_samples (:obj:`List[str]`): The other list of strings to calculate the matching scores.
+        Returns:
+            - output (:obj:`Dict`): Output dict data, including the logit of matching scores and the \
+            corresponding ``torch.distributions.Categorical`` object.
+
+        Examples:
+            >>> test_pids = [1]
+            >>> cand_pids = [0, 2, 4]
+            >>> problems = [ \
+                "This is problem 0", "This is the first question", "Second problem is here", "Another problem", \
+                "This is the last problem" \
+            ]
+            >>> ctxt_list = [problems[pid] for pid in test_pids]
+            >>> cands_list = [problems[pid] for pid in cand_pids]
+            >>> model = LanguageTransformer(model_name="bert-base-uncased", add_linear=True, embedding_size=256)
+            >>> scores = model(ctxt_list, cands_list)
+            >>> assert scores.shape == (1, 3)
+        """
         prompt_embedding = self._calc_embedding(train_samples)
         cands_embedding = self._calc_embedding(candidate_samples)
         scores = torch.mm(prompt_embedding, cands_embedding.t())
