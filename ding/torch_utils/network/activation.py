@@ -5,6 +5,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class Lambda(nn.Module):
+
+    def __init__(self, f):
+        super(Lambda, self).__init__()
+        self.f = f
+
+    def forward(self, x):
+        return self.f(x)
+
+
 class GLU(nn.Module):
     r"""
     Overview:
@@ -95,7 +105,8 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     Overview:
         Return the activation module according to the given type.
     Arguments:
-        - activation (:obj:`str`): the type of activation module, now supports ['relu', 'glu', 'prelu']
+        - activation (:obj:`str`): the type of activation module, now supports \
+        ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity']
         - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default ``None``
     Returns:
         - act_func (:obj:`nn.module`): the corresponding activation module
@@ -104,8 +115,20 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)
     else:
         inplace = False
-    act_func = {'relu': nn.ReLU(inplace=inplace), 'glu': GLU, 'prelu': nn.PReLU(), 'swish': Swish(), 'gelu': GELU()}
-    if activation in act_func.keys():
+    act_func = {
+        'relu': nn.ReLU(inplace=inplace),
+        'glu': GLU,
+        'prelu': nn.PReLU(),
+        'swish': Swish(),
+        'gelu': GELU(),
+        "tanh": nn.Tanh(),
+        "sigmoid": nn.Sigmoid(),
+        "softplus": nn.Softplus(),
+        "elu": nn.ELU(),
+        "square": Lambda(lambda x: x ** 2),
+        "identity": Lambda(lambda x: x),
+    }
+    if activation.lower() in act_func.keys():
         return act_func[activation]
     else:
         raise KeyError("invalid key for activation: {}".format(activation))

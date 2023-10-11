@@ -11,11 +11,16 @@ from ding.torch_utils.network.dreamer import ActionHead, DenseHead
 
 @MODEL_REGISTRY.register('vac')
 class VAC(nn.Module):
-    r"""
+    """
     Overview:
-        The VAC model.
+        The neural network and computation graph of algorithms related to (state) Value Actor-Critic (VAC), such as \
+        A2C/PPO/IMPALA. This model now supports discrete, continuous and hybrid action space. The VAC is composed of \
+        four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and ``critic_head``. Encoders are used to \
+        extract the feature from various observation. Heads are used to predict corresponding value or action logit. \
+        In high-dimensional observation space like 2D image, we often use a shared encoder for both ``actor_encoder`` \
+        and ``critic_encoder``. In low-dimensional observation space like 1D vector, we often use different encoders.
     Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``, ``compute_actor_critic``.
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
@@ -38,26 +43,37 @@ class VAC(nn.Module):
         encoder: Optional[torch.nn.Module] = None,
         impala_cnn_encoder: bool = False,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the VAC Model according to arguments.
+            Initialize the VAC model according to corresponding input arguments.
         Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - action_space (:obj:`str`): Choose action head in ['discrete', 'continuous', 'hybrid']
-            - share_encoder (:obj:`bool`): Whether share encoder.
-            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
-            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
-            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
+            - action_space (:obj:`str`): The type of different action spaces, including ['discrete', 'continuous', \
+                'hybrid'], then will instantiate corresponding head, including ``DiscreteHead``, \
+                ``ReparameterizationHead``, and hybrid heads.
+            - share_encoder (:obj:`bool`): Whether to share observation encoders between actor and decoder.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
+                the last element must match ``head_hidden_size``.
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``actor_head`` network, defaults \
+                to 64, it must match the last element of ``encoder_hidden_size_list``.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the ``actor_head`` network to compute action.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``critic_head`` network, defaults \
+                to 64, it must match the last element of ``encoder_hidden_size_list``.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the ``critic_head`` network.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
+                if ``None`` then default set it to ``nn.ReLU()``.
+            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
+                ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
+            - sigma_type (:obj:`Optional[str]`): The type of sigma in continuous action space, see \
+                ``ding.torch_utils.network.dreamer.ReparameterizationHead`` for more details, in A2C/PPO, it defaults \
+                to ``independent``, which means state-independent sigma parameters.
+            - fixed_sigma_value (:obj:`Optional[int]`): If ``sigma_type`` is ``fixed``, then use this value as sigma.
+            - bound_type (:obj:`Optional[str]`): The type of action bound methods in continuous action space, defaults \
+                to ``None``, which means no bound.
+            - encoder (:obj:`Optional[torch.nn.Module]`): The encoder module, defaults to ``None``, you can define \
+                your own encoder module and pass it into VAC to deal with different observation space.
+            - impala_cnn_encoder (:obj:`bool`): Whether to use IMPALA CNN encoder, defaults to ``False``.
         """
         super(VAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
@@ -67,7 +83,7 @@ class VAC(nn.Module):
         self.share_encoder = share_encoder
 
         # Encoder Type
-        def new_encoder(outsize):
+        def new_encoder(outsize, activation):
             if impala_cnn_encoder:
                 return IMPALAConvEncoder(obs_shape=obs_shape, channels=encoder_hidden_size_list, outsize=outsize)
             else:
@@ -100,7 +116,7 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.encoder = new_encoder(actor_head_hidden_size)
+                self.encoder = new_encoder(actor_head_hidden_size, activation)
         else:
             if encoder:
                 if isinstance(encoder, torch.nn.Module):
@@ -109,8 +125,8 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.actor_encoder = new_encoder(actor_head_hidden_size)
-                self.critic_encoder = new_encoder(critic_head_hidden_size)
+                self.actor_encoder = new_encoder(actor_head_hidden_size, activation)
+                self.critic_encoder = new_encoder(critic_head_hidden_size, activation)
 
         # Head Type
         self.critic_head = RegressionHead(
@@ -174,7 +190,6 @@ class VAC(nn.Module):
             )
             self.actor_head = nn.ModuleList([actor_action_type, actor_action_args])
 
-        # must use list, not nn.ModuleList
         if self.share_encoder:
             self.actor = [self.encoder, self.actor_head]
             self.critic = [self.encoder, self.critic_head]
@@ -186,78 +201,63 @@ class VAC(nn.Module):
         self.actor = nn.ModuleList(self.actor)
         self.critic = nn.ModuleList(self.critic)
 
-    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+    def forward(self, x: torch.Tensor, mode: str) -> Dict:
+        """
         Overview:
-            Use encoded embedding tensor to predict output.
-            Parameter updates with VAC's MLPs forward setup.
+            VAC forward computation graph, input observation tensor to predict state value or action logit. Different \
+            ``mode`` will forward with different network modules to get different outputs and save computation.
         Arguments:
-            Forward with ``'compute_actor'`` or ``'compute_critic'``:
-                - inputs (:obj:`torch.Tensor`):
-                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
+            - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head.
+            - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph, whose key-values vary from \
+                different ``mode``.
 
-                Forward with ``'compute_actor'``, Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
-
-                Forward with ``'compute_critic'``, Necessary Keys:
-                    - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N corresponding ``hidden_size``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
-            - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-
-        Actor Examples:
-            >>> model = VAC(64,128)
+        Examples (Actor):
+            >>> model = VAC(64, 128)
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['logit'].shape == torch.Size([4, 128])
 
-        Critic Examples:
-            >>> model = VAC(64,64)
+        Examples (Critic):
+            >>> model = VAC(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> critic_outputs = model(inputs,'compute_critic')
-            >>> critic_outputs['value']
-            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
 
-        Actor-Critic Examples:
-            >>> model = VAC(64,64)
+        Examples (Actor-Critic):
+            >>> model = VAC(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = model(inputs,'compute_actor_critic')
-            >>> outputs['value']
-            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert critic_outputs['value'].shape == torch.Size([4])
             >>> assert outputs['logit'].shape == torch.Size([4, 64])
 
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
-        return getattr(self, mode)(inputs)
+        return getattr(self, mode)(x)
 
     def compute_actor(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_actor'`` mode
-            Use encoded embedding tensor to predict output.
+            VAC forward computation graph for actor part, input observation tensor to predict action logit.
         Arguments:
-            - inputs (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = actor_head_hidden_size``
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head.
-
+            - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph for actor, including ``logit``.
         ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
+            - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
+                the same dimension real-value ranged tensor of possible action choices, and for continuous action \
+                space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the \
+                same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \
+                and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.
         Shapes:
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - logit (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
 
         Examples:
-            >>> model = VAC(64,64)
+            >>> model = VAC(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
+            >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
         """
         if self.share_encoder:
             x = self.encoder(x)
@@ -275,29 +275,23 @@ class VAC(nn.Module):
             return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
 
     def compute_critic(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
-            Use encoded embedding tensor to predict output.
+            VAC forward computation graph for critic part, input observation tensor to predict state value.
         Arguments:
-            - inputs (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = critic_head_hidden_size``
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head.
-
-                Necessary Keys:
-                    - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+            - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph for critic, including ``value``.
+        ReturnsKeys:
+            - value (:obj:`torch.Tensor`): The predicted state value tensor.
         Shapes:
-            - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size, (B, 1) is squeezed to (B, ).
 
         Examples:
-            >>> model = VAC(64,64)
+            >>> model = VAC(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> critic_outputs = model(inputs,'compute_critic')
-            >>> critic_outputs['value']
-            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert critic_outputs['value'].shape == torch.Size([4])
         """
         if self.share_encoder:
             x = self.encoder(x)
@@ -307,37 +301,37 @@ class VAC(nn.Module):
         return {'value': x['pred']}
 
     def compute_actor_critic(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_actor_critic'`` mode
-            Use encoded embedding tensor to predict output.
+            VAC forward computation graph for both actor and critic part, input observation tensor to predict action \
+            logit and state value.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): The encoded embedding tensor.
-
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head.
-
+            - outputs (:obj:`Dict`): The output dict of VAC's forward computation graph for both actor and critic, \
+                including ``logit`` and ``value``.
         ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Logit encoding tensor, with same size as input ``x``.
-            - value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
+            - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
+                the same dimension real-value ranged tensor of possible action choices, and for continuous action \
+                space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the \
+                same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \
+                and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.
+            - value (:obj:`torch.Tensor`): The predicted state value tensor.
         Shapes:
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
-            - value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - logit (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``
+            - value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size, (B, 1) is squeezed to (B, ).
 
         Examples:
-            >>> model = VAC(64,64)
+            >>> model = VAC(64, 64)
             >>> inputs = torch.randn(4, 64)
             >>> outputs = model(inputs,'compute_actor_critic')
-            >>> outputs['value']
-            tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
+            >>> assert critic_outputs['value'].shape == torch.Size([4])
             >>> assert outputs['logit'].shape == torch.Size([4, 64])
 
 
         .. note::
-            ``compute_actor_critic`` interface aims to save computation when shares encoder.
-            Returning the combination dictionry.
-
+            ``compute_actor_critic`` interface aims to save computation when shares encoder and return the combination \
+            dict output.
         """
         if self.share_encoder:
             actor_embedding = critic_embedding = self.encoder(x)
@@ -361,11 +355,12 @@ class VAC(nn.Module):
 
 @MODEL_REGISTRY.register('dreamervac')
 class DREAMERVAC(nn.Module):
-    r"""
+    """
     Overview:
-        The VAC model.
+        The neural network and computation graph of DreamerV3 (state) Value Actor-Critic (VAC).
+        This model now supports discrete, continuous action space.
     Interfaces:
-        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
+        ``__init__``, ``forward``.
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
@@ -388,26 +383,12 @@ class DREAMERVAC(nn.Module):
             actor_temp=0.1,
             action_unimix_ratio=0.01,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the VAC Model according to arguments.
+            Initialize the ``DREAMERVAC`` model according to arguments.
         Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - action_space (:obj:`str`): Choose action head in ['discrete', 'continuous', 'hybrid']
-            - share_encoder (:obj:`bool`): Whether share encoder.
-            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
-            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
-            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
         """
         super(DREAMERVAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)

@@ -1,9 +1,10 @@
 import torch.nn as nn
+import torch.distributed as dist
 from ditk import logging
-from ding.model.template.dt import DecisionTransformer
+from ding.model import DecisionTransformer
 from ding.policy import DTPolicy
 from ding.envs import SubprocessEnvManagerV2
-from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
+from ding.envs import AllinObsWrapper
 from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
@@ -13,7 +14,6 @@ from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver,
 from ding.utils import set_pkg_seed, DDPContext, to_ddp_config
 from dizoo.atari.envs import AtariEnv
 from dizoo.atari.config.serial.pong.pong_dt_config import main_config, create_config
-import torch.distributed as dist
 
 
 def main():
@@ -48,7 +48,7 @@ def main():
             task.use(trainer(cfg, policy.learn_mode))
             task.use(termination_checker(max_train_iter=3e4))
             task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
-            task.use(offline_logger(cfg.exp_name))
+            task.use(offline_logger())
             task.run()
 
 

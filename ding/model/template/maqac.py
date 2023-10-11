@@ -9,11 +9,11 @@ from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, Multi
     FCEncoder, ConvEncoder
 
 
-@MODEL_REGISTRY.register('maqac')
-class MAQAC(nn.Module):
-    r"""
+@MODEL_REGISTRY.register('discrete_maqac')
+class DiscreteMAQAC(nn.Module):
+    """
     Overview:
-        The MAQAC model.
+        The discrete action Multi-Agent Q-value Actor-CritiC (MAQAC) model.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -32,9 +32,9 @@ class MAQAC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the MAQAC Model according to arguments.
+            Init the DiscreteMAQAC Model according to arguments.
         Arguments:
             - agent_obs_shape (:obj:`Union[int, SequenceType]`): Agent's observation's space.
             - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space.
@@ -42,18 +42,17 @@ class MAQAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for actor's nn.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
+                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``ding.torch_utils.fc_block`` \
+                for more details.
         """
-        super(MAQAC, self).__init__()
+        super(DiscreteMAQAC, self).__init__()
         agent_obs_shape: int = squeeze(agent_obs_shape)
         action_shape: int = squeeze(action_shape)
         self.actor = nn.Sequential(
@@ -146,12 +145,12 @@ class MAQAC(nn.Module):
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = DiscreteQAC(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = DiscreteQAC(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu
@@ -188,11 +187,11 @@ class MAQAC(nn.Module):
         return {'q_value': x}
 
 
-@MODEL_REGISTRY.register('maqac_continuous')
+@MODEL_REGISTRY.register('continuous_maqac')
 class ContinuousMAQAC(nn.Module):
-    r"""
+    """
     Overview:
-        The Continuous MAQAC model.
+        The continuous action Multi-Agent Q-value Actor-CritiC (MAQAC) model.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -212,7 +211,7 @@ class ContinuousMAQAC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
             Init the QAC Model according to arguments.
         Arguments:
@@ -221,16 +220,15 @@ class ContinuousMAQAC(nn.Module):
             - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for actor's nn.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
+                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``ding.torch_utils.fc_block`` \
+                for more details.
         """
         super(ContinuousMAQAC, self).__init__()
         obs_shape: int = squeeze(agent_obs_shape)
@@ -238,7 +236,7 @@ class ContinuousMAQAC(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.action_space = action_space
-        assert self.action_space in ['regression', 'reparameterization']
+        assert self.action_space in ['regression', 'reparameterization'], self.action_space
         if self.action_space == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
@@ -331,12 +329,12 @@ class ContinuousMAQAC(nn.Module):
 
         Actor Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = ContinuousQAC(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = ContinuousQAC(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu
@@ -378,12 +376,12 @@ class ContinuousMAQAC(nn.Module):
                 (action_args are continuous real value)
         Examples:
             >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
+            >>> model = ContinuousQAC(64, 64, 'regression')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
             >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
+            >>> model = ContinuousQAC(64, 64, 'reparameterization')
             >>> inputs = torch.randn(4, 64)
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> actor_outputs['logit'][0].shape # mu

@@ -54,16 +54,18 @@ class DequeBuffer(Buffer):
         A buffer implementation based on the deque structure.
     """
 
-    def __init__(self, size: int) -> None:
+    def __init__(self, size: int, sliced: bool = False) -> None:
         """
         Overview:
             The initialization method of DequeBuffer.
         Arguments:
             - size (:obj:`int`): The maximum number of objects that the buffer can hold.
+            - sliced (:obj:`bool`): The flag whether slice data by unroll_len when sample by group
         """
         super().__init__(size=size)
         self.storage = deque(maxlen=size)
         self.indices = BufferIndex(maxlen=size)
+        self.sliced = sliced
         # Meta index is a dict which uses deque as values
         self.meta_index = {}
 
@@ -142,7 +144,7 @@ class DequeBuffer(Buffer):
             sampled_data = [hashed_data[index] for index in indices]
         elif groupby:
             sampled_data = self._sample_by_group(
-                size=size, groupby=groupby, replace=replace, unroll_len=unroll_len, storage=storage
+                size=size, groupby=groupby, replace=replace, unroll_len=unroll_len, storage=storage, sliced=self.sliced
             )
         else:
             if replace:
@@ -301,7 +303,8 @@ class DequeBuffer(Buffer):
             groupby: str,
             replace: bool = False,
             unroll_len: Optional[int] = None,
-            storage: deque = None
+            storage: deque = None,
+            sliced: bool = False
     ) -> List[List[BufferedData]]:
         """
         Overview:
@@ -324,6 +327,8 @@ class DequeBuffer(Buffer):
 
         if unroll_len and unroll_len > 1:
             group_names = filter_by_unroll_len()
+            if len(group_names) == 0:
+                return []
         else:
             group_names = list(set(self.meta_index[groupby]))
 
@@ -348,8 +353,19 @@ class DequeBuffer(Buffer):
             seq_data = sampled_data[group]
             # Filter records by unroll_len
             if unroll_len:
-                start_indice = random.choice(range(max(1, len(seq_data) - unroll_len)))
-                seq_data = seq_data[start_indice:start_indice + unroll_len]
+                # slice b unroll_len. If don’t do this, more likely obtain duplicate data, \
+                #  and the training will easily crash.
+                if sliced:
+                    start_indice = random.choice(range(max(1, len(seq_data))))
+                    start_indice = start_indice // unroll_len
+                    if start_indice == (len(seq_data) - 1) // unroll_len:
+                        seq_data = seq_data[-unroll_len:]
+                    else:
+                        seq_data = seq_data[start_indice * unroll_len:start_indice * unroll_len + unroll_len]
+                else:
+                    start_indice = random.choice(range(max(1, len(seq_data) - unroll_len)))
+                    seq_data = seq_data[start_indice:start_indice + unroll_len]
+
             final_sampled_data.append(seq_data)
 
         return final_sampled_data

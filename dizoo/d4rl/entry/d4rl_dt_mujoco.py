@@ -21,7 +21,7 @@ def main():
     # For demostration, we also can train a RL policy (e.g. SAC) and collect some data
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    # ding_init(cfg)
+    ding_init(cfg)
     with task.start(async_mode=False, ctx=OfflineRLContext()):
         evaluator_env = BaseEnvManagerV2(
             env_fn=[lambda: AllinObsWrapper(D4RLEnv(cfg.env)) for _ in range(cfg.env.evaluator_env_num)],
@@ -42,7 +42,7 @@ def main():
         task.use(trainer(cfg, policy.learn_mode))
         task.use(termination_checker(max_train_iter=1e5))
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100))
-        task.use(offline_logger(cfg.exp_name))
+        task.use(offline_logger())
         task.run()
 
 

@@ -1,40 +1,52 @@
-from typing import Any, Tuple, Callable, Optional, List, Dict
+from typing import Any, Tuple, Callable, Optional, List, Dict, Union
 from abc import ABC
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical, Independent, Normal
-from ding.torch_utils import get_tensor_data
+from ding.torch_utils import get_tensor_data, zeros_like
 from ding.rl_utils import create_noise_generator
 from ding.utils.data import default_collate
 
 
 class IModelWrapper(ABC):
-    r"""
+    """
     Overview:
-        the base class of Model Wrappers
+        The basic interface class of model wrappers. Model wrapper is a wrapper class of torch.nn.Module model, which \
+        is used to add some extra operations for the wrapped model, such as hidden state maintain for RNN-base model, \
+        argmax action selection for discrete action space, etc.
     Interfaces:
-        register
+        ``__init__``, ``__getattr__``, ``info``, ``reset``, ``forward``.
     """
 
-    def __init__(self, model: Any) -> None:
+    def __init__(self, model: nn.Module) -> None:
+        """
+        Overview:
+            Initialize model and other necessary member variabls in the model wrapper.
+        """
         self._model = model
 
     def __getattr__(self, key: str) -> Any:
-        r"""
+        """
         Overview:
-            Get the attrbute in model.
+            Get original attrbutes of torch.nn.Module model, such as variables and methods defined in model.
         Arguments:
-            - key (:obj:`str`): The key to query.
+            - key (:obj:`str`): The string key to query.
         Returns:
             - ret (:obj:`Any`): The queried attribute.
         """
         return getattr(self._model, key)
 
-    def info(self, attr_name):
-        r"""
+    def info(self, attr_name: str) -> str:
+        """
         Overview:
-            get info of attr_name
+            Get some string information of the indicated ``attr_name``, which is used for debug wrappers.
+            This method will recursively search for the indicated ``attr_name``.
+        Arguments:
+            - attr_name (:obj:`str`): The string key to query information.
+        Returns:
+            - info_string (:obj:`str`): The information string of the indicated ``attr_name``.
         """
         if attr_name in dir(self):
             if isinstance(self._model, IModelWrapper):
@@ -50,36 +62,46 @@ class IModelWrapper(ABC):
             else:
                 return '{}'.format(self._model.__class__.__name__)
 
-
-class BaseModelWrapper(IModelWrapper):
-    r"""
-    Overview:
-        the base class of Model Wrappers
-    Interfaces:
-        register
-    """
-
-    def reset(self, data_id: List[int] = None) -> None:
-        r"""
+    def reset(self, data_id: List[int] = None, **kwargs) -> None:
+        """
         Overview
-            the reset function that the Model Wrappers with states should implement
-            used to reset the stored states
+            Basic interface, reset some stateful varaibles in the model wrapper, such as hidden state of RNN.
+            Here we do nothing and just implement this interface method.
+            Other derived model wrappers can override this method to add some extra operations.
+        Arguments:
+            - data_id (:obj:`List[int]`): The data id list to reset. If None, reset all data. In practice, \
+                model wrappers often needs to maintain some stateful variables for each data trajectory, \
+                so we leave this ``data_id`` argument to reset the stateful variables of the indicated data.
         """
         pass
 
+    def forward(self, *args, **kwargs) -> Any:
+        """
+        Overview:
+            Basic interface, call the wrapped model's forward method. Other derived model wrappers can override this \
+            method to add some extra operations.
+        """
+        return self._model.forward(*args, **kwargs)
 
-def zeros_like(h):
-    if isinstance(h, torch.Tensor):
-        return torch.zeros_like(h)
-    elif isinstance(h, (list, tuple)):
-        return [zeros_like(t) for t in h]
-    elif isinstance(h, dict):
-        return {k: zeros_like(v) for k, v in h.items()}
-    else:
-        raise TypeError("not support type: {}".format(h))
+
+class BaseModelWrapper(IModelWrapper):
+    """
+    Overview:
+        Placeholder class for the model wrapper. This class is used to wrap the model without any extra operations, \
+        including a empty ``reset`` method and a ``forward`` method which directly call the wrapped model's forward.
+        To keep the consistency of the model wrapper interface, we use this class to wrap the model without specific \
+        operations in the implementation of DI-engine's policy.
+    """
+    pass
 
 
 class HiddenStateWrapper(IModelWrapper):
+    """
+    Overview:
+        Maintain the hidden state for RNN-base model. Each sample in a batch has its own state.
+    Interfaces:
+        ``__init__``, ``reset``, ``forward``.
+    """
 
     def __init__(
             self,
@@ -387,12 +409,18 @@ def sample_action(logit=None, prob=None):
 
 
 class ArgmaxSampleWrapper(IModelWrapper):
-    r"""
+    """
     Overview:
-        Used to help the model to sample argmax action
+        Used to help the model to sample argmax action.
+    Interfaces:
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
+        """
+        Overview:
+            Employ model forward computation graph, and use the output logit to greedily select max action (argmax).
+        """
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']
@@ -411,11 +439,64 @@ class ArgmaxSampleWrapper(IModelWrapper):
         return output
 
 
+class CombinationArgmaxSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Used to help the model to sample combination argmax action.
+    Interfaces:
+        ``forward``.
+    """
+
+    def forward(self, shot_number, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        # Generate actions.
+        act = []
+        mask = torch.zeros_like(output['logit'])
+        for ii in range(shot_number):
+            masked_logit = output['logit'] + mask
+            actions = masked_logit.argmax(dim=-1)
+            act.append(actions)
+            for jj in range(actions.shape[0]):
+                mask[jj][actions[jj]] = -1e8
+        # `act` is shaped: (B, shot_number)
+        act = torch.stack(act, dim=1)
+        output['action'] = act
+        return output
+
+
+class CombinationMultinomialSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Used to help the model to sample combination multinomial action.
+    Interfaces:
+        ``forward``.
+    """
+
+    def forward(self, shot_number, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        # Generate actions.
+        act = []
+        mask = torch.zeros_like(output['logit'])
+        for ii in range(shot_number):
+            dist = torch.distributions.Categorical(logits=output['logit'] + mask)
+            actions = dist.sample()
+            act.append(actions)
+            for jj in range(actions.shape[0]):
+                mask[jj][actions[jj]] = -1e8
+
+        # `act` is shaped: (B, shot_number)
+        act = torch.stack(act, dim=1)
+        output['action'] = act
+        return output
+
+
 class HybridArgmaxSampleWrapper(IModelWrapper):
     r"""
     Overview:
         Used to help the model to sample argmax action in hybrid action space,
         i.e.{'action_type': discrete, 'action_args', continuous}
+    Interfaces:
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
@@ -440,11 +521,11 @@ class HybridArgmaxSampleWrapper(IModelWrapper):
 
 
 class MultinomialSampleWrapper(IModelWrapper):
-    r"""
+    """
     Overview:
-        Used to help the model get the corresponding action from the output['logits']
+        Used to help the model get the corresponding action from the output['logits']self.
     Interfaces:
-        register
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
@@ -482,7 +563,7 @@ class EpsGreedySampleWrapper(IModelWrapper):
         - float (i.e. python native scalar): for almost normal case
         - Dict[str, float]: for algorithm NGU
     Interfaces:
-        register
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
@@ -536,7 +617,7 @@ class EpsGreedyMultinomialSampleWrapper(IModelWrapper):
         Epsilon greedy sampler coupled with multinomial sample used in collector_model
         to help balance exploration and exploitation.
     Interfaces:
-        register
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
@@ -583,7 +664,7 @@ class HybridEpsGreedySampleWrapper(IModelWrapper):
         Epsilon greedy sampler used in collector_model to help balance exploration and exploitation.
         In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
     Interfaces:
-        register, forward
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
@@ -623,7 +704,7 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         to help balance exploration and exploitation.
         In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
     Interfaces:
-        register
+        ``forward``.
     """
 
     def forward(self, *args, **kwargs):
@@ -712,7 +793,7 @@ class HybridDeterministicArgmaxSampleWrapper(IModelWrapper):
         return output
 
 
-class DeterministicSample(IModelWrapper):
+class DeterministicSampleWrapper(IModelWrapper):
     """
     Overview:
         Deterministic sampler (just use mu directly) used in eval_model.
@@ -727,7 +808,7 @@ class DeterministicSample(IModelWrapper):
         return output
 
 
-class ReparamSample(IModelWrapper):
+class ReparamSampleWrapper(IModelWrapper):
     """
     Overview:
         Reparameterization gaussian sampler used in collector_model.
@@ -749,7 +830,7 @@ class ActionNoiseWrapper(IModelWrapper):
     Overview:
         Add noise to collector's action output; Do clips on both generated noise and action after adding noise.
     Interfaces:
-        register, __init__, add_noise, reset
+        ``__init__``, ``forward``.
     Arguments:
         - model (:obj:`Any`): Wrapped model class. Should contain ``forward`` method.
         - noise_type (:obj:`str`): The type of noise that should be generated, support ['gauss', 'ou'].
@@ -806,13 +887,6 @@ class ActionNoiseWrapper(IModelWrapper):
         if self.action_range is not None:
             action = action.clamp(self.action_range['min'], self.action_range['max'])
         return action
-
-    def reset(self) -> None:
-        r"""
-        Overview:
-            Reset noise generator.
-        """
-        pass
 
 
 class TargetNetworkWrapper(IModelWrapper):
@@ -872,17 +946,15 @@ class TargetNetworkWrapper(IModelWrapper):
 
 
 class TeacherNetworkWrapper(IModelWrapper):
-    r"""
+    """
     Overview:
         Set the teacher Network. Set the model's model.teacher_cfg to the input teacher_cfg
-
-    Interfaces:
-        register
     """
 
     def __init__(self, model, teacher_cfg):
         super().__init__(model)
         self._model._teacher_cfg = teacher_cfg
+        raise NotImplementedError
 
 
 wrapper_name_map = {
@@ -892,8 +964,8 @@ wrapper_name_map = {
     'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
-    'deterministic_sample': DeterministicSample,
-    'reparam_sample': ReparamSample,
+    'deterministic_sample': DeterministicSampleWrapper,
+    'reparam_sample': ReparamSampleWrapper,
     'hybrid_eps_greedy_sample': HybridEpsGreedySampleWrapper,
     'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,
     'hybrid_reparam_multinomial_sample': HybridReparamMultinomialSampleWrapper,
@@ -906,11 +978,24 @@ wrapper_name_map = {
     # model wrapper
     'target': TargetNetworkWrapper,
     'teacher': TeacherNetworkWrapper,
+    'combination_argmax_sample': CombinationArgmaxSampleWrapper,
+    'combination_multinomial_sample': CombinationMultinomialSampleWrapper,
 }
 
 
-def model_wrap(model, wrapper_name: str = None, **kwargs):
+def model_wrap(model: Union[nn.Module, IModelWrapper], wrapper_name: str = None, **kwargs):
+    """
+    Overview:
+        Wrap the model with the specified wrapper and return the wrappered model.
+    Arguments:
+        - model (:obj:`Any`): The model to be wrapped.
+        - wrapper_name (:obj:`str`): The name of the wrapper to be used.
+
+    .. note::
+        The arguments of the wrapper should be passed in as kwargs.
+    """
     if wrapper_name in wrapper_name_map:
+        # TODO test whether to remove this if branch
         if not isinstance(model, IModelWrapper):
             model = wrapper_name_map['base'](model)
         model = wrapper_name_map[wrapper_name](model, **kwargs)
@@ -919,13 +1004,15 @@ def model_wrap(model, wrapper_name: str = None, **kwargs):
     return model
 
 
-def register_wrapper(name: str, wrapper_type: type):
-    r"""
+def register_wrapper(name: str, wrapper_type: type) -> None:
+    """
     Overview:
-        Register new wrapper to wrapper_name_map
+        Register new wrapper to ``wrapper_name_map``. When user implements a new wrapper, they must call this function \
+        to complete the registration. Then the wrapper can be called by ``model_wrap``.
     Arguments:
-        - name (:obj:`str`): the name of the wrapper
-        - wrapper_type (subclass of :obj:`IModelWrapper`): the wrapper class added to the plguin_name_map
+        - name (:obj:`str`): The name of the new wrapper to be registered.
+        - wrapper_type (:obj:`type`): The wrapper class needs to be added in ``wrapper_name_map``. This argument \
+            should be the subclass of ``IModelWrapper``.
     """
     assert isinstance(name, str)
     assert issubclass(wrapper_type, IModelWrapper)

@@ -2,12 +2,13 @@ from collections import namedtuple
 from typing import List, Dict, Any, Tuple
 
 import torch
+import treetensor.torch as ttorch
 
 from ding.model import model_wrap
 from ding.rl_utils import vtrace_data, vtrace_error_discrete_action, vtrace_error_continuous_action, get_train_sample
 from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
-from ding.utils.data import default_collate, default_decollate
+from ding.utils.data import default_collate, default_decollate, ttorch_collate
 from ding.policy.base_policy import Policy
 
 
@@ -55,7 +56,6 @@ class IMPALAPolicy(Policy):
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
         learn=dict(
-
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow ppo serial pipeline
             update_per_collect=4,
@@ -158,7 +158,13 @@ class IMPALAPolicy(Policy):
             - done (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weight (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        data = default_collate(data)
+        elem = data[0]
+        if isinstance(elem, dict):  # old pipeline
+            data = default_collate(data)
+        elif isinstance(elem, list):  # new task pipeline
+            data = default_collate(default_collate(data))
+        else:
+            raise TypeError("not support element type ({}) in IMPALA".format(type(elem)))
         if self._cuda:
             data = to_device(data, self._device)
         if self._priority_IS_weight:
@@ -167,27 +173,11 @@ class IMPALAPolicy(Policy):
             data['weight'] = data['IS']
         else:
             data['weight'] = data.get('weight', None)
-        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1)*B,env_obs_shape
-        if self._action_space == 'continuous':
-            data['logit']['mu'] = torch.cat(
-                data['logit']['mu'], dim=0
-            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-            data['logit']['sigma'] = torch.cat(
-                data['logit']['sigma'], dim=0
-            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-            data['action'] = torch.cat(
-                data['action'], dim=0
-            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-        elif self._action_space == 'discrete':
-            data['logit'] = torch.cat(
-                data['logit'], dim=0
-            ).reshape(self._unroll_len, -1, self._action_shape)  # shape T,B,env_action_shape
-            data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
-        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
-        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
-        data['weight'] = torch.cat(
-            data['weight'], dim=0
-        ).reshape(self._unroll_len, -1) if data['weight'] else None  # shape T,B
+        if isinstance(elem, dict):  # old pipeline
+            for k in data:
+                if isinstance(data[k], list):
+                    data[k] = default_collate(data[k])
+        data['obs_plus_1'] = torch.cat([data['obs'], data['next_obs'][-1:]], dim=0)  # shape (T+1)*B,env_obs_shape
         return data
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -213,7 +203,9 @@ class IMPALAPolicy(Policy):
         # IMPALA forward
         # ====================
         self._learn_model.train()
-        output = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor_critic')
+        output = self._learn_model.forward(
+            data['obs_plus_1'].view((-1, ) + data['obs_plus_1'].shape[2:]), mode='compute_actor_critic'
+        )
         target_logit, behaviour_logit, actions, values, rewards, weights = self._reshape_data(output, data)
         # Calculate vtrace error
         data = vtrace_data(target_logit, behaviour_logit, actions, values, rewards, weights)
@@ -276,7 +268,7 @@ class IMPALAPolicy(Policy):
         actions = data['action']  # shape T,B for discrete # shape T,B,env_action_shape for continuous
         values = output['value'].reshape(self._unroll_len + 1, -1)  # shape T+1,B,env_action_shape
         rewards = data['reward']  # shape T,B
-        weights_ = 1 - data['done']  # shape T,B
+        weights_ = 1 - data['done'].float()  # shape T,B
         weights = torch.ones_like(rewards)  # shape T,B
         values[1:] = values[1:] * weights_
         weights[1:] = weights_[:-1]

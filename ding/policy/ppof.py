@@ -27,6 +27,8 @@ class PPOFPolicy:
         epoch_per_collect=10,
         batch_size=64,
         learning_rate=3e-4,
+        # learningrate scheduler, which the format is (10000, 0.1)
+        lr_scheduler=None,
         weight_decay=0,
         value_weight=0.5,
         entropy_weight=0.01,
@@ -81,6 +83,14 @@ class PPOFPolicy:
                 lr=self._cfg.learning_rate,
                 weight_decay=self._cfg.weight_decay,
             )
+            # define linear lr scheduler
+            if self._cfg.lr_scheduler is not None:
+                epoch_num, min_lr_lambda = self._cfg.lr_scheduler
+
+                self._lr_scheduler = torch.optim.lr_scheduler.LambdaLR(
+                    self._optimizer,
+                    lr_lambda=lambda epoch: max(1.0 - epoch * (1.0 - min_lr_lambda) / epoch_num, min_lr_lambda)
+                )
 
             if self._cfg.value_norm:
                 self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
@@ -281,6 +291,10 @@ class PPOFPolicy:
                         }
                     )
                 return_infos.append(return_info)
+
+        if self._cfg.lr_scheduler is not None:
+            self._lr_scheduler.step()
+
         return return_infos
 
     def state_dict(self) -> Dict[str, Any]:

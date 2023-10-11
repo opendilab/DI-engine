@@ -8,7 +8,9 @@ import shutil
 import wandb
 import h5py
 import torch.nn as nn
+from unittest.mock import MagicMock
 from unittest.mock import Mock, patch
+
 from ding.utils import DistributedWriter
 from ding.framework.middleware.tests import MockPolicy, CONFIG
 from ding.framework import OnlineRLContext, OfflineRLContext
@@ -208,7 +210,7 @@ def test_wandb_online_logger():
     model = TheModelClass()
     wandb.init(config=cfg, anonymous="must")
 
-    def mock_metric_logger(metric_dict, step):
+    def mock_metric_logger(data, step):
         metric_list = [
             "q_value",
             "target q_value",
@@ -229,9 +231,9 @@ def test_wandb_online_logger():
             "actions_of_trajectory_3",
             "return distribution",
         ]
-        assert set(metric_dict.keys()) <= set(metric_list)
+        assert set(data.keys()) <= set(metric_list)
 
-    def mock_gradient_logger(input_model):
+    def mock_gradient_logger(input_model, log, log_freq, log_graph):
         assert input_model == model
 
     def test_wandb_online_logger_metric():
@@ -246,26 +248,25 @@ def test_wandb_online_logger():
     test_wandb_online_logger_gradient()
 
 
-# @pytest.mark.unittest
-# TODO(nyz): fix CI bug when py=3.8.15
-@pytest.mark.tmp
-def test_wandb_offline_logger(mocker):
+@pytest.mark.unittest
+def test_wandb_offline_logger():
     record_path = './video_pendulum_cql'
     cfg = EasyDict(dict(gradient_logger=True, plot_logger=True, action_logger=True, vis_dataset=True))
     env = TheEnvClass()
-    ctx = OnlineRLContext()
+    ctx = OfflineRLContext()
     ctx.train_output = [{'reward': 1, 'q_value': [1.0]}]
     model = TheModelClass()
     wandb.init(config=cfg, anonymous="must")
+    exp_config = EasyDict(dict(dataset_path='dataset.h5'))
 
-    def mock_metric_logger(metric_dict):
+    def mock_metric_logger(data, step=None):
         metric_list = [
             "q_value", "target q_value", "loss", "lr", "entropy", "reward", "q value", "video", "q value distribution",
             "train iter", 'dataset'
         ]
-        assert set(metric_dict.keys()) < set(metric_list)
+        assert set(data.keys()) < set(metric_list)
 
-    def mock_gradient_logger(input_model):
+    def mock_gradient_logger(input_model, log, log_freq, log_graph):
         assert input_model == model
 
     def mock_image_logger(imagepath):
@@ -273,17 +274,22 @@ def test_wandb_offline_logger(mocker):
 
     def test_wandb_offline_logger_gradient():
         cfg.vis_dataset = False
+        print(cfg)
         with patch.object(wandb, 'watch', new=mock_gradient_logger):
-            wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
+            wandb_offline_logger(
+                record_path=record_path, cfg=cfg, exp_config=exp_config, env=env, model=model, anonymous=True
+            )(ctx)
 
     def test_wandb_offline_logger_dataset():
         cfg.vis_dataset = True
-        m = mocker.MagicMock()
+        m = MagicMock()
         m.__enter__.return_value = {'obs': TheObsDataClass(), 'action': The1DDataClass(), 'reward': The1DDataClass()}
         with patch.object(wandb, 'log', new=mock_metric_logger):
             with patch.object(wandb, 'Image', new=mock_image_logger):
-                mocker.patch('h5py.File', return_value=m)
-                wandb_offline_logger(cfg, env, model, 'dataset.h5', anonymous=True)(ctx)
+                with patch('h5py.File', return_value=m):
+                    wandb_offline_logger(
+                        record_path=record_path, cfg=cfg, exp_config=exp_config, env=env, model=model, anonymous=True
+                    )(ctx)
 
     test_wandb_offline_logger_gradient()
     test_wandb_offline_logger_dataset()

@@ -168,7 +168,7 @@ class TD3VAEPolicy(DDPGPolicy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        return 'continuous_qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
         r"""
