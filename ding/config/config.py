@@ -452,6 +452,8 @@ def compile_config(
     if len(world_model_config) > 0:
         default_config['world_model'] = world_model_config
     cfg = deep_merge_dicts(default_config, cfg)
+    if 'unroll_len' in cfg.policy:
+        cfg.policy.collect.unroll_len = cfg.policy.unroll_len
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation

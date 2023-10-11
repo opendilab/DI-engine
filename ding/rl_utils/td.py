@@ -28,6 +28,38 @@ def q_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
+    """
+    Overview:
+        1 step td_error, support single agent case and multi agent case.
+    Arguments:
+        - data (:obj:`q_1step_td_data`): The input data, q_1step_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+    Returns:
+        - loss (:obj:`torch.Tensor`): 1step td error
+    Shapes:
+        - data (:obj:`q_1step_td_data`): the q_1step_td_data containing\
+             ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight']
+        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - next_q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]
+        - act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - next_act (:obj:`torch.LongTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`( , B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    Examples:
+        >>> action_dim = 4
+        >>> data = q_1step_td_data(
+        >>>     q=torch.randn(3, action_dim),
+        >>>     next_q=torch.randn(3, action_dim),
+        >>>     act=torch.randint(0, action_dim, (3,)),
+        >>>     next_act=torch.randint(0, action_dim, (3,)),
+        >>>     reward=torch.randn(3),
+        >>>     done=torch.randint(0, 2, (3,)).bool(),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss = q_1step_td_error(data, 0.99)
+    """
     q, next_q, act, next_act, reward, done, weight = data
     assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
@@ -71,6 +103,18 @@ def m_q_1step_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`( , B)`
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    Examples:
+        >>> action_dim = 4
+        >>> data = m_q_1step_td_data(
+        >>>     q=torch.randn(3, action_dim),
+        >>>     target_q=torch.randn(3, action_dim),
+        >>>     next_q=torch.randn(3, action_dim),
+        >>>     act=torch.randint(0, action_dim, (3,)),
+        >>>     reward=torch.randn(3),
+        >>>     done=torch.randint(0, 2, (3,)),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss = m_q_1step_td_error(data, 0.99, 0.01, 0.01)
     """
     q, target_q, next_q, act, reward, done, weight = data
     lower_bound = -1
@@ -139,6 +183,17 @@ def q_v_1step_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`( , B)`
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    Examples:
+        >>> action_dim = 4
+        >>> data = q_v_1step_td_data(
+        >>>     q=torch.randn(3, action_dim),
+        >>>     v=torch.randn(3),
+        >>>     act=torch.randint(0, action_dim, (3,)),
+        >>>     reward=torch.randn(3),
+        >>>     done=torch.randint(0, 2, (3,)),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss = q_v_1step_td_error(data, 0.99)
     """
     q, v, act, reward, done, weight = data
     if len(act.shape) == 1:
@@ -173,6 +228,31 @@ nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'do
 
 
 def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_gamma: Optional[torch.Tensor] = None):
+    '''
+    Overview:
+        Calculate nstep return for DQN algorithm, support single agent case and multi agent case.
+    Arguments:
+        - data (:obj:`nstep_return_data`): The input data, nstep_return_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - nstep (:obj:`int`): nstep num
+        - value_gamma (:obj:`torch.Tensor`): Discount factor for value
+    Returns:
+        - return_ (:obj:`torch.Tensor`): nstep return
+    Shapes:
+        - data (:obj:`nstep_return_data`): the nstep_return_data containing\
+             ['reward', 'next_value', 'done']
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
+        - next_value (:obj:`torch.FloatTensor`): :math:`(, B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    Examples:
+        >>> data = nstep_return_data(
+        >>>     reward=torch.randn(3, 3),
+        >>>     next_value=torch.randn(3),
+        >>>     done=torch.randint(0, 2, (3,)),
+        >>> )
+        >>> loss = nstep_return(data, 0.99, 3)
+    '''
+
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
@@ -220,6 +300,9 @@ def dist_1step_td_error(
     Arguments:
         - data (:obj:`dist_1step_td_data`): The input data, dist_nstep_td_data to calculate loss
         - gamma (:obj:`float`): Discount factor
+        - v_min (:obj:`float`): The min value of support
+        - v_max (:obj:`float`): The max value of support
+        - n_atom (:obj:`int`): The num of atom
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
@@ -232,6 +315,15 @@ def dist_1step_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`(, B)`
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    Examples:
+        >>> dist = torch.randn(4, 3, 51).abs().requires_grad_(True)
+        >>> next_dist = torch.randn(4, 3, 51).abs()
+        >>> act = torch.randint(0, 3, (4,))
+        >>> next_act = torch.randint(0, 3, (4,))
+        >>> reward = torch.randn(4)
+        >>> done = torch.randint(0, 2, (4,))
+        >>> data = dist_1step_td_data(dist, next_dist, act, next_act, reward, done, None)
+        >>> loss = dist_1step_td_error(data, 0.99, -10.0, 10.0, 51)
     """
     dist, next_dist, act, next_act, reward, done, weight = data
     device = reward.device
@@ -342,6 +434,15 @@ def dist_nstep_td_error(
         - next_n_act (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    Examples:
+        >>> dist = torch.randn(4, 3, 51).abs().requires_grad_(True)
+        >>> next_n_dist = torch.randn(4, 3, 51).abs()
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> reward = torch.randn(5, 4)
+        >>> data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
+        >>> loss, _ = dist_nstep_td_error(data, 0.95, -10.0, 10.0, 51, 5)
     """
     dist, next_n_dist, act, next_n_act, reward, done, weight = data
     device = reward.device
@@ -426,6 +527,31 @@ def v_1step_td_error(
         gamma: float,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
+    '''
+    Overview:
+        1 step td_error for distributed value based algorithm
+    Arguments:
+        - data (:obj:`v_1step_td_data`): The input data, v_1step_td_data to calculate loss
+        - gamma (:obj:`float`): Discount factor
+        - criterion (:obj:`torch.nn.modules`): Loss function criterion
+    Returns:
+        - loss (:obj:`torch.Tensor`): 1step td error, 0-dim tensor
+    Shapes:
+        - data (:obj:`v_1step_td_data`): the v_1step_td_data containing\
+            ['v', 'next_v', 'reward', 'done', 'weight']
+        - v (:obj:`torch.FloatTensor`): :math:`(B, )` i.e. [batch_size, ]
+        - next_v (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - reward (:obj:`torch.FloatTensor`): :math:`(, B)`
+        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+        - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
+    Examples:
+        >>> v = torch.randn(5).requires_grad_(True)
+        >>> next_v = torch.randn(5)
+        >>> reward = torch.rand(5)
+        >>> done = torch.zeros(5)
+        >>> data = v_1step_td_data(v, next_v, reward, done, None)
+        >>> loss, td_error_per_sample = v_1step_td_error(data, 0.99)
+    '''
     v, next_v, reward, done, weight = data
     if weight is None:
         weight = torch.ones_like(v)
@@ -471,6 +597,13 @@ def v_nstep_td_error(
         - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
         - value_gamma (:obj:`torch.Tensor`): If the remaining data in the buffer is less than n_step\
             we use value_gamma as the gamma discount value for next_v rather than gamma**n_step
+    Examples:
+        >>> v = torch.randn(5).requires_grad_(True)
+        >>> next_v = torch.randn(5)
+        >>> reward = torch.rand(5, 5)
+        >>> done = torch.zeros(5)
+        >>> data = v_nstep_td_data(v, next_v, reward, done, 0.9, 0.99)
+        >>> loss, td_error_per_sample = v_nstep_td_error(data, 0.99, 5)
     """
     v, next_n_v, reward, done, weight, value_gamma = data
     if weight is None:
@@ -540,6 +673,16 @@ def q_nstep_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+    Examples:
+        >>> next_q = torch.randn(4, 3)
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> nstep =3
+        >>> q = torch.randn(4, 3).requires_grad_(True)
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
+        >>> loss, td_error_per_sample = q_nstep_td_error(data, 0.95, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
     if weight is None:
@@ -604,6 +747,17 @@ def bdq_nstep_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+    Examples:
+        >>> action_per_branch = 3
+        >>> next_q = torch.randn(8, 6, action_per_branch)
+        >>> done = torch.randn(8)
+        >>> action = torch.randint(0, action_per_branch, size=(8, 6))
+        >>> next_action = torch.randint(0, action_per_branch, size=(8, 6))
+        >>> nstep =3
+        >>> q = torch.randn(8, 6, action_per_branch).requires_grad_(True)
+        >>> reward = torch.rand(nstep, 8)
+        >>> data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
+        >>> loss, td_error_per_sample = bdq_nstep_td_error(data, 0.95, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
     if weight is None:
@@ -679,6 +833,16 @@ def q_nstep_td_error_with_rescale(
         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    Examples:
+        >>> next_q = torch.randn(4, 3)
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> nstep =3
+        >>> q = torch.randn(4, 3).requires_grad_(True)
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
+        >>> loss, _ = q_nstep_td_error_with_rescale(data, 0.95, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
     assert len(action.shape) == 1, action.shape
@@ -737,6 +901,26 @@ def dqfd_nstep_td_error(
         - new_n_q_one_step (:obj:`torch.FloatTensor`): :math:`(B, N)`
         - next_n_action_one_step (:obj:`torch.LongTensor`): :math:`(B, )`
         - is_expert (:obj:`int`) : 0 or 1
+    Examples:
+        >>> next_q = torch.randn(4, 3)
+        >>> done = torch.randn(4)
+        >>> done_1 = torch.randn(4)
+        >>> next_q_one_step = torch.randn(4, 3)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> next_action_one_step = torch.randint(0, 3, size=(4, ))
+        >>> is_expert = torch.ones((4))
+        >>> nstep = 3
+        >>> q = torch.randn(4, 3).requires_grad_(True)
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = dqfd_nstep_td_data(
+        >>>     q, next_q, action, next_action, reward, done, done_1, None,
+        >>>     next_q_one_step, next_action_one_step, is_expert
+        >>> )
+        >>> loss, td_error_per_sample, loss_statistics = dqfd_nstep_td_error(
+        >>>     data, 0.95, lambda_n_step_td=1, lambda_supervised_loss=1,
+        >>>     margin_function=0.8, nstep=nstep
+        >>> )
     """
     q, next_n_q, action, next_n_action, reward, done, done_one_step, weight, new_n_q_one_step, next_n_action_one_step, \
     is_expert = data  # set is_expert flag(expert 1, agent 0)
@@ -929,6 +1113,16 @@ def qrdqn_nstep_td_error(
         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    Examples:
+        >>> next_q = torch.randn(4, 3, 3)
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> nstep = 3
+        >>> q = torch.randn(4, 3, 3).requires_grad_(True)
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = qrdqn_nstep_td_data(q, next_q, action, next_action, reward, done, 3, None)
+        >>> loss, td_error_per_sample = qrdqn_nstep_td_error(data, 0.95, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, tau, weight = data
 
@@ -1005,6 +1199,16 @@ def q_nstep_sql_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`
+    Examples:
+        >>> next_q = torch.randn(4, 3)
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> nstep = 3
+        >>> q = torch.randn(4, 3).requires_grad_(True)
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
+        >>> loss, td_error_per_sample, record_target_v = q_nstep_sql_td_error(data, 0.95, 1.0, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, weight = data
     assert len(action.shape) == 1, action.shape
@@ -1069,6 +1273,17 @@ def iqn_nstep_td_error(
         - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
+    Examples:
+        >>> next_q = torch.randn(3, 4, 3)
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> nstep = 3
+        >>> q = torch.randn(3, 4, 3).requires_grad_(True)
+        >>> replay_quantile = torch.randn([3, 4, 1])
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = iqn_nstep_td_data(q, next_q, action, next_action, reward, done, replay_quantile, None)
+        >>> loss, td_error_per_sample = iqn_nstep_td_error(data, 0.95, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, replay_quantiles, weight = data
 
@@ -1165,6 +1380,17 @@ def fqf_nstep_td_error(
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - quantiles_hats (:obj:`torch.FloatTensor`): :math:`(B, tau)`
+    Examples:
+        >>> next_q = torch.randn(4, 3, 3)
+        >>> done = torch.randn(4)
+        >>> action = torch.randint(0, 3, size=(4, ))
+        >>> next_action = torch.randint(0, 3, size=(4, ))
+        >>> nstep = 3
+        >>> q = torch.randn(4, 3, 3).requires_grad_(True)
+        >>> quantiles_hats = torch.randn([4, 3])
+        >>> reward = torch.rand(nstep, 4)
+        >>> data = fqf_nstep_td_data(q, next_q, action, next_action, reward, done, quantiles_hats, None)
+        >>> loss, td_error_per_sample = fqf_nstep_td_error(data, 0.95, nstep=nstep)
     """
     q, next_n_q, action, next_n_action, reward, done, quantiles_hats, weight = data
 
@@ -1233,11 +1459,17 @@ def evaluate_quantile_at_action(q_s, actions):
 
 def fqf_calculate_fraction_loss(q_tau_i, q_value, quantiles, actions):
     """
-    Shapes:
-       - q_tau_i (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles-1, action_dim)`
-       - q_value (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles, action_dim)`
-       - quantiles (:obj:`torch.FloatTensor`) :math:`(batch_size, num_quantiles+1)`
-       - actions (:obj:`torch.LongTensor`) :math:`(batch_size, )`
+    Overview:
+        Calculate the fraction loss in FQF, \
+            referenced paper Fully Parameterized Quantile Function for Distributional Reinforcement Learning \
+            <https://arxiv.org/pdf/1911.02140.pdf>
+    Arguments:
+        - q_tau_i (:obj:`torch.FloatTensor`): :math:`(batch_size, num_quantiles-1, action_dim)`
+        - q_value (:obj:`torch.FloatTensor`): :math:`(batch_size, num_quantiles, action_dim)`
+        - quantiles (:obj:`torch.FloatTensor`): :math:`(batch_size, num_quantiles+1)`
+        - actions (:obj:`torch.LongTensor`): :math:`(batch_size, )`
+    Returns:
+        - fraction_loss (:obj:`torch.Tensor`): fraction loss, 0-dim tensor
     """
     assert q_value.requires_grad
 
@@ -1317,6 +1549,11 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, the returns from time step 0 to T-1
         - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
         - loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+    Examples:
+        >>> T, B = 8, 4
+        >>> value = torch.randn(T + 1, B).requires_grad_(True)
+        >>> reward = torch.rand(T, B)
+        >>> loss = td_lambda_error(td_lambda_data(value, reward, None))
     """
     value, reward, weight = data
     if weight is None:

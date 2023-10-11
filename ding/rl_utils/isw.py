@@ -34,6 +34,11 @@ def compute_importance_weights(
         - behaviour_output (:obj:`Union[torch.FloatTensor,dict]`): :math:`(T, B, N)`
         - action (:obj:`torch.LongTensor`): :math:`(T, B)`
         - rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`
+    Examples:
+        >>> target_output = torch.randn(2, 3, 4)
+        >>> behaviour_output = torch.randn(2, 3, 4)
+        >>> action = torch.randint(0, 4, (2, 3))
+        >>> rhos = compute_importance_weights(target_output, behaviour_output, action)
     """
     grad_context = torch.enable_grad() if requires_grad else torch.no_grad()
     assert isinstance(action, torch.Tensor)

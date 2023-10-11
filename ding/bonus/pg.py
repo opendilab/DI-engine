@@ -8,7 +8,7 @@ import treetensor.torch as ttorch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import CkptSaver, trainer, \
     wandb_online_logger, offline_data_saver, termination_checker, interaction_evaluator, StepCollector, \
-    pg_estimator, final_ctx_saver, EpisodeCollector
+    montecarlo_return_estimator, final_ctx_saver, EpisodeCollector
 from ding.envs import BaseEnv
 from ding.envs import setup_ding_env_manager
 from ding.policy import PGPolicy
@@ -17,8 +17,8 @@ from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
 from ding.model import PG
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.config.PG import supported_env_cfg
-from ding.config.PG import supported_env
+from ding.config.example.PG import supported_env_cfg
+from ding.config.example.PG import supported_env
 
 
 class PGAgent:
@@ -99,18 +99,21 @@ class PGAgent:
         evaluator_env = setup_ding_env_manager(self.env, evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(
-                self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
-                        if hasattr(self.cfg.policy.eval, "render") else False
+            task.use(
+                interaction_evaluator(
+                    self.cfg,
+                    self.policy.eval_mode,
+                    evaluator_env,
+                    render=self.cfg.policy.eval.render if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
-            task.use(EpisodeCollector(self.cfg, self.policy.collect_mode, collector_env))
-            task.use(pg_estimator(self.policy.collect_mode))
-            task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
+            task.use(EpisodeCollector(self.cfg, self.policy.collect_mode, collector_env))
+            task.use(montecarlo_return_estimator(self.policy))
+            task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(
                 wandb_online_logger(
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,

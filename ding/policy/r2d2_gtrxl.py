@@ -1,5 +1,5 @@
 import copy
-import sys
+import torch
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
@@ -10,9 +10,6 @@ from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
-import torch
-
-from ding.model.common.head import *
 
 
 @POLICY_REGISTRY.register('r2d2_gtrxl')
@@ -130,7 +127,7 @@ class R2D2GTrXLPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'gtrxl_discrete', ['ding.model.template.q_learning']
+        return 'gtrxldqn', ['ding.model.template.q_learning']
 
     def _init_learn(self) -> None:
         """

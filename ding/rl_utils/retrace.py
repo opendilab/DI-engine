@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from collections import namedtuple
-from .isw import compute_importance_weights
+from ding.rl_utils.isw import compute_importance_weights
 
 
 def compute_q_retraces(
@@ -23,6 +23,17 @@ def compute_q_retraces(
         - weights (:obj:`torch.Tensor`): :math:`(T, B)`
         - ratio (:obj:`torch.Tensor`): :math:`(T, B, N)`
         - q_retraces (:obj:`torch.Tensor`): :math:`(T + 1, B, 1)`
+    Examples:
+        >>> T=2
+        >>> B=3
+        >>> N=4
+        >>> q_values=torch.randn(T+1, B, N)
+        >>> v_pred=torch.randn(T+1, B, 1)
+        >>> rewards=torch.randn(T, B)
+        >>> actions=torch.randint(0, N, (T, B))
+        >>> weights=torch.ones(T, B)
+        >>> ratio=torch.randn(T, B, N)
+        >>> q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio)
 
     .. note::
         q_retrace operation doesn't need to compute gradient, just executes forward computation.

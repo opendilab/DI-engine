@@ -148,9 +148,9 @@ class DDPGPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         if self._cfg.multi_agent:
-            return 'maqac_continuous', ['ding.model.template.maqac']
+            return 'continuous_maqac', ['ding.model.template.maqac']
         else:
-            return 'qac', ['ding.model.template.qac']
+            return 'continuous_qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
         r"""

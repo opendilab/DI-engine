@@ -13,12 +13,11 @@ from ding.utils import lists_to_dicts, SequenceType
 
 class DiscreteHead(nn.Module):
     """
-        Overview:
-            The ``DiscreteHead`` used to output discrete actions logit. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``DiscreteHead`` used to output discrete actions logit or Q-value logit, which is often used in DQN \
+        and policy head in actor-critic algorithms for discrete action space.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -28,6 +27,7 @@ class DiscreteHead(nn.Module):
         layer_num: int = 1,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
+        dropout: Optional[float] = None,
         noise: Optional[bool] = False,
     ) -> None:
         """
@@ -41,6 +41,7 @@ class DiscreteHead(nn.Module):
                 If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
             - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
                 for more details. Default ``None``.
+            - dropout (:obj:`float`): The dropout rate, default set to None.
             - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
                 Default ``False``.
         """
@@ -55,6 +56,8 @@ class DiscreteHead(nn.Module):
                 layer_num,
                 layer_fn=layer,
                 activation=activation,
+                use_dropout=dropout is not None,
+                dropout_probability=dropout,
                 norm_type=norm_type
             ), block(hidden_size, output_size)
         )
@@ -83,13 +86,10 @@ class DiscreteHead(nn.Module):
 
 class DistributionHead(nn.Module):
     """
-        Overview:
-            The ``DistributionHead`` used to output Q-value distribution. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-        outputs ``logit`` and ``distribution``.
-
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``DistributionHead`` used to output Q-value distribution, which is often used in C51 algorithm.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -175,6 +175,12 @@ class DistributionHead(nn.Module):
 
 
 class BranchingHead(nn.Module):
+    """
+    Overview:
+        The ``BranchingHead`` used to output different branches Q-value, which is used in Branch DQN.
+    Interfaces:
+        ``__init__``, ``forward``.
+    """
 
     def __init__(
             self,
@@ -191,10 +197,9 @@ class BranchingHead(nn.Module):
         """
         Overview:
             Init the ``BranchingHead`` layers according to the provided arguments. \
-                This head achieves a linear increase of the number of network outputs \
-                with the number of degrees of freedom by allowing a level of independence \
-                for each individual action dimension.
-                Therefore, this head is suitable for high dimensional action Spaces.
+            This head achieves a linear increase of the number of network outputs \
+            with the number of degrees of freedom by allowing a level of independence for each individual action.
+            Therefore, this head is suitable for high dimensional action Spaces.
         Arguments:
             - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``BranchingHead``.
             - num_branches (:obj:`int`): The number of branches, which is equivalent to the action dimension.
@@ -275,10 +280,8 @@ class BranchingHead(nn.Module):
         for b in self.branches:
             action_out.append(b(x))
         action_scores = torch.stack(action_out, 1)
-        '''
-            From the paper, this implementation performs better than both the naive alternative (Q = V + A) \
-            and the local maximum reduction method (Q = V + max(A)).
-        '''
+        # From the paper, this implementation performs better than both the naive alternative (Q = V + A) \
+        # and the local maximum reduction method (Q = V + max(A)).
         action_scores = action_scores - torch.mean(action_scores, 2, keepdim=True)
         logits = value_out + action_scores
         return {'logit': logits}
@@ -286,12 +289,10 @@ class BranchingHead(nn.Module):
 
 class RainbowHead(nn.Module):
     """
-        Overview:
-            The ``RainbowHead`` used to output Q-value distribution. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            outputs ``logit`` and ``distribution``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -392,12 +393,10 @@ class RainbowHead(nn.Module):
 
 class QRDQNHead(nn.Module):
     """
-        Overview:
-            The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``, ``q``, and ``tau``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -478,12 +477,10 @@ class QRDQNHead(nn.Module):
 
 class QuantileHead(nn.Module):
     """
-        Overview:
-            The ``QuantileHead`` used to output action quantiles. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``, ``q``, and ``quantiles``.
-        Interfaces:
-            ``__init__``, ``forward``, ``quantile_net``.
+    Overview:
+        The ``QuantileHead`` used to output action quantiles, which is used in IQN.
+    Interfaces:
+        ``__init__``, ``forward``, ``quantile_net``.
     """
 
     def __init__(
@@ -611,12 +608,10 @@ class QuantileHead(nn.Module):
 
 class FQFHead(nn.Module):
     """
-        Overview:
-            The ``FQFHead`` used to output action quantiles. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``, ``q``, ``quantiles``, ``quantiles_hats``, ``q_tau_i`` and ``entropies``.
-        Interfaces:
-            ``__init__``, ``forward``, ``quantile_net``.
+    Overview:
+        The ``FQFHead`` used to output action quantiles, which is used in ``FQF``.
+    Interfaces:
+        ``__init__``, ``forward``, ``quantile_net``.
     """
 
     def __init__(
@@ -783,12 +778,10 @@ class FQFHead(nn.Module):
 
 class DuelingHead(nn.Module):
     """
-        Overview:
-            The ``DuelingHead`` used to output discrete actions logit. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``DuelingHead`` used to output discrete actions logit, which is used in Dueling DQN.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -800,6 +793,7 @@ class DuelingHead(nn.Module):
         v_layer_num: Optional[int] = None,
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
+        dropout: Optional[float] = None,
         noise: Optional[bool] = False,
     ) -> None:
         """
@@ -814,6 +808,7 @@ class DuelingHead(nn.Module):
                 If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
             - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
                 for more details. Default ``None``.
+            - dropout (:obj:`float`): The dropout rate of dropout layer. Default ``None``.
             - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
                 Default ``False``.
         """
@@ -832,6 +827,8 @@ class DuelingHead(nn.Module):
                 a_layer_num,
                 layer_fn=layer,
                 activation=activation,
+                use_dropout=dropout is not None,
+                dropout_probability=dropout,
                 norm_type=norm_type
             ), block(hidden_size, output_size)
         )
@@ -843,6 +840,8 @@ class DuelingHead(nn.Module):
                 v_layer_num,
                 layer_fn=layer,
                 activation=activation,
+                use_dropout=dropout is not None,
+                dropout_probability=dropout,
                 norm_type=norm_type
             ), block(hidden_size, 1)
         )
@@ -874,13 +873,11 @@ class DuelingHead(nn.Module):
 
 class StochasticDuelingHead(nn.Module):
     """
-        Overview:
-            The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \
-            Dueling network architecture in continuous action space. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            outputs ``q_value`` and ``v_value``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \
+        That is to say, dueling network architecture in continuous action space.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -1007,12 +1004,11 @@ class StochasticDuelingHead(nn.Module):
 
 class RegressionHead(nn.Module):
     """
-        Overview:
-            The ``RegressionHead`` used to output actions Q-value.
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``pred``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``RegressionHead`` used to output continuous actions Q-value (DDPG critic), state value (A2C/PPO), and \
+        directly predict continuous action (DDPG actor).
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -1077,12 +1073,10 @@ class RegressionHead(nn.Module):
 
 class ReparameterizationHead(nn.Module):
     """
-        Overview:
-            The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``.
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            outputs ``mu`` and ``sigma``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``, which is often used in PPO and SAC.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     default_sigma_type = ['fixed', 'independent', 'conditioned']
@@ -1178,22 +1172,19 @@ class ReparameterizationHead(nn.Module):
 
 class PopArtVHead(nn.Module):
     """
-        Overview:
-            The ``PopArtVHead`` used to output discrete actions logit with the last layer as popart. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``PopArtVHead`` used to output adaptive normalized state value, which is used in PPO/IMPALA.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(
-        self,
-        hidden_size: int,
-        output_size: int,
-        layer_num: int = 1,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None,
-        noise: Optional[bool] = False,
+            self,
+            hidden_size: int,
+            output_size: int,
+            layer_num: int = 1,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
     ) -> None:
         """
         Overview:
@@ -1206,11 +1197,8 @@ class PopArtVHead(nn.Module):
                 If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
             - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
                 for more details. Default ``None``.
-            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
-                Default ``False``.
         """
         super(PopArtVHead, self).__init__()
-        layer = NoiseLinearLayer if noise else nn.Linear
         self.popart = PopArt(hidden_size, output_size)
         self.Q = nn.Sequential(
             MLP(
@@ -1218,7 +1206,7 @@ class PopArtVHead(nn.Module):
                 hidden_size,
                 hidden_size,
                 layer_num,
-                layer_fn=layer,
+                layer_fn=nn.Linear,
                 activation=activation,
                 norm_type=norm_type
             ), self.popart
@@ -1249,11 +1237,34 @@ class PopArtVHead(nn.Module):
 
 
 class AttentionPolicyHead(nn.Module):
+    """
+    Overview:
+        Cross-attention-type discrete action policy head, which is often used in variable discrete action space.
+    Interfaces:
+        ``__init__``, ``forward``.
+    """
 
     def __init__(self) -> None:
         super(AttentionPolicyHead, self).__init__()
 
     def forward(self, key: torch.Tensor, query: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            Use attention-like mechanism to combine key and query tensor to output discrete action logit.
+        Arguments:
+            - key (:obj:`torch.Tensor`): Tensor containing key embedding.
+            - query (:obj:`torch.Tensor`): Tensor containing query embedding.
+        Returns:
+            - logit (:obj:`torch.Tensor`): Tensor containing output discrete action logit.
+        Shapes:
+            - key: :math:`(B, N, K)`, where ``B = batch_size``, ``N = possible discrete action choices`` and \
+                ``K = hidden_size``.
+            - query: :math:`(B, K)`.
+            - logit: :math:`(B, N)`.
+
+        .. note::
+            In this head, we assume that the ``key`` and ``query`` tensor are both normalized.
+        """
         if len(query.shape) == 2 and len(key.shape) == 3:
             query = query.unsqueeze(1)
         logit = (key * query).sum(-1)
@@ -1262,12 +1273,11 @@ class AttentionPolicyHead(nn.Module):
 
 class MultiHead(nn.Module):
     """
-        Overview:
-            The ``MultiHead`` used to output actions logit. \
-            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
-            output ``logit``.
-        Interfaces:
-            ``__init__``, ``forward``.
+    Overview:
+        The ``MultiHead`` used to output multiple similar results. For example, we can combine ``Distribution``  and \
+        ``MultiHead`` to output multi-discrete action space logit.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(self, head_cls: type, hidden_size: int, output_size_list: SequenceType, **head_kwargs) -> None:
@@ -1319,9 +1329,7 @@ class MultiHead(nn.Module):
 class EnsembleHead(nn.Module):
     """
     Overview:
-        The ``EnsembleHead`` used to output action Q-value for Q-ensemble. \
-        Input is a (:obj:`torch.Tensor`) of shape ''(B, N * ensemble_num, 1)'' and returns a (:obj:`Dict`) containing \
-        output ``pred``.
+        The ``EnsembleHead`` used to output action Q-value for Q-ensemble in model-based RL algorithms.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -1390,6 +1398,16 @@ class EnsembleHead(nn.Module):
 
 
 def independent_normal_dist(logits: Union[List, Dict]) -> torch.distributions.Distribution:
+    """
+    Overview:
+        The compatibility function to convert different types logit to independent normal distribution.
+    Arguments:
+        - logits (:obj:`Union[List, Dict]`): The logits to be converted.
+    Returns:
+        - dist (:obj:`torch.distributions.Distribution`): The converted normal distribution.
+    Raises:
+        - TypeError: If the type of logits is not ``list`` or ``dict``.
+    """
     if isinstance(logits, (list, tuple)):
         return Independent(Normal(*logits), 1)
     elif isinstance(logits, dict):
@@ -1407,11 +1425,14 @@ head_cls_map = {
     'rainbow': RainbowHead,
     'qrdqn': QRDQNHead,
     'quantile': QuantileHead,
+    'fqf': FQFHead,
+    'branch': BranchingHead,
     'attention_policy': AttentionPolicyHead,
     # continuous
     'regression': RegressionHead,
     'reparameterization': ReparameterizationHead,
     'popart': PopArtVHead,
+    'sdn': StochasticDuelingHead,
     # multi
     'multi': MultiHead,
     'ensemble': EnsembleHead,

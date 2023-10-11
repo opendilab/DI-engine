@@ -120,7 +120,7 @@ class Adam(torch.optim.Adam):
     ):
         r"""
         Overview:
-            init medthod of refactored Adam class
+            init method of refactored Adam class
         Arguments:
             - params (:obj:`iterable`):  – an iterable of torch.Tensor s or dict s. \
                 Specifies what Tensors should be optimized
@@ -400,7 +400,7 @@ class RMSprop(torch.optim.RMSprop):
     ):
         r"""
         Overview:
-            init medthod of refactored Adam class
+            init method of refactored Adam class
         Arguments:
             - params (:obj:`iterable`):  – an iterable of torch.Tensor s or dict s. \
                 Specifies what Tensors should be optimized

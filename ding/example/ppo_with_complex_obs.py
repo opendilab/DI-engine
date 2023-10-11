@@ -6,7 +6,7 @@ import numpy as np
 import gym
 from gym import spaces
 from ditk import logging
-from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, \
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnWrapper, \
     BaseEnvManagerV2
 from ding.config import compile_config
 from ding.policy import PPOPolicy
@@ -107,7 +107,7 @@ class MyEnv(gym.Env):
 def ding_env_maker():
     return DingEnvWrapper(
         MyEnv(), cfg={'env_wrapper': [
-            lambda env: EvalEpisodeReturnEnv(env),
+            lambda env: EvalEpisodeReturnWrapper(env),
         ]}
     )
 

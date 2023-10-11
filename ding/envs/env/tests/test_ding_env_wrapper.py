@@ -181,7 +181,7 @@ class TestDingEnvWrapper:
         print('random_action', action)
         assert isinstance(action, dict)
 
-    @pytest.mark.unittest
+    @pytest.mark.envtest
     def test_AllinObsWrapper(self):
         env_cfg = EasyDict(env_id='PongNoFrameskip-v4', env_wrapper='reward_in_obs')
         ding_env_aio = DingEnvWrapper(cfg=env_cfg)

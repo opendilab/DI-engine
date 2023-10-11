@@ -169,7 +169,11 @@ class PGPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
+<<<<<<< HEAD
         assert data[-1]['done'] == True, "PG needs a complete epsiode"
+=======
+        assert data[-1]['done'], "PG needs a complete epsiode"
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
         if self._cfg.learn.ignore_done:
             raise NotImplementedError
@@ -182,7 +186,11 @@ class PGPolicy(Policy):
             return get_train_sample(data, self._unroll_len)
         elif isinstance(data, ttorch.Tensor):
             data_size = data['done'].shape[0]
+<<<<<<< HEAD
             data['return'] = ttorch.Tensor([0.0 for i in range(data_size)])
+=======
+            data['return'] = ttorch.torch.zeros(data_size)
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
             for i in reversed(range(data_size)):
                 R = self._gamma * R + data['reward'][i]
                 data['return'][i] = R

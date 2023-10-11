@@ -5,6 +5,7 @@ from functools import partial
 import os
 import gym
 import gymnasium
+import numpy as np
 import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
@@ -12,6 +13,7 @@ from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepColl
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import PPOFPolicy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
+from ding.utils import get_env_fps, render
 from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
@@ -21,9 +23,9 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class PPOF:
     supported_env_list = [
         # common
-        'lunarlander_discrete',
-        'lunarlander_continuous',
-        'bipedalwalker',
+        'LunarLander-v2',
+        'LunarLanderContinuous-v2',
+        'BipedalWalker-v3',
         'acrobot',
         # ch2: action
         'rocket_landing',
@@ -38,42 +40,64 @@ class PPOF:
         'minigrid_fourroom',
         'metadrive',
         # atari
-        'atari_qbert',
-        'atari_kangaroo',
-        'atari_bowling',
-        'PongNoFrameskip',
-        'SpaceInvadersNoFrameskip',
-        'QbertNoFrameskip',
+        'BowlingNoFrameskip-v4',
+        'BreakoutNoFrameskip-v4',
+        'GopherNoFrameskip-v4'
+        'KangarooNoFrameskip-v4',
+        'PongNoFrameskip-v4',
+        'QbertNoFrameskip-v4',
+        'SpaceInvadersNoFrameskip-v4',
         # mujoco
-        'hopper',
+        'Hopper-v3',
+        'HalfCheetah-v3',
+        'Walker2d-v3',
     ]
 
     def __init__(
             self,
-            env: Union[str, BaseEnv],
+            env_id: str = None,
+            env: BaseEnv = None,
             seed: int = 0,
-            exp_name: str = 'default_experiment',
+            exp_name: str = None,
             model: Optional[torch.nn.Module] = None,
-            cfg: Optional[EasyDict] = None,
-            policy_state_dict: str = None,
+            cfg: Optional[Union[EasyDict, dict]] = None,
+            policy_state_dict: str = None
     ) -> None:
-        if isinstance(env, str):
-            assert env in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
-            self.env = get_instance_env(env)
+        assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
+
+        if cfg is not None and not isinstance(cfg, EasyDict):
+            cfg = EasyDict(cfg)
+
+        if env_id is not None:
+            assert env_id in PPOF.supported_env_list, "Please use supported envs: {}".format(PPOF.supported_env_list)
             if cfg is None:
-                # 'It should be default env tuned config'
-                self.cfg = get_instance_config(env, algorithm="PPO")
-            else:
-                self.cfg = cfg
-        elif isinstance(env, BaseEnv):
-            self.cfg = cfg
-            raise NotImplementedError
+                cfg = get_instance_config(env_id, algorithm="PPOF")
+
+            if not hasattr(cfg, "env_id"):
+                cfg.env_id = env_id
+            assert cfg.env_id == env_id, "env_id in cfg should be the same as env_id in args."
         else:
-            raise TypeError("not support env type: {}, only strings and instances of `BaseEnv` now".format(type(env)))
+            assert hasattr(cfg, "env_id"), "Please specify env_id in cfg."
+            assert cfg.env_id in PPOF.supported_env_list, "Please use supported envs: {}".format(
+                PPOF.supported_env_list
+            )
+
+        if exp_name is not None:
+            cfg.exp_name = exp_name
+        elif not hasattr(cfg, "exp_name"):
+            cfg.exp_name = "{}-{}".format(cfg.env_id, "PPO")
+        self.cfg = cfg
+        self.exp_name = self.cfg.exp_name
+
+        if env is None:
+            self.env = get_instance_env(self.cfg.env_id)
+        else:
+            self.env = env
+
         logging.getLogger().setLevel(logging.INFO)
         self.seed = seed
-        set_pkg_seed(self.seed)
-        self.exp_name = exp_name
+        set_pkg_seed(self.seed, use_cuda=self.cfg.cuda)
+
         if not os.path.exists(self.exp_name):
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
@@ -134,10 +158,10 @@ class PPOF:
 
         with task.start(ctx=OnlineRLContext()):
             task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
+            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
             task.use(ppof_adv_estimator(self.policy))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
-            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     metric_list=self.policy.monitor_vars(),
@@ -152,19 +176,36 @@ class PPOF:
 
         return TrainingReturn(wandb_url=task.ctx.wandb_url)
 
-    def deploy(self, enable_save_replay: bool = False, replay_save_path: str = None, debug: bool = False) -> float:
+    def deploy(
+            self,
+            enable_save_replay: bool = False,
+            concatenate_all_replay: bool = False,
+            replay_save_path: str = None,
+            seed: Optional[Union[int, List]] = None,
+            debug: bool = False
+    ) -> EvalReturn:
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
         env = self.env.clone(caller='evaluator')
-        env.seed(self.seed, dynamic_seed=False)
 
-        if enable_save_replay and replay_save_path:
+        if seed is not None and isinstance(seed, int):
+            seeds = [seed]
+        elif seed is not None and isinstance(seed, list):
+            seeds = seed
+        else:
+            seeds = [self.seed]
+
+        returns = []
+        images = []
+        if enable_save_replay:
+            replay_save_path = os.path.join(self.exp_name, 'videos') if replay_save_path is None else replay_save_path
             env.enable_save_replay(replay_path=replay_save_path)
-        elif enable_save_replay:
-            env.enable_save_replay(replay_path=os.path.join(self.exp_name, 'videos'))
         else:
             logging.warning('No video would be generated during the deploy.')
+            if concatenate_all_replay:
+                logging.warning('concatenate_all_replay is set to False because enable_save_replay is False.')
+                concatenate_all_replay = False
 
         forward_fn = single_env_forward_wrapper_ttorch(self.policy.eval, self.cfg.cuda)
 
@@ -172,18 +213,31 @@ class PPOF:
         # env will be reset again in the main loop
         env.reset()
 
-        # main loop
-        return_ = 0.
-        step = 0
-        obs = env.reset()
-        while True:
-            action = forward_fn(obs)
-            obs, rew, done, info = env.step(action)
-            return_ += rew
-            step += 1
-            if done:
-                break
-        logging.info(f'PPOF deploy is finished, final episode return with {step} steps is: {return_}')
+        for seed in seeds:
+            env.seed(seed, dynamic_seed=False)
+            return_ = 0.
+            step = 0
+            obs = env.reset()
+            images.append(render(env)[None]) if concatenate_all_replay else None
+            while True:
+                action = forward_fn(obs)
+                obs, rew, done, info = env.step(action)
+                images.append(render(env)[None]) if concatenate_all_replay else None
+                return_ += rew
+                step += 1
+                if done:
+                    break
+            logging.info(f'DQN deploy is finished, final episode return with {step} steps is: {return_}')
+            returns.append(return_)
+
+        env.close()
+
+        if concatenate_all_replay:
+            images = np.concatenate(images, axis=0)
+            import imageio
+            imageio.mimwrite(os.path.join(replay_save_path, 'deploy.mp4'), images, fps=get_env_fps(env))
+
+        return EvalReturn(eval_value=np.mean(returns), eval_value_std=np.std(returns))
 
         env.close()
 

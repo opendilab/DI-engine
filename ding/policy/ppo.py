@@ -686,7 +686,11 @@ class PPOOffPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+<<<<<<< HEAD
         # (str) Which kind of action space used in PPOPolicy, ["general", "continuous", "discrete", "hybrid"]
+=======
+        # (str) Which kind of action space used in PPOPolicy, ["continuous", "discrete", "hybrid"]
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         action_space='discrete',
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
@@ -746,10 +750,17 @@ class PPOOffPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
 
+<<<<<<< HEAD
         assert self._cfg.action_space in ["general", "continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
 
         if self._action_space != "general" and self._cfg.learn.ppo_param_init:
+=======
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+        self._action_space = self._cfg.action_space
+
+        if self._cfg.learn.ppo_param_init:
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
             for n, m in self._model.named_modules():
                 if isinstance(m, torch.nn.Linear):
                     torch.nn.init.orthogonal_(m.weight)
@@ -777,6 +788,7 @@ class PPOOffPolicy(Policy):
                         m.weight.data.copy_(0.01 * m.weight.data)
 
         # Optimizer
+<<<<<<< HEAD
         if self._cfg.learn.separate_optimizer:
             self._actor_optimizer = Adam(
                 self._model.actor.parameters(),
@@ -799,6 +811,14 @@ class PPOOffPolicy(Policy):
                 clip_value=self._cfg.learn.grad_clip_value,
                 weight_decay=self._cfg.learn.weight_decay,
             )
+=======
+        self._optimizer = Adam(
+            self._model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.grad_clip_value
+        )
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
@@ -841,7 +861,11 @@ class PPOOffPolicy(Policy):
         self._learn_model.train()
 
         with torch.no_grad():
+<<<<<<< HEAD
             if self._value_norm:
+=======
+            if hasattr(self, "_value_norm") and self._value_norm:
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
                 unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
                 data['return'] = unnormalized_return / self._running_mean_std.std
                 self._running_mean_std.update(unnormalized_return.cpu().numpy())
@@ -892,6 +916,7 @@ class PPOOffPolicy(Policy):
                     max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
                     max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
                 )
+<<<<<<< HEAD
             elif self._action_space == 'general':
                 entropy = self._learn_model.actor.entropy(data['obs'])
                 log_prob = self._learn_model.actor.log_prob(action=data['action'], obs=data['obs'])
@@ -902,6 +927,8 @@ class PPOOffPolicy(Policy):
                 ppo_loss, ppo_info = ppo_error_general(
                     data=ppodata, entropy=entropy, clip_ratio=self._clip_ratio, use_value_clip=False
                 )
+=======
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
             wv, we = self._value_weight, self._entropy_weight
             total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
@@ -950,6 +977,7 @@ class PPOOffPolicy(Policy):
                     max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
                     max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
                 )
+<<<<<<< HEAD
             elif self._action_space == 'general':
                 entropy = self._learn_model.actor.entropy(data['obs'])
                 log_prob = self._learn_model.actor.log_prob(action=data['action'], obs=data['obs'])
@@ -957,6 +985,8 @@ class PPOOffPolicy(Policy):
                 ppo_policy_loss, ppo_info = ppo_policy_error_general(
                     data=ppodata, entropy=entropy, clip_ratio=self._clip_ratio
                 )
+=======
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
             wv, we = self._value_weight, self._entropy_weight
             next_obs = data.get('next_obs')
@@ -983,6 +1013,7 @@ class PPOOffPolicy(Policy):
         # ====================
         # PPO update
         # ====================
+<<<<<<< HEAD
         if self._cfg.learn.separate_optimizer:
             self._actor_optimizer.zero_grad()
             actor_loss.backward()
@@ -997,6 +1028,13 @@ class PPOOffPolicy(Policy):
         return_info = {
             'cur_lr': self._optimizer.defaults['lr']
             if not self._cfg.learn.separate_optimizer else self._actor_optimizer.defaults['lr'],
+=======
+        self._optimizer.zero_grad()
+        total_loss.backward()
+        self._optimizer.step()
+        return_info = {
+            'cur_lr': self._optimizer.defaults['lr'],
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
             'total_loss': total_loss.item(),
             'policy_loss': ppo_loss.policy_loss.item(),
             'value': data['value'].mean().item(),
@@ -1045,7 +1083,11 @@ class PPOOffPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
+<<<<<<< HEAD
         assert self._cfg.action_space in ["general", "continuous", "discrete", "hybrid"]
+=======
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
@@ -1053,8 +1095,11 @@ class PPOOffPolicy(Policy):
             self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         elif self._action_space == 'hybrid':
             self._collect_model = model_wrap(self._model, wrapper_name='hybrid_reparam_multinomial_sample')
+<<<<<<< HEAD
         elif self._action_space == 'general':
             self._collect_model = model_wrap(self._model, wrapper_name='base')
+=======
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
@@ -1138,7 +1183,11 @@ class PPOOffPolicy(Policy):
                 )['value']
             if len(last_value.shape) == 2:  # multi_agent case:
                 last_value = last_value.squeeze(0)
+<<<<<<< HEAD
         if self._value_norm:
+=======
+        if hasattr(self, "_value_norm") and self._value_norm:
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
@@ -1149,11 +1198,22 @@ class PPOOffPolicy(Policy):
             gae_lambda=self._gae_lambda,
             cuda=False,
         )
+<<<<<<< HEAD
         if self._value_norm:
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
         return get_train_sample(data, self._unroll_len)
+=======
+        if hasattr(self, "_value_norm") and self._value_norm:
+            for i in range(len(data)):
+                data[i]['value'] /= self._running_mean_std.std
+
+        if not self._nstep_return:
+            return get_train_sample(data, self._unroll_len)
+        else:
+            return get_nstep_return_data(data, self._nstep)
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
     def _init_eval(self) -> None:
         r"""
@@ -1161,7 +1221,11 @@ class PPOOffPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
+<<<<<<< HEAD
         assert self._cfg.action_space in ["general", "continuous", "discrete", "hybrid"]
+=======
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
@@ -1169,8 +1233,11 @@ class PPOOffPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         elif self._action_space == 'hybrid':
             self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
+<<<<<<< HEAD
         elif self._action_space == 'general':
             self._eval_model = model_wrap(self._model, wrapper_name='base')
+=======
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -1207,9 +1274,12 @@ class PPOOffPolicy(Policy):
         if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']
         return variables
+<<<<<<< HEAD
 
     def monitor_vars(self) -> List[str]:
         return self._monitor_vars_learn()
+=======
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
 
 @POLICY_REGISTRY.register('ppo_stdim')

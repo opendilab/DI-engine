@@ -18,8 +18,8 @@ from ding.config import save_config_py, compile_config
 from ding.model import VAC
 from ding.model import model_wrap
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.config.A2C import supported_env_cfg
-from ding.config.A2C import supported_env
+from ding.config.example.A2C import supported_env_cfg
+from ding.config.example.A2C import supported_env
 
 
 class A2CAgent:
@@ -99,18 +99,29 @@ class A2CAgent:
         evaluator_env = self._setup_env_manager(evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(
-                self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
-                        if hasattr(self.cfg.policy.eval, "render") else False
+            task.use(
+                interaction_evaluator(
+                    self.cfg,
+                    self.policy.eval_mode,
+                    evaluator_env,
+                    render=self.cfg.policy.eval.render if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
-            task.use(StepCollector(self.cfg, self.policy.collect_mode, collector_env))
-            task.use(gae_estimator(self.cfg, self.policy.collect_mode))
-            task.use(trainer(self.cfg, self.policy.learn_mode))
             task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
+                StepCollector(
+                    self.cfg,
+                    self.policy.collect_mode,
+                    collector_env,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                    if hasattr(self.cfg.policy, 'random_collect_size') else 0,
+                )
+            )
+            task.use(gae_estimator(self.cfg, self.policy.collect_mode))
+            task.use(trainer(self.cfg, self.policy.learn_mode))
+            task.use(
                 wandb_online_logger(
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,

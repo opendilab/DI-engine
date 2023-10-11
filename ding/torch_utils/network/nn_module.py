@@ -396,6 +396,8 @@ def MLP(
         # The last layer uses the same activation as front layers.
         if activation is not None:
             block.append(activation)
+        if use_dropout:
+            block.append(nn.Dropout(dropout_probability))
 
     if last_linear_layer_init_zero:
         # Locate the last linear layer and initialize its weights and biases to 0.

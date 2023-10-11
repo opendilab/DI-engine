@@ -10,7 +10,7 @@ from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEva
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.envs import get_vec_env_setting
 from ding.policy import DDPGPolicy
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
@@ -33,7 +33,7 @@ def main(main_cfg, create_cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = QAC(**cfg.policy.model)
+    model = ContinuousQAC(**cfg.policy.model)
     policy = DDPGPolicy(cfg.policy, model=model)
     policy.eval_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cpu'))
 

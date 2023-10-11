@@ -1,6 +1,7 @@
 from typing import List, Any
 import numpy as np
 import torch
+import numpy as np
 import treetensor.torch as ttorch
 from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze, to_device
@@ -15,7 +16,12 @@ def default_preprocess_learn(
         ignore_done: bool = False,
 ) -> dict:
     # data preprocess
+<<<<<<< HEAD
     if data[0]['action'].dtype in [torch.int8, torch.int16, torch.int32, torch.int64]:
+=======
+    if data[0]['action'].dtype in [np.int8, np.int16, np.int32, np.int64, torch.int8, torch.int16, torch.int32,
+                                   torch.int64]:
+>>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         data = default_collate(data, cat_1dim=True)  # for discrete action
     else:
         data = default_collate(data, cat_1dim=False)  # for continuous action
@@ -48,6 +54,9 @@ def default_preprocess_learn(
             reward = reward.unsqueeze(1)
         # reward: (batch_size, nstep) -> (nstep, batch_size)
         data['reward'] = reward.permute(1, 0).contiguous()
+    else:
+        if data['reward'].dim() == 2 and data['reward'].shape[1] == 1:
+            data['reward'] = data['reward'].squeeze(-1)
 
     return data
 

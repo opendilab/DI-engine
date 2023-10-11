@@ -1,9 +1,8 @@
-from typing import Union, Optional, Dict, Callable, List
+from typing import Union, Optional, Dict
 import torch
 import torch.nn as nn
 from easydict import EasyDict
 
-from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
         MultiHead, RegressionHead, ReparameterizationHead
@@ -11,6 +10,12 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, \
 
 @MODEL_REGISTRY.register('discrete_bc')
 class DiscreteBC(nn.Module):
+    """
+    Overview:
+        The DiscreteBC network.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
         self,
@@ -36,9 +41,11 @@ class DiscreteBC(nn.Module):
             - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
             - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
-                if ``None`` then default set it to ``nn.ReLU()``
+                if ``None`` then default set it to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details.
+            - strides (:obj:`Optional[list]`): The strides for each convolution layers, such as [2, 2, 2]. The length \
+                of this argument should be the same as ``encoder_hidden_size_list``.
         """
         super(DiscreteBC, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -83,7 +90,7 @@ class DiscreteBC(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             DiscreteBC forward computation graph, input observation tensor to predict q_value.
         Arguments:
@@ -108,7 +115,7 @@ class DiscreteBC(nn.Module):
 
 @MODEL_REGISTRY.register('continuous_bc')
 class ContinuousBC(nn.Module):
-    r"""
+    """
     Overview:
         The ContinuousBC network.
     Interfaces:
@@ -127,7 +134,7 @@ class ContinuousBC(nn.Module):
     ) -> None:
         """
         Overview:
-            Initailize the ContinuousBC Model according to input arguments.
+            Initialize the ContinuousBC Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's shape, such as 128, (156, ).
             - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's shape, such as 4, (3, ), \
@@ -173,14 +180,27 @@ class ContinuousBC(nn.Module):
                 )
             )
 
-    def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
+    def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]]) -> Dict:
         """
         Overview:
-            The unique execution (forward) method of ContinuousBC method.
-            Arguments:
-                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
-            Returns:
-                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
+            The unique execution (forward) method of ContinuousBC.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
+        Returns:
+            - output (:obj:`Dict`): Output dict data, including different key-values among distinct action_space.
+
+        Examples (Regression):
+            >>> model = ContinuousBC(32, 6, action_space='regression')
+            >>> inputs = torch.randn(4, 32)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['action'].shape == torch.Size([4, 6])
+
+        Examples (Reparameterization):
+            >>> model = ContinuousBC(32, 6, action_space='reparameterization')
+            >>> inputs = torch.randn(4, 32)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict) and outputs['logit'][0].shape == torch.Size([4, 6])
+            >>> assert outputs['logit'][1].shape == torch.Size([4, 6])
         """
         if self.action_space == 'regression':
             x = self.actor(inputs)

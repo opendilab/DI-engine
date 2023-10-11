@@ -19,8 +19,8 @@ from ding.model import DQN
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.config.SQL import supported_env_cfg
-from ding.config.SQL import supported_env
+from ding.config.example.SQL import supported_env_cfg
+from ding.config.example.SQL import supported_env
 
 
 class SQLAgent:
@@ -102,28 +102,32 @@ class SQLAgent:
         evaluator_env = setup_ding_env_manager(self.env, evaluator_env_num, context, debug, 'evaluator')
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator(self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
-                        if hasattr(self.cfg.policy.eval, "render") else False
+            task.use(
+                interaction_evaluator(
+                    self.cfg,
+                    self.policy.eval_mode,
+                    evaluator_env,
+                    render=self.cfg.policy.eval.render if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
+            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(eps_greedy_handler(self.cfg))
             task.use(
                 StepCollector(
                     self.cfg,
                     self.policy.collect_mode,
                     collector_env,
-                    random_collect_size=self.cfg.policy.random_collect_size \
-                        if hasattr(self.cfg.policy, 'random_collect_size') else 0,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                    if hasattr(self.cfg.policy, 'random_collect_size') else 0,
                 )
             )
             if "nstep" in self.cfg.policy and self.cfg.policy.nstep > 1:
                 task.use(nstep_reward_enhancer(self.cfg))
             task.use(data_pusher(self.cfg, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,

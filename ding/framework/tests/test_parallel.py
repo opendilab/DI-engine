@@ -24,7 +24,7 @@ def parallel_main():
     time.sleep(0.7)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_parallel_run():
     Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(parallel_main)
     Parallel.runner(n_parallel_workers=2, protocol="tcp", startup_interval=0.1)(parallel_main)
@@ -39,7 +39,7 @@ def uncaught_exception_main():
         time.sleep(0.2)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_uncaught_exception():
     # Make one process crash, then the parent process will also crash and output the stack of the wrong process.
     with pytest.raises(Exception) as exc_info:
@@ -70,7 +70,7 @@ def disconnected_main():
         assert i == 9
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_disconnected():
     # Make one process exit normally and the rest will still run, even if the network request
     # is not received by other processes.
@@ -141,7 +141,7 @@ class AutoRecover:
             raise Exception("Invalid node id")
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_auto_recover():
     # With max_retries=1
     Parallel.runner(

@@ -11,6 +11,19 @@ from ding.torch_utils.network.gtrxl import GTrXL
 
 @MODEL_REGISTRY.register('dqn')
 class DQN(nn.Module):
+    """
+    Overview:
+        The neural nework structure and computation graph of Deep Q Network (DQN) algorithm, which is the most classic \
+        value-based RL algorithm for discrete action. The DQN is composed of two parts: ``encoder`` and ``head``. \
+        The ``encoder`` is used to extract the feature from various observation, and the ``head`` is used to compute \
+        the Q value of each action dimension.
+    Interfaces:
+        ``__init__``, ``forward``.
+
+    .. note::
+        Current ``DQN`` supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``, two types of head: \
+        ``DiscreteHead`` and ``DuelingHead``. You can customize your own encoder or head by inheriting this class.
+    """
 
     def __init__(
             self,
@@ -21,23 +34,27 @@ class DQN(nn.Module):
             head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            dropout: Optional[float] = None
     ) -> None:
         """
         Overview:
-            Init the DQN (encoder + head) Model according to input arguments.
+            initialize the DQN (encoder + head) Model according to corresponding input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
-            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
-            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network.
-            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output
+            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead (default)``.
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \
+                then it will be set to the last element of ``encoder_hidden_size_list``.
+            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
-                if ``None`` then default set it to ``nn.ReLU()``
+                if ``None`` then default set it to ``nn.ReLU()``.
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
+            - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \
+                if ``None`` then default disable dropout layer.
         """
         super(DQN, self).__init__()
         # Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4
@@ -46,9 +63,12 @@ class DQN(nn.Module):
             head_hidden_size = encoder_hidden_size_list[-1]
         # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.encoder = FCEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type, dropout=dropout
+            )
         # Conv Encoder
         elif len(obs_shape) == 3:
+            assert dropout is None, "dropout is not supported in ConvEncoder"
             self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
         else:
             raise RuntimeError(
@@ -67,11 +87,17 @@ class DQN(nn.Module):
                 action_shape,
                 layer_num=head_layer_num,
                 activation=activation,
-                norm_type=norm_type
+                norm_type=norm_type,
+                dropout=dropout
             )
         else:
             self.head = head_cls(
-                head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
+                head_hidden_size,
+                action_shape,
+                head_layer_num,
+                activation=activation,
+                norm_type=norm_type,
+                dropout=dropout
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
@@ -79,19 +105,23 @@ class DQN(nn.Module):
         Overview:
             DQN forward computation graph, input observation tensor to predict q_value.
         Arguments:
-            - x (:obj:`torch.Tensor`): Observation inputs
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - outputs (:obj:`Dict`): DQN forward outputs, such as q_value.
+            - outputs (:obj:`Dict`): The output of DQN's forward, including q_value.
         ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each action dimension.
+            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
+            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
         Examples:
             >>> model = DQN(32, 6)  # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
             >>> assert isinstance(outputs, dict) and outputs['logit'].shape == torch.Size([4, 6])
+
+        .. note::
+            For consistency and compatibility, we name all the outputs of the network which are related to action \
+            selections as ``logit``.
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -195,6 +225,18 @@ class BDQ(nn.Module):
 
 @MODEL_REGISTRY.register('c51dqn')
 class C51DQN(nn.Module):
+    """
+    Overview:
+        The neural network structure and computation graph of C51DQN, which combines distributional RL and DQN. \
+        You can refer to https://arxiv.org/pdf/1707.06887.pdf for more details. The C51DQN is composed of \
+        ``encoder`` and ``head``. ``encoder`` is used to extract the feature of observation, and ``head`` is \
+        used to compute the distribution of Q-value.
+    Interfaces:
+        ``__init__``, ``forward``
+
+    .. note::
+        Current C51DQN supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``.
+    """
 
     def __init__(
         self,
@@ -209,21 +251,27 @@ class C51DQN(nn.Module):
         v_max: Optional[float] = 10,
         n_atom: Optional[int] = 51,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the C51 Model according to input arguments.
+            initialize the C51 Model according to corresponding input arguments.
         Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
-            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
-            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
-            - n_atom (:obj:`Optional[int]`): Number of atoms in the prediction distribution.
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
+                the last element must match ``head_hidden_size``.
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \
+                then it will be set to the last element of ``encoder_hidden_size_list``.
+            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
+                if ``None`` then default set it to ``nn.ReLU()``.
+            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
+                ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
+            - v_min (:obj:`Optional[float]`): The minimum value of the support of the distribution, which is related \
+                to the value (discounted sum of reward) scale of the specific environment. Defaults to -10.
+            - v_max (:obj:`Optional[float]`): The maximum value of the support of the distribution, which is related \
+                to the value (discounted sum of reward) scale of the specific environment. Defaults to 10.
+            - n_atom (:obj:`Optional[int]`): The number of atoms in the prediction distribution, 51 is the default \
+                value in the paper, you can also try other values such as 301.
         """
         super(C51DQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -267,24 +315,28 @@ class C51DQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
-        Overview:
-            Use observation tensor to predict C51DQN's output.
-            Parameter updates with C51DQN's MLPs forward setup.
-        Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor w/ ``(B, N=head_hidden_size)``.
+        """
         Returns:
-            - outputs (:obj:`Dict`):
-                Run with encoder and head. Return the result prediction dictionary.
-
+            - outputs (:obj:`Dict`): The output of DQN's forward, including q_value.
         ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-            - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
+            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
+        Overview:
+            C51DQN forward computation graph, input observation tensor to predict q_value and its distribution.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
+        Returns:
+            - outputs (:obj:`Dict`): The output of DQN's forward, including q_value, and distribution.
+        ReturnsKeys:
+            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.
+            - distribution (:obj:`torch.Tensor`): Q-Value discretized distribution, i.e., probability of each \
+                uniformly spaced atom Q-value, such as dividing [-10, 10] into 51 uniform spaces.
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.
-            - distribution(:obj:`torch.FloatTensor`): :math:`(B, M, P)`, where P is n_atom.
+            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where M is action_shape.
+            - distribution(:obj:`torch.Tensor`): :math:`(B, M, P)`, where P is n_atom.
 
         Examples:
             >>> model = C51DQN(128, 64)  # arguments: 'obs_shape' and 'action_shape'
@@ -295,6 +347,14 @@ class C51DQN(nn.Module):
             >>> assert outputs['logit'].shape == torch.Size([4, 64])
             >>> # default n_atom: int = 51
             >>> assert outputs['distribution'].shape == torch.Size([4, 64, 51])
+
+        .. note::
+            For consistency and compatibility, we name all the outputs of the network which are related to action \
+            selections as ``logit``.
+
+        .. note::
+            For convenience, we recommend that the number of atoms should be odd, so that the middle atom is exactly \
+            the value of the Q-value.
         """
         x = self.encoder(x)
         x = self.head(x)
@@ -628,7 +688,7 @@ class RainbowDQN(nn.Module):
         RainbowDQN network (C51 + Dueling + Noisy Block)
 
     .. note::
-        RainbowDQN contains dueling architecture by default
+        RainbowDQN contains dueling architecture by default.
     """
 
     def __init__(
@@ -775,7 +835,18 @@ def parallel_wrapper(forward_fn: Callable) -> Callable:
 class DRQN(nn.Module):
     """
     Overview:
-        DQN + RNN = DRQN
+        The neural network structure and computation graph of DRQN (DQN + RNN = DRQN) algorithm, which is the most \
+        common DQN variant for sequential data and paratially observable environment. The DRQN is composed of three \
+        parts: ``encoder``, ``head`` and ``rnn``. The ``encoder`` is used to extract the feature from various \
+        observation, the ``rnn`` is used to process the sequential observation and other data, and the ``head`` is \
+        used to compute the Q value of each action dimension.
+    Interfaces:
+        ``__init__``, ``forward``.
+
+    .. note::
+        Current ``DRQN`` supports two types of encoder: ``FCEncoder`` and ``ConvEncoder``, two types of head: \
+        ``DiscreteHead`` and ``DuelingHead``, three types of rnn: ``normal (LSTM with LayerNorm)``, ``pytorch`` and \
+        ``gru``. You can customize your own encoder, rnn or head by inheriting this class.
     """
 
     def __init__(
@@ -791,21 +862,25 @@ class DRQN(nn.Module):
             norm_type: Optional[str] = None,
             res_link: bool = False
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the DRQN Model according to arguments.
+            Initialize the DRQN Model according to the corresponding input arguments.
         Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
-            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
-            - lstm_type (:obj:`Optional[str]`): Version of rnn cell, now support ['normal', 'pytorch', 'hpc', 'gru']
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
-            - res_link (:obj:`bool`): use the residual link or not, default to False
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
+                the last element must match ``head_hidden_size``.
+            - dueling (:obj:`Optional[bool]`): Whether choose ``DuelingHead`` or ``DiscreteHead (default)``.
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of head network, defaults to None, \
+                then it will be set to the last element of ``encoder_hidden_size_list``.
+            - head_layer_num (:obj:`int`): The number of layers used in the head network to compute Q value output.
+            - lstm_type (:obj:`Optional[str]`): The type of RNN module, now support ['normal', 'pytorch', 'gru'].
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
+                if ``None`` then default set it to ``nn.ReLU()``.
+            - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
+                ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
+            - res_link (:obj:`bool`): Whether to enable the residual link, which is the skip connnection between \
+                single frame data and the sequential data, defaults to False.
         """
         super(DRQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -846,34 +921,26 @@ class DRQN(nn.Module):
             )
 
     def forward(self, inputs: Dict, inference: bool = False, saved_state_timesteps: Optional[list] = None) -> Dict:
-        r"""
+        """
         Overview:
-            Use observation tensor to predict DRQN output.
-            Parameter updates with DRQN's MLPs forward setup.
+            DRQN forward computation graph, input observation tensor to predict q_value.
         Arguments:
-            - inputs (:obj:`Dict`):
-            - inference: (:obj:'bool'): if inference is True, we unroll the one timestep transition,
-                if inference is False, we unroll the sequence transitions.
-            - saved_state_timesteps: (:obj:'Optional[list]'): when inference is False,
-                we unroll the sequence transitions, then we would save rnn hidden states at timesteps
-                that are listed in list saved_state_timesteps.
-
-       ArgumentsKeys:
-            - obs (:obj:`torch.Tensor`): Encoded observation
-            - prev_state (:obj:`list`): Previous state's tensor of size ``(B, N)``
-
+            - inputs (:obj:`torch.Tensor`): The dict of input data, including observation and previous rnn state.
+            - inference: (:obj:'bool'): Whether to enable inference forward mode, if True, we unroll the one timestep \
+                transition, otherwise, we unroll the eentire sequence transitions.
+            - saved_state_timesteps: (:obj:'Optional[list]'): When inference is False, we unroll the sequence \
+                transitions, then we would use this list to indicate how to save and return hidden state.
+        ArgumentsKeys:
+            - obs (:obj:`torch.Tensor`): The raw observation tensor.
+            - prev_state (:obj:`list`): The previous rnn state tensor, whose structure depends on ``lstm_type``.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``DRQN`` setups and return the result prediction dictionary.
-
+            - outputs (:obj:`Dict`): The output of DRQN's forward, including logit (q_value) and next state.
         ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``obs``.
-            - next_state (:obj:`list`): Next state's tensor of size ``(B, N)``
+            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.
+            - next_state (:obj:`list`): The next rnn state tensor, whose structure depends on ``lstm_type``.
         Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N=obs_space)`, where B is batch size.
-            - prev_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
-            - next_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
+            - obs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
 
         Examples:
             >>> # Init input's Keys:
@@ -946,18 +1013,24 @@ class DRQN(nn.Module):
             x['hidden_state'] = torch.cat(hidden_state_list, dim=0)
             if saved_state_timesteps is not None:
                 # the selected saved hidden states, including the hidden state (h) and the cell state (c)
-                # in r2d2, set 'saved_hidden_​​state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',
+                # in r2d2, set 'saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]',
                 # then saved_state will record the hidden_state for main_obs and target_obs to
                 # initialize their lstm (h c)
                 x['saved_state'] = saved_state
             return x
 
 
-@MODEL_REGISTRY.register('gtrxl_discrete')
-class GTrXLDiscreteHead(nn.Module):
+@MODEL_REGISTRY.register('gtrxldqn')
+class GTrXLDQN(nn.Module):
     """
     Overview:
-        Add a discrete head on top of the GTrXL module.
+        The neural network structure and computation graph of Gated Transformer-XL DQN algorithm, which is the \
+        enhanced version of DRQN, using Transformer-XL to improve long-term sequential modelling ability. The \
+        GTrXL-DQN is composed of three parts: ``encoder``, ``head`` and ``core``. The ``encoder`` is used to extract \
+        the feature from various observation, the ``core`` is used to process the sequential observation and other \
+        data, and the ``head`` is used to compute the Q value of each action dimension.
+    Interfaces:
+        ``__init__``, ``forward``, ``reset_memory``, ``get_memory`` .
     """
 
     def __init__(
@@ -980,11 +1053,15 @@ class GTrXLDiscreteHead(nn.Module):
         encoder_hidden_size_list: SequenceType = [128, 128, 256],
         encoder_norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the model according to arguments.
+            Initialize the GTrXLDQN model accoding to corresponding input arguments.
+
+        .. tip::
+            You can refer to GTrXl class in ``ding.torch_utils.network.gtrxl`` for more details about the input \
+            arguments.
+
         Arguments:
-            Refer to GTrXl class in `ding.torch_utils.network.gtrxl` for more details about the input arguments.
             - obs_shape (:obj:`Union[int, SequenceType]`): Used by Transformer. Observation's space.
             - action_shape (:obj:Union[int, SequenceType]): Used by Head. Action's space.
             - head_layer_num (:obj:`int`): Used by Head. Number of layers.
@@ -994,20 +1071,20 @@ class GTrXLDiscreteHead(nn.Module):
             - att_mlp_num (:obj:`int`): Used by Transformer.
             - att_layer_num (:obj:`int`): Used by Transformer.
             - memory_len (:obj:`int`): Used by Transformer.
-            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to
-             ``nn.ReLU()``.
-            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see
-             ``ding.torch_utils.fc_block`` for more details`.
+            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to \
+                ``nn.ReLU()``.
+            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see \
+                ``ding.torch_utils.fc_block`` for more details`.
             - dropout (:obj:`bool`): Used by Transformer.
             - gru_gating (:obj:`bool`): Used by Transformer.
             - gru_bias (:obj:`float`): Used by Transformer.
             - dueling (:obj:`bool`): Used by Head. Make the head dueling.
-            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if using
-              a custom convolutional encoder.
-            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see
+            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if \
+                using a custom convolutional encoder.
+            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see \
              ``ding.torch_utils.fc_block`` for more details`.
         """
-        super(GTrXLDiscreteHead, self).__init__()
+        super(GTrXLDQN, self).__init__()
         self.core = GTrXL(
             input_dim=obs_shape,
             head_dim=att_head_dim,
@@ -1023,7 +1100,7 @@ class GTrXLDiscreteHead(nn.Module):
         )
 
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            pass
+            raise NotImplementedError("not support obs_shape for pre-defined encoder: {}".format(obs_shape))
         # replace the embedding layer of Transformer with Conv Encoder
         elif len(obs_shape) == 3:
             assert encoder_hidden_size_list[-1] == hidden_size
@@ -1057,24 +1134,22 @@ class GTrXLDiscreteHead(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Let input tensor go through GTrXl and the Head sequentially.
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).
         Returns:
             - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.
-            Necessary Keys:
-                - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension.
-                 Shape is (bs, action_space)
-                - memory (:obj:`torch.Tensor`):
-                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``
-                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
+        ReturnKeys:
+            - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension, shape is (B, action_space).
+            - memory (:obj:`torch.Tensor`): memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``.
+            - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
         Examples:
             >>> # Init input's Keys:
             >>> obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4
             >>> obs = torch.rand(seq_len, bs, obs_dim)
-            >>> model = GTrXLDiscreteHead(obs_dim, action_dim)
+            >>> model = GTrXLDQN(obs_dim, action_dim)
             >>> outputs = model(obs)
             >>> assert isinstance(outputs, dict)
         """
@@ -1090,27 +1165,23 @@ class GTrXLDiscreteHead(nn.Module):
         out['transformer_out'] = o1['logit']  # output of gtrxl, out['logit'] is final output
         return out
 
-    def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
-        r"""
+    def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None) -> None:
+        """
         Overview:
-            Clear or set the memory of GTrXL.
-         Arguments:
-            - batch_size (:obj:`Optional[int]`): batch size
-            - state (:obj:`Optional[torch.Tensor]`): input memory.
-            Shape is (layer_num, memory_len, bs, embedding_dim).
+            Clear or reset the memory of GTrXL.
+        Arguments:
+            - batch_size (:obj:`Optional[int]`): The number of samples in a training batch.
+            - state (:obj:`Optional[torch.Tensor]`): The input memory data, whose shape is \
+                (layer_num, memory_len, bs, embedding_dim).
         """
         self.core.reset_memory(batch_size, state)
 
     def get_memory(self) -> Optional[torch.Tensor]:
-        r"""
+        """
         Overview:
             Return the memory of GTrXL.
         Returns:
-            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.
-            Shape is (layer_num, memory_len, bs, embedding_dim).
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized, \
+                whose shape is (layer_num, memory_len, bs, embedding_dim).
         """
         return self.core.get_memory()
-
-
-class GeneralQNetwork(nn.Module):
-    pass

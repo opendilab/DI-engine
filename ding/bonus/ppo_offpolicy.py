@@ -14,13 +14,12 @@ from ding.policy import PPOOffPolicy
 from ding.utils import set_pkg_seed
 from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
-from ding.model import BaseVAC, VAC
-from ding.model import StochasticPolicy, VModel
+from ding.model import VAC
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ding.config.PPOOffPolicy import supported_env_cfg
-from ding.config.PPOOffPolicy import supported_env
+from ding.config.example.PPOOffPolicy import supported_env_cfg
+from ding.config.example.PPOOffPolicy import supported_env
 
 
 class PPOOffPolicyAgent:
@@ -75,12 +74,7 @@ class PPOOffPolicyAgent:
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         if model is None:
-            if hasattr(self.cfg.policy.model, "customized_model") and self.cfg.policy.model.customized_model:
-                actor = StochasticPolicy(self.cfg.policy.model.actor)
-                critic = VModel(self.cfg.policy.model.critic)
-                model = BaseVAC(actor=actor, critic=critic, action_space=self.cfg.policy.action_space)
-            else:
-                model = VAC(**self.cfg.policy.model)
+            model = VAC(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = PPOOffPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
@@ -109,23 +103,29 @@ class PPOOffPolicyAgent:
         with task.start(ctx=OnlineRLContext()):
             task.use(
                 interaction_evaluator(
-                    self.cfg, self.policy.eval_mode, evaluator_env, render=self.cfg.policy.eval.render \
-                        if hasattr(self.cfg.policy.eval, "render") else False
+                    self.cfg,
+                    self.policy.eval_mode,
+                    evaluator_env,
+                    render=self.cfg.policy.eval.render if hasattr(self.cfg.policy.eval, "render") else False
                 )
             )
-            task.use(StepCollector(
-                self.cfg,
-                self.policy.collect_mode,
-                collector_env,
-            ))
+            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
+            task.use(
+                StepCollector(
+                    self.cfg,
+                    self.policy.collect_mode,
+                    collector_env,
+                    random_collect_size=self.cfg.policy.random_collect_size
+                    if hasattr(self.cfg.policy, 'random_collect_size') else 0,
+                )
+            )
             task.use(gae_estimator(self.cfg, self.policy.collect_mode, self.buffer_))
             task.use(OffPolicyLearner(self.cfg, self.policy.learn_mode, self.buffer_))
-            task.use(CkptSaver(policy=self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
             task.use(
                 wandb_online_logger(
                     cfg=self.cfg.wandb_logger,
                     exp_config=self.cfg,
-                    metric_list=self.policy.monitor_vars(),
+                    metric_list=self.policy._monitor_vars_learn(),
                     model=self.policy._model,
                     anonymous=True,
                     project_name=self.exp_name,
@@ -256,7 +256,8 @@ class PPOOffPolicyAgent:
             task.use(offline_data_saver(save_data_path, data_type='hdf5'))
             task.run(max_step=1)
         logging.info(
-            f'PPOOffPolicy collecting is finished, more than {n_sample} samples are collected and saved in `{save_data_path}`'
+            f'PPOOffPolicy collecting is finished, more than {n_sample} \
+                samples are collected and saved in `{save_data_path}`'
         )
 
     def batch_evaluate(

@@ -2,7 +2,7 @@ from tensorboardX import SummaryWriter
 from ditk import logging
 import os
 import numpy as np
-from ding.model.template.qac import QAC
+from ding.model.template.qac import ContinuousQAC
 from ding.policy import SACPolicy
 from ding.envs import BaseEnvManagerV2
 from ding.data import DequeBuffer
@@ -36,7 +36,7 @@ def main():
 
             set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-            model = QAC(**cfg.policy.model)
+            model = ContinuousQAC(**cfg.policy.model)
             logging.info(model)
             buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
             policy = SACPolicy(cfg.policy, model=model)
