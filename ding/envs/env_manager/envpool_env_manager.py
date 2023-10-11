@@ -32,7 +32,7 @@ class EnvState(enum.IntEnum):
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool')
-class PoolEnvManager():
+class PoolEnvManager:
     '''
     Overview:
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
@@ -172,7 +172,7 @@ class PoolEnvManager():
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool_v2')
-class PoolEnvManagerV2():
+class PoolEnvManagerV2:
     '''
     Overview:
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
@@ -370,7 +370,7 @@ class PoolEnvManagerV2():
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool_v3')
-class PoolEnvManagerV3():
+class PoolEnvManagerV3:
     '''
     Overview:
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
@@ -638,7 +638,7 @@ class PoolEnvManagerV3():
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool_v4')
-class PoolEnvManagerV4():
+class PoolEnvManagerV4:
     '''
     Overview:
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.

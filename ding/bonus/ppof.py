@@ -239,10 +239,6 @@ class PPOF:
 
         return EvalReturn(eval_value=np.mean(returns), eval_value_std=np.std(returns))
 
-        env.close()
-
-        return return_
-
     def collect_data(
             self,
             env_num: int = 8,
