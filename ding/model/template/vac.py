@@ -103,30 +103,6 @@ class VAC(nn.Module):
         Overview:
             Initialize the VAC model according to corresponding input arguments.
         Arguments:
-<<<<<<< HEAD
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - action_space (:obj:`str`): Choose action head in ['discrete', 'continuous', 'hybrid']
-            - share_encoder (:obj:`bool`): Whether share encoder.
-            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
-            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
-            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[Union[str, nn.Module]]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - policy_activation (:obj:`Optional[Union[str, nn.Module]]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn`` in actor's nn,
-                if ``None`` then default set to ``activation``
-            - value_activation (:obj:`Optional[Union[str, nn.Module]]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn`` in critic's nn,
-                if ``None`` then default set to ``activation``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
-=======
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
             - action_space (:obj:`str`): The type of different action spaces, including ['discrete', 'continuous', \
@@ -154,7 +130,6 @@ class VAC(nn.Module):
             - encoder (:obj:`Optional[torch.nn.Module]`): The encoder module, defaults to ``None``, you can define \
                 your own encoder module and pass it into VAC to deal with different observation space.
             - impala_cnn_encoder (:obj:`bool`): Whether to use IMPALA CNN encoder, defaults to ``False``.
->>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         """
         super(VAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
@@ -216,13 +191,8 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-<<<<<<< HEAD
-                self.actor_encoder = new_encoder(actor_head_hidden_size, policy_activation)
-                self.critic_encoder = new_encoder(critic_head_hidden_size, value_activation)
-=======
                 self.actor_encoder = new_encoder(actor_head_hidden_size, activation)
                 self.critic_encoder = new_encoder(critic_head_hidden_size, activation)
->>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
 
         # Head Type
         self.critic_head = RegressionHead(

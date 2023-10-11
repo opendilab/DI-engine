@@ -27,13 +27,8 @@ class PPOFPolicy:
         epoch_per_collect=10,
         batch_size=64,
         learning_rate=3e-4,
-<<<<<<< HEAD
-        # learningrate scheduler
-        lr_scheduler=None,  # (10000, 0.1)      
-=======
         # learningrate scheduler, which the format is (10000, 0.1)
         lr_scheduler=None,
->>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         weight_decay=0,
         value_weight=0.5,
         entropy_weight=0.01,
