@@ -720,16 +720,16 @@ class DQNFastPolicy(Policy):
         # ====================
         # Q-learning forward
         # ====================
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         start = time.time()
         self._learn_model.train()
         self._target_model.train()
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         set_model_train_time = time.time() - start
         # Current q value (main model)
         start = time.time()
         q_value = self._learn_model.forward(data['obs'])['logit']
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         forward_q_value_time = time.time() - start
 
         start = time.time()
@@ -738,7 +738,7 @@ class DQNFastPolicy(Policy):
             target_next_n_q_value = self._target_model.forward(data['next_n_obs'])['logit']
             # Max q value action (main model), i.e. Double DQN
             target_next_n_action = self._learn_model.forward(data['next_n_obs'])['action']
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         forward_target_next_time = time.time() - start
 
         start = time.time()
@@ -746,7 +746,7 @@ class DQNFastPolicy(Policy):
             q_value, target_next_n_q_value, data['action'], target_next_n_action, data['reward'], data['done'],
             data['weight']
         )
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         q_nstep_td_data_time = time.time() - start
 
         start = time.time()
@@ -756,12 +756,12 @@ class DQNFastPolicy(Policy):
             value_gamma = data.get(
                 'value_gamma'
             ) if 'value_gamma' in data else self._cfg.discount_factor * torch.ones_like(data['done'])
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         get_value_gamma_time = time.time() - start
 
         start = time.time()
         loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         loss_time = time.time() - start
 
         # ====================
@@ -770,13 +770,13 @@ class DQNFastPolicy(Policy):
         start = time.time()
         self._optimizer.zero_grad()
         loss.backward()
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         backward_time = time.time() - start
         if self._cfg.multi_gpu:
             self.sync_gradients(self._learn_model)
         start = time.time()
         self._optimizer.step()
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         gradient_step_time = time.time() - start
 
         # =============
@@ -784,7 +784,7 @@ class DQNFastPolicy(Policy):
         # =============
         start = time.time()
         self._target_model.update(self._learn_model.state_dict())
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         target_update_time = time.time() - start
 
 
@@ -799,26 +799,26 @@ class DQNFastPolicy(Policy):
         # print(f"backward_time:time_learn={backward_time}:{time_learn_total}={backward_time/time_learn_total}")
         # print(f"gradient_step_time:time_learn={gradient_step_time}:{time_learn_total}={gradient_step_time/time_learn_total}")
         # print(f"target_update_time:time_learn={target_update_time}:{time_learn_total}={target_update_time/time_learn_total}")
-        self.time_counter['set_model_train_time'] += set_model_train_time
-        self.time_counter['forward_q_value_time'] += forward_q_value_time
-        self.time_counter['forward_target_next_time'] += forward_target_next_time
-        self.time_counter['q_nstep_td_data_time'] += q_nstep_td_data_time
-        self.time_counter['get_value_gamma_time'] += get_value_gamma_time
-        self.time_counter['loss_time'] += loss_time
-        self.time_counter['backward_time'] += backward_time
-        self.time_counter['gradient_step_time'] += gradient_step_time
-        self.time_counter['target_update_time'] += target_update_time
-        self.time_counter['time_learn_total'] += time_learn_total
-        self.time_counter['counter_learn'] += 1
-        print(f"set_model_train_time:time_learn={self.time_counter['set_model_train_time']}:{self.time_counter['time_learn_total']}={self.time_counter['set_model_train_time']/self.time_counter['time_learn_total']}")
-        print(f"forward_q_value_time:time_learn={self.time_counter['forward_q_value_time']}:{self.time_counter['time_learn_total']}={self.time_counter['forward_q_value_time']/self.time_counter['time_learn_total']}")
-        print(f"forward_target_next_time:time_learn={self.time_counter['forward_target_next_time']}:{self.time_counter['time_learn_total']}={self.time_counter['forward_target_next_time']/self.time_counter['time_learn_total']}")
-        print(f"q_nstep_td_data_time:time_learn={self.time_counter['q_nstep_td_data_time']}:{self.time_counter['time_learn_total']}={self.time_counter['q_nstep_td_data_time']/self.time_counter['time_learn_total']}")
-        print(f"get_value_gamma_time:time_learn={self.time_counter['get_value_gamma_time']}:{self.time_counter['time_learn_total']}={self.time_counter['get_value_gamma_time']/self.time_counter['time_learn_total']}")
-        print(f"loss_time:time_learn={self.time_counter['loss_time']}:{self.time_counter['time_learn_total']}={self.time_counter['loss_time']/self.time_counter['time_learn_total']}")
-        print(f"backward_time:time_learn={self.time_counter['backward_time']}:{self.time_counter['time_learn_total']}={self.time_counter['backward_time']/self.time_counter['time_learn_total']}")
-        print(f"gradient_step_time:time_learn={self.time_counter['gradient_step_time']}:{self.time_counter['time_learn_total']}={self.time_counter['gradient_step_time']/self.time_counter['time_learn_total']}")
-        print(f"target_update_time:time_learn={self.time_counter['target_update_time']}:{self.time_counter['time_learn_total']}={self.time_counter['target_update_time']/self.time_counter['time_learn_total']}")
+        # self.time_counter['set_model_train_time'] += set_model_train_time
+        # self.time_counter['forward_q_value_time'] += forward_q_value_time
+        # self.time_counter['forward_target_next_time'] += forward_target_next_time
+        # self.time_counter['q_nstep_td_data_time'] += q_nstep_td_data_time
+        # self.time_counter['get_value_gamma_time'] += get_value_gamma_time
+        # self.time_counter['loss_time'] += loss_time
+        # self.time_counter['backward_time'] += backward_time
+        # self.time_counter['gradient_step_time'] += gradient_step_time
+        # self.time_counter['target_update_time'] += target_update_time
+        # self.time_counter['time_learn_total'] += time_learn_total
+        # self.time_counter['counter_learn'] += 1
+        # print(f"set_model_train_time:time_learn={self.time_counter['set_model_train_time']}:{self.time_counter['time_learn_total']}={self.time_counter['set_model_train_time']/self.time_counter['time_learn_total']}")
+        # print(f"forward_q_value_time:time_learn={self.time_counter['forward_q_value_time']}:{self.time_counter['time_learn_total']}={self.time_counter['forward_q_value_time']/self.time_counter['time_learn_total']}")
+        # print(f"forward_target_next_time:time_learn={self.time_counter['forward_target_next_time']}:{self.time_counter['time_learn_total']}={self.time_counter['forward_target_next_time']/self.time_counter['time_learn_total']}")
+        # print(f"q_nstep_td_data_time:time_learn={self.time_counter['q_nstep_td_data_time']}:{self.time_counter['time_learn_total']}={self.time_counter['q_nstep_td_data_time']/self.time_counter['time_learn_total']}")
+        # print(f"get_value_gamma_time:time_learn={self.time_counter['get_value_gamma_time']}:{self.time_counter['time_learn_total']}={self.time_counter['get_value_gamma_time']/self.time_counter['time_learn_total']}")
+        # print(f"loss_time:time_learn={self.time_counter['loss_time']}:{self.time_counter['time_learn_total']}={self.time_counter['loss_time']/self.time_counter['time_learn_total']}")
+        # print(f"backward_time:time_learn={self.time_counter['backward_time']}:{self.time_counter['time_learn_total']}={self.time_counter['backward_time']/self.time_counter['time_learn_total']}")
+        # print(f"gradient_step_time:time_learn={self.time_counter['gradient_step_time']}:{self.time_counter['time_learn_total']}={self.time_counter['gradient_step_time']/self.time_counter['time_learn_total']}")
+        # print(f"target_update_time:time_learn={self.time_counter['target_update_time']}:{self.time_counter['time_learn_total']}={self.time_counter['target_update_time']/self.time_counter['time_learn_total']}")
 
 
         return {

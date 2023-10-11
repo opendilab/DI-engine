@@ -197,12 +197,12 @@ class OffPolicyLearnerV2:
 
         ctx.train_output = train_output_queue
         ctx.learner_time += time.time() - start
-        print("time_fetcher:time_trainer={}:{}={}".format(time_fetcher, time_trainer, time_fetcher / time_trainer))
-        print(
-            "time_process_data:time_trainer={}:{}={}".format(
-                time_process_data, time_trainer, time_process_data / time_trainer
-            )
-        )
+        #print("time_fetcher:time_trainer={}:{}={}".format(time_fetcher, time_trainer, time_fetcher / time_trainer))
+        #print(
+        #    "time_process_data:time_trainer={}:{}={}".format(
+        #        time_process_data, time_trainer, time_process_data / time_trainer
+        #    )
+        #)
 
 
 class OffPolicyLearnerV3:
