@@ -217,6 +217,3 @@ class PGPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + ['policy_loss', 'entropy_loss', 'return_abs_max', 'grad_norm']
-
-    def monitor_vars(self) -> List[str]:
-        return self._monitor_vars_learn()
