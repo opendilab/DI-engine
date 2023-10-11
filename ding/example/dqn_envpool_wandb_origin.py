@@ -101,7 +101,7 @@ def main(cfg):
         task.use(online_logger(train_show_freq=10))
         task.use(
             wandb_online_logger(
-                metric_list=policy.monitor_vars(),
+                metric_list=policy._monitor_vars_learn(),
                 model=policy._model,
                 exp_config=cfg,
                 anonymous=True,

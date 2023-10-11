@@ -23,7 +23,7 @@ from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_envpool_config im
 
 def main(cfg):
     logging.getLogger().setLevel(logging.INFO)
-    cfg.exp_name = 'Spaceinvaders-v5-DQN-envpool-new-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    cfg.exp_name = 'Test-Spaceinvaders-v5-DQN-envpool-new-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     collector_env_cfg = EasyDict(
         {
@@ -99,7 +99,7 @@ def main(cfg):
         task.use(online_logger(train_show_freq=10))
         task.use(
             wandb_online_logger(
-                metric_list=policy.monitor_vars(),
+                metric_list=policy._monitor_vars_learn(),
                 model=policy._model,
                 exp_config=cfg,
                 anonymous=True,
@@ -115,7 +115,7 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0, help="random seed")

@@ -346,12 +346,12 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
         ready_obs_receive = {}
         ready_obs_send = {}
         ready_action_send = {}
-        trajectory = {i:[] for i in range(env.env_num)}
+        trajectory = {i: [] for i in range(env.env_num)}
 
         if env.closed:
-            ready_obs_receive=env.launch()
+            ready_obs_receive = env.launch()
         else:
-            ready_obs_receive=env.reset()
+            ready_obs_receive = env.reset()
         policy.reset()
         eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
 
@@ -360,7 +360,7 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
             if len(ready_obs_receive.keys()) > 0:
                 action_to_send = policy.forward(ready_obs_receive)
                 output = [v for v in action_to_send.values()]
-                
+
                 ready_obs_send.update(ready_obs_receive)
                 ready_obs_receive = {}
                 ready_action_send.update(action_to_send)
@@ -375,9 +375,9 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
             env_id_receive = info['env_id']
             ready_obs_receive.update({i: next_obs[i] for i in range(len(next_obs))})
 
-            #todo 
+            #todo
             for i in range(len(env_id_receive)):
-                current_reward=ttorch.tensor(np.array([rew[i]]))
+                current_reward = ttorch.tensor(np.array([rew[i]]))
                 trajectory[env_id_receive[i]].append(
                     {
                         'obs': ttorch.tensor(ready_obs_send[env_id_receive[i]]),
@@ -389,13 +389,13 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
                     }
                 )
 
-                if done[i]==True:
+                if done[i] == True:
                     episode_return_i = 0.0
                     for item in trajectory[env_id_receive[i]]:
-                        episode_return_i+=item['reward'][0]
+                        episode_return_i += item['reward'][0]
                     eval_monitor.update_reward(env_id_receive[i], episode_return_i)
                     policy.reset([env_id_receive[i]])
-                    trajectory[env_id_receive[i]]=[]
+                    trajectory[env_id_receive[i]] = []
 
         episode_return = eval_monitor.get_episode_return()
         episode_return_min = np.min(episode_return)

@@ -100,14 +100,14 @@ def main(cfg):
         task.use(OffPolicyLearnerV2(cfg, policy, buffer_))
         task.use(online_logger(train_show_freq=10))
         # task.use(
-            # wandb_online_logger(
-            #     metric_list=policy.monitor_vars(),
-            #     model=policy._model,
-            #     exp_config=cfg,
-            #     anonymous=True,
-            #     project_name=cfg.exp_name,
-            #     wandb_sweep=False,
-            # )
+        # wandb_online_logger(
+        #     metric_list=policy._monitor_vars_learn(),
+        #     model=policy._model,
+        #     exp_config=cfg,
+        #     anonymous=True,
+        #     project_name=cfg.exp_name,
+        #     wandb_sweep=False,
+        # )
         # )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
@@ -117,7 +117,7 @@ def main(cfg):
 
 
 if __name__ == "__main__":
-    
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0, help="random seed")

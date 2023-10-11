@@ -722,15 +722,16 @@ class DQNFastPolicy(Policy):
             target_next_n_action = self._learn_model.forward(data['next_n_obs'])['action']
 
         data_n = q_nstep_td_data(
-            q_value, target_next_n_q_value, data['action'], target_next_n_action, data['reward'], data['done'], data['weight']
+            q_value, target_next_n_q_value, data['action'], target_next_n_action, data['reward'], data['done'],
+            data['weight']
         )
 
-        if self._cfg.nstep==1:
-            value_gamma=None
+        if self._cfg.nstep == 1:
+            value_gamma = None
         else:
-            value_gamma = data.get('value_gamma') if 'value_gamma' in data else self._cfg.discount_factor * torch.ones_like(
-                data['done']
-            )
+            value_gamma = data.get(
+                'value_gamma'
+            ) if 'value_gamma' in data else self._cfg.discount_factor * torch.ones_like(data['done'])
         loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
 
         # ====================

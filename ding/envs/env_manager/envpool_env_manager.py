@@ -508,8 +508,6 @@ class PoolEnvManagerV3:
                 env_id = np.array(env_id_to_send)
                 self._envs.send(action, env_id)
 
-
-
             next_obs, rew, done, info = self._envs.recv()
             next_obs = next_obs.astype(np.float32)
             next_obs /= 255.0
@@ -538,7 +536,6 @@ class PoolEnvManagerV3:
             self.launch()
 
         new_data = []
-        
 
         while len(new_data) < num:
 
@@ -705,7 +702,7 @@ class PoolEnvManagerV4:
 
     def reset(self) -> None:
         self._envs.async_reset()
-        ready_obs={}
+        ready_obs = {}
         while True:
             obs, _, _, info = self._envs.recv()
             env_id = info['env_id']
@@ -726,9 +723,9 @@ class PoolEnvManagerV4:
         next_obs = next_obs.astype(np.float32)
         next_obs /= 255.0
         rew = rew.astype(np.float32)
-        
+
         return next_obs, rew, done, info
-    
+
     def close(self) -> None:
         if self._closed:
             return

@@ -67,7 +67,7 @@ def fast_preprocess_learn(
     # data preprocess
     processes_data = {}
 
-    action=torch.tensor(np.array([data[i]['action'] for i in range(len(data))]))
+    action = torch.tensor(np.array([data[i]['action'] for i in range(len(data))]))
     if cuda:
         action = to_device(action, device=device)
     if action.ndim == 2 and action.shape[1] == 1:
@@ -123,6 +123,7 @@ def fast_preprocess_learn(
     processes_data['weight'] = weight
 
     return processes_data
+
 
 def fast_preprocess_learn_v2(
         data: List[Any],

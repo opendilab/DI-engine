@@ -14,8 +14,9 @@ if TYPE_CHECKING:
 from queue import Queue
 import time
 import torch.multiprocessing as mp
-from threading import Thread 
+from threading import Thread
 from ding.policy.common_utils import default_preprocess_learn, fast_preprocess_learn
+
 
 def data_process_func(data_queue_input, data_queue_output):
     while True:
@@ -24,15 +25,16 @@ def data_process_func(data_queue_input, data_queue_output):
             break
         else:
             #print("get one data")
-            output_data=fast_preprocess_learn(
+            output_data = fast_preprocess_learn(
                 data,
-                use_priority=False, #policy._cfg.priority,
-                use_priority_IS_weight=False, #policy._cfg.priority_IS_weight,
-                cuda=True, #policy._cuda,
-                device="cuda:0", #policy._device,
+                use_priority=False,  #policy._cfg.priority,
+                use_priority_IS_weight=False,  #policy._cfg.priority_IS_weight,
+                cuda=True,  #policy._cuda,
+                device="cuda:0",  #policy._device,
             )
         data_queue_output.put(output_data)
         #print("put one data, queue size:{}".format(data_queue_output.qsize()))
+
 
 def data_process_func_v2(data_queue_input, data_queue_output):
     while True:
@@ -44,15 +46,16 @@ def data_process_func_v2(data_queue_input, data_queue_output):
                 break
             else:
                 #print("get one data")
-                output_data=fast_preprocess_learn(
+                output_data = fast_preprocess_learn(
                     data,
-                    use_priority=False, #policy._cfg.priority,
-                    use_priority_IS_weight=False, #policy._cfg.priority_IS_weight,
-                    cuda=True, #policy._cuda,
-                    device="cuda:0", #policy._device,
+                    use_priority=False,  #policy._cfg.priority,
+                    use_priority_IS_weight=False,  #policy._cfg.priority_IS_weight,
+                    cuda=True,  #policy._cuda,
+                    device="cuda:0",  #policy._device,
                 )
             data_queue_output.put(output_data)
             #print("put one data, queue size:{}".format(data_queue_output.qsize()))
+
 
 class OffPolicyLearner:
     """
@@ -118,7 +121,6 @@ class OffPolicyLearner:
         print("time_trainer:time_fetcher={}:{}={}".format(time_trainer, time_fetcher, time_trainer / time_fetcher))
 
 
-
 class OffPolicyLearnerV2:
     """
     Overview:
@@ -157,7 +159,7 @@ class OffPolicyLearnerV2:
         self._data_queue_input = Queue()
         self._data_queue_output = Queue()
 
-        self.thread_worker=Thread(target=data_process_func_v2, args=(self._data_queue_input, self._data_queue_output))
+        self.thread_worker = Thread(target=data_process_func_v2, args=(self._data_queue_input, self._data_queue_output))
         self.thread_worker.start()
 
         #self._fetcher_worker_process = mp.Process(target=data_process_func, args=(self._data_queue_input, self._data_queue_output))
@@ -177,12 +179,11 @@ class OffPolicyLearnerV2:
         start = time.time()
         time_fetcher = 0.0
         time_trainer = 0.0
-        time_fetch_data=0.0
-        time_get_data=0.0
-        
-        train_output_queue = []
-        data_counter=0
+        time_fetch_data = 0.0
+        time_get_data = 0.0
 
+        train_output_queue = []
+        data_counter = 0
 
         start_fetcher = time.time()
         for _ in range(self.cfg.policy.learn.update_per_collect):
@@ -192,7 +193,7 @@ class OffPolicyLearnerV2:
             if ctx.train_data_sample is None:
                 break
             self._data_queue_input.put(ctx.train_data_sample)
-            data_counter+=1
+            data_counter += 1
         time_fetcher += time.time() - start_fetcher
 
         start_trainer = time.time()
@@ -203,7 +204,7 @@ class OffPolicyLearnerV2:
                     time.sleep(0.001)
                     continue
                 else:
-                    ctx.train_data=self._data_queue_output.get()
+                    ctx.train_data = self._data_queue_output.get()
                     break
             time_get_data += time.time() - start_get_data
             if self._reward_estimator:

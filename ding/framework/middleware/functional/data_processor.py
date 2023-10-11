@@ -188,7 +188,6 @@ def offpolicy_data_fetcher(
     return _fetch
 
 
-
 def offpolicy_data_fetcher_v2(
         cfg: EasyDict,
         buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
@@ -211,8 +210,6 @@ def offpolicy_data_fetcher_v2(
             and assigned to the same key of `ctx.train_data`.
         - data_shortage_warning (:obj:`bool`): Whether to output warning when data shortage occurs in fetching.
     """
-
-    
 
     def _fetch(ctx: "OnlineRLContext"):
         """
@@ -268,7 +265,6 @@ def offpolicy_data_fetcher_v2(
             ctx.train_data_sample = None
             return
 
-        
         yield
 
         if isinstance(buffer_, Buffer):
