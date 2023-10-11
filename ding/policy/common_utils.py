@@ -16,12 +16,8 @@ def default_preprocess_learn(
         ignore_done: bool = False,
 ) -> dict:
     # data preprocess
-<<<<<<< HEAD
-    if data[0]['action'].dtype in [torch.int8, torch.int16, torch.int32, torch.int64]:
-=======
     if data[0]['action'].dtype in [np.int8, np.int16, np.int32, np.int64, torch.int8, torch.int16, torch.int32,
                                    torch.int64]:
->>>>>>> 11cc7de83c4e40c2a3929a46ac4fb132e730df5b
         data = default_collate(data, cat_1dim=True)  # for discrete action
     else:
         data = default_collate(data, cat_1dim=False)  # for continuous action
