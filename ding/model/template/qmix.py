@@ -99,12 +99,12 @@ class Mixer(nn.Module):
 class QMix(nn.Module):
     """
     Overview:
-        The neural network and computation graph of algorithms related to QMIX. The QMIX is composed of two parts: \
-        agent Q network and mixer(optional). The QMIX paper mentions that all agents share local Q network \
-        parameters, so only one Q network is initialized here. Then use summation or Mixer network to process the \
-        local Q according to the ``mixer`` settings to obtain the global Q.
+        The neural network and computation graph of algorithms related to QMIX(https://arxiv.org/abs/1803.11485). \
+        The QMIX is composed of two parts: agent Q network and mixer(optional). The QMIX paper mentions that all \
+        agents share local Q network parameters, so only one Q network is initialized here. Then use summation or \
+        Mixer network to process the local Q according to the ``mixer`` settings to obtain the global Q.
     Interface:
-        ``__init__``, ``forward``, ``_setup_global_encoder``.
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -217,16 +217,3 @@ class QMix(nn.Module):
             'next_state': next_state,
             'action_mask': data['obs']['action_mask']
         }
-
-    def _setup_global_encoder(self, global_obs_shape: int, embedding_size: int) -> torch.nn.Module:
-        """
-        Overview:
-            这部分是不是可以不要了
-            Used to encoder global observation.
-        Arguments:
-            - global_obs_shape (:obj:`int`): The dimension of global observation state.
-            - embedding_size (:obj:`int`): The dimension of state emdedding.
-        Return:
-            - outputs (:obj:`torch.nn.Module`): Global observation encoding network.
-        """
-        return MLP(global_obs_shape, embedding_size, embedding_size, 2, activation=self._act)

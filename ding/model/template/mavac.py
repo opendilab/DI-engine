@@ -11,9 +11,9 @@ class MAVAC(nn.Module):
     """
     Overview:
         The neural network and computation graph of algorithms related to (state) Value Actor-Critic (VAC) for \
-        multi-agent, such as MAPPO. This model now supports discrete and continuous action space. \
-        The MAVAC is composed of four parts: ``actor_encoder``, ``critic_encoder``, ``actor_head`` and \
-        ``critic_head``. Encoders are used to extract the feature from various observation. \
+        multi-agent, such as MAPPO(https://arxiv.org/abs/2103.01955). This model now supports discrete and \
+        continuous action space. The MAVAC is composed of four parts: ``actor_encoder``, ``critic_encoder``, \
+        ``actor_head`` and ``critic_head``. Encoders are used to extract the feature from various observation. \
         Heads are used to predict corresponding value or action logit.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``, ``compute_actor_critic``.
@@ -43,8 +43,10 @@ class MAVAC(nn.Module):
             - agent_obs_shape (:obj:`Union[int, SequenceType]`): Observation's space for single agent, \
                 such as 8 or [4, 84, 84].
             - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space, such as 8 or [4, 84, 84].
-            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
-            - agent_num (:obj:`int`): This parameter is temporarily reserved.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape for single agent, such as 6 \
+                or [2, 3, 3].
+            - agent_num (:obj:`int`): This parameter is temporarily reserved. This parameter may be required for \
+                subsequent changes to the model
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``actor_head`` network, defaults \
                 to 256, it must match the last element of ``agent_obs_shape``.
             - actor_head_layer_num (:obj:`int`): The num of layers used in the ``actor_head`` network to compute action.
@@ -121,6 +123,7 @@ class MAVAC(nn.Module):
         """
         Overview:
             MAVAC forward computation graph, input observation tensor to predict state value or action logit. \
+            ``mode`` includes ``compute_actor``, ``compute_critic``, ``compute_actor_critic``.
             Different ``mode`` will forward with different network modules to get different outputs and save \
             computation.
         Arguments:
@@ -169,7 +172,8 @@ class MAVAC(nn.Module):
     def compute_actor(self, x: Dict) -> Dict:
         """
         Overview:
-            MAVAC forward computation graph for actor part, input observation tensor to predict action logit.
+            MAVAC forward computation graph for actor part, \
+            predicting action logit with agent observation tensor in ``x``.
         Arguments:
             - x (:obj:`Dict`): Input data dict with keys ['agent_state', 'action_mask'(optional)].
                 - agent_state: (:obj:`torch.Tensor`): Each agent local state(obs).
@@ -215,7 +219,8 @@ class MAVAC(nn.Module):
     def compute_critic(self, x: Dict) -> Dict:
         """
         Overview:
-            MAVAC forward computation graph for critic part, input global observation tensor to predict state value.
+            MAVAC forward computation graph for critic part. \
+            Predict state value with global observation tensor in ``x``.
         Arguments:
             - x (:obj:`Dict`): Input data dict with keys ['global_state'].
                 - global_state: (:obj:`torch.Tensor`): Global state(obs).
@@ -235,7 +240,7 @@ class MAVAC(nn.Module):
                     'action_mask': torch.randint(0, 2, size=(10, 8, 14))
                 }
             >>> critic_outputs = model(inputs,'compute_critic')
-            >>> assert actor_outputs['value'].shape == torch.Size([10, 8])
+            >>> assert critic_outputs['value'].shape == torch.Size([10, 8])
         """
 
         x = self.critic_encoder(x['global_state'])
@@ -248,7 +253,7 @@ class MAVAC(nn.Module):
             MAVAC forward computation graph for both actor and critic part, input observation to predict action \
             logit and state value.
         Arguments:
-            - x (:obj:`Dict`): The input observation and related info dict.
+            - x (:obj:Dict): The input dict contains ``agent_state``, ``global_state`` and other related info.
         Returns:
             - outputs (:obj:`Dict`): The output dict of MAVAC's forward computation graph for both actor and critic, \
                 including ``logit`` and ``value``.

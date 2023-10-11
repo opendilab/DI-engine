@@ -13,7 +13,8 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, Regressi
 class PDQN(nn.Module):
     """
     Overview:
-        The neural network and computation graph of PDQN and MPDQN algorithms for parameterized action space. \
+        The neural network and computation graph of PDQN(https://arxiv.org/abs/1810.06394v1) and \
+        MPDQN(https://arxiv.org/abs/1905.04388) algorithms for parameterized action space. \
         This model supports parameterized action space with discrete ``action_type`` and continuous ``action_arg``. \
         In principle, PDQN consists of x network (continuous action parameter network) and Q network (discrete \
         action type network). But for simplicity, the code is split into ``encoder`` and ``actor_head``, which \
@@ -130,7 +131,7 @@ class PDQN(nn.Module):
 
         self.actor_head = nn.ModuleList([self.dis_head, self.cont_head])
         # self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
-        # 为什么这里encoder是同一个？
+        # To speed up the training process, the X network and the Q network share the encoder for the state
         self.encoder = nn.ModuleList([self.cont_encoder, self.cont_encoder])
 
     def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
@@ -139,7 +140,8 @@ class PDQN(nn.Module):
             PDQN forward computation graph, input observation tensor to predict q_value for \
             discrete actions and values for continuous action_args.
         Arguments:
-            - inputs (:obj:`torch.Tensor`): Observation inputs.
+            - inputs (:obj:`Union[torch.Tensor, Dict, EasyDict]`): Inputs including observation and \
+                other info according to `mode`.
             - mode (:obj:`str`): Name of the forward mode.
         Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``.
