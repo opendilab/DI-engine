@@ -342,8 +342,8 @@ class DQNPolicy(Policy):
             This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
 
         .. note::
-            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
-            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
 
         .. tip::
             Some variables need to initialize independently in different modes, such as gamma and nstep in DQN. This \
