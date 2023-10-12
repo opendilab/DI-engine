@@ -48,10 +48,10 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
 - Most basic DRL algorithms: such as DQN, Rainbow, PPO, TD3, SAC, R2D2, IMPALA
 - Multi-agent RL algorithms: such as QMIX, WQMIX, MAPPO, HAPPO, ACE
 - Imitation learning algorithms (BC/IRL/GAIL): such as GAIL, SQIL, Guided Cost Learning, Implicit BC
-- Offline RL algorithms: BCQ, CQL, TD3BC, Decision Transformer, EDAC
+- Offline RL algorithms: BCQ, CQL, TD3BC, Decision Transformer, EDAC, Diffuser
 - Model-based RL algorithms: SVG, STEVE, MBPO, DDPPO, DreamerV3, MuZero
 - Exploration algorithms: HER, RND, ICM, NGU
-- Other algorithims: such as PER, PLR, PCGrad
+- Other algorithms: such as PER, PLR, PCGrad
 
 **DI-engine** aims to **standardize different Decision Intelligence environments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:
 
@@ -74,7 +74,7 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
   - [ACE](https://github.com/opendilab/ACE): [AAAI 2023] ACE: Cooperative Multi-agent Q-learning with Bidirectional Action-Dependency
   - [GoBigger](https://github.com/opendilab/GoBigger): [ICLR 2023] Multi-Agent Decision Intelligence Environment
   - [DOS](https://github.com/opendilab/DOS): [CVPR 2023] ReasonNet: End-to-End Driving with Temporal and Global Reasoning
-  - [LightZero](https://github.com/opendilab/LightZero): A lightweight and efficient MCTS/AlphaZero/MuZero algorithm toolkit
+  - [LightZero](https://github.com/opendilab/LightZero): [NeurIPS 2023 Spotlight] A lightweight and efficient MCTS/AlphaZero/MuZero algorithm toolkit
 - Docs and Tutorials
   - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs): Tutorials, best practice and the API reference.
   - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources
@@ -97,6 +97,7 @@ BTW, **DI-engine** also has some special **system optimization and design** for 
 
 - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
 - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
+- [DI-toolkit](https://github.com/opendilab/DI-toolkit): A simple toolkit package for decision intelligence
 - [DI-orchestrator](https://github.com/opendilab/DI-orchestrator): RL Kubernetes Custom Resource and Operator Lib
 - [DI-hpc](https://github.com/opendilab/DI-hpc): RL HPC OP Lib
 - [DI-store](https://github.com/opendilab/DI-store): RL Object Store
