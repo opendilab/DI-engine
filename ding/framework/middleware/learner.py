@@ -349,7 +349,7 @@ class OffPolicyLearnerV4:
         time_trainer = 0.0
 
         train_output_queue = []
-        train_data_processed = []
+        train_data_processed = Queue()
 
         for _ in range(self.cfg.policy.learn.update_per_collect):
             start_fetch_data = time.time()
