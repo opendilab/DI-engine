@@ -819,32 +819,38 @@ class DuelingHead(nn.Module):
             v_layer_num = layer_num
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        self.A = nn.Sequential(
-            MLP(
-                hidden_size,
-                hidden_size,
-                hidden_size,
-                a_layer_num,
-                layer_fn=layer,
-                activation=activation,
-                use_dropout=dropout is not None,
-                dropout_probability=dropout,
-                norm_type=norm_type
-            ), block(hidden_size, output_size)
-        )
-        self.V = nn.Sequential(
-            MLP(
-                hidden_size,
-                hidden_size,
-                hidden_size,
-                v_layer_num,
-                layer_fn=layer,
-                activation=activation,
-                use_dropout=dropout is not None,
-                dropout_probability=dropout,
-                norm_type=norm_type
-            ), block(hidden_size, 1)
-        )
+        if a_layer_num>0:
+            self.A = nn.Sequential(
+                MLP(
+                    hidden_size,
+                    hidden_size,
+                    hidden_size,
+                    a_layer_num,
+                    layer_fn=layer,
+                    activation=activation,
+                    use_dropout=dropout is not None,
+                    dropout_probability=dropout,
+                    norm_type=norm_type
+                ), block(hidden_size, output_size)
+            )
+        else:
+            self.A = block(hidden_size, output_size)
+        if v_layer_num>0:
+            self.V = nn.Sequential(
+                MLP(
+                    hidden_size,
+                    hidden_size,
+                    hidden_size,
+                    v_layer_num,
+                    layer_fn=layer,
+                    activation=activation,
+                    use_dropout=dropout is not None,
+                    dropout_probability=dropout,
+                    norm_type=norm_type
+                ), block(hidden_size, 1)
+            )
+        else:
+            self.V = block(hidden_size, 1)
 
     def forward(self, x: torch.Tensor) -> Dict:
         """
