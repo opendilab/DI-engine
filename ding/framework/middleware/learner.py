@@ -215,7 +215,7 @@ class OffPolicyLearnerV3:
     def __new__(cls, *args, **kwargs):
         if task.router.is_active and not task.has_role(task.role.LEARNER):
             return task.void()
-        return super(OffPolicyLearnerV2, cls).__new__(cls)
+        return super(OffPolicyLearnerV3, cls).__new__(cls)
 
     def __init__(
             self,
@@ -299,6 +299,96 @@ class OffPolicyLearnerV3:
         #print("time_fetcher:time_fetch_data={}:{}={}".format(time_fetcher, time_fetch_data, time_fetcher / time_fetch_data))
         #print("time_trainer:time_get_data={}:{}={}".format(time_trainer, time_get_data, time_trainer / time_get_data))
         #print("time_trainer:time_fetcher={}:{}={}".format(time_trainer, time_fetcher, time_trainer / time_fetcher))
+
+
+class OffPolicyLearnerV4:
+    """
+    Overview:
+        The class of the off-policy learner, including data fetching and model training. Use \
+            the `__call__` method to execute the whole learning process.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not task.has_role(task.role.LEARNER):
+            return task.void()
+        return super(OffPolicyLearnerV4, cls).__new__(cls)
+
+    def __init__(
+            self,
+            cfg: EasyDict,
+            policy: 'Policy',
+            buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
+            reward_model: Optional['BaseRewardModel'] = None,
+            log_freq: int = 100,
+    ) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be trained.
+            - buffer (:obj:`Buffer`): The replay buffer to store the data for training.
+            - reward_model (:obj:`BaseRewardModel`): Additional reward estimator likes RND, ICM, etc. \
+                default to None.
+            - log_freq (:obj:`int`): The frequency (iteration) of showing log.
+        """
+        self.cfg = cfg
+        self._fetcher = task.wrap(offpolicy_data_fetcher_v2(cfg, buffer_))
+        self._trainer = task.wrap(trainer(cfg, policy.learn_mode, log_freq=log_freq))
+        if reward_model is not None:
+            self._reward_estimator = task.wrap(reward_estimator(cfg, reward_model))
+        else:
+            self._reward_estimator = None
+
+    def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Output of ctx:
+            - train_output (:obj:`Deque`): The training output in deque.
+        """
+        start = time.time()
+        time_fetcher = 0.0
+        time_process_data = 0.0
+        time_trainer = 0.0
+
+        train_output_queue = []
+        train_data_processed = []
+
+        for _ in range(self.cfg.policy.learn.update_per_collect):
+            start_fetch_data = time.time()
+            self._fetcher(ctx)
+            time_fetcher += time.time() - start_fetch_data
+
+            start_process_data = time.time()
+            train_data = fast_preprocess_learn(
+                ctx.train_data_sample,
+                use_priority=False,  #policy._cfg.priority,
+                use_priority_IS_weight=False,  #policy._cfg.priority_IS_weight,
+                cuda=True,  #policy._cuda,
+                device="cuda:0",  #policy._device,
+            )
+            time_process_data += time.time() - start_process_data
+
+            train_data_processed.put(train_data)
+
+            if self._reward_estimator:
+                self._reward_estimator(ctx)
+
+        for _ in range(self.cfg.policy.learn.update_per_collect):
+
+            start_trainer = time.time()
+            ctx.train_data = train_data_processed.get()
+            self._trainer(ctx)
+            time_trainer += time.time() - start_trainer
+
+            train_output_queue.append(ctx.train_output)
+            ctx.train_output_for_post_process = ctx.train_output
+
+        ctx.train_output = train_output_queue
+        ctx.learner_time += time.time() - start
+        #print("time_fetcher:time_trainer={}:{}={}".format(time_fetcher, time_trainer, time_fetcher / time_trainer))
+        #print(
+        #    "time_process_data:time_trainer={}:{}={}".format(
+        #        time_process_data, time_trainer, time_process_data / time_trainer
+        #    )
+        #)
 
 
 class HERLearner:
