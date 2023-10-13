@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, Callable, List, Tuple, Any, Optional
+from typing import TYPE_CHECKING, Callable, List, Tuple, Any
 from functools import reduce
 import treetensor.torch as ttorch
 import numpy as np
-from ding.utils import EasyTimer, build_logger
+from ditk import logging
+from ding.utils import EasyTimer
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 from ding.torch_utils import to_ndarray, get_shape0
@@ -90,9 +91,6 @@ def rolloutor(
         env: BaseEnvManager,
         transitions: TransitionList,
         collect_print_freq=100,
-        tb_logger=None,
-        exp_name: Optional[str] = 'default_experiment',
-        instance_name: Optional[str] = 'collector'
 ) -> Callable:
     """
     Overview:
@@ -112,55 +110,9 @@ def rolloutor(
     last_train_iter = 0
     total_envstep_count = 0
     total_episode_count = 0
-    total_duration = 0
     total_train_sample_count = 0
     env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(env.env_num)}
     episode_info = []
-
-    if tb_logger is not None:
-        logger, _ = build_logger(path='./{}/log/{}'.format(exp_name, instance_name), name=instance_name, need_tb=False)
-        tb_logger = tb_logger
-    else:
-        logger, tb_logger = build_logger(path='./{}/log/{}'.format(exp_name, instance_name), name=instance_name)
-
-    def output_log(train_iter: int) -> None:
-        """
-        Overview:
-            Print the output log information. You can refer to the docs of `Best Practice` to understand \
-            the training generated logs and tensorboards.
-        Arguments:
-            - train_iter (:obj:`int`): the number of training iteration.
-        """
-        nonlocal episode_info, timer, total_episode_count, total_duration, \
-        total_envstep_count, total_train_sample_count, last_train_iter
-        if (train_iter - last_train_iter) >= collect_print_freq and len(episode_info) > 0:
-            last_train_iter = train_iter
-            episode_count = len(episode_info)
-            envstep_count = sum([d['step'] for d in episode_info])
-            train_sample_count = sum([d['train_sample'] for d in episode_info])
-            duration = sum([d['time'] for d in episode_info])
-            episode_return = [d['reward'].item() for d in episode_info]
-            print(episode_return)
-            info = {
-                'episode_count': episode_count,
-                'envstep_count': envstep_count,
-                'train_sample_count': train_sample_count,
-                'avg_envstep_per_episode': envstep_count / episode_count,
-                'avg_sample_per_episode': train_sample_count / episode_count,
-                'avg_envstep_per_sec': envstep_count / duration,
-                'avg_train_sample_per_sec': train_sample_count / duration,
-                'avg_episode_per_sec': episode_count / duration,
-                'reward_mean': np.mean(episode_return),
-                'reward_std': np.std(episode_return),
-                'reward_max': np.max(episode_return),
-                'reward_min': np.min(episode_return),
-                'total_envstep_count': total_envstep_count,
-                'total_train_sample_count': total_train_sample_count,
-                'total_episode_count': total_episode_count,
-                # 'each_reward': episode_return,
-            }
-            episode_info.clear()
-            logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
 
     def _rollout(ctx: "OnlineRLContext"):
         """
@@ -177,11 +129,10 @@ def rolloutor(
         """
 
         nonlocal current_id, env_info, episode_info, timer, \
-        total_episode_count, total_duration, total_envstep_count, total_train_sample_count, last_train_iter
+        total_episode_count, total_envstep_count, total_train_sample_count, last_train_iter
         timesteps = env.step(ctx.action)
         ctx.env_step += len(timesteps)
         timesteps = [t.tensor() for t in timesteps]
-        # TODO abnormal env step
 
         collected_sample = 0
         collected_step = 0
@@ -190,7 +141,7 @@ def rolloutor(
         for i, timestep in enumerate(timesteps):
             with timer:
                 transition = policy.process_transition(ctx.obs[i], ctx.inference_output[i], timestep)
-                transition = ttorch.as_tensor(transition)  # TBD
+                transition = ttorch.as_tensor(transition)
                 transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
                 transition.env_data_id = ttorch.as_tensor([env_episode_id[timestep.env_id]])
                 transitions.append(timestep.env_id, transition)
@@ -216,12 +167,47 @@ def rolloutor(
                 current_id += 1
                 ctx.env_episode += 1
 
-        collected_duration = sum([d['time'] for d in episode_info])
         total_envstep_count += collected_step
         total_episode_count += collected_episode
-        total_duration += collected_duration
         total_train_sample_count += collected_sample
 
-        output_log(ctx.train_iter)
+        if (ctx.train_iter - last_train_iter) >= collect_print_freq and len(episode_info) > 0:
+            output_log(episode_info, total_episode_count, total_envstep_count, total_train_sample_count)
+            last_train_iter = ctx.train_iter
 
     return _rollout
+
+
+def output_log(episode_info, total_episode_count, total_envstep_count, total_train_sample_count) -> None:
+    """
+    Overview:
+        Print the output log information. You can refer to the docs of `Best Practice` to understand \
+        the training generated logs and tensorboards.
+    Arguments:
+        - train_iter (:obj:`int`): the number of training iteration.
+    """
+    episode_count = len(episode_info)
+    envstep_count = sum([d['step'] for d in episode_info])
+    train_sample_count = sum([d['train_sample'] for d in episode_info])
+    duration = sum([d['time'] for d in episode_info])
+    episode_return = [d['reward'].item() for d in episode_info]
+    info = {
+        'episode_count': episode_count,
+        'envstep_count': envstep_count,
+        'train_sample_count': train_sample_count,
+        'avg_envstep_per_episode': envstep_count / episode_count,
+        'avg_sample_per_episode': train_sample_count / episode_count,
+        'avg_envstep_per_sec': envstep_count / duration,
+        'avg_train_sample_per_sec': train_sample_count / duration,
+        'avg_episode_per_sec': episode_count / duration,
+        'reward_mean': np.mean(episode_return),
+        'reward_std': np.std(episode_return),
+        'reward_max': np.max(episode_return),
+        'reward_min': np.min(episode_return),
+        'total_envstep_count': total_envstep_count,
+        'total_train_sample_count': total_train_sample_count,
+        'total_episode_count': total_episode_count,
+        # 'each_reward': episode_return,
+    }
+    episode_info.clear()
+    logging.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
