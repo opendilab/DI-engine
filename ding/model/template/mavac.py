@@ -180,7 +180,7 @@ class MAVAC(nn.Module):
                 - action_mask(optional): (:obj:`torch.Tensor`): When ``action_space`` is discrete, action_mask needs \
                     to be provided to mask illegal actions.
         Returns:
-            - outputs (:obj:`Dict`): 
+            - outputs (:obj:`Dict`):
                 The output dict of MAVAC's forward computation graph for actor, including ``logit``.
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
@@ -273,8 +273,8 @@ class MAVAC(nn.Module):
                     'action_mask': torch.randint(0, 2, size=(10, 8, 14))
                 }
             >>> outputs = model(inputs,'compute_actor_critic')
-            >>> assert outputs['value'].shape == torch.Size([10, 8, 14])
-            >>> assert outputs['logit'].shape == torch.Size([10, 8])
+            >>> assert outputs['value'].shape == torch.Size([10, 8])
+            >>> assert outputs['logit'].shape == torch.Size([10, 8, 14])
         """
         logit = self.compute_actor(x)['logit']
         value = self.compute_critic(x)['value']
