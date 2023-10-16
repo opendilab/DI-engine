@@ -151,8 +151,20 @@ class DDPGPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For DDPG, it mainly \
+            contains two optimizers, algorithm-specific arguments such as gamma and twin_critic, main and target model.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -173,7 +185,9 @@ class DDPGPolicy(Policy):
 
         # main and target models
         self._target_model = copy.deepcopy(self._model)
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
         if self._cfg.action_space == 'hybrid':
+            self._learn_model = model_wrap(self._learn_model, wrapper_name='hybrid_argmax_sample')
             self._target_model = model_wrap(self._target_model, wrapper_name='hybrid_argmax_sample')
         self._target_model = model_wrap(
             self._target_model,
@@ -192,23 +206,39 @@ class DDPGPolicy(Policy):
                 },
                 noise_range=self._cfg.learn.noise_range
             )
-        self._learn_model = model_wrap(self._model, wrapper_name='base')
-        if self._cfg.action_space == 'hybrid':
-            self._learn_model = model_wrap(self._learn_model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Overview:
-            Forward and backward function of learn mode.
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, action, priority.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs'].
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For DDPG, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight`` \
+                and ``logit`` which is used for hybrid action space.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
-                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for DDPGPolicy: ``ding.policy.tests.test_ddpg``.
         """
         loss_dict = {}
         data = default_preprocess_learn(
@@ -344,8 +374,14 @@ class DDPGPolicy(Policy):
     def _init_collect(self) -> None:
         """
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
+            Initialize the collect mode of policy, including related attributes and modules. For DDPG, it contains the \
+            collect_model to balance the exploration and exploitation with the perturbed noise mechanism, and other \
+            algorithm-specific arguments such as unroll_len. \
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         # collect model
@@ -363,18 +399,28 @@ class DDPGPolicy(Policy):
             self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict, **kwargs) -> dict:
+    def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
         """
         Overview:
-            Forward function of collect mode.
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
-            - optional: ``logit``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for DDPGPolicy: ``ding.policy.tests.test_ddpg``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -432,8 +478,13 @@ class DDPGPolicy(Policy):
     def _init_eval(self) -> None:
         """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model. Unlike learn and collect model, eval model does not need noise.
+            Initialize the eval mode of policy, including related attributes and modules. For DDPG, it contains the \
+            eval model to greedily select action type with argmax q_value mechanism for hybrid action space. \
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         if self._cfg.action_space == 'hybrid':
@@ -443,15 +494,24 @@ class DDPGPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
-            - optional: ``logit``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for DDPGPolicy: ``ding.policy.tests.test_ddpg``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
