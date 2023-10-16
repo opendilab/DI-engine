@@ -226,7 +226,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     return _fetch
 
 
-def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
+def offline_data_fetcher(cfg: EasyDict, dataset: Dataset, collate_fn=lambda x: x) -> Callable:
     """
     Overview:
         The outer function transforms a Pytorch `Dataset` to `DataLoader`. \
@@ -238,7 +238,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.
     """
     # collate_fn is executed in policy now
-    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
+    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=collate_fn)
     dataloader = iter(dataloader)
 
     def _fetch(ctx: "OfflineRLContext"):
@@ -258,7 +258,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
             ctx.train_epoch += 1
             del dataloader
             dataloader = DataLoader(
-                dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x
+                dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=collate_fn
             )
             dataloader = iter(dataloader)
             ctx.train_data = next(dataloader)
