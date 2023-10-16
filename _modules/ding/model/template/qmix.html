@@ -305,20 +305,32 @@
 <span class="k">class</span> <span class="nc">Mixer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        mixer network in QMIX, which mix up the independent q_value of each agent to a total q_value</span>
+<span class="sd">        Mixer network in QMIX, which mix up the independent q_value of each agent to a total q_value. \</span>
+<span class="sd">        The weights (but not the biases) of the Mixer network are restricted to be non-negative and \</span>
+<span class="sd">        produced by separate hypernetworks. Each hypernetwork takes the globle state s as input and generates \</span>
+<span class="sd">        the weights of one layer of the Mixer network.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">,</span> <span class="n">mixing_embed_dim</span><span class="p">,</span> <span class="n">hypernet_embed</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">agent_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">state_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">mixing_embed_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hypernet_embed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Initialize mixer network proposed in QMIX.</span>
+<span class="sd">            Initialize mixer network proposed in QMIX according to arguments. Each hypernetwork consists of \</span>
+<span class="sd">            linear layers, followed by an absolute activation function, to ensure that the Mixer network weights are \</span>
+<span class="sd">            non-negative.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - agent_num (:obj:`int`): the number of agent</span>
-<span class="sd">            - state_dim(:obj:`int`): the dimension of global observation state</span>
-<span class="sd">            - mixing_embed_dim (:obj:`int`): the dimension of mixing state emdedding</span>
-<span class="sd">            - hypernet_embed (:obj:`int`): the dimension of hypernet emdedding, default to 64</span>
+<span class="sd">            - agent_num (:obj:`int`): The number of agent, such as 8.</span>
+<span class="sd">            - state_dim(:obj:`int`): The dimension of global observation state, such as 16.</span>
+<span class="sd">            - mixing_embed_dim (:obj:`int`): The dimension of mixing state emdedding, such as 128.</span>
+<span class="sd">            - hypernet_embed (:obj:`int`): The dimension of hypernet emdedding, default to 64.</span>
 <span class="sd">            - activation (:obj:`nn.Module`): Activation function in network, defaults to nn.ReLU().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Mixer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -335,7 +347,7 @@
             <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">hypernet_embed</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hypernet_embed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_dim</span><span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="c1"># State dependent bias for hidden layer</span>
+        <span class="c1"># state dependent bias for hidden layer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hyper_b_1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_dim</span><span class="p">)</span>
 
         <span class="c1"># V(s) instead of a bias for the last layers</span>
@@ -344,16 +356,17 @@
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_qs</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            forward computation graph of pymarl mixer network</span>
+<span class="sd">            Forward computation graph of pymarl mixer network. Mix up the input independent q_value of each agent \</span>
+<span class="sd">            to a total q_value with weights generated by hypernetwork according to global ``states``.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - agent_qs (:obj:`torch.FloatTensor`): the independent q_value of each agent</span>
-<span class="sd">            - states (:obj:`torch.FloatTensor`): the emdedding vector of global state</span>
+<span class="sd">            - agent_qs (:obj:`torch.FloatTensor`): The independent q_value of each agent.</span>
+<span class="sd">            - states (:obj:`torch.FloatTensor`): The emdedding vector of global state.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - q_tot (:obj:`torch.FloatTensor`): the total mixed q_value</span>
+<span class="sd">            - q_tot (:obj:`torch.FloatTensor`): The total mixed q_value.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - agent_qs (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is agent_num</span>
-<span class="sd">            - states (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size</span>
-<span class="sd">            - q_tot (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
+<span class="sd">            - agent_qs (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is agent_num.</span>
+<span class="sd">            - states (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is embedding_size.</span>
+<span class="sd">            - q_tot (:obj:`torch.FloatTensor`): :math:`(B, )`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bs</span> <span class="o">=</span> <span class="n">agent_qs</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">states</span> <span class="o">=</span> <span class="n">states</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">)</span>
@@ -380,9 +393,12 @@
 <span class="k">class</span> <span class="nc">QMix</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        QMIX network</span>
+<span class="sd">        The neural network and computation graph of algorithms related to QMIX(https://arxiv.org/abs/1803.11485). \</span>
+<span class="sd">        The QMIX is composed of two parts: agent Q network and mixer(optional). The QMIX paper mentions that all \</span>
+<span class="sd">        agents share local Q network parameters, so only one Q network is initialized here. Then use summation or \</span>
+<span class="sd">        Mixer network to process the local Q according to the ``mixer`` settings to obtain the global Q.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward, _setup_global_encoder</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="QMix.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QMix.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -399,17 +415,22 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Initialize QMIX neural network, i.e. agent Q network and mixer.</span>
+<span class="sd">            Initialize QMIX neural network according to arguments, i.e. agent Q network and mixer.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - agent_num (:obj:`int`): the number of agent</span>
-<span class="sd">            - obs_shape (:obj:`int`): the dimension of each agent&#39;s observation state</span>
-<span class="sd">            - global_obs_shape (:obj:`int`): the dimension of global observation state</span>
-<span class="sd">            - action_shape (:obj:`int`): the dimension of action shape</span>
-<span class="sd">            - hidden_size_list (:obj:`list`): the list of hidden size</span>
-<span class="sd">            - mixer (:obj:`bool`): use mixer net or not, default to True</span>
-<span class="sd">            - lstm_type (:obj:`str`): use lstm or gru, default to gru</span>
-<span class="sd">            - activation (:obj:`nn.Module`): Activation function in network, defaults to nn.ReLU().</span>
-<span class="sd">            - dueling (:obj:`bool`): use dueling head or not, default to False.</span>
+<span class="sd">            - agent_num (:obj:`int`): The number of agent, such as 8.</span>
+<span class="sd">            - obs_shape (:obj:`int`): The dimension of each agent&#39;s observation state, such as 8 or [4, 84, 84].</span>
+<span class="sd">            - global_obs_shape (:obj:`int`): The dimension of global observation state, such as 8 or [4, 84, 84].</span>
+<span class="sd">            - action_shape (:obj:`int`): The dimension of action shape, such as 6 or [2, 3, 3].</span>
+<span class="sd">            - hidden_size_list (:obj:`list`): The list of hidden size for ``q_network``, \</span>
+<span class="sd">                the last element must match mixer&#39;s ``mixing_embed_dim``.</span>
+<span class="sd">            - mixer (:obj:`bool`): Use mixer net or not, default to True. If it is false, \</span>
+<span class="sd">                the final local Q is added to obtain the global Q.</span>
+<span class="sd">            - lstm_type (:obj:`str`): The type of RNN module in ``q_network``, now support \</span>
+<span class="sd">                [&#39;normal&#39;, &#39;pytorch&#39;, &#39;gru&#39;], default to gru.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The type of activation function to use in ``MLP`` the after \</span>
+<span class="sd">                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``.</span>
+<span class="sd">            - dueling (:obj:`bool`): Whether choose ``DuelingHead`` (True) or ``DiscreteHead (False)``, \</span>
+<span class="sd">                default to False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QMix</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_act</span> <span class="o">=</span> <span class="n">activation</span>
@@ -425,30 +446,32 @@
 <div class="viewcode-block" id="QMix.forward"><a class="viewcode-back" href="../../../../12_policies/qmix_zh.html#ding.model.QMix.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">single_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            forward computation graph of qmix network</span>
+<span class="sd">            QMIX forward computation graph, input dict including time series observation and related data to predict \</span>
+<span class="sd">            total q_value and each agent q_value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): input data dict with keys [&#39;obs&#39;, &#39;prev_state&#39;, &#39;action&#39;]</span>
-<span class="sd">                - agent_state (:obj:`torch.Tensor`): each agent local state(obs)</span>
-<span class="sd">                - global_state (:obj:`torch.Tensor`): global state(obs)</span>
-<span class="sd">                - prev_state (:obj:`list`): previous rnn state</span>
-<span class="sd">                - action (:obj:`torch.Tensor` or None): if action is None, use argmax q_value index as action to\</span>
-<span class="sd">                    calculate ``agent_q_act``</span>
-<span class="sd">            - single_step (:obj:`bool`): whether single_step forward, if so, add timestep dim before forward and\</span>
-<span class="sd">                remove it after forward</span>
+<span class="sd">            - data (:obj:`dict`): Input data dict with keys [&#39;obs&#39;, &#39;prev_state&#39;, &#39;action&#39;].</span>
+<span class="sd">                - agent_state (:obj:`torch.Tensor`): Time series local observation data of each agents.</span>
+<span class="sd">                - global_state (:obj:`torch.Tensor`): Time series global observation data.</span>
+<span class="sd">                - prev_state (:obj:`list`): Previous rnn state for ``q_network``.</span>
+<span class="sd">                - action (:obj:`torch.Tensor` or None): The actions of each agent given outside the function. \</span>
+<span class="sd">                    If action is None, use argmax q_value index as action to calculate ``agent_q_act``.</span>
+<span class="sd">            - single_step (:obj:`bool`): Whether single_step forward, if so, add timestep dim before forward and\</span>
+<span class="sd">                remove it after forward.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - ret (:obj:`dict`): output data dict with keys [``total_q``, ``logit``, ``next_state``]</span>
-<span class="sd">            - total_q (:obj:`torch.Tensor`): total q_value, which is the result of mixer network</span>
-<span class="sd">            - agent_q (:obj:`torch.Tensor`): each agent q_value</span>
-<span class="sd">            - next_state (:obj:`list`): next rnn state</span>
+<span class="sd">            - ret (:obj:`dict`): Output data dict with keys [``total_q``, ``logit``, ``next_state``].</span>
+<span class="sd">        ReturnsKeys:</span>
+<span class="sd">            - total_q (:obj:`torch.Tensor`): Total q_value, which is the result of mixer network.</span>
+<span class="sd">            - agent_q (:obj:`torch.Tensor`): Each agent q_value.</span>
+<span class="sd">            - next_state (:obj:`list`): Next rnn state for ``q_network``.</span>
 <span class="sd">        Shapes:</span>
 <span class="sd">            - agent_state (:obj:`torch.Tensor`): :math:`(T, B, A, N)`, where T is timestep, B is batch_size\</span>
-<span class="sd">                A is agent_num, N is obs_shape</span>
-<span class="sd">            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_shape</span>
-<span class="sd">            - prev_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(T, B, A)`</span>
-<span class="sd">            - total_q (:obj:`torch.Tensor`): :math:`(T, B)`</span>
-<span class="sd">            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape</span>
-<span class="sd">            - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A</span>
+<span class="sd">                A is agent_num, N is obs_shape.</span>
+<span class="sd">            - global_state (:obj:`torch.Tensor`): :math:`(T, B, M)`, where M is global_obs_shape.</span>
+<span class="sd">            - prev_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A.</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(T, B, A)`.</span>
+<span class="sd">            - total_q (:obj:`torch.Tensor`): :math:`(T, B)`.</span>
+<span class="sd">            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape.</span>
+<span class="sd">            - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">agent_state</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_state&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;global_state&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span>
             <span class="s1">&#39;prev_state&#39;</span><span class="p">]</span>
@@ -466,7 +489,7 @@
         <span class="n">next_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">list_split</span><span class="p">(</span><span class="n">next_state</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">A</span><span class="p">)</span>
         <span class="n">agent_q</span> <span class="o">=</span> <span class="n">agent_q</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">action</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># For target forward process</span>
+            <span class="c1"># for target forward process</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">action_mask</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -487,19 +510,7 @@
             <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">agent_q</span><span class="p">,</span>
             <span class="s1">&#39;next_state&#39;</span><span class="p">:</span> <span class="n">next_state</span><span class="p">,</span>
             <span class="s1">&#39;action_mask&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span>
-        <span class="p">}</span></div>
-
-    <span class="k">def</span> <span class="nf">_setup_global_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Used to encoder global observation.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - global_obs_shape (:obj:`int`): the dimension of global observation state</span>
-<span class="sd">            - embedding_size (:obj:`int`): the dimension of state emdedding</span>
-<span class="sd">        Return:</span>
-<span class="sd">            - outputs (:obj:`torch.nn.Module`): Global observation encoding network</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">MLP</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_act</span><span class="p">)</span></div>
+        <span class="p">}</span></div></div>
 </pre></div>
 
               </article>
