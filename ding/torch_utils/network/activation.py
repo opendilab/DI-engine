@@ -2,7 +2,6 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class Lambda(nn.Module):
@@ -16,30 +15,18 @@ class Lambda(nn.Module):
 
 
 class GLU(nn.Module):
-    r"""
+    """
     Overview:
         Gating Linear Unit.
-        This class does a thing like this:
-
-        .. code:: python
-
-            # Inputs: input, context, output_size
-            # The gate value is a learnt function of the input.
-            gate = sigmoid(linear(input.size)(context))
-            # Gate the input and return an output of desired size.
-            gated_input = gate * input
-            output = linear(output_size)(gated_input)
-            return output
     Interfaces:
-        forward
+        ``forward``.
 
     .. tip::
-
         This module also supports 2D convolution, in which case, the input and context must have the same shape.
     """
 
     def __init__(self, input_dim: int, output_dim: int, context_dim: int, input_type: str = 'fc') -> None:
-        r"""
+        """
         Overview:
             Init GLU
         Arguments:
@@ -101,15 +88,15 @@ class GELU(nn.Module):
 
 
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
-    r"""
+    """
     Overview:
         Return the activation module according to the given type.
     Arguments:
-        - activation (:obj:`str`): the type of activation module, now supports \
-        ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity']
-        - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default ``None``
+        - activation (:obj:`str`): The type of activation module, now supports \
+            ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity'].
+        - inplace (:obj:`bool`): Execute the operation in-place in activation, defaults to ``None``.
     Returns:
-        - act_func (:obj:`nn.module`): the corresponding activation module
+        - act_func (:obj:`nn.module`): The corresponding activation module.
     """
     if inplace is not None:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)

@@ -15,7 +15,7 @@ def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamm
     Shapes:
         - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
         - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`
-        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - vtrace_return (:obj:`torch.FloatTensor`):  :math:`(T, B)`
     """
@@ -37,10 +37,10 @@ def vtrace_advantage(clipped_pg_rhos, reward, return_, bootstrap_values, gamma):
         - vtrace_advantage (:obj:`namedtuple`): the vtrace loss item, all of them are the differentiable 0-dim tensor
     Shapes:
         - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
-        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
-        - return_ (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - return (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T, B)`
-        - vtrace_advantage (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        - vtrace_advantage (:obj:`torch.FloatTensor`): :math:`(T, B)`
     """
     return clipped_pg_rhos * (reward + gamma * return_ - bootstrap_values)
 
