@@ -4358,8 +4358,8 @@ In hybrid action space, i.e.{‘action_type’: discrete, ‘action_args’, con
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>model(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Wrapped model class, should contain forward method.</p></li>
 <li><p>state_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of states to process.</p></li>
-<li><p>save_prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to output the prev state in output[‘prev_state’].</p></li>
-<li><p>init_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The function which is used to init every hidden state when init and reset.                 Default return None for hidden states.</p></li>
+<li><p>save_prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to output the prev state in output.</p></li>
+<li><p>init_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The function which is used to init every hidden state when init and reset,                 default return None for hidden states.</p></li>
 </ul>
 </dd>
 </dl>
@@ -4432,17 +4432,9 @@ the batch size.</p>
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_last_logit</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/model/wrapper/model_wrappers.html#TransformerInputWrapper.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.wrapper.model_wrappers.TransformerInputWrapper.forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>input_obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Input observation without sequence shape: (bs, <a href="#id1"><span class="problematic" id="id2">*</span></a>obs_shape)</p></li>
-<li><dl class="simple">
-<dt>only_last_logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): if True ‘logit’ only contains the output corresponding to the current</dt><dd><p>observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>data_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): id of the envs that are currently running. Memory update and logits return has only</dt><dd><p>effect for those environments. If <cite>None</cite> it is considered that all envs are running.</p>
-</dd>
-</dl>
-</li>
+<li><p>input_obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Input observation without sequence shape: <code class="docutils literal notranslate"><span class="pre">(bs,</span> <span class="pre">*obs_shape)</span></code>.</p></li>
+<li><p>only_last_logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): if True ‘logit’ only contains the output corresponding to the current                 observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim).</p></li>
+<li><p>data_id (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): id of the envs that are currently running. Memory update and logits return has                 only effect for those environments. If <cite>None</cite> it is considered that all envs are running.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">

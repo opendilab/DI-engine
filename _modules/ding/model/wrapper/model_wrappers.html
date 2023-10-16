@@ -412,9 +412,10 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - model(:obj:`Any`): Wrapped model class, should contain forward method.</span>
 <span class="sd">            - state_num (:obj:`int`): Number of states to process.</span>
-<span class="sd">            - save_prev_state (:obj:`bool`): Whether to output the prev state in output[&#39;prev_state&#39;].</span>
-<span class="sd">            - init_fn (:obj:`Callable`): The function which is used to init every hidden state when init and reset. \</span>
-<span class="sd">                Default return None for hidden states.</span>
+<span class="sd">            - save_prev_state (:obj:`bool`): Whether to output the prev state in output.</span>
+<span class="sd">            - init_fn (:obj:`Callable`): The function which is used to init every hidden state when init and reset, \</span>
+<span class="sd">                default return None for hidden states.</span>
+
 <span class="sd">        .. note::</span>
 <span class="sd">            1. This helper must deal with an actual batch with some parts of samples, e.g: 6 samples of state_num 8.</span>
 <span class="sd">            2. This helper must deal with the single sample state reset.</span>
@@ -512,11 +513,11 @@
                 <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)</span>
-<span class="sd">            - only_last_logit (:obj:`bool`): if True &#39;logit&#39; only contains the output corresponding to the current</span>
-<span class="sd">                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)</span>
-<span class="sd">            - data_id (:obj:`List`): id of the envs that are currently running. Memory update and logits return has only</span>
-<span class="sd">                effect for those environments. If `None` it is considered that all envs are running.</span>
+<span class="sd">            - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: ``(bs, *obs_shape)``.</span>
+<span class="sd">            - only_last_logit (:obj:`bool`): if True &#39;logit&#39; only contains the output corresponding to the current \</span>
+<span class="sd">                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim).</span>
+<span class="sd">            - data_id (:obj:`List`): id of the envs that are currently running. Memory update and logits return has \</span>
+<span class="sd">                only effect for those environments. If `None` it is considered that all envs are running.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - Dictionary containing the input_sequence &#39;input_seq&#39; stored in memory and the transformer output &#39;logit&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

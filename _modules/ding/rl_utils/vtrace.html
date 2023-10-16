@@ -309,7 +309,7 @@
 <span class="sd">    Shapes:</span>
 <span class="sd">        - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size</span>
 <span class="sd">        - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
-<span class="sd">        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
 <span class="sd">        - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`</span>
 <span class="sd">        - vtrace_return (:obj:`torch.FloatTensor`):  :math:`(T, B)`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -331,10 +331,10 @@
 <span class="sd">        - vtrace_advantage (:obj:`namedtuple`): the vtrace loss item, all of them are the differentiable 0-dim tensor</span>
 <span class="sd">    Shapes:</span>
 <span class="sd">        - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size</span>
-<span class="sd">        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
-<span class="sd">        - return_ (:obj:`torch.FloatTensor`):  :math:`(T, B)`</span>
+<span class="sd">        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
+<span class="sd">        - return (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
 <span class="sd">        - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
-<span class="sd">        - vtrace_advantage (:obj:`torch.FloatTensor`):  :math:`(T, B)`</span>
+<span class="sd">        - vtrace_advantage (:obj:`torch.FloatTensor`): :math:`(T, B)`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">clipped_pg_rhos</span> <span class="o">*</span> <span class="p">(</span><span class="n">reward</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">return_</span> <span class="o">-</span> <span class="n">bootstrap_values</span><span class="p">)</span></div>
 

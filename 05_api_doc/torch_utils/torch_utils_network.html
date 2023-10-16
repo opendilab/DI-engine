@@ -307,20 +307,10 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.activation.GLU">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.activation.</span></span><span class="sig-name descname"><span class="pre">GLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'fc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/activation.html#GLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.activation.GLU" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Overview:</dt><dd><p>Gating Linear Unit.
-This class does a thing like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Inputs: input, context, output_size</span>
-<span class="c1"># The gate value is a learnt function of the input.</span>
-<span class="n">gate</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">linear</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">size</span><span class="p">)(</span><span class="n">context</span><span class="p">))</span>
-<span class="c1"># Gate the input and return an output of desired size.</span>
-<span class="n">gated_input</span> <span class="o">=</span> <span class="n">gate</span> <span class="o">*</span> <span class="nb">input</span>
-<span class="n">output</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">output_size</span><span class="p">)(</span><span class="n">gated_input</span><span class="p">)</span>
-<span class="k">return</span> <span class="n">output</span>
-</pre></div>
-</div>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Gating Linear Unit.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>forward</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code>.</p>
 </dd>
 </dl>
 <div class="admonition tip">
@@ -350,17 +340,16 @@ This class does a thing like this:</p>
 </section>
 <section id="module-ding.torch_utils.network.activation.build_activation">
 <span id="build-activation"></span><h2>build_activation<a class="headerlink" href="#module-ding.torch_utils.network.activation.build_activation" title="Permalink to this headline">¶</a></h2>
-<dl>
+<dl class="simple">
 <dt>Overview:</dt><dd><p>Return the activation module according to the given type.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the type of activation module, now supports </p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The type of activation module, now supports             [‘relu’, ‘glu’, ‘prelu’, ‘swish’, ‘gelu’, ‘tanh’, ‘sigmoid’, ‘softplus’, ‘elu’, ‘square’, ‘identity’].</p></li>
+<li><p>inplace (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Execute the operation in-place in activation, defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
-<p>[‘relu’, ‘glu’, ‘prelu’, ‘swish’, ‘gelu’, ‘tanh’, ‘sigmoid’, ‘softplus’, ‘elu’, ‘square’, ‘identity’]
-- inplace (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): can optionally do the operation in-place in relu. Default <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>act_func (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.module</span></code>): the corresponding activation module</p></li>
+<li><p>act_func (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.module</span></code>): The corresponding activation module.</p></li>
 </ul>
 </dd>
 </dl>

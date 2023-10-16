@@ -310,7 +310,7 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Get ACER policy loss</span>
+<span class="sd">        Get ACER policy loss.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - q_values (:obj:`torch.Tensor`): Q values</span>
 <span class="sd">        - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
@@ -358,7 +358,7 @@
 <div class="viewcode-block" id="acer_value_error"><a class="viewcode-back" href="../../../05_api_doc/rl_utils.html#ding.rl_utils.acer_value_error">[docs]</a><span class="k">def</span> <span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="n">q_retraces</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Get ACER critic loss</span>
+<span class="sd">        Get ACER critic loss.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - q_values (:obj:`torch.Tensor`): Q values</span>
 <span class="sd">        - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
@@ -372,7 +372,6 @@
 <span class="sd">        - actions (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
 <span class="sd">        - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
 <span class="sd">    Examples:</span>
-
 <span class="sd">        &gt;&gt;&gt; q_values=torch.randn(2, 3, 4)</span>
 <span class="sd">        &gt;&gt;&gt; q_retraces=torch.randn(2, 3, 1)</span>
 <span class="sd">        &gt;&gt;&gt; actions=torch.randint(0, 4, (2, 3))</span>
