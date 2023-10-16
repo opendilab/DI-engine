@@ -25,6 +25,16 @@ def a2c_error(data: namedtuple) -> namedtuple:
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
         - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> data = a2c_data(
+        >>>     logit=torch.randn(2, 3),
+        >>>     action=torch.randint(0, 3, (2, )),
+        >>>     value=torch.randn(2, ),
+        >>>     adv=torch.randn(2, ),
+        >>>     return_=torch.randn(2, ),
+        >>>     weight=torch.ones(2, ),
+        >>> )
+        >>> loss = a2c_error(data)
     """
     logit, action, value, adv, return_, weight = data
     if weight is None:
@@ -47,7 +57,7 @@ def a2c_error_continuous(data: namedtuple) -> namedtuple:
         - a2c_loss (:obj:`namedtuple`): the a2c loss item, all of them are the differentiable 0-dim tensor
     Shapes:
         - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is action dim
-        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - action (:obj:`torch.LongTensor`): :math:`(B, N)`
         - value (:obj:`torch.FloatTensor`): :math:`(B, )`
         - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
         - return (:obj:`torch.FloatTensor`): :math:`(B, )`
@@ -55,6 +65,16 @@ def a2c_error_continuous(data: namedtuple) -> namedtuple:
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
         - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> data = a2c_data(
+        >>>     logit={'mu': torch.randn(2, 3), 'sigma': torch.sqrt(torch.randn(2, 3)**2)},
+        >>>     action=torch.randn(2, 3),
+        >>>     value=torch.randn(2, ),
+        >>>     adv=torch.randn(2, ),
+        >>>     return_=torch.randn(2, ),
+        >>>     weight=torch.ones(2, ),
+        >>> )
+        >>> loss = a2c_error_continuous(data)
     """
     logit, action, value, adv, return_, weight = data
     if weight is None:
