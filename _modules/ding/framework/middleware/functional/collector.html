@@ -295,6 +295,9 @@
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
 <span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">EasyTimer</span>
 <span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span>
 <span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">Policy</span>
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span><span class="p">,</span> <span class="n">get_shape0</span>
@@ -377,7 +380,12 @@
     <span class="k">return</span> <span class="n">_inference</span></div>
 
 
-<div class="viewcode-block" id="rolloutor"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/collector.html#ding.framework.middleware.functional.collector.rolloutor">[docs]</a><span class="k">def</span> <span class="nf">rolloutor</span><span class="p">(</span><span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">TransitionList</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="rolloutor"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/collector.html#ding.framework.middleware.functional.collector.rolloutor">[docs]</a><span class="k">def</span> <span class="nf">rolloutor</span><span class="p">(</span>
+        <span class="n">policy</span><span class="p">:</span> <span class="n">Policy</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">BaseEnvManager</span><span class="p">,</span>
+        <span class="n">transitions</span><span class="p">:</span> <span class="n">TransitionList</span><span class="p">,</span>
+        <span class="n">collect_print_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The middleware that executes the transition process in the env.</span>
@@ -392,6 +400,13 @@
 
     <span class="n">env_episode_id</span> <span class="o">=</span> <span class="p">[</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">env_num</span><span class="p">)]</span>
     <span class="n">current_id</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">env_num</span>
+    <span class="n">timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
+    <span class="n">last_train_iter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_envstep_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_episode_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_train_sample_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">env_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;train_sample&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
+    <span class="n">episode_info</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">_rollout</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OnlineRLContext&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -407,25 +422,89 @@
 <span class="sd">                trajectory stops.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">nonlocal</span> <span class="n">current_id</span>
+        <span class="k">nonlocal</span> <span class="n">current_id</span><span class="p">,</span> <span class="n">env_info</span><span class="p">,</span> <span class="n">episode_info</span><span class="p">,</span> <span class="n">timer</span><span class="p">,</span> \
+        <span class="n">total_episode_count</span><span class="p">,</span> <span class="n">total_envstep_count</span><span class="p">,</span> <span class="n">total_train_sample_count</span><span class="p">,</span> <span class="n">last_train_iter</span>
         <span class="n">timesteps</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">env_step</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
         <span class="n">timesteps</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">tensor</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="p">]</span>
-        <span class="c1"># TODO abnormal env step</span>
+
+        <span class="n">collected_sample</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">collected_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">collected_episode</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">interaction_duration</span> <span class="o">=</span> <span class="n">timer</span><span class="o">.</span><span class="n">value</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timesteps</span><span class="p">):</span>
-            <span class="n">transition</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">process_transition</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ctx</span><span class="o">.</span><span class="n">inference_output</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">timestep</span><span class="p">)</span>
-            <span class="n">transition</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>  <span class="c1"># TBD</span>
-            <span class="n">transition</span><span class="o">.</span><span class="n">collect_train_iter</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">([</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">])</span>
-            <span class="n">transition</span><span class="o">.</span><span class="n">env_data_id</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">([</span><span class="n">env_episode_id</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">]])</span>
-            <span class="n">transitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">timer</span><span class="p">:</span>
+                <span class="n">transition</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">process_transition</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">obs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ctx</span><span class="o">.</span><span class="n">inference_output</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">timestep</span><span class="p">)</span>
+                <span class="n">transition</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">(</span><span class="n">transition</span><span class="p">)</span>
+                <span class="n">transition</span><span class="o">.</span><span class="n">collect_train_iter</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">([</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span><span class="p">])</span>
+                <span class="n">transition</span><span class="o">.</span><span class="n">env_data_id</span> <span class="o">=</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">as_tensor</span><span class="p">([</span><span class="n">env_episode_id</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">]])</span>
+                <span class="n">transitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">,</span> <span class="n">transition</span><span class="p">)</span>
+
+                <span class="n">collected_step</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">collected_sample</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+                <span class="n">env_info</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()][</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">env_info</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()][</span><span class="s1">&#39;train_sample&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">transition</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+
+            <span class="n">env_info</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()][</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">timer</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">interaction_duration</span>
             <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
-                <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">])</span>
-                <span class="n">env_episode_id</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_id</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;eval_episode_return&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">env_info</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()][</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="n">env_info</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()][</span><span class="s1">&#39;step&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;train_sample&#39;</span><span class="p">:</span> <span class="n">env_info</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()][</span><span class="s1">&#39;train_sample&#39;</span><span class="p">],</span>
+                <span class="p">}</span>
+
+                <span class="n">episode_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+                <span class="n">policy</span><span class="o">.</span><span class="n">reset</span><span class="p">([</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()])</span>
+                <span class="n">env_episode_id</span><span class="p">[</span><span class="n">timestep</span><span class="o">.</span><span class="n">env_id</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span> <span class="o">=</span> <span class="n">current_id</span>
+                <span class="n">collected_episode</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">current_id</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">ctx</span><span class="o">.</span><span class="n">env_episode</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="c1"># TODO log</span>
+
+        <span class="n">total_envstep_count</span> <span class="o">+=</span> <span class="n">collected_step</span>
+        <span class="n">total_episode_count</span> <span class="o">+=</span> <span class="n">collected_episode</span>
+        <span class="n">total_train_sample_count</span> <span class="o">+=</span> <span class="n">collected_sample</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">-</span> <span class="n">last_train_iter</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">collect_print_freq</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">episode_info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">output_log</span><span class="p">(</span><span class="n">episode_info</span><span class="p">,</span> <span class="n">total_episode_count</span><span class="p">,</span> <span class="n">total_envstep_count</span><span class="p">,</span> <span class="n">total_train_sample_count</span><span class="p">)</span>
+            <span class="n">last_train_iter</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span>
 
     <span class="k">return</span> <span class="n">_rollout</span></div>
+
+
+<span class="k">def</span> <span class="nf">output_log</span><span class="p">(</span><span class="n">episode_info</span><span class="p">,</span> <span class="n">total_episode_count</span><span class="p">,</span> <span class="n">total_envstep_count</span><span class="p">,</span> <span class="n">total_train_sample_count</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Print the output log information. You can refer to the docs of `Best Practice` to understand \</span>
+<span class="sd">        the training generated logs and tensorboards.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - train_iter (:obj:`int`): the number of training iteration.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">episode_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">episode_info</span><span class="p">)</span>
+    <span class="n">envstep_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">episode_info</span><span class="p">])</span>
+    <span class="n">train_sample_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;train_sample&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">episode_info</span><span class="p">])</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">episode_info</span><span class="p">])</span>
+    <span class="n">episode_return</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">episode_info</span><span class="p">]</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;episode_count&#39;</span><span class="p">:</span> <span class="n">episode_count</span><span class="p">,</span>
+        <span class="s1">&#39;envstep_count&#39;</span><span class="p">:</span> <span class="n">envstep_count</span><span class="p">,</span>
+        <span class="s1">&#39;train_sample_count&#39;</span><span class="p">:</span> <span class="n">train_sample_count</span><span class="p">,</span>
+        <span class="s1">&#39;avg_envstep_per_episode&#39;</span><span class="p">:</span> <span class="n">envstep_count</span> <span class="o">/</span> <span class="n">episode_count</span><span class="p">,</span>
+        <span class="s1">&#39;avg_sample_per_episode&#39;</span><span class="p">:</span> <span class="n">train_sample_count</span> <span class="o">/</span> <span class="n">episode_count</span><span class="p">,</span>
+        <span class="s1">&#39;avg_envstep_per_sec&#39;</span><span class="p">:</span> <span class="n">envstep_count</span> <span class="o">/</span> <span class="n">duration</span><span class="p">,</span>
+        <span class="s1">&#39;avg_train_sample_per_sec&#39;</span><span class="p">:</span> <span class="n">train_sample_count</span> <span class="o">/</span> <span class="n">duration</span><span class="p">,</span>
+        <span class="s1">&#39;avg_episode_per_sec&#39;</span><span class="p">:</span> <span class="n">episode_count</span> <span class="o">/</span> <span class="n">duration</span><span class="p">,</span>
+        <span class="s1">&#39;reward_mean&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
+        <span class="s1">&#39;reward_std&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
+        <span class="s1">&#39;reward_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
+        <span class="s1">&#39;reward_min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">episode_return</span><span class="p">),</span>
+        <span class="s1">&#39;total_envstep_count&#39;</span><span class="p">:</span> <span class="n">total_envstep_count</span><span class="p">,</span>
+        <span class="s1">&#39;total_train_sample_count&#39;</span><span class="p">:</span> <span class="n">total_train_sample_count</span><span class="p">,</span>
+        <span class="s1">&#39;total_episode_count&#39;</span><span class="p">:</span> <span class="n">total_episode_count</span><span class="p">,</span>
+        <span class="c1"># &#39;each_reward&#39;: episode_return,</span>
+    <span class="p">}</span>
+    <span class="n">episode_info</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;collect end:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">items</span><span class="p">()])))</span>
 </pre></div>
 
               </article>
