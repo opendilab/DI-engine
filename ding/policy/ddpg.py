@@ -491,7 +491,7 @@ class DDPGPolicy(Policy):
             self._eval_model = model_wrap(self._eval_model, wrapper_name='hybrid_argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         """
         Overview:
             Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
