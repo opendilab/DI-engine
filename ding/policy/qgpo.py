@@ -39,6 +39,24 @@ class QGPOPolicy(Policy):
         on_policy=False,
         multi_agent=False,
         model=dict(
+            score_net=dict(
+                device='cuda',
+                score_base=dict(
+                    device='cuda',
+                    qgpo_critic=dict(
+                        device='cuda',
+                        # (float) The scale of the energy guidance when training qt.
+                        # \pi_{behavior}\exp(f(s,a)) \propto \pi_{behavior}\exp(alpha * Q(s,a))
+                        alpha=3,
+                        method="CEP",
+                        # (float) The scale of the energy guidance when training q0.
+                        # \mathcal{T}Q(s,a)=r(s,a)+\mathbb{E}_{s'\sim P(s'|s,a),a'\sim\pi_{support}(a'|s')}Q(s',a')
+                        # \pi_{support} \propto \pi_{behavior}\exp(q_alpha * Q(s,a))
+                        q_alpha=1,
+                    ),
+                ),
+            ),
+            device='cuda',
             #obs_dim
             #action_dim
         ),
@@ -55,6 +73,8 @@ class QGPOPolicy(Policy):
             behavior_policy_stop_training_iter=600000,
             # training iterations when energy-guided policy begin training
             energy_guided_policy_begin_training_iter=600000,
+            # training iterations when q value stop training, default None means no limit
+            # q_value_stop_training_iter
         ),
         collect=dict(
             # (int) Cut trajectories into pieces with length "unroll_len".
@@ -62,8 +82,8 @@ class QGPOPolicy(Policy):
         ),
         eval=dict(
             # energy guidance scale for policy in evaluation
-            # \pi_{evaluation} \propto \pi_{behavior}\exp(guidance_scale Q(s,a))
-            guidance_scale=5.0,
+            # \pi_{evaluation} \propto \pi_{behavior}\exp(guidance_scale * alpha * Q(s,a))
+            guidance_scale=[0.0, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0],
         ),
         other=dict(
             replay_buffer=dict(
@@ -90,6 +110,9 @@ class QGPOPolicy(Policy):
         self.energy_guided_policy_begin_training_iter = self._cfg.learn.energy_guided_policy_begin_training_iter if hasattr(
             self._cfg.learn, 'energy_guided_policy_begin_training_iter'
         ) else 0
+        self.q_value_stop_training_iter = self._cfg.learn.q_value_stop_training_iter if hasattr(
+            self._cfg.learn, 'q_value_stop_training_iter'
+        ) and self._cfg.learn.q_value_stop_training_iter>=0 else np.inf
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         if self.cuda:
@@ -114,8 +137,12 @@ class QGPOPolicy(Policy):
 
         # training Q function
         self.energy_guided_policy_begin_training_iter -= 1
+        self.q_value_stop_training_iter -= 1
         if self.energy_guided_policy_begin_training_iter < 0:
-            q0_loss = self._model.score_model.q[0].update_q0(data)
+            if self.q_value_stop_training_iter > 0:
+                q0_loss = self._model.score_model.q[0].update_q0(data)
+            else:
+                q0_loss = 0
             qt_loss = self._model.score_model.q[0].update_qt(data)
         else:
             q0_loss = 0
@@ -141,17 +168,16 @@ class QGPOPolicy(Policy):
         self.diffusion_steps = self._cfg.eval.diffusion_steps
 
     def _forward_eval(self, data: dict) -> dict:
+        guidance_scale = data['guidance_scale']
+        data= data['obs']
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-        #if self._cuda:
-        #data = to_device(data, self._device)
-        self._model.score_model.q[0].guidance_scale = self.guidance_scale
+
+        self._model.score_model.q[0].guidance_scale = guidance_scale
         states = data
         actions = self._model.score_model.select_actions(states, diffusion_steps=self.diffusion_steps)
         output = actions
-        # if self._cuda:
-        #    output = to_device(output, 'cpu')
-        # output = default_decollate(output)
+
         return {i: {"action": d} for i, d in zip(data_id, output)}
 
     def _get_train_sample(self) -> None:

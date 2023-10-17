@@ -1,6 +1,7 @@
-from typing import Callable
+from typing import Callable, Union
 import torch
 import torch.nn as nn
+import treetensor.torch as ttorch
 import gym
 import d4rl
 import numpy as np
@@ -8,17 +9,21 @@ import sklearn
 import sklearn.datasets
 from sklearn.utils import shuffle as util_shuffle
 import tqdm
+from easydict import EasyDict
 
 from ditk import logging
+from ding.envs import BaseEnvManager
 from ding.model import QGPO
-from ding.policy import QGPOPolicy
+from ding.policy import Policy, QGPOPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
-from ding.framework.context import OfflineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger
+from ding.framework.context import OfflineRLContext, OnlineRLContext
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, wandb_offline_logger
+from ding.framework.middleware.functional.evaluator import VectorEvalMonitor
 from ding.utils import set_pkg_seed
+from ding.torch_utils import to_ndarray, get_shape0
 
 
 # Dataset iterator
@@ -284,12 +289,13 @@ main_config = dict(
             batch_size=4096,
             M=16,
             diffusion_steps=15,
-            behavior_policy_stop_training_iter=0,  #600000, #1000
-            energy_guided_policy_begin_training_iter=0,  #600000, #1000
+            behavior_policy_stop_training_iter=0, #600000, #1000
+            energy_guided_policy_begin_training_iter=0, #600000, #1000
+            q_value_stop_training_iter=10000, #700000,
         ),
         collect=dict(unroll_len=1, ),
         eval=dict(
-            guidance_scale=5.0,
+            guidance_scale=[0.0, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0],
             diffusion_steps=15,
             evaluator=dict(eval_freq=3000, ),
         ),
@@ -380,6 +386,120 @@ def QGPO_support_data_generator(cfg, dataset, policy) -> Callable:
     return _data_generator
 
 
+
+
+def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False) -> Callable:
+    """
+    Overview:
+        The middleware that executes the evaluation.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - policy (:obj:`Policy`): The policy to be evaluated.
+        - env (:obj:`BaseEnvManager`): The env for the evaluation.
+        - render (:obj:`bool`): Whether to render env images and policy logits.
+    """
+    if task.router.is_active and not task.has_role(task.role.EVALUATOR):
+        return task.void()
+
+    env.seed(cfg.seed, dynamic_seed=False)
+
+    def _evaluate(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
+        """
+        Overview:
+            - The evaluation will be executed if the task begins and enough train_iter passed \
+                since last evaluation.
+        Input of ctx:
+            - last_eval_iter (:obj:`int`): Last evaluation iteration.
+            - train_iter (:obj:`int`): Current train iteration.
+        Output of ctx:
+            - eval_value (:obj:`float`): The average reward in the current evaluation.
+        """
+
+        # evaluation will be executed if the task begins or enough train_iter after last evaluation
+        if ctx.last_eval_iter != -1 and \
+           (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
+            return
+
+        ctx.info_for_logging={}
+
+        for guidance_scale in cfg.policy.eval.guidance_scale:
+
+            if env.closed:
+                env.launch()
+            else:
+                env.reset()
+            policy.reset()
+            eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
+
+            while not eval_monitor.is_finished():
+                obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
+                obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
+                data=dict(
+                    guidance_scale=guidance_scale,
+                    obs=obs,
+                )
+                inference_output = policy.forward(data)
+                if render:
+                    eval_monitor.update_video(env.ready_imgs)
+                    eval_monitor.update_output(inference_output)
+                output = [v for v in inference_output.values()]
+                action = [to_ndarray(v['action']) for v in output]  # TBD
+                timesteps = env.step(action)
+                for timestep in timesteps:
+                    env_id = timestep.env_id.item()
+                    if timestep.done:
+                        policy.reset([env_id])
+                        reward = timestep.info.eval_episode_return
+                        eval_monitor.update_reward(env_id, reward)
+                        if 'episode_info' in timestep.info:
+                            eval_monitor.update_info(env_id, timestep.info.episode_info)
+            episode_return = eval_monitor.get_episode_return()
+
+            episode_return_min = np.min(episode_return)
+            episode_return_max = np.max(episode_return)
+            episode_return_std = np.std(episode_return)
+            episode_return = np.mean(episode_return)
+            stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
+            if isinstance(ctx, OnlineRLContext):
+                logging.info(
+                    'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})\tguidance_scale({})'.format(
+                        ctx.train_iter, ctx.env_step, episode_return, guidance_scale
+                    )
+                )
+            elif isinstance(ctx, OfflineRLContext):
+                logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})\tguidance_scale({})'.format(ctx.train_iter, episode_return, guidance_scale))
+            else:
+                raise TypeError("not supported ctx type: {}".format(type(ctx)))
+            ctx.last_eval_iter = ctx.train_iter
+            ctx.eval_value = episode_return
+            ctx.eval_value_min = min(episode_return_min, ctx.eval_value_min) if hasattr(ctx, 'eval_value_min') else episode_return_min
+            ctx.eval_value_max = max(episode_return_max, ctx.eval_value_max) if hasattr(ctx, 'eval_value_max') else episode_return_max
+            ctx.eval_value_std = max(episode_return_std, ctx.eval_value_std) if hasattr(ctx, 'eval_value_std') else episode_return_std
+            ctx.last_eval_value = ctx.eval_value
+            ctx.eval_output = {'episode_return': episode_return}
+            episode_info = eval_monitor.get_episode_info()
+            if episode_info is not None:
+                ctx.eval_output['episode_info'] = episode_info
+            if render:
+                ctx.eval_output['replay_video'] = eval_monitor.get_episode_video()
+                ctx.eval_output['output'] = eval_monitor.get_episode_output()
+            else:
+                ctx.eval_output['output'] = output  # for compatibility
+            ctx.info_for_logging.update(
+                {
+                    f'guidance_scale[{guidance_scale}]/eval_episode_return': episode_return,
+                    f'guidance_scale[{guidance_scale}]/eval_episode_return_min': episode_return_min,
+                    f'guidance_scale[{guidance_scale}]/eval_episode_return_max': episode_return_max,
+                    f'guidance_scale[{guidance_scale}]/eval_episode_return_std': episode_return_std,
+                }
+            )
+
+        if stop_flag:
+            task.finish = True
+
+    return _evaluate
+
+
 def main():
     # If you don't have offline data, you need to prepare if first and set the data_path in config
     # For demostration, we also can train a RL policy (e.g. SAC) and collect some data
@@ -392,7 +512,7 @@ def main():
 
         model = QGPO(cfg=cfg.policy.model)
         policy = QGPOPolicy(cfg.policy, model=model)
-        if hasattr(cfg.policy, "load_path") and cfg.policy.load_path is not None:
+        if cfg.policy.load_path is not None:
             policy_state_dict = torch.load(cfg.policy.load_path, map_location=torch.device("cpu"))
             policy.learn_mode.load_state_dict(policy_state_dict)
 
@@ -406,7 +526,21 @@ def main():
         task.use(QGPO_support_data_generator(cfg, dataset, policy))
         task.use(offline_data_fetcher(cfg, dataset, collate_fn=None))
         task.use(trainer(cfg, policy.learn_mode))
-        task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
+        task.use(interaction_qgpo_evaluator(cfg, policy.eval_mode, evaluator_env))
+        task.use(wandb_offline_logger(
+            cfg = EasyDict(
+                dict(
+                    gradient_logger=False,
+                    plot_logger=True,
+                    video_logger=False,
+                    action_logger=False,
+                    return_logger=False,
+                    vis_dataset=False,
+                )
+            ),
+            exp_config=cfg,
+            project_name=cfg.exp_name)
+        )
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100000))
         task.use(offline_logger())
         task.run()
