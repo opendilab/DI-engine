@@ -23,6 +23,11 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
         - ignore_keys (:obj:`list`): The keys to be ignored in transfer, default set to empty.
     Returns:
         - item (:obj:`Any`): The transferred item.
+    Examples:
+        >>> setup_data_dict['module'] = nn.Linear(3, 5)
+        >>> device = 'cuda'
+        >>> cuda_d = to_device(setup_data_dict, device, ignore_keys=['module'])
+        >>> assert cuda_d['module'].weight.device == torch.device('cpu')
 
     .. note:
 
@@ -77,6 +82,20 @@ def to_dtype(item: Any, dtype: type) -> Any:
         - dtype (:obj:`type`): The type wanted.
     Returns:
         - item (:obj:`object`): The item with changed dtype.
+    Examples (tensor):
+        >>> t = torch.randint(0, 10, (3, 5))
+        >>> tfloat = to_dtype(t, torch.float)
+        >>> assert tfloat.dtype == torch.float
+
+    Examples (list):
+        >>> tlist = [torch.randint(0, 10, (3, 5))]
+        >>> tlfloat = to_dtype(tlist, torch.float)
+        >>> assert tlfloat[0].dtype == torch.float
+
+    Examples (dict):
+        >>> tdict = {'t': torch.randint(0, 10, (3, 5))}
+        >>> tdictf = to_dtype(tdict, torch.float)
+        >>> assert tdictf['t'].dtype == torch.float
 
     .. note:
 
@@ -107,6 +126,26 @@ def to_tensor(
         - transform_scalar (:obj:`bool`): If set to ``True``, a scalar will be also converted to a tensor object.
     Returns:
         - item (:obj:`Any`): The converted tensors.
+
+    Examples (scalar):
+        >>> i = 10
+        >>> t = to_tensor(i)
+        >>> assert t.item() == i
+
+    Examples (dict):
+        >>> d = {'i': i}
+        >>> dt = to_tensor(d, torch.int)
+        >>> assert dt['i'].item() == i
+
+    Examples (named tuple):
+        >>> data_type = namedtuple('data_type', ['x', 'y'])
+        >>> inputs = data_type(np.random.random(3), 4)
+        >>> outputs = to_tensor(inputs, torch.float32)
+        >>> assert type(outputs) == data_type
+        >>> assert isinstance(outputs.x, torch.Tensor)
+        >>> assert isinstance(outputs.y, torch.Tensor)
+        >>> assert outputs.x.dtype == torch.float32
+        >>> assert outputs.y.dtype == torch.float32
 
     .. note:
 
@@ -179,6 +218,19 @@ def to_ndarray(item: Any, dtype: np.dtype = None) -> Any:
     Returns:
         - item (:obj:`object`): The changed arrays.
 
+    Examples (ndarray):
+        >>> t = torch.randn(3, 5)
+        >>> tarray1 = to_ndarray(t)
+        >>> assert tarray1.shape == (3, 5)
+        >>> assert isinstance(tarray1, np.ndarray)
+
+    Examples (list):
+        >>> t = [torch.randn(5, ) for i in range(3)]
+        >>> tarray1 = to_ndarray(t, np.float32)
+        >>> assert isinstance(tarray1, list)
+        >>> assert tarray1[0].shape == (5, )
+        >>> assert isinstance(tarray1[0], np.ndarray)
+
     .. note:
 
         Now supports item type: :obj:`torch.Tensor`,  :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`.
@@ -239,6 +291,20 @@ def to_list(item: Any) -> Any:
     Returns:
         - item (:obj:`Any`): The list after conversion.
 
+    Examples:
+        >>> data = { \
+                'tensor': torch.randn(4), \
+                'list': [True, False, False], \
+                'tuple': (4, 5, 6), \
+                'bool': True, \
+                'int': 10, \
+                'float': 10., \
+                'array': np.random.randn(4), \
+                'str': "asdf", \
+                'none': None, \
+            } \
+        >>> transformed_data = to_list(data)
+
     .. note::
 
         Now supports item type: :obj:`torch.Tensor`, :obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`, \
@@ -269,6 +335,29 @@ def tensor_to_list(item: Any) -> Any:
     Returns:
         - item (:obj:`Any`): The lists after conversion.
 
+    Examples (2d-tensor):
+        >>> t = torch.randn(3, 5)
+        >>> tlist1 = tensor_to_list(t)
+        >>> assert len(tlist1) == 3
+        >>> assert len(tlist1[0]) == 5
+
+    Examples (1d-tensor):
+        >>> t = torch.randn(3, )
+        >>> tlist1 = tensor_to_list(t)
+        >>> assert len(tlist1) == 3
+
+    Examples (list)
+        >>> t = [torch.randn(5, ) for i in range(3)]
+        >>> tlist1 = tensor_to_list(t)
+        >>> assert len(tlist1) == 3
+        >>> assert len(tlist1[0]) == 5
+
+    Examples (dict):
+        >>> td = {'t': torch.randn(3, 5)}
+        >>> tdlist1 = tensor_to_list(td)
+        >>> assert len(tdlist1['t']) == 3
+        >>> assert len(tdlist1['t'][0]) == 5
+
     .. note::
 
         Now supports item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`.
@@ -297,6 +386,23 @@ def to_item(data: Any, ignore_error: bool = True) -> Any:
             say, only the data can be transformed into a python native scalar will be returned.
     Returns:
         - data (:obj:`Any`): Converted data.
+
+    Examples:
+        >>>> data = { \
+                'tensor': torch.randn(1), \
+                'list': [True, False, torch.randn(1)], \
+                'tuple': (4, 5, 6), \
+                'bool': True, \
+                'int': 10, \
+                'float': 10., \
+                'array': np.random.randn(1), \
+                'str': "asdf", \
+                'none': None, \
+             }
+        >>>> new_data = to_item(data)
+        >>>> assert np.isscalar(new_data['tensor'])
+        >>>> assert np.isscalar(new_data['array'])
+        >>>> assert np.isscalar(new_data['list'][-1])
 
     .. note::
 
@@ -336,6 +442,12 @@ def same_shape(data: list) -> bool:
         - data (:obj:`list`): The list of data.
     Returns:
         - same (:obj:`bool`): Whether the list of data all have the same shape.
+
+    Examples:
+        >>> tlist = [torch.randn(3, 5) for i in range(5)]
+        >>> assert same_shape(tlist)
+        >>> tlist = [torch.randn(3, 5), torch.randn(4, 5)]
+        >>> assert not same_shape(tlist)
     """
     assert (isinstance(data, list))
     shapes = [t.shape for t in data]
@@ -391,6 +503,13 @@ def build_log_buffer() -> LogDict:
         Build log buffer, a subclass of dict, which can convert the input data into log format.
     Returns:
         - log_buffer (:obj:`LogDict`): Log buffer dict.
+    Examples:
+        >>> log_buffer = build_log_buffer()
+        >>> log_buffer['not_tensor'] = torch.randn(3)
+        >>> assert isinstance(log_buffer['not_tensor'], list)
+        >>> assert len(log_buffer['not_tensor']) == 3
+        >>> log_buffer.update({'not_tensor': 4, 'a': 5})
+        >>> assert log_buffer['not_tensor'] == 4
     """
     return LogDict()
 
@@ -434,6 +553,12 @@ class CudaFetcher(object):
         Overview:
             Start ``producer`` thread: Keep fetching data from source, change the device, and put into \
             ``queue`` for request.
+        Examples:
+            >>> timer = EasyTimer()
+            >>> dataloader = iter([torch.randn(3, 3) for _ in range(10)])
+            >>> dataloader = CudaFetcher(dataloader, device='cuda', sleep=0.1)
+            >>> dataloader.run()
+            >>> data = next(dataloader)
         """
         self._end_flag = False
         self._producer_thread.start()
@@ -464,6 +589,16 @@ def get_tensor_data(data: Any) -> Any:
         - data (:obj:`Any`): The original data. It can be exactly a tensor or a container (Sequence or dict).
     Returns:
         - output (:obj:`Any`): The output data.
+    Examples:
+        >>> a = { \
+                'tensor': torch.tensor([1, 2, 3.], requires_grad=True), \
+                'list': [torch.tensor([1, 2, 3.], requires_grad=True) for _ in range(2)], \
+                'none': None \
+            }
+        >>> tensor_a = get_tensor_data(a)
+        >>> assert not tensor_a['tensor'].requires_grad
+        >>> for t in tensor_a['list']:
+        >>>     assert not t.requires_grad
     """
     if isinstance(data, torch.Tensor):
         return data.data.clone()
@@ -486,6 +621,21 @@ def unsqueeze(data: Any, dim: int = 0) -> Any:
         - dim (:obj:`int`): The dimension to be unsqueezed.
     Returns:
         - output (:obj:`Any`): The output data.
+
+    Examples (tensor):
+        >>> t = torch.randn(3, 3)
+        >>> tt = unsqueeze(t, dim=0)
+        >>> assert tt.shape == torch.Shape([1, 3, 3])
+
+    Examples (list):
+        >>> t = [torch.randn(3, 3)]
+        >>> tt = unsqueeze(t, dim=0)
+        >>> assert tt[0].shape == torch.Shape([1, 3, 3])
+
+    Examples (dict):
+        >>> t = {"t": torch.randn(3, 3)}
+        >>> tt = unsqueeze(t, dim=0)
+        >>> assert tt["t"].shape == torch.Shape([1, 3, 3])
     """
     if isinstance(data, torch.Tensor):
         return data.unsqueeze(dim)
@@ -506,6 +656,21 @@ def squeeze(data: Any, dim: int = 0) -> Any:
         - dim (:obj:`int`): The dimension to be Squeezed.
     Returns:
         - output (:obj:`Any`): The output data.
+
+    Examples (tensor):
+        >>> t = torch.randn(1, 3, 3)
+        >>> tt = squeeze(t, dim=0)
+        >>> assert tt.shape == torch.Shape([3, 3])
+
+    Examples (list):
+        >>> t = [torch.randn(1, 3, 3)]
+        >>> tt = squeeze(t, dim=0)
+        >>> assert tt[0].shape == torch.Shape([3, 3])
+
+    Examples (dict):
+        >>> t = {"t": torch.randn(1, 3, 3)}
+        >>> tt = squeeze(t, dim=0)
+        >>> assert tt["t"].shape == torch.Shape([3, 3])
     """
     if isinstance(data, torch.Tensor):
         return data.squeeze(dim)
@@ -526,6 +691,12 @@ def get_null_data(template: Any, num: int) -> List[Any]:
         - num (:obj:`int`): The number of null data items to generate.
     Returns:
         - output (:obj:`List[Any]`): The generated null data.
+
+    Examples:
+        >>> temp = {'obs': [1, 2, 3], 'action': 1, 'done': False, 'reward': torch.tensor(1.)}
+        >>> null_data = get_null_data(temp, 2)
+        >>> assert len(null_data) ==2
+        >>> assert null_data[0]['null'] and null_data[0]['done']
     """
     ret = []
     for _ in range(num):
@@ -545,6 +716,24 @@ def zeros_like(h: Any) -> Any:
         - h (:obj:`Any`): The original data. It can be exactly a tensor or a container (Sequence or dict).
     Returns:
         - output (:obj:`Any`): The output zero-tensors.
+
+    Examples (tensor):
+        >>> t = torch.randn(3, 3)
+        >>> tt = zeros_like(t)
+        >>> assert tt.shape == torch.Shape([3, 3])
+        >>> assert torch.sum(torch.abs(tt)) < 1e-8
+
+    Examples (list):
+        >>> t = [torch.randn(3, 3)]
+        >>> tt = zeros_like(t)
+        >>> assert tt[0].shape == torch.Shape([3, 3])
+        >>> assert torch.sum(torch.abs(tt[0])) < 1e-8
+
+    Examples (dict):
+        >>> t = {"t": torch.randn(3, 3)}
+        >>> tt = zeros_like(t)
+        >>> assert tt["t"].shape == torch.Shape([3, 3])
+        >>> assert torch.sum(torch.abs(tt["t"])) < 1e-8
     """
     if isinstance(h, torch.Tensor):
         return torch.zeros_like(h)
