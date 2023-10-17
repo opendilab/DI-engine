@@ -54,7 +54,7 @@ setup(
         'yapf==0.29.0',
         'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
         'gymnasium',
-        'torch>=1.1.0',
+        'torch==2.0.1',
         'numpy>=1.18.0',
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.1.0',
