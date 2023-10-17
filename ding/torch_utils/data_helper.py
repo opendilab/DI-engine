@@ -93,10 +93,7 @@ def to_dtype(item: Any, dtype: type) -> Any:
 
 
 def to_tensor(
-        item: Any,
-        dtype: Optional[torch.dtype] = None,
-        ignore_keys: list = [],
-        transform_scalar: bool = True
+        item: Any, dtype: Optional[torch.dtype] = None, ignore_keys: list = [], transform_scalar: bool = True
 ) -> Any:
     """
     Overview:
