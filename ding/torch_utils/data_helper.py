@@ -16,13 +16,13 @@ from ding.utils.default_helper import get_shape0
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
     """
     Overview:
-        Transfer data to certain device
+        Transfer data to certain device.
     Arguments:
-        - item (:obj:`Any`): the item to be transferred
-        - device (:obj:`str`): the device wanted
-        - ignore_keys (:obj:`list`): the keys to be ignored in transfer, defalut set to empty
+        - item (:obj:`Any`): The item to be transferred.
+        - device (:obj:`str`): The device wanted.
+        - ignore_keys (:obj:`list`): The keys to be ignored in transfer, default set to empty.
     Returns:
-        - item (:obj:`Any`): the transferred item
+        - item (:obj:`Any`): The transferred item.
 
     .. note:
 
@@ -69,18 +69,18 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
 
 
 def to_dtype(item: Any, dtype: type) -> Any:
-    r"""
+    """
     Overview:
-        Change data to certain dtype
+        Change data to certain dtype.
     Arguments:
-        - item (:obj:`Any`): the item to be dtype changed
-        - dtype (:obj:`type`): the type wanted
+        - item (:obj:`Any`): The item for changing the dtype.
+        - dtype (:obj:`type`): The type wanted.
     Returns:
-        - item (:obj:`object`): the dtype changed item
+        - item (:obj:`object`): The item with changed dtype.
 
     .. note:
 
-        Now supports item type: :obj:`torch.Tensor`, :obj:`Sequence`, :obj:`dict`
+        Now supports item type: :obj:`torch.Tensor`, :obj:`Sequence`, :obj:`dict`.
     """
     if isinstance(item, torch.Tensor):
         return item.to(dtype=dtype)
@@ -97,19 +97,23 @@ def to_tensor(
         dtype: Optional[torch.dtype] = None,
         ignore_keys: list = [],
         transform_scalar: bool = True
-) -> torch.Tensor:
-    r"""
+) -> Any:
+    """
     Overview:
-        Change `numpy.ndarray`, sequence of scalars to torch.Tensor, and keep other data types unchanged.
+        Convert ``numpy.ndarray`` object to ``torch.Tensor``.
     Arguments:
-        - item (:obj:`Any`): the item to be changed
-        - dtype (:obj:`type`): the type of wanted tensor
+        - item (:obj:`Any`): The ``numpy.ndarray`` objects to be converted. It can be exactly a ``numpy.ndarray`` \
+            object or a container (list, tuple or dict) that contains several ``numpy.ndarray`` objects.
+        - dtype (:obj:`torch.dtype`): The type of wanted tensor. If set to ``None``, its dtype will be unchanged.
+        - ignore_keys (:obj:`list`): If the ``item`` is a dict, values whose keys are in ``ignore_keys`` will not \
+            be converted.
+        - transform_scalar (:obj:`bool`): If set to ``True``, a scalar will be also converted to a tensor object.
     Returns:
-        - item (:obj:`torch.Tensor`): the change tensor
+        - item (:obj:`Any`): The converted tensors.
 
     .. note:
 
-        Now supports item type: :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
+        Now supports item type: :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`.
     """
 
     def transform(d):
@@ -167,19 +171,20 @@ def to_tensor(
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def to_ndarray(item: Any, dtype: np.dtype = None) -> np.ndarray:
-    r"""
+def to_ndarray(item: Any, dtype: np.dtype = None) -> Any:
+    """
     Overview:
-        Change `torch.Tensor`, sequence of scalars to ndarray, and keep other data types unchanged.
+        Convert ``torch.Tensor`` to ``numpy.ndarray``.
     Arguments:
-        - item (:obj:`object`): the item to be changed
-        - dtype (:obj:`type`): the type of wanted ndarray
+        - item (:obj:`Any`): The ``torch.Tensor`` objects to be converted. It can be exactly a ``torch.Tensor`` \
+            object or a container (list, tuple or dict) that contains several ``torch.Tensor`` objects.
+        - dtype (:obj:`np.dtype`): The type of wanted array. If set to ``None``, its dtype will be unchanged.
     Returns:
-        - item (:obj:`object`): the changed ndarray
+        - item (:obj:`object`): The changed arrays.
 
     .. note:
 
-        Now supports item type: :obj:`torch.Tensor`,  :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
+        Now supports item type: :obj:`torch.Tensor`,  :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`.
     """
 
     def transform(d):
@@ -228,19 +233,19 @@ def to_ndarray(item: Any, dtype: np.dtype = None) -> np.ndarray:
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def to_list(item: Any) -> list:
-    r"""
+def to_list(item: Any) -> Any:
+    """
     Overview:
-        Transform `torch.Tensor`, `numpy.ndarray` to `list`, keep other data types unchanged
+        Convert ``torch.Tensor``, ``numpy.ndarray`` objects to ``list`` objects, and keep their dtypes unchanged.
     Arguments:
-        - item (:obj:`Any`): the item to be transformed
+        - item (:obj:`Any`): The item to be converted.
     Returns:
-        - item (:obj:`list`): the list after transformation
+        - item (:obj:`Any`): The list after conversion.
 
     .. note::
 
         Now supports item type: :obj:`torch.Tensor`, :obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`, \
-        :obj:`tuple` and :obj:`None`
+        :obj:`tuple` and :obj:`None`.
     """
     if item is None:
         return item
@@ -258,18 +263,18 @@ def to_list(item: Any) -> list:
         raise TypeError("not support item type: {}".format(type(item)))
 
 
-def tensor_to_list(item):
+def tensor_to_list(item: Any) -> Any:
     """
     Overview:
-        Transform `torch.Tensor` to `list`, keep other data types unchanged.
+        Convert ``torch.Tensor`` objects to ``list``, and keep their dtypes unchanged.
     Arguments:
-        - item (:obj:`Any`): the item to be transformed
+        - item (:obj:`Any`): The item to be converted.
     Returns:
-        - item (:obj:`list`): the list after transformation
+        - item (:obj:`Any`): The lists after conversion.
 
     .. note::
 
-        Now supports item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
+        Now supports item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`.
     """
     if item is None:
         return item
@@ -288,13 +293,18 @@ def tensor_to_list(item):
 def to_item(data: Any, ignore_error: bool = True) -> Any:
     """
     Overview:
-        Transform data into python native scalar (i.e. data item), keep other data types unchanged.
+        Convert data to python native scalar (i.e. data item), and keep their dtypes unchanged.
     Arguments:
-        - data (:obj:`Any`): The data that needs to be transformed.
+        - data (:obj:`Any`): The data that needs to be converted.
         - ignore_error (:obj:`bool`): Whether to ignore the error when the data type is not supported. That is to \
             say, only the data can be transformed into a python native scalar will be returned.
     Returns:
-        - data (:obj:`Any`): Transformed data.
+        - data (:obj:`Any`): Converted data.
+
+    .. note::
+
+        Now supports item type: :obj:`torch.Tensor`, :obj:`torch.Tensor`, :obj:`ttorch.Tensor`, \
+        :obj:`bool`, :obj:`str`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`.
     """
     if data is None:
         return data
@@ -322,13 +332,13 @@ def to_item(data: Any, ignore_error: bool = True) -> Any:
 
 
 def same_shape(data: list) -> bool:
-    r"""
+    """
     Overview:
-        Judge whether all data elements in a list have the same shape.
+        Judge whether all data elements in a list have the same shapes.
     Arguments:
-        - data (:obj:`list`): the list of data
+        - data (:obj:`list`): The list of data.
     Returns:
-        - same (:obj:`bool`): whether the list of data all have the same shape
+        - same (:obj:`bool`): Whether the list of data all have the same shape.
     """
     assert (isinstance(data, list))
     shapes = [t.shape for t in data]
@@ -336,33 +346,54 @@ def same_shape(data: list) -> bool:
 
 
 class LogDict(dict):
-    '''
+    """
     Overview:
-        Derived from ``dict``; Would transform ``torch.Tensor`` to ``list`` for convenient logging.
-    '''
+        Derived from ``dict``. Would convert ``torch.Tensor`` to ``list`` for convenient logging.
+    Interfaces:
+        __setitem__, update.
+    """
 
-    def _transform(self, data):
+    def _transform(self, data: Any) -> None:
+        """
+        Overview:
+            Convert tensor objects to lists for better logging.
+        Arguments:
+            - data (:obj:`Any`): The input data to be converted.
+        """
         if isinstance(data, torch.Tensor):
             new_data = data.tolist()
         else:
             new_data = data
         return new_data
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Any, value: Any) -> None:
+        """
+        Overview:
+            Override the ``__setitem__`` function of built-in dict.
+        Arguments:
+            - key (:obj:`Any`): The key of the data item.
+            - value (:obj:`Any`): The value of the data item.
+        """
         new_value = self._transform(value)
         super().__setitem__(key, new_value)
 
-    def update(self, data):
+    def update(self, data: dict) -> None:
+        """
+        Overview:
+            Override the ``update`` function of built-in dict.
+        Arguments:
+            - data (:obj:`dict`): The dict for updating current object.
+        """
         for k, v in data.items():
             self.__setitem__(k, v)
 
 
-def build_log_buffer():
-    r"""
+def build_log_buffer() -> LogDict:
+    """
     Overview:
-        Builg log buffer, a subclass of dict, which can transform the input data into log format.
+        Build log buffer, a subclass of dict, which can convert the input data into log format.
     Returns:
-        - log_buffer (:obj:`LogDict`): Log buffer dict
+        - log_buffer (:obj:`LogDict`): Log buffer dict.
     """
     return LogDict()
 
@@ -370,12 +401,21 @@ def build_log_buffer():
 class CudaFetcher(object):
     """
     Overview:
-        Fetch data from source, and transfer it to specified device.
+        Fetch data from source, and transfer it to a specified device.
     Interfaces:
-        run, close
+        __init__, run, close, __next__.
     """
 
     def __init__(self, data_source: Iterable, device: str, queue_size: int = 4, sleep: float = 0.1) -> None:
+        """
+        Overview:
+            Initialize the CudaFetcher object using the given arguments.
+        Arguments:
+            - data_source (:obj:`Iterable`): The iterable data source.
+            - device (:obj:`str`): The device to put data to, such as "cuda:0".
+            - queue_size (:obj:`int`): The internal size of queue, such as 4.
+            - sleep (:obj:`float`): Sleeping time when the internal queue is full.
+        """
         self._source = data_source
         self._queue = Queue(maxsize=queue_size)
         self._stream = torch.cuda.Stream()
@@ -384,13 +424,19 @@ class CudaFetcher(object):
         self._device = device
 
     def __next__(self) -> Any:
+        """
+        Overview:
+            Response to the request for data. Return one data item from the internal queue.
+        Returns:
+            - item (:obj:`Any`): The data item on the required device.
+        """
         return self._queue.get()
 
     def run(self) -> None:
         """
         Overview:
-            Start ``producer`` thread: Keep fetching data from source,
-            change the device, and put into ``queue`` for request.
+            Start ``producer`` thread: Keep fetching data from source, change the device, and put into \
+            ``queue`` for request.
         """
         self._end_flag = False
         self._producer_thread.start()
@@ -416,7 +462,11 @@ class CudaFetcher(object):
 def get_tensor_data(data: Any) -> Any:
     """
     Overview:
-        Get pure tensor data from the given data(without disturbing grad computation graph)
+        Get pure tensor data from the given data (without disturbing grad computation graph).
+    Arguments:
+        - data (:obj:`Any`): The original data. It can be exactly a tensor or a container (Sequence or dict).
+    Returns:
+        - output (:obj:`Any`): The output data.
     """
     if isinstance(data, torch.Tensor):
         return data.data.clone()
@@ -431,6 +481,15 @@ def get_tensor_data(data: Any) -> Any:
 
 
 def unsqueeze(data: Any, dim: int = 0) -> Any:
+    """
+    Overview:
+        Unsqueeze the tensor data.
+    Arguments:
+        - data (:obj:`Any`): The original data. It can be exactly a tensor or a container (Sequence or dict).
+        - dim (:obj:`int`): The dimension to be unsqueezed.
+    Returns:
+        - output (:obj:`Any`): The output data.
+    """
     if isinstance(data, torch.Tensor):
         return data.unsqueeze(dim)
     elif isinstance(data, Sequence):
@@ -442,6 +501,15 @@ def unsqueeze(data: Any, dim: int = 0) -> Any:
 
 
 def squeeze(data: Any, dim: int = 0) -> Any:
+    """
+    Overview:
+        Squeeze the tensor data.
+    Arguments:
+        - data (:obj:`Any`): The original data. It can be exactly a tensor or a container (Sequence or dict).
+        - dim (:obj:`int`): The dimension to be Squeezed.
+    Returns:
+        - output (:obj:`Any`): The output data.
+    """
     if isinstance(data, torch.Tensor):
         return data.squeeze(dim)
     elif isinstance(data, Sequence):
@@ -453,6 +521,15 @@ def squeeze(data: Any, dim: int = 0) -> Any:
 
 
 def get_null_data(template: Any, num: int) -> List[Any]:
+    """
+    Overview:
+        Get null data given an input template.
+    Arguments:
+        - template (:obj:`Any`): The template data.
+        - num (:obj:`int`): The number of null data items to generate.
+    Returns:
+        - output (:obj:`List[Any]`): The generated null data.
+    """
     ret = []
     for _ in range(num):
         data = copy.deepcopy(template)
@@ -463,7 +540,15 @@ def get_null_data(template: Any, num: int) -> List[Any]:
     return ret
 
 
-def zeros_like(h):
+def zeros_like(h: Any) -> Any:
+    """
+    Overview:
+        Generate zero-tensors like the input data.
+    Arguments:
+        - h (:obj:`Any`): The original data. It can be exactly a tensor or a container (Sequence or dict).
+    Returns:
+        - output (:obj:`Any`): The output zero-tensors.
+    """
     if isinstance(h, torch.Tensor):
         return torch.zeros_like(h)
     elif isinstance(h, (list, tuple)):
