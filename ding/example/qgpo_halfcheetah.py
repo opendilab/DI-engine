@@ -20,7 +20,7 @@ from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext, OnlineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, wandb_offline_logger
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, wandb_offline_logger, termination_checker
 from ding.framework.middleware.functional.evaluator import VectorEvalMonitor
 from ding.utils import set_pkg_seed
 from ding.torch_utils import to_ndarray, get_shape0
@@ -543,6 +543,7 @@ def main():
         )
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100000))
         task.use(offline_logger())
+        task.use(termination_checker(max_train_iter=200000+cfg.policy.learn.behavior_policy_stop_training_iter))
         task.run()
 
 
