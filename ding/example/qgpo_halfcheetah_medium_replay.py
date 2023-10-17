@@ -512,7 +512,7 @@ def main():
 
         model = QGPO(cfg=cfg.policy.model)
         policy = QGPOPolicy(cfg.policy, model=model)
-        if cfg.policy.load_path is not None:
+        if hasattr(cfg.policy,"load_path") and cfg.policy.load_path is not None:
             policy_state_dict = torch.load(cfg.policy.load_path, map_location=torch.device("cpu"))
             policy.learn_mode.load_state_dict(policy_state_dict)
 
