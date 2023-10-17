@@ -43,7 +43,7 @@ DQNPolicy 的默认 config 如下所示：
 
 其中使用的神经网络接口如下所示：
 
-.. autoclass:: ding.model.template.dt.DecisionTransformer
+.. autoclass:: ding.model.DecisionTransformer
    :members: forward
    :noindex:
 
