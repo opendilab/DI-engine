@@ -21,6 +21,9 @@ def get_instance_config(env_id: str, algorithm: str) -> EasyDict:
             cfg.learning_rate = 1e-3
             cfg.action_space = 'continuous'
             cfg.n_sample = 1024
+        elif env_id == 'Pendulum-v1':
+            cfg.action_space = 'continuous'
+            cfg.n_sample = 400
         elif env_id == 'acrobot':
             cfg.learning_rate = 1e-4
             cfg.n_sample = 400

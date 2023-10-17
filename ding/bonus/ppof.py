@@ -26,6 +26,7 @@ class PPOF:
         'LunarLander-v2',
         'LunarLanderContinuous-v2',
         'BipedalWalker-v3',
+        'Pendulum-v1',
         'acrobot',
         # ch2: action
         'rocket_landing',
