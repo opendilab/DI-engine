@@ -266,7 +266,7 @@ main_config = dict(
     policy=dict(
         cuda=True,
         on_policy=False,
-        load_path='./halfcheetah_medium_expert_v2_QGPO_seed0/ckpt/iteration_600000.pth.tar',
+        #load_path='./halfcheetah_medium_expert_v2_QGPO_seed0/ckpt/iteration_600000.pth.tar',
         model=dict(
             score_net=dict(
                 device='cuda',
@@ -289,15 +289,15 @@ main_config = dict(
             batch_size=4096,
             M=16,
             diffusion_steps=15,
-            behavior_policy_stop_training_iter=0, #600000, #1000
-            energy_guided_policy_begin_training_iter=0, #600000, #1000
-            q_value_stop_training_iter=10000, #700000,
+            behavior_policy_stop_training_iter=600000, #1000
+            energy_guided_policy_begin_training_iter=600000, #1000
+            q_value_stop_training_iter=6500000, #700000,
         ),
         collect=dict(unroll_len=1, ),
         eval=dict(
             guidance_scale=[0.0, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0],
             diffusion_steps=15,
-            evaluator=dict(eval_freq=3000, ),
+            evaluator=dict(eval_freq=50000, ),
         ),
     ),
 )

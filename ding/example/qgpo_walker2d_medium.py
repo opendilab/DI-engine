@@ -296,7 +296,7 @@ main_config = dict(
         eval=dict(
             guidance_scale=[0.0, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0],
             diffusion_steps=15,
-            evaluator=dict(eval_freq=3000, ),
+            evaluator=dict(eval_freq=50000, ),
         ),
     ),
 )
