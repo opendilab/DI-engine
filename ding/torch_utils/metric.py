@@ -9,17 +9,20 @@ def levenshtein_distance(
         target_extra: Optional[torch.Tensor] = None,
         extra_fn: Optional[Callable] = None
 ) -> torch.FloatTensor:
-    r"""
+    """
     Overview:
         Levenshtein Distance, i.e. Edit Distance.
     Arguments:
-        - pred (:obj:`torch.LongTensor`): shape: (N1, )  (N1 >= 0)
-        - target (:obj:`torch.LongTensor`): shape: (N2, )  (N2 >= 0)
-        - pred_extra (:obj:`Optional[torch.Tensor]`)
-        - target_extra (:obj:`Optional[torch.Tensor]`)
-        - extra_fn (:obj:`Optional[Callable]`): if specified, the distance metric of the extra input data
+        - pred (:obj:`torch.LongTensor`): The first tensor to calculate the distance, shape: (N1, )  (N1 >= 0).
+        - target (:obj:`torch.LongTensor`): The second tensor to calculate the distance, shape: (N2, )  (N2 >= 0).
+        - pred_extra (:obj:`Optional[torch.Tensor]`): Extra tensor to calculate the distance, only works when \
+            ``extra_fn`` is not ``None``.
+        - target_extra (:obj:`Optional[torch.Tensor]`): Extra tensor to calculate the distance, only works when \
+            ``extra_fn`` is not ``None``.
+        - extra_fn (:obj:`Optional[Callable]`): The distance function for ``pred_extra`` and \
+            ``target_extra``. If set to ``None``, this distance will not be considered.
     Returns:
-        - distance (:obj:`torch.FloatTensor`): distance(scalar), shape: (1, )
+        - distance (:obj:`torch.FloatTensor`): distance(scalar), shape: (1, ).
     """
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long), '{}\t{}'.format(pred.dtype, target.dtype)
@@ -57,19 +60,19 @@ def levenshtein_distance(
 
 
 def hamming_distance(pred: torch.LongTensor, target: torch.LongTensor, weight=1.) -> torch.LongTensor:
-    r'''
+    """
     Overview:
-        Hamming Distance
+        Hamming Distance.
     Arguments:
-        - pred (:obj:`torch.LongTensor`): pred input, boolean vector(0 or 1)
-        - target (:obj:`torch.LongTensor`): target input, boolean vector(0 or 1)
-        - weight (:obj:`torch.LongTensor`): weight to multiply
+        - pred (:obj:`torch.LongTensor`): Pred input, boolean vector(0 or 1).
+        - target (:obj:`torch.LongTensor`): Target input, boolean vector(0 or 1).
+        - weight (:obj:`torch.LongTensor`): Weight to multiply.
     Returns:
-        - distance(:obj:`torch.LongTensor`): distance(scalar), shape (1, )
+        - distance(:obj:`torch.LongTensor`): Distance (scalar), shape (1, ).
     Shapes:
         - pred & target (:obj:`torch.LongTensor`): shape :math:`(B, N)`, \
             while B is the batch size, N is the dimension
-    '''
+    """
     assert (isinstance(pred, torch.Tensor) and isinstance(target, torch.Tensor))
     assert (pred.dtype == torch.long and target.dtype == torch.long)
     assert (pred.device == target.device)
