@@ -9,6 +9,9 @@ def get_num_params(model: torch.nn.Module) -> int:
         - model (:obj:`torch.nn.Module`): The model object to calculate the parameter number.
     Returns:
         - n_params (:obj:`int`): The calculated number of parameters.
+    Examples:
+        >>> model = torch.nn.Linear(3, 5)
+        >>> num = get_num_params(model)
+        >>> assert num == 15
     """
-    n_params = sum(p.numel() for p in model.parameters())
-    return n_params
+    return sum(p.numel() for p in model.parameters())

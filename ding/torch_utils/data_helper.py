@@ -29,6 +29,12 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
         >>> cuda_d = to_device(setup_data_dict, device, ignore_keys=['module'])
         >>> assert cuda_d['module'].weight.device == torch.device('cpu')
 
+    Examples:
+        >>> setup_data_dict['module'] = nn.Linear(3, 5)
+        >>> device = 'cuda'
+        >>> cuda_d = to_device(setup_data_dict, device)
+        >>> assert cuda_d['module'].weight.device == torch.device('cuda:0')
+
     .. note:
 
         Now supports item type: :obj:`torch.nn.Module`, :obj:`torch.Tensor`, :obj:`Sequence`, \
