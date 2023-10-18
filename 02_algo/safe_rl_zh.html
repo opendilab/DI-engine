@@ -1,0 +1,559 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>安全强化学习 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="分布式强化学习" href="distributed_rl_zh.html" />
+  <link rel="prev" title="离线强化学习" href="offline_rl_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法分类</a> &gt;</li>
+        
+      <li>安全强化学习</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/02_algo/safe_rl_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="id1">
+<h1>安全强化学习<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<section id="id2">
+<h2>问题定义和研究动机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p><strong>安全强化学习</strong> （Safe Reinforcement Learning），是强化学习的一个细分发展方向。强化学习的核心目标是学习一个最大化预期回报的策略，但是在现实世界的决策问题，例如自动驾驶和机器人场景中，部署这种仅最大化预期回报的智能体通常会引发安全问题。</p>
+<p>在强化学习训练过程中通常会出现以下安全问题[1]：</p>
+<ul class="simple">
+<li><p>对环境的负面影响（Negative Side Effects）。</p></li>
+<li><p>发掘奖励函数漏洞（Reward Hacking）。</p></li>
+<li><p>信息有限时不采取错误动作（Scalable Oversight）。</p></li>
+<li><p>安全地探索（Safe Exploration）。</p></li>
+<li><p>对新环境或数据分布的安全性（Robustness to Distributional Shift）。</p></li>
+</ul>
+<p>由于这些问题的存在，在实际部署时考虑安全条件时非常必要的。而在定义安全强化学习时有以下五个关键问题[2]：</p>
+<ul class="simple">
+<li><p>安全策略（Safety Policy）。如何进行策略优化，寻找安全的策略？</p></li>
+<li><p>安全复杂性（Safety Complexity）。 需要多少训练数据才能找到安全的策略？</p></li>
+<li><p>安全应用（Safety Applications）。 安全强化学习应用的最新进展如何？</p></li>
+<li><p>安全基准（Safety Benchmarks）。 我们可以使用哪些基准来公平全面地检查安全强化学习性能？</p></li>
+<li><p>安全挑战（Safety Challenges）。 未来安全强化学习研究面临哪些挑战？</p></li>
+</ul>
+<p>一个从统一性角度概述这五个安全强化学习问题的框架如下图所示[2]。</p>
+<a class="reference internal image-reference" href="../_images/safe_rl_2h3w.png"><img alt="../_images/safe_rl_2h3w.png" class="align-center" src="../_images/safe_rl_2h3w.png" style="width: 386.5px; height: 281.0px;" /></a>
+<p>安全强化学习通常被建模为 <strong>约束马尔科夫决策过程</strong> （Constrained Markov Decision Process，CMDP），约束马尔科夫决策过程是马尔科夫决策过程（MDP）的扩展，由七元组 <span class="math notranslate nohighlight">\((S, A, P, r, c, b, \mu)\)</span>，即状态空间、动作空间、状态转移函数、奖励、代价、代价阈值、折扣因子组成。智能体采取动作后不仅会收到奖励 r 还会得到代价 c ，策略目标是在不超过代价阈值 b 的约束条件下最大化长期奖励：</p>
+<p><span class="math notranslate nohighlight">\(\max_{\pi}\mathbb{E}_{\tau\sim\pi}\big[R(\tau)\big],\quad s.t.\quad\mathbb{E}_{\tau\sim\pi}\big[C(\tau)\big]\leq\kappa.\)</span></p>
+<a class="reference internal image-reference" href="../_images/safe_gym.gif"><img alt="../_images/safe_gym.gif" class="align-center" src="../_images/safe_gym.gif" style="width: 393.0px; height: 421.0px;" /></a>
+<p>上图是 OpenAI 发布的 <a class="reference external" href="https://github.com/openai/safety-gym">safety-gym</a> 环境，传统强化学习训练出的最优策略往往以任务为中心，不考虑对环境和自身的影响、不会考虑是否符合人类预期等等。小车（红色）会以最快速度移动到目标地点（绿色圆柱体），完全没有避开地面的陷阱区域（蓝色圆圈），移动路径上如果有障碍物（青色立方体）则会撞开或强行从边缘擦过。</p>
+</section>
+<section id="id3">
+<h2>研究方向<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>安全强化学习的理论基础主要是对偶法和凸优化相关知识。主要的理论方法可以分为：</p>
+<ul class="simple">
+<li><p>原问题对偶化（Primal Dual）方法，使用拉格朗日乘子法转换成解对偶问题。</p></li>
+<li><p>原问题（Primal）方法，使用其他方式求解原问题。</p></li>
+</ul>
+<p>而从训练方案上又可以分为：</p>
+<ul class="simple">
+<li><p>无环境模型（Model-free）</p></li>
+<li><p>基于环境模型（Model-based）</p></li>
+</ul>
+<p>当前安全强化学习领域中算法的细致分类，可以参见下图（摘自 <a class="reference external" href="https://github.com/PKU-Alignment/omnisafe">omnisafe</a> ）：</p>
+<a class="reference internal image-reference" href="../_images/safe_rl_registry.png"><img alt="../_images/safe_rl_registry.png" class="align-center" src="../_images/safe_rl_registry.png" style="width: 468.5px; height: 350.0px;" /></a>
+<section id="primal-dual">
+<h3>原问题对偶化（Primal Dual）<a class="headerlink" href="#primal-dual" title="Permalink to this headline">¶</a></h3>
+<p>在 safe RL 的原问题中，目标和约束都不是凸的，但是可以使用拉格朗日乘子法转换成解对偶问题，对偶问题是极小化凸问题，是可以求解的，这种方案有很多经典工作[3-7]。</p>
+<p>拉格朗日函数：<span class="math notranslate nohighlight">\(\mathcal{L}(\pi,\lambda)=V(\pi)+\Sigma\lambda_i(U_i(\pi)-c_i),\lambda\geq0\)</span></p>
+<p>拉格朗日对偶函数：<span class="math notranslate nohighlight">\(d(\lambda)=\max_{\pi\in\mathcal{P}(\mathcal{S})}\mathcal{L}(\pi,\lambda)\)</span></p>
+<p>最小化对偶函数：<span class="math notranslate nohighlight">\(D^*=\min_{\lambda\in\mathbb{R}_+}d(\lambda)\)</span> 就可以得到对偶问题最优解。</p>
+</section>
+<section id="primal">
+<h3>原问题（Primal）<a class="headerlink" href="#primal" title="Permalink to this headline">¶</a></h3>
+<p>使用对偶化方案虽然很好地保证了问题的可解性，但是训练迭代的速度很慢，在优化策略函数的同时还要优化对偶函数，同时在选择拉格朗日乘子时并不轻松。因此有些方法不直接关注整个原问题的求解，而去利用 Natural Policy Gradiants 中的单步更新公式：</p>
+<a class="reference internal image-reference" href="../_images/safe_rl_npg.png"><img alt="../_images/safe_rl_npg.png" class="align-center" src="../_images/safe_rl_npg.png" style="width: 298.0px; height: 97.0px;" /></a>
+<p>在每一步更新时求解一个比较简单的单步约束优化问题，保证每一次更新都不违法约束并提升表现，自然最终会得到一个符合约束的解。代表方法是 PCPO 等。</p>
+</section>
+<section id="model-free">
+<h3>无环境模型（Model-free）<a class="headerlink" href="#model-free" title="Permalink to this headline">¶</a></h3>
+<p>约束策略优化（CPO）[3]是第一个解决CMDP问题的策略梯度方法。优化以下两式就可以实现保证回报单调增加的同时满足安全约束。</p>
+<p><span class="math notranslate nohighlight">\(J\left(\pi'\right)-J(\pi)\geq\frac{1}{1-\gamma}\underset{\stackrel{s\sim d\pi}{a\sim\pi'}}{\operatorname*{E}}\left[A^{\pi}(s,a)-\frac{2\gamma\epsilon^{\pi'}}{1-\gamma}D_{TV}\left(\pi'\|\pi\right)[s]\right]\)</span></p>
+<p><span class="math notranslate nohighlight">\(J_{C_{i}}\left(\pi^{\prime}\right)-J_{C_{i}}\left(\pi\right)\leq\frac{1}{1-\gamma}\underset{\overset{s\sim d^{\pi}}{a\sim\pi^{\prime}}}{\operatorname*{E}}\left[A_{C_{i}}^{\pi}\left(s,a\right)+\frac{2\gamma\epsilon_{C_{i}}^{\pi^{\prime}}}{1-\gamma}D_{TV}\left(\pi^{\prime}\|\pi\right)\left[s\right]\right]\)</span></p>
+<p>这一方法几乎可以收敛到安全界限，并在某些任务上产生比原始对偶方法更好的性能。然而，CPO 的计算代价比拉格朗日乘子法更昂贵，因为它需要计算 Fisher 信息矩阵并使用二次泰勒展开来优化目标。</p>
+</section>
+<section id="model-based">
+<h3>基于环境模型（Model-based）<a class="headerlink" href="#model-based" title="Permalink to this headline">¶</a></h3>
+<p>基于模型的深度强化学习 (DRL) 方法通常比无模型的 DRL 方法具有更好的学习效率，在安全强化学习领域同样是如此。但在现实情况下，构建准确的环境模型是具有挑战性的，许多模拟环境难以构建模型来辅助深度强化学习方法的部署。</p>
+</section>
+</section>
+<section id="id4">
+<h2>未来展望<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>当我们在实际应用中利用强化学习时，部署过程中会遇到许多挑战。安全强化学习是一个发展时间并不太久的方向，很多方面都有许多需要探索之处。比如：</p>
+<ul class="simple">
+<li><p>利用博弈论实现安全多智能体强化学习（safe-MARL）。可以在不同的游戏设置中考虑不同的游戏用于现实世界的应用。</p></li>
+<li><p>基于信息论的安全强化学习。信息论可能有助于处理不确定性奖励信号和成本估计，并有效解决大规模多智能体环境的问题。</p></li>
+<li><p>利用人脑理论和生物学理论。从生物学定律中汲取一些灵感来设计安全的强化学习算法。</p></li>
+<li><p>人机交互。从与非专家用户的互动中学习，建模人类行为和现实交互，使机器人安全地继承人类偏好并更多地了解人类的潜在解决方案。</p></li>
+</ul>
+</section>
+<section id="id5">
+<h2>参考文献<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<dl class="footnote brackets">
+<dt class="label" id="id6"><span class="brackets">1</span></dt>
+<dd><p>Amodei D, Olah C, Steinhardt J, et al. Concrete problems in AI safety[J]. arXiv preprint arXiv:1606.06565, 2016.</p>
+</dd>
+<dt class="label" id="id7"><span class="brackets">2</span></dt>
+<dd><p>Gu S, Yang L, Du Y, et al. A review of safe reinforcement learning: Methods, theory and applications[J]. arXiv preprint arXiv:2205.10330, 2022.</p>
+</dd>
+<dt class="label" id="id8"><span class="brackets">3</span></dt>
+<dd><p>Achiam J, Held D, Tamar A, et al. Constrained policy optimization[C]//International conference on machine learning. PMLR, 2017: 22-31.</p>
+</dd>
+<dt class="label" id="id9"><span class="brackets">4</span></dt>
+<dd><p>Paternain, S., Calvo-Fullana, M., Chamon, L. F., &amp; Ribeiro, A. (2019). Safe policies for reinforcement learning via primal-dual methods.arXiv preprint arXiv:1911.09101.</p>
+</dd>
+<dt class="label" id="id10"><span class="brackets">5</span></dt>
+<dd><p>Ding, D., Wei, X., Yang, Z., Wang, Z., &amp; Jovanovic, M. (2021, March). Provably efficient safe exploration via primal-dual policy optimization. InInternational Conference on Artificial Intelligence and Statistics(pp. 3304-3312). PMLR.</p>
+</dd>
+<dt class="label" id="id11"><span class="brackets">6</span></dt>
+<dd><p>Ding, D., Zhang, K., Basar, T., &amp; Jovanovic, M. R. (2020). Natural Policy Gradient Primal-Dual Method for Constrained Markov Decision Processes. InNeurIPS.</p>
+</dd>
+<dt class="label" id="id12"><span class="brackets">7</span></dt>
+<dd><p>Paternain, S., Chamon, L. F., Calvo-Fullana, M., &amp; Ribeiro, A. (2019). Constrained reinforcement learning has zero duality gap.arXiv preprint arXiv:1910.13393.</p>
+</dd>
+<dt class="label" id="id13"><span class="brackets">8</span></dt>
+<dd><p><a class="reference external" href="https://zhuanlan.zhihu.com/p/407168691">https://zhuanlan.zhihu.com/p/407168691</a></p>
+</dd>
+<dt class="label" id="id14"><span class="brackets">9</span></dt>
+<dd><p><a class="reference external" href="https://zhuanlan.zhihu.com/p/347272765">https://zhuanlan.zhihu.com/p/347272765</a></p>
+</dd>
+<dt class="label" id="id15"><span class="brackets">10</span></dt>
+<dd><p><a class="reference external" href="https://github.com/PKU-Alignment/omnisafe">https://github.com/PKU-Alignment/omnisafe</a></p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="distributed_rl_zh.html" class="btn btn-neutral float-right" title="分布式强化学习" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="offline_rl_zh.html" class="btn btn-neutral" title="离线强化学习" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">安全强化学习</a><ul>
+<li><a class="reference internal" href="#id2">问题定义和研究动机</a></li>
+<li><a class="reference internal" href="#id3">研究方向</a><ul>
+<li><a class="reference internal" href="#primal-dual">原问题对偶化（Primal Dual）</a></li>
+<li><a class="reference internal" href="#primal">原问题（Primal）</a></li>
+<li><a class="reference internal" href="#model-free">无环境模型（Model-free）</a></li>
+<li><a class="reference internal" href="#model-based">基于环境模型（Model-based）</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id4">未来展望</a></li>
+<li><a class="reference internal" href="#id5">参考文献</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

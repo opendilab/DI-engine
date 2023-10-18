@@ -10,5 +10,6 @@
     exploration_rl_zh
     multi_agent_cooperation_rl_zh
     offline_rl_zh
+    safe_rl_zh
     distributed_rl_zh
     league_zh

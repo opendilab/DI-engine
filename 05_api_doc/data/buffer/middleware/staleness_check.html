@@ -310,6 +310,21 @@
 <h2>staleness_check<a class="headerlink" href="#staleness-check" title="Permalink to this headline">¶</a></h2>
 <section id="id1">
 <h3>staleness_check<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.data.buffer.middleware.staleness_check.staleness_check">
+<span class="sig-prename descclassname"><span class="pre">ding.data.buffer.middleware.staleness_check.</span></span><span class="sig-name descname"><span class="pre">staleness_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_staleness</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/data/buffer/middleware/staleness_check.html#staleness_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.data.buffer.middleware.staleness_check.staleness_check" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>This middleware aims to check staleness before each sample operation,
+staleness = train_iter_sample_data - train_iter_data_collected, means how old/off-policy the data is,
+If data’s staleness is greater(&gt;) than max_staleness, this data will be removed from buffer as soon as possible.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>max_staleness (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The maximum legal span between the time of collecting and time of sampling.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>

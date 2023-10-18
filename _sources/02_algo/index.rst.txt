@@ -10,5 +10,6 @@ RL Algorithm Taxonomy
     exploration_rl
     multi_agent_cooperation_rl
     offline_rl
+    safe_rl
     distributed_rl
     league
