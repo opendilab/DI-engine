@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 from torch import nn
 from torch.distributions.transforms import TanhTransform

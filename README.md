@@ -305,8 +305,8 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  33  |[classic_control/acrobot](https://github.com/openai/gym/tree/master/gym/envs/classic_control) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/classic_control/acrobot/acrobot.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/acrobot/envs)<br> [环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/acrobot_zh.html) |
 |  34  |[box2d/car_racing](https://github.com/openai/gym/blob/master/gym/envs/box2d/car_racing.py) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) <br> ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/box2d/carracing/car_racing.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/carracing/envs)<br>环境指南 |
 |  35  |[metadrive](https://github.com/metadriverse/metadrive) | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/metadrive/metadrive_env.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/metadrive/env)<br> [环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/metadrive_zh.html) |
-|  36  |[cliffwalking](https://github.com/openai/gym/blob/master/gym/envs/toy_text/cliffwalking.py) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/cliffwalking/cliff_walking.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/cliffwalking/envs)<br> 环境指南 |
-|  37  | [tabmwp](https://promptpg.github.io/explore.html) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/tabmwp/tabmwp.jpeg) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/tabmwp) |
+|  36  |[cliffwalking](https://github.com/openai/gym/blob/master/gym/envs/toy_text/cliffwalking.py) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/cliffwalking/cliff_walking.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/cliffwalking/envs)<br> env tutorial <br> 环境指南 |
+|  37  | [tabmwp](https://promptpg.github.io/explore.html) | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) | ![original](./dizoo/tabmwp/tabmwp.jpeg) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/tabmwp) <br> env tutorial <br> 环境指南|
 
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space
 
@@ -324,7 +324,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 ![selfplay](https://img.shields.io/badge/-selfplay-blue) means environment that allows agent VS agent battle
 
-P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse reward type
+P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also the sparse reward type.
 </details>
 
 
@@ -460,10 +460,10 @@ We appreciate all the feedbacks and contributions to improve DI-engine, both alg
 ## Citation
 ```latex
 @misc{ding,
-    title={{DI-engine: OpenDILab} Decision Intelligence Engine},
-    author={DI-engine Contributors},
-    publisher = {GitHub},
-    howpublished = {\url{https://github.com/opendilab/DI-engine}},
+    title={DI-engine: OpenDILab Decision Intelligence Engine},
+    author={OpenDILab Contributors},
+    publisher={GitHub},
+    howpublished={\url{https://github.com/opendilab/DI-engine}},
     year={2021},
 }
 ```
