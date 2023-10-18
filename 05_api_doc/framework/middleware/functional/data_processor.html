@@ -310,90 +310,18 @@
 <h2>data_processor<a class="headerlink" href="#data-processor" title="Permalink to this headline">¶</a></h2>
 <section id="data-pusher">
 <h3>data_pusher<a class="headerlink" href="#data-pusher" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.data_processor.data_pusher">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.data_processor.</span></span><span class="sig-name descname"><span class="pre">data_pusher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_by_env</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/data_processor.html#data_pusher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.data_processor.data_pusher" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Push episodes or trajectories into the buffer.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
-<li><p>buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Buffer</span></code>): Buffer to push the data in.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="offpolicy-data-fetcher">
 <h3>offpolicy_data_fetcher<a class="headerlink" href="#offpolicy-data-fetcher" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.data_processor.offpolicy_data_fetcher">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.data_processor.</span></span><span class="sig-name descname"><span class="pre">offpolicy_data_fetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shortage_warning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/data_processor.html#offpolicy_data_fetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.data_processor.offpolicy_data_fetcher" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>The return function is a generator which meanly fetch a batch of data from a buffer,         a list of buffers, or a dict of buffers.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config which should contain the following keys: <cite>cfg.policy.learn.batch_size</cite>.</p></li>
-<li><p>buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[Buffer,</span> <span class="pre">List[Tuple[Buffer,</span> <span class="pre">float]],</span> <span class="pre">Dict[str,</span> <span class="pre">Buffer]]</span></code>):             The buffer where the data is fetched from.             <code class="docutils literal notranslate"><span class="pre">Buffer</span></code> type means a buffer.            <code class="docutils literal notranslate"><span class="pre">List[Tuple[Buffer,</span> <span class="pre">float]]</span></code> type means a list of tuple. In each tuple there is a buffer and a float.             The float defines, how many batch_size is the size of the data             which is sampled from the corresponding buffer.            <code class="docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Buffer]</span></code> type means a dict in which the value of each element is a buffer.             For each key-value pair of dict, batch_size of data will be sampled from the corresponding buffer             and assigned to the same key of <cite>ctx.train_data</cite>.</p></li>
-<li><p>data_shortage_warning (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to output warning when data shortage occurs in fetching.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="offline-data-fetcher">
 <h3>offline_data_fetcher<a class="headerlink" href="#offline-data-fetcher" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.data_processor.offline_data_fetcher">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.data_processor.</span></span><span class="sig-name descname"><span class="pre">offline_data_fetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.utils.data.dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/data_processor.html#offline_data_fetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.data_processor.offline_data_fetcher" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>The outer function transforms a Pytorch <cite>Dataset</cite> to <cite>DataLoader</cite>.         The return function is a generator which each time fetches a batch of data from the previous <cite>DataLoader</cite>.        Please refer to the link <a class="reference external" href="https://pytorch.org/tutorials/beginner/basics/data_tutorial.html">https://pytorch.org/tutorials/beginner/basics/data_tutorial.html</a>         and <a class="reference external" href="https://pytorch.org/docs/stable/data.html">https://pytorch.org/docs/stable/data.html</a> for more details.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config which should contain the following keys: <cite>cfg.policy.learn.batch_size</cite>.</p></li>
-<li><p>dataset (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dataset</span></code>): The dataset of type <cite>torch.utils.data.Dataset</cite> which stores the data.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="offline-data-saver">
 <h3>offline_data_saver<a class="headerlink" href="#offline-data-saver" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.data_processor.offline_data_saver">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.data_processor.</span></span><span class="sig-name descname"><span class="pre">offline_data_saver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'hdf5'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/data_processor.html#offline_data_saver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.data_processor.offline_data_saver" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Save the expert data of offline RL in a directory.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): File path where the expert data will be written into, which is usually ./expert.pkl’.</p></li>
-<li><p>data_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Define the type of the saved data.             The type of saved data is pkl if <cite>data_type == ‘naive’</cite>.             The type of saved data is hdf5 if <cite>data_type == ‘hdf5’</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="sqil-data-pusher">
 <h3>sqil_data_pusher<a class="headerlink" href="#sqil-data-pusher" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.data_processor.sqil_data_pusher">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.data_processor.</span></span><span class="sig-name descname"><span class="pre">sqil_data_pusher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../../data/buffer/buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">ding.data.buffer.buffer.Buffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">expert</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/data_processor.html#sqil_data_pusher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.data_processor.sqil_data_pusher" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Push trajectories into the buffer in sqil learning pipeline.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
-<li><p>buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Buffer</span></code>): Buffer to push the data in.</p></li>
-<li><p>expert (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether the pushed data is expert data or not.             In each element of the pushed data, the reward will be set to 1 if this attribute is <cite>True</cite>, otherwise 0.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 </section>

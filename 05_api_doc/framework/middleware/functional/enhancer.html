@@ -310,38 +310,9 @@
 <h2>enhancer<a class="headerlink" href="#enhancer" title="Permalink to this headline">¶</a></h2>
 <section id="reward-estimator">
 <h3>reward_estimator<a class="headerlink" href="#reward-estimator" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.enhancer.reward_estimator">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.enhancer.</span></span><span class="sig-name descname"><span class="pre">reward_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BaseRewardModel</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/enhancer.html#reward_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.enhancer.reward_estimator" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Estimate the reward of <cite>train_data</cite> using <cite>reward_model</cite>.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config.</p></li>
-<li><p>reward_model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseRewardModel</span></code>): Reward model.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="her-data-enhancer">
 <h3>her_data_enhancer<a class="headerlink" href="#her-data-enhancer" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.framework.middleware.functional.enhancer.her_data_enhancer">
-<span class="sig-prename descclassname"><span class="pre">ding.framework.middleware.functional.enhancer.</span></span><span class="sig-name descname"><span class="pre">her_data_enhancer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">her_reward_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">HerRewardModel</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/framework/middleware/functional/enhancer.html#her_data_enhancer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.middleware.functional.enhancer.her_data_enhancer" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Fetch a batch of data/episode from <cite>buffer_</cite>,         then use <cite>her_reward_model</cite> to get HER processed episodes from original episodes.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config which should contain the following keys             if her_reward_model.episode_size is None: <cite>cfg.policy.learn.batch_size</cite>.</p></li>
-<li><p>buffer_ (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Buffer</span></code>): Buffer to sample data from.</p></li>
-<li><p>her_reward_model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">HerRewardModel</span></code>): Hindsight Experience Replay (HER) model             which is used to process episodes.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 </section>

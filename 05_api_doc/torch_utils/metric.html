@@ -308,15 +308,15 @@
 <dt>Overview:</dt><dd><p>Levenshtein Distance, i.e. Edit Distance.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>pred (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape: (N1, )  (N1 &gt;= 0)</p></li>
-<li><p>target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape: (N2, )  (N2 &gt;= 0)</p></li>
-<li><p>pred_extra (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>)</p></li>
-<li><p>target_extra (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>)</p></li>
-<li><p>extra_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Callable]</span></code>): if specified, the distance metric of the extra input data</p></li>
+<li><p>pred (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): The first tensor to calculate the distance, shape: (N1, )  (N1 &gt;= 0).</p></li>
+<li><p>target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): The second tensor to calculate the distance, shape: (N2, )  (N2 &gt;= 0).</p></li>
+<li><p>pred_extra (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): Extra tensor to calculate the distance, only works when             <code class="docutils literal notranslate"><span class="pre">extra_fn</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p>target_extra (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): Extra tensor to calculate the distance, only works when             <code class="docutils literal notranslate"><span class="pre">extra_fn</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p>extra_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Callable]</span></code>): The distance function for <code class="docutils literal notranslate"><span class="pre">pred_extra</span></code> and             <code class="docutils literal notranslate"><span class="pre">target_extra</span></code>. If set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, this distance will not be considered.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>distance (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): distance(scalar), shape: (1, )</p></li>
+<li><p>distance (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): distance(scalar), shape: (1, ).</p></li>
 </ul>
 </dd>
 </dl>
@@ -324,24 +324,20 @@
 <section id="module-ding.torch_utils.metric.hamming_distance">
 <span id="hamming-distance"></span><h2>hamming_distance<a class="headerlink" href="#module-ding.torch_utils.metric.hamming_distance" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
-<dt>Overview:</dt><dd><p>Hamming Distance</p>
+<dt>Overview:</dt><dd><p>Hamming Distance.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>pred (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): pred input, boolean vector(0 or 1)</p></li>
-<li><p>target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): target input, boolean vector(0 or 1)</p></li>
-<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): weight to multiply</p></li>
+<li><p>pred (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Pred input, boolean vector(0 or 1).</p></li>
+<li><p>target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Target input, boolean vector(0 or 1).</p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Weight to multiply.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>distance(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): distance(scalar), shape (1, )</p></li>
+<li><p>distance(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Distance (scalar), shape (1, ).</p></li>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>pred &amp; target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape <span class="math notranslate nohighlight">\((B, N)\)</span>, </dt><dd><p>while B is the batch size, N is the dimension</p>
-</dd>
-</dl>
-</li>
+<li><p>pred &amp; target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape <span class="math notranslate nohighlight">\((B, N)\)</span>,             while B is the batch size, N is the dimension</p></li>
 </ul>
 </dd>
 </dl>
