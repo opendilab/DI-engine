@@ -48,7 +48,7 @@ class NGU(nn.Module):
         q_leaning.py. The implementation mentioned in the original paper is 'adapt the R2D2 agent that uses the \
         dueling network architecture with an LSTM layer after a convolutional neural network'. The NGU network \
         includes encoder, LSTM core(rnn) and head.
-        Interface:
+    Interface:
         ``__init__``, ``forward``.
     """
 
