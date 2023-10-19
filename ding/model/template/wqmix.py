@@ -106,9 +106,9 @@ class WQMix(nn.Module):
             Q_star network and mixer_star.
         Arguments:
             - agent_num (:obj:`int`): The number of agent, such as 8.
-            - obs_shape (:obj:`int`): The dimension of each agent's observation state, such as 8 or [4, 84, 84].
-            - global_obs_shape (:obj:`int`): The dimension of global observation state, such as 8 or [4, 84, 84].
-            - action_shape (:obj:`int`): The dimension of action shape, such as 6 or [2, 3, 3].
+            - obs_shape (:obj:`int`): The dimension of each agent's observation state, such as 8.
+            - global_obs_shape (:obj:`int`): The dimension of global observation state, such as 8.
+            - action_shape (:obj:`int`): The dimension of action shape, such as 6.
             - hidden_size_list (:obj:`list`): The list of hidden size for ``q_network``, \
                 the last element must match mixer's ``mixing_embed_dim``.
             - lstm_type (:obj:`str`): The type of RNN module in ``q_network``, now support \
