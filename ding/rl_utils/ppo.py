@@ -21,6 +21,13 @@ ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
 ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 
+# happo
+happo_data = namedtuple(
+    'happo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight', 'factor']
+)
+happo_policy_data = namedtuple(
+    'happo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight', 'factor']
+)
 
 def shape_fn_ppo(args, kwargs):
     r"""
@@ -46,7 +53,8 @@ def ppo_error(
         data: namedtuple,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
-        dual_clip: Optional[float] = None
+        dual_clip: Optional[float] = None,
+        happo_factor: bool = False
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
@@ -95,18 +103,25 @@ def ppo_error(
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
     )
-    logit_new, logit_old, action, value_new, value_old, adv, return_, weight = data
-    policy_data = ppo_policy_data(logit_new, logit_old, action, adv, weight)
-    policy_output, policy_info = ppo_policy_error(policy_data, clip_ratio, dual_clip)
+    if happo_factor:
+        logit_new, logit_old, action, value_new, value_old, adv, return_, weight, factor = data
+        policy_data = happo_policy_data(logit_new, logit_old, action, adv, weight, factor)
+    else:
+        logit_new, logit_old, action, value_new, value_old, adv, return_, weight = data
+        policy_data = ppo_policy_data(logit_new, logit_old, action, adv, weight)
+    policy_output, policy_info = ppo_policy_error(policy_data, clip_ratio, dual_clip, happo_factor=True)
     value_data = ppo_value_data(value_new, value_old, return_, weight)
     value_loss = ppo_value_error(value_data, clip_ratio, use_value_clip)
 
     return ppo_loss(policy_output.policy_loss, value_loss, policy_output.entropy_loss), policy_info
 
 
-def ppo_policy_error(data: namedtuple,
-                     clip_ratio: float = 0.2,
-                     dual_clip: Optional[float] = None) -> Tuple[namedtuple, namedtuple]:
+def ppo_policy_error(
+        data: namedtuple,
+        clip_ratio: float = 0.2,
+        dual_clip: Optional[float] = None,
+        happo_factor: bool = False
+        ) -> Tuple[namedtuple, namedtuple]:
     '''
     Overview:
         Get PPO policy loss
@@ -137,7 +152,10 @@ def ppo_policy_error(data: namedtuple,
         >>> )
         >>> loss, info = ppo_policy_error(data)
     '''
-    logit_new, logit_old, action, adv, weight = data
+    if happo_factor:
+        logit_new, logit_old, action, adv, weight, factor = data
+    else:
+        logit_new, logit_old, action, adv, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
     dist_new = torch.distributions.categorical.Categorical(logits=logit_new)
@@ -154,13 +172,16 @@ def ppo_policy_error(data: namedtuple,
         ratio = ratio.mean(dim=1)
     surr1 = ratio * adv
     surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
-    if dual_clip is not None:
+    if happo_factor:
+        clip1 = torch.min(surr1, surr2) * factor
+    else:
         clip1 = torch.min(surr1, surr2)
+    if dual_clip is not None:
         clip2 = torch.max(clip1, dual_clip * adv)
         # only use dual_clip when adv < 0
         policy_loss = -(torch.where(adv < 0, clip2, clip1) * weight).mean()
     else:
-        policy_loss = (-torch.min(surr1, surr2) * weight).mean()
+        policy_loss = (-clip1 * weight).mean()
     with torch.no_grad():
         approx_kl = (logp_old - logp_new).mean().item()
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
@@ -217,7 +238,8 @@ def ppo_error_continuous(
         data: namedtuple,
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
-        dual_clip: Optional[float] = None
+        dual_clip: Optional[float] = None,
+        happo_factor: bool = False
 ) -> Tuple[namedtuple, namedtuple]:
     """
     Overview:
@@ -266,7 +288,10 @@ def ppo_error_continuous(
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip
     )
-    mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight = data
+    if happo_factor:
+        mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight, factor_batch = data
+    else:
+        mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
 
@@ -282,10 +307,16 @@ def ppo_error_continuous(
     ratio = torch.exp(logp_new - logp_old)
     surr1 = ratio * adv
     surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
-    if dual_clip is not None:
-        policy_loss = (-torch.max(torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+    if happo_factor:
+        if dual_clip is not None:
+            policy_loss = (-torch.max(factor_batch * torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+        else:
+            policy_loss = (-factor_batch * torch.min(surr1, surr2) * weight).mean()
     else:
-        policy_loss = (-torch.min(surr1, surr2) * weight).mean()
+        if dual_clip is not None:
+            policy_loss = (-torch.max(torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+        else:
+            policy_loss = (-torch.min(surr1, surr2) * weight).mean()
     with torch.no_grad():
         approx_kl = (logp_old - logp_new).mean().item()
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)

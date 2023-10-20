@@ -5,8 +5,8 @@ import copy
 import numpy as np
 
 from ding.torch_utils import Adam, to_device, to_dtype, unsqueeze, ContrastiveLoss
-from ding.rl_utils import happo_data, happo_error, happo_policy_error, happo_policy_data, get_gae_with_default_last_value, \
-    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, happo_error_continuous, \
+from ding.rl_utils import happo_data, ppo_error, ppo_policy_error, happo_policy_data, get_gae_with_default_last_value, \
+    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
     get_gae
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
@@ -228,15 +228,15 @@ class HAPPOPolicy(Policy):
                     if self._action_space == 'continuous':
                         happo_batch = happo_data(
                             output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
-                            batch['return'], batch['weight']
+                            batch['return'], batch['weight'], batch['factor']
                         )
-                        happo_loss, happo_info = happo_error_continuous(happo_batch, self._clip_ratio)
+                        happo_loss, happo_info = ppo_error_continuous(happo_batch, self._clip_ratio, happo_factor=True)
                     elif self._action_space == 'discrete':
                         happo_batch = happo_data(
                             output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
-                            batch['return'], batch['weight']
+                            batch['return'], batch['weight'], batch['factor']
                         )
-                        happo_loss, happo_info = happo_error(happo_batch, self._clip_ratio)
+                        happo_loss, happo_info = ppo_error(happo_batch, self._clip_ratio, happo_factor=True)
                     wv, we = self._value_weight, self._entropy_weight
                     total_loss = happo_loss.policy_loss + wv * happo_loss.value_loss - we * happo_loss.entropy_loss
 
@@ -250,7 +250,7 @@ class HAPPOPolicy(Policy):
                         'actor_prev_state': agent_data['actor_prev_state'],
                     }
                     new_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')
-                    factor = factor*torch.prod(torch.exp(new_logits-old_logits),dim=-1) # attention the shape
+                    factor = factor * torch.prod(torch.exp(new_logits - old_logits), dim=-1) # attention the shape
 
                     return_info = {
                         'cur_lr': self._optimizer.defaults['lr'],
