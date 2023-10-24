@@ -167,6 +167,12 @@ def get_instance_config(env_id: str, algorithm: str) -> EasyDict:
             cfg.batch_size = 320
             cfg.epoch_per_collect = 10
             cfg.learning_rate = 3e-4
+        elif env_id == 'chat':
+            cfg.epoch_per_collect = 1
+            cfg.batch_size = 2
+            cfg.learning_rate = 5e-7
+            cfg.answers_per_question = 3
+            cfg.kl_penalty_weight = 0.1
         else:
             raise KeyError("not supported env type: {}".format(env_id))
     else:
