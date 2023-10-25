@@ -112,6 +112,8 @@ class PPOF:
             action_shape = int(action_space.n)
         elif isinstance(action_space, (gym.spaces.Tuple, gymnasium.spaces.Tuple)):
             action_shape = get_hybrid_shape(action_space)
+        elif action_space is None:
+            pass
         else:
             action_shape = action_space.shape
 

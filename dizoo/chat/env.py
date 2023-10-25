@@ -1,5 +1,6 @@
 import gym
 import torch
+from easydict import EasyDict
 
 from ding.reward_model import LlamaRewardModel
 from .utils import OnlyPromptDataset, concat_context_and_response, get_tokenizer, pad_sequences
@@ -17,7 +18,8 @@ class ChatEnv(gym.Env):
     ):
         self.batch_size = batch_size
         self.tokenizer = get_tokenizer(tokenizer_path)
-        self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer)
+        self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer, opt=None)
+        self.action_space = None
 
         self.dataset = OnlyPromptDataset(
             data_path=data_path,
