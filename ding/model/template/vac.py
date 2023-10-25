@@ -547,7 +547,8 @@ class LlamaVAC(nn.Module):
             self,
             actor_path: str,
             critic_path: str,
-            tokenizer: LlamaTokenizer
+            tokenizer: LlamaTokenizer,
+            opt: Dict
     ) -> None:
         """
         Overview:
@@ -557,8 +558,8 @@ class LlamaVAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
         """
         super(LlamaVAC, self).__init__()
-        self.actor = Llama.from_pretrained(actor_path, tokenizer=tokenizer)
-        self.critic = LlamaRewardModel.from_pretrained(critic_path)
+        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer)
+        self.critic = LlamaRewardModel.from_pretrained(critic_path, opt=opt, tokenizer=tokenizer)
 
     def forward(self, x: torch.Tensor, mode: str) -> Dict:
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
@@ -577,4 +578,4 @@ class LlamaVAC(nn.Module):
         policy_output = self.actor(decoder_input=x)
         policy_logit, *_ = policy_output
         values = self.critic(decoder_input=x, only_last=False)
-        return {"logit": policy_logit,"value": values}
+        return {"logit": policy_logit, "value": values}

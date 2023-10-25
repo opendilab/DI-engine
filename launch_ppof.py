@@ -38,12 +38,12 @@ if __name__ == '__main__':
     model = LlamaVAC(
         actor_path=args.actor_path,
         critic_path=args.critic_path,
-        tokenizer=get_tokenizer(args.actor_path),
+        tokenizer=get_tokenizer("/mnt/nfs/whl/rlhf/MOSS-RLHF/models/moss-rlhf-sft-model-7B-en"),
         opt=opt
     )
 
     policy = PPOF(
-        env_id="prompt-generator",
+        env_id="chat",
         exp_name="rlhf-ppo",
         model=model
     )

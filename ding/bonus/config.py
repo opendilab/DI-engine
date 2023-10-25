@@ -321,6 +321,16 @@ def get_instance_env(env_id: str) -> BaseEnv:
         )
         cfg = EasyDict(cfg)
         return DriveEnvWrapper(MetaDrivePPOOriginEnv(cfg))
+    elif env_id == 'chat':
+        from dizoo.chat.env import ChatEnv
+        return ChatEnv(
+            batch_size=2,
+            reward_model_path="/mnt/nfs/whl/rlhf/MOSS-RLHF/models/moss-rlhf-rm-model-7B-en/recover",
+            tokenizer_path="/mnt/nfs/whl/rlhf/MOSS-RLHF/models/moss-rlhf-rm-model-7B-en",
+            data_path="/mnt/nfs/whl/rlhf/MOSS-RLHF/data/ppo_data",
+            maxlen_prompt=1024,
+            maxlen_res=512,
+        )
     else:
         raise KeyError("not supported env type: {}".format(env_id))
 
