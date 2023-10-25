@@ -16,8 +16,8 @@ class ChatEnv(gym.Env):
             maxlen_res,
     ):
         self.batch_size = batch_size
-        self.rm = LlamaRewardModel.from_pretrained(reward_model_path)
         self.tokenizer = get_tokenizer(tokenizer_path)
+        self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer)
 
         self.dataset = OnlyPromptDataset(
             data_path=data_path,
