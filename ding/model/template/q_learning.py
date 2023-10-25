@@ -199,7 +199,7 @@ class BDQ(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             BDQ forward computation graph, input observation tensor to predict q_value.
         Arguments:
@@ -375,7 +375,7 @@ class QRDQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
             Init the QRDQN Model according to input arguments.
         Arguments:
@@ -429,7 +429,7 @@ class QRDQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use observation tensor to predict QRDQN's output.
             Parameter updates with QRDQN's MLPs forward setup.
@@ -479,7 +479,7 @@ class IQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
             Init the IQN Model according to input arguments.
         Arguments:
@@ -536,7 +536,7 @@ class IQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict IQN's output.
             Parameter updates with IQN's MLPs forward setup.
@@ -586,7 +586,7 @@ class FQF(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
             Init the FQF Model according to input arguments.
         Arguments:
@@ -643,7 +643,7 @@ class FQF(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict FQF's output.
             Parameter updates with FQF's MLPs forward setup.
@@ -762,7 +762,7 @@ class RainbowDQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use observation tensor to predict Rainbow output.
             Parameter updates with Rainbow's MLPs forward setup.
@@ -796,7 +796,7 @@ class RainbowDQN(nn.Module):
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:
-    r"""
+    """
     Overview:
         Process timestep T and batch_size B at the same time, in other words, treat different timestep data as
         different trajectories in a batch.

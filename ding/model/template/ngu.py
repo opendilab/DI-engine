@@ -10,7 +10,7 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHea
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:
-    r"""
+    """
     Overview:
         Process timestep T and batch_size B at the same time, in other words, treat different timestep data as
         different trajectories in a batch.
@@ -62,7 +62,7 @@ class NGU(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
             Init the DRQN Model according to arguments.
         Arguments:
@@ -120,7 +120,7 @@ class NGU(nn.Module):
             )
 
     def forward(self, inputs: Dict, inference: bool = False, saved_state_timesteps: Optional[list] = None) -> Dict:
-        r"""
+        """
         Overview:
             Use observation, prev_action prev_reward_extrinsic to predict NGU Q output.
             Parameter updates with NGU's MLPs forward setup.

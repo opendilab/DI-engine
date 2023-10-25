@@ -91,7 +91,7 @@ class DiscreteMAQAC(nn.Module):
             )
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
             Use observation and action tensor to predict output.
             Parameter updates with QAC's MLPs forward setup.
@@ -122,7 +122,7 @@ class DiscreteMAQAC(nn.Module):
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict output.
             Execute parameter updates with ``'compute_actor'`` mode
@@ -163,7 +163,7 @@ class DiscreteMAQAC(nn.Module):
         return {'logit': x['logit'], 'action_mask': action_mask}
 
     def compute_critic(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
             Execute parameter updates with ``'compute_critic'`` mode
             Use encoded embedding tensor to predict output.
@@ -293,7 +293,7 @@ class ContinuousMAQAC(nn.Module):
             )
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
             Use observation and action tensor to predict output.
             Parameter updates with QAC's MLPs forward setup.
@@ -347,7 +347,7 @@ class ContinuousMAQAC(nn.Module):
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict output.
             Execute parameter updates with ``'compute_actor'`` mode
@@ -398,7 +398,7 @@ class ContinuousMAQAC(nn.Module):
             return {'logit': [x['mu'], x['sigma']]}
 
     def compute_critic(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
             Execute parameter updates with ``'compute_critic'`` mode
             Use encoded embedding tensor to predict output.

@@ -83,7 +83,7 @@ class VanillaVAE(nn.Module):
         return {'mu': mu, 'log_var': log_var, 'obs_encoding': obs_encoding}
 
     def decode(self, z: Tensor, obs_encoding: Tensor) -> Dict[str, Any]:
-        r"""
+        """
          Overview:
                Maps the given latent action and obs_encoding onto the original action space.
          Arguments:
@@ -108,7 +108,7 @@ class VanillaVAE(nn.Module):
         return {'reconstruction_action': reconstruction_action, 'predition_residual': predition_residual}
 
     def decode_with_obs(self, z: Tensor, obs: Tensor) -> Dict[str, Any]:
-        r"""
+        """
           Overview:
                 Maps the given latent action and obs onto the original action space.
                 Using the method self.encode_obs_head(obs) to get the obs_encoding.
@@ -136,7 +136,7 @@ class VanillaVAE(nn.Module):
         return {'reconstruction_action': reconstruction_action, 'predition_residual': predition_residual}
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
-        r"""
+        """
          Overview:
               Reparameterization trick to sample from N(mu, var) from N(0,1).
          Arguments:

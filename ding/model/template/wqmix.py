@@ -17,7 +17,7 @@ class MixerStar(nn.Module):
         each agent to a total q_value and is diffrent from the Qmix's mixer network,
         here the mixing network is a feedforward network with 3 hidden layers of 256 dim.
     Interface:
-        __init__, forward
+         ``__init__``, ``forward``
     """
 
     def __init__(self, agent_num: int, state_dim: int, mixing_embed_dim: int) -> None:
@@ -79,7 +79,7 @@ class WQMix(nn.Module):
     Overview:
         WQMIX network, which is same as Qmix network
     Interface:
-        __init__, forward, _setup_global_encoder
+         ``__init__``, ``forward``, _setup_global_encoder
     """
 
     def __init__(

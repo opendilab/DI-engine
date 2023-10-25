@@ -14,8 +14,8 @@ from ding.utils import lists_to_dicts, SequenceType
 class DiscreteHead(nn.Module):
     """
     Overview:
-        The ``DiscreteHead`` used to output discrete actions logit or Q-value logit, which is often used in DQN \
-        and policy head in actor-critic algorithms for discrete action space.
+        The ``DiscreteHead`` is used to generate discrete actions logit or Q-value logit, \
+        which is often used in q-learning algorithmns or actor-critic algorithms for discrete action space.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -73,7 +73,6 @@ class DiscreteHead(nn.Module):
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
-
         Examples:
             >>> head = DiscreteHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -87,7 +86,8 @@ class DiscreteHead(nn.Module):
 class DistributionHead(nn.Module):
     """
     Overview:
-        The ``DistributionHead`` used to output Q-value distribution, which is often used in C51 algorithm.
+        The ``DistributionHead`` is used to generate distribution for Q-value.
+        This module is used in C51 algorithm.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -156,7 +156,6 @@ class DistributionHead(nn.Module):
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
             - distribution: :math:`(B, M, n_atom)`.
-
         Examples:
             >>> head = DistributionHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -177,7 +176,8 @@ class DistributionHead(nn.Module):
 class BranchingHead(nn.Module):
     """
     Overview:
-        The ``BranchingHead`` used to output different branches Q-value, which is used in Branch DQN.
+        The ``BranchingHead`` is used to generate Q-value with different branches.
+        This module is used in Branch DQN.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -267,7 +267,6 @@ class BranchingHead(nn.Module):
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
-
         Examples:
             >>> head = BranchingHead(64, 5, 2)
             >>> inputs = torch.randn(4, 64)
@@ -290,7 +289,8 @@ class BranchingHead(nn.Module):
 class RainbowHead(nn.Module):
     """
     Overview:
-        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN.
+        The ``RainbowHead`` is used to generate distribution of Q-value.
+        This module is used in Rainbow DQN.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -370,7 +370,6 @@ class RainbowHead(nn.Module):
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
             - distribution: :math:`(B, M, n_atom)`.
-
         Examples:
             >>> head = RainbowHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -394,7 +393,7 @@ class RainbowHead(nn.Module):
 class QRDQNHead(nn.Module):
     """
     Overview:
-        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles.
+        The ``QRDQNHead`` (Quantile Regression DQN) is used to output action quantiles.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -455,7 +454,6 @@ class QRDQNHead(nn.Module):
             - logit: :math:`(B, M)`, where ``M = output_size``.
             - q: :math:`(B, M, num_quantiles)`.
             - tau: :math:`(B, M, 1)`.
-
         Examples:
             >>> head = QRDQNHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -478,7 +476,8 @@ class QRDQNHead(nn.Module):
 class QuantileHead(nn.Module):
     """
     Overview:
-        The ``QuantileHead`` used to output action quantiles, which is used in IQN.
+        The ``QuantileHead`` is used to output action quantiles.
+        This module is used in IQN.
     Interfaces:
         ``__init__``, ``forward``, ``quantile_net``.
     """
@@ -574,7 +573,6 @@ class QuantileHead(nn.Module):
             - logit: :math:`(B, M)`, where ``M = output_size``.
             - q: :math:`(num_quantiles, B, M)`.
             - quantiles: :math:`(quantile_embedding_size, 1)`.
-
         Examples:
             >>> head = QuantileHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -609,7 +607,8 @@ class QuantileHead(nn.Module):
 class FQFHead(nn.Module):
     """
     Overview:
-        The ``FQFHead`` used to output action quantiles, which is used in ``FQF``.
+        The ``FQFHead`` is used to output action quantiles.
+        This module is used in FQF.
     Interfaces:
         ``__init__``, ``forward``, ``quantile_net``.
     """
@@ -779,7 +778,8 @@ class FQFHead(nn.Module):
 class DuelingHead(nn.Module):
     """
     Overview:
-        The ``DuelingHead`` used to output discrete actions logit, which is used in Dueling DQN.
+        The ``DuelingHead`` is used to output discrete actions logit.
+        This module is used in Dueling DQN.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -857,7 +857,6 @@ class DuelingHead(nn.Module):
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, M)`, where ``M = output_size``.
-
         Examples:
             >>> head = DuelingHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -874,7 +873,7 @@ class DuelingHead(nn.Module):
 class StochasticDuelingHead(nn.Module):
     """
     Overview:
-        The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \
+        The ``Stochastic Dueling Network`` is proposed in paper ACER (arxiv 1611.01224). \
         That is to say, dueling network architecture in continuous action space.
     Interfaces:
         ``__init__``, ``forward``.
@@ -975,6 +974,16 @@ class StochasticDuelingHead(nn.Module):
             - sigma: :math:`(B, A)`.
             - q_value: :math:`(B, 1)`.
             - v_value: :math:`(B, 1)`.
+        Examples:
+            >>> head = StochasticDuelingHead(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> a = torch.randn(4, 64)
+            >>> mu = torch.randn(4, 64)
+            >>> sigma = torch.ones(4, 64)
+            >>> outputs = head(inputs, a, mu, sigma)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['q_value'].shape == torch.Size([4, 1])
+            >>> assert outputs['v_value'].shape == torch.Size([4, 1])
         """
 
         batch_size = s.shape[0]  # batch_size or batch_size * T
@@ -1005,8 +1014,9 @@ class StochasticDuelingHead(nn.Module):
 class RegressionHead(nn.Module):
     """
     Overview:
-        The ``RegressionHead`` used to output continuous actions Q-value (DDPG critic), state value (A2C/PPO), and \
-        directly predict continuous action (DDPG actor).
+        The ``RegressionHead`` is used to regress continuous variables.
+        This module is used for generating Q-value (DDPG critic) of continuous actions, \
+        or state value (A2C/PPO), or directly predicting continuous action (DDPG actor).
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -1054,7 +1064,6 @@ class RegressionHead(nn.Module):
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - pred: :math:`(B, M)`, where ``M = output_size``.
-
         Examples:
             >>> head = RegressionHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -1074,7 +1083,9 @@ class RegressionHead(nn.Module):
 class ReparameterizationHead(nn.Module):
     """
     Overview:
-        The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``, which is often used in PPO and SAC.
+        The ``ReparameterizationHead`` is used to generate Gaussian distribution of continuous variable, \
+        which is parameterized by ``mu`` and ``sigma``.
+        This module is often used in stochastic policies, such as PPO and SAC.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -1146,7 +1157,6 @@ class ReparameterizationHead(nn.Module):
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - mu: :math:`(B, M)`, where ``M = output_size``.
             - sigma: :math:`(B, M)`.
-
         Examples:
             >>> head =  ReparameterizationHead(64, 64, sigma_type='fixed')
             >>> inputs = torch.randn(4, 64)
@@ -1173,7 +1183,8 @@ class ReparameterizationHead(nn.Module):
 class PopArtVHead(nn.Module):
     """
     Overview:
-        The ``PopArtVHead`` used to output adaptive normalized state value, which is used in PPO/IMPALA.
+        The ``PopArtVHead`` is used to generate adaptive normalized state value.
+        This module is used in PPO or IMPALA.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -1261,7 +1272,12 @@ class AttentionPolicyHead(nn.Module):
                 ``K = hidden_size``.
             - query: :math:`(B, K)`.
             - logit: :math:`(B, N)`.
-
+        Examples:
+            >>> head = AttentionPolicyHead()
+            >>> key = torch.randn(4, 5, 64)
+            >>> query = torch.randn(4, 64)
+            >>> logit = head(key, query)
+            >>> assert logit.shape == torch.Size([4, 5])
         .. note::
             In this head, we assume that the ``key`` and ``query`` tensor are both normalized.
         """
@@ -1274,8 +1290,8 @@ class AttentionPolicyHead(nn.Module):
 class MultiHead(nn.Module):
     """
     Overview:
-        The ``MultiHead`` used to output multiple similar results. For example, we can combine ``Distribution``  and \
-        ``MultiHead`` to output multi-discrete action space logit.
+        The ``MultiHead`` is used to generate multiple similar results.
+        For example, we can combine ``Distribution`` and ``MultiHead`` to generate multi-discrete action space logit.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -1308,7 +1324,6 @@ class MultiHead(nn.Module):
         Shapes:
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - logit: :math:`(B, Mi)`, where ``Mi = output_size`` corresponding to output ``i``.
-
         Examples:
             >>> head = MultiHead(DuelingHead, 64, [2, 3, 5], v_layer_num=2)
             >>> inputs = torch.randn(4, 64)
@@ -1329,7 +1344,7 @@ class MultiHead(nn.Module):
 class EnsembleHead(nn.Module):
     """
     Overview:
-        The ``EnsembleHead`` used to output action Q-value for Q-ensemble in model-based RL algorithms.
+        The ``EnsembleHead`` is used to generate Q-value for Q-ensemble in model-based RL algorithms.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -1400,11 +1415,18 @@ class EnsembleHead(nn.Module):
 def independent_normal_dist(logits: Union[List, Dict]) -> torch.distributions.Distribution:
     """
     Overview:
-        The compatibility function to convert different types logit to independent normal distribution.
+        Convert different types logit to independent normal distribution.
     Arguments:
         - logits (:obj:`Union[List, Dict]`): The logits to be converted.
     Returns:
         - dist (:obj:`torch.distributions.Distribution`): The converted normal distribution.
+    Examples:
+        >>> logits = [torch.randn(4, 5), torch.ones(4, 5)]
+        >>> dist = independent_normal_dist(logits)
+        >>> assert isinstance(dist, torch.distributions.Independent)
+        >>> assert isinstance(dist.base_dist, torch.distributions.Normal)
+        >>> assert dist.base_dist.loc.shape == torch.Size([4, 5])
+        >>> assert dist.base_dist.scale.shape == torch.Size([4, 5])
     Raises:
         - TypeError: If the type of logits is not ``list`` or ``dict``.
     """

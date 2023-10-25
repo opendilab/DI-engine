@@ -188,13 +188,20 @@ class ContinuousBC(nn.Module):
             - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
         Returns:
             - output (:obj:`Dict`): Output dict data, including different key-values among distinct action_space.
-
+        ReturnsKeys:
+            - action (:obj:`torch.Tensor`): Continuous action output of actor network, \
+                with shape :math:`(B, action_shape)`.
+            - logit (:obj:`List[torch.Tensor]`): Continuous action output of actor network, \
+                with shape :math:`(B, action_shape)`.
+        Shapes:
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+            - action (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
+            - logit (:obj:`List[torch.FloatTensor]`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
         Examples (Regression):
             >>> model = ContinuousBC(32, 6, action_space='regression')
             >>> inputs = torch.randn(4, 32)
             >>> outputs = model(inputs)
             >>> assert isinstance(outputs, dict) and outputs['action'].shape == torch.Size([4, 6])
-
         Examples (Reparameterization):
             >>> model = ContinuousBC(32, 6, action_space='reparameterization')
             >>> inputs = torch.randn(4, 32)
