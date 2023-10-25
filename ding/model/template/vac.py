@@ -1,4 +1,6 @@
 from typing import Union, Dict, Optional
+
+from transformers import LlamaTokenizer
 from transformers.models.llama.modeling_llama import LlamaForCausalLM
 from easydict import EasyDict
 import torch
@@ -544,7 +546,8 @@ class LlamaVAC(nn.Module):
     def __init__(
             self,
             actor_path: str,
-            critic_path: str
+            critic_path: str,
+            tokenizer: LlamaTokenizer
     ) -> None:
         """
         Overview:
@@ -554,7 +557,7 @@ class LlamaVAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
         """
         super(LlamaVAC, self).__init__()
-        self.actor = Llama.from_pretrained(actor_path)
+        self.actor = Llama.from_pretrained(actor_path, tokenizer=tokenizer)
         self.critic = LlamaRewardModel.from_pretrained(critic_path)
 
     def forward(self, x: torch.Tensor, mode: str) -> Dict:

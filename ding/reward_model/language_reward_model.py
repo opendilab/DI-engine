@@ -1,5 +1,4 @@
 import torch
-from utils import *
 from transformers.models.llama.modeling_llama import LlamaForCausalLM
 
 
