@@ -60,8 +60,6 @@ def main(cfg):
         evaluator_env.seed(cfg.seed)
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        cfg.policy.model['activation'] = nn.ReLU(inplace=True)
-        
         model = DQN(**cfg.policy.model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = DQNFastPolicy(cfg.policy, model=model)
