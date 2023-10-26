@@ -422,8 +422,8 @@ class ATOC(nn.Module):
             - necessary: ``new_thoughts``, ``old_thoughts``, ``group``, ``is_initiator``
         Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, A, N)`, where B is batch size, A is agent num, N is obs size
-            - actor_outputs (:obj:`Dict`): the output of actor network, including  ``action``, ``new_thoughts``, ``old_thoughts``, \
-                ``group``, ``initiator_prob``, ``is_initiator``
+            - actor_outputs (:obj:`Dict`): the output of actor network, including  ``action``, ``new_thoughts``, \
+                ``old_thoughts``, ``group``, ``initiator_prob``, ``is_initiator``
             - action (:obj:`torch.Tensor`): :math:`(B, A, M)` where M is action size
             - new_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)` where M is thought size
             - old_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)` where M is thought size
@@ -554,7 +554,10 @@ class ATOC(nn.Module):
             >>> delta_q = torch.randn(2, 3)
             >>> initiator_prob = torch.randn(2, 3)
             >>> is_initiator = torch.randn(2, 3)
-            >>> net.optimize_actor_attention({'delta_q': delta_q, 'initiator_prob': initiator_prob, 'is_initiator': is_initiator})
+            >>> net.optimize_actor_attention(
+            >>>     {'delta_q': delta_q,
+            >>>      'initiator_prob': initiator_prob,
+            >>>      'is_initiator': is_initiator})
         """
         if not self._communication:
             raise NotImplementedError

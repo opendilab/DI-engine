@@ -211,9 +211,9 @@ class CollaQ(nn.Module):
     """
     Overview:
         The network of CollaQ (Collaborative Q-learning) algorithm.
-        It includes two parts: q_network and q_alone_network. 
+        It includes two parts: q_network and q_alone_network.
         The q_network is used to get the q_value of the agent's observation and \
-        the agent's part of the observation information of the agent's concerned allies. 
+        the agent's part of the observation information of the agent's concerned allies.
         The q_alone_network is used to get the q_value of the agent's observation and \
         the agent's observation information without the agent's concerned allies.
         Multi-Agent Collaboration via Reward Attribution Decomposition

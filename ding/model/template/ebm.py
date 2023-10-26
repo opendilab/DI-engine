@@ -418,7 +418,7 @@ class MCMC(StochasticOptimizer):
             Overview:
                 Get learning rate. Assumes calling sequentially.
             Arguments:
-                - index (:obj:`int`): Current iteration.    
+                - index (:obj:`int`): Current iteration.
             """
             del index
             lr = self._latest_lr
@@ -453,7 +453,7 @@ class MCMC(StochasticOptimizer):
             Overview:
                 Get learning rate for index.
             Arguments:
-                - index (:obj:`int`): Current iteration.    
+                - index (:obj:`int`): Current iteration.
             """
             if index == -1:
                 return self._init

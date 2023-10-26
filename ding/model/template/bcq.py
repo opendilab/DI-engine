@@ -110,7 +110,7 @@ class BCQ(nn.Module):
             >>> outputs = model(inputs, mode='compute_critic')
             >>> outputs = model(inputs, mode='compute_vae')
             >>> outputs = model(inputs, mode='compute_eval')
-                
+
         .. note::
             For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
         """
