@@ -94,8 +94,7 @@ class PPOFStepCollector:
         self.policy = policy
         self.n_sample = n_sample
         self.unroll_len = unroll_len
-        self._transitions = Transiti
-        onList(self.env.env_num)
+        self._transitions = TransitionList(self.env.env_num)
         self._env_episode_id = [_ for _ in range(env.env_num)]
         self._current_id = env.env_num
 
@@ -214,7 +213,7 @@ class ChatCollector:
         """
         self.env = env
         self.env.seed(seed)
-        self.env.launch()
+        self.env.reset()
         self.policy = policy
         self.n_sample = n_sample
         self.unroll_len = unroll_len

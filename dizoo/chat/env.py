@@ -20,6 +20,9 @@ class ChatEnv(BaseEnv):
         self.tokenizer = get_tokenizer(tokenizer_path)
         self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer, opt=None)
         self.action_space = None
+        self.observation_space = None
+        self.reward_space = None
+
         self._init_flag = False
         self._seed = None
 
@@ -47,6 +50,9 @@ class ChatEnv(BaseEnv):
 
     def seed(self, seed):
         self._seed = 0
+
+    def clone(self, caller):
+        return self
 
     def step(self, action):
         """

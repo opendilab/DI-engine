@@ -168,7 +168,7 @@ class PPOF:
             pass
 
         with task.start(ctx=OnlineRLContext()):
-            if not self.policy._cfg.chat_data:
+            if self.policy._cfg.chat_data:
                 # task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
                 # task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
                 task.use(ChatCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
