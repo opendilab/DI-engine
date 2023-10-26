@@ -20,6 +20,8 @@ class ChatEnv(BaseEnv):
         self.tokenizer = get_tokenizer(tokenizer_path)
         self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer, opt=None)
         self.action_space = None
+        self._init_flag = False
+        self._seed = None
 
         self.dataset = OnlyPromptDataset(
             data_path=data_path,
@@ -32,9 +34,19 @@ class ChatEnv(BaseEnv):
         self.generator = self.dataset.final_generator()
         self.last_batch = None
 
+    def close(self) -> None:
+        self._init_flag = False
+
     def reset(self):
         self.last_batch = next(self.generator)
+        self._init_flag = True
         return self.last_batch
+
+    def __repr__(self) -> str:
+        return "DI-engine Chat Env"
+
+    def seed(self, seed):
+        self._seed = 0
 
     def step(self, action):
         """
