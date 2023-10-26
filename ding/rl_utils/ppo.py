@@ -173,7 +173,8 @@ def ppo_policy_error(
     surr1 = ratio * adv
     surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
     if happo_factor:
-        clip1 = torch.min(surr1, surr2) * factor
+        # shape factor: (B,1)  surr1: (B,)
+        clip1 = torch.min(surr1, surr2) * factor.squeeze(1)
     else:
         clip1 = torch.min(surr1, surr2)
     if dual_clip is not None:
@@ -309,9 +310,10 @@ def ppo_error_continuous(
     surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
     if happo_factor:
         if dual_clip is not None:
-            policy_loss = (-torch.max(factor_batch * torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+            # shape factor: (B,1)  surr1: (B,)
+            policy_loss = (-torch.max(factor_batch.squeeze(1) * torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
         else:
-            policy_loss = (-factor_batch * torch.min(surr1, surr2) * weight).mean()
+            policy_loss = (-factor_batch.squeeze(1) * torch.min(surr1, surr2) * weight).mean()
     else:
         if dual_clip is not None:
             policy_loss = (-torch.max(torch.min(surr1, surr2), dual_clip * adv) * weight).mean()

@@ -67,12 +67,12 @@ class HAVAC(nn.Module):
         global_obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
         agent_num: int,
-        use_lstm: bool = True,
+        use_lstm: bool = False,
         lstm_type: str = 'gru',
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        actor_head_hidden_size: int = 256,
+        actor_head_hidden_size: int = 64,
         actor_head_layer_num: int = 2,
-        critic_head_hidden_size: int = 512,
+        critic_head_hidden_size: int = 64,
         critic_head_layer_num: int = 1,
         action_space: str = 'discrete',
         activation: Optional[nn.Module] = nn.ReLU(),
@@ -132,12 +132,12 @@ class HAVACAgent(nn.Module):
         agent_obs_shape: Union[int, SequenceType],
         global_obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
-        use_lstm: bool = True,
+        use_lstm: bool = False,
         lstm_type: str = 'gru',
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        actor_head_hidden_size: int = 256,
+        actor_head_hidden_size: int = 64,
         actor_head_layer_num: int = 2,
-        critic_head_hidden_size: int = 512,
+        critic_head_hidden_size: int = 64,
         critic_head_layer_num: int = 1,
         action_space: str = 'discrete',
         activation: Optional[nn.Module] = nn.ReLU(),
@@ -343,9 +343,9 @@ class HAVACAgent(nn.Module):
             >>> assert actor_outputs['logit'].shape == (T, bs, action_dim)
         """
         x = inputs['obs']['agent_state']
-        rnn_actor_prev_state = inputs['actor_prev_state']
         output = {}
         if self.use_lstm:
+            rnn_actor_prev_state = inputs['actor_prev_state']
             if inference:
                 x = self.actor_encoder(x)
                 rnn_output = self.actor_rnn(x, rnn_actor_prev_state, inference)
@@ -415,9 +415,9 @@ class HAVACAgent(nn.Module):
             >>> assert critic_outputs['value'].shape == (T, bs))
         """
         global_obs = inputs['obs']['global_state']
-        rnn_critic_prev_state = inputs['critic_prev_state']
         output = {}
         if self.use_lstm:
+            rnn_critic_prev_state = inputs['critic_prev_state']
             if inference:
                 x = self.critic_encoder(global_obs)
                 rnn_output = self.critic_rnn(x, rnn_critic_prev_state, inference)

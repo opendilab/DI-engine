@@ -97,27 +97,25 @@ class HAPPOPolicy(Policy):
                 if isinstance(m, torch.nn.Linear):
                     torch.nn.init.orthogonal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
-            if self._action_space in ['continuous', 'hybrid']:
+            if self._action_space in ['continuous']:
                 # init log sigma
-                if self._action_space == 'continuous':
-                    if hasattr(self._model.actor_head, 'log_sigma_param'):
-                        torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
-                elif self._action_space == 'hybrid':  # actor_head[1]: ReparameterizationHead, for action_args
-                    if hasattr(self._model.actor_head[1], 'log_sigma_param'):
-                        torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
+                if hasattr(self._model.actor_head, 'log_sigma_param'):
+                    torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
 
-                for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
-                    if isinstance(m, torch.nn.Linear):
-                        # orthogonal initialization
-                        torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
-                        torch.nn.init.zeros_(m.bias)
-                # do last policy layer scaling, this will make initial actions have (close to)
-                # 0 mean and std, and will help boost performances,
-                # see https://arxiv.org/abs/2006.05990, Fig.24 for details
-                for m in self._model.actor.modules():
-                    if isinstance(m, torch.nn.Linear):
-                        torch.nn.init.zeros_(m.bias)
-                        m.weight.data.copy_(0.01 * m.weight.data)
+                for agent_id in range(self._cfg.agent_num):
+                    for m in list(self._model.agent_models[agent_id].critic.modules()) + \
+                        list(self._model.agent_models[agent_id].actor.modules()):
+                        if isinstance(m, torch.nn.Linear):
+                            # orthogonal initialization
+                            torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
+                            torch.nn.init.zeros_(m.bias)
+                    # do last policy layer scaling, this will make initial actions have (close to)
+                    # 0 mean and std, and will help boost performances,
+                    # see https://arxiv.org/abs/2006.05990, Fig.24 for details
+                    for m in self._model.agent_models[agent_id].actor.modules():
+                        if isinstance(m, torch.nn.Linear):
+                            torch.nn.init.zeros_(m.bias)
+                            m.weight.data.copy_(0.01 * m.weight.data)
 
         # Optimizer
         self._optimizer = Adam(
@@ -161,31 +159,54 @@ class HAPPOPolicy(Policy):
                         adv_abs_max, approx_kl, clipfrac
         """
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
+        all_data_len = data['obs']['agent_state'].shape[0]
+        factor = torch.ones(all_data_len, 1)     # (B, 1)
         if self._cuda:
             data = to_device(data, self._device)
+            factor = to_device(factor, self._device)
+        for key,value in data.items():
+            # (B, M, N) -> (M, B, N) where M is agent_num
+            if value is not None:
+                if type(value) is dict:
+                    data[key] = {k: v.transpose(0, 1) for k,v in value.items()}   # not feasible for rnn
+                elif len(value.shape)>1:
+                    data[key] = data[key].transpose(0, 1)
         # ====================
         # PPO forward
         # ====================
         return_infos = []
         self._learn_model.train()
-        factor = torch.ones(*data[0]['obs'].shape[:-1], 1)     # (L, M, 1)
 
-        for agent_id in self.agent_num:
-            agent_data = data[agent_id]
+        for agent_id in range(self._cfg.agent_num):
+            agent_data = {}
+            for key,value in data.items():
+                if value is not None:
+                    if type(value) is dict:
+                        agent_data[key] = {k: v[agent_id] for k,v in value.items()}   # not feasible for rnn
+                    elif len(value.shape)>1:
+                        agent_data[key] = data[key][agent_id]
+                    else:
+                        agent_data[key] = data[key]
+                else:
+                    agent_data[key] = data[key]
+                    
             # update factor
             agent_data['factor'] = factor
             # calculate old_logits of all data in buffer for later factor
             inputs = {
                 'obs': agent_data['obs'],
-                'actor_prev_state': agent_data['actor_prev_state'],
+                # 'actor_prev_state': agent_data['actor_prev_state'],
+                # 'critic_prev_state': agent_data['critic_prev_state'],
             }
-            old_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')
+            old_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')['logit']
 
             for epoch in range(self._cfg.learn.epoch_per_collect):
                 if self._recompute_adv:  # calculate new value using the new updated value network
                     with torch.no_grad():
-                        value = self._learn_model.forward(agent_data['obs'], mode='compute_critic')['value']
-                        next_value = self._learn_model.forward(agent_data['next_obs'], mode='compute_critic')['value']
+                        # value = self._learn_model.forward(agent_id, agent_data['obs'], mode='compute_critic')['value']
+                        value = self._learn_model.forward(agent_id, inputs, mode='compute_critic')['value']
+                        inputs['obs'] = agent_data['next_obs']
+                        next_value = self._learn_model.forward(agent_id, inputs, mode='compute_critic')['value']
                         if self._value_norm:
                             value *= self._running_mean_std.std
                             next_value *= self._running_mean_std.std
@@ -215,8 +236,8 @@ class HAPPOPolicy(Policy):
                 for batch in split_data_generator(agent_data, self._cfg.learn.batch_size, shuffle=True):
                     inputs = {
                         'obs': batch['obs'],
-                        'actor_prev_state': batch['actor_prev_state'],
-                        'critic_prev_state': batch['critic_prev_state'],
+                        # 'actor_prev_state': batch['actor_prev_state'],
+                        # 'critic_prev_state': batch['critic_prev_state'],
                     }
                     output = self._learn_model.forward(agent_id, inputs, mode='compute_actor_critic')
                     adv = batch['adv']
@@ -247,37 +268,229 @@ class HAPPOPolicy(Policy):
                     # calculate the factor
                     inputs = {
                         'obs': agent_data['obs'],
-                        'actor_prev_state': agent_data['actor_prev_state'],
+                        # 'actor_prev_state': agent_data['actor_prev_state'],
                     }
-                    new_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')
-                    factor = factor * torch.prod(torch.exp(new_logits - old_logits), dim=-1) # attention the shape
+                    new_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')['logit']
+                    factor = factor * torch.prod(torch.exp(new_logits - old_logits), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
 
                     return_info = {
-                        'cur_lr': self._optimizer.defaults['lr'],
-                        'total_loss': total_loss.item(),
-                        'policy_loss': happo_loss.policy_loss.item(),
-                        'value_loss': happo_loss.value_loss.item(),
-                        'entropy_loss': happo_loss.entropy_loss.item(),
-                        'adv_max': adv.max().item(),
-                        'adv_mean': adv.mean().item(),
-                        'value_mean': output['value'].mean().item(),
-                        'value_max': output['value'].max().item(),
-                        'approx_kl': happo_info.approx_kl,
-                        'clipfrac': happo_info.clipfrac,
+                        'agent{}_cur_lr'.format(agent_id): self._optimizer.defaults['lr'],
+                        'agent{}_total_loss'.format(agent_id): total_loss.item(),
+                        'agent{}_policy_loss'.format(agent_id): happo_loss.policy_loss.item(),
+                        'agent{}_value_loss'.format(agent_id): happo_loss.value_loss.item(),
+                        'agent{}_entropy_loss'.format(agent_id): happo_loss.entropy_loss.item(),
+                        'agent{}_adv_max'.format(agent_id): adv.max().item(),
+                        'agent{}_adv_mean'.format(agent_id): adv.mean().item(),
+                        'agent{}_value_mean'.format(agent_id): output['value'].mean().item(),
+                        'agent{}_value_max'.format(agent_id): output['value'].max().item(),
+                        'agent{}_approx_kl'.format(agent_id): happo_info.approx_kl,
+                        'agent{}_clipfrac'.format(agent_id): happo_info.clipfrac,
                     }
                     if self._action_space == 'continuous':
                         return_info.update(
                             {
-                                'act': batch['action'].float().mean().item(),
-                                'mu_mean': output['logit']['mu'].mean().item(),
-                                'sigma_mean': output['logit']['sigma'].mean().item(),
+                                'agent{}_act'.format(agent_id): batch['action'].float().mean().item(),
+                                'agent{}_mu_mean'.format(agent_id): output['logit']['mu'].mean().item(),
+                                'agent{}_sigma_mean'.format(agent_id): output['logit']['sigma'].mean().item(),
                             }
                         )
                     return_infos.append(return_info)
         return return_infos
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
+    def _init_collect(self) -> None:
+        r"""
+        Overview:
+            Collect mode init method. Called by ``self.__init__``.
+            Init traj and unroll length, collect model.
+        """
+        self._unroll_len = self._cfg.collect.unroll_len
+        assert self._cfg.action_space in ["continuous", "discrete"]
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
+        elif self._action_space == 'discrete':
+            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._collect_model.reset()
+        self._gamma = self._cfg.collect.discount_factor
+        self._gae_lambda = self._cfg.collect.gae_lambda
+        self._recompute_adv = self._cfg.recompute_adv
+
+    def _forward_collect(self, data: dict) -> dict:
+        r"""
+        Overview:
+            Forward function of collect mode.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        data = {k: v.transpose(0, 1) for k,v in data.items()}   # not feasible for rnn
+        self._collect_model.eval()
+        with torch.no_grad():
+            result ={}
+            for agent_id in range(self._cfg.agent_num):
+                # output = self._collect_model.forward(agent_id, data, mode='compute_actor_critic')
+                single_agent_obs = {k: v[agent_id] for k,v in data.items()}
+                input = {'obs': single_agent_obs,}
+                output = self._collect_model.forward(agent_id, input, mode='compute_actor_critic')
+                for key in output.keys():
+                    if agent_id == 0:
+                        # If it is the first loop, put the tensor directly into the list
+                        result[key] = [output[key]]
+                    else:
+                        # If not the first loop, stack the tensor with the previous tensor
+                        result[key].append(output[key])
+            for key in result.keys():
+                result[key] = torch.stack(result[key], dim=0)
+        output = {k: v.transpose(0, 1) for k,v in result.items()}
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        """
+        Overview:
+               Generate dict type transition data from inputs.
+        Arguments:
+                - obs (:obj:`Any`): Env observation
+                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
+                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
+                       (here 'obs' indicates obs after env step).
+        Returns:
+               - transition (:obj:`dict`): Dict type transition data.
+        """
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'action': model_output['action'],
+            'logit': model_output['logit'],
+            'value': model_output['value'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
+        return transition
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        r"""
+        Overview:
+            Get the trajectory and calculate GAE, return one data to cache for next time calculation
+        Arguments:
+            - data (:obj:`list`): The trajectory's cache
+        Returns:
+            - samples (:obj:`dict`): The training samples generated
+        """
+        data = to_device(data, self._device)
+        for transition in data:
+            transition['traj_flag'] = copy.deepcopy(transition['done'])
+        data[-1]['traj_flag'] = True
+
+        if self._cfg.learn.ignore_done:
+            data[-1]['done'] = False
+
+        if data[-1]['done']:
+            last_value = torch.zeros_like(data[-1]['value'])
+        else:
+            with torch.no_grad():
+                last_value = self._collect_model.forward(
+                    unsqueeze(data[-1]['next_obs'], 0), mode='compute_actor_critic'
+                )['value']
+            if len(last_value.shape) == 2:  # multi_agent case:
+                last_value = last_value.squeeze(0)
+        if self._value_norm:
+            last_value *= self._running_mean_std.std
+            for i in range(len(data)):
+                data[i]['value'] *= self._running_mean_std.std
+        data = get_gae(
+            data,
+            to_device(last_value, self._device),
+            gamma=self._gamma,
+            gae_lambda=self._gae_lambda,
+            cuda=False,
+        )
+        if self._value_norm:
+            for i in range(len(data)):
+                data[i]['value'] /= self._running_mean_std.std
+
+        # remove next_obs for save memory when not recompute adv
+        if not self._recompute_adv:
+            for i in range(len(data)):
+                data[i].pop('next_obs')
+        return get_train_sample(data, self._unroll_len)
+
+    def _init_eval(self) -> None:
+        r"""
+        Overview:
+            Evaluate mode init method. Called by ``self.__init__``.
+            Init eval model with argmax strategy.
+        """
+        assert self._cfg.action_space in ["continuous", "discrete"]
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
+        elif self._action_space == 'discrete':
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model.reset()
+
+    def _forward_eval(self, data: dict) -> dict:
+        r"""
+        Overview:
+            Forward function of eval mode, similar to ``self._forward_collect``.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        data = {k: v.transpose(0, 1) for k,v in data.items()}   # not feasible for rnn
+        self._eval_model.eval()
+        with torch.no_grad():
+            result = {}
+            for agent_id in range(self._cfg.agent_num):
+                single_agent_obs = {k: v[agent_id] for k,v in data.items()}
+                input = {'obs': single_agent_obs,}
+                output = self._eval_model.forward(agent_id, input, mode='compute_actor')
+                for key in output.keys():
+                    if agent_id == 0:
+                        # If it is the first loop, put the tensor directly into the list
+                        result[key] = [output[key]]
+                    else:
+                        # If not the first loop, stack the tensor with the previous tensor
+                        result[key].append(output[key])
+            for key in result.keys():
+                result[key] = torch.stack(result[key], dim=0)
+        output = {k: v.transpose(0, 1) for k,v in result.items()}
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'havac', ['ding.model.template.mavac']
+        return 'havac', ['ding.model.template.havac']
 
     def _monitor_vars_learn(self) -> List[str]:
         variables = super()._monitor_vars_learn() + [
@@ -293,4 +506,6 @@ class HAPPOPolicy(Policy):
         ]
         if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']
+        prefixes = [f'agent{i}_' for i in range(self._cfg.agent_num)]
+        variables = [prefix + var for prefix in prefixes for var in variables]
         return variables
