@@ -211,9 +211,8 @@ class ChatCollector:
             - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
                 its derivatives are supported.
         """
-        self.env = env
+        self.env = env._env[0]
         self.env.seed(seed)
-        self._closed = False
         self.env.reset()
         self.policy = policy
         self.n_sample = n_sample
@@ -229,7 +228,7 @@ class ChatCollector:
         """
         device = self.policy._device
 
-        obs = ttorch.as_tensor(self.env._env[0].last_batch)
+        obs = ttorch.as_tensor(self.env.last_batch)
         obs = obs.to(device)
 
         total_action = []
