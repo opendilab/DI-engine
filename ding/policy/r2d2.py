@@ -120,7 +120,7 @@ class R2D2Policy(Policy):
             # User should specify this value in user config.
             env_num=None,
         ),
-        # eval_mdoe config
+        # eval_mode config
         eval=dict(
             # (int) `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
@@ -164,7 +164,9 @@ class R2D2Policy(Policy):
         """
         Overview:
             Initialize the learn mode of policy, including some attributes and modules. For R2D2, it mainly contains \
-            optimizer, algorithm-specific arguments such as burnin_step, value_rescale and gamma, main and target model.
+            optimizer, algorithm-specific arguments such as burnin_step, value_rescale and gamma, main and target \
+            model. Because of the use of RNN, all the models should be wrappered with ``hidden_state`` which needs to \
+            be initialized with proper size.
             This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
 
         .. note::

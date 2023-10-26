@@ -148,7 +148,7 @@ class PDQNPolicy(Policy):
 
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
-            by import_names path. For example about DQN, its registered name is ``pdqn`` and the import_names is \
+            by import_names path. For example about PDQN, its registered name is ``pdqn`` and the import_names is \
             ``ding.model.template.pdqn``.
         """
         return 'pdqn', ['ding.model.template.pdqn']
@@ -156,8 +156,20 @@ class PDQNPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``, initialize the optimizer, algorithm arguments, main \
-            and target model.
+            Initialize the learn mode of policy, including related attributes and modules. For PDQN, it mainly \
+            contains two optimizers, algorithm-specific arguments such as nstep and gamma, main and target model.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -190,19 +202,31 @@ class PDQNPolicy(Policy):
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Overview:
-            Forward computation graph of learn mode(updating policy).
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, q value, target_q_value, priority.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
-                np.ndarray or dict/list combinations.
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For PDQN, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight`` \
+                and ``value_gamma``.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
-                recorded in text log and tensorboard, values are python scalar or a list of scalars.
-        ArgumentsKeys:
-            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
-            - optional: ``value_gamma``, ``IS``
-        ReturnsKeys:
-            - necessary: ``cur_lr``, ``q_loss``, ``continuous_loss``, ``q_value``, ``priority``, ``reward``, \
-                ``target_q_value``
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PDQNPolicy: ``ding.policy.tests.test_pdqn``.
         """
         data = default_preprocess_learn(
             data,
@@ -328,8 +352,19 @@ class PDQNPolicy(Policy):
     def _init_collect(self) -> None:
         """
         Overview:
-            Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model, \
-            enable the eps_greedy_sample for exploration.
+            Initialize the collect mode of policy, including related attributes and modules. For PDQN, it contains the \
+            collect_model to balance the exploration and exploitation with epsilon-greedy sample mechanism and \
+            continuous action mechanism, besides, other algorithm-specific arguments such as unroll_len and nstep are \
+            also initialized here.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+
+        .. tip::
+            Some variables need to initialize independently in different modes, such as gamma and nstep in PDQN. This \
+            design is for the convenience of parallel execution of different policy modes.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
@@ -350,18 +385,27 @@ class PDQNPolicy(Policy):
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
         """
         Overview:
-            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs. Besides, this policy also needs ``eps`` argument for \
+            exploration, i.e., classic epsilon-greedy exploration strategy.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+            - eps (:obj:`float`): The epsilon value for exploration.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \
-                env and the constructing of transition.
-        ArgumentsKeys:
-            - necessary: ``obs``
-        ReturnsKeys
-            - necessary: ``logit``, ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PDQNPolicy: ``ding.policy.tests.test_pdqn``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -405,7 +449,7 @@ class PDQNPolicy(Policy):
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
             - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
-                as input. For DQN, it contains the hybrid action and the logit (discrete part q_value) of the action.
+                as input. For PDQN, it contains the hybrid action and the logit (discrete part q_value) of the action.
             - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
                 except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
                 reward, done, info, etc.
@@ -425,23 +469,38 @@ class PDQNPolicy(Policy):
     def _init_eval(self) -> None:
         """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
+            Initialize the eval mode of policy, including related attributes and modules. For PDQN, it contains the \
+            eval model to greedily select action with argmax q_value mechanism.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='hybrid_argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
-            - optional: ``logit``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PDQNPolicy: ``ding.policy.tests.test_pdqn``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
