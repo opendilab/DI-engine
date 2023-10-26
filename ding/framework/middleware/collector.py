@@ -213,6 +213,7 @@ class ChatCollector:
         """
         self.env = env
         self.env.seed(seed)
+        self._closed = False
         self.env.reset()
         self.policy = policy
         self.n_sample = n_sample

@@ -47,4 +47,4 @@ if __name__ == '__main__':
         exp_name="rlhf-ppo",
         model=model
     )
-    policy.train(collector_env_num=1, evaluator_env_num=1)
+    policy.train(collector_env_num=1, evaluator_env_num=1, debug=True)
