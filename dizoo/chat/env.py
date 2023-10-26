@@ -1,12 +1,12 @@
 import gym
 import torch
-from easydict import EasyDict
 
+from ding.envs import BaseEnv
 from ding.reward_model import LlamaRewardModel
 from .utils import OnlyPromptDataset, concat_context_and_response, get_tokenizer, pad_sequences
 
 
-class ChatEnv(gym.Env):
+class ChatEnv(BaseEnv):
     def __init__(
             self,
             batch_size,

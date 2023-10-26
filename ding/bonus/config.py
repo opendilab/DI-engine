@@ -173,6 +173,7 @@ def get_instance_config(env_id: str, algorithm: str) -> EasyDict:
             cfg.learning_rate = 5e-7
             cfg.answers_per_question = 3
             cfg.kl_penalty_weight = 0.1
+            cfg.ppo_param_init = False
         else:
             raise KeyError("not supported env type: {}".format(env_id))
     else:
