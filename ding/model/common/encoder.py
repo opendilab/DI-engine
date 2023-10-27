@@ -246,7 +246,7 @@ class StructEncoder(nn.Module):
 class IMPALACnnResidualBlock(nn.Module):
     """
     Overview:
-        This CNN encoder residual block is residual basic block used in IMPALA algorithm, \
+        This CNN encoder residual block is residual basic block used in IMPALA algorithm,
         which preserves the channel number and shape.
         IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures
         https://arxiv.org/pdf/1802.01561.pdf
@@ -277,7 +277,7 @@ class IMPALACnnResidualBlock(nn.Module):
         """
         Overview:
             Return output tensor of the residual block, keep the shape and channel number unchanged.
-            The inplace of activation function should be False for the first relu, \
+            The inplace of activation function should be False for the first relu,
             so that it does not change the origin input tensor of the residual block.
         Arguments:
             - x (:obj:`torch.Tensor`): Input tensor.
@@ -389,7 +389,7 @@ class IMPALACnnDownStack(nn.Module):
 class IMPALAConvEncoder(nn.Module):
     """
     Overview:
-        IMPALA CNN encoder, which is used in IMPALA algorithm. \
+        IMPALA CNN encoder, which is used in IMPALA algorithm.
         IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures, \
         https://arxiv.org/pdf/1802.01561.pdf,
     Interface:
