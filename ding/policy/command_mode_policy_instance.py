@@ -51,6 +51,7 @@ from .bdq import BDQPolicy
 from .bcq import BCQPolicy
 from .edac import EDACPolicy
 from .prompt_pg import PromptPGPolicy
+from .plan_diffuser import PDPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -397,6 +398,11 @@ class BCQCommandModelPolicy(BCQPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('edac_command')
 class EDACCommandModelPolicy(EDACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('pd_command')
+class PDCommandModelPolicy(PDPolicy, DummyCommandModePolicy):
     pass
 
 
