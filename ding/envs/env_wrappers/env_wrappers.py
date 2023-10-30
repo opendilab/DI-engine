@@ -42,7 +42,7 @@ import copy
 import operator
 from collections import deque
 from functools import reduce
-from typing import Union, Any, Tuple, Dict
+from typing import Union, Any, Tuple, Dict, List
 
 import gym
 import gymnasium
@@ -159,6 +159,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         - size (:obj:`int`): the size to which the frames are to be resized.
         - observation_space (:obj:`gym.Space`): the observation space of the wrapped environment.
     """
+
     def __init__(self, env: gym.Env, size: int = 84):
         """
         Overview:
@@ -201,7 +202,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
             import sys
             logging.warning("Please install opencv-python first.")
             sys.exit(1)
-        # deal with channel_first case
+        # deal with the `channel_first` case
         if frame.shape[0] < 10:
             frame = frame.transpose(1, 2, 0)
             frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
@@ -221,6 +222,7 @@ class ScaledFloatFrameWrapper(gym.ObservationWrapper):
     Interfaces:
         __init__, observation
     """
+
     def __init__(self, env: gym.Env):
         """
         Overview:
@@ -405,7 +407,6 @@ class EvalEpisodeReturnWrapper(gym.Wrapper):
         """
         Overview:
             Initialize the EvalEpisodeReturnWrapper. This involves setting up the environment to wrap.
-
         Arguments:
             - env (:obj:`gym.Env`): The environment to wrap.
         """
@@ -415,7 +416,6 @@ class EvalEpisodeReturnWrapper(gym.Wrapper):
         """
         Overview:
             Reset the environment and initialize the accumulated reward to zero.
-
         Returns:
             - obs (:obj:`np.ndarray`): The initial observation from the environment.
         """
@@ -427,10 +427,8 @@ class EvalEpisodeReturnWrapper(gym.Wrapper):
         Overview:
             Step the environment with the provided action, accumulate the returned reward, and add the total reward to
             `info` if the episode is done.
-
         Arguments:
             - action (:obj:`Any`): The action to take in the environment.
-
         Returns:
             - obs (:obj:`np.ndarray`): The next observation from the environment.
             - reward (:obj:`float`): The reward from taking the action.
@@ -514,7 +512,6 @@ class FrameStackWrapper(gym.Wrapper):
             - info (:obj:`Dict[str, Any]`): Contains auxiliary diagnostic information (helpful for debugging,
               and sometimes learning).
         """
-
         obs, reward, done, info = self.env.step(action)
         self.frames.append(obs)
         return self._get_ob(), reward, done, info
@@ -592,10 +589,8 @@ class RunningMeanStd(object):
     """
     Overview:
        The RunningMeanStd class is a utility that maintains a running mean and standard deviation calculation over a stream of data.
-
     Interfaces:
         __init__, update, reset, mean, std
-
     Properties:
         - mean (:obj:`np.ndarray`): The running mean.
         - std (:obj:`np.ndarray`): The running standard deviation.
@@ -1020,7 +1015,7 @@ class FireResetWrapper(gym.Wrapper):
     def reset(self) -> np.ndarray:
         """
         Overview:
-            Resets the state of the environment and executes a fire action, i.e. reset with action 1
+            Resets the state of the environment and executes a fire action, i.e. reset with action 1.
         Returns:
             - observation (:obj:`np.ndarray`): New observation after reset and fire action.
         """
@@ -1228,7 +1223,6 @@ class TimeLimitWrapper(gym.Wrapper):
     """
     Overview:
         This class is used to enforce a time limit on the environment.
-
     Interfaces:
         __init__, reset, step
     """
@@ -1488,13 +1482,11 @@ def update_shape(obs_shape: Any, act_shape: Any, rew_shape: Any, wrapper_names: 
     """
     Overview:
         Get new shapes of observation, action, and reward given the wrapper.
-
     Arguments:
         - obs_shape (:obj:`Any`): The original shape of observation.
         - act_shape (:obj:`Any`): The original shape of action.
         - rew_shape (:obj:`Any`): The original shape of reward.
         - wrapper_names (:obj:`List[str]`): The names of the wrappers.
-
     Returns:
         - obs_shape (:obj:`Any`): The new shape of observation.
         - act_shape (:obj:`Any`): The new shape of action.
