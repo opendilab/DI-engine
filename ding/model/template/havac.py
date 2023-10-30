@@ -111,6 +111,7 @@ class HAVAC(nn.Module):
             global_obs_shape = global_obs_shape,
             action_shape = action_shape,
             use_lstm = use_lstm,
+            action_space = action_space,
             ) for _ in range(agent_num)])
         
     def forward(self, agent_idx, input_data, mode):

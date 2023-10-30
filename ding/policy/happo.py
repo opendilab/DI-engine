@@ -3,6 +3,7 @@ from collections import namedtuple
 import torch
 import copy
 import numpy as np
+from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device, to_dtype, unsqueeze, ContrastiveLoss
 from ding.rl_utils import happo_data, ppo_error, ppo_policy_error, happo_policy_data, get_gae_with_default_last_value, \
@@ -99,10 +100,9 @@ class HAPPOPolicy(Policy):
                     torch.nn.init.zeros_(m.bias)
             if self._action_space in ['continuous']:
                 # init log sigma
-                if hasattr(self._model.actor_head, 'log_sigma_param'):
-                    torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
-
                 for agent_id in range(self._cfg.agent_num):
+                    if hasattr(self._model.agent_models[agent_id].actor_head, 'log_sigma_param'):
+                        torch.nn.init.constant_(self._model.agent_models[agent_id].actor_head.log_sigma_param, -0.5)
                     for m in list(self._model.agent_models[agent_id].critic.modules()) + \
                         list(self._model.agent_models[agent_id].actor.modules()):
                         if isinstance(m, torch.nn.Linear):
@@ -147,6 +147,17 @@ class HAPPOPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
+    def prepocess_data_agent(self, data):
+            ret ={}
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    ret[key] = self.prepocess_data_agent(value)
+                elif isinstance(value, torch.Tensor) and len(value.shape) > 1:
+                    ret[key] = value.transpose(0, 1)
+                else:
+                    ret[key] = value
+            return ret
+
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Overview:
@@ -164,13 +175,8 @@ class HAPPOPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
             factor = to_device(factor, self._device)
-        for key,value in data.items():
-            # (B, M, N) -> (M, B, N) where M is agent_num
-            if value is not None:
-                if type(value) is dict:
-                    data[key] = {k: v.transpose(0, 1) for k,v in value.items()}   # not feasible for rnn
-                elif len(value.shape)>1:
-                    data[key] = data[key].transpose(0, 1)
+        # process agent dim
+        data = self.prepocess_data_agent(data)
         # ====================
         # PPO forward
         # ====================
@@ -265,14 +271,6 @@ class HAPPOPolicy(Policy):
                     total_loss.backward()
                     self._optimizer.step()
 
-                    # calculate the factor
-                    inputs = {
-                        'obs': agent_data['obs'],
-                        # 'actor_prev_state': agent_data['actor_prev_state'],
-                    }
-                    new_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')['logit']
-                    factor = factor * torch.prod(torch.exp(new_logits - old_logits), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
-
                     return_info = {
                         'agent{}_cur_lr'.format(agent_id): self._optimizer.defaults['lr'],
                         'agent{}_total_loss'.format(agent_id): total_loss.item(),
@@ -295,6 +293,22 @@ class HAPPOPolicy(Policy):
                             }
                         )
                     return_infos.append(return_info)
+            # calculate the factor
+            inputs = {
+                'obs': agent_data['obs'],
+                # 'actor_prev_state': agent_data['actor_prev_state'],
+            }
+            new_logits = self._learn_model.forward(agent_id, inputs, mode='compute_actor')['logit']
+            if self._cfg.action_space == 'discrete':
+                dist_new = torch.distributions.categorical.Categorical(logits=new_logits)
+                dist_old = torch.distributions.categorical.Categorical(logits=old_logits)
+            elif self._cfg.action_space == 'continuous':
+                dist_new = Independent(Normal(new_logits['mu'], new_logits['sigma']), 1)
+                dist_old = Independent(Normal(old_logits['mu'], old_logits['sigma']), 1)
+            logp_new = dist_new.log_prob(agent_data['action'])
+            logp_old = dist_old.log_prob(agent_data['action'])
+            # factor = factor * torch.prod(torch.exp(logp_new - logp_old), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
+            factor = factor * torch.exp(logp_new - logp_old).reshape(all_data_len, 1).detach()
         return return_infos
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -344,22 +358,32 @@ class HAPPOPolicy(Policy):
         data = {k: v.transpose(0, 1) for k,v in data.items()}   # not feasible for rnn
         self._collect_model.eval()
         with torch.no_grad():
-            result ={}
+            outputs = []
             for agent_id in range(self._cfg.agent_num):
                 # output = self._collect_model.forward(agent_id, data, mode='compute_actor_critic')
                 single_agent_obs = {k: v[agent_id] for k,v in data.items()}
                 input = {'obs': single_agent_obs,}
                 output = self._collect_model.forward(agent_id, input, mode='compute_actor_critic')
-                for key in output.keys():
-                    if agent_id == 0:
-                        # If it is the first loop, put the tensor directly into the list
-                        result[key] = [output[key]]
+                outputs.append(output)
+            # transfer data from (M, B, N)->(B, M, N)
+            result = {}
+            for key in outputs[0].keys():
+                if isinstance(outputs[0][key], dict):
+                    subkeys = outputs[0][key].keys()
+                    stacked_subvalues = {}
+                    for subkey in subkeys:
+                        stacked_subvalues[subkey] = \
+                            torch.stack([output[key][subkey] for output in outputs], dim=0).transpose(0, 1)
+                    result[key] = stacked_subvalues
+                else:
+                    # If Value is tensor, stack it directly
+                    if isinstance(outputs[0][key], torch.Tensor):
+                        result[key] = torch.stack([output[key] for output in outputs], dim=0).transpose(0, 1)
                     else:
-                        # If not the first loop, stack the tensor with the previous tensor
-                        result[key].append(output[key])
-            for key in result.keys():
-                result[key] = torch.stack(result[key], dim=0)
-        output = {k: v.transpose(0, 1) for k,v in result.items()}
+                        # If it is not tensor, assume that it is a non-stackable data type \
+                        # (such as int, float, etc.), and directly retain the original value
+                        result[key] = [output[key] for output in outputs]
+        output = result    
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -409,9 +433,16 @@ class HAPPOPolicy(Policy):
             last_value = torch.zeros_like(data[-1]['value'])
         else:
             with torch.no_grad():
-                last_value = self._collect_model.forward(
-                    unsqueeze(data[-1]['next_obs'], 0), mode='compute_actor_critic'
-                )['value']
+                last_values = []
+                for agent_id in range(self._cfg.agent_num):
+                    inputs = {'obs':
+                                {k: unsqueeze(v[agent_id], 0) for k,v in data[-1]['next_obs'].items()}
+                    }
+                    last_value = self._collect_model.forward(
+                        agent_id, inputs, mode='compute_actor_critic'
+                    )['value']
+                    last_values.append(last_value)
+                last_value = torch.cat(last_values)
             if len(last_value.shape) == 2:  # multi_agent case:
                 last_value = last_value.squeeze(0)
         if self._value_norm:
@@ -465,24 +496,36 @@ class HAPPOPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
+        # transfer data from (B, M, N)->(M, B, N)
         data = {k: v.transpose(0, 1) for k,v in data.items()}   # not feasible for rnn
         self._eval_model.eval()
         with torch.no_grad():
-            result = {}
+            outputs = []
             for agent_id in range(self._cfg.agent_num):
                 single_agent_obs = {k: v[agent_id] for k,v in data.items()}
                 input = {'obs': single_agent_obs,}
                 output = self._eval_model.forward(agent_id, input, mode='compute_actor')
-                for key in output.keys():
-                    if agent_id == 0:
-                        # If it is the first loop, put the tensor directly into the list
-                        result[key] = [output[key]]
-                    else:
-                        # If not the first loop, stack the tensor with the previous tensor
-                        result[key].append(output[key])
-            for key in result.keys():
-                result[key] = torch.stack(result[key], dim=0)
-        output = {k: v.transpose(0, 1) for k,v in result.items()}
+                outputs.append(output)
+            # transfer data from (M, B, N)->(B, M, N)
+        #     result = {}
+        #     for key in outputs[0].keys():
+        #         if isinstance(outputs[0][key], dict):
+        #             subkeys = outputs[0][key].keys()
+        #             stacked_subvalues = {}
+        #             for subkey in subkeys:
+        #                 stacked_subvalues[subkey] = \
+        #                     torch.stack([output[key][subkey] for output in outputs], dim=0).transpose(0, 1)
+        #             result[key] = stacked_subvalues
+        #         else:
+        #             # If Value is tensor, stack it directly
+        #             if isinstance(outputs[0][key], torch.Tensor):
+        #                 result[key] = torch.stack([output[key] for output in outputs], dim=0).transpose(0, 1)
+        #             else:
+        #                 # If it is not tensor, assume that it is a non-stackable data type \
+        #                 # (such as int, float, etc.), and directly retain the original value
+        #                 result[key] = [output[key] for output in outputs]
+        # output = result
+        output = self.revert_agent_data(outputs)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -509,3 +552,17 @@ class HAPPOPolicy(Policy):
         prefixes = [f'agent{i}_' for i in range(self._cfg.agent_num)]
         variables = [prefix + var for prefix in prefixes for var in variables]
         return variables
+    
+    def revert_agent_data(self, data):
+        ret = {}
+        # Traverse all keys of the first output
+        for key in data[0].keys():
+            if isinstance(data[0][key], torch.Tensor):
+                # If the value corresponding to the current key is tensor, stack N tensors
+                stacked_tensor = torch.stack([output[key] for output in data], dim=0)
+                ret[key] = stacked_tensor.transpose(0, 1)
+            elif isinstance(data[0][key], dict):
+                # If the value corresponding to the current key is a dictionary, recursively \
+                # call the function to process the contents inside the dictionary.
+                ret[key] = self.revert_agent_data([output[key] for output in data])
+        return ret
