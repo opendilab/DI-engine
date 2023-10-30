@@ -11,7 +11,8 @@ class PPG(nn.Module):
     """
     Overview:
         Phasic Policy Gradient (PPG) model from paper `Phasic Policy Gradient`
-        https://arxiv.org/abs/2009.04416
+        https://arxiv.org/abs/2009.04416 \
+        This module contains VAC module and an auxiliary critic module.
     Interfaces:
         ``forward``, ``compute_actor``, ``compute_critic``, ``compute_actor_critic``
     """
@@ -74,12 +75,14 @@ class PPG(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         """
         Overview:
-            Use different forward function according to mode.
+            Compute action logits or value according to mode being ``compute_actor``, ``compute_critic`` or \
+                ``compute_actor_critic``.
         Arguments:
-            - inputs (:obj:`Union[torch.Tensor, Dict]`): The input data.
-            - mode (:obj:`str`): The mode to forward.
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
+            - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.
         Returns:
-            - output (:obj:`Dict`): The output data.
+            - outputs (:obj:`Dict`): The output dict of PPG's forward computation graph, whose key-values vary from \
+                different ``mode``.
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
@@ -89,11 +92,15 @@ class PPG(nn.Module):
         Overview:
             Use actor to compute action logits.
         Arguments:
-            - x (:obj:`torch.Tensor`): The input data.
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - output (:obj:`Dict`): The output data.
+            - output (:obj:`Dict`): The output data containing action logits.
         ReturnsKeys:
-            - necessary: ``logit``
+            - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
+                the same dimension real-value ranged tensor of possible action choices, and for continuous action \
+                space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the \
+                same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \
+                and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is the input feature size.
             - output (:obj:`Dict`): ``logit``: :math:`(B, A)`, where B is batch size and A is the action space size.
@@ -105,9 +112,9 @@ class PPG(nn.Module):
         Overview:
             Use critic to compute value.
         Arguments:
-            - x (:obj:`torch.Tensor`): The input data.
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - output (:obj:`Dict`): The output data.
+            - output (:obj:`Dict`): The output dict of VAC's forward computation graph for critic, including ``value``.
         ReturnsKeys:
             - necessary: ``value``
         Shapes:
@@ -123,11 +130,17 @@ class PPG(nn.Module):
         Overview:
             Use actor and critic to compute action logits and value.
         Arguments:
-            - x (:obj:`torch.Tensor`): The input data.
+            - x (:obj:`torch.Tensor`): The input observation tensor data.
         Returns:
-            - output (:obj:`Dict`): The output data.
+            - outputs (:obj:`Dict`): The output dict of PPG's forward computation graph for both actor and critic, \
+                including ``logit`` and ``value``.
         ReturnsKeys:
-            - necessary: ``value``, ``logit``
+            - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
+                the same dimension real-value ranged tensor of possible action choices, and for continuous action \
+                space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the \
+                same as the number of continuous actions. Hybrid action space is a kind of combination of discrete \
+                and continuous action space, so the logit will be a dict with ``action_type`` and ``action_args``.
+            - value (:obj:`torch.Tensor`): The predicted state value tensor.
         Shapes:
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is the input feature size.
             - output (:obj:`Dict`): ``value``: :math:`(B, 1)`, where B is batch size.

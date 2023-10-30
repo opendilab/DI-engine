@@ -15,7 +15,7 @@ class DiscreteHead(nn.Module):
     """
     Overview:
         The ``DiscreteHead`` is used to generate discrete actions logit or Q-value logit, \
-        which is often used in q-learning algorithmns or actor-critic algorithms for discrete action space.
+        which is often used in q-learning algorithms or actor-critic algorithms for discrete action space.
     Interfaces:
         ``__init__``, ``forward``.
     """
@@ -480,6 +480,11 @@ class QuantileHead(nn.Module):
         This module is used in IQN.
     Interfaces:
         ``__init__``, ``forward``, ``quantile_net``.
+
+    .. note::
+        The difference between ``QuantileHead`` and ``QRDQNHead`` is that ``QuantileHead`` models the \
+        state-action quantile function as a mapping from state-actions and samples from some base distribution \
+        while ``QRDQNHead`` approximates random returns by a uniform mixture of Diracs functions.
     """
 
     def __init__(
@@ -611,6 +616,14 @@ class FQFHead(nn.Module):
         This module is used in FQF.
     Interfaces:
         ``__init__``, ``forward``, ``quantile_net``.
+
+    .. note::
+        The implementation of FQFHead is based on the paper https://arxiv.org/abs/1911.02140.
+        The difference between FQFHead and QuantileHead is that, in FQF, \
+        N adjustable quantile values for N adjustable quantile fractions are estimated to approximate \
+        the quantile function. The distribution of the return is approximated by a weighted mixture of N \
+        Diracs functions. While in IQN, the state-action quantile function is modeled as a mapping from \
+        state-actions and samples from some base distribution.
     """
 
     def __init__(
@@ -1183,7 +1196,9 @@ class ReparameterizationHead(nn.Module):
 class PopArtVHead(nn.Module):
     """
     Overview:
-        The ``PopArtVHead`` is used to generate adaptive normalized state value.
+        The ``PopArtVHead`` is used to generate adaptive normalized state value. More information can be found in \
+        paper Multi-task Deep Reinforcement Learning with PopArt. \
+        https://arxiv.org/abs/1809.04474 \
         This module is used in PPO or IMPALA.
     Interfaces:
         ``__init__``, ``forward``.

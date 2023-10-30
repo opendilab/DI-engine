@@ -13,7 +13,10 @@ from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, Multi
 class DiscreteMAQAC(nn.Module):
     """
     Overview:
-        The discrete action Multi-Agent Q-value Actor-CritiC (MAQAC) model.
+        The neural network and computation graph of algorithms related to discrete action Multi-Agent Q-value \
+        Actor-CritiC (MAQAC) model. The model is composed of actor and critic, where actor is a MLP network and \
+        critic is a MLP network. The actor network is used to predict the action probability distribution, and the \
+        critic network is used to predict the Q value of the state-action pair.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -34,7 +37,7 @@ class DiscreteMAQAC(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the DiscreteMAQAC Model according to arguments.
+            Initiate the DiscreteMAQAC Model according to arguments.
         Arguments:
             - agent_obs_shape (:obj:`Union[int, SequenceType]`): Agent's observation's space.
             - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space.
@@ -93,8 +96,7 @@ class DiscreteMAQAC(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         """
         Overview:
-            Use observation and action tensor to predict output.
-            Parameter updates with QAC's MLPs forward setup.
+            Use observation and action tensor to predict output, with ``'compute_actor'`` or ``'compute_critic'`` mode.
         Arguments:
             Forward with ``'compute_actor'``:
                 - inputs (:obj:`torch.Tensor`):
@@ -124,9 +126,7 @@ class DiscreteMAQAC(nn.Module):
     def compute_actor(self, inputs: Dict) -> Dict:
         """
         Overview:
-            Use encoded embedding tensor to predict output.
-            Execute parameter updates with ``'compute_actor'`` mode
-            Use encoded embedding tensor to predict output.
+            Use encoded embedding tensor to predict output of actor network.
         Arguments:
             - inputs (:obj:`torch.Tensor`):
                 The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
@@ -165,8 +165,7 @@ class DiscreteMAQAC(nn.Module):
     def compute_critic(self, inputs: Dict) -> Dict:
         """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
-            Use encoded embedding tensor to predict output.
+            use encoded embedding tensor to predict output of critic network.
         Arguments:
             - ``obs``, ``action`` encoded tensors.
             - mode (:obj:`str`): Name of the forward mode.
@@ -191,7 +190,10 @@ class DiscreteMAQAC(nn.Module):
 class ContinuousMAQAC(nn.Module):
     """
     Overview:
-        The continuous action Multi-Agent Q-value Actor-CritiC (MAQAC) model.
+        The neural network and computation graph of algorithms related to continuous action Multi-Agent Q-value \
+        Actor-CritiC (MAQAC) model. The model is composed of actor and critic, where actor is a MLP network and \
+        critic is a MLP network. The actor network is used to predict the action probability distribution, and the \
+        critic network is used to predict the Q value of the state-action pair.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -213,7 +215,7 @@ class ContinuousMAQAC(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the QAC Model according to arguments.
+            Initiate the QAC Model according to arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's space, such as 4, (3, )
@@ -295,8 +297,7 @@ class ContinuousMAQAC(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         """
         Overview:
-            Use observation and action tensor to predict output.
-            Parameter updates with QAC's MLPs forward setup.
+            Use observation and action tensor to predict output in ``'compute_actor'`` or ``'compute_critic'`` mode.
         Arguments:
             Forward with ``'compute_actor'``:
                 - inputs (:obj:`torch.Tensor`):
@@ -349,9 +350,7 @@ class ContinuousMAQAC(nn.Module):
     def compute_actor(self, inputs: Dict) -> Dict:
         """
         Overview:
-            Use encoded embedding tensor to predict output.
-            Execute parameter updates with ``'compute_actor'`` mode
-            Use encoded embedding tensor to predict output.
+            Use encoded embedding tensor to predict output of actor network.
         Arguments:
             - inputs (:obj:`torch.Tensor`):
                 The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
@@ -400,8 +399,7 @@ class ContinuousMAQAC(nn.Module):
     def compute_critic(self, inputs: Dict) -> Dict:
         """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
-            Use encoded embedding tensor to predict output.
+            Use encoded embedding tensor to predict output of critic network.
         Arguments:
             - inputs (:obj: `Dict`): ``obs``, ``action`` and ``logit` tensors.
             - mode (:obj:`str`): Name of the forward mode.

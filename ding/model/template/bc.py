@@ -189,9 +189,9 @@ class ContinuousBC(nn.Module):
         Returns:
             - output (:obj:`Dict`): Output dict data, including different key-values among distinct action_space.
         ReturnsKeys:
-            - action (:obj:`torch.Tensor`): Continuous action output of actor network, \
+            - action (:obj:`torch.Tensor`): action output of actor network, \
                 with shape :math:`(B, action_shape)`.
-            - logit (:obj:`List[torch.Tensor]`): Continuous action output of actor network, \
+            - logit (:obj:`List[torch.Tensor]`): reparameterized action output of actor network, \
                 with shape :math:`(B, action_shape)`.
         Shapes:
             - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
