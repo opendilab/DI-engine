@@ -35,7 +35,8 @@ class DingEnvWrapper(BaseEnv):
             - env (:obj:`gym.Env`): An environment instance to be wrapped.
             - cfg (:obj:`dict`): The configuration dictionary to create an environment instance.
             - seed_api (:obj:`bool`): Whether to use seed API, default is True.
-            - caller (:obj:`str`): The caller of this method, default is 'collector'.
+            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or ``evaluator``. \
+                Different caller may need different wrappers. Default is 'collector'.
         """
         self._env = None
         self._raw_env = env
@@ -73,8 +74,7 @@ class DingEnvWrapper(BaseEnv):
         self._replay_path = None
 
     # override
-
-    def reset(self) -> None:
+    def reset(self) -> np.ndarray:
         """
         Overview:
             Resets the state of the environment. If the environment is not initialized, it will be created first.
@@ -238,7 +238,8 @@ class DingEnvWrapper(BaseEnv):
         Overview:
             Wrap the environment according to the configuration.
         Arguments:
-            - caller (:obj:`str`): The caller of this method, default is 'collector'.
+            - caller (:obj:`str`): The caller of the environment, including ``collector`` or ``evaluator``. \
+                Different caller may need different wrappers. Default is 'collector'.
         """
         # wrapper_cfgs: Union[str, List]
         wrapper_cfgs = self._cfg.env_wrapper
@@ -349,7 +350,8 @@ class DingEnvWrapper(BaseEnv):
         Overview:
             Clone the current environment wrapper, creating a new environment with the same settings.
         Arguments:
-            - caller (str): A string representing the caller of this method, default is 'collector'.
+            - caller (str): A string representing the caller of this method, including ``collector`` or ``evaluator``. \
+                Different caller may need different wrappers. Default is 'collector'.
         Returns:
             - DingEnvWrapper: A new instance of the environment with the same settings.
         """

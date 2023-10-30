@@ -99,13 +99,13 @@ class NoopResetWrapper(gym.Wrapper):
 class MaxAndSkipWrapper(gym.Wrapper):
     """
     Overview:
-       Wraps the environment to return only every `skip`-th frame (frameskipping) \
+       Wraps the environment to return only every ``skip``-th frame (frameskipping) \
        using most recent raw observations (for max pooling across time steps).
     Interfaces:
         __init__, step
     Properties:
         - env (:obj:`gym.Env`): The environment to wrap.
-        - skip (:obj:`int`): Number of `skip`-th frame. Defaults to 4.
+        - skip (:obj:`int`): Number of ``skip``-th frame. Defaults to 4.
     """
 
     def __init__(self, env: gym.Env, skip: int = 4):
@@ -114,7 +114,7 @@ class MaxAndSkipWrapper(gym.Wrapper):
             Initialize the MaxAndSkipWrapper.
         Arguments:
             - env (:obj:`gym.Env`): The environment to wrap.
-            - skip (:obj:`int`): Number of `skip`-th frame. Defaults to 4.
+            - skip (:obj:`int`): Number of ``skip``-th frame. Defaults to 4.
         """
         super().__init__(env)
         self._skip = skip
@@ -130,7 +130,7 @@ class MaxAndSkipWrapper(gym.Wrapper):
             - max_frame (:obj:`np.array`): Max over last observations
             - total_reward (:obj:`Any`): Sum of rewards after previous action.
             - done (:obj:`Bool`): Whether the episode has ended.
-            - info (:obj:`Dict`): contains auxiliary diagnostic information (helpful for  \
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for  \
                 debugging, and sometimes learning)
         """
         obs_list, total_reward, done = [], 0., False
@@ -289,6 +289,18 @@ class ActionRepeatWrapper(gym.Wrapper):
     """
     Overview:
         The ActionRepeatWrapper class is a gym wrapper that repeats the same action for a number of steps.
+        This wrapper is particularly useful in environments where the desired effect is achieved by maintaining
+        the same action across multiple time steps. For instance, some physical environments like motion control
+        tasks might require consistent force input to produce a significant state change.
+
+        Using this wrapper can reduce the temporal complexity of the problem, as it allows the agent to perform
+        multiple actions within a single time step. This can speed up learning, as the agent has fewer decisions
+        to make within a time step. However, it may also sacrifice some level of decision-making precision, as the
+        agent cannot change its action across successive time steps.
+
+        Note that the use of the ActionRepeatWrapper may not be suitable for all types of environments. Specifically,
+        it may not be the best choice for environments where new decisions must be made at each time step, or where
+        the time sequence of actions has a significant impact on the outcome.
     Interfaces:
         __init__, step
     Properties:
@@ -312,12 +324,12 @@ class ActionRepeatWrapper(gym.Wrapper):
         Overview:
             Take the given action and repeat it for a specified number of steps. The rewards are summed up.
         Arguments:
-            - action (:obj:`Union[int, np.ndarray]`): the action to repeat.
+            - action (:obj:`Union[int, np.ndarray]`): The action to repeat.
         Returns:
-            - obs (:obj:`np.ndarray`): the observation after repeating the action.
-            - reward (:obj:`float`): the sum of rewards after repeating the action.
-            - done (:obj:`bool`): whether the episode has ended.
-            - info (:obj:`Dict`): contains auxiliary diagnostic information.
+            - obs (:obj:`np.ndarray`): The observation after repeating the action.
+            - reward (:obj:`float`): The sum of rewards after repeating the action.
+            - done (:obj:`bool`): Whether the episode has ended.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information.
         """
         reward = 0
         for _ in range(self.action_repeat):
@@ -335,6 +347,20 @@ class DelayRewardWrapper(gym.Wrapper):
         The DelayRewardWrapper class is a gym wrapper that delays the reward. It cumulates the reward over a
         predefined number of steps and returns the cumulated reward only at the end of this interval.
         At other times, it returns a reward of 0.
+
+        This wrapper is particularly useful in environments where the impact of an action is not immediately
+        observable, but rather delayed over several steps. For instance, in strategic games or planning tasks,
+        the effect of an action may not be directly noticeable, but it contributes to a sequence of actions that
+        leads to a reward. In these cases, delaying the reward to match the action-effect delay can make the
+        learning process more consistent with the problem's nature.
+
+        However, using this wrapper may increase the difficulty of learning, as the agent needs to associate its
+        actions with delayed outcomes. It also introduces a non-standard reward structure, which could limit the
+        applicability of certain reinforcement learning algorithms.
+
+        Note that the use of the DelayRewardWrapper may not be suitable for all types of environments. Specifically,
+        it may not be the best choice for environments where the effect of actions is immediately observable and the
+        reward should be assigned accordingly.
     Interfaces:
         __init__, reset, step
     Properties:
@@ -374,10 +400,10 @@ class DelayRewardWrapper(gym.Wrapper):
         Arguments:
             - action (:obj:`Union[int, np.ndarray]`): the action to take in the step.
         Returns:
-            - obs (:obj:`np.ndarray`): the observation after the step.
-            - reward (:obj:`float`): the cumulated reward after the delay reward step or 0.
-            - done (:obj:`bool`): whether the episode has ended.
-            - info (:obj:`Dict`): contains auxiliary diagnostic information.
+            - obs (:obj:`np.ndarray`): The observation after the step.
+            - reward (:obj:`float`): The cumulated reward after the delay reward step or 0.
+            - done (:obj:`bool`): Whether the episode has ended.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information.
         """
         obs, reward, done, info = self.env.step(action)
         self._current_delay_reward += reward
@@ -435,6 +461,16 @@ class EvalEpisodeReturnWrapper(gym.Wrapper):
             - done (:obj:`bool`): Whether the episode is done.
             - info (:obj:`Dict[str, Any]`): A dictionary of extra information, which includes 'eval_episode_return' if the
               episode is done.
+        Examples:
+            >>> env = gym.make("CartPole-v1")
+            >>> env = EvalEpisodeReturnWrapper(env)
+            >>> obs = env.reset()
+            >>> done = False
+            >>> while not done:
+            ...     action = env.action_space.sample()  # Replace with your own policy
+            ...     obs, reward, done, info = env.step(action)
+            ...     if done:
+            ...         print("Total episode reward:", info['eval_episode_return'])
         """
         obs, reward, done, info = self.env.step(action)
         self._eval_episode_return += reward
@@ -1419,7 +1455,8 @@ class GymToGymnasiumWrapper(gym.Wrapper):
 class AllinObsWrapper(gym.Wrapper):
     """
     Overview:
-        This wrapper is used in policy DT. It sets a dict {'obs': obs, 'reward': reward}
+        This wrapper is used in policy ``Decision Transformer``, which is proposed in paper
+        https://arxiv.org/abs/2106.01345. It sets a dict {'obs': obs, 'reward': reward}
         as the new wrapped observation, which includes the current observation and previous reward.
     Interfaces:
         __init__, reset, step, seed
