@@ -1327,6 +1327,8 @@ class PPOOffPolicy(Policy):
         self._nstep = self._cfg.nstep
         self._nstep_return = self._cfg.nstep_return
         self._value_norm = self._cfg.learn.value_norm
+        if self._value_norm:
+            self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
 
     def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
         """

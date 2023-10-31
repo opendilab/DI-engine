@@ -259,7 +259,7 @@ class CQLPolicy(SACPolicy):
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \
-            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            that the policy inputs some training batch data from the offline dataset and then returns the output \
             result, including various training information such as loss, action, priority.
         Arguments:
             - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
@@ -578,7 +578,7 @@ class DiscreteCQLPolicy(QRDQNPolicy):
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \
-            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            that the policy inputs some training batch data from the offline dataset and then returns the output \
             result, including various training information such as loss, action, priority.
         Arguments:
             - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
