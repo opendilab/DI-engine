@@ -377,7 +377,7 @@ class QRDQN(nn.Module):
     ) -> None:
         """
         Overview:
-            Initiate the QRDQN Model according to input arguments.
+            Initialize the QRDQN Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
@@ -487,7 +487,7 @@ class IQN(nn.Module):
     ) -> None:
         """
         Overview:
-            Initiate the IQN Model according to input arguments.
+            Initialize the IQN Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.
@@ -601,7 +601,7 @@ class FQF(nn.Module):
     ) -> None:
         """
         Overview:
-            Initiate the FQF Model according to input arguments.
+            Initialize the FQF Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.
