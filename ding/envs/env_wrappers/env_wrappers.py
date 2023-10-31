@@ -175,7 +175,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         self.size = size
         obs_space = env.observation_space
         if not isinstance(obs_space, gym.spaces.tuple.Tuple):
-            obs_space = (obs_space,)
+            obs_space = (obs_space, )
         self.observation_space = gym.spaces.tuple.Tuple(
             [
                 gym.spaces.Box(
@@ -512,8 +512,8 @@ class FrameStackWrapper(gym.Wrapper):
         self.frames = deque([], maxlen=n_frames)
         obs_space = env.observation_space
         if not isinstance(obs_space, gym.spaces.tuple.Tuple):
-            obs_space = (obs_space,)
-        shape = (n_frames,) + obs_space[0].shape
+            obs_space = (obs_space, )
+        shape = (n_frames, ) + obs_space[0].shape
         self.observation_space = gym.spaces.tuple.Tuple(
             [
                 gym.spaces.Box(
@@ -850,10 +850,10 @@ class RewardNormWrapper(gym.RewardWrapper):
             - reward_discount (:obj:`float`): The discount factor for reward.
         """
         super().__init__(env)
-        self.cum_reward = np.zeros((1,), 'float64')
+        self.cum_reward = np.zeros((1, ), 'float64')
         self.reward_discount = reward_discount
         self.data_count = 0
-        self.rms = RunningMeanStd(shape=(1,))
+        self.rms = RunningMeanStd(shape=(1, ))
 
     def step(self, action: Any) -> Tuple[np.ndarray, float, bool, Dict]:
         """
@@ -1095,11 +1095,11 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
             {
                 'type': gym.spaces.Discrete(3),
                 # shape = (2, )  0 is for acceleration; 1 is for rotation
-                'mask': gym.spaces.Box(low=0, high=1, shape=(2,), dtype=np.int64),
+                'mask': gym.spaces.Box(low=0, high=1, shape=(2, ), dtype=np.int64),
                 'args': gym.spaces.Box(
                     low=np.array([0., -1.], dtype=np.float32),
                     high=np.array([1., 1.], dtype=np.float32),
-                    shape=(2,),
+                    shape=(2, ),
                     dtype=np.float32
                 ),
             }
@@ -1165,7 +1165,7 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
                 'obs': env.observation_space,
                 'prev_action': env.action_space,
                 'prev_reward_extrinsic': gym.spaces.Box(
-                    low=env.reward_range[0], high=env.reward_range[1], shape=(1,), dtype=np.float32
+                    low=env.reward_range[0], high=env.reward_range[1], shape=(1, ), dtype=np.float32
                 )
             }
         )
@@ -1356,7 +1356,7 @@ class FlatObsWrapper(gym.Wrapper):
         self.observation_space = gym.spaces.Box(
             low=0,
             high=255,
-            shape=(imgSize + self.numCharCodes * self.maxStrLen,),
+            shape=(imgSize + self.numCharCodes * self.maxStrLen, ),
             dtype="float32",
         )
 
