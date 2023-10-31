@@ -306,147 +306,118 @@
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
 <span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
 <span class="kn">from</span> <span class="nn">.sac</span> <span class="kn">import</span> <span class="n">SACPolicy</span>
-<span class="kn">from</span> <span class="nn">.dqn</span> <span class="kn">import</span> <span class="n">DQNPolicy</span>
+<span class="kn">from</span> <span class="nn">.qrdqn</span> <span class="kn">import</span> <span class="n">QRDQNPolicy</span>
 <span class="kn">from</span> <span class="nn">.common_utils</span> <span class="kn">import</span> <span class="n">default_preprocess_learn</span>
 
 
 <div class="viewcode-block" id="CQLPolicy"><a class="viewcode-back" href="../../../12_policies/cql_zh.html#ding.policy.cql.CQLPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;cql&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CQLPolicy</span><span class="p">(</span><span class="n">SACPolicy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">       Overview:</span>
-<span class="sd">           Policy class of CQL algorithm.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of CQL algorithm for continuous control. Paper link: https://arxiv.org/abs/2006.04779.</span>
 
-<span class="sd">       Config:</span>
-<span class="sd">           == ====================  ========    =============  ================================= =======================</span>
-<span class="sd">           ID Symbol                Type        Default Value  Description                       Other(Shape)</span>
-<span class="sd">           == ====================  ========    =============  ================================= =======================</span>
-<span class="sd">           1  ``type``              str         td3            | RL policy register name, refer  | this arg is optional,</span>
-<span class="sd">                                                               | to registry ``POLICY_REGISTRY`` | a placeholder</span>
-<span class="sd">           2  ``cuda``              bool        True           | Whether to use cuda for network |</span>
-<span class="sd">           3  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for</span>
-<span class="sd">              | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/</span>
-<span class="sd">              |                                                | buffer when training starts.    | TD3.</span>
-<span class="sd">           4  | ``model.policy_``   int         256            | Linear layer size for policy    |</span>
-<span class="sd">              | ``embedding_size``                             | network.                        |</span>
-<span class="sd">           5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |</span>
-<span class="sd">              | ``embedding_size``                             | network.                        |</span>
-<span class="sd">           6  | ``model.value_``    int         256            | Linear layer size for value     | Defalut to None when</span>
-<span class="sd">              | ``embedding_size``                             | network.                        | model.value_network</span>
-<span class="sd">              |                                                |                                 | is False.</span>
-<span class="sd">           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when</span>
-<span class="sd">              | ``_rate_q``                                    | network.                        | model.value_network</span>
-<span class="sd">              |                                                |                                 | is True.</span>
-<span class="sd">           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when</span>
-<span class="sd">              | ``_rate_policy``                               | network.                        | model.value_network</span>
-<span class="sd">              |                                                |                                 | is True.</span>
-<span class="sd">           9  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to None when</span>
-<span class="sd">              | ``_rate_value``                                | network.                        | model.value_network</span>
-<span class="sd">              |                                                |                                 | is False.</span>
-<span class="sd">           10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-</span>
-<span class="sd">              |                                                | coefficient.                    | zation for auto</span>
-<span class="sd">              |                                                |                                 | `alpha`, when</span>
-<span class="sd">              |                                                |                                 | auto_alpha is True</span>
-<span class="sd">           11 | ``learn.repara_``   bool        True           | Determine whether to use        |</span>
-<span class="sd">              | ``meterization``                               | reparameterization trick.       |</span>
-<span class="sd">           12 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter</span>
-<span class="sd">              | ``auto_alpha``                                 | auto temperature parameter      | determines the</span>
-<span class="sd">              |                                                | `alpha`.                        | relative importance</span>
-<span class="sd">              |                                                |                                 | of the entropy term</span>
-<span class="sd">              |                                                |                                 | against the reward.</span>
-<span class="sd">           13 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only</span>
-<span class="sd">              | ``ignore_done``                                | done flag.                      | in halfcheetah env.</span>
-<span class="sd">           14 | ``learn.-``         float       0.005          | Used for soft update of the     | aka. Interpolation</span>
-<span class="sd">              | ``target_theta``                               | target network.                 | factor in polyak aver</span>
-<span class="sd">              |                                                |                                 | aging for target</span>
-<span class="sd">              |                                                |                                 | networks.</span>
-<span class="sd">           == ====================  ========    =============  ================================= =======================</span>
-<span class="sd">       &quot;&quot;&quot;</span>
+<span class="sd">    Config:</span>
+<span class="sd">        == ====================  ========    =============  ================================= =======================</span>
+<span class="sd">        ID Symbol                Type        Default Value  Description                       Other(Shape)</span>
+<span class="sd">        == ====================  ========    =============  ================================= =======================</span>
+<span class="sd">        1  ``type``              str         cql            | RL policy register name, refer  | this arg is optional,</span>
+<span class="sd">                                                            | to registry ``POLICY_REGISTRY`` | a placeholder</span>
+<span class="sd">        2  ``cuda``              bool        True           | Whether to use cuda for network |</span>
+<span class="sd">        3  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for</span>
+<span class="sd">           | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/</span>
+<span class="sd">           |                                                | buffer when training starts.    | TD3.</span>
+<span class="sd">        4  | ``model.policy_``   int         256            | Linear layer size for policy    |</span>
+<span class="sd">           | ``embedding_size``                             | network.                        |</span>
+<span class="sd">        5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |</span>
+<span class="sd">           | ``embedding_size``                             | network.                        |</span>
+<span class="sd">        6  | ``model.value_``    int         256            | Linear layer size for value     | Defalut to None when</span>
+<span class="sd">           | ``embedding_size``                             | network.                        | model.value_network</span>
+<span class="sd">           |                                                |                                 | is False.</span>
+<span class="sd">        7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when</span>
+<span class="sd">           | ``_rate_q``                                    | network.                        | model.value_network</span>
+<span class="sd">           |                                                |                                 | is True.</span>
+<span class="sd">        8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when</span>
+<span class="sd">           | ``_rate_policy``                               | network.                        | model.value_network</span>
+<span class="sd">           |                                                |                                 | is True.</span>
+<span class="sd">        9  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to None when</span>
+<span class="sd">           | ``_rate_value``                                | network.                        | model.value_network</span>
+<span class="sd">           |                                                |                                 | is False.</span>
+<span class="sd">        10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-</span>
+<span class="sd">           |                                                | coefficient.                    | zation for auto</span>
+<span class="sd">           |                                                |                                 | `alpha`, when</span>
+<span class="sd">           |                                                |                                 | auto_alpha is True</span>
+<span class="sd">        11 | ``learn.repara_``   bool        True           | Determine whether to use        |</span>
+<span class="sd">           | ``meterization``                               | reparameterization trick.       |</span>
+<span class="sd">        12 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter</span>
+<span class="sd">           | ``auto_alpha``                                 | auto temperature parameter      | determines the</span>
+<span class="sd">           |                                                | `alpha`.                        | relative importance</span>
+<span class="sd">           |                                                |                                 | of the entropy term</span>
+<span class="sd">           |                                                |                                 | against the reward.</span>
+<span class="sd">        13 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only</span>
+<span class="sd">           | ``ignore_done``                                | done flag.                      | in halfcheetah env.</span>
+<span class="sd">        14 | ``learn.-``         float       0.005          | Used for soft update of the     | aka. Interpolation</span>
+<span class="sd">           | ``target_theta``                               | target network.                 | factor in polyak aver</span>
+<span class="sd">           |                                                |                                 | aging for target</span>
+<span class="sd">           |                                                |                                 | networks.</span>
+<span class="sd">        == ====================  ========    =============  ================================= =======================</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
-        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;sac&#39;</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether to use cuda for network.</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;cql&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda for policy.</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool type) on_policy: Determine whether on-policy or off-policy.</span>
+        <span class="c1"># (bool) on_policy: Determine whether on-policy or off-policy.</span>
         <span class="c1"># on-policy setting influences the behaviour of buffer.</span>
-        <span class="c1"># Default False in SAC.</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool type) priority: Determine whether to use priority in buffer sample.</span>
-        <span class="c1"># Default False in SAC.</span>
+        <span class="c1"># (bool) priority: Determine whether to use priority in buffer sample.</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
-        <span class="c1"># Default 10000 in SAC.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.</span>
             <span class="c1"># Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .</span>
             <span class="c1"># Default to True.</span>
             <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-
-            <span class="c1"># (bool type) value_network: Determine whether to use value network as the</span>
-            <span class="c1"># original SAC paper (arXiv 1801.01290).</span>
-            <span class="c1"># using value_network needs to set learning_rate_value, learning_rate_q,</span>
-            <span class="c1"># and learning_rate_policy in `cfg.policy.learn`.</span>
-            <span class="c1"># Default to False.</span>
-            <span class="c1"># value_network=False,</span>
-
             <span class="c1"># (str type) action_space: Use reparameterization trick for continous action</span>
             <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;reparameterization&#39;</span><span class="p">,</span>
-
             <span class="c1"># (int) Hidden size for actor network head.</span>
             <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
-
             <span class="c1"># (int) Hidden size for critic network head.</span>
             <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
         <span class="p">),</span>
+        <span class="c1"># learn_mode config</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-
-            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># (int) How many updates (iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
-            <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="c1"># (int) Minibatch size for gradient descent.</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
-
-            <span class="c1"># (float type) learning_rate_q: Learning rate for soft q network.</span>
-            <span class="c1"># Default to 3e-4.</span>
-            <span class="c1"># Please set to 1e-3, when model.value_network is True.</span>
+            <span class="c1"># (float) learning_rate_q: Learning rate for soft q network.</span>
             <span class="n">learning_rate_q</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
-            <span class="c1"># (float type) learning_rate_policy: Learning rate for policy network.</span>
-            <span class="c1"># Default to 3e-4.</span>
-            <span class="c1"># Please set to 1e-3, when model.value_network is True.</span>
+            <span class="c1"># (float) learning_rate_policy: Learning rate for policy network.</span>
             <span class="n">learning_rate_policy</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
-            <span class="c1"># (float type) learning_rate_value: Learning rate for value network.</span>
-            <span class="c1"># `learning_rate_value` should be initialized, when model.value_network is True.</span>
-            <span class="c1"># Please set to 3e-4, when model.value_network is True.</span>
-            <span class="n">learning_rate_value</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
-
-            <span class="c1"># (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.</span>
-            <span class="c1"># Default to 3e-4.</span>
+            <span class="c1"># (float) learning_rate_alpha: Learning rate for auto temperature parameter ``alpha``.</span>
             <span class="n">learning_rate_alpha</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
-            <span class="c1"># (float type) target_theta: Used for soft update of the target network,</span>
+            <span class="c1"># (float) target_theta: Used for soft update of the target network,</span>
             <span class="c1"># aka. Interpolation factor in polyak averaging for target networks.</span>
-            <span class="c1"># Default to 0.005.</span>
             <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
             <span class="c1"># (float) discount factor for the discounted sum of rewards, aka. gamma.</span>
             <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-
-            <span class="c1"># (float type) alpha: Entropy regularization coefficient.</span>
+            <span class="c1"># (float) alpha: Entropy regularization coefficient.</span>
             <span class="c1"># Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.</span>
             <span class="c1"># If auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.</span>
             <span class="c1"># Default to 0.2.</span>
             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
-
-            <span class="c1"># (bool type) auto_alpha: Determine whether to use auto temperature parameter `\alpha` .</span>
+            <span class="c1"># (bool) auto_alpha: Determine whether to use auto temperature parameter `\alpha` .</span>
             <span class="c1"># Temperature parameter determines the relative importance of the entropy term against the reward.</span>
             <span class="c1"># Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.</span>
             <span class="c1"># Default to False.</span>
             <span class="c1"># Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.</span>
             <span class="n">auto_alpha</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="c1"># (bool type) log_space: Determine whether to use auto `\alpha` in log space.</span>
+            <span class="c1"># (bool) log_space: Determine whether to use auto `\alpha` in log space.</span>
             <span class="n">log_space</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="c1"># (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)</span>
             <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
@@ -456,46 +427,44 @@
             <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
             <span class="c1"># when the episode step is greater than max episode step.</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="c1"># (float) Weight uniform initialization range in the last output layer</span>
+            <span class="c1"># (float) Weight uniform initialization range in the last output layer.</span>
             <span class="n">init_w</span><span class="o">=</span><span class="mf">3e-3</span><span class="p">,</span>
-            <span class="c1"># (int) The numbers of action sample each at every state s from a uniform-at-random</span>
+            <span class="c1"># (int) The numbers of action sample each at every state s from a uniform-at-random.</span>
             <span class="n">num_actions</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
             <span class="c1"># (bool) Whether use lagrange multiplier in q value loss.</span>
             <span class="n">with_lagrange</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="c1"># (float) The threshold for difference in Q-values</span>
+            <span class="c1"># (float) The threshold for difference in Q-values.</span>
             <span class="n">lagrange_thresh</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
             <span class="c1"># (float) Loss weight for conservative item.</span>
             <span class="n">min_q_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
             <span class="c1"># (bool) Whether to use entropy in target q.</span>
             <span class="n">with_q_entropy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
-            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
-        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (int type) replay_buffer_size: Max size of replay buffer.</span>
-                <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">,</span>
-                <span class="c1"># (int type) max_use: Max use times of one data in the buffer.</span>
-                <span class="c1"># Data will be removed once used for too many times.</span>
-                <span class="c1"># Default to infinite.</span>
-                <span class="c1"># max_use=256,</span>
-            <span class="p">),</span>
-        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compatibility</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init q, value and policy&#39;s optimizers, algorithm config, main and target models.</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For SAC, it mainly \</span>
+<span class="sd">            contains three optimizers, algorithm-specific arguments such as gamma, min_q_weight, with_lagrange and \</span>
+<span class="sd">            with_q_entropy, main and target model. Especially, the ``auto_alpha`` mechanism for balancing max entropy \</span>
+<span class="sd">            target is also initialized here.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Init</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">twin_critic</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">num_actions</span>
 
@@ -529,11 +498,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic_head</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">-</span><span class="n">init_w</span><span class="p">,</span> <span class="n">init_w</span><span class="p">)</span>
 
         <span class="c1"># Optimizers</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_value</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">value_critic</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
-                <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate_value</span><span class="p">,</span>
-            <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">critic</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
             <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate_q</span><span class="p">,</span>
@@ -585,14 +549,30 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward and backward function of learn mode.</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, action, priority.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;next_obs&#39;]</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
+<span class="sd">                training samples. For each element in list, the key of the dict is the name of data items and the \</span>
+<span class="sd">                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \</span>
+<span class="sd">                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \</span>
+<span class="sd">                dimension by some utility functions such as ``default_preprocess_learn``. \</span>
+<span class="sd">                For CQL, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \</span>
+<span class="sd">                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \</span>
+<span class="sd">                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \</span>
+<span class="sd">                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">loss_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
@@ -619,37 +599,29 @@
         <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
 
         <span class="c1"># 2. predict target value</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
-            <span class="c1"># predict v value</span>
-            <span class="n">v_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_value_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;v_value&#39;</span><span class="p">]</span>
-            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                <span class="n">next_v_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_value_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;v_value&#39;</span><span class="p">]</span>
-            <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">next_v_value</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># target q value.</span>
-            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-                <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
 
-                <span class="n">dist</span> <span class="o">=</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">pred</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span>
-                <span class="n">next_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
-                <span class="n">y</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">next_action</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span>
-                <span class="n">next_log_prob</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">next_log_prob</span> <span class="o">=</span> <span class="n">next_log_prob</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span>
+            <span class="n">next_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">next_action</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span>
+            <span class="n">next_log_prob</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">next_log_prob</span> <span class="o">=</span> <span class="n">next_log_prob</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-                <span class="n">next_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">next_action</span><span class="p">}</span>
-                <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
-                <span class="c1"># the value of a policy according to the maximum entropy objective</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
-                    <span class="c1"># find min one as target q value</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_with_q_entropy</span><span class="p">:</span>
-                        <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">target_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                                                   <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">target_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">next_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">next_action</span><span class="p">}</span>
+            <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
+            <span class="c1"># the value of a policy according to the maximum entropy objective</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
+                <span class="c1"># find min one as target q value</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_with_q_entropy</span><span class="p">:</span>
+                    <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">target_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                               <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_with_q_entropy</span><span class="p">:</span>
-                        <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">target_q_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">target_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_with_q_entropy</span><span class="p">:</span>
+                    <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">target_q_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># 3. compute q loss</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
@@ -744,20 +716,6 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
             <span class="n">new_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">new_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="c1"># 7. (optional)compute value loss</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_network</span><span class="p">:</span>
-            <span class="c1"># new_q_value: (bs, ), log_prob: (bs, act_shape) -&gt; target_v_value: (bs, )</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_with_q_entropy</span><span class="p">:</span>
-                <span class="n">target_v_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">log_prob</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">target_v_value</span> <span class="o">=</span> <span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;value_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">v_value</span><span class="p">,</span> <span class="n">target_v_value</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
-
-            <span class="c1"># update value network</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_value</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-            <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;value_loss&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_value</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-
         <span class="c1"># 8. compute policy loss</span>
         <span class="n">policy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">log_prob</span> <span class="o">-</span> <span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
@@ -805,8 +763,7 @@
             <span class="o">**</span><span class="n">loss_dict</span>
         <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">_get_policy_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">num_actions</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
-
+    <span class="k">def</span> <span class="nf">_get_policy_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">num_actions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="c1"># evaluate to get action distribution</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_actions</span><span class="p">,</span> <span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -822,7 +779,7 @@
 
         <span class="k">return</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_prob</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_q_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_q_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">keep</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">new_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
             <span class="n">new_q_value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">new_q_value</span><span class="p">]</span>
@@ -833,17 +790,18 @@
         <span class="k">return</span> <span class="n">new_q_value</span></div>
 
 
-<div class="viewcode-block" id="CQLDiscretePolicy"><a class="viewcode-back" href="../../../12_policies/cql_zh.html#ding.policy.cql.CQLDiscretePolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;cql_discrete&#39;</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">CQLDiscretePolicy</span><span class="p">(</span><span class="n">DQNPolicy</span><span class="p">):</span>
+<span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;discrete_cql&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DiscreteCQLPolicy</span><span class="p">(</span><span class="n">QRDQNPolicy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Policy class of CQL algorithm in discrete environments.</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of discrete CQL algorithm in discrete action space environments.</span>
+<span class="sd">        Paper link: https://arxiv.org/abs/2006.04779.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
-        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;cql_discrete&#39;</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether to use cuda for network.</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;discrete_cql&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda for policy.</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether the RL algorithm is on-policy or off-policy.</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -853,53 +811,43 @@
         <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
         <span class="c1"># (int) N-step reward for target q_value estimation</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># learn_mode config</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># (int) How many updates (iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
-            <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># (int) Minibatch size for one gradient descent.</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="c1"># (float) Learning rate for soft q network.</span>
             <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-            <span class="c1"># ==============================================================</span>
-            <span class="c1"># The following configs are algorithm-specific</span>
-            <span class="c1"># ==============================================================</span>
             <span class="c1"># (int) Frequence of target network update.</span>
             <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-            <span class="c1"># (bool) Whether ignore done(usually for max step termination env)</span>
+            <span class="c1"># (bool) Whether ignore done(usually for max step termination env).</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="c1"># (float) Loss weight for conservative item.</span>
             <span class="n">min_q_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="c1"># collect_mode config</span>
-        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
-            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
-        <span class="c1"># other config</span>
-        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># Epsilon greedy with decay.</span>
-            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (str) Decay type. Support [&#39;exp&#39;, &#39;linear&#39;].</span>
-                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
-                <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
-                <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-                <span class="c1"># (int) Decay length(env step)</span>
-                <span class="n">decay</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="p">)</span>
-        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compatibility</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="s1">&#39;qrdqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span>
-
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Overview:</span>
-<span class="sd">                Learn mode init method. Called by ``self.__init__``.</span>
-<span class="sd">                Init the optimizer, algorithm config, main and target models.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For DiscreteCQL, it mainly \</span>
+<span class="sd">            contains the optimizer, algorithm-specific arguments such as gamma, nstep and min_q_weight, main and \</span>
+<span class="sd">            target model. This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_min_q_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">min_q_weight</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="c1"># Optimizer</span>
@@ -920,15 +868,32 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Overview:</span>
-<span class="sd">                Forward and backward function of learn mode.</span>
-<span class="sd">            Arguments:</span>
-<span class="sd">                - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;next_obs&#39;]</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, action, priority.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
+<span class="sd">                training samples. For each element in list, the key of the dict is the name of data items and the \</span>
+<span class="sd">                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \</span>
+<span class="sd">                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \</span>
+<span class="sd">                dimension by some utility functions such as ``default_preprocess_learn``. \</span>
+<span class="sd">                For DiscreteCQL, each element in list is a dict containing at least the following keys: ``obs``, \</span>
+<span class="sd">                ``action``, ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys like ``weight`` \</span>
+<span class="sd">                and ``value_gamma`` for nstep return computation.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \</span>
+<span class="sd">                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \</span>
+<span class="sd">                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">use_priority</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_priority</span><span class="p">,</span> <span class="n">ignore_done</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">,</span> <span class="n">use_nstep</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
@@ -995,73 +960,15 @@
             <span class="c1"># &#39;[histogram]action_distribution&#39;: data[&#39;action&#39;],</span>
         <span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="p">{</span>
-            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-            <span class="s1">&#39;target_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-            <span class="s1">&#39;optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-        <span class="p">}</span>
-
-    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span>
-
-    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Collect mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init traj and unroll length, collect model.</span>
-<span class="sd">            Enable the eps_greedy_sample</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">discount_factor</span>  <span class="c1"># necessary for parallel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>  <span class="c1"># necessary for parallel</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;eps_greedy_sample&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
-<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
-<span class="sd">            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \</span>
-<span class="sd">                env and the constructing of transition.</span>
-<span class="sd">        ArgumentsKeys:</span>
-<span class="sd">            - necessary: ``obs``</span>
-<span class="sd">        ReturnsKeys</span>
-<span class="sd">            - necessary: ``logit``, ``action``</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
-        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
-
-    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Overview:</span>
-<span class="sd">                Get the trajectory and the n step return data, then sample from the n_step return data</span>
-<span class="sd">            Arguments:</span>
-<span class="sd">                - data (:obj:`list`): The trajectory&#39;s cache</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - samples (:obj:`dict`): The training samples generated</span>
-<span class="sd">            &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">get_nstep_return_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_target&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_target&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
 </pre></div>
 
               </article>

@@ -1012,10 +1012,12 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper &quot;Action Branching Architectures \</span>
-<span class="sd">        for Deep Reinforcement Learning&quot;, link: https://arxiv.org/pdf/1711.08946.</span>
+<span class="sd">        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper &quot;Action Branching Architectures for \</span>
+<span class="sd">        Deep Reinforcement Learning&quot;, link: https://arxiv.org/pdf/1711.08946.</span>
 <span class="sd">        In fact, the original paper only provides the 1-step TD-error calculation method, and here we extend the \</span>
-<span class="sd">        calculation method of n-step TD-error.</span>
+<span class="sd">        calculation method of n-step, i.e., TD-error:</span>
+<span class="sd">        :math:`y_d = \sigma_{t=0}^{nstep} \gamma^t * r_t + \gamma^{nstep} * Q_d&#39;(s&#39;, argmax Q_d(s&#39;, a_d))`</span>
+<span class="sd">        :math:`TD-error = \frac{1}{D} * (y_d - Q_d(s, a_d))^2`</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss</span>
 <span class="sd">        - gamma (:obj:`float`): Discount factor</span>

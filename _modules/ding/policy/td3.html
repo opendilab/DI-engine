@@ -299,17 +299,11 @@
 
 <div class="viewcode-block" id="TD3Policy"><a class="viewcode-back" href="../../../12_policies/td3_zh.html#ding.policy.td3.TD3Policy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;td3&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">TD3Policy</span><span class="p">(</span><span class="n">DDPGPolicy</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Policy class of TD3 algorithm.</span>
-
-<span class="sd">        Since DDPG and TD3 share many common things, we can easily derive this TD3</span>
+<span class="sd">        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3 \</span>
 <span class="sd">        class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.</span>
-
-<span class="sd">        https://arxiv.org/pdf/1802.09477.pdf</span>
-
-<span class="sd">    Property:</span>
-<span class="sd">        learn_mode, collect_mode, eval_mode</span>
+<span class="sd">        Paper link: https://arxiv.org/pdf/1802.09477.pdf</span>
 
 <span class="sd">    Config:</span>
 
@@ -362,9 +356,7 @@
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;td3&#39;</span><span class="p">,</span>
         <span class="c1"># (bool) Whether to use cuda for network.</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool type) on_policy: Determine whether on-policy or off-policy.</span>
-        <span class="c1"># on-policy setting influences the behaviour of buffer.</span>
-        <span class="c1"># Default False in TD3.</span>
+        <span class="c1"># (bool) on_policy: Determine whether on-policy or off-policy. Default False in TD3.</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether use priority(priority sample, IS weight, update priority)</span>
         <span class="c1"># Default False in TD3.</span>
@@ -374,6 +366,8 @@
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
         <span class="c1"># Default 25000 in DDPG/TD3.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition.</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (str) Action space type</span>
         <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;continuous&#39;, &#39;hybrid&#39;]</span>
         <span class="c1"># (bool) Whether use batch normalization for reward</span>
@@ -386,9 +380,9 @@
             <span class="c1"># Default True for TD3, False for DDPG.</span>
             <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">),</span>
+        <span class="c1"># learn_mode config</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-
-            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -406,7 +400,7 @@
             <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
             <span class="c1"># when the episode step is greater than max episode step.</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="c1"># (float type) target_theta: Used for soft update of the target network,</span>
+            <span class="c1"># (float) target_theta: Used for soft update of the target network,</span>
             <span class="c1"># aka. Interpolation factor in polyak averaging for target networks.</span>
             <span class="c1"># Default to 0.005.</span>
             <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
@@ -424,32 +418,39 @@
             <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
             <span class="c1"># (dict) Limit for range of target policy smoothing noise, aka. noise_clip.</span>
             <span class="n">noise_range</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (int) min value of noise</span>
                 <span class="nb">min</span><span class="o">=-</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="c1"># (int) max value of noise</span>
                 <span class="nb">max</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>
+        <span class="c1"># collect_mode config</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) How many training samples collected in one collection procedure.</span>
+            <span class="c1"># Only one of [n_sample, n_episode] shoule be set.</span>
             <span class="c1"># n_sample=1,</span>
             <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="c1"># (float) It is a must to add noise during collection. So here omits &quot;noise&quot; and only set &quot;noise_sigma&quot;.</span>
             <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (int) Evaluate every &quot;eval_freq&quot; training iterations.</span>
-                <span class="n">eval_freq</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
-            <span class="p">),</span>
-        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compability</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (int) Maximum size of replay buffer.</span>
+                <span class="c1"># (int) Maximum size of replay buffer. Usually, larger buffer size is better.</span>
                 <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;q_value&quot;</span><span class="p">,</span> <span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="s2">&quot;lr&quot;</span><span class="p">,</span> <span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="s2">&quot;target_q_value&quot;</span><span class="p">,</span> <span class="s2">&quot;td_error&quot;</span><span class="p">]</span></div>
 </pre></div>
 

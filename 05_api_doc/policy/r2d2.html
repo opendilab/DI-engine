@@ -306,11 +306,10 @@
 <h2>R2D2Policy<a class="headerlink" href="#r2d2policy" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.r2d2.</span></span><span class="sig-name descname"><span class="pre">R2D2Policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.r2d2.</span></span><span class="sig-name descname"><span class="pre">R2D2Policy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Policy class of R2D2, from paper <cite>Recurrent Experience Replay in Distributed Reinforcement Learning</cite> .
-R2D2 proposes that several tricks should be used to improve upon DRQN,
-namely some recurrent experience replay tricks such as burn-in.</p>
+R2D2 proposes that several tricks should be used to improve upon DRQN, namely some recurrent experience replay         tricks and the burn-in mechanism for off-policy training.</p>
 </dd>
 <dt>Config:</dt><dd><table class="docutils align-default">
 <colgroup>
@@ -334,7 +333,7 @@ namely some recurrent experience replay tricks such as burn-in.</p>
 <tr class="row-even"><td><p>1</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
 <td><p>str</p></td>
-<td><p>dqn</p></td>
+<td><p>r2d2</p></td>
 <td><div class="line-block">
 <div class="line">RL policy register name, refer to</div>
 <div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
@@ -583,143 +582,156 @@ namely some recurrent experience replay tricks such as burn-in.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._forward_collect">
-<span class="sig-name descname"><span class="pre">_forward_collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_collect" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_forward_collect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Forward function for collect mode with eps_greedy</p>
+<dt>Overview:</dt><dd><p>Policy forward function of collect mode (collecting training data by interacting with envs). Forward means             that the policy gets some necessary data (mainly observation) from the envs and then returns the output             data, such as the action to interact with the envs. Besides, this policy also needs <code class="docutils literal notranslate"><span class="pre">eps</span></code> argument for             exploration, i.e., classic epsilon-greedy exploration strategy.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): Dict type data, stacked env data for predicting policy_output(action), </dt><dd><p>values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</p>
-</dd>
-</dl>
-</li>
-<li><p>eps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): epsilon value for exploration, which is decayed by collected env step.</p></li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The input data used for policy forward, including at least the obs. The                 key of the dict is environment id and the value is the corresponding data of the env.</p></li>
+<li><p>eps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The epsilon value for exploration.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): Dict type data, including at least inferred action according to input obs.</p></li>
-</ul>
-</dd>
-<dt>ReturnsKeys</dt><dd><ul class="simple">
-<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">action</span></code></p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The output data of policy forward, including at least the action and                 other necessary data (prev_state) for learn mode defined in <code class="docutils literal notranslate"><span class="pre">self._process_transition</span></code> method. The                 key of the dict is the same as the input data, i.e. environment id.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>RNN’s hidden states are maintained in the policy, so we don’t need pass them into data but to reset the             hidden states with <code class="docutils literal notranslate"><span class="pre">_reset_collect</span></code> method when episode ends. Besides, the previous hidden states are             necessary for training, so we need to return them in <code class="docutils literal notranslate"><span class="pre">_process_transition</span></code> method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The input value can be torch.Tensor or dict/list combinations and current policy supports all of them.             For the data type that not supported, the main reason is that the corresponding model does not support it.             You can implement you own model rather than use the default model. For more information, please raise an             issue in GitHub repo and we will continue to follow up.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more detailed examples, please refer to our unittest for R2D2Policy: <code class="docutils literal notranslate"><span class="pre">ding.policy.tests.test_r2d2</span></code>.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._forward_eval">
-<span class="sig-name descname"><span class="pre">_forward_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_eval" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_forward_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Forward function of eval mode, similar to <code class="docutils literal notranslate"><span class="pre">self._forward_collect</span></code>.</p>
+<dt>Overview:</dt><dd><p>Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward             means that the policy gets some necessary data (mainly observation) from the envs and then returns the             action to interact with the envs. <code class="docutils literal notranslate"><span class="pre">_forward_eval</span></code> often use argmax sample method to get actions that             q_value is the highest.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): Dict type data, stacked env data for predicting policy_output(action), </dt><dd><p>values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</p>
-</dd>
-</dl>
-</li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The input data used for policy forward, including at least the obs. The                 key of the dict is environment id and the value is the corresponding data of the env.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The dict of predicting action for the interaction with env.</p></li>
-</ul>
-</dd>
-<dt>ReturnsKeys</dt><dd><ul class="simple">
-<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">action</span></code></p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The output data of policy forward, including at least the action. The                 key of the dict is the same as the input data, i.e. environment id.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>RNN’s hidden states are maintained in the policy, so we don’t need pass them into data but to reset the             hidden states with <code class="docutils literal notranslate"><span class="pre">_reset_eval</span></code> method when the episode ends.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The input value can be torch.Tensor or dict/list combinations and current policy supports all of them.             For the data type that not supported, the main reason is that the corresponding model does not support it.             You can implement you own model rather than use the default model. For more information, please raise an             issue in GitHub repo and we will continue to follow up.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more detailed examples, please refer to our unittest for R2D2Policy: <code class="docutils literal notranslate"><span class="pre">ding.policy.tests.test_r2d2</span></code>.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._forward_learn">
-<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_learn" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._forward_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Forward and backward function of learn mode.
-Acquire the data, calculate the loss and optimize learner model.</p>
+<dt>Overview:</dt><dd><p>Policy forward function of learn mode (training policy and updating parameters). Forward means             that the policy inputs some training batch data (trajectory for R2D2) from the replay buffer and then             returns the output result, including various training information such as loss, q value, priority.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type data, including at least </dt><dd><p>[‘main_obs’, ‘target_obs’, ‘burnin_obs’, ‘action’, ‘reward’, ‘done’, ‘weight’]</p>
-</dd>
-</dl>
-</li>
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[List[Dict[int,</span> <span class="pre">Any]]]</span></code>): The input data used for policy forward, including a batch of                 training samples. For each dict element, the key of the dict is the name of data items and the                 value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list                 combinations. In the <code class="docutils literal notranslate"><span class="pre">_forward_learn</span></code> method, data often need to first be stacked in the time and                 batch dimension by the utility functions <code class="docutils literal notranslate"><span class="pre">self._data_preprocess_learn</span></code>.                 For R2D2, each element in list is a trajectory with the length of <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code>, and the element in                 trajectory list is a dict containing at least the following keys: <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>,                 <code class="docutils literal notranslate"><span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">next_obs</span></code>, <code class="docutils literal notranslate"><span class="pre">done</span></code>. Sometimes, it also contains other keys such as <code class="docutils literal notranslate"><span class="pre">weight</span></code>                 and <code class="docutils literal notranslate"><span class="pre">value_gamma</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>info_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): Including cur_lr and total_loss</dt><dd><ul>
-<li><p>cur_lr (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Current learning rate</p></li>
-<li><p>total_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The calculated loss</p></li>
+<li><p>info_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): The information dict that indicated training result, which will be                 recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the                 detailed definition of the dict, refer to the code of <code class="docutils literal notranslate"><span class="pre">_monitor_vars_learn</span></code> method.</p></li>
 </ul>
 </dd>
 </dl>
-</li>
-</ul>
-</dd>
-</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The input value can be torch.Tensor or dict/list combinations and current policy supports all of them.             For the data type that not supported, the main reason is that the corresponding model does not support it.             You can implement you own model rather than use the default model. For more information, please raise an             issue in GitHub repo and we will continue to follow up.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more detailed examples, please refer to our unittest for R2D2Policy: <code class="docutils literal notranslate"><span class="pre">ding.policy.tests.test_r2d2</span></code>.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._init_collect">
 <span class="sig-name descname"><span class="pre">_init_collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_collect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_collect" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Collect mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
-Init traj and unroll length, collect model.</p>
+<dt>Overview:</dt><dd><p>Initialize the collect mode of policy, including related attributes and modules. For R2D2, it contains the             collect_model to balance the exploration and exploitation with epsilon-greedy sample mechanism and             maintain the hidden state of rnn. Besides, there are some initialization operations about other             algorithm-specific arguments such as burnin_step, unroll_len and nstep.
+This method will be called in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method if <code class="docutils literal notranslate"><span class="pre">collect</span></code> field is in <code class="docutils literal notranslate"><span class="pre">enable_field</span></code>.</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to set some spacial member variables in <code class="docutils literal notranslate"><span class="pre">_init_collect</span></code> method, you’d better name them             with prefix <code class="docutils literal notranslate"><span class="pre">_collect_</span></code> to avoid conflict with other modes, such as <code class="docutils literal notranslate"><span class="pre">self._collect_attr1</span></code>.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Some variables need to initialize independently in different modes, such as gamma and nstep in R2D2. This             design is for the convenience of parallel execution of different policy modes.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._init_eval">
 <span class="sig-name descname"><span class="pre">_init_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Evaluate mode init method. Called by <code class="docutils literal notranslate"><span class="pre">self.__init__</span></code>.
-Init eval model with argmax strategy.</p>
+<dt>Overview:</dt><dd><p>Initialize the eval mode of policy, including related attributes and modules. For R2D2, it contains the             eval model to greedily select action with argmax q_value mechanism and main the hidden state.
+This method will be called in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method if <code class="docutils literal notranslate"><span class="pre">eval</span></code> field is in <code class="docutils literal notranslate"><span class="pre">enable_field</span></code>.</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to set some spacial member variables in <code class="docutils literal notranslate"><span class="pre">_init_eval</span></code> method, you’d better name them             with prefix <code class="docutils literal notranslate"><span class="pre">_eval_</span></code> to avoid conflict with other modes, such as <code class="docutils literal notranslate"><span class="pre">self._eval_attr1</span></code>.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._init_learn">
 <span class="sig-name descname"><span class="pre">_init_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._init_learn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Init the learner model of R2D2Policy</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>learning_rate (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The learning rate fo the optimizer</p></li>
-<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The discount factor</p></li>
-<li><p>nstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of n step return</p></li>
-<li><p>value_rescale (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use value rescaled loss in algorithm</p></li>
-<li><p>burnin_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of step of burnin</p></li>
-</ul>
+<dt>Overview:</dt><dd><p>Initialize the learn mode of policy, including some attributes and modules. For R2D2, it mainly contains             optimizer, algorithm-specific arguments such as burnin_step, value_rescale and gamma, main and target             model. Because of the use of RNN, all the models should be wrappered with <code class="docutils literal notranslate"><span class="pre">hidden_state</span></code> which needs to             be initialized with proper size.
+This method will be called in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method if <code class="docutils literal notranslate"><span class="pre">learn</span></code> field is in <code class="docutils literal notranslate"><span class="pre">enable_field</span></code>.</p>
 </dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The _init_learn method takes the argument from the self._cfg.learn in the config file</p>
+<p>For the member variables that need to be saved and loaded, please refer to the <code class="docutils literal notranslate"><span class="pre">_state_dict_learn</span></code>             and <code class="docutils literal notranslate"><span class="pre">_load_state_dict_learn</span></code> methods.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For the member variables that need to be monitored, please refer to the <code class="docutils literal notranslate"><span class="pre">_monitor_vars_learn</span></code> method.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want to set some spacial member variables in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code> method, you’d better name them             with prefix <code class="docutils literal notranslate"><span class="pre">_learn_</span></code> to avoid conflict with other modes, such as <code class="docutils literal notranslate"><span class="pre">self._learn_attr1</span></code>.</p>
 </div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.policy.r2d2.R2D2Policy._process_transition">
-<span class="sig-name descname"><span class="pre">_process_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._process_transition" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_process_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy_output</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">collections.namedtuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/policy/r2d2.html#R2D2Policy._process_transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.r2d2.R2D2Policy._process_transition" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Generate dict type transition data from inputs.</p>
+<dt>Overview:</dt><dd><p>Process and pack one timestep transition data into a dict, which can be directly used for training and             saved in replay buffer. For R2D2, it contains obs, action, prev_state, reward, and done.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Env observation</p></li>
-<li><p>model_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Output of collect model, including at least [‘action’, ‘prev_state’]</p></li>
-<li><dl class="simple">
-<dt>timestep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): Output after env step, including at least [‘reward’, ‘done’] </dt><dd><p>(here ‘obs’ indicates obs after env step).</p>
-</dd>
-</dl>
-</li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The env observation of current timestep, such as stacked 2D image in Atari.</p></li>
+<li><p>policy_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): The output of the policy network given the observation                 as input. For R2D2, it contains the action and the prev_state of RNN.</p></li>
+<li><p>timestep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): The execution result namedtuple returned by the environment step method,                 except all the elements have been transformed into tensor data. Usually, it contains the next obs,                 reward, done, info, etc.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>transition (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type transition data.</p></li>
+<li><p>transition (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): The processed transition data of the current timestep.</p></li>
 </ul>
 </dd>
 </dl>

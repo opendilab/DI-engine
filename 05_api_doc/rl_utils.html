@@ -2188,10 +2188,17 @@ this part into ppo_error, you can refer to our examples for different ways.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.rl_utils.td.bdq_nstep_td_error">
 <span class="sig-prename descclassname"><span class="pre">ding.rl_utils.td.</span></span><span class="sig-name descname"><span class="pre">bdq_nstep_td_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">data:</span> <span class="pre">collections.namedtuple,</span> <span class="pre">gamma:</span> <span class="pre">Union[float,</span> <span class="pre">list],</span> <span class="pre">nstep:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1,</span> <span class="pre">cum_reward:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">value_gamma:</span> <span class="pre">Optional[torch.Tensor]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">criterion:</span> <span class="pre">&lt;module</span> <span class="pre">'torch.nn.modules'</span> <span class="pre">from</span> <span class="pre">'/opt/hostedtoolcache/Python/3.8.18/x64/lib/python3.8/site-packages/torch/nn/modules/__init__.py'&gt;</span> <span class="pre">=</span> <span class="pre">MSELoss()</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../_modules/ding/rl_utils/td.html#bdq_nstep_td_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.td.bdq_nstep_td_error" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper “Action Branching Architectures         for Deep Reinforcement Learning”, link: <a class="reference external" href="https://arxiv.org/pdf/1711.08946">https://arxiv.org/pdf/1711.08946</a>.
-In fact, the original paper only provides the 1-step TD-error calculation method, and here we extend the         calculation method of n-step TD-error.</p>
+<dd><blockquote>
+<div><dl class="simple">
+<dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper “Action Branching Architectures for         Deep Reinforcement Learning”, link: <a class="reference external" href="https://arxiv.org/pdf/1711.08946">https://arxiv.org/pdf/1711.08946</a>.
+In fact, the original paper only provides the 1-step TD-error calculation method, and here we extend the         calculation method of n-step, i.e., TD-error:
+<span class="math notranslate nohighlight">\(y_d = \sigma_{t=0}^{nstep} \gamma^t * r_t + \gamma^{nstep} * Q_d'(s', argmax Q_d(s', a_d))\)</span>
+:math:<a href="#id3"><span class="problematic" id="id4">`</span></a>TD-error =</p>
 </dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt>rac{1}{D} * (y_d - Q_d(s, a_d))^2`</dt><dd><dl>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>data (<a class="reference internal" href="#ding.rl_utils.td.q_nstep_td_data" title="ding.rl_utils.td.q_nstep_td_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code></a>): The input data, q_nstep_td_data to calculate loss</p></li>
 <li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Discount factor</p></li>
@@ -2229,6 +2236,8 @@ In fact, the original paper only provides the 1-step TD-error calculation method
 <span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span><span class="p">,</span> <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">bdq_nstep_td_error</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="n">nstep</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>

@@ -308,17 +308,11 @@
 
 <div class="viewcode-block" id="DDPGPolicy"><a class="viewcode-back" href="../../../12_policies/ddpg_zh.html#ding.policy.ddpg.DDPGPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;ddpg&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DDPGPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Policy class of DDPG algorithm.</span>
-
-<span class="sd">        https://arxiv.org/pdf/1509.02971.pdf</span>
-
-<span class="sd">    Property:</span>
-<span class="sd">        learn_mode, collect_mode, eval_mode</span>
+<span class="sd">        Policy class of DDPG algorithm. Paper link: https://arxiv.org/abs/1509.02971.</span>
 
 <span class="sd">    Config:</span>
-
 <span class="sd">        == ====================  ========    =============  =================================   =======================</span>
 <span class="sd">        ID Symbol                Type        Default Value  Description                         Other(Shape)</span>
 <span class="sd">        == ====================  ========    =============  =================================   =======================</span>
@@ -362,30 +356,28 @@
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ddpg&#39;</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether to use cuda for network.</span>
+        <span class="c1"># (bool) Whether to use cuda in policy.</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool type) on_policy: Determine whether on-policy or off-policy.</span>
-        <span class="c1"># on-policy setting influences the behaviour of buffer.</span>
-        <span class="c1"># Default False in DDPG.</span>
+        <span class="c1"># (bool) Whether learning policy is the same as collecting data policy(on-policy). Default False in DDPG.</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether use priority(priority sample, IS weight, update priority)</span>
-        <span class="c1"># Default False in DDPG.</span>
+        <span class="c1"># (bool) Whether to enable priority experience sample.</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
         <span class="c1"># Default 25000 in DDPG/TD3.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition.</span>
         <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (str) Action space type</span>
-        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>  <span class="c1"># [&#39;continuous&#39;, &#39;hybrid&#39;]</span>
-        <span class="c1"># (bool) Whether use batch normalization for reward</span>
+        <span class="c1"># (str) Action space type, including [&#39;continuous&#39;, &#39;hybrid&#39;].</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;continuous&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether use batch normalization for reward.</span>
         <span class="n">reward_batch_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether to enable multi-agent training setting</span>
+        <span class="c1"># (bool) Whether to enable multi-agent training setting.</span>
         <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># learn_mode config</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -403,7 +395,7 @@
             <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
             <span class="c1"># when the episode step is greater than max episode step.</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="c1"># (float type) target_theta: Used for soft update of the target network,</span>
+            <span class="c1"># (float) target_theta: Used for soft update of the target network,</span>
             <span class="c1"># aka. Interpolation factor in polyak averaging for target networks.</span>
             <span class="c1"># Default to 0.005.</span>
             <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
@@ -418,39 +410,55 @@
             <span class="c1"># Default True for TD3, False for DDPG.</span>
             <span class="n">noise</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
+        <span class="c1"># collect_mode config</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
+            <span class="c1"># (int) How many training samples collected in one collection procedure.</span>
+            <span class="c1"># Only one of [n_sample, n_episode] shoule be set.</span>
             <span class="c1"># n_sample=1,</span>
-            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
+            <span class="c1"># (int) Split episodes or trajectories into pieces with length `unroll_len`.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="c1"># (float) It is a must to add noise during collection. So here omits &quot;noise&quot; and only set &quot;noise_sigma&quot;.</span>
             <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (int) Evaluate every &quot;eval_freq&quot; training iterations.</span>
-                <span class="n">eval_freq</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
-            <span class="p">),</span>
-        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compability</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-                <span class="c1"># (int) Maximum size of replay buffer.</span>
+                <span class="c1"># (int) Maximum size of replay buffer. Usually, larger buffer size is better.</span>
                 <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
             <span class="p">),</span>
         <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
+<span class="sd">            automatically call this method to get the default model setting and create model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;continuous_maqac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;continuous_qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="DDPGPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init actor and critic optimizers, algorithm config, main and target models.</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For DDPG, it mainly \</span>
+<span class="sd">            contains two optimizers, algorithm-specific arguments such as gamma and twin_critic, main and target model.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
@@ -471,7 +479,9 @@
 
         <span class="c1"># main and target models</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_argmax_sample&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_argmax_sample&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
@@ -490,22 +500,39 @@
                 <span class="p">},</span>
                 <span class="n">noise_range</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">noise_range</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_argmax_sample&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># count iterations</span></div>
 
-<div class="viewcode-block" id="DDPGPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DDPGPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward and backward function of learn mode.</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, action, priority.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;next_obs&#39;]</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
+<span class="sd">                training samples. For each element in list, the key of the dict is the name of data items and the \</span>
+<span class="sd">                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \</span>
+<span class="sd">                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \</span>
+<span class="sd">                dimension by some utility functions such as ``default_preprocess_learn``. \</span>
+<span class="sd">                For DDPG, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \</span>
+<span class="sd">                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight`` \</span>
+<span class="sd">                and ``logit`` which is used for hybrid action space.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \</span>
+<span class="sd">                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \</span>
+<span class="sd">                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for DDPGPolicy: ``ding.policy.tests.test_ddpg``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">loss_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
@@ -608,6 +635,12 @@
         <span class="p">}</span></div>
 
     <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of learn mode, usually including model, target_model and optimizers.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;target_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
@@ -616,16 +649,33 @@
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict variable into policy learn mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
+<span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
+<span class="sd">            complicated operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_actor&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_critic&#39;</span><span class="p">])</span>
 
 <div class="viewcode-block" id="DDPGPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Collect mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init traj and unroll length, collect model.</span>
+<span class="sd">            Initialize the collect mode of policy, including related attributes and modules. For DDPG, it contains the \</span>
+<span class="sd">            collect_model to balance the exploration and exploitation with the perturbed noise mechanism, and other \</span>
+<span class="sd">            algorithm-specific arguments such as unroll_len. \</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_collect`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
         <span class="c1"># collect model</span>
@@ -643,18 +693,28 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_eps_greedy_multinomial_sample&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DDPGPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DDPGPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward function of collect mode.</span>
+<span class="sd">            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \</span>
+<span class="sd">            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \</span>
+<span class="sd">            data, such as the action to interact with the envs.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
-<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.</span>
-<span class="sd">        ReturnsKeys</span>
-<span class="sd">            - necessary: ``action``</span>
-<span class="sd">            - optional: ``logit``</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \</span>
+<span class="sd">                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \</span>
+<span class="sd">                dict is the same as the input data, i.e. environment id.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for DDPGPolicy: ``ding.policy.tests.test_ddpg``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
@@ -668,55 +728,84 @@
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
-<div class="viewcode-block" id="DDPGPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DDPGPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+                            <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Generate dict type transition data from inputs.</span>
+<span class="sd">            Process and pack one timestep transition data into a dict, which can be directly used for training and \</span>
+<span class="sd">            saved in replay buffer. For DDPG, it contains obs, next_obs, action, reward, done.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs (:obj:`Any`): Env observation</span>
-<span class="sd">            - model_output (:obj:`dict`): Output of collect model, including at least [&#39;action&#39;]</span>
-<span class="sd">            - timestep (:obj:`namedtuple`): Output after env step, including at least [&#39;obs&#39;, &#39;reward&#39;, &#39;done&#39;] \</span>
-<span class="sd">                (here &#39;obs&#39; indicates obs after env step, i.e. next_obs).</span>
-<span class="sd">        Return:</span>
-<span class="sd">            - transition (:obj:`Dict[str, Any]`): Dict type transition data.</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.</span>
+<span class="sd">            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \</span>
+<span class="sd">                as input. For DDPG, it contains the action and the logit of the action (in hybrid action space).</span>
+<span class="sd">            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \</span>
+<span class="sd">                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \</span>
+<span class="sd">                reward, done, info, etc.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
             <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
-            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
             <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
             <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
-            <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+            <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">transition</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
+<div class="viewcode-block" id="DDPGPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
+<span class="sd">            can be used for training directly. In DDPG, a train sample is a processed transition (unroll_len=1).</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \</span>
+<span class="sd">                the same format as the return value of ``self._process_transition`` method.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \</span>
+<span class="sd">                as input transitions, but may contain more data for training.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DDPGPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Evaluate mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init eval model. Unlike learn and collect model, eval model does not need noise.</span>
+<span class="sd">            Initialize the eval mode of policy, including related attributes and modules. For DDPG, it contains the \</span>
+<span class="sd">            eval model to greedily select action type with argmax q_value mechanism for hybrid action space. \</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_eval`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_argmax_sample&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DDPGPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DDPGPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/ddpg.html#ding.policy.ddpg.DDPGPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward function of eval mode, similar to ``self._forward_collect``.</span>
+<span class="sd">            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \</span>
+<span class="sd">            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \</span>
+<span class="sd">            action to interact with the envs.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \</span>
-<span class="sd">                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.</span>
-<span class="sd">        ReturnsKeys</span>
-<span class="sd">            - necessary: ``action``</span>
-<span class="sd">            - optional: ``logit``</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \</span>
+<span class="sd">                key of the dict is the same as the input data, i.e. environment id.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for DDPGPolicy: ``ding.policy.tests.test_ddpg``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
@@ -731,11 +820,12 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
     <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return variables&#39; names if variables are to used in monitor.</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - vars (:obj:`List[str]`): Variables&#39; name list.</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s1">&#39;cur_lr_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_critic&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;actor_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_twin&#39;</span><span class="p">,</span>
