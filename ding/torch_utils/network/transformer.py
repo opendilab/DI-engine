@@ -8,23 +8,23 @@ from .nn_module import fc_block, build_normalization
 
 
 class Attention(nn.Module):
-    r"""
+    """
     Overview:
-        For each entry embedding, compute individual attention across all entries, add them up to get output attention
+        For each entry embedding, compute individual attention across all entries, add them up to get output attention.
     Interfaces:
         split, forward
     """
 
     def __init__(self, input_dim: int, head_dim: int, output_dim: int, head_num: int, dropout: nn.Module) -> None:
-        r"""
+        """
         Overview:
-            Init attention
+            Initialize the Attention module with the provided dimensions and dropout layer.
         Arguments:
-            - input_dim (:obj:`int`): dimension of input
-            - head_dim (:obj:`int`): dimension of each head
-            - output_dim (:obj:`int`): dimension of output
-            - head_num (:obj:`int`): head num for multihead attention
-            - dropout (:obj:`nn.Module`): dropout layer
+            - input_dim (:obj:`int`): The dimension of the input.
+            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.
+            - output_dim (:obj:`int`): The dimension of the output.
+            - head_num (:obj:`int`): The number of heads in the multi-head attention mechanism.
+            - dropout (:obj:`nn.Module`): The dropout layer used in the attention mechanism.
         """
         super(Attention, self).__init__()
         self.head_num = head_num
@@ -34,14 +34,14 @@ class Attention(nn.Module):
         self.project = fc_block(head_dim * head_num, output_dim)
 
     def split(self, x: torch.Tensor, T: bool = False) -> List[torch.Tensor]:
-        r"""
+        """
         Overview:
-            Split input to get multihead queries, keys, values
+            Split the input to get multi-head queries, keys, and values.
         Arguments:
-            - x (:obj:`torch.Tensor`): query or key or value
-            - T (:obj:`bool`): whether to transpose output
+            - x (:obj:`torch.Tensor`): The tensor to be split, which could be a query, key, or value.
+            - T (:obj:`bool`, optional): If True, transpose the output tensors. Defaults to False.
         Returns:
-            - x (:obj:`List[torch.Tensor]`): list of output tensors for each head
+            - x (:obj:`List[torch.Tensor]`): A list of output tensors for each head.
         """
         B, N = x.shape[:2]
         x = x.view(B, N, self.head_num, self.head_dim)
@@ -51,14 +51,14 @@ class Attention(nn.Module):
         return x
 
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        r"""
+        """
         Overview:
-           Compute attention
+            Compute the attention from the input tensor.
         Arguments:
-            - x (:obj:`torch.Tensor`): input tensor
-            - mask (:obj:`Optional[torch.Tensor]`): mask out invalid entries
+            - x (:obj:`torch.Tensor`): The input tensor for the forward computation.
+            - mask (:obj:`Optional[torch.Tensor]`, optional): Optional mask to exclude invalid entries. Defaults to None.
         Returns:
-            - attention (:obj:`torch.Tensor`): attention tensor
+            - attention (:obj:`torch.Tensor`): The computed attention tensor.
         """
         assert (len(x.shape) == 3)
         B, N = x.shape[:2]
@@ -82,27 +82,29 @@ class Attention(nn.Module):
 
 
 class TransformerLayer(nn.Module):
-    r"""
+    """
     Overview:
-        In transformer layer, first computes entries's attention and applies a feedforward layer
+        In transformer layer, first computes entries's attention and applies a feedforward layer.
+    Interfaces:
+        forward
     """
 
     def __init__(
             self, input_dim: int, head_dim: int, hidden_dim: int, output_dim: int, head_num: int, mlp_num: int,
             dropout: nn.Module, activation: nn.Module
     ) -> None:
-        r"""
+        """
         Overview:
-            Init transformer layer
+            Initialize the TransformerLayer with the provided dimensions, dropout layer, and activation function.
         Arguments:
-            - input_dim (:obj:`int`): dimension of input
-            - head_dim (:obj:`int`): dimension of each head
-            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp
-            - output_dim (:obj:`int`): dimension of output
-            - head_num (:obj:`int`): number of heads for multihead attention
-            - mlp_num (:obj:`int`): number of mlp layers
-            - dropout (:obj:`nn.Module`): dropout layer
-            - activation (:obj:`nn.Module`): activation function
+            - input_dim (:obj:`int`): The dimension of the input.
+            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.
+            - hidden_dim (:obj:`int`): The dimension of the hidden layer in the MLP (Multi-Layer Perceptron).
+            - output_dim (:obj:`int`): The dimension of the output.
+            - head_num (:obj:`int`): The number of heads in the multi-head attention mechanism.
+            - mlp_num (:obj:`int`): The number of layers in the MLP.
+            - dropout (:obj:`nn.Module`): The dropout layer used in the attention mechanism.
+            - activation (:obj:`nn.Module`): The activation function used in the MLP.
         """
         super(TransformerLayer, self).__init__()
         self.attention = Attention(input_dim, head_dim, output_dim, head_num, dropout)
@@ -121,29 +123,32 @@ class TransformerLayer(nn.Module):
     def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Overview:
-            Transformer layer forward
+            Compute the forward pass through the Transformer layer.
         Arguments:
-            - inputs (:obj:`Tuple[torch.Tensor, torch.Tensor]`): x and mask
+            - inputs (:obj:`Tuple[torch.Tensor, torch.Tensor]`): A tuple containing the input tensor `x` and
+                the mask tensor.
         Returns:
-            - output (:obj:`Tuple[torch.Tensor, torch.Tensor]`): predict value and mask
+            - output (:obj:`Tuple[torch.Tensor, torch.Tensor]`): A tuple containing the predicted value tensor and
+                the mask tensor.
         """
         x, mask = inputs
         a = self.dropout(self.attention(x, mask))
         x = self.layernorm1(x + a)
         m = self.dropout(self.mlp(x))
         x = self.layernorm2(x + m)
-        return (x, mask)
+        return x, mask
 
 
 class Transformer(nn.Module):
-    '''
+    """
     Overview:
-        Transformer implementation
+        Implementation of the Transformer model.
 
     .. note::
-
-        For details refer to Attention is all you need: http://arxiv.org/abs/1706.03762
-    '''
+        For more details, refer to "Attention is All You Need": http://arxiv.org/abs/1706.03762
+    Interfaces:
+        forward
+    """
 
     def __init__(
         self,
@@ -157,19 +162,19 @@ class Transformer(nn.Module):
         dropout_ratio: float = 0.,
         activation: nn.Module = nn.ReLU(),
     ):
-        r"""
+        """
         Overview:
-            Init transformer
+            Initialize the Transformer with the provided dimensions, dropout layer, activation function, and layer numbers.
         Arguments:
-            - input_dim (:obj:`int`): dimension of input
-            - head_dim (:obj:`int`): dimension of each head
-            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp
-            - output_dim (:obj:`int`): dimension of output
-            - head_num (:obj:`int`): number of heads for multihead attention
-            - mlp_num (:obj:`int`): number of mlp layers
-            - layer_num (:obj:`int`): number of transformer layers
-            - dropout_ratio (:obj:`float`): dropout ratio
-            - activation (:obj:`nn.Module`): activation function
+            - input_dim (:obj:`int`): The dimension of the input.
+            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.
+            - hidden_dim (:obj:`int`): The dimension of the hidden layer in the MLP (Multi-Layer Perceptron).
+            - output_dim (:obj:`int`): The dimension of the output.
+            - head_num (:obj:`int`): The number of heads in the multi-head attention mechanism.
+            - mlp_num (:obj:`int`): The number of layers in the MLP.
+            - layer_num (:obj:`int`): The number of Transformer layers.
+            - dropout_ratio (:obj:`float`): The dropout ratio for the dropout layer.
+            - activation (:obj:`nn.Module`): The activation function used in the MLP.
         """
         super(Transformer, self).__init__()
         self.embedding = fc_block(input_dim, output_dim, activation=activation)
@@ -184,16 +189,17 @@ class Transformer(nn.Module):
         self.main = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            Transformer forward
+            Perform the forward pass through the Transformer.
         Arguments:
-            - x (:obj:`torch.Tensor`): input tensor. Shape (B, N, C), B is batch size, \
-                N is number of entries, C is feature dimension
-            - mask (:obj:`Optional[torch.Tensor]`): bool tensor, can be used to mask out invalid entries in attention. \
-                Shape (B, N), B is batch size, N is number of entries
+            - x (:obj:`torch.Tensor`): The input tensor, with shape `(B, N, C)`, where `B` is batch size,
+              `N` is the number of entries, and `C` is the feature dimension.
+            - mask (:obj:`Optional[torch.Tensor]`, optional): The mask tensor (bool), used to mask out invalid entries
+                in attention.
+              It has shape `(B, N)`, where `B` is batch size and `N` is number of entries. Defaults to None.
         Returns:
-            - x (:obj:`torch.Tensor`): transformer output
+            - x (:obj:`torch.Tensor`): The output tensor from the Transformer.
         """
         if mask is not None:
             mask = mask.unsqueeze(dim=1).repeat(1, mask.shape[1], 1).unsqueeze(dim=1)
@@ -204,12 +210,23 @@ class Transformer(nn.Module):
 
 
 class ScaledDotProductAttention(nn.Module):
-    '''
+    """
     Overview:
-        Implementation of dot product attentionn with scaling.
-    '''
+        Implementation of Scaled Dot Product Attention, a key component of Transformer models.
+        This class performs the dot product of the query, key and value tensors, scales it with the square root of the
+        dimension of the key vector (d_k) and applies dropout for regularization.
+    """
 
     def __init__(self, d_k: int, dropout: float = 0.0) -> None:
+        """
+        Overview:
+            Initialize the ScaledDotProductAttention module with the dimension of the key vector and the dropout rate.
+        Arguments:
+            - d_k (:obj:`int`): The dimension of the key vector. This will be used to scale the dot product of the
+                query and key.
+            - dropout (:obj:`float`, optional): The dropout rate to be applied after the softmax operation.
+                Defaults to 0.0.
+        """
         super(ScaledDotProductAttention, self).__init__()
         self.d_k = d_k
         self.dropout = nn.Dropout(dropout)
@@ -221,6 +238,18 @@ class ScaledDotProductAttention(nn.Module):
             v: torch.Tensor,
             mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
+        """
+        Overview:
+            Perform the Scaled Dot Product Attention operation on the query, key and value tensors.
+        Arguments:
+            - q (:obj:`torch.Tensor`): The query tensor.
+            - k (:obj:`torch.Tensor`): The key tensor.
+            - v (:obj:`torch.Tensor`): The value tensor.
+            - mask (:obj:`Optional[torch.Tensor]`): An optional mask tensor to be applied on the attention scores.
+                Defaults to None.
+        Returns:
+            - output (:obj:`torch.Tensor`): The output tensor after the attention operation.
+        """
         attn = torch.matmul(q / (self.d_k ** 0.5), k.transpose(2, 3))
         if mask is not None:
             # inplace modification for reasonable softmax

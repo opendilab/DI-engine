@@ -52,7 +52,7 @@ setup(
     install_requires=[
         'setuptools<=66.1.1',
         'yapf==0.29.0',
-        'gym==0.25.1',  # pypy incompatible; some environmrnt only support gym==0.22.0
+        'gym==0.25.1',  # pypy incompatible; some environments only support gym==0.22.0
         'gymnasium',
         'torch>=1.1.0',
         'numpy>=1.18.0',
