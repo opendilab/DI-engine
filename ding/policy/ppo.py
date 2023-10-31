@@ -17,9 +17,9 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
-    r"""
+    """
     Overview:
-        Policy class of on policy version PPO algorithm.
+        Policy class of on-policy version PPO algorithm. Paper link: https://arxiv.org/abs/1707.06347.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -28,63 +28,105 @@ class PPOPolicy(Policy):
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
         on_policy=True,
-        # (bool) Whether to use priority(priority sample, IS weight, update priority)
+        # (bool) Whether to use priority (priority sample, IS weight, update priority).
         priority=False,
         # (bool) Whether to use Importance Sampling Weight to correct biased update due to priority.
         # If True, priority must be True.
         priority_IS_weight=False,
-        # (bool) Whether to recompurete advantages in each iteration of on-policy PPO
+        # (bool) Whether to recompurete advantages in each iteration of on-policy PPO.
         recompute_adv=True,
         # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
         action_space='discrete',
-        # (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value
+        # (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value.
         nstep_return=False,
-        # (bool) Whether to enable multi-agent training, i.e.: MAPPO
+        # (bool) Whether to enable multi-agent training, i.e.: MAPPO.
         multi_agent=False,
-        # (bool) Whether to need policy data in process transition
+        # (bool) Whether to need policy ``_forward_collect`` output data in process transition.
         transition_with_policy_data=True,
+        # learn_mode config
         learn=dict(
+            # (int) After collecting n_sample/n_episode data, how many epoches to train models.
+            # Each epoch means the one entire passing of training data.
             epoch_per_collect=10,
+            # (int) How many samples in a training batch.
             batch_size=64,
+            # (float) The step size of gradient descent.
             learning_rate=3e-4,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) The loss weight of value network, policy network weight is set to 1
+            # (float) The loss weight of value network, policy network weight is set to 1.
             value_weight=0.5,
-            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1.
             entropy_weight=0.0,
-            # (float) PPO clip ratio, defaults to 0.2
+            # (float) PPO clip ratio, defaults to 0.2.
             clip_ratio=0.2,
-            # (bool) Whether to use advantage norm in a whole training batch
+            # (bool) Whether to use advantage norm in a whole training batch.
             adv_norm=True,
+            # (bool) Whether to use value norm with running mean and std in the whole training process.
             value_norm=True,
+            # (bool) Whether to enable special network parameters initialization scheme in PPO, such as orthogonal init.
             ppo_param_init=True,
+            # (str) The gradient clip operation type used in PPO, ['clip_norm', clip_value', 'clip_momentum_norm'].
             grad_clip_type='clip_norm',
+            # (float) The gradient clip target value used in PPO.
+            # If ``grad_clip_type`` is 'clip_norm', then the maximum of gradient will be normalized to this value.
             grad_clip_value=0.5,
+            # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
         ),
+        # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             # n_sample=64,
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
             # (float) Reward's future discount factor, aka. gamma.
             discount_factor=0.99,
             # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
             gae_lambda=0.95,
         ),
-        eval=dict(),
+        eval=dict(),  # for compability
     )
 
-    def _init_learn(self) -> None:
-        r"""
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main model.
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For example about PPO, its registered name is ``ppo`` and the import_names is \
+            ``ding.model.template.vac``.
+
+        .. note::
+            Because now PPO supports both single-agent and multi-agent usages, so we can implement these functions \
+            with the same policy and two different default models, which is controled by ``self._cfg.multi_agent``.
+        """
+        if self._cfg.multi_agent:
+            return 'mavac', ['ding.model.template.mavac']
+        else:
+            return 'vac', ['ding.model.template.vac']
+
+    def _init_learn(self) -> None:
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For PPO, it mainly contains \
+            optimizer, algorithm-specific arguments such as loss weight, clip_ratio and recompute_adv. This method \
+            also executes some special network initializations and prepares running mean/std monitor for value.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -143,16 +185,40 @@ class PPOPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
-    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        r"""
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
         Overview:
-            Forward and backward function of learn mode.
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, clipfrac, approx_kl.
         Arguments:
-            - data (:obj:`dict`): Dict type data
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including the latest \
+                collected training samples for on-policy algorithms like PPO. For each element in list, the key of the \
+                dict is the name of data items and the value is the corresponding data. Usually, the value is \
+                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \
+                often need to first be stacked in the batch dimension by some utility functions such as \
+                ``default_preprocess_learn``. \
+                For PPO, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``reward``, ``logit``, ``value``, ``done``. Sometimes, it also contains other keys such as ``weight``.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`):
-              Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
-                        adv_abs_max, approx_kl, clipfrac
+            - return_infos (:obj:`List[Dict[str, Any]]`): The information list that indicated training result, each \
+                training iteration contains append a information dict into the final list. The list will be precessed \
+                and recorded in text log and tensorboard. The value of the dict must be python scalar or a list of \
+                scalars. For the detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. tip::
+            The training procedure of PPO is two for loops. The outer loop trains all the collected training samples \
+            with ``epoch_per_collect`` epochs. The inner loop splits all the data into different mini-batch with \
+            the length of ``batch_size``.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PPOPolicy: ``ding.policy.tests.test_ppo``.
         """
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
@@ -272,24 +338,24 @@ class PPOPolicy(Policy):
                 return_infos.append(return_info)
         return return_infos
 
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
-
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
+            Initialize the collect mode of policy, including related attributes and modules. For PPO, it contains the \
+            collect_model to balance the exploration and exploitation (e.g. the multinomial sample mechanism in \
+            discrete action space), and other algorithm-specific arguments such as unroll_len and gae_lambda.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+
+        .. tip::
+            Some variables need to initialize independently in different modes, such as gamma and gae_lambda in PPO. \
+            This design is for the convenience of parallel execution of different policy modes.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"], self._cfg.action_space
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
@@ -302,17 +368,32 @@ class PPOPolicy(Policy):
         self._gae_lambda = self._cfg.collect.gae_lambda
         self._recompute_adv = self._cfg.recompute_adv
 
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of collect mode.
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
+                method. The key of the dict is the same as the input data, i.e. environment id.
+
+        .. tip::
+            If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
+            related data as extra keyword arguments of this method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PPOPolicy: ``ding.policy.tests.test_ppo``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -326,38 +407,54 @@ class PPOPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-               Generate dict type transition data from inputs.
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For PPO, it contains obs, next_obs, action, reward, done, logit, value.
         Arguments:
-                - obs (:obj:`Any`): Env observation
-                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
-                       (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For PPO, it contains the state value, action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-               - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+
+        .. note::
+            ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
+            You can delete this field to save memory occupancy if you do not need nstep return.
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'logit': model_output['logit'],
-            'value': model_output['value'],
+            'action': policy_output['action'],
+            'logit': policy_output['logit'],
+            'value': policy_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and calculate GAE, return one data to cache for next time calculation
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In PPO, a train sample is a processed transition with new computed \
+            ``traj_flag`` and ``adv`` field. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as GAE advantage.
+        """
+        data = transitions
         data = to_device(data, self._device)
         for transition in data:
             transition['traj_flag'] = copy.deepcopy(transition['done'])
@@ -397,10 +494,15 @@ class PPOPolicy(Policy):
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
-        r"""
+        """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy.
+            Initialize the eval mode of policy, including related attributes and modules. For PPO, it contains the \
+            eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete action).
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
@@ -412,17 +514,29 @@ class PPOPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs. ``_forward_eval`` in PPO often uses deterministic sample method to get \
+            actions while ``_forward_collect`` usually uses stochastic sample method for balance exploration and \
+            exploitation.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PPOPolicy: ``ding.policy.tests.test_ppo``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -436,13 +550,14 @@ class PPOPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        if self._cfg.multi_agent:
-            return 'mavac', ['ding.model.template.mavac']
-        else:
-            return 'vac', ['ding.model.template.vac']
-
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         variables = super()._monitor_vars_learn() + [
             'policy_loss',
             'value_loss',
@@ -461,9 +576,10 @@ class PPOPolicy(Policy):
 
 @POLICY_REGISTRY.register('ppo_pg')
 class PPOPGPolicy(Policy):
-    r"""
+    """
     Overview:
-        Policy class of on policy version PPO algorithm (pure policy gradient).
+        Policy class of on policy version PPO algorithm (pure policy gradient without value network).
+        Paper link: https://arxiv.org/abs/1707.06347.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -474,46 +590,75 @@ class PPOPGPolicy(Policy):
         on_policy=True,
         # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
         action_space='discrete',
-        # (bool) Whether to enable multi-agent training, i.e.: MAPPO
+        # (bool) Whether to enable multi-agent training, i.e.: MAPPO.
         multi_agent=False,
-        # (bool) Whether to need policy data in process transition
+        # (bool) Whether to need policy data in process transition.
         transition_with_policy_data=True,
+        # learn_mode config
         learn=dict(
+            # (int) After collecting n_sample/n_episode data, how many epoches to train models.
+            # Each epoch means the one entire passing of training data.
             epoch_per_collect=10,
+            # (int) How many samples in a training batch.
             batch_size=64,
+            # (float) The step size of gradient descent.
             learning_rate=3e-4,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1.
             entropy_weight=0.0,
-            # (float) PPO clip ratio, defaults to 0.2
+            # (float) PPO clip ratio, defaults to 0.2.
             clip_ratio=0.2,
-            # (bool) Whether to use advantage norm in a whole training batch
+            # (bool) Whether to enable special network parameters initialization scheme in PPO, such as orthogonal init.
             ppo_param_init=True,
+            # (str) The gradient clip operation type used in PPO, ['clip_norm', clip_value', 'clip_momentum_norm'].
             grad_clip_type='clip_norm',
+            # (float) The gradient clip target value used in PPO.
+            # If ``grad_clip_type`` is 'clip_norm', then the maximum of gradient will be normalized to this value.
             grad_clip_value=0.5,
+            # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
         ),
+        # collect_mode config
         collect=dict(
-            # (int) Only one of n_episode shoule be set
+            # (int) How many training episodes collected in one collection process. Only one of n_episode shoule be set.
             # n_episode=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
             # (float) Reward's future discount factor, aka. gamma.
             discount_factor=0.99,
         ),
-        eval=dict(),
+        eval=dict(),  # for compability
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
         return 'pg', ['ding.model.template.pg']
 
     def _init_learn(self) -> None:
-        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For PPOPG, it mainly \
+            contains optimizer, algorithm-specific arguments such as loss weight and clip_ratio. This method \
+            also executes some special network initializations.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
+        """
+        assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
@@ -545,7 +690,39 @@ class PPOPGPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
-    def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, clipfrac, approx_kl.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including the latest \
+                collected training samples for on-policy algorithms like PPO. For each element in list, the key of the \
+                dict is the name of data items and the value is the corresponding data. Usually, the value is \
+                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \
+                often need to first be stacked in the batch dimension by some utility functions such as \
+                ``default_preprocess_learn``. \
+                For PPOPG, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``return``, ``logit``, ``done``. Sometimes, it also contains other keys such as ``weight``.
+        Returns:
+            - return_infos (:obj:`List[Dict[str, Any]]`): The information list that indicated training result, each \
+                training iteration contains append a information dict into the final list. The list will be precessed \
+                and recorded in text log and tensorboard. The value of the dict must be python scalar or a list of \
+                scalars. For the detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. tip::
+            The training procedure of PPOPG is two for loops. The outer loop trains all the collected training samples \
+            with ``epoch_per_collect`` epochs. The inner loop splits all the data into different mini-batch with \
+            the length of ``batch_size``.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+        """
+
         data = default_preprocess_learn(data)
         if self._cuda:
             data = to_device(data, self._device)
@@ -589,7 +766,22 @@ class PPOPGPolicy(Policy):
         return return_infos
 
     def _init_collect(self) -> None:
-        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+        """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. For PPOPG, it contains \
+            the collect_model to balance the exploration and exploitation (e.g. the multinomial sample mechanism in \
+            discrete action space), and other algorithm-specific arguments such as unroll_len and gae_lambda.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+
+        .. tip::
+            Some variables need to initialize independently in different modes, such as gamma and gae_lambda in PPO. \
+            This design is for the convenience of parallel execution of different policy modes.
+        """
+        assert self._cfg.action_space in ["continuous", "discrete"], self._cfg.action_space
         self._action_space = self._cfg.action_space
         self._unroll_len = self._cfg.collect.unroll_len
         if self._action_space == 'continuous':
@@ -599,7 +791,30 @@ class PPOPGPolicy(Policy):
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (action logit) for learn mode defined in ``self._process_transition`` \
+                method. The key of the dict is the same as the input data, i.e. environment id.
+
+        .. tip::
+            If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
+            related data as extra keyword arguments of this method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -612,17 +827,47 @@ class PPOPGPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For PPOPG, it contains obs, action, reward, done, logit.
+        Arguments:
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For PPOPG, it contains the action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
+        Returns:
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+        """
         transition = {
             'obs': obs,
-            'action': model_output['action'],
-            'logit': model_output['logit'],
+            'action': policy_output['action'],
+            'logit': policy_output['logit'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given entire episode data (a list of transition), process it into a list of sample that \
+            can be used for training directly. In PPOPG, a train sample is a processed transition with new computed \
+            ``return`` field. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]`): The episode data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as discounted episode return.
+        """
         assert data[-1]['done'] is True, "PPO-PG needs a complete epsiode"
 
         if self._cfg.learn.ignore_done:
@@ -636,7 +881,17 @@ class PPOPGPolicy(Policy):
         return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
-        assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
+        """
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules. For PPOPG, it contains the \
+            eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete action).
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+        """
+        assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
@@ -644,7 +899,30 @@ class PPOPGPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs. ``_forward_eval`` in PPO often uses deterministic sample method to get \
+            actions while ``_forward_collect`` usually uses stochastic sample method for balance exploration and \
+            exploitation.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PPOPGPolicy: ``ding.policy.tests.test_ppo``.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -658,6 +936,13 @@ class PPOPGPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return super()._monitor_vars_learn() + [
             'policy_loss',
             'entropy_loss',
@@ -668,9 +953,10 @@ class PPOPGPolicy(Policy):
 
 @POLICY_REGISTRY.register('ppo_offpolicy')
 class PPOOffPolicy(Policy):
-    r"""
+    """
     Overview:
-        Policy class of PPO algorithm.
+        Policy class of off-policy version PPO algorithm. Paper link: https://arxiv.org/abs/1707.06347.
+        This version is more suitable for large-scale distributed training.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -678,69 +964,103 @@ class PPOOffPolicy(Policy):
         # (bool) Whether to use cuda for network.
         cuda=False,
         on_policy=False,
-        # (bool) Whether to use priority(priority sample, IS weight, update priority)
+        # (bool) Whether to use priority (priority sample, IS weight, update priority).
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        # (str) Which kind of action space used in PPOPolicy, ["continuous", "discrete", "hybrid"]
+        # (str) Which kind of action space used in PPOPolicy, ["continuous", "discrete", "hybrid"].
         action_space='discrete',
-        # (bool) Whether to use nstep_return for value loss
+        # (bool) Whether to use nstep_return for value loss.
         nstep_return=False,
+        # (int) The timestep of TD (temporal-difference) loss.
         nstep=3,
-        # (bool) Whether to need policy data in process transition
+        # (bool) Whether to need policy data in process transition.
         transition_with_policy_data=True,
+        # learn_mode config
         learn=dict(
-            # How many updates(iterations) to train after collector's one collection.
+            # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=5,
+            # (int) How many samples in a training batch.
             batch_size=64,
+            # (float) The step size of gradient descent.
             learning_rate=0.001,
-            separate_optimizer=False,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) The loss weight of value network, policy network weight is set to 1
+            # (float) The loss weight of value network, policy network weight is set to 1.
             value_weight=0.5,
-            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1.
             entropy_weight=0.01,
-            # (float) PPO clip ratio, defaults to 0.2
+            # (float) PPO clip ratio, defaults to 0.2.
             clip_ratio=0.2,
-            # (bool) Whether to use advantage norm in a whole training batch
+            # (bool) Whether to use advantage norm in a whole training batch.
             adv_norm=False,
+            # (bool) Whether to use value norm with running mean and std in the whole training process.
             value_norm=True,
+            # (bool) Whether to enable special network parameters initialization scheme in PPO, such as orthogonal init.
             ppo_param_init=True,
+            # (str) The gradient clip operation type used in PPO, ['clip_norm', clip_value', 'clip_momentum_norm'].
             grad_clip_type='clip_norm',
+            # (float) The gradient clip target value used in PPO.
+            # If ``grad_clip_type`` is 'clip_norm', then the maximum of gradient will be normalized to this value.
             grad_clip_value=0.5,
+            # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
+            # (float) The weight decay (L2 regularization) loss weight, defaults to 0.0.
             weight_decay=0.0,
         ),
+        # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             # n_sample=64,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
             # (float) Reward's future discount factor, aka. gamma.
             discount_factor=0.99,
-            # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
+            # (float) GAE lambda factor for the balance of bias and variance (1-step td and mc).
             gae_lambda=0.95,
         ),
-        eval=dict(),
-        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
+        eval=dict(),  # for compability
+        other=dict(
+            replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
+                replay_buffer_size=10000,
+            ),
+        ),
     )
 
-    def _init_learn(self) -> None:
-        r"""
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config and the main model.
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
+        return 'vac', ['ding.model.template.vac']
+
+    def _init_learn(self) -> None:
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For PPOOff, it mainly \
+            contains optimizer, algorithm-specific arguments such as loss weight and clip_ratio. This method \
+            also executes some special network initializations and prepares running mean/std monitor for value.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
+        assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPOOff"
 
         assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
@@ -797,16 +1117,31 @@ class PPOOffPolicy(Policy):
         # Main model
         self._learn_model.reset()
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
         Overview:
-            Forward and backward function of learn mode.
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, clipfrac and approx_kl.
         Arguments:
-            - data (:obj:`dict`): Dict type data
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For PPOOff, each element in list is a dict containing at least the following keys: ``obs``, ``adv``, \
+                ``action``, ``logit``, ``value``, ``done``. Sometimes, it also contains other keys such as ``weight`` \
+                and ``value_gamma``.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`):
-              Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
-                        adv_abs_max, approx_kl, clipfrac
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
         """
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=self._nstep_return)
         if self._cuda:
@@ -821,7 +1156,7 @@ class PPOOffPolicy(Policy):
         self._learn_model.train()
 
         with torch.no_grad():
-            if hasattr(self, "_value_norm") and self._value_norm:
+            if self._value_norm:
                 unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
                 data['return'] = unnormalized_return / self._running_mean_std.std
                 self._running_mean_std.update(unnormalized_return.cpu().numpy())
@@ -961,21 +1296,21 @@ class PPOOffPolicy(Policy):
             )
         return return_info
 
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
-
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
+            Initialize the collect mode of policy, including related attributes and modules. For PPOOff, it contains \
+            collect_model to balance the exploration and exploitation (e.g. the multinomial sample mechanism in \
+            discrete action space), and other algorithm-specific arguments such as unroll_len and gae_lambda.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+
+        .. tip::
+            Some variables need to initialize independently in different modes, such as gamma and gae_lambda in PPOOff.
+            This design is for the convenience of parallel execution of different policy modes.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
@@ -991,18 +1326,34 @@ class PPOOffPolicy(Policy):
         self._gae_lambda = self._cfg.collect.gae_lambda
         self._nstep = self._cfg.nstep
         self._nstep_return = self._cfg.nstep_return
+        self._value_norm = self._cfg.learn.value_norm
 
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of collect mode.
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
+                method. The key of the dict is the same as the input data, i.e. environment id.
+
+        .. tip::
+            If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
+            related data as extra keyword arguments of this method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PPOOffPolicy: ``ding.policy.tests.test_ppo``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -1016,39 +1367,55 @@ class PPOOffPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-               Generate dict type transition data from inputs.
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For PPO, it contains obs, next_obs, action, reward, done, logit, value.
         Arguments:
-                - obs (:obj:`Any`): Env observation
-                - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-                - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
-                       (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For PPO, it contains the state value, action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-               - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+
+        .. note::
+            ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
+            You can delete this field to save memory occupancy if you do not need nstep return.
         """
 
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'logit': model_output['logit'],
-            'action': model_output['action'],
-            'value': model_output['value'],
+            'logit': policy_output['logit'],
+            'action': policy_output['action'],
+            'value': policy_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and calculate GAE, return one data to cache for next time calculation
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In PPO, a train sample is a processed transition with new computed \
+            ``traj_flag`` and ``adv`` field. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training, such as GAE advantage.
+        """
+        data = transitions
         data = to_device(data, self._device)
         for transition in data:
             transition['traj_flag'] = copy.deepcopy(transition['done'])
@@ -1066,7 +1433,7 @@ class PPOOffPolicy(Policy):
                 )['value']
             if len(last_value.shape) == 2:  # multi_agent case:
                 last_value = last_value.squeeze(0)
-        if hasattr(self, "_value_norm") and self._value_norm:
+        if self._value_norm:
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
@@ -1077,7 +1444,7 @@ class PPOOffPolicy(Policy):
             gae_lambda=self._gae_lambda,
             cuda=False,
         )
-        if hasattr(self, "_value_norm") and self._value_norm:
+        if self._value_norm:
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
@@ -1087,10 +1454,15 @@ class PPOOffPolicy(Policy):
             return get_nstep_return_data(data, self._nstep)
 
     def _init_eval(self) -> None:
-        r"""
+        """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy.
+            Initialize the eval mode of policy, including related attributes and modules. For PPOOff, it contains the \
+            eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete action).
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         assert self._cfg.action_space in ["continuous", "discrete", "hybrid"]
         self._action_space = self._cfg.action_space
@@ -1102,17 +1474,29 @@ class PPOOffPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs. ``_forward_eval`` in PPO often uses deterministic sample method to get \
+            actions while ``_forward_collect`` usually uses stochastic sample method for balance exploration and \
+            exploitation.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for PPOOffPolicy: ``ding.policy.tests.test_ppo``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -1126,10 +1510,14 @@ class PPOOffPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
-
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         variables = super()._monitor_vars_learn() + [
             'policy_loss', 'value', 'value_loss', 'entropy_loss', 'adv_abs_max', 'approx_kl', 'clipfrac'
         ]
@@ -1143,6 +1531,8 @@ class PPOSTDIMPolicy(PPOPolicy):
     """
     Overview:
         Policy class of on policy version PPO algorithm with ST-DIM auxiliary model.
+        PPO paper link: https://arxiv.org/abs/1707.06347.
+        ST-DIM paper link: https://arxiv.org/abs/1906.08226.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -1166,6 +1556,8 @@ class PPOSTDIMPolicy(PPOPolicy):
         multi_agent=False,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
+        # (float) The loss weight of the auxiliary model to the main loss.
+        aux_loss_weight=0.001,
         aux_model=dict(
             # (int) the encoding size (of each head) to apply contrastive loss.
             encode_shape=64,
@@ -1176,42 +1568,48 @@ class PPOSTDIMPolicy(PPOPolicy):
             # (float) a parameter to adjust the polarity between positive and negative samples.
             temperature=1.0,
         ),
+        # learn_mode config
         learn=dict(
+            # (int) After collecting n_sample/n_episode data, how many epoches to train models.
+            # Each epoch means the one entire passing of training data.
             epoch_per_collect=10,
+            # (int) How many samples in a training batch.
             batch_size=64,
+            # (float) The step size of gradient descent.
             learning_rate=3e-4,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) The loss weight of value network, policy network weight is set to 1
+            # (float) The loss weight of value network, policy network weight is set to 1.
             value_weight=0.5,
-            # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            # (float) The loss weight of entropy regularization, policy network weight is set to 1.
             entropy_weight=0.0,
-            # (float) PPO clip ratio, defaults to 0.2
+            # (float) PPO clip ratio, defaults to 0.2.
             clip_ratio=0.2,
-            # (bool) Whether to use advantage norm in a whole training batch
+            # (bool) Whether to use advantage norm in a whole training batch.
             adv_norm=True,
+            # (bool) Whether to use value norm with running mean and std in the whole training process.
             value_norm=True,
+            # (bool) Whether to enable special network parameters initialization scheme in PPO, such as orthogonal init.
             ppo_param_init=True,
+            # (str) The gradient clip operation type used in PPO, ['clip_norm', clip_value', 'clip_momentum_norm'].
             grad_clip_type='clip_norm',
+            # (float) The gradient clip target value used in PPO.
+            # If ``grad_clip_type`` is 'clip_norm', then the maximum of gradient will be normalized to this value.
             grad_clip_value=0.5,
+            # (bool) Whether ignore done (usually for max step termination env).
             ignore_done=False,
         ),
+        # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             # n_sample=64,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
             # (float) Reward's future discount factor, aka. gamma.
             discount_factor=0.99,
-            # (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)
+            # (float) GAE lambda factor for the balance of bias and variance (1-step td and mc).
             gae_lambda=0.95,
         ),
-        eval=dict(),
-        aux_loss_weight=0.001,
+        eval=dict(),  # for compability
     )
 
     def _init_learn(self) -> None:
@@ -1400,6 +1798,13 @@ class PPOSTDIMPolicy(PPOPolicy):
         return return_infos
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model, optimizer and aux_optimizer for \
+            representation learning.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
@@ -1407,9 +1812,27 @@ class PPOSTDIMPolicy(PPOPolicy):
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
         self._aux_optimizer.load_state_dict(state_dict['aux_optimizer'])
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return super()._monitor_vars_learn() + ["aux_loss_learn", "aux_loss_eval"]
