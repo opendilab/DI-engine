@@ -443,7 +443,7 @@ class DiscreteSACPolicy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For discrete SAC, it contains obs, next_obs, logit, action, reward, done.
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
@@ -1015,7 +1015,7 @@ class SACPolicy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For continuous SAC, it contains obs, next_obs, action, reward, done. The logit \
             will be also added when ``collector_logit`` is True.
         Arguments:

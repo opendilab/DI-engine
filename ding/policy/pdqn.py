@@ -444,7 +444,7 @@ class PDQNPolicy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For PDQN, it contains obs, next_obs, action, reward, done and logit.
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.

@@ -25,7 +25,7 @@ class Policy(ABC):
         Overview:
             Get the default config of policy. This method is used to create the default config of policy.
         Returns:
-            cfg (:obj:`EasyDict`): The default config of corresponding policy. For the derived policy class, \
+            - cfg (:obj:`EasyDict`): The default config of corresponding policy. For the derived policy class, \
                 it will recursively merge the default config of base class and its own default config.
 
         .. tip::
@@ -196,16 +196,17 @@ class Policy(ABC):
     def _create_model(self, cfg: EasyDict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         """
         Overview:
-            Create neural network model according to input configures and model. If the input model is None, then \
-            the model will be created according to ``default_model`` method and ``cfg.model`` field. Otherwise, the \
-            model will be set to the ``model`` instance created by outside caller.
+            Create or validate the neural network model according to input configures and model. If the input model is \
+            None, then the model will be created according to ``default_model`` method and ``cfg.model`` field. \
+            Otherwise, the model will be verified as an instance of ``torch.nn.Module`` and set to the ``model`` \
+            instance created by outside caller.
         Arguments:
             - cfg (:obj:`EasyDict`): The final merged config used to initialize policy.
             - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. User can refer to \
                 the default model defined in corresponding policy to customize its own model.
         Returns:
-            - model (:obj:`torch.nn.Module`): The created neural network model. Then different modes of policy will \
-                add wrappers and plugins to the model, which is used to train, collect and evaluate.
+            - model (:obj:`torch.nn.Module`): The created neural network model. The different modes of policy will \
+                add distinct wrappers and plugins to the model, which is used to train, collect and evaluate.
         Raises:
             - RuntimeError: If the input model is not None and is not an instance of ``torch.nn.Module``.
         """

@@ -79,9 +79,9 @@ class IMPALAPolicy(Policy):
             c_clip_ratio=1.0,
             # (float) clip ratio of importance sampling.
             rho_pg_clip_ratio=1.0,
-            # (str) The gradient clip operation type used in PPO, ['clip_norm', clip_value', 'clip_momentum_norm'].
+            # (str) The gradient clip operation type used in IMPALA, ['clip_norm', clip_value', 'clip_momentum_norm'].
             grad_clip_type=None,
-            # (float) The gradient clip target value used in PPO.
+            # (float) The gradient clip target value used in IMPALA.
             # If ``grad_clip_type`` is 'clip_norm', then the maximum of gradient will be normalized to this value.
             clip_value=0.5,
             # (str) Optimizer used to train the network, ['adam', 'rmsprop'].
@@ -120,12 +120,24 @@ class IMPALAPolicy(Policy):
         return 'vac', ['ding.model.template.vac']
 
     def _init_learn(self) -> None:
-        r"""
-        Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Initialize the optimizer, algorithm config and main model.
         """
-        assert self._cfg.action_space in ["continuous", "discrete"]
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For IMPALA, it mainly \
+            contains optimizer, algorithm-specific arguments such as loss weight and gamma, main (learn) model.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
+        """
+        assert self._cfg.action_space in ["continuous", "discrete"], self._cfg.action_space
         self._action_space = self._cfg.action_space
         # Optimizer
         optim_type = self._cfg.learn.optim
@@ -166,8 +178,8 @@ class IMPALAPolicy(Policy):
             Convert list trajectory data to to trajectory data, which is a dict of tensors.
         Arguments:
             - data (:obj:`List[Dict[str, Any]]`): List type data, a list of data for training. Each list element is a \
-            dict, whose values are torch.Tensor or np.ndarray or dict/list combinations, keys include at least 'obs', \
-             'next_obs', 'logit', 'action', 'reward', 'done'
+                dict, whose values are torch.Tensor or np.ndarray or dict/list combinations, keys include at least \
+                'obs', 'next_obs', 'logit', 'action', 'reward', 'done'
         Returns:
             - data (:obj:`dict`): Dict type data. Values are torch.Tensor or np.ndarray or dict/list combinations. \
         ReturnsKeys:
@@ -208,20 +220,31 @@ class IMPALAPolicy(Policy):
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Overview:
-            Forward computation graph of learn mode(updating policy).
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss and current learning rate.
         Arguments:
-            - data (:obj:`List[Dict[str, Any]]`): List type data, a list of data for training. Each list element is a \
-            dict, whose values are torch.Tensor or np.ndarray or dict/list combinations, keys include at least 'obs',\
-             'next_obs', 'logit', 'action', 'reward', 'done'
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For IMPALA, each element in list is a dict containing at least the following keys: ``obs``, \
+                ``action``, ``logit``, ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such \
+                as ``weight``.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
-                recorded in text log and tensorboard, values are python scalar or a list of scalars.
-        ArgumentsKeys:
-            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
-            - optional: 'collect_iter', 'replay_unique_id', 'replay_buffer_idx', 'priority', 'staleness', 'use', 'IS'
-        ReturnsKeys:
-            - necessary: ``cur_lr``, ``total_loss``, ``policy_loss`,``value_loss``,``entropy_loss``
-            - optional: ``priority``
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to unittest for IMPALAPolicy: ``ding.policy.tests.test_impala``.
         """
         data = self._data_preprocess_learn(data)
         # ====================
@@ -267,8 +290,7 @@ class IMPALAPolicy(Policy):
             - data (:obj:`Dict[int, Any]`): Dict type data, input of policy._forward_learn Values are torch.Tensor or \
                 np.ndarray or dict/list combinations. Keys includes at least ['logit', 'action', 'reward', 'done'].
         Returns:
-            - data (:obj:`Tuple[Any]`): Tuple of target_logit, behaviour_logit, actions, \
-                values, rewards, weights
+            - data (:obj:`Tuple[Any]`): Tuple of target_logit, behaviour_logit, actions, values, rewards, weights.
         ReturnsShapes:
             - target_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, Obs_Shape)`, where T is timestep,\
                 B is batch size and Obs_Shape is the shape of single env observation.
@@ -300,10 +322,16 @@ class IMPALAPolicy(Policy):
         return target_logit, behaviour_logit, actions, values, rewards, weights
 
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
-            Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
-            Use multinomial_sample to choose action.
+            Initialize the collect mode of policy, including related attributes and modules. For IMPALA, it contains \
+            the collect_model to balance the exploration and exploitation (e.g. the multinomial sample mechanism in \
+            discrete action space), and other algorithm-specific arguments such as unroll_len.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
         """
         assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
@@ -314,18 +342,32 @@ class IMPALAPolicy(Policy):
 
         self._collect_model.reset()
 
-    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Dict[str, Any]]:
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
         """
         Overview:
-            Forward computation graph of collect mode(collect training data).
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[int, Any]`): Dict type data, stacked env data for predicting \
-            action, values are torch.Tensor or np.ndarray or dict/list combinations,keys \
-            are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Dict[str,Any]]`): Dict of predicting policy_output(logit, action) for each env.
-        ReturnsKeys
-            - necessary: ``logit``, ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
+                method. The key of the dict is the same as the input data, i.e. environment id.
+
+        .. tip::
+            If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
+            related data as extra keyword arguments of this method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to unittest for IMPALAPolicy: ``ding.policy.tests.test_impala``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -358,7 +400,7 @@ class IMPALAPolicy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For IMPALA, it contains obs, next_obs, action, reward, done, logit.
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
@@ -381,12 +423,17 @@ class IMPALAPolicy(Policy):
         return transition
 
     def _init_eval(self) -> None:
-        r"""
-        Overview:
-            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model,
-            and use argmax_sample to choose action.
         """
-        assert self._cfg.action_space in ["continuous", "discrete"]
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules. For IMPALA, it contains the \
+            eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete action).
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+        """
+        assert self._cfg.action_space in ["continuous", "discrete"], self._cfg.action_space
         self._action_space = self._cfg.action_space
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
@@ -398,17 +445,26 @@ class IMPALAPolicy(Policy):
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         """
         Overview:
-            Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \
-            ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs. ``_forward_eval`` in IMPALA often uses deterministic sample to get \
+            actions while ``_forward_collect`` usually uses stochastic sample method for balance exploration and \
+            exploitation.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
-            - optional: ``logit``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
 
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to unittest for IMPALAPolicy: ``ding.policy.tests.test_impala``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

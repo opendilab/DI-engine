@@ -6,7 +6,6 @@ import numpy as np
 from ding.torch_utils import to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_decollate
-from ding.torch_utils import one_hot
 from .base_policy import Policy
 
 
@@ -56,8 +55,20 @@ class DTPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For Decision Transformer, \
+            it mainly contains the optimizer, algorithm-specific arguments such as rtg_scale and lr scheduler.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         # rtg_scale: scale of `return to go`
         # rtg_target: max target of `return to go`
@@ -92,14 +103,26 @@ class DTPolicy(Policy):
 
         self.max_env_score = -1.0
 
-    def _forward_learn(self, data: list) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[torch.Tensor]) -> Dict[str, Any]:
         """
         Overview:
-            Forward and backward function of learn mode.
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the offline dataset and then returns the output \
+            result, including various training information such as loss, current learning rate.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
+            - data (:obj:`List[torch.Tensor]`): The input data used for policy forward, including a series of \
+                processed torch.Tensor data, i.e., timesteps, states, actions, returns_to_go, traj_mask.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
         """
         self._learn_model.train()
 
@@ -156,7 +179,18 @@ class DTPolicy(Policy):
     def _init_eval(self) -> None:
         """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
+            Initialize the eval mode of policy, including related attributes and modules. For DQN, it contains the \
+            eval model, some algorithm-specific parameters such as context_len, max_eval_ep_len, etc.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. tip::
+            For the evaluation of complete episodes, we need to maintain some historical information for transformer \
+            inference. These variables need to be initialized in ``_init_eval`` and reset in ``_reset_eval`` when \
+            necessary.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         self._eval_model = self._model
         # init data

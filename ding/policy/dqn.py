@@ -403,10 +403,10 @@ class DQNPolicy(Policy):
             in ``self._forward_learn`` method.
         Arguments:
             - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
-                the same format as the return value of ``self._process_transition`` method.
+                in the same format as the return value of ``self._process_transition`` method.
         Returns:
-            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
-                as input transitions, but may contain more data for training, such as nstep reward and target obs.
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is similar in format \
+                to input transitions, but may contain more data for training, such as nstep reward and target obs.
         """
         transitions = get_nstep_return_data(transitions, self._nstep, gamma=self._gamma)
         return get_train_sample(transitions, self._unroll_len)
@@ -415,7 +415,7 @@ class DQNPolicy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For DQN, it contains obs, next_obs, action, reward, done.
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
@@ -539,6 +539,7 @@ class DQNSTDIMPolicy(DQNPolicy):
     """
     Overview:
         Policy class of DQN algorithm, extended by ST-DIM auxiliary objectives.
+        ST-DIM paper link: https://arxiv.org/abs/1906.08226.
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)

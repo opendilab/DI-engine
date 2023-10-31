@@ -101,12 +101,12 @@ class GELU(nn.Module):
 
 
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
-    r"""
+    """
     Overview:
         Return the activation module according to the given type.
     Arguments:
         - activation (:obj:`str`): the type of activation module, now supports \
-        ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity']
+            ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity']
         - inplace (:obj:`bool`): can optionally do the operation in-place in relu. Default ``None``
     Returns:
         - act_func (:obj:`nn.module`): the corresponding activation module

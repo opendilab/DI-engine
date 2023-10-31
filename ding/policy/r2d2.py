@@ -68,9 +68,9 @@ class R2D2Policy(Policy):
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
         on_policy=False,
-        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=True,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=True,
         # (float) Reward's future discount factor, aka. gamma.
         discount_factor=0.997,
@@ -84,13 +84,13 @@ class R2D2Policy(Policy):
         learn_unroll_len=80,
         # learn_mode config
         learn=dict(
-            # (int) How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
+            # (int) The number of training updates (iterations) to perform after each data collection by the collector.
+            # A larger "update_per_collect" value implies a more off-policy approach.
+            # The whole pipeline process follows this cycle: collect data -> update policy -> collect data -> ...
             update_per_collect=1,
-            # (int) How many samples in a training batch.
+            # (int) The number of samples in a training batch.
             batch_size=64,
-            # (float) The step size of gradient descent.
+            # (float) The step size of gradient descent, determining the rate of learning.
             learning_rate=0.0001,
             # (int) Frequence of target network update.
             # target_update_freq=100,
@@ -116,26 +116,26 @@ class R2D2Policy(Policy):
             # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
             traj_len_inf=True,
-            # (int) `env_num` is used in hidden state, should equal to that one in env config.
-            # User should specify this value in user config.
+            # (int) `env_num` is used in hidden state, should equal to that one in env config (e.g. collector_env_num).
+            # User should specify this value in user config. `None` is a placeholder.
             env_num=None,
         ),
         # eval_mode config
         eval=dict(
-            # (int) `env_num` is used in hidden state, should equal to that one in env config.
+            # (int) `env_num` is used in hidden state, should equal to that one in env config (e.g. evaluator_env_num).
             # User should specify this value in user config.
             env_num=None,
         ),
         other=dict(
             # Epsilon greedy with decay.
             eps=dict(
-                # (str) Decay type. Support ['exp', 'linear'].
+                # (str) Type of decay. Supports either 'exp' (exponential) or 'linear'.
                 type='exp',
-                # (float) Epsilon start value.
+                # (float) Initial value of epsilon at the start.
                 start=0.95,
-                # (float) Epsilon end value.
+                # (float) Final value of epsilon after decay.
                 end=0.05,
-                # (int) Decay length(env step).
+                # (int) The number of environment steps over which epsilon should decay.
                 decay=10000,
             ),
             replay_buffer=dict(
@@ -529,11 +529,11 @@ class R2D2Policy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
-            saved in replay buffer. For R2D2, it contains obs, action, prev_state, reward, done.
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For R2D2, it contains obs, action, prev_state, reward, and done.
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
-            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network given the observation \
                 as input. For R2D2, it contains the action and the prev_state of RNN.
             - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
                 except all the elements have been transformed into tensor data. Usually, it contains the next obs, \

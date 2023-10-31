@@ -205,6 +205,7 @@ class QMIXPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
                 recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
                 detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
         .. note::
             The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
             For the data type that not supported, the main reason is that the corresponding model does not support it. \
@@ -389,7 +390,7 @@ class QMIXPolicy(Policy):
                             timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Process and pack one timestep transition data info a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For QMIX, it contains obs, next_obs, action, prev_state, reward, done.
         Arguments:
             - obs (:obj:`torch.Tensor`): The env observation of current timestep, usually including ``agent_obs`` \
