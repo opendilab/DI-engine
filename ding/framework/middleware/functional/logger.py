@@ -303,16 +303,30 @@ def wandb_online_logger(
             )
 
         if ctx.eval_value != -np.inf:
-            info_for_logging.update(
-                {
+            if hasattr(ctx, "eval_value_min"):
+                info_for_logging.update({
                     "episode return min": ctx.eval_value_min,
+                })
+            if hasattr(ctx, "eval_value_max"):
+                info_for_logging.update({
                     "episode return max": ctx.eval_value_max,
-                    "episode return mean": ctx.eval_value,
+                })
+            if hasattr(ctx, "eval_value_std"):
+                info_for_logging.update({
                     "episode return std": ctx.eval_value_std,
+                })
+            if hasattr(ctx, "eval_value"):
+                info_for_logging.update({
+                    "episode return mean": ctx.eval_value,
+                })
+            if hasattr(ctx, "train_iter"):
+                info_for_logging.update({
                     "train iter": ctx.train_iter,
-                    "env step": ctx.env_step
-                }
-            )
+                })
+            if hasattr(ctx, "env_step"):
+                info_for_logging.update({
+                    "env step": ctx.env_step,
+                })
 
             eval_output = ctx.eval_output['output']
             episode_return = ctx.eval_output['episode_return']
@@ -597,16 +611,30 @@ def wandb_offline_logger(
             )
 
         if ctx.eval_value != -np.inf:
-            info_for_logging.update(
-                {
+            if hasattr(ctx, "eval_value_min"):
+                info_for_logging.update({
                     "episode return min": ctx.eval_value_min,
+                })
+            if hasattr(ctx, "eval_value_max"):
+                info_for_logging.update({
                     "episode return max": ctx.eval_value_max,
-                    "episode return mean": ctx.eval_value,
+                })
+            if hasattr(ctx, "eval_value_std"):
+                info_for_logging.update({
                     "episode return std": ctx.eval_value_std,
+                })
+            if hasattr(ctx, "eval_value"):
+                info_for_logging.update({
+                    "episode return mean": ctx.eval_value,
+                })
+            if hasattr(ctx, "train_iter"):
+                info_for_logging.update({
                     "train iter": ctx.train_iter,
+                })
+            if hasattr(ctx, "train_epoch"):
+                info_for_logging.update({
                     "train_epoch": ctx.train_epoch,
-                }
-            )
+                })
 
             eval_output = ctx.eval_output['output']
             episode_return = ctx.eval_output['episode_return']

@@ -118,9 +118,9 @@ class HiddenStateWrapper(IModelWrapper):
         Arguments:
             - model(:obj:`Any`): Wrapped model class, should contain forward method.
             - state_num (:obj:`int`): Number of states to process.
-            - save_prev_state (:obj:`bool`): Whether to output the prev state in output['prev_state'].
-            - init_fn (:obj:`Callable`): The function which is used to init every hidden state when init and reset. \
-                Default return None for hidden states.
+            - save_prev_state (:obj:`bool`): Whether to output the prev state in output.
+            - init_fn (:obj:`Callable`): The function which is used to init every hidden state when init and reset, \
+                default return None for hidden states.
 
         .. note::
             1. This helper must deal with an actual batch with some parts of samples, e.g: 6 samples of state_num 8.
@@ -221,7 +221,7 @@ class TransformerInputWrapper(IModelWrapper):
         Arguments:
             - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: ``(bs, *obs_shape)``.
             - only_last_logit (:obj:`bool`): if True 'logit' only contains the output corresponding to the current \
-                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim).
             - data_id (:obj:`List`): id of the envs that are currently running. Memory update and logits return has \
                 only effect for those environments. If `None` it is considered that all envs are running.
         Returns:
