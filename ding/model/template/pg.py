@@ -16,7 +16,7 @@ class PG(nn.Module):
         The neural network and computation graph of algorithms related to Policy Gradient(PG) \
         (https://proceedings.neurips.cc/paper/1999/file/464d828b85b0bed98e80ade0a5c43b0f-Paper.pdf). \
         The PG model is composed of two parts: encoder and head. Encoders are used to extract the feature \
-        from various observation. Heads are used to predict corresponding action logit. \
+        from various observation. Heads are used to predict corresponding action logit.
     Interface:
         ``__init__``, ``forward``.
     """

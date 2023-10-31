@@ -55,7 +55,7 @@ class MixerStar(nn.Module):
             - agent_qs (:obj:`torch.FloatTensor`): The independent q_value of each agent.
             - states (:obj:`torch.FloatTensor`): The emdedding vector of global state.
         Returns:
-            - q_tot (:obj:`torch.FloatTensor`): The total mixed q_value
+            - q_tot (:obj:`torch.FloatTensor`): The total mixed q_value.
         Shapes:
             - agent_qs (:obj:`torch.FloatTensor`): :math:`(T,B, N)`, where T is timestep, \
               B is batch size, A is agent_num, N is obs_shape.
@@ -132,7 +132,7 @@ class WQMix(nn.Module):
         Overview:
             Forward computation graph of qmix network. Input dict including time series observation and \
             related data to predict total q_value and each agent q_value. Determine whether to calculate \
-            Q_tot or Q_star based on the ``q_star`` parameter
+            Q_tot or Q_star based on the ``q_star`` parameter.
         Arguments:
             - data (:obj:`dict`): Input data dict with keys ['obs', 'prev_state', 'action'].
                 - agent_state (:obj:`torch.Tensor`): Time series local observation data of each agents.
