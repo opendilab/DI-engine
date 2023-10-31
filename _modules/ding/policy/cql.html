@@ -553,7 +553,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
-<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            that the policy inputs some training batch data from the offline dataset and then returns the output \</span>
 <span class="sd">            result, including various training information such as loss, action, priority.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
@@ -872,7 +872,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
-<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            that the policy inputs some training batch data from the offline dataset and then returns the output \</span>
 <span class="sd">            result, including various training information such as loss, action, priority.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
