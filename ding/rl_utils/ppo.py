@@ -296,16 +296,28 @@ def ppo_error_continuous(
     if weight is None:
         weight = torch.ones_like(adv)
 
-    dist_new = Independent(Normal(mu_sigma_new['mu'], mu_sigma_new['sigma']), 1)
-    if len(mu_sigma_old['mu'].shape) == 1:
-        dist_old = Independent(Normal(mu_sigma_old['mu'].unsqueeze(-1), mu_sigma_old['sigma'].unsqueeze(-1)), 1)
+    if happo_factor:
+        dist_new = Normal(mu_sigma_new['mu'], mu_sigma_new['sigma'])
+        if len(mu_sigma_old['mu'].shape) == 1:
+            dist_old = Normal(mu_sigma_old['mu'].unsqueeze(-1), mu_sigma_old['sigma'].unsqueeze(-1))
+        else:
+            dist_old = Normal(mu_sigma_old['mu'], mu_sigma_old['sigma'])
     else:
-        dist_old = Independent(Normal(mu_sigma_old['mu'], mu_sigma_old['sigma']), 1)
+        dist_new = Independent(Normal(mu_sigma_new['mu'], mu_sigma_new['sigma']), 1)
+        if len(mu_sigma_old['mu'].shape) == 1:
+            dist_old = Independent(Normal(mu_sigma_old['mu'].unsqueeze(-1), mu_sigma_old['sigma'].unsqueeze(-1)), 1)
+        else:
+            dist_old = Independent(Normal(mu_sigma_old['mu'], mu_sigma_old['sigma']), 1)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
-    entropy_loss = (dist_new.entropy() * weight).mean()
+    if happo_factor:
+        entropy_loss = (dist_new.entropy() * weight.unsqueeze(1)).mean()
+    else:
+        entropy_loss = (dist_new.entropy() * weight).mean()
     # policy_loss
     ratio = torch.exp(logp_new - logp_old)
+    if happo_factor:
+        ratio = torch.prod(ratio, dim=-1)
     surr1 = ratio * adv
     surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
     if happo_factor:
