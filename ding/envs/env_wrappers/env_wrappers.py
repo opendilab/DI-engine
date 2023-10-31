@@ -1,16 +1,18 @@
 """
-This code is adapted from OpenAI Baselines: https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
+This code is adapted from OpenAI Baselines:
+    https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
 List of Environment Wrappers:
-- NoopResetWrapper: This wrapper facilitates the sampling of initial states by executing a random number of no-operation
-    actions upon environment reset.
+- NoopResetWrapper: This wrapper facilitates the sampling of initial states by executing a random number of
+    no-operation actions upon environment reset.
 - MaxAndSkipWrapper: Incorporates max pooling across time steps, a method that reduces the temporal dimension by taking
     the maximum value over specified time intervals.
-- WarpFrameWrapper: Implements frame warping by resizing the images to 84x84, a common preprocessing step in reinforcement
-    learning on visual data, as described in the DeepMind Nature paper and subsequent works.
-- ScaledFloatFrameWrapper: Normalizes observations to a range of 0 to 1, which is a common requirement for neural network inputs.
-- ClipRewardWrapper: Clips the reward to {-1, 0, +1} based on its sign. This simplifies the reward structure and can make
-    learning more stable in environments with high variance in rewards.
+- WarpFrameWrapper: Implements frame warping by resizing the images to 84x84, a common preprocessing step in
+    reinforcement learning on visual data, as described in the DeepMind Nature paper and subsequent works.
+- ScaledFloatFrameWrapper: Normalizes observations to a range of 0 to 1, which is a common requirement for neural
+    network inputs.
+- ClipRewardWrapper: Clips the reward to {-1, 0, +1} based on its sign. This simplifies the reward structure and
+    can make learning more stable in environments with high variance in rewards.
 - DelayRewardWrapper: Returns cumulative reward at defined intervals, and at all other times, returns a reward of 0.
     This can be useful for sparse reward problems.
 - FrameStackWrapper: Stacks the latest 'n' frames as a single observation. This allows the agent to have a sense of
@@ -30,7 +32,8 @@ List of Environment Wrappers:
 - GymHybridDictActionWrapper: Transforms the original `gym.spaces.Tuple` action space into a `gym.spaces.Dict`.
 - FlatObsWrapper: Flattens image and language observations into a single vector, which can be helpful for input into
     certain types of models.
-- StaticObsNormWrapper: Provides functionality for normalizing observations according to a static mean and standard deviation.
+- StaticObsNormWrapper: Provides functionality for normalizing observations according to a static mean and
+    standard deviation.
 - EvalEpisodeReturnWrapper: Evaluates the return over an episode during evaluation, providing a more comprehensive
     view of the agent's performance.
 - GymToGymnasiumWrapper: Adapts environments from the Gym library to be compatible with the Gymnasium library.
@@ -459,8 +462,8 @@ class EvalEpisodeReturnWrapper(gym.Wrapper):
             - obs (:obj:`np.ndarray`): The next observation from the environment.
             - reward (:obj:`float`): The reward from taking the action.
             - done (:obj:`bool`): Whether the episode is done.
-            - info (:obj:`Dict[str, Any]`): A dictionary of extra information, which includes 'eval_episode_return' if the
-              episode is done.
+            - info (:obj:`Dict[str, Any]`): A dictionary of extra information, which includes 'eval_episode_return' if
+                the episode is done.
         Examples:
             >>> env = gym.make("CartPole-v1")
             >>> env = EvalEpisodeReturnWrapper(env)
@@ -624,7 +627,8 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
 class RunningMeanStd(object):
     """
     Overview:
-       The RunningMeanStd class is a utility that maintains a running mean and standard deviation calculation over a stream of data.
+       The RunningMeanStd class is a utility that maintains a running mean and standard deviation calculation over
+        a stream of data.
     Interfaces:
         __init__, update, reset, mean, std
     Properties:
@@ -642,8 +646,10 @@ class RunningMeanStd(object):
         Overview:
             Initialize the RunningMeanStd object.
         Arguments:
-            - epsilon (:obj:`float`, optional): A small number to prevent division by zero when calculating standard deviation. Default is 1e-4.
-            - shape (:obj:`tuple`, optional): The shape of the data stream. Default is an empty tuple, which corresponds to scalars.
+            - epsilon (:obj:`float`, optional): A small number to prevent division by zero when calculating standard
+                deviation. Default is 1e-4.
+            - shape (:obj:`tuple`, optional): The shape of the data stream. Default is an empty tuple, which
+                corresponds to scalars.
         """
         self._epsilon = epsilon
         self._shape = shape
@@ -858,9 +864,12 @@ class RewardNormWrapper(gym.RewardWrapper):
             - action (:obj:`Any`): The action to execute in the environment.
         Returns:
             - observation (:obj:`np.ndarray`): Normalized observation after executing the action and updated `self.rms`.
-            - reward (:obj:`float`): Amount of reward returned after the action execution (normalized) and updated `self.cum_reward`.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - reward (:obj:`float`): Amount of reward returned after the action execution (normalized) and updated
+                `self.cum_reward`.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
         self.data_count += 1
         observation, reward, done, info = self.env.step(action)
@@ -990,8 +999,10 @@ class EpisodicLifeWrapper(gym.Wrapper):
         Returns:
             - observation (:obj:`np.ndarray`): Normalized observation after the action execution and updated `self.rms`.
             - reward (:obj:`float`): Amount of reward returned after the action execution.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and
+                sometimes learning).
         """
         obs, reward, done, info = self.env.step(action)
         self.was_real_done = done
@@ -1013,7 +1024,8 @@ class EpisodicLifeWrapper(gym.Wrapper):
             lives are exhausted. This way all states are still reachable even though lives
             are episodic, and the learner need not know about any of this behind-the-scenes.
         Returns:
-            - observation (:obj:`np.ndarray`): New observation after reset with no-op step to advance from terminal/lost life state.
+            - observation (:obj:`np.ndarray`): New observation after reset with no-op step to advance from
+                terminal/lost life state.
         """
         if self.was_real_done:
             obs = self.env.reset()
@@ -1104,8 +1116,10 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
             - observation (:obj:`Dict`): The wrapped observation, which includes the current observation,
                 previous action and previous reward.
             - reward (:obj:`float`): Amount of reward returned after the action execution.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and
+                sometimes learning).
         """
         # # From Dict to Tuple
         # action_type = action[0]
@@ -1182,8 +1196,10 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
             - observation (:obj:`Dict`): The wrapped observation, which includes the current observation,
                 previous action and previous reward.
             - reward (:obj:`float`): Amount of reward returned after the action execution.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
         obs, reward, done, info = self.env.step(action)
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
@@ -1238,8 +1254,10 @@ class TransposeWrapper(gym.Wrapper):
         Returns:
             - observation (:obj:`np.ndarray`): The processed observation after the action execution.
             - reward (:obj:`float`): Amount of reward returned after the action execution.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
         obs, reward, done, info = self.env.step(action)
         return self._process_obs(obs), reward, done, info
@@ -1294,8 +1312,10 @@ class TimeLimitWrapper(gym.Wrapper):
         Returns:
             - observation (:obj:`np.ndarray`): The new observation after the action execution.
             - reward (:obj:`float`): Amount of reward returned after the action execution.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
         obs, reward, done, info = self.env.step(action)
         self.time_count += 1
@@ -1401,8 +1421,10 @@ class FlatObsWrapper(gym.Wrapper):
         Returns:
             - observation (:obj:`np.ndarray`): The processed observation after the action execution.
             - reward (:obj:`float`): Amount of reward returned after the action execution.
-            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return undefined results.
-            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes learning).
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
         o, r, d, i = self.env.step(*args, **kwargs)
         o = self.observation(o)

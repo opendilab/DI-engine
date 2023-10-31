@@ -34,9 +34,9 @@ class DingEnvWrapper(BaseEnv):
         Arguments:
             - env (:obj:`gym.Env`): An environment instance to be wrapped.
             - cfg (:obj:`dict`): The configuration dictionary to create an environment instance.
-            - seed_api (:obj:`bool`): Whether to use seed API, default is True.
-            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or ``evaluator``. \
-                Different caller may need different wrappers. Default is 'collector'.
+            - seed_api (:obj:`bool`): Whether to use seed API. Defaults to True.
+            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or
+                ``evaluator``. Different caller may need different wrappers. Default is 'collector'.
         """
         self._env = None
         self._raw_env = env
