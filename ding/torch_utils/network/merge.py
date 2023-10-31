@@ -221,11 +221,11 @@ class VectorMerge(nn.Module):
     """
 
     def __init__(
-            self,
-            input_sizes: Dict[str, int],
-            output_size: int,
-            gating_type: GatingType = GatingType.NONE,
-            use_layer_norm: bool = True,
+        self,
+        input_sizes: Dict[str, int],
+        output_size: int,
+        gating_type: GatingType = GatingType.NONE,
+        use_layer_norm: bool = True,
     ):
         """
         Overview:

@@ -113,8 +113,8 @@ class LSTMForwardWrapper(object):
             Post-processes the next_state after the LSTM `forward` method.
         Arguments:
             - next_state (:obj:`Tuple[torch.Tensor]`): Tuple containing the next state (h, c).
-            - list_next_state (:obj:`bool`, optional): Determines the format of the returned next_state. If True, returns next_state in list format.
-                Default is False.
+            - list_next_state (:obj:`bool`, optional): Determines the format of the returned next_state. If True,
+                returns next_state in list format. Default is False.
         Returns:
             - next_state(:obj:`Union[List[Dict], Dict[str, torch.Tensor]]`): The post-processed next_state.
         """
@@ -195,7 +195,8 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             Compute output and next state given previous state and input.
         Arguments:
             - inputs (:obj:`torch.Tensor`): Input vector of cell, size [seq_len, batch_size, input_size].
-            - prev_state (:obj:`torch.Tensor`): Previous state, size [num_directions*num_layers, batch_size, hidden_size].
+            - prev_state (:obj:`torch.Tensor`): Previous state,
+                size [num_directions*num_layers, batch_size, hidden_size].
             - list_next_state (:obj:`bool`): Whether to return next_state in list format, default is True.
         Returns:
             - x (:obj:`torch.Tensor`): Output from LSTM.
@@ -237,13 +238,10 @@ class LSTM(nn.Module, LSTMForwardWrapper):
 class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
     """
     Overview:
-        Wrapper class for PyTorch's nn.LSTM, formats the input and output.
+        Wrapper class for PyTorch's nn.LSTM, formats the input and output. For more details on nn.LSTM,
+         refer to https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM
     Interface:
         forward
-
-    .. note::
-
-        For more details on nn.LSTM, refer to https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM
     """
 
     def forward(self,
@@ -282,12 +280,7 @@ class GRU(nn.GRUCell, LSTMForwardWrapper):
         <https://pytorch.org/docs/stable/generated/torch.nn.GRU.html#torch.nn.GRU>
     """
 
-    def __init__(
-            self,
-            input_size: int,
-            hidden_size: int,
-            num_layers: int
-    ) -> None:
+    def __init__(self, input_size: int, hidden_size: int, num_layers: int) -> None:
         """
         Overview:
             Initialize the GRU class with input size, hidden size, and number of layers.
@@ -300,18 +293,17 @@ class GRU(nn.GRUCell, LSTMForwardWrapper):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
 
-    def forward(
-            self,
-            inputs: torch.Tensor,
-            prev_state: Optional[torch.Tensor]=None,
-            list_next_state: bool=True
-    ) -> Tuple[torch.Tensor, Union[torch.Tensor, List]]:
+    def forward(self,
+                inputs: torch.Tensor,
+                prev_state: Optional[torch.Tensor] = None,
+                list_next_state: bool = True) -> Tuple[torch.Tensor, Union[torch.Tensor, List]]:
         """
         Overview:
             Wrap the `nn.GRU.forward` method.
         Arguments:
             - inputs (:obj:`torch.Tensor`): Input vector of cell, tensor of size [seq_len, batch_size, input_size].
-            - prev_state (:obj:`Optional[torch.Tensor]`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size].
+            - prev_state (:obj:`Optional[torch.Tensor]`): None or tensor of
+                size [num_directions*num_layers, batch_size, hidden_size].
             - list_next_state (:obj:`bool`): Whether to return next_state in list format (default is True).
         Returns:
             - output (:obj:`torch.Tensor`): Output from GRU.

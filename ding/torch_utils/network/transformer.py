@@ -56,7 +56,8 @@ class Attention(nn.Module):
             Compute the attention from the input tensor.
         Arguments:
             - x (:obj:`torch.Tensor`): The input tensor for the forward computation.
-            - mask (:obj:`Optional[torch.Tensor]`, optional): Optional mask to exclude invalid entries. Defaults to None.
+            - mask (:obj:`Optional[torch.Tensor]`, optional): Optional mask to exclude invalid entries.
+                Defaults to None.
         Returns:
             - attention (:obj:`torch.Tensor`): The computed attention tensor.
         """
@@ -164,7 +165,8 @@ class Transformer(nn.Module):
     ):
         """
         Overview:
-            Initialize the Transformer with the provided dimensions, dropout layer, activation function, and layer numbers.
+            Initialize the Transformer with the provided dimensions, dropout layer, activation function,
+            and layer numbers.
         Arguments:
             - input_dim (:obj:`int`): The dimension of the input.
             - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.

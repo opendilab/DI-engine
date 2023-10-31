@@ -10,6 +10,7 @@ class Lambda(nn.Module):
     Overview:
         A custom lambda module for constructing custom layers.
     """
+
     def __init__(self, f: Callable):
         """
         Overview:
@@ -74,6 +75,7 @@ class Swish(nn.Module):
     Overview:
         Swish activation function, which is a smooth, non-monotonic activation function.
     """
+
     def __init__(self):
         """
         Overview:

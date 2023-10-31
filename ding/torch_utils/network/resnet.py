@@ -64,12 +64,12 @@ def pad_same(x, k: List[int], s: List[int], d: List[int] = (1, 1), value: float 
 
 
 def avg_pool2d_same(
-        x,
-        kernel_size: List[int],
-        stride: List[int],
-        padding: List[int] = (0, 0),
-        ceil_mode: bool = False,
-        count_include_pad: bool = True
+    x,
+    kernel_size: List[int],
+    stride: List[int],
+    padding: List[int] = (0, 0),
+    ceil_mode: bool = False,
+    count_include_pad: bool = True
 ):
     """
     Overview:
@@ -130,8 +130,10 @@ class AvgPool2dSame(nn.AvgPool2d):
         return F.avg_pool2d(x, self.kernel_size, self.stride, self.padding, self.ceil_mode, self.count_include_pad)
 
 
-def _create_pool(num_features: int, num_classes: int, pool_type: str = 'avg', use_conv: bool = False) -> Tuple[
-    nn.Module, int]:
+def _create_pool(num_features: int,
+                 num_classes: int,
+                 pool_type: str = 'avg',
+                 use_conv: bool = False) -> Tuple[nn.Module, int]:
     """
     Overview:
         Create a global pooling layer based on the given arguments.
@@ -175,12 +177,10 @@ def _create_fc(num_features: int, num_classes: int, use_conv: bool = False) -> n
     return fc
 
 
-def create_classifier(
-        num_features: int,
-        num_classes: int,
-        pool_type: str = 'avg',
-        use_conv: bool = False
-) -> Tuple[nn.Module, nn.Module]:
+def create_classifier(num_features: int,
+                      num_classes: int,
+                      pool_type: str = 'avg',
+                      use_conv: bool = False) -> Tuple[nn.Module, nn.Module]:
     """
     Overview:
         Create a classifier with global pooling layer and fully connected layer.
@@ -545,8 +545,15 @@ class Bottleneck(nn.Module):
         return x
 
 
-def downsample_conv(in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, dilation: int = 1,
-                    first_dilation: int = None, norm_layer: Type[nn.Module] = None) -> nn.Sequential:
+def downsample_conv(
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        dilation: int = 1,
+        first_dilation: int = None,
+        norm_layer: Type[nn.Module] = None
+) -> nn.Sequential:
     """
     Overview:
         Create a sequential module for downsampling that includes a convolution layer and a normalization layer.
@@ -576,8 +583,15 @@ def downsample_conv(in_channels: int, out_channels: int, kernel_size: int, strid
     )
 
 
-def downsample_avg(in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, dilation: int = 1,
-                   first_dilation: int = None, norm_layer: Type[nn.Module] = None) -> nn.Sequential:
+def downsample_avg(
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        dilation: int = 1,
+        first_dilation: int = None,
+        norm_layer: Type[nn.Module] = None
+) -> nn.Sequential:
     """
     Overview:
         Create a sequential module for downsampling that includes an average pooling layer, a convolution layer,
@@ -707,7 +721,8 @@ class ResNet(nn.Module):
     """
     Overview:
         Implements ResNet, ResNeXt, SE-ResNeXt, and SENet models. This implementation supports various modifications
-        based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model.
+        based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details
+         about the variants and options, please refer to the 'Bag of Tricks' paper: https://arxiv.org/pdf/1812.01187.
     Arguments:
         - block (:obj:`nn.Module`): Class for the residual block. Options are BasicBlockGl, BottleneckGl.
         - layers (:obj:`list` of :obj:`int`): Numbers of layers in each block.
@@ -719,9 +734,11 @@ class ResNet(nn.Module):
         - stem_type (:obj:`str`, optional): The type of stem. Default is ''.
         - replace_stem_pool (:obj:`bool`, optional): Whether to replace stem pooling. Default is False.
         - output_stride (:obj:`int`, optional): Output stride of the network. Default is 32.
-        - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of residual blocks.
+        - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of
+            residual blocks.
         - down_kernel_size (:obj:`int`, optional): Kernel size of residual block downsampling path. Default is 1.
-        - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between stages/downsample. Default is False.
+        - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between
+            stages/downsample. Default is False.
         - act_layer (:obj:`nn.Module`, optional): Activation layer. Default is nn.ReLU.
         - norm_layer (:obj:`nn.Module`, optional): Normalization layer. Default is nn.BatchNorm2d.
         - aa_layer (:obj:`nn.Module`, optional): Anti-aliasing layer. Default is None.
@@ -729,12 +746,11 @@ class ResNet(nn.Module):
         - drop_path_rate (:obj:`float`, optional): Drop path rate. Default is 0.0.
         - drop_block_rate (:obj:`float`, optional): Drop block rate. Default is 0.0.
         - global_pool (:obj:`str`, optional): Global pooling type. Default is 'avg'.
-        - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. Default is True.
+        - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero.
+            Default is True.
         - block_args (:obj:`dict`, optional): Additional arguments for block. Default is None.
-
-    .. note::
-        For more details about the variants and options, please refer to the 'Bag of Tricks' paper: https://arxiv.org/pdf/1812.01187.
     """
+
     def __init__(
             self,
             block: nn.Module,
@@ -774,9 +790,11 @@ class ResNet(nn.Module):
             - stem_type (:obj:`str`, optional): The type of stem. Default is ''.
             - replace_stem_pool (:obj:`bool`, optional): Whether to replace stem pooling. Default is False.
             - output_stride (:obj:`int`, optional): Output stride of the network. Default is 32.
-            - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of residual blocks. Default is 1.
+            - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of
+                residual blocks. Default is 1.
             - down_kernel_size (:obj:`int`, optional): Kernel size of residual block downsampling path. Default is 1.
-            - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between stages/downsample. Default is False.
+            - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between
+                stages/downsample. Default is False.
             - act_layer (:obj:`nn.Module`, optional): Activation layer. Default is nn.ReLU.
             - norm_layer (:obj:`nn.Module`, optional): Normalization layer. Default is nn.BatchNorm2d.
             - aa_layer (:obj:`Optional[nn.Module]`, optional): Anti-aliasing layer. Default is None.
@@ -784,7 +802,8 @@ class ResNet(nn.Module):
             - drop_path_rate (:obj:`float`, optional): Drop path rate. Default is 0.0.
             - drop_block_rate (:obj:`float`, optional): Drop block rate. Default is 0.0.
             - global_pool (:obj:`str`, optional): Global pooling type. Default is 'avg'.
-            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. Default is True.
+            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero.
+                Default is True.
             - block_args (:obj:`Optional[dict]`, optional): Additional arguments for block. Default is None.
         """
         block_args = block_args or dict()
@@ -873,7 +892,8 @@ class ResNet(nn.Module):
         Overview:
             Initialize the weights in the model.
         Arguments:
-            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. Default is True.
+            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero.
+                Default is True.
         """
         for n, m in self.named_modules():
             if isinstance(m, nn.Conv2d):
