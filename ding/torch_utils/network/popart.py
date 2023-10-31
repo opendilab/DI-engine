@@ -8,7 +8,7 @@ The two main components in POPART are:
 **POP**: to preserve the outputs of the unnormalized function when we change the scale and shift.
 
 """
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 import math
 import torch
 import torch.nn as nn
@@ -16,9 +16,13 @@ import torch.nn as nn
 
 class PopArt(nn.Module):
     """
-    **Overview**:
-        A linear layer with popart normalization.
-        For more popart implementation info, you can refer to the paper <link https://arxiv.org/abs/1809.04474 link>
+    Overview:
+        A linear layer with popart normalization. This class implements a linear transformation followed by
+        PopArt normalization, which is a method to automatically adapt the contribution of each task to the agent's
+        updates in multi-task learning, as described in the paper <https://arxiv.org/abs/1809.04474>.
+
+    Interface:
+        __init__, reset_parameters, forward, update_parameters
     """
 
     def __init__(
@@ -27,6 +31,14 @@ class PopArt(nn.Module):
             output_features: Union[int, None] = None,
             beta: float = 0.5
     ) -> None:
+        """
+        Overview:
+            Initialize the class with input features, output features, and the beta parameter.
+        Arguments:
+            - input_features (:obj:`Union[int, None]`): The size of each input sample.
+            - output_features (:obj:`Union[int, None]`): The size of each output sample.
+            - beta (:obj:`float`): The parameter for moving average.
+        """
         super(PopArt, self).__init__()
 
         self.beta = beta
@@ -44,16 +56,25 @@ class PopArt(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Overview:
+            Reset the parameters including weights and bias using kaiming_uniform_ and uniform_ initialization.
+        """
         nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
         if self.bias is not None:
             fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
             bound = 1 / math.sqrt(fan_in)
             nn.init.uniform_(self.bias, -bound, bound)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
-        **Overview**:
-            The computation of the linear layer, which outputs both the output and the normalized output of the layer.
+        Overview:
+            Implement the forward computation of the linear layer and return both the output and the
+            normalized output of the layer.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor
+        Returns:
+            - output (:obj:`Dict[str, torch.Tensor]`): A dictionary contains 'pred' and 'unnormalized_pred'.
         """
         normalized_output = x.mm(self.weight.t())
         normalized_output += self.bias.unsqueeze(0).expand_as(normalized_output)
@@ -63,10 +84,15 @@ class PopArt(nn.Module):
 
         return {'pred': normalized_output.squeeze(1), 'unnormalized_pred': output.squeeze(1)}
 
-    def update_parameters(self, value):
+    def update_parameters(self, value: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
-        **Overview**:
-            The parameters update, which outputs both the output and the normalized output of the layer.
+        Overview:
+            Update the normalization parameters based on the given value and return the new mean and
+            standard deviation after the update.
+        Arguments:
+            - value (:obj:`torch.Tensor`): The tensor to be used for updating parameters.
+        Returns:
+            - update_results (:obj:`Dict[str, torch.Tensor]`): A dictionary contains 'new_mean' and 'new_std'.
         """
         # Tensor device conversion of the normalization parameters.
         self.mu = self.mu.to(value.device)

@@ -4,39 +4,36 @@ import torch.nn.functional as F
 
 
 class SoftArgmax(nn.Module):
-    r"""
+    """
     Overview:
-        An nn.Module that computes SoftArgmax
+        An nn.Module that computes the SoftArgmax operation.
     Interface:
         __init__, forward
 
-    .. note:
-
-        For more softargmax info, you can refere to
-        the wiki page <https://wikimili.com/en/Softmax_function> or
-        the lecture <https://mc.ai/softmax-function-beyond-the-basics/>
-
+    .. note::
+        For more information on SoftArgmax, you can refer to the wiki page <https://wikimili.com/en/Softmax_function> or
+        this lecture <https://mc.ai/softmax-function-beyond-the-basics/>.
     """
 
     def __init__(self):
-        r"""
+        """
         Overview:
-            Initialize the SoftArgmax module
+            Initialize the SoftArgmax module.
         """
         super(SoftArgmax, self).__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            Soft-argmax for location regression
+            Perform the SoftArgmax operation for location regression.
         Arguments:
-            - x (:obj:`torch.Tensor`): predict heat map
+            - x (:obj:`torch.Tensor`): The predicted heat map.
         Returns:
-            - location (:obj:`torch.Tensor`): predict location
+            - location (:obj:`torch.Tensor`): The predicted location.
         Shapes:
-            - x: :math:`(B, C, H, W)`, while B is the batch size, C is number of channels, \
-                H and W stands for height and width
-            - location: :math:`(B, 2)`, while B is the batch size
+            - x: :math:`(B, C, H, W)`, where `B` is the batch size, `C` is the number of channels,
+              and `H` and `W` represent height and width respectively.
+            - location: :math:`(B, 2)`, where `B` is the batch size.
         """
         B, C, H, W = x.shape
         device, dtype = x.device, x.dtype

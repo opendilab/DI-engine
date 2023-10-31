@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -39,11 +39,11 @@ class ResBlock(nn.Module):
             Init the 2D convolution residual block.
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor.
-            - activation (:obj:`nn.Module`): the optional activation function.
-            - norm_type (:obj:`str`): type of the normalization, default set to 'BN'(Batch Normalization), \
+            - activation (:obj:`nn.Module`): The optional activation function.
+            - norm_type (:obj:`str`): Type of the normalization, default set to 'BN'(Batch Normalization), \
                 supports ['BN', 'LN', 'IN', 'GN', 'SyncBN', None].
-            - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck', 'downsample']
-            - bias (:obj:`bool`): whether adds a learnable bias to the conv2d_block. default set to True.
+            - res_type (:obj:`str`): Type of residual block, supports ['basic', 'bottleneck', 'downsample']
+            - bias (:obj:`bool`): Whether to add a learnable bias to the conv2d_block. default set to True.
             - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None,
                 which means out_channels = in_channels.
         """
@@ -81,7 +81,7 @@ class ResBlock(nn.Module):
             self.conv3 = conv2d_block(in_channels, out_channels, 3, 2, 1, activation=None, norm_type=None, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Return the redisual block output.
         Arguments:
@@ -135,7 +135,7 @@ class ResFCBlock(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            Return the redisual block output.
+            Return the output of the redisual block.
         Arguments:
             - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
