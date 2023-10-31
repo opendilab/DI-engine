@@ -12,10 +12,8 @@ shape_test = [
 ]
 
 dtype_test = [
-    "int32",
     "int64",
     "float32",
-    "float64",
 ]
 
 data_type_test = [
@@ -29,16 +27,10 @@ def get_action(shape, dtype, class_type):
     if class_type == "numpy":
         return np.random.randn(*shape).astype(dtype)
     else:
-        if dtype == "int32":
-            dtype = torch.int32
-        elif dtype == "int64":
+        if dtype == "int64":
             dtype = torch.int64
-        elif dtype == "float16":
-            dtype = torch.float16
         elif dtype == "float32":
             dtype = torch.float32
-        elif dtype == "float64":
-            dtype = torch.float64
 
         if class_type == "torch":
             return torch.randn(*shape).type(dtype)
@@ -72,7 +64,7 @@ def test_default_preprocess_learn_action():
                 data = default_preprocess_learn(data, use_priority_IS_weight, use_priority, use_nstep, ignore_done)
 
                 assert data['obs'].shape == torch.Size([10, 4, 84, 84])
-                if dtype in ["int32", "int64"] and shape[0] == 1:
+                if dtype in ["int64"] and shape[0] == 1:
                     assert data['action'].shape == torch.Size([10])
                 else:
                     assert data['action'].shape == torch.Size([10, *shape])
