@@ -143,7 +143,7 @@ class HAVACAgent(nn.Module):
         action_space: str = 'discrete',
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
-        sigma_type: Optional[str] = 'independent',
+        sigma_type: Optional[str] = 'happo',
         bound_type: Optional[str] = None,
         res_link: bool = False,
     ) -> None:

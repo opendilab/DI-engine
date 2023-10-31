@@ -101,8 +101,9 @@ class HAPPOPolicy(Policy):
             if self._action_space in ['continuous']:
                 # init log sigma
                 for agent_id in range(self._cfg.agent_num):
-                    if hasattr(self._model.agent_models[agent_id].actor_head, 'log_sigma_param'):
-                        torch.nn.init.constant_(self._model.agent_models[agent_id].actor_head.log_sigma_param, -0.5)
+                    # if hasattr(self._model.agent_models[agent_id].actor_head, 'log_sigma_param'):
+                    #     torch.nn.init.constant_(self._model.agent_models[agent_id].actor_head.log_sigma_param, 1)
+                    # The above initialization step has been changed to reparameterizationHead.
                     for m in list(self._model.agent_models[agent_id].critic.modules()) + \
                         list(self._model.agent_models[agent_id].actor.modules()):
                         if isinstance(m, torch.nn.Linear):
@@ -303,12 +304,12 @@ class HAPPOPolicy(Policy):
                 dist_new = torch.distributions.categorical.Categorical(logits=new_logits)
                 dist_old = torch.distributions.categorical.Categorical(logits=old_logits)
             elif self._cfg.action_space == 'continuous':
-                dist_new = Independent(Normal(new_logits['mu'], new_logits['sigma']), 1)
-                dist_old = Independent(Normal(old_logits['mu'], old_logits['sigma']), 1)
+                dist_new = Normal(new_logits['mu'], new_logits['sigma'])
+                dist_old = Normal(old_logits['mu'], old_logits['sigma'])
             logp_new = dist_new.log_prob(agent_data['action'])
             logp_old = dist_old.log_prob(agent_data['action'])
-            # factor = factor * torch.prod(torch.exp(logp_new - logp_old), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
-            factor = factor * torch.exp(logp_new - logp_old).reshape(all_data_len, 1).detach()
+            factor = factor * torch.prod(torch.exp(logp_new - logp_old), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
+            # factor = factor * torch.exp(logp_new - logp_old).reshape(all_data_len, 1).detach()
         return return_infos
 
     def _state_dict_learn(self) -> Dict[str, Any]:
