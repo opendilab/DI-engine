@@ -307,7 +307,14 @@
 <span class="sd">            used to import modules, and they key ``type`` is used to indicate the model.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - (:obj:`torch.nn.Module`): The created neural network model.</span>
-
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; cfg = EasyDict({</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;import_names&#39;: [&#39;ding.model.template.q_learning&#39;],</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;type&#39;: &#39;dqn&#39;,</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;obs_shape&#39;: 4,</span>
+<span class="sd">        &gt;&gt;&gt;     &#39;action_shape&#39;: 2,</span>
+<span class="sd">        &gt;&gt;&gt; })</span>
+<span class="sd">        &gt;&gt;&gt; model = create_model(cfg)</span>
 <span class="sd">    .. tip::</span>
 <span class="sd">        This method will not modify the ``cfg`` , it will deepcopy the ``cfg`` and then modify it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -307,7 +307,10 @@
 <span class="k">class</span> <span class="nc">DiscreteMAQAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The discrete action Multi-Agent Q-value Actor-CritiC (MAQAC) model.</span>
+<span class="sd">        The neural network and computation graph of algorithms related to discrete action Multi-Agent Q-value \</span>
+<span class="sd">        Actor-CritiC (MAQAC) model. The model is composed of actor and critic, where actor is a MLP network and \</span>
+<span class="sd">        critic is a MLP network. The actor network is used to predict the action probability distribution, and the \</span>
+<span class="sd">        critic network is used to predict the Q value of the state-action pair.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -328,7 +331,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the DiscreteMAQAC Model according to arguments.</span>
+<span class="sd">            Initialize the DiscreteMAQAC Model according to arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - agent_obs_shape (:obj:`Union[int, SequenceType]`): Agent&#39;s observation&#39;s space.</span>
 <span class="sd">            - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation&#39;s space.</span>
@@ -385,93 +388,189 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="DiscreteMAQAC.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteMAQAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Use observation and action tensor to predict output.</span>
-<span class="sd">            Parameter updates with QAC&#39;s MLPs forward setup.</span>
+<span class="sd">            Use observation tensor to predict output, with ``&#39;compute_actor&#39;`` or ``&#39;compute_critic&#39;`` mode.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            Forward with ``&#39;compute_actor&#39;``:</span>
-<span class="sd">                - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
-<span class="sd">                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.</span>
-<span class="sd">            Forward with ``&#39;compute_critic&#39;``, inputs (`Dict`) Necessary Keys:</span>
-<span class="sd">                - ``obs``, ``action`` encoded tensors.</span>
-<span class="sd">                - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): The agent&#39;s observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">            - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
-<span class="sd">                Forward with ``&#39;compute_actor&#39;``, Necessary Keys (either):</span>
-<span class="sd">                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.</span>
-<span class="sd">                    - logit (:obj:`torch.Tensor`): Action&#39;s probabilities.</span>
-<span class="sd">                Forward with ``&#39;compute_critic&#39;``, Necessary Keys:</span>
-<span class="sd">                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
-<span class="sd">        Actor Shapes:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
-<span class="sd">        Critic Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``global_obs_shape``</span>
-<span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``, Necessary Keys (either):</span>
+<span class="sd">                - logit (:obj:`torch.Tensor`): Action&#39;s probabilities.</span>
+<span class="sd">                - action_mask (:obj:`torch.Tensor`): Action mask tensor with same size as ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): Q value tensor is the shape of :math:`(B, A, N2)`, where B is batch size \</span>
+<span class="sd">                    and A is agent num. N2 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N2)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N2 corresponds to ``action_shape``.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``, Necessary Keys (either):</span>
+<span class="sd">                - logit (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N2 corresponds to ``action_shape``.</span>
+<span class="sd">                - action_mask (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N2 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N2)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N2 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N2 corresponds to ``action_shape``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; B = 32</span>
+<span class="sd">            &gt;&gt;&gt; agent_obs_shape = 216</span>
+<span class="sd">            &gt;&gt;&gt; global_obs_shape = 264</span>
+<span class="sd">            &gt;&gt;&gt; agent_num = 8</span>
+<span class="sd">            &gt;&gt;&gt; action_shape = 14</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(B, agent_num, agent_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(B, agent_num, global_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: torch.randint(0, 2, size=(B, agent_num, action_shape))</span>
+<span class="sd">            &gt;&gt;&gt;     }</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=True)</span>
+<span class="sd">            &gt;&gt;&gt; logit = model(data, mode=&#39;compute_actor&#39;)[&#39;logit&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; value = model(data, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
-<span class="sd">            Execute parameter updates with ``&#39;compute_actor&#39;`` mode</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            Use observation tensor to predict action logits.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
-<span class="sd">                ``hidden_size = actor_head_hidden_size``</span>
-<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): The agent&#39;s observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.</span>
-<span class="sd">        ReturnsKeys (either):</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`):</span>
-<span class="sd">                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">                - logit (:obj:`torch.Tensor`): Action&#39;s probabilities.</span>
+<span class="sd">                - action_mask (:obj:`torch.Tensor`): Action mask tensor with same size as ``action_shape``.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
-<span class="sd">            - logit (:obj:`list`): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">                - logit (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N2 corresponds to ``action_shape``.</span>
+<span class="sd">                - action_mask (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N2 corresponds to ``action_shape``.</span>
 <span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
-<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 64, &#39;regression&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
-<span class="sd">            &gt;&gt;&gt; model = DiscreteQAC(64, 64, &#39;reparameterization&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; B = 32</span>
+<span class="sd">            &gt;&gt;&gt; agent_obs_shape = 216</span>
+<span class="sd">            &gt;&gt;&gt; global_obs_shape = 264</span>
+<span class="sd">            &gt;&gt;&gt; agent_num = 8</span>
+<span class="sd">            &gt;&gt;&gt; action_shape = 14</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(B, agent_num, agent_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(B, agent_num, global_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: torch.randint(0, 2, size=(B, agent_num, action_shape))</span>
+<span class="sd">            &gt;&gt;&gt;     }</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=True)</span>
+<span class="sd">            &gt;&gt;&gt; logit = model.compute_actor(data)[&#39;logit&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">action_mask</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_state&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="s1">&#39;action_mask&#39;</span><span class="p">:</span> <span class="n">action_mask</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Execute parameter updates with ``&#39;compute_critic&#39;`` mode</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            use observation tensor to predict Q value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - ``obs``, ``action`` encoded tensors.</span>
-<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): The agent&#39;s observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Q-value output.</span>
-<span class="sd">        ReturnKeys:</span>
-<span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): Q value tensor is the shape of :math:`(B, A, N2)`, where B is batch size \</span>
+<span class="sd">                    and A is agent num. N2 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N2)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N2 corresponds to ``action_shape``.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, whose \</span>
+<span class="sd">                key-values vary in different forward modes.</span>
+<span class="sd">            if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N2)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N2 corresponds to ``action_shape``.</span>
+<span class="sd">            if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N2 corresponds to ``action_shape``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; B = 32</span>
+<span class="sd">            &gt;&gt;&gt; agent_obs_shape = 216</span>
+<span class="sd">            &gt;&gt;&gt; global_obs_shape = 264</span>
+<span class="sd">            &gt;&gt;&gt; agent_num = 8</span>
+<span class="sd">            &gt;&gt;&gt; action_shape = 14</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(B, agent_num, agent_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(B, agent_num, global_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: torch.randint(0, 2, size=(B, agent_num, action_shape))</span>
+<span class="sd">            &gt;&gt;&gt;     }</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=True)</span>
+<span class="sd">            &gt;&gt;&gt; value = model.compute_critic(data)[&#39;q_value&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">twin_critic</span><span class="p">:</span>
@@ -485,7 +584,10 @@
 <span class="k">class</span> <span class="nc">ContinuousMAQAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The continuous action Multi-Agent Q-value Actor-CritiC (MAQAC) model.</span>
+<span class="sd">        The neural network and computation graph of algorithms related to continuous action Multi-Agent Q-value \</span>
+<span class="sd">        Actor-CritiC (MAQAC) model. The model is composed of actor and critic, where actor is a MLP network and \</span>
+<span class="sd">        critic is a MLP network. The actor network is used to predict the action probability distribution, and the \</span>
+<span class="sd">        critic network is used to predict the Q value of the state-action pair.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -507,7 +609,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the QAC Model according to arguments.</span>
+<span class="sd">            Initialize the QAC Model according to arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s space, such as 4, (3, )</span>
@@ -587,101 +689,131 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ContinuousMAQAC.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ContinuousMAQAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Use observation and action tensor to predict output.</span>
-<span class="sd">            Parameter updates with QAC&#39;s MLPs forward setup.</span>
+<span class="sd">            Use observation and action tensor to predict output in ``&#39;compute_actor&#39;`` or ``&#39;compute_critic&#39;`` mode.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            Forward with ``&#39;compute_actor&#39;``:</span>
-<span class="sd">                - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
-<span class="sd">                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.</span>
-
-<span class="sd">            Forward with ``&#39;compute_critic&#39;``, inputs (`Dict`) Necessary Keys:</span>
-<span class="sd">                - ``obs``, ``action`` encoded tensors.</span>
-
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): The agent&#39;s observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">                - ``action`` (:obj:`torch.Tensor`): The action tensor data, \</span>
+<span class="sd">                    with shape :math:`(B, A, N3)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N3 corresponds to ``action_shape``.</span>
 <span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
-
-<span class="sd">                Forward with ``&#39;compute_actor&#39;``, Necessary Keys (either):</span>
-<span class="sd">                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.</span>
-<span class="sd">                    - logit (:obj:`torch.Tensor`):</span>
-<span class="sd">                        Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
-
-<span class="sd">                Forward with ``&#39;compute_critic&#39;``, Necessary Keys:</span>
-<span class="sd">                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
-<span class="sd">        Actor Shapes:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
-
-<span class="sd">        Critic Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``</span>
-<span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``</span>
-
-<span class="sd">        Actor Examples:</span>
-<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
-<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;regression&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
-<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;reparameterization&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
-
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``, if action_space == &#39;regression&#39;, Necessary Keys:</span>
+<span class="sd">                - action (:obj:`torch.Tensor`): Action tensor with same size as ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``, if action_space == &#39;reparameterization&#39;, Necessary Keys:</span>
+<span class="sd">                - logit (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N3)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N3 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): :math:`(B, A)`, where B is batch size and A is agent num.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">                - ``action`` (:obj:`torch.Tensor`): :math:`(B, A, N3)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N3 corresponds to ``action_shape``.</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``, if action_space == &#39;regression&#39;, Necessary Keys:</span>
+<span class="sd">                - action (:obj:`torch.Tensor`): :math:`(B, A, N3)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N3 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``, if action_space == &#39;reparameterization&#39;, Necessary Keys:</span>
+<span class="sd">                - logit (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N3)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N3 corresponds to ``action_shape``.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num.</span>
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): :math:`(B, A)`, where B is batch size and A is agent num.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; B = 32</span>
+<span class="sd">            &gt;&gt;&gt; agent_obs_shape = 216</span>
+<span class="sd">            &gt;&gt;&gt; global_obs_shape = 264</span>
+<span class="sd">            &gt;&gt;&gt; agent_num = 8</span>
+<span class="sd">            &gt;&gt;&gt; action_shape = 14</span>
+<span class="sd">            &gt;&gt;&gt; action_space = &#39;regression&#39;</span>
+<span class="sd">            &gt;&gt;&gt; # or</span>
+<span class="sd">            &gt;&gt;&gt; action_space = &#39;reparameterization&#39;</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(B, agent_num, agent_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(B, agent_num, global_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: torch.randint(0, 2, size=(B, agent_num, action_shape))</span>
+<span class="sd">            &gt;&gt;&gt;     },</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;action&#39;: torch.randn(B, agent_num, squeeze(action_shape))</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousMAQAC(agent_obs_shape, global_obs_shape, action_shape, action_space, twin_critic=False)</span>
+<span class="sd">            &gt;&gt;&gt; if action_space == &#39;regression&#39;:</span>
+<span class="sd">            &gt;&gt;&gt;     action = model(data[&#39;obs&#39;], mode=&#39;compute_actor&#39;)[&#39;action&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; elif action_space == &#39;reparameterization&#39;:</span>
+<span class="sd">            &gt;&gt;&gt;     (mu, sigma) = model(data[&#39;obs&#39;], mode=&#39;compute_actor&#39;)[&#39;logit&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; value = model(data, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
-<span class="sd">            Execute parameter updates with ``&#39;compute_actor&#39;`` mode</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            Use observation tensor to predict action logits.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
-<span class="sd">                ``hidden_size = actor_head_hidden_size``</span>
-<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``agent_state`` (:obj:`torch.Tensor`): The agent&#39;s observation tensor data, \</span>
+<span class="sd">                    with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N0 corresponds to ``agent_obs_shape``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.</span>
-
-<span class="sd">        ReturnsKeys (either):</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`):</span>
-<span class="sd">                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
-<span class="sd">            - logit + action_args</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+<span class="sd">            if action_space == &#39;regression&#39;, Necessary Keys:</span>
+<span class="sd">                - action (:obj:`torch.Tensor`): Action tensor with same size as ``action_shape``.</span>
+<span class="sd">            if action_space == &#39;reparameterization&#39;, Necessary Keys:</span>
+<span class="sd">                - logit (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N3)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N3 corresponds to ``action_shape``.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
-<span class="sd">            - logit (:obj:`Union[list, torch.Tensor]`):</span>
-<span class="sd">              - case1(continuous space, list): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.</span>
-<span class="sd">              - case2(hybrid space, torch.Tensor): :math:`(B, N1)`, where N1 is action_type_shape</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
-<span class="sd">            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape</span>
-<span class="sd">                (action_args are continuous real value)</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``agent_state`` (:obj:`torch.Tensor`): :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+<span class="sd">            if action_space == &#39;regression&#39;, Necessary Keys:</span>
+<span class="sd">                - action (:obj:`torch.Tensor`): :math:`(B, A, N3)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N3 corresponds to ``action_shape``.</span>
+<span class="sd">            if action_space == &#39;reparameterization&#39;, Necessary Keys:</span>
+<span class="sd">                - logit (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N3)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num. N3 corresponds to ``action_shape``.</span>
 <span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
-<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;regression&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
-<span class="sd">            &gt;&gt;&gt; model = ContinuousQAC(64, 64, &#39;reparameterization&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; B = 32</span>
+<span class="sd">            &gt;&gt;&gt; agent_obs_shape = 216</span>
+<span class="sd">            &gt;&gt;&gt; global_obs_shape = 264</span>
+<span class="sd">            &gt;&gt;&gt; agent_num = 8</span>
+<span class="sd">            &gt;&gt;&gt; action_shape = 14</span>
+<span class="sd">            &gt;&gt;&gt; action_space = &#39;regression&#39;</span>
+<span class="sd">            &gt;&gt;&gt; # or</span>
+<span class="sd">            &gt;&gt;&gt; action_space = &#39;reparameterization&#39;</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;agent_state&#39;: torch.randn(B, agent_num, agent_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousMAQAC(agent_obs_shape, global_obs_shape, action_shape, action_space, twin_critic=False)</span>
+<span class="sd">            &gt;&gt;&gt; if action_space == &#39;regression&#39;:</span>
+<span class="sd">            &gt;&gt;&gt;     action = model.compute_actor(data)[&#39;action&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; elif action_space == &#39;reparameterization&#39;:</span>
+<span class="sd">            &gt;&gt;&gt;     (mu, sigma) = model.compute_actor(data)[&#39;logit&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;agent_state&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
@@ -692,28 +824,67 @@
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]]}</span>
 
     <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Execute parameter updates with ``&#39;compute_critic&#39;`` mode</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            Use observation tensor and action tensor to predict Q value.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj: `Dict`): ``obs``, ``action`` and ``logit` tensors.</span>
-<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): The agent&#39;s observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \</span>
+<span class="sd">                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">                - ``action`` (:obj:`torch.Tensor`): The action tensor data, \</span>
+<span class="sd">                    with shape :math:`(B, A, N3)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N3 corresponds to ``action_shape``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Q-value output.</span>
-
-<span class="sd">        ArgumentsKeys:</span>
-<span class="sd">            - necessary:</span>
-<span class="sd">              - obs: (:obj:`torch.Tensor`): 2-dim vector observation</span>
-<span class="sd">              - action (:obj:`Union[torch.Tensor, Dict]`): action from actor</span>
-<span class="sd">            - optional:</span>
-<span class="sd">              - logit (:obj:`torch.Tensor`): discrete action logit</span>
-<span class="sd">        ReturnKeys:</span>
-<span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+<span class="sd">            if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num.</span>
+<span class="sd">            if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): :math:`(B, A)`, where B is batch size and A is agent num.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:</span>
+<span class="sd">                    - ``agent_state`` (:obj:`torch.Tensor`): :math:`(B, A, N0)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N0 corresponds to ``agent_obs_shape``.</span>
+<span class="sd">                    - ``global_state`` (:obj:`torch.Tensor`): :math:`(B, A, N1)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N1 corresponds to ``global_obs_shape``.</span>
+<span class="sd">                    - ``action_mask`` (:obj:`torch.Tensor`): :math:`(B, A, N2)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                        N2 corresponds to ``action_shape``.</span>
+<span class="sd">                - ``action`` (:obj:`torch.Tensor`): :math:`(B, A, N3)`, where B is batch size and A is agent num. \</span>
+<span class="sd">                    N3 corresponds to ``action_shape``.</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+<span class="sd">            if ``twin_critic`` is ``True``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A)`, where B is batch size and \</span>
+<span class="sd">                    A is agent num.</span>
+<span class="sd">            if ``twin_critic`` is ``False``, Necessary Keys:</span>
+<span class="sd">                - q_value (:obj:`torch.Tensor`): :math:`(B, A)`, where B is batch size and A is agent num.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; B = 32</span>
+<span class="sd">            &gt;&gt;&gt; agent_obs_shape = 216</span>
+<span class="sd">            &gt;&gt;&gt; global_obs_shape = 264</span>
+<span class="sd">            &gt;&gt;&gt; agent_num = 8</span>
+<span class="sd">            &gt;&gt;&gt; action_shape = 14</span>
+<span class="sd">            &gt;&gt;&gt; action_space = &#39;regression&#39;</span>
+<span class="sd">            &gt;&gt;&gt; # or</span>
+<span class="sd">            &gt;&gt;&gt; action_space = &#39;reparameterization&#39;</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(B, agent_num, agent_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(B, agent_num, global_obs_shape),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: torch.randint(0, 2, size=(B, agent_num, action_shape))</span>
+<span class="sd">            &gt;&gt;&gt;     },</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;action&#39;: torch.randn(B, agent_num, squeeze(action_shape))</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; model = ContinuousMAQAC(agent_obs_shape, global_obs_shape, action_shape, action_space, twin_critic=False)</span>
+<span class="sd">            &gt;&gt;&gt; value = model.compute_critic(data)[&#39;q_value&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">obs</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;global_state&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>

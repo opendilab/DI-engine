@@ -92,7 +92,7 @@ The default config of CQLPolicy is defined as follows:
    :noindex:
 
 
-.. autoclass:: ding.policy.cql.CQLDiscretePolicy
+.. autoclass:: ding.policy.cql.DiscreteCQLPolicy
    :noindex:
 
 

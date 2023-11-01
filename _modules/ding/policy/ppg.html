@@ -425,7 +425,7 @@
         <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
     <span class="p">)</span>
 
-<div class="viewcode-block" id="PPGPolicy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return this algorithm default model setting for demonstration.</span>
@@ -436,9 +436,9 @@
 <span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
 <span class="sd">            by import_names path.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;ppg&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.ppg&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="s1">&#39;ppg&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.ppg&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="PPGPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
@@ -474,9 +474,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_train_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">aux_train_epoch</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_train_iteration</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_memories</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_bc_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">aux_bc_weight</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_bc_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">aux_bc_weight</span>
 
-<div class="viewcode-block" id="PPGPolicy._data_preprocess_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._data_preprocess_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_data_preprocess_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_data_preprocess_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Preprocess the data to fit the required data format for learning, including \</span>
@@ -497,9 +497,9 @@
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></div>
+        <span class="k">return</span> <span class="n">data</span>
 
-<div class="viewcode-block" id="PPGPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward and backward function of learn mode.</span>
@@ -616,9 +616,9 @@
                 <span class="s1">&#39;policy_adv_abs_max&#39;</span><span class="p">:</span> <span class="n">policy_adv</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
                 <span class="s1">&#39;approx_kl&#39;</span><span class="p">:</span> <span class="n">ppo_info</span><span class="o">.</span><span class="n">approx_kl</span><span class="p">,</span>
                 <span class="s1">&#39;clipfrac&#39;</span><span class="p">:</span> <span class="n">ppo_info</span><span class="o">.</span><span class="n">clipfrac</span><span class="p">,</span>
-            <span class="p">}</span></div>
+            <span class="p">}</span>
 
-<div class="viewcode-block" id="PPGPolicy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the state_dict of learn mode, usually including model and optimizer.</span>
@@ -629,9 +629,9 @@
             <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;optimizer_ac&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_ac</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
             <span class="s1">&#39;optimizer_aux_critic&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_aux_critic</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
-        <span class="p">}</span></div>
+        <span class="p">}</span>
 
-<div class="viewcode-block" id="PPGPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
@@ -648,9 +648,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_ac</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_ac&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_aux_critic</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_aux_critic&#39;</span><span class="p">])</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_aux_critic</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_aux_critic&#39;</span><span class="p">])</span>
 
-<div class="viewcode-block" id="PPGPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Collect mode init method. Called by ``self.__init__``.</span>
@@ -661,9 +661,9 @@
         <span class="c1"># TODO continuous action space exploration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">discount_factor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">gae_lambda</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">gae_lambda</span>
 
-<div class="viewcode-block" id="PPGPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward function of collect mode.</span>
@@ -685,9 +685,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
 
-<div class="viewcode-block" id="PPGPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">               Generate dict type transition data from inputs.</span>
@@ -708,9 +708,9 @@
             <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
             <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="k">return</span> <span class="n">transition</span></div>
+        <span class="k">return</span> <span class="n">transition</span>
 
-<div class="viewcode-block" id="PPGPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the trajectory and calculate GAE, return one data to cache for next time calculation</span>
@@ -745,9 +745,9 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
                 <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
 
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
 
-<div class="viewcode-block" id="PPGPolicy._get_batch_size"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._get_batch_size">[docs]</a>    <span class="k">def</span> <span class="nf">_get_batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_get_batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get learn batch size. In the PPG algorithm, different networks require different data.\</span>
@@ -757,18 +757,18 @@
 <span class="sd">            - output (:obj:`dict[str, int]`): Dict type data, including str type batch size and int type batch size.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;policy&#39;</span><span class="p">:</span> <span class="n">bs</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">bs</span><span class="p">}</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;policy&#39;</span><span class="p">:</span> <span class="n">bs</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">bs</span><span class="p">}</span>
 
-<div class="viewcode-block" id="PPGPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Evaluate mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init eval model with argmax strategy.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-<div class="viewcode-block" id="PPGPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward function of eval mode, similar to ``self._forward_collect``.</span>
@@ -790,9 +790,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
 
-<div class="viewcode-block" id="PPGPolicy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return variables&#39; name if variables are to used in monitor.</span>
@@ -811,9 +811,9 @@
             <span class="s1">&#39;aux_value_loss&#39;</span><span class="p">,</span>
             <span class="s1">&#39;auxiliary_loss&#39;</span><span class="p">,</span>
             <span class="s1">&#39;behavioral_cloning_loss&#39;</span><span class="p">,</span>
-        <span class="p">]</span></div>
+        <span class="p">]</span>
 
-<div class="viewcode-block" id="PPGPolicy.learn_aux"><a class="viewcode-back" href="../../../05_api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy.learn_aux">[docs]</a>    <span class="k">def</span> <span class="nf">learn_aux</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">learn_aux</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The auxiliary phase training, where the value is distilled into the policy network</span>
@@ -902,7 +902,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_memories</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">return</span> <span class="n">auxiliary_loss_</span> <span class="o">/</span> <span class="n">i</span><span class="p">,</span> <span class="n">behavioral_cloning_loss_</span> <span class="o">/</span> <span class="n">i</span><span class="p">,</span> <span class="n">value_loss_</span> <span class="o">/</span> <span class="n">i</span></div></div>
+        <span class="k">return</span> <span class="n">auxiliary_loss_</span> <span class="o">/</span> <span class="n">i</span><span class="p">,</span> <span class="n">behavioral_cloning_loss_</span> <span class="o">/</span> <span class="n">i</span><span class="p">,</span> <span class="n">value_loss_</span> <span class="o">/</span> <span class="n">i</span></div>
 
 
 <span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;ppg_offpolicy&#39;</span><span class="p">)</span>

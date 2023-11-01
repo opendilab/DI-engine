@@ -578,13 +578,28 @@
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.coma.</span></span><span class="sig-name descname"><span class="pre">COMA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/coma.html#COMA"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>COMA network is QAC-type actor-critic.</p>
+<dt>Overview:</dt><dd><p>The network of COMA algorithm, which is QAC-type actor-critic.</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>mode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): The list of forward mode, including <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code> and <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code></p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/coma.html#COMA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="simple">
+<dd><dl>
+<dt>Overview:</dt><dd><p>forward computation graph of COMA network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</p></li>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the masked action</p></li>
+</ul>
+</dd>
 <dt>ArgumentsKeys:</dt><dd><ul class="simple">
 <li><p>necessary: <code class="docutils literal notranslate"><span class="pre">obs</span></code> { <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">global_state</span></code>, <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> }, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">prev_state</span></code></p></li>
 </ul>
@@ -599,6 +614,44 @@
 </dl>
 </li>
 </ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>: <span class="math notranslate nohighlight">\((T, B, A, N, D)\)</span>, <code class="docutils literal notranslate"><span class="pre">action_mask</span></code>: <span class="math notranslate nohighlight">\((T, B, A, N, A)\)</span></p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): <span class="math notranslate nohighlight">\([[[h, c] for _ in range(A)] for _ in range(B)]\)</span></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N, A)\)</span></p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): <span class="math notranslate nohighlight">\([[[h, c] for _ in range(A)] for _ in range(B)]\)</span></p></li>
+<li><p>action_mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N, A)\)</span></p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N, A)\)</span></p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">agent_num</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">agent_num</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs_dim</span><span class="p">,</span> <span class="n">global_obs_dim</span><span class="p">,</span> <span class="n">action_dim</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">9</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coma_model</span> <span class="o">=</span> <span class="n">COMA</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">agent_num</span><span class="o">=</span><span class="n">agent_num</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">obs_shape</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">agent_state</span><span class="o">=</span><span class="p">(</span><span class="n">obs_dim</span><span class="p">,</span> <span class="p">),</span> <span class="n">global_state</span><span class="o">=</span><span class="p">(</span><span class="n">global_obs_dim</span><span class="p">,</span> <span class="p">)),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">action_shape</span><span class="o">=</span><span class="n">action_dim</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">actor_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prev_state</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">agent_num</span><span class="p">)]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bs</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s1">&#39;agent_state&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">,</span> <span class="n">obs_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s1">&#39;action_mask&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">},</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">prev_state</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">coma_model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="o">=</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s1">&#39;agent_state&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">,</span> <span class="n">obs_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="s1">&#39;global_state&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">global_obs_dim</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="p">},</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">action_dim</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">agent_num</span><span class="p">)),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">coma_model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd>
 </dl>
 </dd></dl>

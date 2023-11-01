@@ -310,7 +310,7 @@
 <span class="kn">from</span> <span class="nn">.common_utils</span> <span class="kn">import</span> <span class="n">default_preprocess_learn</span>
 
 
-<span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;discrete_sac&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="DiscreteSACPolicy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;discrete_sac&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DiscreteSACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -402,7 +402,7 @@
         <span class="p">),</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
@@ -413,9 +413,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;discrete_maqac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;discrete_qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="s1">&#39;discrete_qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span></div>
 
-    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For DiscreteSAC, it mainly \</span>
@@ -484,9 +484,9 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
@@ -638,9 +638,9 @@
             <span class="s1">&#39;q_value_2&#39;</span><span class="p">:</span> <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;target_value&#39;</span><span class="p">:</span> <span class="n">target_value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;entropy&#39;</span><span class="p">:</span> <span class="n">entropy</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-        <span class="p">}</span>
+        <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the state_dict of learn mode, usually including model, target_model and optimizers.</span>
@@ -655,9 +655,9 @@
         <span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span><span class="p">:</span>
             <span class="n">ret</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;optimizer_alpha&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_optim</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()})</span>
-        <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
-    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
@@ -674,9 +674,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_q&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_policy</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_policy&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_optim</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_alpha&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_optim</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_alpha&#39;</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the collect mode of policy, including related attributes and modules. For SAC, it contains the \</span>
@@ -693,9 +693,9 @@
         <span class="c1"># and eps_greedy_sample, and we don&#39;t divide logit by alpha,</span>
         <span class="c1"># for the details please refer to ding/model/wrapper/model_wrappers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;eps_greedy_multinomial_sample&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \</span>
@@ -731,9 +731,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
-    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
                             <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -757,9 +757,9 @@
             <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
             <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="k">return</span> <span class="n">transition</span>
+        <span class="k">return</span> <span class="n">transition</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
@@ -771,9 +771,9 @@
 <span class="sd">            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \</span>
 <span class="sd">                as input transitions, but may contain more data for training.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the eval mode of policy, including related attributes and modules. For DiscreteSAC, it contains \</span>
@@ -785,9 +785,9 @@
 <span class="sd">            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \</span>
@@ -820,9 +820,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
-    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="DiscreteSACPolicy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.DiscreteSACPolicy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
@@ -840,10 +840,10 @@
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
                 <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_q&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_p&#39;</span><span class="p">,</span> <span class="s1">&#39;target_q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_1&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value_2&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;td_error&#39;</span><span class="p">,</span> <span class="s1">&#39;target_value&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy&#39;</span>
-            <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span>
+            <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span></div></div>
 
 
-<div class="viewcode-block" id="SACPolicy"><a class="viewcode-back" href="../../../12_policies/sac.html#ding.policy.sac.SACPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="SACPolicy"><a class="viewcode-back" href="../../../12_policies/sac.html#ding.policy.SACPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -973,7 +973,7 @@
         <span class="p">),</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<div class="viewcode-block" id="SACPolicy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
@@ -984,9 +984,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;continuous_maqac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;continuous_qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="s1">&#39;continuous_qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span></div>
 
-    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SACPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For SAC, it mainly \</span>
@@ -1062,9 +1062,9 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SACPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
@@ -1211,9 +1211,9 @@
             <span class="s1">&#39;target_q_value&#39;</span><span class="p">:</span> <span class="n">target_q_value</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;transformed_log_prob&#39;</span><span class="p">:</span> <span class="n">log_prob</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="o">**</span><span class="n">loss_dict</span>
-        <span class="p">}</span>
+        <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SACPolicy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the state_dict of learn mode, usually including model, target_model and optimizers.</span>
@@ -1228,9 +1228,9 @@
         <span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span><span class="p">:</span>
             <span class="n">ret</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;optimizer_alpha&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_optim</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()})</span>
-        <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
 
-    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SACPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
@@ -1247,9 +1247,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_q</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_q&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_policy</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_policy&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_alpha</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_optim</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_alpha&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_optim</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer_alpha&#39;</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SACPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the collect mode of policy, including related attributes and modules. For SAC, it contains the \</span>
@@ -1262,9 +1262,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SACPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \</span>
@@ -1303,9 +1303,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
-    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+<div class="viewcode-block" id="SACPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
                             <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -1339,9 +1339,9 @@
                 <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
                 <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
             <span class="p">}</span>
-        <span class="k">return</span> <span class="n">transition</span>
+        <span class="k">return</span> <span class="n">transition</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<div class="viewcode-block" id="SACPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
@@ -1354,9 +1354,9 @@
 <span class="sd">            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \</span>
 <span class="sd">                as input transitions, but may contain more data for training.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SACPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the eval mode of policy, including related attributes and modules. For SAC, it contains the \</span>
@@ -1368,9 +1368,9 @@
 <span class="sd">            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SACPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \</span>
@@ -1407,9 +1407,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
 
-    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="SACPolicy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SACPolicy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
@@ -1430,10 +1430,10 @@
             <span class="s1">&#39;alpha&#39;</span><span class="p">,</span>
             <span class="s1">&#39;td_error&#39;</span><span class="p">,</span>
             <span class="s1">&#39;transformed_log_prob&#39;</span><span class="p">,</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span> <span class="o">+</span> <span class="n">alpha_loss</span></div>
+        <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span> <span class="o">+</span> <span class="n">alpha_loss</span></div></div>
 
 
-<span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sqil_sac&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="SQILSACPolicy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SQILSACPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sqil_sac&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SQILSACPolicy</span><span class="p">(</span><span class="n">SACPolicy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -1442,7 +1442,7 @@
 <span class="sd">        SQIL paper link: https://arxiv.org/abs/1905.11108</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="SQILSACPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SQILSACPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For SAC, it mainly \</span>
@@ -1522,9 +1522,9 @@
 
         <span class="c1"># monitor cossimilarity and entropy switch</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_cos</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_entropy</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_entropy</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="SQILSACPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SQILSACPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
@@ -1751,9 +1751,9 @@
             <span class="n">var_monitor</span><span class="p">[</span><span class="s1">&#39;cos_similarity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cos_similarity</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_entropy</span><span class="p">:</span>
             <span class="n">var_monitor</span><span class="p">[</span><span class="s1">&#39;entropy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">entropy</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">var_monitor</span>
+        <span class="k">return</span> <span class="n">var_monitor</span></div>
 
-    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="SQILSACPolicy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.SQILSACPolicy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
@@ -1781,7 +1781,7 @@
             <span class="s1">&#39;sigma&#39;</span><span class="p">,</span>
             <span class="s1">&#39;q_value0&#39;</span><span class="p">,</span>
             <span class="s1">&#39;q_value1&#39;</span><span class="p">,</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span> <span class="o">+</span> <span class="n">alpha_loss</span> <span class="o">+</span> <span class="n">cos_similarity</span> <span class="o">+</span> <span class="n">entropy</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="n">twin_critic</span> <span class="o">+</span> <span class="n">alpha_loss</span> <span class="o">+</span> <span class="n">cos_similarity</span> <span class="o">+</span> <span class="n">entropy</span></div></div>
 </pre></div>
 
               </article>

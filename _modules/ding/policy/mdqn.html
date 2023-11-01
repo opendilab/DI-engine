@@ -305,7 +305,7 @@
 <span class="kn">from</span> <span class="nn">.common_utils</span> <span class="kn">import</span> <span class="n">default_preprocess_learn</span>
 
 
-<div class="viewcode-block" id="MDQNPolicy"><a class="viewcode-back" href="../../../12_policies/mdqn_zh.html#ding.policy.mdqn.MDQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;mdqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="MDQNPolicy"><a class="viewcode-back" href="../../../12_policies/mdqn_zh.html#ding.policy.MDQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;mdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MDQNPolicy</span><span class="p">(</span><span class="n">DQNPolicy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -432,7 +432,7 @@
         <span class="p">),</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="MDQNPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.MDQNPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For MDQN, it contains \</span>
@@ -481,9 +481,9 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;DQN needs target network, please either indicate target_update_freq or target_theta&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="MDQNPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.MDQNPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
@@ -562,9 +562,9 @@
             <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
             <span class="s1">&#39;action_gap&#39;</span><span class="p">:</span> <span class="n">action_gap</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="s1">&#39;clip_frac&#39;</span><span class="p">:</span> <span class="n">clipfrac</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-        <span class="p">}</span>
+        <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="MDQNPolicy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.MDQNPolicy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
@@ -572,7 +572,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;action_gap&#39;</span><span class="p">,</span> <span class="s1">&#39;clip_frac&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;action_gap&#39;</span><span class="p">,</span> <span class="s1">&#39;clip_frac&#39;</span><span class="p">]</span></div></div>
 </pre></div>
 
               </article>

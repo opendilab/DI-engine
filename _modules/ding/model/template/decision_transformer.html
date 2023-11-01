@@ -365,7 +365,6 @@
 <span class="sd">            - x (:obj:`torch.Tensor`): The input tensor.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - out (:obj:`torch.Tensor`): Output tensor, the shape is the same as the input.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(2, 4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; model = MaskedCausalAttention(64, 5, 4, 0.1)</span>
@@ -436,7 +435,6 @@
 <span class="sd">            - x (:obj:`torch.Tensor`): The input tensor.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - output (:obj:`torch.Tensor`): Output tensor, the shape is the same as the input.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(2, 4, 64)</span>
 <span class="sd">            &gt;&gt;&gt; model = Block(64, 5, 4, 0.1)</span>
@@ -554,7 +552,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - output (:obj:`Tuple[torch.Tensor, torch.Tensor, torch.Tensor]`): Output contains three tensors, \</span>
 <span class="sd">            they are correspondingly the predicted states, predicted actions and predicted return-to-go.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; B, T = 4, 6</span>
 <span class="sd">            &gt;&gt;&gt; state_dim = 3</span>
@@ -568,21 +565,16 @@
 <span class="sd">                n_heads=2,\</span>
 <span class="sd">                drop_p=0.1,\</span>
 <span class="sd">            )</span>
-
 <span class="sd">            &gt;&gt;&gt; timesteps = torch.randint(0, 100, [B, 3 * T - 1, 1], dtype=torch.long)  # B x T</span>
 <span class="sd">            &gt;&gt;&gt; states = torch.randn([B, T, state_dim])  # B x T x state_dim</span>
-
 <span class="sd">            &gt;&gt;&gt; actions = torch.randint(0, act_dim, [B, T, 1])</span>
 <span class="sd">            &gt;&gt;&gt; action_target = torch.randint(0, act_dim, [B, T, 1])</span>
 <span class="sd">            &gt;&gt;&gt; returns_to_go_sample = torch.tensor([1, 0.8, 0.6, 0.4, 0.2, 0.]).repeat([B, 1]).unsqueeze(-1).float()</span>
-
 <span class="sd">            &gt;&gt;&gt; traj_mask = torch.ones([B, T], dtype=torch.long)  # B x T</span>
 <span class="sd">            &gt;&gt;&gt; actions = actions.squeeze(-1)</span>
-
 <span class="sd">            &gt;&gt;&gt; state_preds, action_preds, return_preds = DT_model.forward(\</span>
 <span class="sd">                timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go\</span>
 <span class="sd">            )</span>
-
 <span class="sd">            &gt;&gt;&gt; assert state_preds.shape == torch.Size([B, T, state_dim])</span>
 <span class="sd">            &gt;&gt;&gt; assert return_preds.shape == torch.Size([B, T, 1])</span>
 <span class="sd">            &gt;&gt;&gt; assert action_preds.shape == torch.Size([B, T, act_dim])</span>

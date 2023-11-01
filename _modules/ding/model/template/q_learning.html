@@ -493,7 +493,7 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="BDQ.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BDQ.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            BDQ forward computation graph, input observation tensor to predict q_value.</span>
 <span class="sd">        Arguments:</span>
@@ -610,13 +610,6 @@
 
 <div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../12_policies/c51_zh.html#ding.model.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): The output of DQN&#39;s forward, including q_value.</span>
-<span class="sd">        ReturnsKeys:</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            C51DQN forward computation graph, input observation tensor to predict q_value and its distribution.</span>
 <span class="sd">        Arguments:</span>
@@ -631,7 +624,6 @@
 <span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where M is action_shape.</span>
 <span class="sd">            - distribution(:obj:`torch.Tensor`): :math:`(B, M, P)`, where P is n_atom.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; model = C51DQN(128, 64)  # arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 128)</span>
@@ -657,6 +649,14 @@
 
 <div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../12_policies/qrdqn_zh.html#ding.model.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QRDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural network structure and computation graph of QRDQN, which combines distributional RL and DQN. \</span>
+<span class="sd">        You can refer to Distributional Reinforcement Learning with Quantile Regression \</span>
+<span class="sd">        https://arxiv.org/pdf/1710.10044.pdf for more details.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="QRDQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QRDQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -669,9 +669,9 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the QRDQN Model according to input arguments.</span>
+<span class="sd">            Initialize the QRDQN Model according to input arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action&#39;s space.</span>
@@ -723,7 +723,7 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../12_policies/qrdqn_zh.html#ding.model.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict QRDQN&#39;s output.</span>
 <span class="sd">            Parameter updates with QRDQN&#39;s MLPs forward setup.</span>
@@ -733,7 +733,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`):</span>
 <span class="sd">                Run with encoder and head. Return the result prediction dictionary.</span>
-
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.</span>
 <span class="sd">            - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``</span>
@@ -742,7 +741,6 @@
 <span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.</span>
 <span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.</span>
 <span class="sd">            - tau (:obj:`torch.Tensor`):  :math:`(B, M, 1)`</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; model = QRDQN(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -760,6 +758,14 @@
 
 <div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../12_policies/iqn_zh.html#ding.model.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural network structure and computation graph of IQN, which combines distributional RL and DQN. \</span>
+<span class="sd">        You can refer to paper Implicit Quantile Networks for Distributional Reinforcement Learning \</span>
+<span class="sd">        https://arxiv.org/pdf/1806.06923.pdf for more details.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="IQN.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.IQN.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -773,9 +779,9 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the IQN Model according to input arguments.</span>
+<span class="sd">            Initialize the IQN Model according to input arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.</span>
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.</span>
@@ -830,7 +836,7 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../12_policies/iqn_zh.html#ding.model.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict IQN&#39;s output.</span>
 <span class="sd">            Parameter updates with IQN&#39;s MLPs forward setup.</span>
@@ -840,7 +846,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`):</span>
 <span class="sd">                Run with encoder and head. Return the result prediction dictionary.</span>
-
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.</span>
 <span class="sd">            - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``</span>
@@ -867,6 +872,14 @@
 
 <div class="viewcode-block" id="FQF"><a class="viewcode-back" href="../../../../12_policies/fqf_zh.html#ding.model.FQF">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;fqf&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">FQF</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The neural network structure and computation graph of FQF, which combines distributional RL and DQN. \</span>
+<span class="sd">        You can refer to paper Fully Parameterized Quantile Function for Distributional Reinforcement Learning \</span>
+<span class="sd">        https://arxiv.org/pdf/1911.02140.pdf for more details.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FQF.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQF.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -880,9 +893,9 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the FQF Model according to input arguments.</span>
+<span class="sd">            Initialize the FQF Model according to input arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.</span>
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.</span>
@@ -937,7 +950,7 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="FQF.forward"><a class="viewcode-back" href="../../../../12_policies/fqf_zh.html#ding.model.FQF.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict FQF&#39;s output.</span>
 <span class="sd">            Parameter updates with FQF&#39;s MLPs forward setup.</span>
@@ -979,7 +992,11 @@
 <span class="k">class</span> <span class="nc">RainbowDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        RainbowDQN network (C51 + Dueling + Noisy Block)</span>
+<span class="sd">        The neural network structure and computation graph of RainbowDQN, which combines distributional RL and DQN. \</span>
+<span class="sd">        You can refer to paper Rainbow: Combining Improvements in Deep Reinforcement Learning \</span>
+<span class="sd">        https://arxiv.org/pdf/1710.02298.pdf for more details.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 
 <span class="sd">    .. note::</span>
 <span class="sd">        RainbowDQN contains dueling architecture by default.</span>
@@ -1056,7 +1073,7 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="RainbowDQN.forward"><a class="viewcode-back" href="../../../../12_policies/rainbow_zh.html#ding.model.RainbowDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict Rainbow output.</span>
 <span class="sd">            Parameter updates with Rainbow&#39;s MLPs forward setup.</span>
@@ -1066,7 +1083,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`):</span>
 <span class="sd">                Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.</span>
-
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.</span>
 <span class="sd">            - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``</span>
@@ -1074,7 +1090,6 @@
 <span class="sd">            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.</span>
 <span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.</span>
 <span class="sd">            - distribution(:obj:`torch.FloatTensor`): :math:`(B, M, P)`, where P is n_atom.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; model = RainbowDQN(64, 64) # arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -1090,7 +1105,7 @@
 
 
 <span class="k">def</span> <span class="nf">parallel_wrapper</span><span class="p">(</span><span class="n">forward_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Process timestep T and batch_size B at the same time, in other words, treat different timestep data as</span>
 <span class="sd">        different trajectories in a batch.</span>
@@ -1235,7 +1250,6 @@
 <span class="sd">        Shapes:</span>
 <span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``</span>
 <span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
 <span class="sd">            &gt;&gt;&gt; prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4</span>

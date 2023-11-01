@@ -305,9 +305,9 @@
 <span class="k">class</span> <span class="nc">COMAActorNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Decentralized actor network in COMA</span>
+<span class="sd">        Decentralized actor network in COMA algorithm.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward</span>
+<span class="sd">         ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -318,7 +318,7 @@
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            initialize COMA actor network</span>
+<span class="sd">            Initialize COMA actor network</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`int`): the dimension of each agent&#39;s observation state</span>
 <span class="sd">            - action_shape (:obj:`int`): the dimension of action shape</span>
@@ -329,10 +329,30 @@
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The forward computation graph of COMA actor network</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`dict`): input data dict with keys [&#39;obs&#39;, &#39;prev_state&#39;]</span>
+<span class="sd">            - agent_state (:obj:`torch.Tensor`): each agent local state(obs)</span>
+<span class="sd">            - action_mask (:obj:`torch.Tensor`): the masked action</span>
+<span class="sd">            - prev_state (:obj:`torch.Tensor`): the previous hidden state</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`dict`): output data dict with keys [&#39;logit&#39;, &#39;next_state&#39;, &#39;action_mask&#39;]</span>
 <span class="sd">        ArgumentsKeys:</span>
 <span class="sd">            - necessary: ``obs`` { ``agent_state``, ``action_mask`` }, ``prev_state``</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - necessary: ``logit``, ``next_state``, ``action_mask``</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; T, B, A, N = 4, 8, 3, 32</span>
+<span class="sd">            &gt;&gt;&gt; embedding_dim = 64</span>
+<span class="sd">            &gt;&gt;&gt; action_dim = 6</span>
+<span class="sd">            &gt;&gt;&gt; data = torch.randn(T, B, A, N)</span>
+<span class="sd">            &gt;&gt;&gt; model = COMAActorNetwork((N, ), action_dim, [128, embedding_dim])</span>
+<span class="sd">            &gt;&gt;&gt; prev_state = [[None for _ in range(A)] for _ in range(B)]</span>
+<span class="sd">            &gt;&gt;&gt; for t in range(T):</span>
+<span class="sd">            &gt;&gt;&gt;     inputs = {&#39;obs&#39;: {&#39;agent_state&#39;: data[t], &#39;action_mask&#39;: None}, &#39;prev_state&#39;: prev_state}</span>
+<span class="sd">            &gt;&gt;&gt;     outputs = model(inputs)</span>
+<span class="sd">            &gt;&gt;&gt;     logit, prev_state = outputs[&#39;logit&#39;], outputs[&#39;next_state&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">agent_state</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_state&#39;</span><span class="p">]</span>
         <span class="n">prev_state</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">]</span>
@@ -356,9 +376,9 @@
 <span class="k">class</span> <span class="nc">COMACriticNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Centralized critic network in COMA</span>
+<span class="sd">        Centralized critic network in COMA algorithm.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward</span>
+<span class="sd">         ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -374,6 +394,14 @@
 <span class="sd">            - input_size (:obj:`int`): the size of input global observation</span>
 <span class="sd">            - action_shape (:obj:`int`): the dimension of action shape</span>
 <span class="sd">            - hidden_size_list (:obj:`list`): the list of hidden size, default to 128</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`dict`): output data dict with keys [&#39;q_value&#39;]</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`dict`): ``agent_state``: :math:`(T, B, A, N, D)`, ``action_mask``: :math:`(T, B, A, N, A)`</span>
+<span class="sd">            - prev_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`</span>
+<span class="sd">            - next_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`</span>
+<span class="sd">            - action_mask (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">COMACriticNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span> <span class="o">=</span> <span class="n">action_shape</span>
@@ -395,6 +423,19 @@
 <span class="sd">            - necessary: ``obs`` { ``agent_state``, ``global_state`` }, ``action``, ``prev_state``</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - necessary: ``q_value``</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; agent_num, bs, T = 4, 3, 8</span>
+<span class="sd">            &gt;&gt;&gt; obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9</span>
+<span class="sd">            &gt;&gt;&gt; coma_model = COMACriticNetwork(</span>
+<span class="sd">            &gt;&gt;&gt;     obs_dim - action_dim + global_obs_dim + 2 * action_dim * agent_num, action_dim)</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(T, bs, agent_num, obs_dim),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(T, bs, global_obs_dim),</span>
+<span class="sd">            &gt;&gt;&gt;     },</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;action&#39;: torch.randint(0, action_dim, size=(T, bs, agent_num)),</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; output = coma_model(data)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_preprocess_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -439,8 +480,13 @@
 <span class="k">class</span> <span class="nc">COMA</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        COMA network is QAC-type actor-critic.</span>
+<span class="sd">        The network of COMA algorithm, which is QAC-type actor-critic.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - mode (:obj:`list`): The list of forward mode, including ``compute_actor`` and ``compute_critic``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -468,12 +514,53 @@
 
 <div class="viewcode-block" id="COMA.forward"><a class="viewcode-back" href="../../../../12_policies/coma.html#ding.model.template.coma.COMA.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            forward computation graph of COMA network</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`dict`): input data dict with keys [&#39;obs&#39;, &#39;prev_state&#39;, &#39;action&#39;]</span>
+<span class="sd">            - agent_state (:obj:`torch.Tensor`): each agent local state(obs)</span>
+<span class="sd">            - global_state (:obj:`torch.Tensor`): global state(obs)</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): the masked action</span>
 <span class="sd">        ArgumentsKeys:</span>
 <span class="sd">            - necessary: ``obs`` { ``agent_state``, ``global_state``, ``action_mask`` }, ``action``, ``prev_state``</span>
 <span class="sd">        ReturnsKeys:</span>
 <span class="sd">            - necessary:</span>
 <span class="sd">                - compute_critic: ``q_value``</span>
 <span class="sd">                - compute_actor: ``logit``, ``next_state``, ``action_mask``</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`dict`): ``agent_state``: :math:`(T, B, A, N, D)`, ``action_mask``: :math:`(T, B, A, N, A)`</span>
+<span class="sd">            - prev_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`</span>
+<span class="sd">            - next_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`</span>
+<span class="sd">            - action_mask (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; agent_num, bs, T = 4, 3, 8</span>
+<span class="sd">            &gt;&gt;&gt; agent_num, bs, T = 4, 3, 8</span>
+<span class="sd">            &gt;&gt;&gt; obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9</span>
+<span class="sd">            &gt;&gt;&gt; coma_model = COMA(</span>
+<span class="sd">            &gt;&gt;&gt;     agent_num=agent_num,</span>
+<span class="sd">            &gt;&gt;&gt;     obs_shape=dict(agent_state=(obs_dim, ), global_state=(global_obs_dim, )),</span>
+<span class="sd">            &gt;&gt;&gt;     action_shape=action_dim,</span>
+<span class="sd">            &gt;&gt;&gt;     actor_hidden_size_list=[128, 64],</span>
+<span class="sd">            &gt;&gt;&gt; )</span>
+<span class="sd">            &gt;&gt;&gt; prev_state = [[None for _ in range(agent_num)] for _ in range(bs)]</span>
+<span class="sd">            &gt;&gt;&gt; data = {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(T, bs, agent_num, obs_dim),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: None,</span>
+<span class="sd">            &gt;&gt;&gt;     },</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;prev_state&#39;: prev_state,</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; output = coma_model(data, mode=&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; data= {</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(T, bs, agent_num, obs_dim),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(T, bs, global_obs_dim),</span>
+<span class="sd">            &gt;&gt;&gt;     },</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;action&#39;: torch.randint(0, action_dim, size=(T, bs, agent_num)),</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; output = coma_model(data, mode=&#39;compute_critic&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;compute_actor&#39;</span><span class="p">:</span>

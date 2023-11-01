@@ -38,7 +38,7 @@ DT 的结构图如下：
 ----------------
 DQNPolicy 的默认 config 如下所示：
 
-.. autoclass:: ding.policy.dt.DTPolicy
+.. autoclass:: ding.policy.DTPolicy
    :noindex:
 
 其中使用的神经网络接口如下所示：

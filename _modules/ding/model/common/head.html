@@ -308,8 +308,8 @@
 <div class="viewcode-block" id="DiscreteHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DiscreteHead">[docs]</a><span class="k">class</span> <span class="nc">DiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``DiscreteHead`` used to output discrete actions logit or Q-value logit, which is often used in DQN \</span>
-<span class="sd">        and policy head in actor-critic algorithms for discrete action space.</span>
+<span class="sd">        The ``DiscreteHead`` is used to generate discrete actions logit or Q-value logit, \</span>
+<span class="sd">        which is often used in q-learning algorithms or actor-critic algorithms for discrete action space.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -367,7 +367,6 @@
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = DiscreteHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -381,7 +380,8 @@
 <div class="viewcode-block" id="DistributionHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DistributionHead">[docs]</a><span class="k">class</span> <span class="nc">DistributionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``DistributionHead`` used to output Q-value distribution, which is often used in C51 algorithm.</span>
+<span class="sd">        The ``DistributionHead`` is used to generate distribution for Q-value.</span>
+<span class="sd">        This module is used in C51 algorithm.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -450,7 +450,6 @@
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
 <span class="sd">            - distribution: :math:`(B, M, n_atom)`.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = DistributionHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -471,7 +470,8 @@
 <div class="viewcode-block" id="BranchingHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BranchingHead">[docs]</a><span class="k">class</span> <span class="nc">BranchingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``BranchingHead`` used to output different branches Q-value, which is used in Branch DQN.</span>
+<span class="sd">        The ``BranchingHead`` is used to generate Q-value with different branches.</span>
+<span class="sd">        This module is used in Branch DQN.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -561,7 +561,6 @@
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = BranchingHead(64, 5, 2)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -584,7 +583,8 @@
 <div class="viewcode-block" id="RainbowHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RainbowHead">[docs]</a><span class="k">class</span> <span class="nc">RainbowHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``RainbowHead`` used to output Q-value distribution, which is used in Rainbow DQN.</span>
+<span class="sd">        The ``RainbowHead`` is used to generate distribution of Q-value.</span>
+<span class="sd">        This module is used in Rainbow DQN.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -664,7 +664,6 @@
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
 <span class="sd">            - distribution: :math:`(B, M, n_atom)`.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = RainbowHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -688,7 +687,7 @@
 <div class="viewcode-block" id="QRDQNHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QRDQNHead">[docs]</a><span class="k">class</span> <span class="nc">QRDQNHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles.</span>
+<span class="sd">        The ``QRDQNHead`` (Quantile Regression DQN) is used to output action quantiles.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -749,7 +748,6 @@
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
 <span class="sd">            - q: :math:`(B, M, num_quantiles)`.</span>
 <span class="sd">            - tau: :math:`(B, M, 1)`.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = QRDQNHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -772,9 +770,15 @@
 <div class="viewcode-block" id="QuantileHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QuantileHead">[docs]</a><span class="k">class</span> <span class="nc">QuantileHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``QuantileHead`` used to output action quantiles, which is used in IQN.</span>
+<span class="sd">        The ``QuantileHead`` is used to output action quantiles.</span>
+<span class="sd">        This module is used in IQN.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``quantile_net``.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The difference between ``QuantileHead`` and ``QRDQNHead`` is that ``QuantileHead`` models the \</span>
+<span class="sd">        state-action quantile function as a mapping from state-actions and samples from some base distribution \</span>
+<span class="sd">        while ``QRDQNHead`` approximates random returns by a uniform mixture of Diracs functions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="QuantileHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.QuantileHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -868,7 +872,6 @@
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
 <span class="sd">            - q: :math:`(num_quantiles, B, M)`.</span>
 <span class="sd">            - quantiles: :math:`(quantile_embedding_size, 1)`.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = QuantileHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -903,9 +906,18 @@
 <div class="viewcode-block" id="FQFHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQFHead">[docs]</a><span class="k">class</span> <span class="nc">FQFHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``FQFHead`` used to output action quantiles, which is used in ``FQF``.</span>
+<span class="sd">        The ``FQFHead`` is used to output action quantiles.</span>
+<span class="sd">        This module is used in FQF.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``quantile_net``.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        The implementation of FQFHead is based on the paper https://arxiv.org/abs/1911.02140.</span>
+<span class="sd">        The difference between FQFHead and QuantileHead is that, in FQF, \</span>
+<span class="sd">        N adjustable quantile values for N adjustable quantile fractions are estimated to approximate \</span>
+<span class="sd">        the quantile function. The distribution of the return is approximated by a weighted mixture of N \</span>
+<span class="sd">        Diracs functions. While in IQN, the state-action quantile function is modeled as a mapping from \</span>
+<span class="sd">        state-actions and samples from some base distribution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FQFHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.FQFHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1073,7 +1085,8 @@
 <div class="viewcode-block" id="DuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.DuelingHead">[docs]</a><span class="k">class</span> <span class="nc">DuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``DuelingHead`` used to output discrete actions logit, which is used in Dueling DQN.</span>
+<span class="sd">        The ``DuelingHead`` is used to output discrete actions logit.</span>
+<span class="sd">        This module is used in Dueling DQN.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1151,7 +1164,6 @@
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - logit: :math:`(B, M)`, where ``M = output_size``.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = DuelingHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -1168,7 +1180,7 @@
 <div class="viewcode-block" id="StochasticDuelingHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.StochasticDuelingHead">[docs]</a><span class="k">class</span> <span class="nc">StochasticDuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \</span>
+<span class="sd">        The ``Stochastic Dueling Network`` is proposed in paper ACER (arxiv 1611.01224). \</span>
 <span class="sd">        That is to say, dueling network architecture in continuous action space.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
@@ -1269,6 +1281,16 @@
 <span class="sd">            - sigma: :math:`(B, A)`.</span>
 <span class="sd">            - q_value: :math:`(B, 1)`.</span>
 <span class="sd">            - v_value: :math:`(B, 1)`.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; head = StochasticDuelingHead(64, 64)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; a = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; mu = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; sigma = torch.ones(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = head(inputs, a, mu, sigma)</span>
+<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;q_value&#39;].shape == torch.Size([4, 1])</span>
+<span class="sd">            &gt;&gt;&gt; assert outputs[&#39;v_value&#39;].shape == torch.Size([4, 1])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">batch_size</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># batch_size or batch_size * T</span>
@@ -1299,8 +1321,9 @@
 <div class="viewcode-block" id="RegressionHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.RegressionHead">[docs]</a><span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``RegressionHead`` used to output continuous actions Q-value (DDPG critic), state value (A2C/PPO), and \</span>
-<span class="sd">        directly predict continuous action (DDPG actor).</span>
+<span class="sd">        The ``RegressionHead`` is used to regress continuous variables.</span>
+<span class="sd">        This module is used for generating Q-value (DDPG critic) of continuous actions, \</span>
+<span class="sd">        or state value (A2C/PPO), or directly predicting continuous action (DDPG actor).</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1348,7 +1371,6 @@
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - pred: :math:`(B, M)`, where ``M = output_size``.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = RegressionHead(64, 64)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -1368,7 +1390,9 @@
 <div class="viewcode-block" id="ReparameterizationHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.ReparameterizationHead">[docs]</a><span class="k">class</span> <span class="nc">ReparameterizationHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``, which is often used in PPO and SAC.</span>
+<span class="sd">        The ``ReparameterizationHead`` is used to generate Gaussian distribution of continuous variable, \</span>
+<span class="sd">        which is parameterized by ``mu`` and ``sigma``.</span>
+<span class="sd">        This module is often used in stochastic policies, such as PPO and SAC.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1440,7 +1464,6 @@
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - mu: :math:`(B, M)`, where ``M = output_size``.</span>
 <span class="sd">            - sigma: :math:`(B, M)`.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head =  ReparameterizationHead(64, 64, sigma_type=&#39;fixed&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -1467,7 +1490,10 @@
 <span class="k">class</span> <span class="nc">PopArtVHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``PopArtVHead`` used to output adaptive normalized state value, which is used in PPO/IMPALA.</span>
+<span class="sd">        The ``PopArtVHead`` is used to generate adaptive normalized state value. More information can be found in \</span>
+<span class="sd">        paper Multi-task Deep Reinforcement Learning with PopArt. \</span>
+<span class="sd">        https://arxiv.org/abs/1809.04474 \</span>
+<span class="sd">        This module is used in PPO or IMPALA.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1555,7 +1581,12 @@
 <span class="sd">                ``K = hidden_size``.</span>
 <span class="sd">            - query: :math:`(B, K)`.</span>
 <span class="sd">            - logit: :math:`(B, N)`.</span>
-
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; head = AttentionPolicyHead()</span>
+<span class="sd">            &gt;&gt;&gt; key = torch.randn(4, 5, 64)</span>
+<span class="sd">            &gt;&gt;&gt; query = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; logit = head(key, query)</span>
+<span class="sd">            &gt;&gt;&gt; assert logit.shape == torch.Size([4, 5])</span>
 <span class="sd">        .. note::</span>
 <span class="sd">            In this head, we assume that the ``key`` and ``query`` tensor are both normalized.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1568,8 +1599,8 @@
 <div class="viewcode-block" id="MultiHead"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.MultiHead">[docs]</a><span class="k">class</span> <span class="nc">MultiHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``MultiHead`` used to output multiple similar results. For example, we can combine ``Distribution``  and \</span>
-<span class="sd">        ``MultiHead`` to output multi-discrete action space logit.</span>
+<span class="sd">        The ``MultiHead`` is used to generate multiple similar results.</span>
+<span class="sd">        For example, we can combine ``Distribution`` and ``MultiHead`` to generate multi-discrete action space logit.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1602,7 +1633,6 @@
 <span class="sd">        Shapes:</span>
 <span class="sd">            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.</span>
 <span class="sd">            - logit: :math:`(B, Mi)`, where ``Mi = output_size`` corresponding to output ``i``.</span>
-
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head = MultiHead(DuelingHead, 64, [2, 3, 5], v_layer_num=2)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -1623,7 +1653,7 @@
 <span class="k">class</span> <span class="nc">EnsembleHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``EnsembleHead`` used to output action Q-value for Q-ensemble in model-based RL algorithms.</span>
+<span class="sd">        The ``EnsembleHead`` is used to generate Q-value for Q-ensemble in model-based RL algorithms.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1694,11 +1724,18 @@
 <div class="viewcode-block" id="independent_normal_dist"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.independent_normal_dist">[docs]</a><span class="k">def</span> <span class="nf">independent_normal_dist</span><span class="p">(</span><span class="n">logits</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Distribution</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The compatibility function to convert different types logit to independent normal distribution.</span>
+<span class="sd">        Convert different types logit to independent normal distribution.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - logits (:obj:`Union[List, Dict]`): The logits to be converted.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - dist (:obj:`torch.distributions.Distribution`): The converted normal distribution.</span>
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; logits = [torch.randn(4, 5), torch.ones(4, 5)]</span>
+<span class="sd">        &gt;&gt;&gt; dist = independent_normal_dist(logits)</span>
+<span class="sd">        &gt;&gt;&gt; assert isinstance(dist, torch.distributions.Independent)</span>
+<span class="sd">        &gt;&gt;&gt; assert isinstance(dist.base_dist, torch.distributions.Normal)</span>
+<span class="sd">        &gt;&gt;&gt; assert dist.base_dist.loc.shape == torch.Size([4, 5])</span>
+<span class="sd">        &gt;&gt;&gt; assert dist.base_dist.scale.shape == torch.Size([4, 5])</span>
 <span class="sd">    Raises:</span>
 <span class="sd">        - TypeError: If the type of logits is not ``list`` or ``dict``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

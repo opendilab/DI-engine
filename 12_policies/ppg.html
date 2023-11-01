@@ -646,12 +646,34 @@
 <dl class="py class">
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.ppg.</span></span><span class="sig-name descname"><span class="pre">PPG</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_space</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'discrete'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impala_cnn_encoder</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/ppg.html#PPG"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="py method">
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Phasic Policy Gradient (PPG) model from paper <cite>Phasic Policy Gradient</cite>
+<a class="reference external" href="https://arxiv.org/abs/2009.04416">https://arxiv.org/abs/2009.04416</a>         This module contains VAC module and an auxiliary critic module.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor_critic</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/ppg.html#PPG.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Use actor to compute action logits.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input observation tensor data.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output data containing action logits.</p></li>
+</ul>
+</dd>
 <dt>ReturnsKeys:</dt><dd><ul class="simple">
-<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">logit</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The predicted action logit tensor, for discrete action space, it will be                 the same dimension real-value ranged tensor of possible action choices, and for continuous action                 space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the                 same as the number of continuous actions. Hybrid action space is a kind of combination of discrete                 and continuous action space, so the logit will be a dict with <code class="docutils literal notranslate"><span class="pre">action_type</span></code> and <code class="docutils literal notranslate"><span class="pre">action_args</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is the input feature size.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): <code class="docutils literal notranslate"><span class="pre">logit</span></code>: <span class="math notranslate nohighlight">\((B, A)\)</span>, where B is batch size and A is the action space size.</p></li>
 </ul>
 </dd>
 </dl>
@@ -660,24 +682,56 @@
 <dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">compute_actor_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/ppg.html#PPG.compute_actor_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">compute_actor_critic</span></code> interface aims to save computation when shares encoder.</p>
-</div>
-<dl class="simple">
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Use actor and critic to compute action logits and value.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input observation tensor data.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output dict of PPG’s forward computation graph for both actor and critic,                 including <code class="docutils literal notranslate"><span class="pre">logit</span></code> and <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p></li>
+</ul>
+</dd>
 <dt>ReturnsKeys:</dt><dd><ul class="simple">
-<li><p>necessary: <code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">logit</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The predicted action logit tensor, for discrete action space, it will be                 the same dimension real-value ranged tensor of possible action choices, and for continuous action                 space, it will be the mu and sigma of the Gaussian distribution, and the number of mu and sigma is the                 same as the number of continuous actions. Hybrid action space is a kind of combination of discrete                 and continuous action space, so the logit will be a dict with <code class="docutils literal notranslate"><span class="pre">action_type</span></code> and <code class="docutils literal notranslate"><span class="pre">action_args</span></code>.</p></li>
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The predicted state value tensor.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is the input feature size.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): <code class="docutils literal notranslate"><span class="pre">value</span></code>: <span class="math notranslate nohighlight">\((B, 1)\)</span>, where B is batch size.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): <code class="docutils literal notranslate"><span class="pre">logit</span></code>: <span class="math notranslate nohighlight">\((B, A)\)</span>, where B is batch size and A is the action space size.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">compute_actor_critic</span></code> interface aims to save computation when shares encoder.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/ppg.html#PPG.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Use critic to compute value.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input observation tensor data.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output dict of VAC’s forward computation graph for critic, including <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p></li>
+</ul>
+</dd>
 <dt>ReturnsKeys:</dt><dd><ul class="simple">
 <li><p>necessary: <code class="docutils literal notranslate"><span class="pre">value</span></code></p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is the input feature size.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): <code class="docutils literal notranslate"><span class="pre">value</span></code>: <span class="math notranslate nohighlight">\((B, 1)\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
 </dl>

@@ -82,7 +82,7 @@ CQL 算法的默认设置如下：
    :noindex:
 
 
-.. autoclass:: ding.policy.cql.CQLDiscretePolicy
+.. autoclass:: ding.policy.cql.DiscreteCQLPolicy
    :noindex:
 
 Benchmark

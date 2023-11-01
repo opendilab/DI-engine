@@ -308,7 +308,7 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        The head of collaq attention module.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -363,8 +363,26 @@
 <span class="sd">            - q (:obj:`torch.nn.Sequential`): the transformer information q</span>
 <span class="sd">            - k (:obj:`torch.nn.Sequential`): the transformer information k</span>
 <span class="sd">            - v (:obj:`torch.nn.Sequential`): the transformer information v</span>
-<span class="sd">        Output:</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            - q (:obj:`torch.nn.Sequential`): the transformer output q</span>
+<span class="sd">            - residual (:obj:`torch.nn.Sequential`): the transformer output residual</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - q (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \</span>
+<span class="sd">                N is the size of input q</span>
+<span class="sd">            - k (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \</span>
+<span class="sd">                N is the size of input k</span>
+<span class="sd">            - v (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \</span>
+<span class="sd">                N is the size of input v</span>
+<span class="sd">            - q (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \</span>
+<span class="sd">                N is the size of output q</span>
+<span class="sd">            - residual (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \</span>
+<span class="sd">                N is the size of output residual</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; net = CollaQMultiHeadAttention(1, 2, 3, 4, 5, 6)</span>
+<span class="sd">            &gt;&gt;&gt; q = torch.randn(1, 2, 2)</span>
+<span class="sd">            &gt;&gt;&gt; k = torch.randn(1, 3, 3)</span>
+<span class="sd">            &gt;&gt;&gt; v = torch.randn(1, 3, 3)</span>
+<span class="sd">            &gt;&gt;&gt; q, residual = net(q, k, v)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">d_k</span><span class="p">,</span> <span class="n">d_v</span><span class="p">,</span> <span class="n">n_head</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_head</span>
         <span class="n">batch_size</span><span class="p">,</span> <span class="n">len_q</span><span class="p">,</span> <span class="n">len_k</span><span class="p">,</span> <span class="n">len_v</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">q</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">k</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -398,7 +416,7 @@
 <span class="sd">        Collaq attention module. Used to get agent&#39;s attention observation. It includes agent&#39;s observation\</span>
 <span class="sd">            and agent&#39;s part of the observation information of the agent&#39;s concerned allies</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, _cut_obs, forward</span>
+<span class="sd">        ``__init__``, ``_cut_obs``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -434,9 +452,16 @@
 <span class="sd">            cut the observed information into self&#39;s observation and allay&#39;s observation</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs (:obj:`torch.Tensor`): input each agent&#39;s observation</span>
-<span class="sd">        Return:</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            - self_features (:obj:`torch.Tensor`): output self agent&#39;s attention observation</span>
 <span class="sd">            - ally_features (:obj:`torch.Tensor`): output ally agent&#39;s attention observation</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \</span>
+<span class="sd">                A is agent_num, N is obs_shape</span>
+<span class="sd">            - self_features (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \</span>
+<span class="sd">                A is agent_num, N is self_feature_range[1] - self_feature_range[0]</span>
+<span class="sd">            - ally_features (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \</span>
+<span class="sd">                A is agent_num, N is ally_feature_range[1] - ally_feature_range[0]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># obs shape = (T, B, A, obs_shape)</span>
         <span class="n">self_features</span> <span class="o">=</span> <span class="n">obs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">self_feature_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="bp">self</span><span class="o">.</span><span class="n">self_feature_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
@@ -449,8 +474,11 @@
 <span class="sd">            forward computation to get agent&#39;s attention observation information</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs (:obj:`torch.Tensor`): input each agent&#39;s observation</span>
-<span class="sd">        Return:</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            - obs (:obj:`torch.Tensor`): output agent&#39;s attention observation</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \</span>
+<span class="sd">                A is agent_num, N is obs_shape</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># obs shape = (T, B ,A, obs_shape)</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">inputs</span>
@@ -476,9 +504,16 @@
 <span class="k">class</span> <span class="nc">CollaQ</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        CollaQ network</span>
+<span class="sd">        The network of CollaQ (Collaborative Q-learning) algorithm.</span>
+<span class="sd">        It includes two parts: q_network and q_alone_network.</span>
+<span class="sd">        The q_network is used to get the q_value of the agent&#39;s observation and \</span>
+<span class="sd">        the agent&#39;s part of the observation information of the agent&#39;s concerned allies.</span>
+<span class="sd">        The q_alone_network is used to get the q_value of the agent&#39;s observation and \</span>
+<span class="sd">        the agent&#39;s observation information without the agent&#39;s concerned allies.</span>
+<span class="sd">        Multi-Agent Collaboration via Reward Attribution Decomposition</span>
+<span class="sd">        https://arxiv.org/abs/2010.08531</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward, _setup_global_encoder</span>
+<span class="sd">        ``__init__``, ``forward``, ``_setup_global_encoder``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -569,7 +604,8 @@
 <div class="viewcode-block" id="CollaQ.forward"><a class="viewcode-back" href="../../../../12_policies/collaq.html#ding.model.template.collaq.CollaQ.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">single_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            forward computation graph of collaQ network</span>
+<span class="sd">            The forward method calculates the q_value of each agent and the total q_value of all agents.</span>
+<span class="sd">            The q_value of each agent is calculated by the q_network, and the total q_value is calculated by the mixer.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`dict`): input data dict with keys [&#39;obs&#39;, &#39;prev_state&#39;, &#39;action&#39;]</span>
 <span class="sd">                - agent_state (:obj:`torch.Tensor`): each agent local state(obs)</span>
@@ -596,6 +632,32 @@
 <span class="sd">            - total_q (:obj:`torch.Tensor`): :math:`(T, B)`</span>
 <span class="sd">            - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape</span>
 <span class="sd">            - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; collaQ_model = CollaQ(</span>
+<span class="sd">            &gt;&gt;&gt;     agent_num=4,</span>
+<span class="sd">            &gt;&gt;&gt;     obs_shape=32,</span>
+<span class="sd">            &gt;&gt;&gt;     alone_obs_shape=24,</span>
+<span class="sd">            &gt;&gt;&gt;     global_obs_shape=32 * 4,</span>
+<span class="sd">            &gt;&gt;&gt;     action_shape=9,</span>
+<span class="sd">            &gt;&gt;&gt;     hidden_size_list=[128, 64],</span>
+<span class="sd">            &gt;&gt;&gt;     self_feature_range=[8, 10],</span>
+<span class="sd">            &gt;&gt;&gt;     ally_feature_range=[10, 16],</span>
+<span class="sd">            &gt;&gt;&gt;     attention_size=64,</span>
+<span class="sd">            &gt;&gt;&gt;     mixer=True,</span>
+<span class="sd">            &gt;&gt;&gt;     activation=torch.nn.Tanh()</span>
+<span class="sd">            &gt;&gt;&gt; )</span>
+<span class="sd">            &gt;&gt;&gt; data={</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;obs&#39;: {</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_state&#39;: torch.randn(8, 4, 4, 32),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_alone_state&#39;: torch.randn(8, 4, 4, 24),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;agent_alone_padding_state&#39;: torch.randn(8, 4, 4, 32),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;global_state&#39;: torch.randn(8, 4, 32 * 4),</span>
+<span class="sd">            &gt;&gt;&gt;         &#39;action_mask&#39;: torch.randint(0, 2, size=(8, 4, 4, 9))</span>
+<span class="sd">            &gt;&gt;&gt;     },</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;prev_state&#39;: [[[None for _ in range(4)] for _ in range(3)] for _ in range(4)],</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;action&#39;: torch.randint(0, 9, size=(8, 4, 4))</span>
+<span class="sd">            &gt;&gt;&gt; }</span>
+<span class="sd">            &gt;&gt;&gt; output = collaQ_model(data, single_step=False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">agent_state</span><span class="p">,</span> <span class="n">agent_alone_state</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_state&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_alone_state&#39;</span><span class="p">]</span>
         <span class="n">agent_alone_padding_state</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_alone_padding_state&#39;</span><span class="p">]</span>
@@ -720,7 +782,7 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - global_obs_shape (:obj:`int`): the dimension of global observation state</span>
 <span class="sd">            - embedding_size (:obj:`int`): the dimension of state emdedding</span>
-<span class="sd">        Return:</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`torch.nn.Module`): Global observation encoding network</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">MLP</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_act</span><span class="p">)</span></div>

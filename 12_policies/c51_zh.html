@@ -569,19 +569,6 @@
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/q_learning.html#C51DQN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): The output of DQN’s forward, including q_value.</p></li>
-</ul>
-</dd>
-<dt>ReturnsKeys:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Discrete Q-value output of each possible action dimension.</p></li>
-</ul>
-</dd>
-<dt>Shapes:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-</ul>
-</dd>
 <dt>Overview:</dt><dd><p>C51DQN forward computation graph, input observation tensor to predict q_value and its distribution.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">

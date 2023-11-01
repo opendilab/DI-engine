@@ -305,6 +305,16 @@
 
 <div class="viewcode-block" id="BCQ"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.BCQ">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;bcq&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BCQ</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Model of BCQ (Batch-Constrained deep Q-learning).</span>
+<span class="sd">        Off-Policy Deep Reinforcement Learning without Exploration.</span>
+<span class="sd">        https://arxiv.org/abs/1812.02900</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``forward``, ``compute_actor``, ``compute_critic``, ``compute_vae``, ``compute_eval``</span>
+<span class="sd">    Property:</span>
+<span class="sd">        ``mode``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_vae&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_eval&#39;</span><span class="p">]</span>
 
@@ -387,7 +397,13 @@
 <span class="sd">                - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
 <span class="sd">            Returns:</span>
 <span class="sd">                - output (:obj:`Dict`): Output dict data, including action tensor.</span>
-
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 32), &#39;action&#39;: torch.randn(4, 6)}</span>
+<span class="sd">            &gt;&gt;&gt; model = BCQ(32, 6)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model(inputs, mode=&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model(inputs, mode=&#39;compute_critic&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model(inputs, mode=&#39;compute_vae&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model(inputs, mode=&#39;compute_eval&#39;)</span>
 
 <span class="sd">        .. note::</span>
 <span class="sd">            For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.</span>
@@ -396,6 +412,21 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use critic network to compute q value.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keywords ``q_value`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.</span>
+<span class="sd">            - outputs (:obj:`Dict`): :math:`(B, N)`.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 32), &#39;action&#39;: torch.randn(4, 6)}</span>
+<span class="sd">            &gt;&gt;&gt; model = BCQ(32, 6)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model.compute_critic(inputs)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># (B, ) -&gt; (B, 1)</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -404,6 +435,21 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use actor network to compute action.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keywords ``action`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.</span>
+<span class="sd">            - outputs (:obj:`Dict`): :math:`(B, N)`.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 32), &#39;action&#39;: torch.randn(4, 6)}</span>
+<span class="sd">            &gt;&gt;&gt; model = BCQ(32, 6)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model.compute_actor(inputs)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
         <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -411,9 +457,41 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">action</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">compute_vae</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use vae network to compute action.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keywords ``recons_action`` (:obj:`torch.Tensor`), \</span>
+<span class="sd">                ``prediction_residual`` (:obj:`torch.Tensor`), ``input`` (:obj:`torch.Tensor`), \</span>
+<span class="sd">                ``mu`` (:obj:`torch.Tensor`), ``log_var`` (:obj:`torch.Tensor`) and ``z`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.</span>
+<span class="sd">            - outputs (:obj:`Dict`): :math:`(B, N)`.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 32), &#39;action&#39;: torch.randn(4, 6)}</span>
+<span class="sd">            &gt;&gt;&gt; model = BCQ(32, 6)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model.compute_vae(inputs)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vae</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">compute_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use actor network to compute action.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Dict containing keywords ``action`` (:obj:`torch.Tensor`).</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.</span>
+<span class="sd">            - outputs (:obj:`Dict`): :math:`(B, N)`.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 32), &#39;action&#39;: torch.randn(4, 6)}</span>
+<span class="sd">            &gt;&gt;&gt; model = BCQ(32, 6)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model.compute_eval(inputs)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
         <span class="n">obs_rep</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">((</span><span class="n">obs_rep</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">obs_rep</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span> <span class="o">*</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
