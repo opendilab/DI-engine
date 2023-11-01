@@ -39,6 +39,8 @@ List of Environment Wrappers:
 - GymToGymnasiumWrapper: Adapts environments from the Gym library to be compatible with the Gymnasium library.
 - AllinObsWrapper: Consolidates all information into the observation, useful for environments where the agent's
     observation should include additional information such as the current score or time remaining.
+- ObsPlusPrevActRewWrapper: This wrapper is used in policy NGU. It sets a dict as the new wrapped observation,
+    which includes the current observation, previous action and previous reward.
 """
 
 import copy

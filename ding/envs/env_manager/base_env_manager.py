@@ -562,6 +562,9 @@ class BaseEnvManager(object):
         """
         return self._closed
 
+    def random_action(self) -> Dict:
+        return {env_id: self._env_ref.action_space.sample() for env_id in self.ready_obs_id}
+
 
 @ENV_MANAGER_REGISTRY.register('base_v2')
 class BaseEnvManagerV2(BaseEnvManager):
@@ -577,7 +580,8 @@ class BaseEnvManagerV2(BaseEnvManager):
 
     .. note::
         For more details about new task pipeline, please refer to the system document of DI-engine \
-        (`en link <../03_system/index.html>`_).
+        (`system en link <../03_system/index.html>`_).
+
     Interfaces:
         reset, step, seed, close, enable_save_replay, launch, default_config, reward_shaping, enable_save_figure
     Properties:
