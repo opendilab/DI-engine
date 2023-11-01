@@ -80,27 +80,17 @@ class OffPolicyLearner:
         Output of ctx:
             - train_output (:obj:`Deque`): The training output in deque.
         """
-        start = time.time()
-        time_fetcher = 0.0
-        time_trainer = 0.0
         train_output_queue = []
         for _ in range(self.cfg.policy.learn.update_per_collect):
-            start_fetcher = time.time()
             self._fetcher(ctx)
-            time_fetcher += time.time() - start_fetcher
             if ctx.train_data is None:
                 break
             if self._reward_estimator:
                 self._reward_estimator(ctx)
-            start_trainer = time.time()
             self._trainer(ctx)
-            time_trainer += time.time() - start_trainer
             train_output_queue.append(ctx.train_output)
             ctx.train_output_for_post_process = ctx.train_output
         ctx.train_output = train_output_queue
-        ctx.learner_time += time.time() - start
-        print("time_trainer:time_fetcher={}:{}={}".format(time_trainer, time_fetcher, time_trainer / time_fetcher))
-
 
 class EnvpoolOffPolicyLearner:
     """
