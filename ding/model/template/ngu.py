@@ -129,7 +129,7 @@ class NGU(nn.Module):
             )
 
     def forward(self, inputs: Dict, inference: bool = False, saved_state_timesteps: Optional[list] = None) -> Dict:
-        r"""
+        """
         Overview:
             Forward computation graph of NGU R2D2 network. Input observation, prev_action prev_reward_extrinsic \
             to predict NGU Q output. Parameter updates with NGU's MLPs forward setup.
