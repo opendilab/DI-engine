@@ -34,7 +34,8 @@ class SampleSerialCollector(ISerialCollector):
             policy: namedtuple = None,
             tb_logger: 'SummaryWriter' = None,  # noqa
             exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'collector'
+            instance_name: Optional[str] = 'collector',
+            timer_cuda: bool = False,
     ) -> None:
         """
         Overview:
@@ -51,7 +52,7 @@ class SampleSerialCollector(ISerialCollector):
         self._deepcopy_obs = cfg.deepcopy_obs  # whether to deepcopy each data
         self._transform_obs = cfg.transform_obs
         self._cfg = cfg
-        self._timer = EasyTimer(cuda=False)
+        self._timer = EasyTimer(cuda=timer_cuda)
         self._end_flag = False
         self._rank = get_rank()
         self._world_size = get_world_size()
