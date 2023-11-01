@@ -142,29 +142,16 @@ class EnvpoolOffPolicyLearner:
         Output of ctx:
             - train_output (:obj:`Deque`): The training output in deque.
         """
-        start = time.time()
-        time_fetcher = 0.0
-        time_trainer = 0.0
-        time_fetch_data = 0.0
-        time_get_data = 0.0
-
         train_output_queue = []
         data_counter = 0
-
-        start_fetcher = time.time()
         for _ in range(self.cfg.policy.learn.update_per_collect):
-            start_fetch_data = time.time()
             self._fetcher(ctx)
-            time_fetch_data += time.time() - start_fetch_data
             if ctx.train_data_sample is None:
                 break
             self._data_queue_input.put(ctx.train_data_sample)
             data_counter += 1
-        time_fetcher += time.time() - start_fetcher
 
-        start_trainer = time.time()
         for _ in range(data_counter):
-            start_get_data = time.time()
             while True:
                 if self._data_queue_output.empty():
                     time.sleep(0.001)
@@ -172,17 +159,20 @@ class EnvpoolOffPolicyLearner:
                 else:
                     ctx.train_data = self._data_queue_output.get()
                     break
-            time_get_data += time.time() - start_get_data
             if self._reward_estimator:
                 self._reward_estimator(ctx)
             self._trainer(ctx)
 
             train_output_queue.append(ctx.train_output)
             ctx.train_output_for_post_process = ctx.train_output
-        time_trainer += time.time() - start_trainer
 
         ctx.train_output = train_output_queue
-        ctx.learner_time += time.time() - start
+
+        yield
+
+        if task.finish:
+            self._data_queue_input.put(None)
+            self.thread_worker.join()
 
 
 class HERLearner:

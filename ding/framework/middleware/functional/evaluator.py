@@ -335,7 +335,6 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
         """
 
         # evaluation will be executed if the task begins or enough train_iter after last evaluation
-        start = time.time()
         if ctx.last_eval_iter != -1 and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return
@@ -426,7 +425,6 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
         if stop_flag:
             task.finish = True
 
-        ctx.evaluator_time += time.time() - start
 
     return _evaluate
 

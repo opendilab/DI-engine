@@ -108,7 +108,7 @@ def main(cfg):
         )
 
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
-        task.use(termination_checker(max_env_step=10000000))
+        task.use(termination_checker(max_env_step=100))
 
         task.run()
 

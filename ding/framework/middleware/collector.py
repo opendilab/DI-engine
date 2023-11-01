@@ -111,7 +111,6 @@ class EnvpoolStepCollector:
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
-        start = time.time()
         old = ctx.env_step
 
         if self.random_collect_size > 0 and old < self.random_collect_size:
@@ -244,7 +243,6 @@ class EnvpoolStepCollector:
             ctx.trajectories.extend(self._trajectory[i])
             self._trajectory[i] = []
         ctx.env_step += len(ctx.trajectories)
-        ctx.collector_time += time.time() - start
 
 
 
