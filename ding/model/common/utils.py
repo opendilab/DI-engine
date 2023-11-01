@@ -21,6 +21,7 @@ def create_model(cfg: EasyDict) -> torch.nn.Module:
         >>>     'action_shape': 2,
         >>> })
         >>> model = create_model(cfg)
+
     .. tip::
         This method will not modify the ``cfg`` , it will deepcopy the ``cfg`` and then modify it.
     """

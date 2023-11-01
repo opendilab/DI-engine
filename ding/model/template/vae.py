@@ -184,22 +184,17 @@ class VanillaVAE(nn.Module):
             'z': z
         }
 
-    def loss_function(self, args: Dict[str, Tensor], **kwargs) -> dict:
+    def loss_function(self, args: Dict[str, Tensor], **kwargs) -> Dict[str, Tensor]:
         """
         Overview:
             Computes the VAE loss function.
-            KL(N(\mu, \sigma), N(0, 1)) = \log \frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2}
         Arguments:
-            - args (:obj:`Dict`): Dict containing keywords `recons_action` (:obj:`torch.Tensor`) \
-                and `prediction_residual` (:obj:`torch.Tensor`), `original_action` (:obj:`torch.Tensor`), \
-                `mu` (:obj:`torch.Tensor`), `log_var` (:obj:`torch.Tensor`) and \
-                `true_residual` (:obj:`torch.Tensor`).
-            - kwargs (:obj:`Dict`): Dict containing keywords `kld_weight` (:obj:`torch.Tensor`) \
-                and `predict_weight` (:obj:`torch.Tensor`).
+            - args (:obj:`Dict[str, Tensor]`): Dict containing keywords ``recons_action``, ``prediction_residual`` \
+                ``original_action``, ``mu``, ``log_var`` and ``true_residual``.
+            - kwargs (:obj:`Dict`): Dict containing keywords ``kld_weight`` and ``predict_weight``.
         Returns:
-            - outputs (:obj: `Dict`): Dict containing keywords `loss` \
-                (`obj`:`torch.Tensor`), `reconstruction_loss` (:obj: `torch.Tensor`), \
-                `kld_loss` (:obj: `torch.Tensor`) and `predict_loss` (:obj: `torch.Tensor`).
+            - outputs (:obj:`Dict[str, Tensor]`): Dict containing different ``loss`` results, including ``loss``, \
+                ``reconstruction_loss``, ``kld_loss``, ``predict_loss``.
         Shapes:
             - recons_action (:obj:`torch.Tensor`): :math:`(B, A)`, where B is batch size \
                 and A is ``action dim``.

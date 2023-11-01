@@ -1293,6 +1293,7 @@ class AttentionPolicyHead(nn.Module):
             >>> query = torch.randn(4, 64)
             >>> logit = head(key, query)
             >>> assert logit.shape == torch.Size([4, 5])
+
         .. note::
             In this head, we assume that the ``key`` and ``query`` tensor are both normalized.
         """
