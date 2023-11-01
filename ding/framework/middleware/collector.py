@@ -53,7 +53,6 @@ class StepCollector:
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
-        start = time.time()
         old = ctx.env_step
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old
@@ -72,7 +71,6 @@ class StepCollector:
                 self._transitions.clear()
                 break
 
-        ctx.collector_time += time.time() - start
 
 
 class EnvpoolStepCollector:
@@ -128,12 +126,7 @@ class EnvpoolStepCollector:
 
         counter = 0
 
-        time_send = 0.0
-        time_receive = 0.0
-        time_process = 0.0
-
         while True:
-            start_send = time.time()
             if len(self._ready_obs_receive.keys()) > 0:
                 if random:
                     action_to_send = {
@@ -154,16 +147,12 @@ class EnvpoolStepCollector:
                     action_send = action_send.squeeze(1)
                 env_id_send = np.array(list(action_to_send.keys()))
                 self.env.send_action(action_send, env_id_send)
-            time_send += time.time() - start_send
 
-            start_receive = time.time()
             next_obs, rew, done, info = self.env.receive_data()
             env_id_receive = info['env_id']
             counter += len(env_id_receive)
             self._ready_obs_receive.update({i: next_obs[i] for i in range(len(next_obs))})
-            time_receive += time.time() - start_receive
 
-            start_process = time.time()
             #todo
             for i in range(len(env_id_receive)):
                 current_reward = rew[i]
@@ -247,13 +236,7 @@ class EnvpoolStepCollector:
                 else:
                     self._trajectory[env_id_receive[i]][-1]['value_gamma'] = self._discount_ratio_list[0]
 
-            time_process += time.time() - start_process
             if counter >= target_size:
-                # if self._nsteps>1:
-                #     # transform reward to ttorch.tensor
-                #     for i in range(self.env.env_num):
-                #         for j in range(len(self._trajectory[i])):
-                #             self._trajectory[i][j]['reward']=np.concatenate(self._trajectory[env_id_receive[i]][j]['reward'])
                 break
 
         ctx.trajectories = []
@@ -263,9 +246,6 @@ class EnvpoolStepCollector:
         ctx.env_step += len(ctx.trajectories)
         ctx.collector_time += time.time() - start
 
-        print(f'time_send:[{time_send}]')
-        print(f'time_receive:[{time_receive}]')
-        print(f'time_process:[{time_process}]')
 
 
 class PPOFStepCollector:
