@@ -15,13 +15,15 @@ class TestDiffusionNet:
     def test_DiffusionNet1d(self):
         diffusion = DiffusionUNet1d(transition_dim, dim, dim_mults)
         input = torch.rand(batch_size, horizon, transition_dim)
-        t = torch.randint(0, 10, (batch_size, )).long()
-        output = diffusion(input, time=t)
+        t = torch.randint(0, horizon, (batch_size, )).long()
+        cond = {t: torch.randn(batch_size, 2) for t in range(horizon)}
+        output = diffusion(input, cond, time=t)
         assert output.shape == (batch_size, horizon, transition_dim)
 
     def test_TemporalValue(self):
         value = TemporalValue(horizon, transition_dim, dim, dim_mults=dim_mults)
         input = torch.rand(batch_size, horizon, transition_dim)
-        t = torch.randint(0, 10, (batch_size, )).long()
-        output = value(input, time=t)
+        t = torch.randint(0, horizon, (batch_size, )).long()
+        cond = {t: torch.randn(batch_size, 2) for t in range(horizon)}
+        output = value(input, cond, time=t)
         assert output.shape == (batch_size, 1)

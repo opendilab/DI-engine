@@ -16,58 +16,21 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
 
-@POLICY_REGISTRY.register('sac_discrete')
-class SACDiscretePolicy(Policy):
-    r"""
-       Overview:
-           Policy class of discrete SAC algorithm. Paper link: https://arxiv.org/pdf/1910.07207.pdf.
-
-       Config:
-           == ====================  ========    =============  ================================= =======================
-           ID Symbol                Type        Default Value  Description                       Other
-           == ====================  ========    =============  ================================= =======================
-           1  ``type``              str         sac_discrete   | RL policy register name, refer  | this arg is optional,
-                                                               | to registry ``POLICY_REGISTRY`` | a placeholder
-           2  ``cuda``              bool        True           | Whether to use cuda for network |
-           3  ``on_policy``         bool        False          | SACDiscrete is an off-policy    |
-                                                               | algorithm.                      |
-           4  ``priority``          bool        False          | Whether to use priority         |
-                                                               | sampling in buffer.             |
-           5  | ``priority_IS_``    bool        False          | Whether use Importance Sampling |
-              | ``weight``                                     | weight to correct biased update |
-           6  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for
-              | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/
-              |                                                | buffer when training starts.    | TD3.
-           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3
-              | ``_rate_q``                                    | network.                        |
-           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3
-              | ``_rate_policy``                               | network.                        |
-           9  | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
-              |                                                | coefficient.                    | zation for auto
-              |                                                |                                 | `\alpha`, when
-              |                                                |                                 | auto_alpha is True
-           10 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter
-              | ``auto_alpha``                                 | auto temperature parameter      | determines the
-              |                                                | `\alpha`.                       | relative importance
-              |                                                |                                 | of the entropy term
-              |                                                |                                 | against the reward.
-           11 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only
-              | ``ignore_done``                                | done flag.                      | in env like Pendulum
-           12 | ``learn.-``         float       0.005          | Used for soft update of the     | aka. Interpolation
-              | ``target_theta``                               | target network.                 | factor in polyak aver
-              |                                                |                                 | aging for target
-              |                                                |                                 | networks.
-           == ====================  ========    =============  ================================= =======================
-       """
+@POLICY_REGISTRY.register('discrete_sac')
+class DiscreteSACPolicy(Policy):
+    """
+    Overview:
+        Policy class of discrete SAC algorithm. Paper link: https://arxiv.org/abs/1910.07207.
+    """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='sac_discrete',
+        type='discrete_sac',
         # (bool) Whether to use cuda for network and loss computation.
         cuda=False,
-        # (bool) Whether to belong to on-policy or off-policy algorithm, SACDiscrete is an off-policy algorithm.
+        # (bool) Whether to belong to on-policy or off-policy algorithm, DiscreteSAC is an off-policy algorithm.
         on_policy=False,
-        # (bool) Whether to use priority sampling in buffer. Default to False in SACDiscrete.
+        # (bool) Whether to use priority sampling in buffer. Default to False in DiscreteSAC.
         priority=False,
         # (bool) Whether use Importance Sampling weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
@@ -82,6 +45,7 @@ class SACDiscretePolicy(Policy):
             # For more details, please refer to TD3 about Clipped Double-Q Learning trick.
             twin_critic=True,
         ),
+        # learn_mode config
         learn=dict(
             # (int) How many updates (iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
@@ -123,8 +87,10 @@ class SACDiscretePolicy(Policy):
             # (float) Weight uniform initialization max range in the last output layer
             init_w=3e-3,
         ),
+        # collect_mode config
         collect=dict(
             # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             n_sample=1,
             # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
@@ -132,6 +98,7 @@ class SACDiscretePolicy(Policy):
             # In some algorithm like guided cost learning, we need to use logit to train the reward model.
             collector_logit=False,
         ),
+        eval=dict(),  # for compability
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer. Usually, larger buffer size is good
@@ -142,6 +109,13 @@ class SACDiscretePolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
         if self._cfg.multi_agent:
             return 'discrete_maqac', ['ding.model.template.maqac']
         else:
@@ -150,8 +124,21 @@ class SACDiscretePolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init q function and policy's optimizers, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For DiscreteSAC, it mainly \
+            contains three optimizers, algorithm-specific arguments such as gamma and twin_critic, main and target \
+            model. Especially, the ``auto_alpha`` mechanism for balancing max entropy target is also initialized here.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -170,7 +157,7 @@ class SACDiscretePolicy(Policy):
         self._gamma = self._cfg.learn.discount_factor
         if self._cfg.learn.auto_alpha:
             if self._cfg.learn.target_entropy is None:
-                assert 'action_shape' in self._cfg.model, "SACDiscrete need network model with action_shape variable"
+                assert 'action_shape' in self._cfg.model, "DiscreteSAC need network model with action_shape variable"
                 self._target_entropy = -np.prod(self._cfg.model.action_shape)
             else:
                 self._target_entropy = self._cfg.learn.target_entropy
@@ -205,7 +192,35 @@ class SACDiscretePolicy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, action, priority.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For SAC, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``logit``, ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys like ``weight``.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for DiscreteSACPolicy: \
+            ``ding.policy.tests.test_discrete_sac``.
+        """
         loss_dict = {}
         data = default_preprocess_learn(
             data,
@@ -332,8 +347,15 @@ class SACDiscretePolicy(Policy):
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model, target_model and optimizers.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         ret = {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
         }
@@ -342,13 +364,36 @@ class SACDiscretePolicy(Policy):
         return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
         if self._auto_alpha:
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
 
     def _init_collect(self) -> None:
+        """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. For SAC, it contains the \
+            collect_model to balance the exploration and exploitation with the epsilon and multinomial sample \
+            mechanism, and other algorithm-specific arguments such as unroll_len. \
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+        """
         self._unroll_len = self._cfg.collect.unroll_len
         # Empirically, we found that eps_greedy_multinomial_sample works better than multinomial_sample
         # and eps_greedy_sample, and we don't divide logit by alpha,
@@ -356,7 +401,32 @@ class SACDiscretePolicy(Policy):
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict, eps: float) -> dict:
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs. Besides, this policy also needs ``eps`` argument for \
+            exploration, i.e., classic epsilon-greedy exploration strategy.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+            - eps (:obj:`float`): The epsilon value for exploration.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for DiscreteSACPolicy: \
+            ``ding.policy.tests.test_discrete_sac``.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -369,25 +439,83 @@ class SACDiscretePolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For discrete SAC, it contains obs, next_obs, logit, action, reward, done.
+        Arguments:
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For discrete SAC, it contains the action and the logit of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
+        Returns:
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+        """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'logit': model_output['logit'],
+            'action': policy_output['action'],
+            'logit': policy_output['logit'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        return get_train_sample(data, self._unroll_len)
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In discrete SAC, a train sample is a processed transition (unroll_len=1).
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training.
+        """
+        return get_train_sample(transitions, self._unroll_len)
 
     def _init_eval(self) -> None:
+        """
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules. For DiscreteSAC, it contains \
+            the eval model to greedily select action type with argmax q_value mechanism.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+        """
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for DiscreteSACPolicy: \
+            ``ding.policy.tests.test_discrete_sac``.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -401,6 +529,13 @@ class SACDiscretePolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         twin_critic = ['twin_critic_loss'] if self._twin_critic else []
         if self._auto_alpha:
             return super()._monitor_vars_learn() + [
@@ -416,11 +551,11 @@ class SACDiscretePolicy(Policy):
 
 @POLICY_REGISTRY.register('sac')
 class SACPolicy(Policy):
-    r"""
-       Overview:
-           Policy class of continuous SAC algorithm. Paper link: https://arxiv.org/pdf/1801.01290.pdf
+    """
+    Overview:
+        Policy class of continuous SAC algorithm. Paper link: https://arxiv.org/pdf/1801.01290.pdf
 
-       Config:
+    Config:
            == ====================  ========    =============  ================================= =======================
            ID Symbol                Type        Default Value  Description                       Other
            == ====================  ========    =============  ================================= =======================
@@ -442,11 +577,11 @@ class SACPolicy(Policy):
               | ``_rate_policy``                               | network.                        |
            9  | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
               |                                                | coefficient.                    | zation for auto
-              |                                                |                                 | `\alpha`, when
+              |                                                |                                 | alpha, when
               |                                                |                                 | auto_alpha is True
            10 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter
               | ``auto_alpha``                                 | auto temperature parameter      | determines the
-              |                                                | `\alpha`.                       | relative importance
+              |                                                | alpha.                          | relative importance
               |                                                |                                 | of the entropy term
               |                                                |                                 | against the reward.
            11 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only
@@ -456,7 +591,7 @@ class SACPolicy(Policy):
               |                                                |                                 | aging for target
               |                                                |                                 | networks.
            == ====================  ========    =============  ================================= =======================
-       """
+    """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -482,6 +617,7 @@ class SACPolicy(Policy):
             # (str) Use reparameterization trick for continous action.
             action_space='reparameterization',
         ),
+        # learn_mode config
         learn=dict(
             # (int) How many updates (iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
@@ -523,6 +659,7 @@ class SACPolicy(Policy):
             # (float) Weight uniform initialization max range in the last output layer.
             init_w=3e-3,
         ),
+        # collect_mode config
         collect=dict(
             # (int) How many training samples collected in one collection procedure.
             n_sample=1,
@@ -532,6 +669,7 @@ class SACPolicy(Policy):
             # In some algorithm like guided cost learning, we need to use logit to train the reward model.
             collector_logit=False,
         ),
+        eval=dict(),  # for compability
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer. Usually, larger buffer size is good
@@ -542,12 +680,37 @@ class SACPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
         if self._cfg.multi_agent:
             return 'continuous_maqac', ['ding.model.template.maqac']
         else:
             return 'continuous_qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For SAC, it mainly \
+            contains three optimizers, algorithm-specific arguments such as gamma and twin_critic, main and target \
+            model. Especially, the ``auto_alpha`` mechanism for balancing max entropy target is also initialized here.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
+        """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._twin_critic = self._cfg.model.twin_critic
@@ -607,7 +770,34 @@ class SACPolicy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, action, priority.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For SAC, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight``.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for SACPolicy: ``ding.policy.tests.test_sac``.
+        """
         loss_dict = {}
         data = default_preprocess_learn(
             data,
@@ -730,6 +920,12 @@ class SACPolicy(Policy):
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model, target_model and optimizers.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         ret = {
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
@@ -741,6 +937,17 @@ class SACPolicy(Policy):
         return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
@@ -749,11 +956,46 @@ class SACPolicy(Policy):
             self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
 
     def _init_collect(self) -> None:
+        """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. For SAC, it contains the \
+            collect_model other algorithm-specific arguments such as unroll_len. \
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+        """
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='base')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            ``logit`` in SAC means the mu and sigma of Gaussioan distribution. Here we use this name for consistency.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for SACPolicy: ``ding.policy.tests.test_sac``.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -769,7 +1011,23 @@ class SACPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, policy_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For continuous SAC, it contains obs, next_obs, action, reward, done. The logit \
+            will be also added when ``collector_logit`` is True.
+        Arguments:
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For continuous SAC, it contains the action and the logit (mu and sigma) of the action.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
+        Returns:
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
+        """
         if self._cfg.collect.collector_logit:
             transition = {
                 'obs': obs,
@@ -789,14 +1047,60 @@ class SACPolicy(Policy):
             }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        return get_train_sample(data, self._unroll_len)
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In continuous SAC, a train sample is a processed transition \
+            (unroll_len=1).
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \
+                as input transitions, but may contain more data for training.
+        """
+        return get_train_sample(transitions, self._unroll_len)
 
     def _init_eval(self) -> None:
+        """
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules. For SAC, it contains the \
+            eval model, which is equipped with ``base`` model wrapper to ensure compability.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+        """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            ``logit`` in SAC means the mu and sigma of Gaussioan distribution. Here we use this name for consistency.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for SACPolicy: ``ding.policy.tests.test_sac``.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -812,6 +1116,13 @@ class SACPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         twin_critic = ['twin_critic_loss'] if self._twin_critic else []
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
         return [
@@ -830,8 +1141,32 @@ class SACPolicy(Policy):
 
 @POLICY_REGISTRY.register('sqil_sac')
 class SQILSACPolicy(SACPolicy):
+    """
+    Overview:
+        Policy class of continuous SAC algorithm with SQIL extension.
+        SAC paper link: https://arxiv.org/pdf/1801.01290.pdf
+        SQIL paper link: https://arxiv.org/abs/1905.11108
+    """
 
     def _init_learn(self) -> None:
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For SAC, it mainly \
+            contains three optimizers, algorithm-specific arguments such as gamma and twin_critic, main and target \
+            model. Especially, the ``auto_alpha`` mechanism for balancing max entropy target is also initialized here.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
+        """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._twin_critic = self._cfg.model.twin_critic
@@ -856,7 +1191,7 @@ class SQILSACPolicy(SACPolicy):
         self._gamma = self._cfg.learn.discount_factor
         if self._cfg.learn.auto_alpha:
             if self._cfg.learn.target_entropy is None:
-                assert 'action_shape' in self._cfg.model, "SACDiscrete need network model with action_shape variable"
+                assert 'action_shape' in self._cfg.model, "SQILSACPolicy need network model with action_shape variable"
                 self._target_entropy = -np.prod(self._cfg.model.action_shape)
             else:
                 self._target_entropy = self._cfg.learn.target_entropy
@@ -895,7 +1230,38 @@ class SQILSACPolicy(SACPolicy):
         self._monitor_cos = True
         self._monitor_entropy = True
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, action, priority.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For SAC, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight``.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            For SQIL + SAC, input data is composed of two parts with the same size: agent data and expert data. \
+            Both of them are relabelled with new reward according to SQIL algorithm.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for SACPolicy: ``ding.policy.tests.test_sac``.
+        """
         loss_dict = {}
         if self._monitor_cos:
             agent_data = default_preprocess_learn(
@@ -1094,6 +1460,13 @@ class SQILSACPolicy(SACPolicy):
         return var_monitor
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         twin_critic = ['twin_critic_loss'] if self._twin_critic else []
         alpha_loss = ['alpha_loss'] if self._auto_alpha else []
         cos_similarity = ['cos_similarity'] if self._monitor_cos else []
