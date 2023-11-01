@@ -734,7 +734,7 @@ class DQNFastPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
-        self.time_counter=dict(
+        self.time_counter = dict(
             set_model_train_time=0,
             forward_q_value_time=0,
             forward_target_next_time=0,
@@ -850,7 +850,6 @@ class DQNFastPolicy(Policy):
         #torch.cuda.synchronize()
         target_update_time = time.time() - start
 
-
         time_learn_total = time.time() - start_total
 
         # print(f"set_model_train_time:time_learn={set_model_train_time}:{time_learn_total}={set_model_train_time/time_learn_total}")
@@ -882,7 +881,6 @@ class DQNFastPolicy(Policy):
         # print(f"backward_time:time_learn={self.time_counter['backward_time']}:{self.time_counter['time_learn_total']}={self.time_counter['backward_time']/self.time_counter['time_learn_total']}")
         # print(f"gradient_step_time:time_learn={self.time_counter['gradient_step_time']}:{self.time_counter['time_learn_total']}={self.time_counter['gradient_step_time']/self.time_counter['time_learn_total']}")
         # print(f"target_update_time:time_learn={self.time_counter['target_update_time']}:{self.time_counter['time_learn_total']}={self.time_counter['target_update_time']/self.time_counter['time_learn_total']}")
-
 
         return {
             'cur_lr': self._optimizer.defaults['lr'],

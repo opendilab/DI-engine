@@ -5,8 +5,6 @@ try:
 except RuntimeError:
     pass
 from easydict import EasyDict
-import torch
-from torch import nn
 from ditk import logging
 from ding.model import DQN
 from ding.policy import DQNFastPolicy
@@ -15,17 +13,17 @@ from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import OffPolicyLearner, envpool_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, nstep_reward_enhancer, \
-    termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollectorV2, OffPolicyLearnerV2, OffPolicyLearnerV3
+from ding.framework.middleware import envpool_evaluator, data_pusher, \
+    eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, \
+    termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollector, EnvpoolOffPolicyLearner
 from ding.utils import set_pkg_seed
 
-from dizoo.atari.config.serial import pong_dqn_envpool_priority_config
+from dizoo.atari.config.serial import pong_dqn_envpool_config
 
 
 def main(cfg):
     logging.getLogger().setLevel(logging.INFO)
-    cfg.exp_name = 'Pong-v5-DQN-envpool-priority-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    cfg.exp_name = 'Pong-v5-DQN-envpool-' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
     collector_env_cfg = EasyDict(
         {
@@ -62,8 +60,6 @@ def main(cfg):
         evaluator_env.seed(cfg.seed)
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        cfg.policy.model['activation'] = nn.ReLU(inplace=True)
-        
         model = DQN(**cfg.policy.model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = DQNFastPolicy(cfg.policy, model=model)
@@ -89,7 +85,7 @@ def main(cfg):
         task.use(envpool_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(
-            EnvpoolStepCollectorV2(
+            EnvpoolStepCollector(
                 cfg,
                 policy.collect_mode,
                 collector_env,
@@ -98,8 +94,7 @@ def main(cfg):
                     )
                 )
         task.use(data_pusher(cfg, buffer_))
-        #task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
-        task.use(OffPolicyLearnerV3(cfg, policy, buffer_))
+        task.use(EnvpoolOffPolicyLearner(cfg, policy, buffer_))
         task.use(online_logger(train_show_freq=10))
         task.use(
             wandb_online_logger(
@@ -127,12 +122,18 @@ if __name__ == "__main__":
     parser.add_argument("--collector_batch_size", type=int, default=8, help="collector batch size")
     arg = parser.parse_args()
 
-    pong_dqn_envpool_priority_config.env.collector_env_num = arg.collector_env_num
-    pong_dqn_envpool_priority_config.env.collector_batch_size = arg.collector_batch_size
-    pong_dqn_envpool_priority_config.seed = arg.seed
-    pong_dqn_envpool_priority_config.env.stop_value = 2000
-    pong_dqn_envpool_priority_config.nstep = 3
-    pong_dqn_envpool_priority_config.policy.nstep = 3
-    pong_dqn_envpool_priority_config.seed = arg.seed
+    pong_dqn_envpool_config.env.collector_env_num = arg.collector_env_num
+    pong_dqn_envpool_config.env.collector_batch_size = arg.collector_batch_size
+    pong_dqn_envpool_config.seed = arg.seed
+    pong_dqn_envpool_config.env.stop_value = 2000
+    pong_dqn_envpool_config.nstep = 3
+    pong_dqn_envpool_config.policy.nstep = 3
+    pong_dqn_envpool_config.seed = arg.seed
 
-    main(pong_dqn_envpool_priority_config)
+    pong_dqn_envpool_config.policy.learn.update_per_collect = 2
+    pong_dqn_envpool_config.policy.learn.batch_size = 32
+    pong_dqn_envpool_config.policy.learn.learning_rate = 0.0001
+    pong_dqn_envpool_config.policy.learn.target_update_freq = 0
+    pong_dqn_envpool_config.policy.learn.target_update = 0.04
+
+    main(pong_dqn_envpool_config)

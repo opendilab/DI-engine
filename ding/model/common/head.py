@@ -832,7 +832,7 @@ class DuelingHead(nn.Module):
             v_layer_num = layer_num
         layer = NoiseLinearLayer if noise else nn.Linear
         block = noise_block if noise else fc_block
-        if a_layer_num>0:
+        if a_layer_num > 0:
             self.A = nn.Sequential(
                 MLP(
                     hidden_size,
@@ -848,7 +848,7 @@ class DuelingHead(nn.Module):
             )
         else:
             self.A = block(hidden_size, output_size)
-        if v_layer_num>0:
+        if v_layer_num > 0:
             self.V = nn.Sequential(
                 MLP(
                     hidden_size,
