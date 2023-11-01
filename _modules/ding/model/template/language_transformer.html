@@ -12,7 +12,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ding.model.common.utils &mdash; DI-engine 0.1.0 documentation</title>
+  <title>ding.model.template.language_transformer &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
@@ -265,7 +265,7 @@
         
           <li><a href="../../../index.html">Module code</a> &gt;</li>
         
-      <li>ding.model.common.utils</li>
+      <li>ding.model.template.language_transformer</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
@@ -291,38 +291,109 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <h1>Source code for ding.model.common.utils</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">copy</span>
+  <h1>Source code for ding.model.template.language_transformer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">MODEL_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">AutoTokenizer</span><span class="p">,</span> <span class="n">AutoModelForTokenClassification</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;not found transformer, please install it using: pip install transformers&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">MODEL_REGISTRY</span>
 
 
-<div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+<div class="viewcode-block" id="LanguageTransformer"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.LanguageTransformer">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;language_transformer&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">LanguageTransformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Create a neural network model according to the given EasyDict-type ``cfg``.</span>
-<span class="sd">    Arguments:</span>
-<span class="sd">        - cfg: (:obj:`EasyDict`): User&#39;s model config. The key ``import_name`` is \</span>
-<span class="sd">            used to import modules, and they key ``type`` is used to indicate the model.</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        - (:obj:`torch.nn.Module`): The created neural network model.</span>
-<span class="sd">    Examples:</span>
-<span class="sd">        &gt;&gt;&gt; cfg = EasyDict({</span>
-<span class="sd">        &gt;&gt;&gt;     &#39;import_names&#39;: [&#39;ding.model.template.q_learning&#39;],</span>
-<span class="sd">        &gt;&gt;&gt;     &#39;type&#39;: &#39;dqn&#39;,</span>
-<span class="sd">        &gt;&gt;&gt;     &#39;obs_shape&#39;: 4,</span>
-<span class="sd">        &gt;&gt;&gt;     &#39;action_shape&#39;: 2,</span>
-<span class="sd">        &gt;&gt;&gt; })</span>
-<span class="sd">        &gt;&gt;&gt; model = create_model(cfg)</span>
-
-<span class="sd">    .. tip::</span>
-<span class="sd">        This method will not modify the ``cfg`` , it will deepcopy the ``cfg`` and then modify it.</span>
+<span class="sd">        The LanguageTransformer network. Download a pre-trained language model and add head on it.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-    <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
-    <span class="c1"># here we must use the pop opeartion to ensure compatibility</span>
-    <span class="k">return</span> <span class="n">MODEL_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">),</span> <span class="o">**</span><span class="n">cfg</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LanguageTransformer.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.LanguageTransformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;bert-base-uncased&quot;</span><span class="p">,</span>
+            <span class="n">add_linear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+            <span class="n">freeze_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the LanguageTransformer Model according to input arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - model_name (:obj:`str`): The base language model name in huggingface, such as &quot;bert-base-uncased&quot;.</span>
+<span class="sd">            - add_linear (:obj:`bool`): Whether to add a linear layer on the top of language model, defaults to be \</span>
+<span class="sd">            ``False``.</span>
+<span class="sd">            - embedding_size (:obj:`int`): The embedding size of the added linear layer, such as 128.</span>
+<span class="sd">            - freeze_encoder (:obj:`bool`): Whether to freeze the encoder language model while training, \</span>
+<span class="sd">            defaults to be ``True``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForTokenClassification</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+
+        <span class="c1"># Freeze transformer encoder and only train the linear layer</span>
+        <span class="k">if</span> <span class="n">freeze_encoder</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">add_linear</span><span class="p">:</span>
+            <span class="c1"># Add a small, adjustable linear layer on top of language model tuned through RL</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">embedding_size</span> <span class="o">=</span> <span class="n">embedding_size</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">embedding_size</span>
+            <span class="p">)</span>  <span class="c1"># 768 for bert-base-uncased, distilbert-base-uncased</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="nf">_calc_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># ``truncation=True`` means that if the length of the prompt exceed the ``max_length`` of the tokenizer,</span>
+        <span class="c1"># the exceeded part will be truncated. ``padding=True`` means that if the length of the prompt does not reach</span>
+        <span class="c1"># the ``max_length``, the latter part will be padded. These settings ensure the length of encoded tokens is</span>
+        <span class="c1"># exactly ``max_length``, which can enable batch-wise computing.</span>
+        <span class="nb">input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">truncation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_tensors</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="nb">input</span><span class="p">,</span> <span class="n">output_hidden_states</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Get last layer hidden states</span>
+        <span class="n">last_hidden_states</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">hidden_states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Get [CLS] hidden states</span>
+        <span class="n">sentence_embedding</span> <span class="o">=</span> <span class="n">last_hidden_states</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># len(input_list) x hidden_size</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">:</span>
+            <span class="n">sentence_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">sentence_embedding</span><span class="p">)</span>  <span class="c1"># len(input_list) x embedding_size</span>
+
+        <span class="k">return</span> <span class="n">sentence_embedding</span>
+
+<div class="viewcode-block" id="LanguageTransformer.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.LanguageTransformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">candidate_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            LanguageTransformer forward computation graph, input two lists of strings and predict their matching scores.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - train_samples (:obj:`List[str]`): One list of strings.</span>
+<span class="sd">            - candidate_samples (:obj:`List[str]`): The other list of strings to calculate the matching scores.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict`): Output dict data, including the logit of matching scores and the \</span>
+<span class="sd">            corresponding ``torch.distributions.Categorical`` object.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; test_pids = [1]</span>
+<span class="sd">            &gt;&gt;&gt; cand_pids = [0, 2, 4]</span>
+<span class="sd">            &gt;&gt;&gt; problems = [ \</span>
+<span class="sd">                &quot;This is problem 0&quot;, &quot;This is the first question&quot;, &quot;Second problem is here&quot;, &quot;Another problem&quot;, \</span>
+<span class="sd">                &quot;This is the last problem&quot; \</span>
+<span class="sd">            ]</span>
+<span class="sd">            &gt;&gt;&gt; ctxt_list = [problems[pid] for pid in test_pids]</span>
+<span class="sd">            &gt;&gt;&gt; cands_list = [problems[pid] for pid in cand_pids]</span>
+<span class="sd">            &gt;&gt;&gt; model = LanguageTransformer(model_name=&quot;bert-base-uncased&quot;, add_linear=True, embedding_size=256)</span>
+<span class="sd">            &gt;&gt;&gt; scores = model(ctxt_list, cands_list)</span>
+<span class="sd">            &gt;&gt;&gt; assert scores.shape == (1, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">prompt_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_embedding</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span>
+        <span class="n">cands_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_embedding</span><span class="p">(</span><span class="n">candidate_samples</span><span class="p">)</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">prompt_embedding</span><span class="p">,</span> <span class="n">cands_embedding</span><span class="o">.</span><span class="n">t</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;dist&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">scores</span><span class="p">),</span> <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">scores</span><span class="p">}</span></div></div>
 </pre></div>
 
               </article>

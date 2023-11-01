@@ -175,6 +175,10 @@ GTrXLDQN
 .. autoclass:: ding.model.GTrXLDQN
     :members: __init__, forward, reset_memory, get_memory
 
+PG
+~~~~~
+.. autoclass:: ding.model.PG
+    :members: __init__, forward
 
 VAC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -182,6 +186,17 @@ VAC
 .. autoclass:: ding.model.VAC
     :members: __init__, forward, compute_actor, compute_critic, compute_actor_critic
 
+DREAMERVAC
+~~~~~~~~~~~~~~
+.. autoclass:: ding.model.DREAMERVAC
+    :members: __init__
+
+
+MAVAC
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ding.model.MAVAC
+    :members: __init__, forward, compute_actor, compute_critic, compute_actor_critic
 
 ContinuousQAC
 ~~~~~~~~~~~~~~~
@@ -194,10 +209,21 @@ DiscreteQAC
 .. autoclass:: ding.model.DiscreteQAC
     :members: __init__, forward, compute_actor, compute_critic
 
+ContinuousMAQAC
+~~~~~~~~~~~~~~~
+.. autoclass:: ding.model.ContinuousMAQAC
+    :members: __init__, forward, compute_actor, compute_critic
+
+
+DiscreteMAQAC
+~~~~~~~~~~~~~~~
+.. autoclass:: ding.model.DiscreteMAQAC
+    :members: __init__, forward, compute_actor, compute_critic
+
 QACDIST
 ~~~~~~~~~~~
 .. autoclass:: ding.model.QACDIST
-    :members: __init__, forward
+    :members: __init__, forward, compute_actor, compute_critic
 
 DiscreteBC
 ~~~~~~~~~~~
@@ -209,18 +235,24 @@ ContinuousBC
 .. autoclass:: ding.model.ContinuousBC
     :members: __init__, forward
 
-DREAMERVAC
-~~~~~~~~~~~~~~
-.. autoclass:: ding.model.DREAMERVAC
-
 PDQN
 ~~~~
 .. autoclass:: ding.model.PDQN
-    :members: __init__, forward
+    :members: __init__, forward, compute_continuous, compute_discrete
 
 DecisionTransformer
 ~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.model.DecisionTransformer
+    :members: __init__, forward
+
+LanguageTransformer
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: ding.model.LanguageTransformer
+    :members: __init__, forward
+
+Mixer
+~~~~~
+.. autoclass:: ding.model.Mixer
     :members: __init__, forward
 
 QMix
@@ -228,26 +260,25 @@ QMix
 .. autoclass:: ding.model.QMix
     :members: __init__, forward
 
+COMA
+~~~~~~
+.. autoclass:: ding.model.COMA
+    :members: __init__, forward
+
+QTran
+~~~~~~~
+.. autoclass:: ding.model.QTran
+    :members: __init__, forward
+
+WQMix
+~~~~~
+.. autoclass:: ding.model.WQMix
+    :members: __init__, forward
+
 PPG
 ~~~~
 .. autoclass:: ding.model.PPG
-    :members: __init__, forward
-
-MAVAC
-~~~~~~
-.. autoclass:: ding.model.MAVAC
-    :members: __init__, forward
-
-DiscreteMAQAC
-~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.model.DiscreteMAQAC
-    :members: __init__, forward
-
-ContinuousMAQAC
-~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.model.ContinuousMAQAC
-    :members: __init__, forward
-
+    :members: __init__, forward, compute_actor, compute_critic, compute_actor_critic
 
 ProcedureCloningBFS
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -259,17 +290,41 @@ ProcedureCloningMCTS
 .. autoclass:: ding.model.ProcedureCloningMCTS
     :members: __init__, forward
 
+ACER
+~~~~~~
+.. autoclass:: ding.model.ACER
+    :members: __init__, forward, compute_actor, compute_critic
+
+NGU
+~~~~~
+.. autoclass:: ding.model.NGU
+    :members: __init__, forward
 
 BCQ
 ~~~~
 .. autoclass:: ding.model.BCQ
-    :members: __init__, forward
+    :members: __init__, forward, compute_actor, compute_critic, compute_vae, compute_eval
 
 
 EDAC
 ~~~~
 .. autoclass:: ding.model.EDAC
+    :members: __init__, forward, compute_actor, compute_critic
+
+EBM
+~~~~~~
+.. autoclass:: ding.model.EBM
     :members: __init__, forward
+
+AutoregressiveEBM
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: ding.model.AutoregressiveEBM
+    :members: __init__, forward
+
+VAE
+~~~~
+.. autoclass:: ding.model.VanillaVAE
+    :members: __init__, forward, encode, decode, decode_with_obs, reparameterize, loss_function
 
 Wrapper
 =======

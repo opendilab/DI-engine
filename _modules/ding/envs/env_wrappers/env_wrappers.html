@@ -333,6 +333,8 @@
 <span class="sd">- GymToGymnasiumWrapper: Adapts environments from the Gym library to be compatible with the Gymnasium library.</span>
 <span class="sd">- AllinObsWrapper: Consolidates all information into the observation, useful for environments where the agent&#39;s</span>
 <span class="sd">    observation should include additional information such as the current score or time remaining.</span>
+<span class="sd">- ObsPlusPrevActRewWrapper: This wrapper is used in policy NGU. It sets a dict as the new wrapped observation,</span>
+<span class="sd">    which includes the current observation, previous action and previous reward.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">copy</span>

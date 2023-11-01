@@ -186,7 +186,7 @@ TimeLimitWrapper
 FlatObsWrapper
 ~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.FlatObsWrapper
-    :members: __init__, observation, step, reset, observation 
+    :members: __init__, observation, step, reset
 
 GymToGymnasiumWrapper
 ~~~~~~~~~~~~~~~~~~~~~~

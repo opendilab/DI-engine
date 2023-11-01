@@ -854,7 +854,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - closed (:obj:`bool`): Whether the env manager is closed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span>
+
+    <span class="k">def</span> <span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_obs_id</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="BaseEnvManagerV2"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.BaseEnvManagerV2">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;base_v2&#39;</span><span class="p">)</span>
@@ -871,7 +874,8 @@
 
 <span class="sd">    .. note::</span>
 <span class="sd">        For more details about new task pipeline, please refer to the system document of DI-engine \</span>
-<span class="sd">        (`en link &lt;../03_system/index.html&gt;`_).</span>
+<span class="sd">        (`system en link &lt;../03_system/index.html&gt;`_).</span>
+
 <span class="sd">    Interfaces:</span>
 <span class="sd">        reset, step, seed, close, enable_save_replay, launch, default_config, reward_shaping, enable_save_figure</span>
 <span class="sd">    Properties:</span>

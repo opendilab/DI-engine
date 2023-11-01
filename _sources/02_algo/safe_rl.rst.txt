@@ -6,7 +6,7 @@ Problem Definition and Research Motivation
 
 **Safe Reinforcement Learning** is a subdivided development direction of reinforcement learning. The goal of reinforcement learning is to learn a policy that maximizes expected returns, but in real-world decision-making problems, such as autonomous driving and robotics scenarios, deploying such agents that only maximize expected returns often raises safety concerns.
 
-The following security issues usually arise during reinforcement learning training[1]:
+The following security issues usually arise during reinforcement learning training [[1]_]:
 
 - Negative Side Effects
 
@@ -18,7 +18,7 @@ The following security issues usually arise during reinforcement learning traini
   
 - Robustness to Distributional Shift
 
-Due to the existence of these problems, it is very necessary to consider security conditions during actual deployment. There are five key issues when defining safe reinforcement learning[2]:
+Due to the existence of these problems, it is very necessary to consider security conditions during actual deployment. There are five key issues when defining safe reinforcement learning [[2]_]:
 
 - Safety Policy. How to optimize strategies and find safe strategies?
   
@@ -30,7 +30,7 @@ Due to the existence of these problems, it is very necessary to consider securit
   
 - Safety Challenges. What challenges will future safety reinforcement learning research face?
   
-A framework outlining these five secure reinforcement learning problems from a unified perspective is shown below[2].
+A framework outlining these five secure reinforcement learning problems from a unified perspective is shown below [[2]_].
 
 .. image:: images/safe_rl_2h3w.png
    :align: center
@@ -68,7 +68,7 @@ For a detailed classification of algorithms in the current field of security rei
 Primal Dual
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the original problem of safe RL, neither the objective nor the constraints are convex, but it can be converted into a dual problem using the Lagrange multiplier method. The dual problem is a minimization convex problem and can be solved. This solution has many classic jobs[3-7]。
+In the original problem of safe RL, neither the objective nor the constraints are convex, but it can be converted into a dual problem using the Lagrange multiplier method. The dual problem is a minimization convex problem and can be solved. This solution has many classic jobs [[3-7]_]。
 
 Lagrangian function: :math:`\mathcal{L}(\pi,\lambda)=V(\pi)+\Sigma\lambda_i(U_i(\pi)-c_i),\lambda\geq0`  
 
@@ -92,7 +92,7 @@ Solve a relatively simple single-step constrained optimization problem at each u
 model-free
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Constrained Policy Optimization(CPO) [3] is the first policy gradient method to solve the CMDP problem. By optimizing the following two equations, you can ensure that the return increases monotonically while satisfying the security constraints.
+Constrained Policy Optimization(CPO) [[3]_] is the first policy gradient method to solve the CMDP problem. By optimizing the following two equations, you can ensure that the return increases monotonically while satisfying the security constraints.
 
 \ :math:`J\left(\pi'\right)-J(\pi)\geq\frac{1}{1-\gamma}\underset{\stackrel{s\sim d\pi}{a\sim\pi'}}{\operatorname*{E}}\left[A^{\pi}(s,a)-\frac{2\gamma\epsilon^{\pi'}}{1-\gamma}D_{TV}\left(\pi'\|\pi\right)[s]\right]`
 
@@ -109,7 +109,7 @@ Model-based deep reinforcement learning(DRL) methods generally have better learn
 Future Study
 -------------
 
-When we leverage reinforcement learning in real-world applications, there are many challenges encountered during deployment.  Security reinforcement learning is a direction that has not been developed for a long time, and there are many aspects that need to be explored. For example: 
+When we leverage reinforcement learning in real-world applications, there are many challenges encountered during deployment.  Security reinforcement learning is a direction that has not been developed for a long time, and there are many aspects that need to be explored [[8, 9, 10]_]. For example: 
 
 - Using game theory to implement safe multi-agent reinforcement learning. Different games can be considered in different game settings for real-world applications.
 - Secure reinforcement learning based on information theory. Information theory may help handle uncertain reward signals and cost estimates and effectively solve problems in large-scale multi-agent environments.

@@ -320,16 +320,16 @@
 <div class="viewcode-block" id="DingEnvWrapper.__init__"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.DingEnvWrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">seed_api</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">caller</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;collector&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Initialize the DingEnvWrapper. Either an environment instance or a config to create the environment</span>
-<span class="sd">            instance should be passed in:</span>
-<span class="sd">                - An environment instance: The `env` parameter must not be `None`, but should be the instance.</span>
-<span class="sd">                  It does not support subprocess environment manager. Thus, it is usually used in simple environments.</span>
-<span class="sd">                - A config to create an environment instance: The `cfg` parameter must contain `env_id`.</span>
+<span class="sd">            Initialize the DingEnvWrapper. Either an environment instance or a config to create the environment \</span>
+<span class="sd">            instance should be passed in. For the former, i.e., an environment instance: The `env` parameter must not \</span>
+<span class="sd">            be `None`, but should be the instance. It does not support subprocess environment manager. Thus, it is \</span>
+<span class="sd">            usually used in simple environments. For the latter, i.e., a config to create an environment instance: \</span>
+<span class="sd">            The `cfg` parameter must contain `env_id`.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - env (:obj:`gym.Env`): An environment instance to be wrapped.</span>
 <span class="sd">            - cfg (:obj:`dict`): The configuration dictionary to create an environment instance.</span>
 <span class="sd">            - seed_api (:obj:`bool`): Whether to use seed API. Defaults to True.</span>
-<span class="sd">            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or</span>
+<span class="sd">            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or \</span>
 <span class="sd">                ``evaluator``. Different caller may need different wrappers. Default is &#39;collector&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_env</span> <span class="o">=</span> <span class="kc">None</span>
@@ -338,7 +338,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_seed_api</span> <span class="o">=</span> <span class="n">seed_api</span>  <span class="c1"># some env may disable `env.seed` api</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_caller</span> <span class="o">=</span> <span class="n">caller</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;act_scale&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">act_scale</span> <span class="o">=</span> <span class="kc">False</span>

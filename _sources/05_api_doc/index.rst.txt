@@ -8,11 +8,12 @@ API Doc
     env
     model
     policy
+    rl_utils
+    torch_utils/index
+
     framework/index
     data/index
     
-    rl_utils
-    torch_utils/index
     utils/index
     
     worker/learner/index
