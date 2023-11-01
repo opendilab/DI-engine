@@ -8,7 +8,7 @@ from easydict import EasyDict
 from ditk import logging
 from ding.model import DQN
 from ding.policy import DQNFastPolicy
-from ding.envs.env_manager.envpool_env_manager import PoolEnvManagerV4
+from ding.envs.env_manager.envpool_env_manager import PoolEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task, ding_init
@@ -51,11 +51,11 @@ def main(cfg):
         }
     )
     cfg.env["evaluator_env_cfg"] = evaluator_env_cfg
-    cfg = compile_config(cfg, PoolEnvManagerV4, DQNFastPolicy, save_cfg=task.router.node_id == 0)
+    cfg = compile_config(cfg, PoolEnvManagerV2, DQNFastPolicy, save_cfg=task.router.node_id == 0)
     ding_init(cfg)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = PoolEnvManagerV4(cfg.env.collector_env_cfg)
-        evaluator_env = PoolEnvManagerV4(cfg.env.evaluator_env_cfg)
+        collector_env = PoolEnvManagerV2(cfg.env.collector_env_cfg)
+        evaluator_env = PoolEnvManagerV2(cfg.env.evaluator_env_cfg)
         collector_env.seed(cfg.seed)
         evaluator_env.seed(cfg.seed)
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
