@@ -363,4 +363,3 @@ def ppo_policy_error_continuous(data: namedtuple,
         clipped = ratio.gt(1 + clip_ratio) | ratio.lt(1 - clip_ratio)
         clipfrac = torch.as_tensor(clipped).float().mean().item()
     return ppo_policy_loss(policy_loss, entropy_loss), ppo_info(approx_kl, clipfrac)
-

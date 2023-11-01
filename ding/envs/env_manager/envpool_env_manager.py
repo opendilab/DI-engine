@@ -35,6 +35,7 @@ class EnvState(enum.IntEnum):
 class PoolEnvManager:
     '''
     Overview:
+        PoolEnvManager supports old pipeline of DI-engine.
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
         Here we list some commonly used env_ids as follows.
         For more examples, you can refer to <https://envpool.readthedocs.io/en/latest/api/atari.html>.
@@ -53,10 +54,12 @@ class PoolEnvManager:
         # Async mode: batch_size <  env_num
         env_num=8,
         batch_size=8,
+        image_observation=True,
     )
 
     def __init__(self, cfg: EasyDict) -> None:
-        self._cfg = cfg
+        self._cfg = self.default_config()
+        self._cfg.update(cfg)
         self._env_num = cfg.env_num
         self._batch_size = cfg.batch_size
         self._ready_obs = {}
@@ -102,7 +105,8 @@ class PoolEnvManager:
             obs, _, _, info = self._envs.recv()
             env_id = info['env_id']
             obs = obs.astype(np.float32)
-            obs /= 255.0
+            if self._cfg.image_observation:
+                obs /= 255.0
             self._ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, self._ready_obs)
             if len(self._ready_obs) == self._env_num:
                 break
@@ -117,7 +121,8 @@ class PoolEnvManager:
 
         obs, rew, done, info = self._envs.recv()
         obs = obs.astype(np.float32)
-        obs /= 255.0
+        if self._cfg.image_observation:
+            obs /= 255.0
         rew = rew.astype(np.float32)
         env_id = info['env_id']
         timesteps = {}
@@ -175,7 +180,7 @@ class PoolEnvManager:
 class PoolEnvManagerV2:
     '''
     Overview:
-        Envpool env manager support new pipeline of DI-engine
+        PoolEnvManagerV2 supports new pipeline of DI-engine.
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
         Here we list some commonly used env_ids as follows.
         For more examples, you can refer to <https://envpool.readthedocs.io/en/latest/api/atari.html>.
@@ -192,11 +197,13 @@ class PoolEnvManagerV2:
         type='envpool',
         env_num=8,
         batch_size=8,
+        image_observation=True,
     )
 
     def __init__(self, cfg: EasyDict) -> None:
         super().__init__()
-        self._cfg = cfg
+        self._cfg = self.default_config()
+        self._cfg.update(cfg)
         self._env_num = cfg.env_num
         self._batch_size = cfg.batch_size
 
@@ -245,7 +252,8 @@ class PoolEnvManagerV2:
             obs, _, _, info = self._envs.recv()
             env_id = info['env_id']
             obs = obs.astype(np.float32)
-            obs /= 255.0
+            if self._cfg.image_observation:
+                obs /= 255.0
             ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, ready_obs)
             if len(ready_obs) == self._env_num:
                 break
@@ -259,7 +267,8 @@ class PoolEnvManagerV2:
     def receive_data(self):
         next_obs, rew, done, info = self._envs.recv()
         next_obs = next_obs.astype(np.float32)
-        next_obs /= 255.0
+        if self._cfg.image_observation:
+            next_obs /= 255.0
         rew = rew.astype(np.float32)
 
         return next_obs, rew, done, info

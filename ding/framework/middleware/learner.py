@@ -17,6 +17,7 @@ import torch.multiprocessing as mp
 from threading import Thread
 from ding.policy.common_utils import default_preprocess_learn, fast_preprocess_learn
 
+
 def data_process_func(data_queue_input, data_queue_output):
     while True:
         if data_queue_input.empty():
@@ -91,6 +92,7 @@ class OffPolicyLearner:
             train_output_queue.append(ctx.train_output)
             ctx.train_output_for_post_process = ctx.train_output
         ctx.train_output = train_output_queue
+
 
 class EnvpoolOffPolicyLearner:
     """

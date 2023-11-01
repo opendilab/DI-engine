@@ -72,7 +72,6 @@ class StepCollector:
                 break
 
 
-
 class EnvpoolStepCollector:
 
     def __new__(cls, *args, **kwargs):
@@ -243,7 +242,6 @@ class EnvpoolStepCollector:
             ctx.trajectories.extend(self._trajectory[i])
             self._trajectory[i] = []
         ctx.env_step += len(ctx.trajectories)
-
 
 
 class PPOFStepCollector:

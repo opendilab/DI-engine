@@ -425,7 +425,6 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
         if stop_flag:
             task.finish = True
 
-
     return _evaluate
 
 

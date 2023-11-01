@@ -70,6 +70,7 @@ def default_preprocess_learn(
 
     return data
 
+
 def fast_preprocess_learn(
         data: List[Any],
         use_priority_IS_weight: bool = False,
@@ -136,6 +137,7 @@ def fast_preprocess_learn(
     processes_data['weight'] = weight
 
     return processes_data
+
 
 def single_env_forward_wrapper(forward_fn: Callable) -> Callable:
     """
