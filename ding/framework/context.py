@@ -69,19 +69,12 @@ class OnlineRLContext(Context):
     eval_output: List = dataclasses.field(default_factory=dict)
     # wandb
     wandb_url: str = ""
-    evaluator_time = 0.0
-    collector_time = 0.0
-    learner_time = 0.0
-    data_pusher_time = 0.0
-    nstep_time = 0.0
-    total_time = 0.0
 
     def __post_init__(self):
         # This method is called just after __init__ method. Here, concretely speaking,
         # this method is called just after the object initialize its fields.
         # We use this method here to keep the fields needed for each iteration.
         self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter', 'last_eval_value', 'wandb_url')
-        self.keep('evaluator_time', 'collector_time', 'learner_time', 'data_pusher_time', 'nstep_time', 'total_time')
 
 
 @dataclasses.dataclass
