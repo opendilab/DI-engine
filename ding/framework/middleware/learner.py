@@ -17,26 +17,7 @@ import torch.multiprocessing as mp
 from threading import Thread
 from ding.policy.common_utils import default_preprocess_learn, fast_preprocess_learn
 
-
 def data_process_func(data_queue_input, data_queue_output):
-    while True:
-        data = data_queue_input.get()
-        if data is None:
-            break
-        else:
-            #print("get one data")
-            output_data = fast_preprocess_learn(
-                data,
-                use_priority=False,  #policy._cfg.priority,
-                use_priority_IS_weight=False,  #policy._cfg.priority_IS_weight,
-                cuda=True,  #policy._cuda,
-                device="cuda:0",  #policy._device,
-            )
-        data_queue_output.put(output_data)
-        #print("put one data, queue size:{}".format(data_queue_output.qsize()))
-
-
-def data_process_func_v2(data_queue_input, data_queue_output):
     while True:
         if data_queue_input.empty():
             time.sleep(0.001)
@@ -157,7 +138,7 @@ class EnvpoolOffPolicyLearner:
         self._data_queue_input = Queue()
         self._data_queue_output = Queue()
 
-        self.thread_worker = Thread(target=data_process_func_v2, args=(self._data_queue_input, self._data_queue_output))
+        self.thread_worker = Thread(target=data_process_func, args=(self._data_queue_input, self._data_queue_output))
         self.thread_worker.start()
 
         self._trainer = task.wrap(trainer(cfg, policy.learn_mode, log_freq=log_freq))
