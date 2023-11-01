@@ -27,8 +27,8 @@ def ppg_joint_error(
         - action (:obj:`torch.LongTensor`): :math:`(B,)`
         - value_new (:obj:`torch.FloatTensor`): :math:`(B, 1)`
         - value_old (:obj:`torch.FloatTensor`): :math:`(B, 1)`
-        - return_ (:obj:`torch.FloatTensor`): :math:`(B, 1)`
-        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B,)`
+        - return (:obj:`torch.FloatTensor`): :math:`(B, 1)`
+        - weight (:obj:`torch.FloatTensor`): :math:`(B,)`
         - auxiliary_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - behavioral_cloning_loss (:obj:`torch.FloatTensor`): :math:`()`
     Examples:

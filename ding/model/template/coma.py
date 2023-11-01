@@ -11,9 +11,9 @@ from .q_learning import DRQN
 class COMAActorNetwork(nn.Module):
     """
     Overview:
-        Decentralized actor network in COMA
+        Decentralized actor network in COMA algorithm.
     Interface:
-        __init__, forward
+         ``__init__``, ``forward``
     """
 
     def __init__(
@@ -24,7 +24,7 @@ class COMAActorNetwork(nn.Module):
     ):
         """
         Overview:
-            initialize COMA actor network
+            Initialize COMA actor network
         Arguments:
             - obs_shape (:obj:`int`): the dimension of each agent's observation state
             - action_shape (:obj:`int`): the dimension of action shape
@@ -35,10 +35,30 @@ class COMAActorNetwork(nn.Module):
 
     def forward(self, inputs: Dict) -> Dict:
         """
+        Overview:
+            The forward computation graph of COMA actor network
+        Arguments:
+            - inputs (:obj:`dict`): input data dict with keys ['obs', 'prev_state']
+            - agent_state (:obj:`torch.Tensor`): each agent local state(obs)
+            - action_mask (:obj:`torch.Tensor`): the masked action
+            - prev_state (:obj:`torch.Tensor`): the previous hidden state
+        Returns:
+            - output (:obj:`dict`): output data dict with keys ['logit', 'next_state', 'action_mask']
         ArgumentsKeys:
             - necessary: ``obs`` { ``agent_state``, ``action_mask`` }, ``prev_state``
         ReturnsKeys:
             - necessary: ``logit``, ``next_state``, ``action_mask``
+        Examples:
+            >>> T, B, A, N = 4, 8, 3, 32
+            >>> embedding_dim = 64
+            >>> action_dim = 6
+            >>> data = torch.randn(T, B, A, N)
+            >>> model = COMAActorNetwork((N, ), action_dim, [128, embedding_dim])
+            >>> prev_state = [[None for _ in range(A)] for _ in range(B)]
+            >>> for t in range(T):
+            >>>     inputs = {'obs': {'agent_state': data[t], 'action_mask': None}, 'prev_state': prev_state}
+            >>>     outputs = model(inputs)
+            >>>     logit, prev_state = outputs['logit'], outputs['next_state']
         """
         agent_state = inputs['obs']['agent_state']
         prev_state = inputs['prev_state']
@@ -62,9 +82,9 @@ class COMAActorNetwork(nn.Module):
 class COMACriticNetwork(nn.Module):
     """
     Overview:
-        Centralized critic network in COMA
+        Centralized critic network in COMA algorithm.
     Interface:
-        __init__, forward
+         ``__init__``, ``forward``
     """
 
     def __init__(
@@ -80,6 +100,14 @@ class COMACriticNetwork(nn.Module):
             - input_size (:obj:`int`): the size of input global observation
             - action_shape (:obj:`int`): the dimension of action shape
             - hidden_size_list (:obj:`list`): the list of hidden size, default to 128
+        Returns:
+            - output (:obj:`dict`): output data dict with keys ['q_value']
+        Shapes:
+            - obs (:obj:`dict`): ``agent_state``: :math:`(T, B, A, N, D)`, ``action_mask``: :math:`(T, B, A, N, A)`
+            - prev_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`
+            - logit (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`
+            - next_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`
+            - action_mask (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`
         """
         super(COMACriticNetwork, self).__init__()
         self.action_shape = action_shape
@@ -101,6 +129,19 @@ class COMACriticNetwork(nn.Module):
             - necessary: ``obs`` { ``agent_state``, ``global_state`` }, ``action``, ``prev_state``
         ReturnsKeys:
             - necessary: ``q_value``
+        Examples:
+            >>> agent_num, bs, T = 4, 3, 8
+            >>> obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
+            >>> coma_model = COMACriticNetwork(
+            >>>     obs_dim - action_dim + global_obs_dim + 2 * action_dim * agent_num, action_dim)
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(T, bs, agent_num, obs_dim),
+            >>>         'global_state': torch.randn(T, bs, global_obs_dim),
+            >>>     },
+            >>>     'action': torch.randint(0, action_dim, size=(T, bs, agent_num)),
+            >>> }
+            >>> output = coma_model(data)
         """
         x = self._preprocess_data(data)
         q = self.mlp(x)
@@ -145,8 +186,13 @@ class COMACriticNetwork(nn.Module):
 class COMA(nn.Module):
     """
     Overview:
-        COMA network is QAC-type actor-critic.
+        The network of COMA algorithm, which is QAC-type actor-critic.
+    Interface:
+        ``__init__``, ``forward``
+    Properties:
+        - mode (:obj:`list`): The list of forward mode, including ``compute_actor`` and ``compute_critic``
     """
+
     mode = ['compute_actor', 'compute_critic']
 
     def __init__(
@@ -174,12 +220,53 @@ class COMA(nn.Module):
 
     def forward(self, inputs: Dict, mode: str) -> Dict:
         """
+        Overview:
+            forward computation graph of COMA network
+        Arguments:
+            - inputs (:obj:`dict`): input data dict with keys ['obs', 'prev_state', 'action']
+            - agent_state (:obj:`torch.Tensor`): each agent local state(obs)
+            - global_state (:obj:`torch.Tensor`): global state(obs)
+            - action (:obj:`torch.Tensor`): the masked action
         ArgumentsKeys:
             - necessary: ``obs`` { ``agent_state``, ``global_state``, ``action_mask`` }, ``action``, ``prev_state``
         ReturnsKeys:
             - necessary:
                 - compute_critic: ``q_value``
                 - compute_actor: ``logit``, ``next_state``, ``action_mask``
+        Shapes:
+            - obs (:obj:`dict`): ``agent_state``: :math:`(T, B, A, N, D)`, ``action_mask``: :math:`(T, B, A, N, A)`
+            - prev_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`
+            - logit (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`
+            - next_state (:obj:`list`): :math:`[[[h, c] for _ in range(A)] for _ in range(B)]`
+            - action_mask (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`
+            - q_value (:obj:`torch.Tensor`): :math:`(T, B, A, N, A)`
+        Examples:
+            >>> agent_num, bs, T = 4, 3, 8
+            >>> agent_num, bs, T = 4, 3, 8
+            >>> obs_dim, global_obs_dim, action_dim = 32, 32 * 4, 9
+            >>> coma_model = COMA(
+            >>>     agent_num=agent_num,
+            >>>     obs_shape=dict(agent_state=(obs_dim, ), global_state=(global_obs_dim, )),
+            >>>     action_shape=action_dim,
+            >>>     actor_hidden_size_list=[128, 64],
+            >>> )
+            >>> prev_state = [[None for _ in range(agent_num)] for _ in range(bs)]
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(T, bs, agent_num, obs_dim),
+            >>>         'action_mask': None,
+            >>>     },
+            >>>     'prev_state': prev_state,
+            >>> }
+            >>> output = coma_model(data, mode='compute_actor')
+            >>> data= {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(T, bs, agent_num, obs_dim),
+            >>>         'global_state': torch.randn(T, bs, global_obs_dim),
+            >>>     },
+            >>>     'action': torch.randint(0, action_dim, size=(T, bs, agent_num)),
+            >>> }
+            >>> output = coma_model(data, mode='compute_critic')
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         if mode == 'compute_actor':

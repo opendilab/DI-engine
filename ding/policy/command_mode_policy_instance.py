@@ -24,7 +24,7 @@ from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
-from .sac import SACPolicy, SACDiscretePolicy
+from .sac import SACPolicy, DiscreteSACPolicy, SQILSACPolicy
 from .mbpolicy.mbsac import MBSACPolicy, STEVESACPolicy
 from .mbpolicy.dreamer import DREAMERPolicy
 from .qmix import QMIXPolicy
@@ -42,15 +42,15 @@ from .dqfd import DQFDPolicy
 from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
-from .cql import CQLPolicy, CQLDiscretePolicy
+from .cql import CQLPolicy, DiscreteCQLPolicy
 from .dt import DTPolicy
 from .pdqn import PDQNPolicy
-from .sac import SQILSACPolicy
 from .madqn import MADQNPolicy
 from .bdq import BDQPolicy
 from .bcq import BCQPolicy
 from .edac import EDACPolicy
 from .prompt_pg import PromptPGPolicy
+from .plan_diffuser import PDPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -315,8 +315,8 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('cql_discrete_command')
-class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('discrete_cql_command')
+class DiscreteCQLCommandModePolicy(DiscreteCQLPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -375,8 +375,8 @@ class PDQNCommandModePolicy(PDQNPolicy, EpsCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('sac_discrete_command')
-class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
+@POLICY_REGISTRY.register('discrete_sac_command')
+class DiscreteSACCommandModePolicy(DiscreteSACPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -397,6 +397,11 @@ class BCQCommandModelPolicy(BCQPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('edac_command')
 class EDACCommandModelPolicy(EDACPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('pd_command')
+class PDCommandModelPolicy(PDPolicy, DummyCommandModePolicy):
     pass
 
 

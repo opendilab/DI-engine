@@ -16,7 +16,7 @@ def acer_policy_error(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Overview:
-        Get ACER policy loss
+        Get ACER policy loss.
     Arguments:
         - q_values (:obj:`torch.Tensor`): Q values
         - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)
@@ -64,7 +64,7 @@ def acer_policy_error(
 def acer_value_error(q_values, q_retraces, actions):
     """
     Overview:
-        Get ACER critic loss
+        Get ACER critic loss.
     Arguments:
         - q_values (:obj:`torch.Tensor`): Q values
         - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)
@@ -78,7 +78,6 @@ def acer_value_error(q_values, q_retraces, actions):
         - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
         - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
     Examples:
-
         >>> q_values=torch.randn(2, 3, 4)
         >>> q_retraces=torch.randn(2, 3, 1)
         >>> actions=torch.randint(0, 4, (2, 3))

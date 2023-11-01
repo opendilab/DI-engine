@@ -9,17 +9,24 @@ def cov(
         ddof: Optional[int] = None,
         aweights: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
-    r"""
+    """
     Overview:
-        Estimates covariance matrix like ``numpy.cov``
+        Estimates covariance matrix like ``numpy.cov``.
     Arguments:
-        - x (:obj:`torch.Tensor`)
-        - rowvar (:obj:`bool`)
-        - bias (:obj:`bool`)
-        - ddof (:obj:`Optional[int]`)
-        - aweights (:obj:`Optional[torch.Tensor]`)
+        - x (:obj:`torch.Tensor`): A 1-D or 2-D tensor containing multiple variables and observations. Each row of \
+            ``x`` represents a variable, and each column a single observation of all those variables.
+        - rowvar (:obj:`bool`): If ``rowvar`` is True by default, and each column is a single observation of all those \
+            variables. Otherwise, each column represents a variable, while the rows contain observations.
+        - bias (:obj:`bool`): Default normalization (False) is by dividing ``N - 1``, where ``N`` is the number of \
+            observations given (unbiased estimate). If ``bias`` is ``True``, then normalization is by ``N``.
+        - ddof (:obj:`Optional[int]`): If ``ddof`` is not ``None``, it implies that the argument ``bias`` is \
+            overridden. Note that ``ddof=1`` will return the unbiased estimate (equals to ``bias=False``), and \
+            ``ddof=0`` will return the biased estimation (equals to ``bias=True``).
+        - aweights (:obj:`Optional[torch.Tensor]`): 1-D tensor of observation vector weights. These relative weights \
+            are typically large for observations considered “important” and smaller for observations considered less \
+            “important”. If ``ddof=0``, the tensor of weights can be used to assign weights to observation vectors.
     Returns:
-        - cov_mat (:obj:`torch.Tensor`): Covariance matrix
+        - cov_mat (:obj:`torch.Tensor`): Covariance matrix calculated.
     """
     if x.dim() == 1 and rowvar:
         raise NotImplementedError

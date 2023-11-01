@@ -11,6 +11,16 @@ from .vae import VanillaVAE
 
 @MODEL_REGISTRY.register('bcq')
 class BCQ(nn.Module):
+    """
+    Overview:
+        Model of BCQ (Batch-Constrained deep Q-learning).
+        Off-Policy Deep Reinforcement Learning without Exploration.
+        https://arxiv.org/abs/1812.02900
+    Interface:
+        ``forward``, ``compute_actor``, ``compute_critic``, ``compute_vae``, ``compute_eval``
+    Property:
+        ``mode``
+    """
 
     mode = ['compute_actor', 'compute_critic', 'compute_vae', 'compute_eval']
 
@@ -93,7 +103,13 @@ class BCQ(nn.Module):
                 - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
             Returns:
                 - output (:obj:`Dict`): Output dict data, including action tensor.
-
+        Examples:
+            >>> inputs = {'obs': torch.randn(4, 32), 'action': torch.randn(4, 6)}
+            >>> model = BCQ(32, 6)
+            >>> outputs = model(inputs, mode='compute_actor')
+            >>> outputs = model(inputs, mode='compute_critic')
+            >>> outputs = model(inputs, mode='compute_vae')
+            >>> outputs = model(inputs, mode='compute_eval')
 
         .. note::
             For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
@@ -102,6 +118,21 @@ class BCQ(nn.Module):
         return getattr(self, mode)(inputs)
 
     def compute_critic(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Use critic network to compute q value.
+        Arguments:
+            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keywords ``q_value`` (:obj:`torch.Tensor`).
+        Shapes:
+            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.
+            - outputs (:obj:`Dict`): :math:`(B, N)`.
+        Examples:
+            >>> inputs = {'obs': torch.randn(4, 32), 'action': torch.randn(4, 6)}
+            >>> model = BCQ(32, 6)
+            >>> outputs = model.compute_critic(inputs)
+        """
         obs, action = inputs['obs'], inputs['action']
         if len(action.shape) == 1:  # (B, ) -> (B, 1)
             action = action.unsqueeze(1)
@@ -110,6 +141,21 @@ class BCQ(nn.Module):
         return {'q_value': x}
 
     def compute_actor(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]:
+        """
+        Overview:
+            Use actor network to compute action.
+        Arguments:
+            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keywords ``action`` (:obj:`torch.Tensor`).
+        Shapes:
+            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.
+            - outputs (:obj:`Dict`): :math:`(B, N)`.
+        Examples:
+            >>> inputs = {'obs': torch.randn(4, 32), 'action': torch.randn(4, 6)}
+            >>> model = BCQ(32, 6)
+            >>> outputs = model.compute_actor(inputs)
+        """
         input = torch.cat([inputs['obs'], inputs['action']], -1)
         x = self.actor(input)
         action = self.phi * 1 * torch.tanh(x)
@@ -117,9 +163,41 @@ class BCQ(nn.Module):
         return {'action': action}
 
     def compute_vae(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Use vae network to compute action.
+        Arguments:
+            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keywords ``recons_action`` (:obj:`torch.Tensor`), \
+                ``prediction_residual`` (:obj:`torch.Tensor`), ``input`` (:obj:`torch.Tensor`), \
+                ``mu`` (:obj:`torch.Tensor`), ``log_var`` (:obj:`torch.Tensor`) and ``z`` (:obj:`torch.Tensor`).
+        Shapes:
+            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.
+            - outputs (:obj:`Dict`): :math:`(B, N)`.
+        Examples:
+            >>> inputs = {'obs': torch.randn(4, 32), 'action': torch.randn(4, 6)}
+            >>> model = BCQ(32, 6)
+            >>> outputs = model.compute_vae(inputs)
+        """
         return self.vae.forward(inputs)
 
     def compute_eval(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Use actor network to compute action.
+        Arguments:
+            - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
+        Returns:
+            - outputs (:obj:`Dict`): Dict containing keywords ``action`` (:obj:`torch.Tensor`).
+        Shapes:
+            - inputs (:obj:`Dict`): :math:`(B, N, D)`, where B is batch size, N is sample number, D is input dimension.
+            - outputs (:obj:`Dict`): :math:`(B, N)`.
+        Examples:
+            >>> inputs = {'obs': torch.randn(4, 32), 'action': torch.randn(4, 6)}
+            >>> model = BCQ(32, 6)
+            >>> outputs = model.compute_eval(inputs)
+        """
         obs = inputs['obs']
         obs_rep = obs.clone().unsqueeze(0).repeat_interleave(100, dim=0)
         z = torch.randn((obs_rep.shape[0], obs_rep.shape[1], self.action_shape * 2)).to(obs.device).clamp(-0.5, 0.5)

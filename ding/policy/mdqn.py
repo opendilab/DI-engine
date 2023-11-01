@@ -16,7 +16,7 @@ class MDQNPolicy(DQNPolicy):
     """
     Overview:
         Policy class of Munchausen DQN algorithm, extended by auxiliary objectives.
-        Paper link: https://arxiv.org/abs/2007.14430
+        Paper link: https://arxiv.org/abs/2007.14430.
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -70,26 +70,27 @@ class MDQNPolicy(DQNPolicy):
         == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
+        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
         type='mdqn',
-        # (bool) Whether use cuda in policy
+        # (bool) Whether to use cuda in policy.
         cuda=False,
-        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy).
         on_policy=False,
-        # (bool) Whether enable priority experience sample
+        # (bool) Whether to enable priority experience sample.
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
-        # (float) Discount factor(gamma) for returns
+        # (float) Discount factor(gamma) for returns.
         discount_factor=0.97,
-        # (float) Entropy factor (tau) for Munchausen DQN
+        # (float) Entropy factor (tau) for Munchausen DQN.
         entropy_tau=0.03,
-        # (float) Discount factor (alpha) for Munchausen term
+        # (float) Discount factor (alpha) for Munchausen term.
         m_alpha=0.9,
-        # (int) The number of step for calculating target q_value
+        # (int) The number of step for calculating target q_value.
         nstep=1,
+        # learn_mode config
         learn=dict(
-
-            # How many updates(iterations) to train after collector's one collection.
+            # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
@@ -97,44 +98,63 @@ class MDQNPolicy(DQNPolicy):
             batch_size=64,
             # (float) The step size of gradient descent
             learning_rate=0.001,
-            # ==============================================================
-            # The following configs are algorithm-specific
-            # ==============================================================
             # (int) Frequence of target network update.
             target_update_freq=100,
-            # (bool) Whether ignore done(usually for max step termination env)
+            # (bool) Whether ignore done(usually for max step termination env).
+            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
+            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
+            # However, interaction with HalfCheetah always gets done with done is False,
+            # Since we inplace done==True with done==False to keep
+            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
+            # when the episode step is greater than max episode step.
             ignore_done=False,
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             n_sample=4,
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
         ),
-        eval=dict(),
+        eval=dict(),  # for compability
         # other config
         other=dict(
             # Epsilon greedy with decay.
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
-                # (float) Epsilon start value
+                # (float) Epsilon start value.
                 start=0.95,
-                # (float) Epsilon end value
+                # (float) Epsilon end value.
                 end=0.1,
-                # (int) Decay length(env step)
+                # (int) Decay length(env step).
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, ),
+            replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``, initialize the optimizer, algorithm arguments, main \
-            and target model.
+            Initialize the learn mode of policy, including related attributes and modules. For MDQN, it contains \
+            optimizer, algorithm-specific arguments such as entropy_tau, m_alpha and nstep, main and target model.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -172,18 +192,31 @@ class MDQNPolicy(DQNPolicy):
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Overview:
-            Forward computation graph of learn mode(updating policy).
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, action_gap, clip_frac, priority.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
-                np.ndarray or dict/list combinations.
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For MDQN, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight`` \
+                and ``value_gamma``.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
-                recorded in text log and tensorboard, values are python scalar or a list of scalars.
-        ArgumentsKeys:
-            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
-            - optional: ``value_gamma``, ``IS``
-        ReturnsKeys:
-            - necessary: ``cur_lr``, ``total_loss``, ``priority``, ``action_gap``, ``clip_frac``
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for MDQNPolicy: ``ding.policy.tests.test_mdqn``.
         """
         data = default_preprocess_learn(
             data,
@@ -238,4 +271,11 @@ class MDQNPolicy(DQNPolicy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return ['cur_lr', 'total_loss', 'q_value', 'action_gap', 'clip_frac']
