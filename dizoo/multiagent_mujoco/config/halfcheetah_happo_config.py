@@ -5,7 +5,7 @@ evaluator_env_num = 8
 n_agent = 2
 
 main_config = dict(
-    exp_name='multi_mujoco_halfcheetah_2x3_happo',
+    exp_name='HAPPO_result/debug/multi_mujoco_halfcheetah_2x3_happo',
     env=dict(
         scenario='HalfCheetah-v2',
         agent_conf="2x3",
@@ -33,7 +33,8 @@ main_config = dict(
         learn=dict(
             multi_gpu=False,
             epoch_per_collect=5,
-            batch_size=3200,
+            # batch_size=3200,
+            batch_size=800,
             learning_rate=5e-4,
             # ==============================================================
             # The following configs is algorithm-specific
@@ -41,16 +42,18 @@ main_config = dict(
             # (float) The loss weight of value network, policy network weight is set to 1
             value_weight=0.5,
             # (float) The loss weight of entropy regularization, policy network weight is set to 1
+            # entropy_weight=0.001,
             entropy_weight=0.01,
             # (float) PPO clip ratio, defaults to 0.2
             clip_ratio=0.2,
             # (bool) Whether to use advantage norm in a whole training batch
-            adv_norm=False,
+            adv_norm=True,
             value_norm=True,
             ppo_param_init=True,
             grad_clip_type='clip_norm',
-            grad_clip_value=10,
-            ignore_done=False,
+            grad_clip_value=5,
+            ignore_done=True,
+            # ignore_done=False,
         ),
         collect=dict(
             n_sample=3200,
@@ -77,4 +80,16 @@ create_config = EasyDict(create_config)
 
 if __name__ == '__main__':
     from ding.entry import serial_pipeline_onpolicy
+    main_config.exp_name='HAPPO_result/multi_mujoco_halfcheetah_2x3_happo_ew01'
     serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(1e7))
+# from ding.entry import serial_pipeline_onpolicy
+# def train(mconfig, cconfig, seed):
+#     mconfig.exp_name='HAPPO_result/happov1/multi_mujoco_halfcheetah_2x3_happo_seed{}'.format(seed)
+#     serial_pipeline_onpolicy((mconfig, cconfig), seed=seed, max_env_step=int(1e7))
+
+
+# if __name__ == '__main__':
+#     for seed in [0, 1, 2]:
+#         mconfig = main_config
+#         cconfig = create_config
+#         train(mconfig, cconfig, seed)

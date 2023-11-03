@@ -210,6 +210,7 @@ class HAPPOPolicy(Policy):
             for epoch in range(self._cfg.learn.epoch_per_collect):
                 if self._recompute_adv:  # calculate new value using the new updated value network
                     with torch.no_grad():
+                        inputs['obs'] = agent_data['obs']
                         # value = self._learn_model.forward(agent_id, agent_data['obs'], mode='compute_critic')['value']
                         value = self._learn_model.forward(agent_id, inputs, mode='compute_critic')['value']
                         inputs['obs'] = agent_data['next_obs']
