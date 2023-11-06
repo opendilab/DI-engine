@@ -38,8 +38,9 @@ def concat_context_and_response(
     for _context, _response in zip(context, responses):
         # Each ``_context`` is a single input prompt.
         _context = strip_pad_token_id(tokenizer, _context)
-        for _, resp in _response:
+        for resp in _response:
             # Each ``resp`` is a single response.
+            resp = resp[0][1]
             resp = strip_pad_token_id(tokenizer, resp)
             if resp[-1] != tokenizer.eos_token_id:
                 warnings.warn(

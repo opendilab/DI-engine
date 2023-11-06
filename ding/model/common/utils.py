@@ -37,3 +37,4 @@ def top_p_logits(logits, topp=0.9, filter_value=0, min_topk=1):
         mask = torch.zeros_like(mask).to(torch.bool).scatter_(dim=-1, index=inds, src=mask)
         cum_logits[mask] = filter_value
         cum_logits.div_(cum_logits.sum(dim=-1, keepdim=True))
+    return cum_logits

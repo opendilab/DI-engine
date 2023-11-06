@@ -1,4 +1,3 @@
-import gym
 import torch
 
 from ding.envs import BaseEnv
@@ -60,7 +59,8 @@ class ChatEnv(BaseEnv):
         padded into the same length.
         """
         output_mask, output_vec = concat_context_and_response(self.tokenizer, self.last_batch['text_vec'].tolist(), action)
-        rm_input = torch.tensor(pad_sequences(output_vec, self.tokenizer.pad_token_id, padding='left'), dtype=torch.long)
+        output_vec = pad_sequences(output_vec, self.tokenizer.pad_token_id, padding='left')
+        rm_input = torch.tensor(output_vec, dtype=torch.long)
         output_mask = pad_sequences(output_mask, self.tokenizer.pad_token_id, padding='left')
         with torch.no_grad():
             rew, *_ = self.rm(rm_input)

@@ -467,7 +467,7 @@ class Llama(LlamaForCausalLM):
         repetition_penalty = kwargs.pop('repetition_penalty', self.opt.repetition_penalty)
         topp = kwargs.pop('topp', self.opt.topp)
 
-        decoder_input: torch.LongTensor = batch['text_vec']  # (bsz, ...)
+        decoder_input: torch.LongTensor = batch  # (bsz, ...)
         assert decoder_input[:, -1].ne(
             self.tokenizer.pad_token_id).all(), 'Last token should not be a padding token (you can use left padding instead).'
 
@@ -558,7 +558,7 @@ class LlamaVAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
         """
         super(LlamaVAC, self).__init__()
-        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer)
+        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer,)
         self.critic = LlamaRewardModel.from_pretrained(critic_path, opt=opt, tokenizer=tokenizer)
 
     def forward(self, x: torch.Tensor, mode: str) -> Dict:

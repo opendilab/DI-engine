@@ -211,9 +211,10 @@ class ChatCollector:
             - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
                 its derivatives are supported.
         """
-        self.env = env._env[0]
+        self.env = env
         self.env.seed(seed)
-        self.env.reset()
+        self.env.launch()
+        self.env = self._envs[0]
         self.policy = policy
         self.n_sample = n_sample
         self.unroll_len = unroll_len
@@ -228,22 +229,24 @@ class ChatCollector:
         """
         device = self.policy._device
 
-        obs = ttorch.as_tensor(self.env.last_batch)
+        obs = ttorch.as_tensor(self.env.last_batch[0]['text_vec'])
+        batch_size = obs.shape[0]
         obs = obs.to(device)
 
-        total_action = []
+        total_action = [[] for _ in range(batch_size)]  # [B, answers_per_question, T]
         for _ in range(self.policy._cfg.answers_per_question):
             _, inference_output = self.policy._model.actor.generate(obs, **ctx.collect_kwargs)
-            total_action.append(copy.deepcopy(inference_output))
+            for i in range(batch_size):
+                total_action[i].append(copy.deepcopy(inference_output[i]))
 
         mask, resp, rew = self.env.step(total_action)
         ctx.env_step += 1
         ctx.env_episode += 1
 
         train_data = {}
-        train_data['obs'] = resp  # [B x answer-per-question, max_len]
+        train_data['obs'] = resp  # [B x answer-per-question, T]
         train_data['reward'] = rew  # [B x answer-per-question, ]
-        train_data['mask'] = mask  # [B x answer-per-question, max_len]
+        train_data['mask'] = mask  # [B x answer-per-question, T]
 
         ctx.train_data = ttorch.as_tensor(train_data)
 

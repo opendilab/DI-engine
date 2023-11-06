@@ -164,13 +164,18 @@ class PPOFPolicy:
             with torch.no_grad():
                 if self._cfg.chat_data:
                     # [B, T]
-                    value = self._model.compute_critic(data.obs)
-                    data.orig_logit = self._orig_model.compute_actor(data.obs)
+                    value = self._model.compute_critic(data.obs)['value'][0]
+                    self._model.cpu()
+                    self._orig_model.cuda()
+                    data.orig_logit = self._orig_model.compute_actor(data.obs)['logit']
+                    self._orig_model.cpu()
+                    self._model.cuda()
                     data.value = value
                     reward = data.reward
 
                     traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
-                    adv_data = episodic_gae_data(value, data.mask, reward, data.done, traj_flag)
+                    done = data.get('done', None)
+                    adv_data = episodic_gae_data(value, data.mask, reward, done, traj_flag)
                     data.adv = episodic_gae(adv_data, self._cfg.discount_factor, self._cfg.gae_lambda)
 
                     unnormalized_returns = data.value + data.adv
@@ -252,7 +257,7 @@ class PPOFPolicy:
                         ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
                     else:
                         ppo_batch = ppo_data(
-                            output.logit, batch.logit, batch.action, output.value, batch.value, adv, batch.return_, None
+                            output['logit'], batch.orig_logit, batch.obs, output['value'][0], batch.value, adv, batch.return_, None
                         )
                         ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
                 elif self._action_space == 'hybrid':
@@ -279,7 +284,7 @@ class PPOFPolicy:
                         max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
                     )
                 wv, we, wk = self._cfg.value_weight, self._cfg.entropy_weight, self._cfg.kl_penalty_weight
-                kl_loss = (torch.nn.functional.kl_div(torch.softmax(output.logit, dim=-1), torch.softmax(data.orig_logit, dim=-1), reduction=None) * mask).mean()
+                kl_loss = (torch.nn.functional.kl_div(torch.softmax(output.logit, dim=-1), torch.softmax(batch.orig_logit, dim=-1), reduction='none') * mask).mean()
                 total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss + wk * kl_loss
 
                 self._optimizer.zero_grad()
