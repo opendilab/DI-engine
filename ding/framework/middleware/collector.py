@@ -250,4 +250,5 @@ class ChatCollector:
 
         ctx.train_data = ttorch.as_tensor(train_data)
 
+
 # TODO battle collector

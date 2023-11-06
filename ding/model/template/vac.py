@@ -433,6 +433,7 @@ class DREAMERVAC(nn.Module):
 
 
 class Llama(LlamaForCausalLM):
+
     def __init__(self, config, opt, tokenizer):
         super().__init__(config)
         self.opt = opt
@@ -469,13 +470,14 @@ class Llama(LlamaForCausalLM):
 
         decoder_input: torch.LongTensor = batch  # (bsz, ...)
         assert decoder_input[:, -1].ne(
-            self.tokenizer.pad_token_id).all(), 'Last token should not be a padding token (you can use left padding instead).'
+            self.tokenizer.pad_token_id
+        ).all(), 'Last token should not be a padding token (you can use left padding instead).'
 
         dev = decoder_input.device
         bsz = decoder_input.size(0)
 
-        scores = torch.zeros((bsz,), device=dev, dtype=torch.float16)
-        done = torch.zeros((bsz,), device=dev).to(torch.bool)
+        scores = torch.zeros((bsz, ), device=dev, dtype=torch.float16)
+        done = torch.zeros((bsz, ), device=dev).to(torch.bool)
 
         inds = torch.arange(bsz).to(dev).unsqueeze(1).view(-1)
         decoder_input = torch.index_select(decoder_input, 0, inds)
@@ -495,8 +497,9 @@ class Llama(LlamaForCausalLM):
             if repetition_penalty > 1.:
                 penalty_tokens = decoder_input[:, init_length:]
                 penalty_scores = torch.gather(score, dim=1, index=penalty_tokens)
-                penalty_scores = torch.where(penalty_scores < 0., penalty_scores * repetition_penalty,
-                                             penalty_scores / repetition_penalty)
+                penalty_scores = torch.where(
+                    penalty_scores < 0., penalty_scores * repetition_penalty, penalty_scores / repetition_penalty
+                )
                 score = score.scatter_(dim=1, index=penalty_tokens, src=penalty_scores)
 
             # nucleus sampling
@@ -524,8 +527,8 @@ class Llama(LlamaForCausalLM):
 
         preds_scores = []
         for i in range(bsz):
-            seq: torch.LongTensor = decoder_input[i, :lengths[i,]]
-            res_scores = (float(scores[i,]), seq.tolist())
+            seq: torch.LongTensor = decoder_input[i, :lengths[i, ]]
+            res_scores = (float(scores[i, ]), seq.tolist())
             preds_scores.append([res_scores])
 
         best_preds_scores = [preds[0] for preds in preds_scores]
@@ -543,13 +546,7 @@ class LlamaVAC(nn.Module):
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
-    def __init__(
-            self,
-            actor_path: str,
-            critic_path: str,
-            tokenizer: LlamaTokenizer,
-            opt: Dict
-    ) -> None:
+    def __init__(self, actor_path: str, critic_path: str, tokenizer: LlamaTokenizer, opt: Dict) -> None:
         """
         Overview:
             Initialize the ``DREAMERVAC`` model according to arguments.
@@ -558,7 +555,11 @@ class LlamaVAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
         """
         super(LlamaVAC, self).__init__()
-        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer,)
+        self.actor = Llama.from_pretrained(
+            actor_path,
+            opt=opt,
+            tokenizer=tokenizer,
+        )
         self.critic = LlamaRewardModel.from_pretrained(critic_path, opt=opt, tokenizer=tokenizer)
 
     def forward(self, x: torch.Tensor, mode: str) -> Dict:

@@ -60,7 +60,13 @@ class PPOFPolicy:
         from .model import PPOFModel
         return PPOFModel
 
-    def __init__(self, cfg: "EasyDict", model: torch.nn.Module, enable_mode: List[str] = None, orig_model: torch.nn.Module = None) -> None:
+    def __init__(
+            self,
+            cfg: "EasyDict",
+            model: torch.nn.Module,
+            enable_mode: List[str] = None,
+            orig_model: torch.nn.Module = None
+    ) -> None:
         self._cfg = cfg
         self._orig_model = orig_model
         if model is None:
@@ -238,7 +244,6 @@ class PPOFPolicy:
             for batch in split_data:
                 output = self._model.compute_actor_critic(batch.obs)
                 adv = batch.adv
-                mask = batch.mask
                 if self._cfg.adv_norm:
                     # Normalize advantage in a train_batch
                     adv = (adv - adv.mean()) / (adv.std() + 1e-8)
@@ -256,8 +261,10 @@ class PPOFPolicy:
                         )
                         ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
                     else:
+                        mask = batch.mask
                         ppo_batch = ppo_data(
-                            output['logit'], batch.orig_logit, batch.obs, output['value'][0], batch.value, adv, batch.return_, None
+                            output['logit'], batch.orig_logit, batch.obs, output['value'][0], batch.value, adv,
+                            batch.return_, None
                         )
                         ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
                 elif self._action_space == 'hybrid':
@@ -283,9 +290,19 @@ class PPOFPolicy:
                         max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
                         max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
                     )
-                wv, we, wk = self._cfg.value_weight, self._cfg.entropy_weight, self._cfg.kl_penalty_weight
-                kl_loss = (torch.nn.functional.kl_div(torch.softmax(output.logit, dim=-1), torch.softmax(batch.orig_logit, dim=-1), reduction='none') * mask).mean()
-                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss + wk * kl_loss
+                if not self._cfg.chat_data:
+                    wv, we = self._cfg.value_weight, self._cfg.entropy_weight
+                    total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+                else:
+                    wv, we, wk = self._cfg.value_weight, self._cfg.entropy_weight, self._cfg.kl_penalty_weight
+                    kl_loss = (
+                        torch.nn.functional.kl_div(
+                            torch.softmax(output.logit, dim=-1),
+                            torch.softmax(batch.orig_logit, dim=-1),
+                            reduction='none'
+                        ) * mask
+                    ).mean()
+                    total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss + wk * kl_loss
 
                 self._optimizer.zero_grad()
                 total_loss.backward()
