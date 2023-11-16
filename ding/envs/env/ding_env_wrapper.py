@@ -26,16 +26,16 @@ class DingEnvWrapper(BaseEnv):
     def __init__(self, env: gym.Env = None, cfg: dict = None, seed_api: bool = True, caller: str = 'collector') -> None:
         """
         Overview:
-            Initialize the DingEnvWrapper. Either an environment instance or a config to create the environment
-            instance should be passed in:
-                - An environment instance: The `env` parameter must not be `None`, but should be the instance.
-                  It does not support subprocess environment manager. Thus, it is usually used in simple environments.
-                - A config to create an environment instance: The `cfg` parameter must contain `env_id`.
+            Initialize the DingEnvWrapper. Either an environment instance or a config to create the environment \
+            instance should be passed in. For the former, i.e., an environment instance: The `env` parameter must not \
+            be `None`, but should be the instance. It does not support subprocess environment manager. Thus, it is \
+            usually used in simple environments. For the latter, i.e., a config to create an environment instance: \
+            The `cfg` parameter must contain `env_id`.
         Arguments:
             - env (:obj:`gym.Env`): An environment instance to be wrapped.
             - cfg (:obj:`dict`): The configuration dictionary to create an environment instance.
             - seed_api (:obj:`bool`): Whether to use seed API. Defaults to True.
-            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or
+            - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or \
                 ``evaluator``. Different caller may need different wrappers. Default is 'collector'.
         """
         self._env = None
@@ -44,7 +44,7 @@ class DingEnvWrapper(BaseEnv):
         self._seed_api = seed_api  # some env may disable `env.seed` api
         self._caller = caller
         if self._cfg is None:
-            self._cfg = dict()
+            self._cfg = {}
         self._cfg = EasyDict(self._cfg)
         if 'act_scale' not in self._cfg:
             self._cfg.act_scale = False

@@ -1090,11 +1090,13 @@ class SequenceDataset(torch.utils.data.Dataset):
                 'trajectories': trajectories,
                 'returns': returns,
                 'done': done,
+                'action': actions,
             }
         else:
             batch = {
                 'trajectories': trajectories,
                 'done': done,
+                'action': actions,
             }
 
         batch.update(self.get_conditions(observations))

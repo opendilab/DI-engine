@@ -85,40 +85,15 @@ class ACER(nn.Module):
             Use observation to predict output.
             Parameter updates with ACER's MLPs forward setup.
         Arguments:
-            Forward with ``'compute_actor'``:
-                - inputs (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
-
-            Forward with ``'compute_critic'``, inputs:`torch.Tensor` Necessary Keys:
-                - ``obs`` encoded tensors.
-
             - mode (:obj:`str`): Name of the forward mode.
         Returns:
             - outputs (:obj:`Dict`): Outputs of network forward.
-
-                Forward with ``'compute_actor'``, Necessary Keys (either):
-                    - logit (:obj:`torch.Tensor`):
-                        - logit (:obj:`torch.Tensor`): Logit encoding tensor.
-
-                Forward with ``'compute_critic'``, Necessary Keys:
-                    - q_value (:obj:`torch.Tensor`): Q value tensor.
-        Actor Shapes:
+        Shapes (Actor):
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-        Critic Shapes:
+        Shapes (Critic):
             - inputs (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``obs_shape``
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-        Actor Examples:
-            >>> # Regression mode
-            >>> model = ACER(64, 64)
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['logit'].shape == torch.Size([4, 64])
-        Critic Examples:
-            >>> inputs = torch.randn(4,N)
-            >>> model = ACER(obs_shape=(N, ),action_shape=5)
-            >>> model(inputs, mode='compute_critic')['q_value']
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
@@ -127,7 +102,7 @@ class ACER(nn.Module):
         """
         Overview:
             Use encoded embedding tensor to predict output.
-            Execute parameter updates with ``'compute_actor'`` mode
+            Execute parameter updates with ``compute_actor`` mode
             Use encoded embedding tensor to predict output.
         Arguments:
             - inputs (:obj:`torch.Tensor`):
@@ -156,7 +131,7 @@ class ACER(nn.Module):
     def compute_critic(self, inputs: torch.Tensor) -> Dict:
         """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
+            Execute parameter updates with ``compute_critic`` mode
             Use encoded embedding tensor to predict output.
         Arguments:
             - ``obs``, ``action`` encoded tensors.

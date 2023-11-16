@@ -52,8 +52,8 @@ class MAVAC(nn.Module):
             - actor_head_layer_num (:obj:`int`): The num of layers used in the ``actor_head`` network to compute action.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``critic_head`` network, defaults \
                 to 512, it must match the last element of ``global_obs_shape``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output for \
+                critic's nn.
             - action_space (:obj:`Union[int, SequenceType]`): The type of different action spaces, including \
                 ['discrete', 'continuous'], then will instantiate corresponding head, including ``DiscreteHead`` \
                 and ``ReparameterizationHead``.
@@ -180,8 +180,7 @@ class MAVAC(nn.Module):
                 - action_mask(optional): (:obj:`torch.Tensor`): When ``action_space`` is discrete, action_mask needs \
                     to be provided to mask illegal actions.
         Returns:
-            - outputs (:obj:`Dict`):
-                The output dict of MAVAC's forward computation graph for actor, including ``logit``.
+            - outputs (:obj:`Dict`): The output dict of the forward computation graph for actor, including ``logit``.
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): The predicted action logit tensor, for discrete action space, it will be \
                 the same dimension real-value ranged tensor of possible action choices, and for continuous action \
@@ -253,7 +252,7 @@ class MAVAC(nn.Module):
             MAVAC forward computation graph for both actor and critic part, input observation to predict action \
             logit and state value.
         Arguments:
-            - x (:obj:Dict): The input dict contains ``agent_state``, ``global_state`` and other related info.
+            - x (:obj:`Dict`): The input dict contains ``agent_state``, ``global_state`` and other related info.
         Returns:
             - outputs (:obj:`Dict`): The output dict of MAVAC's forward computation graph for both actor and critic, \
                 including ``logit`` and ``value``.
