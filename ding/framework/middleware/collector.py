@@ -10,8 +10,6 @@ from .functional import inferencer, rolloutor, TransitionList
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
 
-import time
-
 import numpy as np
 
 

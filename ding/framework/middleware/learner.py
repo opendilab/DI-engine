@@ -27,7 +27,6 @@ def data_process_func(data_queue_input, data_queue_output):
             if data is None:
                 break
             else:
-                #print("get one data")
                 output_data = fast_preprocess_learn(
                     data,
                     use_priority=False,  #policy._cfg.priority,
@@ -36,7 +35,6 @@ def data_process_func(data_queue_input, data_queue_output):
                     device="cuda:0",  #policy._device,
                 )
             data_queue_output.put(output_data)
-            #print("put one data, queue size:{}".format(data_queue_output.qsize()))
 
 
 class OffPolicyLearner:

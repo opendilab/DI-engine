@@ -31,9 +31,9 @@ class EnvState(enum.IntEnum):
     NEED_RESET = 6
 
 
-@ENV_MANAGER_REGISTRY.register('env_pool')
+@ENV_MANAGER_REGISTRY.register('envpool')
 class PoolEnvManager:
-    '''
+    """
     Overview:
         PoolEnvManager supports old pipeline of DI-engine.
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
@@ -42,7 +42,7 @@ class PoolEnvManager:
 
         - Atari: "Pong-v5", "SpaceInvaders-v5", "Qbert-v5"
         - Classic Control: "CartPole-v0", "CartPole-v1", "Pendulum-v1"
-    '''
+    """
 
     @classmethod
     def default_config(cls) -> EasyDict:
@@ -55,6 +55,11 @@ class PoolEnvManager:
         env_num=8,
         batch_size=8,
         image_observation=True,
+        episodic_life=False,
+        reward_clip=False,
+        gray_scale=True,
+        stack_num=4,
+        frame_skip=4,
     )
 
     def __init__(self, cfg: EasyDict) -> None:
@@ -73,25 +78,17 @@ class PoolEnvManager:
         else:
             seed = self._seed
 
-        kwargs = {}
-        if "episodic_life" in self._cfg:
-            kwargs["episodic_life"] = self._cfg.episodic_life
-        if "reward_clip" in self._cfg:
-            kwargs["reward_clip"] = self._cfg.reward_clip
-        if "stack_num" in self._cfg:
-            kwargs["stack_num"] = self._cfg.stack_num
-        if "gray_scale" in self._cfg:
-            kwargs["gray_scale"] = self._cfg.gray_scale
-        if "frame_skip" in self._cfg:
-            kwargs["frame_skip"] = self._cfg.frame_skip
-
         self._envs = envpool.make(
             task_id=self._cfg.env_id,
             env_type="gym",
             num_envs=self._env_num,
             batch_size=self._batch_size,
             seed=seed,
-            **kwargs
+            episodic_life=self._cfg.episodic_life,
+            reward_clip=self._cfg.reward_clip,
+            stack_num=self._cfg.stack_num,
+            gray_scale=self._cfg.gray_scale,
+            frame_skip=self._cfg.frame_skip,
         )
         self._action_space = self._envs.action_space
         self._observation_space = self._envs.observation_space
@@ -176,9 +173,9 @@ class PoolEnvManager:
             return self._action_space
 
 
-@ENV_MANAGER_REGISTRY.register('env_pool_v4')
+@ENV_MANAGER_REGISTRY.register('envpool_v2')
 class PoolEnvManagerV2:
-    '''
+    """
     Overview:
         PoolEnvManagerV2 supports new pipeline of DI-engine.
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
@@ -187,17 +184,22 @@ class PoolEnvManagerV2:
 
         - Atari: "Pong-v5", "SpaceInvaders-v5", "Qbert-v5"
         - Classic Control: "CartPole-v0", "CartPole-v1", "Pendulum-v1"
-    '''
+    """
 
     @classmethod
     def default_config(cls) -> EasyDict:
         return EasyDict(deepcopy(cls.config))
 
     config = dict(
-        type='envpool',
+        type='envpool_v2',
         env_num=8,
         batch_size=8,
         image_observation=True,
+        episodic_life=False,
+        reward_clip=False,
+        gray_scale=True,
+        stack_num=4,
+        frame_skip=4,
     )
 
     def __init__(self, cfg: EasyDict) -> None:
@@ -209,7 +211,6 @@ class PoolEnvManagerV2:
 
         self._closed = True
         self._seed = None
-        self._test = False
 
     def launch(self) -> None:
         assert self._closed, "Please first close the env manager"
@@ -218,27 +219,17 @@ class PoolEnvManagerV2:
         else:
             seed = self._seed
 
-        kwargs = {}
-        if "episodic_life" in self._cfg:
-            kwargs["episodic_life"] = self._cfg.episodic_life
-        if "reward_clip" in self._cfg:
-            kwargs["reward_clip"] = self._cfg.reward_clip
-        if "stack_num" in self._cfg:
-            kwargs["stack_num"] = self._cfg.stack_num
-        if "gray_scale" in self._cfg:
-            kwargs["gray_scale"] = self._cfg.gray_scale
-        if "frame_skip" in self._cfg:
-            kwargs["frame_skip"] = self._cfg.frame_skip
-        if "test" in self._cfg:
-            self._test = self._cfg.test
-
         self._envs = envpool.make(
             task_id=self._cfg.env_id,
             env_type="gym",
             num_envs=self._env_num,
             batch_size=self._batch_size,
             seed=seed,
-            **kwargs
+            episodic_life=self._cfg.episodic_life,
+            reward_clip=self._cfg.reward_clip,
+            stack_num=self._cfg.stack_num,
+            gray_scale=self._cfg.gray_scale,
+            frame_skip=self._cfg.frame_skip,
         )
         self._action_space = self._envs.action_space
         self._observation_space = self._envs.observation_space

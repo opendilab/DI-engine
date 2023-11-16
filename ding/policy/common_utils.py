@@ -5,7 +5,6 @@ import numpy as np
 import treetensor.torch as ttorch
 from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze, to_device
-import time
 
 
 def default_preprocess_learn(

@@ -8,11 +8,12 @@ pong_dqn_envpool_config = dict(
         evaluator_env_num=8,
         evaluator_batch_size=8,
         n_evaluator_episode=8,
-        stop_value=20,
+        stop_value=21,
         env_id='Pong-v5',
         #'ALE/Pong-v5' is available. But special setting is needed after gym make.
         frame_stack=4,
     ),
+    nstep = 3,
     policy=dict(
         cuda=True,
         priority=False,
@@ -25,10 +26,11 @@ pong_dqn_envpool_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(
-            update_per_collect=10,
+            update_per_collect=2,
             batch_size=32,
             learning_rate=0.0001,
-            target_update_freq=500,
+            target_update_freq=0,
+            target_theta = 0.04,
         ),
         collect=dict(n_sample=96, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),

@@ -10,9 +10,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 
 from .base_policy import Policy
-from .common_utils import default_preprocess_learn, fast_preprocess_learn
-
-import time
+from .common_utils import default_preprocess_learn
 
 
 @POLICY_REGISTRY.register('dqn')
@@ -201,14 +199,14 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        if 'target_update_freq' in self._cfg.learn:
+        if 'target_update_freq' in self._cfg.learn and self._cfg.learn.target_update_freq > 0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
                 update_type='assign',
                 update_kwargs={'freq': self._cfg.learn.target_update_freq}
             )
-        elif 'target_theta' in self._cfg.learn:
+        elif 'target_theta' in self._cfg.learn and self._cfg.learn.target_theta > 0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
@@ -251,8 +249,6 @@ class DQNPolicy(Policy):
             For more detailed examples, please refer to our unittest for DQNPolicy: ``ding.policy.tests.test_dqn``.
         """
 
-        start = time.time()
-
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
             data,
@@ -261,9 +257,6 @@ class DQNPolicy(Policy):
             ignore_done=self._cfg.learn.ignore_done,
             use_nstep=True
         )
-
-        time_data_process = time.time() - start
-        start = time.time()
 
         if self._cuda:
             data = to_device(data, self._device)
@@ -293,10 +286,6 @@ class DQNPolicy(Policy):
 
         # Postprocessing operations, such as updating target model, return logged values and priority.
         self._target_model.update(self._learn_model.state_dict())
-
-        time_learn = time.time() - start
-        # print("time_data_process:",time_data_process)
-        # print("time_learn:",time_learn)
 
         return {
             'cur_lr': self._optimizer.defaults['lr'],

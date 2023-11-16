@@ -1,9 +1,4 @@
 import datetime
-import torch
-try:
-    torch.multiprocessing.set_start_method('spawn')
-except RuntimeError:
-    pass
 from easydict import EasyDict
 from ditk import logging
 from ding.model import DQN
@@ -17,7 +12,6 @@ from ding.framework.middleware import envpool_evaluator, data_pusher, \
     eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, \
     termination_checker, wandb_online_logger, epoch_timer, EnvpoolStepCollector, EnvpoolOffPolicyLearner
 from ding.utils import set_pkg_seed
-
 from dizoo.atari.config.serial import pong_dqn_envpool_config
 
 
@@ -78,10 +72,7 @@ def main(cfg):
             # Sync their context and model between each worker.
             task.use(ContextExchanger(skip_n_iter=1))
             task.use(ModelExchanger(model))
-
         task.use(epoch_timer())
-
-        # Here is the part of single process pipeline.
         task.use(envpool_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(
@@ -106,10 +97,8 @@ def main(cfg):
                 wandb_sweep=False,
             )
         )
-
         #task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
         task.use(termination_checker(max_env_step=10000000))
-
         task.run()
 
 
@@ -125,15 +114,5 @@ if __name__ == "__main__":
     pong_dqn_envpool_config.env.collector_env_num = arg.collector_env_num
     pong_dqn_envpool_config.env.collector_batch_size = arg.collector_batch_size
     pong_dqn_envpool_config.seed = arg.seed
-    pong_dqn_envpool_config.env.stop_value = 2000
-    pong_dqn_envpool_config.nstep = 3
-    pong_dqn_envpool_config.policy.nstep = 3
-    pong_dqn_envpool_config.seed = arg.seed
-
-    pong_dqn_envpool_config.policy.learn.update_per_collect = 2
-    pong_dqn_envpool_config.policy.learn.batch_size = 32
-    pong_dqn_envpool_config.policy.learn.learning_rate = 0.0001
-    pong_dqn_envpool_config.policy.learn.target_update_freq = 0
-    pong_dqn_envpool_config.policy.learn.target_update = 0.04
 
     main(pong_dqn_envpool_config)

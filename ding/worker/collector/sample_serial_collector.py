@@ -45,6 +45,10 @@ class SampleSerialCollector(ISerialCollector):
             - env (:obj:`BaseEnvManager`): the subclass of vectorized env_manager(BaseEnvManager)
             - policy (:obj:`namedtuple`): the api namedtuple of collect_mode policy
             - tb_logger (:obj:`SummaryWriter`): tensorboard handle
+            - exp_name (:obj:`Optional[str]`): name of the project folder of this experiment
+            - instance_name (:obj:`Optional[str]`): instance name, used to specify the saving path of log and model
+            - timer_cuda (:obj:`bool`): whether to use cuda timer, if True, the timer will measure the time of \
+                the forward process on cuda, otherwise, the timer will measure the time of the forward process on cpu.
         """
         self._exp_name = exp_name
         self._instance_name = instance_name
