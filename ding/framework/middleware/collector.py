@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
 
 import numpy as np
-
+import torch
 
 class StepCollector:
     """
@@ -132,8 +132,18 @@ class EnvpoolStepCollector:
                         for i in self._ready_obs_receive.keys()
                     }
                 else:
-                    action_to_send = self.policy.forward(self._ready_obs_receive, **ctx.collect_kwargs)
+                    action_by_policy = self.policy.forward(self._ready_obs_receive, **ctx.collect_kwargs)
 
+                    if isinstance(list(action_by_policy.values())[0]['action'], torch.Tensor):
+                        # transfer to numpy
+                        action_to_send = {
+                            i: {
+                                "action": action_by_policy[i]['action'].cpu().numpy()
+                            }
+                            for i in action_by_policy.keys()
+                        }
+                    else:
+                        action_to_send = action_by_policy
                 self._ready_obs_send.update(self._ready_obs_receive)
                 self._ready_obs_receive = {}
                 self._ready_action_send.update(action_to_send)
@@ -205,7 +215,7 @@ class EnvpoolStepCollector:
                             if j == 1:
                                 self._trajectory[env_id_receive[i]][-j]['reward'].extend(
                                     [
-                                        np.zeros_like(current_reward) for _ in
+                                        0.0 for _ in
                                         range(self._nsteps - len(self._trajectory[env_id_receive[i]][-j]['reward']))
                                     ]
                                 )
@@ -220,7 +230,7 @@ class EnvpoolStepCollector:
                                     self._trajectory[env_id_receive[i]][-j]['reward'].append(current_reward)
                                     self._trajectory[env_id_receive[i]][-j]['reward'].extend(
                                         [
-                                            np.zeros_like(current_reward) for _ in range(
+                                            0.0 for _ in range(
                                                 self._nsteps - len(self._trajectory[env_id_receive[i]][-j]['reward'])
                                             )
                                         ]

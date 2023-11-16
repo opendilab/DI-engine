@@ -103,7 +103,7 @@ def fast_preprocess_learn(
             next_n_obs = to_device(next_n_obs, device=device)
         processes_data['next_n_obs'] = next_n_obs
 
-    reward = torch.tensor(np.array([data[i]['reward'] for i in range(len(data))]))
+    reward = torch.tensor(np.array([data[i]['reward'] for i in range(len(data))]), dtype=torch.float32)
     if cuda:
         reward = to_device(reward, device=device)
     reward = reward.permute(1, 0).contiguous()
