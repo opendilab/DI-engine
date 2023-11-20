@@ -29,8 +29,12 @@ pong_dqn_envpool_config = dict(
             update_per_collect=2,
             batch_size=32,
             learning_rate=0.0001,
-            target_update_freq=0,
-            target_theta = 0.04,
+            # If updating target network by replacement, \
+            # target_update_freq should be larger than 0. \
+            # If updating target network by changing several percentage of the origin weights, \
+            # target_update_freq should be 0 and target_theta should be set.
+            target_update_freq=None,
+            target_theta=0.04,
         ),
         collect=dict(n_sample=96, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
@@ -52,7 +56,7 @@ pong_dqn_envpool_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='env_pool'),
+    env_manager=dict(type='envpool'),
     policy=dict(type='dqn'),
     replay_buffer=dict(type='deque'),
 )

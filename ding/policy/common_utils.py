@@ -71,19 +71,37 @@ def default_preprocess_learn(
 
 
 def fast_preprocess_learn(
-        data: List[Any],
+        data: List[np.ndarray],
         use_priority_IS_weight: bool = False,
         use_priority: bool = False,
+        use_nstep: bool = False,
         cuda: bool = False,
         device: str = 'cpu',
 ) -> dict:
-    # data preprocess
+    """
+    Overview:
+        Fast data pre-processing before policy's ``_forward_learn`` method, including stacking batch data, transform \
+        data to PyTorch Tensor and move data to GPU, etc. This function is faster than ``default_preprocess_learn`` \
+        but less flexible. This function abandons calling ``default_collate`` to stack data because ``default_collate`` \
+        is recursive and cumbersome. In this function, we alternatively stack the data and send it to GPU, so that it \
+        is faster. In addition, this function is usually used in a special data process thread in learner.
+    Arguments:
+        - data (:obj:`List[np.ndarray]`): The list of a training batch samples, each sample is a dict of PyTorch Tensor.
+        - use_priority_IS_weight (:obj:`bool`): Whether to use priority IS weight correction, if True, this function \
+            will set the weight of each sample to the priority IS weight.
+        - use_priority (:obj:`bool`): Whether to use priority, if True, this function will set the priority IS weight.
+        - cuda (:obj:`bool`): Whether to use cuda in policy, if True, this function will move the input data to cuda.
+        - device (:obj:`str`): The device name to move the input data to.
+    Returns:
+        - data (:obj:`dict`): The preprocessed dict data whose values can be directly used for \
+            the following model forward and loss computation.
+    """
     processes_data = {}
 
     action = torch.tensor(np.array([data[i]['action'] for i in range(len(data))]))
     if cuda:
         action = to_device(action, device=device)
-    if action.ndim == 2 and action.shape[1] == 1:
+    if action.ndim == 2 and action.shape[1] == 1 and action.dtype in [torch.int64, torch.int32]:
         action = action.squeeze(1)
     processes_data['action'] = action
 
@@ -106,7 +124,8 @@ def fast_preprocess_learn(
     reward = torch.tensor(np.array([data[i]['reward'] for i in range(len(data))]), dtype=torch.float32)
     if cuda:
         reward = to_device(reward, device=device)
-    reward = reward.permute(1, 0).contiguous()
+    if use_nstep:
+        reward = reward.permute(1, 0).contiguous()
     processes_data['reward'] = reward
 
     if 'value_gamma' in data[0]:
@@ -131,7 +150,7 @@ def fast_preprocess_learn(
         else:
             weight = None
 
-    if weight and cuda:
+    if weight is not None and cuda:
         weight = to_device(weight, device=device)
     processes_data['weight'] = weight
 

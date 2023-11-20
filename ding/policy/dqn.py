@@ -199,14 +199,16 @@ class DQNPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        if 'target_update_freq' in self._cfg.learn and self._cfg.learn.target_update_freq > 0:
+        if 'target_update_freq' in self._cfg.learn and self._cfg.learn.target_update_freq is not None \
+                and self._cfg.learn.target_update_freq > 0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
                 update_type='assign',
                 update_kwargs={'freq': self._cfg.learn.target_update_freq}
             )
-        elif 'target_theta' in self._cfg.learn and self._cfg.learn.target_theta > 0:
+        elif 'target_theta' in self._cfg.learn and self._cfg.learn.target_theta is not None \
+                and self._cfg.learn.target_theta > 0.0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
@@ -704,14 +706,16 @@ class DQNFastPolicy(Policy):
 
         # use model_wrapper for specialized demands of different modes
         self._target_model = copy.deepcopy(self._model)
-        if 'target_update_freq' in self._cfg.learn and self._cfg.learn.target_update_freq > 0:
+        if 'target_update_freq' in self._cfg.learn and self._cfg.learn.target_update_freq is not None \
+                and self._cfg.learn.target_update_freq > 0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',
                 update_type='assign',
                 update_kwargs={'freq': self._cfg.learn.target_update_freq}
             )
-        elif 'target_theta' in self._cfg.learn and self._cfg.learn.target_theta > 0:
+        elif 'target_theta' in self._cfg.learn and self._cfg.learn.target_theta is not None \
+                and self._cfg.learn.target_theta > 0.0:
             self._target_model = model_wrap(
                 self._target_model,
                 wrapper_name='target',

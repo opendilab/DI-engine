@@ -13,12 +13,19 @@ if TYPE_CHECKING:
 
 from queue import Queue
 import time
-import torch.multiprocessing as mp
 from threading import Thread
-from ding.policy.common_utils import default_preprocess_learn, fast_preprocess_learn
+from ding.policy.common_utils import fast_preprocess_learn
 
 
-def data_process_func(data_queue_input, data_queue_output):
+def data_process_func(
+    data_queue_input: Queue,
+    data_queue_output: Queue,
+    use_priority: bool = False,
+    use_priority_IS_weight: bool = False,
+    use_nstep: bool = False,
+    cuda: bool = True,
+    device: str = "cuda:0",
+):
     while True:
         if data_queue_input.empty():
             time.sleep(0.001)
@@ -29,10 +36,11 @@ def data_process_func(data_queue_input, data_queue_output):
             else:
                 output_data = fast_preprocess_learn(
                     data,
-                    use_priority=False,  #policy._cfg.priority,
-                    use_priority_IS_weight=False,  #policy._cfg.priority_IS_weight,
-                    cuda=True,  #policy._cuda,
-                    device="cuda:0",  #policy._device,
+                    use_priority=use_priority,  #policy._cfg.priority,
+                    use_priority_IS_weight=use_priority_IS_weight,  #policy._cfg.priority_IS_weight,
+                    use_nstep=use_nstep,  #policy._cfg.nstep > 1,
+                    cuda=cuda,  #policy._cuda,
+                    device=device,  #policy._device,
                 )
             data_queue_output.put(output_data)
 
@@ -128,7 +136,18 @@ class EnvpoolOffPolicyLearner:
         self._data_queue_input = Queue()
         self._data_queue_output = Queue()
 
-        self.thread_worker = Thread(target=data_process_func, args=(self._data_queue_input, self._data_queue_output))
+        self.thread_worker = Thread(
+            target=data_process_func,
+            args=(
+                self._data_queue_input,
+                self._data_queue_output,
+                cfg.policy.priority,
+                cfg.policy.priority_IS_weight,
+                cfg.policy.nstep > 1,
+                cfg.policy.cuda,
+                policy._device,
+            )
+        )
         self.thread_worker.start()
 
         self._trainer = task.wrap(trainer(cfg, policy.learn_mode, log_freq=log_freq))

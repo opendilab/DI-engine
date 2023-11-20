@@ -5,6 +5,7 @@ import torch
 import treetensor.torch as ttorch
 
 from ding.policy.common_utils import default_preprocess_learn
+from ding.policy.common_utils import fast_preprocess_learn
 
 shape_test = [
     [2],
@@ -173,3 +174,64 @@ def test_default_preprocess_learn_nstep():
     assert data['reward'][0][0] == torch.tensor(1.0)
     assert data['reward'][1][0] == torch.tensor(2.0)
     assert data['reward'][2][0] == torch.tensor(0.0)
+
+
+@pytest.mark.unittest
+def test_fast_preprocess_learn_action():
+
+    for shape in shape_test:
+        for dtype in dtype_test:
+            data = [
+                {
+                    'obs': np.random.randn(4, 84, 84),
+                    'action': np.random.randn(*shape).astype(dtype),
+                    'reward': 1.0,
+                    'next_obs': np.random.randn(4, 84, 84),
+                    'done': False,
+                    'weight': 1.0,
+                } for _ in range(10)
+            ]
+            use_priority_IS_weight = False
+            use_priority = False
+            use_nstep = False
+            data = fast_preprocess_learn(
+                data, use_priority_IS_weight, use_priority, use_nstep, cuda=False, device="cpu"
+            )
+
+            assert data['obs'].shape == torch.Size([10, 4, 84, 84])
+            if dtype in ["int64"] and shape[0] == 1:
+                assert data['action'].shape == torch.Size([10])
+            else:
+                assert data['action'].shape == torch.Size([10, *shape])
+            assert data['reward'].shape == torch.Size([10])
+            assert data['next_obs'].shape == torch.Size([10, 4, 84, 84])
+            assert data['done'].shape == torch.Size([10])
+            assert data['weight'].shape == torch.Size([10])
+
+
+@pytest.mark.unittest
+def test_fast_preprocess_learn_nstep():
+
+    data = [
+        {
+            'obs': np.random.randn(4, 84, 84),
+            'action': np.random.randn(2),
+            'reward': np.array([1.0, 2.0, 0.0]),
+            'next_obs': np.random.randn(4, 84, 84),
+            'done': False,
+            'weight': 1.0,
+        } for _ in range(10)
+    ]
+    use_priority_IS_weight = False
+    use_priority = False
+    use_nstep = True
+    data = fast_preprocess_learn(data, use_priority_IS_weight, use_priority, use_nstep, cuda=False, device="cpu")
+
+    assert data['reward'].shape == torch.Size([3, 10])
+    assert data['reward'][0][0] == torch.tensor(1.0)
+    assert data['reward'][1][0] == torch.tensor(2.0)
+    assert data['reward'][2][0] == torch.tensor(0.0)
+
+
+if __name__ == "__main__":
+    test_fast_preprocess_learn_nstep()

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 import numpy as np
 import torch
 
+
 class StepCollector:
     """
     Overview:
