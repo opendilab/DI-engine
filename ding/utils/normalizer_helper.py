@@ -2,8 +2,26 @@ import numpy as np
 
 
 class DatasetNormalizer:
+    """
+    Overview:
+        The `DatasetNormalizer` class provides functionality to normalize and unnormalize data in a dataset.
+        It takes a dataset as input and applies a normalizer function to each key in the dataset.
+
+    Interface:
+        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
+    """
 
     def __init__(self, dataset: np.ndarray, normalizer: str, path_lengths: int = None):
+        """
+        Overview:
+            Initialize the NormalizerHelper object.
+
+        Arguments:
+            - dataset (:obj:`np.ndarray`): The dataset to be normalized.
+            - normalizer (:obj:`str`): The type of normalizer to be used. Can be a string representing the name of \
+                the normalizer class.
+            - path_lengths (:obj:`int`): The length of the paths in the dataset. Defaults to None.
+        """
         dataset = flatten(dataset, path_lengths)
 
         self.observation_dim = dataset['observations'].shape[1]
@@ -22,22 +40,58 @@ class DatasetNormalizer:
             # for key, val in dataset.items()
 
     def __repr__(self):
+        """
+        Overview:
+            Returns a string representation of the NormalizerHelper object. \
+            The string representation includes the key-value pairs of the normalizers \
+            stored in the NormalizerHelper object.
+        """
         string = ''
         for key, normalizer in self.normalizers.items():
             string += f'{key}: {normalizer}]\n'
         return string
 
     def normalize(self, x, key):
+        """
+        Overview:
+            Normalize the input data using the specified key.
+
+        Arguments:
+            - x (float): The input data to be normalized.
+            - key (str): The key to identify the normalizer.
+
+        Returns:
+            The normalized value of the input data.
+        """
         return self.normalizers[key].normalize(x)
 
     def unnormalize(self, x, key):
+        """
+        Overview:
+            Unnormalizes the given value `x` using the specified `key`.
+
+        Arguments:
+            - x: The value to be unnormalized.
+            - key: The key to identify the normalizer.
+
+        Returns:
+            - The unnormalized value.
+        """
         return self.normalizers[key].unnormalize(x)
 
 
 def flatten(dataset, path_lengths):
     """
-        flattens dataset of { key: [ n_episodes x max_path_lenth x dim ] }
-            to { key : [ (n_episodes * sum(path_lengths)) x dim ]}
+    Overview:
+        Flattens dataset of { key: [ n_episodes x max_path_length x dim ] } \
+        to { key : [ (n_episodes * sum(path_lengths)) x dim ] }
+
+    Arguments:
+        - dataset (:obj:`dict`): The dataset to be flattened.
+        - path_lengths (:obj:`list`): A list of path lengths for each episode.
+
+    Returns:
+        - flattened (:obj:`dict`): The flattened dataset.
     """
     flattened = {}
     for key, xs in dataset.items():
@@ -50,7 +104,11 @@ def flatten(dataset, path_lengths):
 
 class Normalizer:
     """
-        parent class, subclass by defining the `normalize` and `unnormalize` methods
+    Overview:
+        Parent class, subclass by defining the `normalize` and `unnormalize` methods
+
+    Interface:
+        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
     def __init__(self, X):
@@ -73,7 +131,11 @@ class Normalizer:
 
 class GaussianNormalizer(Normalizer):
     """
-        normalizes to zero mean and unit variance
+    Overview:
+        A class that normalizes data to zero mean and unit variance.
+
+    Interface:
+        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
     def __init__(self, *args, **kwargs):
@@ -90,15 +152,37 @@ class GaussianNormalizer(Normalizer):
         )
 
     def normalize(self, x):
+        """
+        Normalize the input data.
+
+        Arguments:
+            - x: The input data to be normalized.
+
+        Returns:
+            The normalized data.
+        """
         return (x - self.means) / self.stds
 
     def unnormalize(self, x):
+        """
+        Unnormalize the input data.
+
+        Arguments:
+            - x: The input data to be unnormalized.
+
+        Returns:
+            The unnormalized data.
+        """
         return x * self.stds + self.means
 
 
 class CDFNormalizer(Normalizer):
     """
-        makes training data uniform (over each dimension) by transforming it with marginal CDFs
+    Overview:
+        A class that makes training data uniform (over each dimension) by transforming it with marginal CDFs.
+    
+    Interface:
+        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
     def __init__(self, X):
@@ -112,6 +196,14 @@ class CDFNormalizer(Normalizer):
         )
 
     def wrap(self, fn_name, x):
+        """
+        Overview:
+            Wraps the given function name and applies it to the input data.
+
+        Arguments:
+            - fn_name: The name of the function to be applied.
+            - x: The input data.
+        """
         shape = x.shape
         # reshape to 2d
         x = x.reshape(-1, self.dim)
@@ -122,15 +214,39 @@ class CDFNormalizer(Normalizer):
         return out.reshape(shape)
 
     def normalize(self, x):
+        """
+        Overview:
+            Normalizes the input data.
+
+        Arguments:
+            - x: The input data.
+
+        Returns:
+            The normalized data.
+        """
         return self.wrap('normalize', x)
 
     def unnormalize(self, x):
+        """
+        Overview:
+            Unnormalizes the input data.
+
+        Arguments:
+            - x: The input data.
+
+        Returns:
+            The unnormalized data.
+        """
         return self.wrap('unnormalize', x)
 
 
 class CDFNormalizer1d:
     """
-        CDF normalizer for a single dimension
+    Overview:
+        CDF normalizer for a single dimension. This class provides methods to normalize and unnormalize data \
+        using the Cumulative Distribution Function (CDF) approach.
+    Interface:
+        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
     def __init__(self, X):
@@ -152,6 +268,16 @@ class CDFNormalizer1d:
         return (f'[{np.round(self.xmin, 2):.4f}, {np.round(self.xmax, 2):.4f}')
 
     def normalize(self, x):
+        """
+        Overview:
+            Normalize the input data.
+
+        Arguments:
+            - x: The data to be normalized.
+
+        Returns:
+            The normalized data.
+        """
         if self.constant:
             return x
 
@@ -164,7 +290,15 @@ class CDFNormalizer1d:
 
     def unnormalize(self, x, eps=1e-4):
         """
-             X : [ -1, 1 ]
+        Overview:
+            Unnormalize the input data.
+
+        Arguments:
+            - x: The data to be unnormalized.
+            - eps: A small value used for numerical stability. Defaults to 1e-4.
+
+        Returns:
+            The unnormalized data.
         """
         # [ -1, 1 ] --> [ 0, 1 ]
         if self.constant:
@@ -187,7 +321,20 @@ class CDFNormalizer1d:
 
 
 def empirical_cdf(sample):
-    # https://stackoverflow.com/a/33346366
+    """
+    Overview:
+        Compute the empirical cumulative distribution function (CDF) of a given sample.
+
+    Arguments:
+        - sample (array-like): The input sample for which to compute the empirical CDF.
+
+    Returns:
+        - quantiles: The unique values in the sample.
+        - cumprob: The cumulative probabilities corresponding to the quantiles.
+
+    References:
+        - Stack Overflow: https://stackoverflow.com/a/33346366
+    """
 
     # find the unique values and their corresponding counts
     quantiles, counts = np.unique(sample, return_counts=True)
@@ -200,6 +347,16 @@ def empirical_cdf(sample):
 
 
 def atleast_2d(x):
+    """
+    Overview:
+        Ensure that the input array has at least two dimensions.
+
+    Arguments:
+        - x: The input array.
+
+    Returns:
+        The input array with at least two dimensions.
+    """
     if x.ndim < 2:
         x = x[:, None]
     return x
@@ -207,10 +364,26 @@ def atleast_2d(x):
 
 class LimitsNormalizer(Normalizer):
     '''
-        maps [ xmin, xmax ] to [ -1, 1 ]
+    Overview:
+        A class that normalizes and unnormalizes values within specified limits. \
+        This class maps values within the range [xmin, xmax] to the range [-1, 1].
+
+    Interface:
+        ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     '''
 
     def normalize(self, x):
+        '''
+        Overview:
+            Normalizes the input values.
+
+        Argments:
+            - x: The input values to be normalized.
+
+        Returns:
+            The normalized values.
+
+        '''
         # [ 0, 1 ]
         x = (x - self.mins) / (self.maxs - self.mins)
         # [ -1, 1 ]
@@ -219,7 +392,16 @@ class LimitsNormalizer(Normalizer):
 
     def unnormalize(self, x, eps=1e-4):
         '''
-            x : [ -1, 1 ]
+        Overview:
+            Unnormalizes the input values.
+
+        Arguments:
+            - x: The input values to be unnormalized.
+            - eps: A small value used for clipping. Defaults to 1e-4.
+
+        Returns:
+            The unnormalized values.
+
         '''
         if x.max() > 1 + eps or x.min() < -1 - eps:
             # print(f'[ datasets/mujoco ] Warning: sample out of range | ({x.min():.4f}, {x.max():.4f})')
