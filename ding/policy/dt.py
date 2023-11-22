@@ -104,7 +104,7 @@ class DTPolicy(Policy):
         if self._basic_discrete_env:
             actions = actions.to(torch.long)
             actions = actions.squeeze(-1)
-            action_target = torch.clone(actions).detach().to(self._device)
+        action_target = torch.clone(actions).detach().to(self._device)
 
         if self._atari_env:
             state_preds, action_preds, return_preds = self._learn_model.forward(
@@ -188,6 +188,7 @@ class DTPolicy(Policy):
             )
             self.state_mean = torch.from_numpy(np.array(self._cfg.state_mean)).to(self._device)
             self.state_std = torch.from_numpy(np.array(self._cfg.state_std)).to(self._device)
+            # print(self.running_rtg, self.state_mean, self.state_std)
         self.timesteps = torch.arange(
             start=0, end=self.max_eval_ep_len, step=1
         ).repeat(self.eval_batch_size, 1).to(self._device)
@@ -198,6 +199,7 @@ class DTPolicy(Policy):
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         # save and forward
         data_id = list(data.keys())
+        # print(data_id)
 
         self._eval_model.eval()
         with torch.no_grad():
@@ -232,7 +234,7 @@ class DTPolicy(Policy):
                     self.states[i, self.t[i]] = data[i]['obs'].to(self._device)
                 else:
                     self.states[i, self.t[i]] = (data[i]['obs'].to(self._device) - self.state_mean) / self.state_std
-                self.running_rtg[i] = self.running_rtg[i] - data[i]['reward'].to(self._device)
+                self.running_rtg[i] = self.running_rtg[i] - (data[i]['reward'] / self.rtg_scale).to(self._device)
                 self.rewards_to_go[i, self.t[i]] = self.running_rtg[i]
 
                 if self.t[i] <= self.context_len:
@@ -269,6 +271,8 @@ class DTPolicy(Policy):
                         act[i] = torch.multinomial(probs[i], num_samples=1)
                 else:
                     act = torch.argmax(logits, axis=1).unsqueeze(1)
+            else:
+                act = logits
             for i in data_id:
                 self.actions[i, self.t[i]] = act[i]  # TODO: self.actions[i] should be a queue when exceed max_t
                 self.t[i] += 1

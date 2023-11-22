@@ -96,7 +96,7 @@ def offpolicy_data_fetcher(
         The return function is a generator which meanly fetch a batch of data from a buffer, \
         a list of buffers, or a dict of buffers.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
+        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.batch_size`.
         - buffer (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
             The buffer where the data is fetched from. \
             ``Buffer`` type means a buffer.\
@@ -130,24 +130,24 @@ def offpolicy_data_fetcher(
             if isinstance(buffer_, Buffer):
                 if unroll_len > 1:
                     buffered_data = buffer_.sample(
-                        cfg.policy.learn.batch_size, groupby="env", unroll_len=unroll_len, replace=True
+                        cfg.policy.batch_size, groupby="env", unroll_len=unroll_len, replace=True
                     )
                     ctx.train_data = [[t.data for t in d] for d in buffered_data]  # B, unroll_len
                 else:
-                    buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
+                    buffered_data = buffer_.sample(cfg.policy.batch_size)
                     ctx.train_data = [d.data for d in buffered_data]
             elif isinstance(buffer_, List):  # like sqil, r2d3
                 assert unroll_len == 1, "not support"
                 buffered_data = []
                 for buffer_elem, p in buffer_:
-                    data_elem = buffer_elem.sample(int(cfg.policy.learn.batch_size * p))
+                    data_elem = buffer_elem.sample(int(cfg.policy.batch_size * p))
                     assert data_elem is not None
                     buffered_data.append(data_elem)
                 buffered_data = sum(buffered_data, [])
                 ctx.train_data = [d.data for d in buffered_data]
             elif isinstance(buffer_, Dict):  # like ppg_offpolicy
                 assert unroll_len == 1, "not support"
-                buffered_data = {k: v.sample(cfg.policy.learn.batch_size) for k, v in buffer_.items()}
+                buffered_data = {k: v.sample(cfg.policy.batch_size) for k, v in buffer_.items()}
                 ctx.train_data = {k: [d.data for d in v] for k, v in buffered_data.items()}
             else:
                 raise TypeError("not support buffer argument type: {}".format(type(buffer_)))
@@ -191,7 +191,10 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     def producer(queue, dataset, batch_size, device):
         torch.set_num_threads(4)
         nonlocal stream
-        idx_iter = iter(range(len(dataset)))
+        idx_iter = iter(range(len(dataset) - batch_size))
+
+        if len(dataset) < batch_size:
+            logging.warning('batch_size is too large!!!!')
         with torch.cuda.stream(stream):
             while True:
                 if queue.full():
@@ -201,7 +204,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
                         start_idx = next(idx_iter)
                     except StopIteration:
                         del idx_iter
-                        idx_iter = iter(range(len(dataset)))
+                        idx_iter = iter(range(len(dataset) - batch_size))
                         start_idx = next(idx_iter)
                     data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx + batch_size)]
                     data = [[i[j] for i in data] for j in range(len(data[0]))]
@@ -234,11 +237,11 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         Please refer to the link https://pytorch.org/tutorials/beginner/basics/data_tutorial.html \
         and https://pytorch.org/docs/stable/data.html for more details.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
+        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.batch_size`.
         - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.
     """
     # collate_fn is executed in policy now
-    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
+    dataloader = DataLoader(dataset, batch_size=cfg.policy.batch_size, shuffle=True, collate_fn=lambda x: x)
     dataloader = iter(dataloader)
 
     def _fetch(ctx: "OfflineRLContext"):
@@ -258,7 +261,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
             ctx.train_epoch += 1
             del dataloader
             dataloader = DataLoader(
-                dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x
+                dataset, batch_size=cfg.policy.batch_size, shuffle=True, collate_fn=lambda x: x
             )
             dataloader = iter(dataloader)
             ctx.train_data = next(dataloader)
