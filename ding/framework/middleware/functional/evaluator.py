@@ -385,7 +385,7 @@ def envpool_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render
                     }
                 )
 
-                if done[i] == True:
+                if done[i] is True:
                     episode_return_i = 0.0
                     for item in trajectory[env_id_receive[i]]:
                         episode_return_i += item['reward'][0]

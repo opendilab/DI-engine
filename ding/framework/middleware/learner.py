@@ -36,11 +36,11 @@ def data_process_func(
             else:
                 output_data = fast_preprocess_learn(
                     data,
-                    use_priority=use_priority,  #policy._cfg.priority,
-                    use_priority_IS_weight=use_priority_IS_weight,  #policy._cfg.priority_IS_weight,
-                    use_nstep=use_nstep,  #policy._cfg.nstep > 1,
-                    cuda=cuda,  #policy._cuda,
-                    device=device,  #policy._device,
+                    use_priority=use_priority,
+                    use_priority_IS_weight=use_priority_IS_weight,
+                    use_nstep=use_nstep,
+                    cuda=cuda,
+                    device=device,
                 )
             data_queue_output.put(output_data)
 

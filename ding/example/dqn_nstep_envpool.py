@@ -80,10 +80,9 @@ def main(cfg):
                 cfg,
                 policy.collect_mode,
                 collector_env,
-                random_collect_size=cfg.policy.random_collect_size \
-                       if hasattr(cfg.policy, 'random_collect_size') else 0,
-                    )
-                )
+                random_collect_size=cfg.policy.random_collect_size if hasattr(cfg.policy, 'random_collect_size') else 0,
+            )
+        )
         task.use(data_pusher(cfg, buffer_))
         task.use(EnvpoolOffPolicyLearner(cfg, policy, buffer_))
         task.use(online_logger(train_show_freq=10))

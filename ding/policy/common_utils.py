@@ -1,7 +1,6 @@
 from typing import List, Any, Dict, Callable
 import numpy as np
 import torch
-import numpy as np
 import treetensor.torch as ttorch
 from ding.utils.data import default_collate
 from ding.torch_utils import to_tensor, to_ndarray, unsqueeze, squeeze, to_device
@@ -82,7 +81,8 @@ def fast_preprocess_learn(
     Overview:
         Fast data pre-processing before policy's ``_forward_learn`` method, including stacking batch data, transform \
         data to PyTorch Tensor and move data to GPU, etc. This function is faster than ``default_preprocess_learn`` \
-        but less flexible. This function abandons calling ``default_collate`` to stack data because ``default_collate`` \
+        but less flexible.
+        This function abandons calling ``default_collate`` to stack data because ``default_collate`` \
         is recursive and cumbersome. In this function, we alternatively stack the data and send it to GPU, so that it \
         is faster. In addition, this function is usually used in a special data process thread in learner.
     Arguments:

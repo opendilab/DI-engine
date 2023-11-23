@@ -284,7 +284,6 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
 
     from threading import Thread
     from queue import Queue
-    import time
     stream = torch.cuda.Stream()
 
     def producer(queue, dataset, batch_size, device):

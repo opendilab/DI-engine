@@ -187,7 +187,7 @@ class EnvpoolStepCollector:
                     )
 
                 if self._nsteps > 1:
-                    if done[i] == False and counter < target_size:
+                    if done[i] is False and counter < target_size:
                         reverse_record_position = min(self._nsteps, len(self._trajectory[env_id_receive[i]]))
                         real_reverse_record_position = reverse_record_position
 
@@ -195,7 +195,7 @@ class EnvpoolStepCollector:
                             if j == 1:
                                 pass
                             else:
-                                if self._trajectory[env_id_receive[i]][-j]['done'] == True:
+                                if self._trajectory[env_id_receive[i]][-j]['done'] is True:
                                     real_reverse_record_position = j - 1
                                     break
                                 else:
@@ -207,7 +207,7 @@ class EnvpoolStepCollector:
                             self._trajectory[env_id_receive[i]][-real_reverse_record_position][
                                 'value_gamma'] = self._discount_ratio_list[real_reverse_record_position - 1]
 
-                    else:  # done[i] == True or counter >= target_size
+                    else:  # done[i] is True or counter >= target_size
 
                         reverse_record_position = min(self._nsteps, len(self._trajectory[env_id_receive[i]]))
                         real_reverse_record_position = reverse_record_position
@@ -224,7 +224,7 @@ class EnvpoolStepCollector:
                                 self._trajectory[env_id_receive[i]][-j]['value_gamma'] = self._discount_ratio_list[j -
                                                                                                                    1]
                             else:
-                                if self._trajectory[env_id_receive[i]][-j]['done'] == True:
+                                if self._trajectory[env_id_receive[i]][-j]['done'] is True:
                                     real_reverse_record_position = j
                                     break
                                 else:
