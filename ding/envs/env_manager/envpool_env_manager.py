@@ -245,7 +245,8 @@ class PoolEnvManagerV2:
             obs = obs.astype(np.float32)
             if self._cfg.image_observation:
                 obs /= 255.0
-            ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, ready_obs)
+            for i in range(len(list(env_id))):
+                ready_obs[env_id[i]] = obs[i]
             if len(ready_obs) == self._env_num:
                 break
         self._eval_episode_return = [0. for _ in range(self._env_num)]
