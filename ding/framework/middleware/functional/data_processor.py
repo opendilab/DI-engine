@@ -1,4 +1,5 @@
 import os
+import torch.multiprocessing as mp
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
 from ditk import logging
@@ -10,6 +11,8 @@ from ding.utils import get_rank
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext, OfflineRLContext
+
+import time
 
 
 def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = None):
@@ -31,7 +34,6 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             - trajectories (:obj:`List[Dict]`): Trajectories.
             - episodes (:obj:`List[Dict]`): Episodes.
         """
-
         if ctx.trajectories is not None:  # each data in buffer is a transition
             if group_by_env:
                 for i, t in enumerate(ctx.trajectories):
@@ -170,22 +172,20 @@ def offpolicy_data_fetcher(
                 index = [d.index for d in buffered_data]
                 meta = [d.meta for d in buffered_data]
                 # such as priority
-                if isinstance(ctx.train_output, List):
-                    priority = ctx.train_output.pop()['priority']
+                if isinstance(ctx.train_output_for_post_process, List):
+                    priority = ctx.train_output_for_post_process.pop()['priority']
                 else:
-                    priority = ctx.train_output['priority']
+                    priority = ctx.train_output_for_post_process['priority']
                 for idx, m, p in zip(index, meta, priority):
                     m['priority'] = p
                     buffer_.update(index=idx, data=None, meta=m)
 
     return _fetch
 
-
 def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
 
     from threading import Thread
     from queue import Queue
-    import time
     stream = torch.cuda.Stream()
 
     def producer(queue, dataset, batch_size, device):
