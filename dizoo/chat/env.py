@@ -8,16 +8,16 @@ from .utils import OnlyPromptDataset, concat_context_and_response, get_tokenizer
 class ChatEnv(BaseEnv):
     def __init__(
             self,
-            batch_size,
-            reward_model_path,
-            tokenizer_path,
-            data_path,
-            maxlen_prompt,
-            maxlen_res,
+            batch_size: int,
+            reward_model_path: str,
+            tokenizer_path: str,
+            data_path: str,
+            maxlen_prompt: int,
+            maxlen_res: int,
     ):
         self.batch_size = batch_size
         self.tokenizer = get_tokenizer(tokenizer_path)
-        self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer, opt=None)
+        self.rm = LlamaRewardModel.from_pretrained(reward_model_path, tokenizer=self.tokenizer)
         self.action_space = None
         self.observation_space = None
         self.reward_space = None
@@ -41,6 +41,9 @@ class ChatEnv(BaseEnv):
 
     def reset(self):
         self.last_batch = next(self.generator)
+        if self.last_batch is None:
+            self.generator = self.dataset.final_generator()
+            self.last_batch = next(self.generator)
         self._init_flag = True
         return self.last_batch
 
@@ -48,9 +51,10 @@ class ChatEnv(BaseEnv):
         return "DI-engine Chat Env"
 
     def seed(self, seed):
-        self._seed = 0
+        self._seed = seed
 
     def clone(self, caller):
+        # It should not create a new copy, since the language model is initialized.
         return self
 
     def step(self, action):
@@ -63,7 +67,7 @@ class ChatEnv(BaseEnv):
         rm_input = torch.tensor(output_vec, dtype=torch.long)
         output_mask = pad_sequences(output_mask, self.tokenizer.pad_token_id, padding='left')
         with torch.no_grad():
-            rew, *_ = self.rm(rm_input)
+            rew = self.rm(rm_input)
 
         self.last_batch = next(self.generator)
         if self.last_batch is None:

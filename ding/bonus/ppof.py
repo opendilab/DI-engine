@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
-    wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator
+    wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator, ChatCollector
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import PPOFPolicy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
@@ -19,7 +19,6 @@ from ding.config import save_config_py
 from .model import PPOFModel
 from .config import get_instance_config, get_instance_env, get_hybrid_shape
 from ding.bonus.common import TrainingReturn, EvalReturn
-from ..framework.middleware.collector import ChatCollector
 
 
 class PPOF:

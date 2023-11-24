@@ -263,7 +263,7 @@ class PPOFPolicy:
                     else:
                         mask = batch.mask
                         ppo_batch = ppo_data(
-                            output['logit'], batch.orig_logit, batch.obs, output['value'][0], batch.value, adv,
+                            output['logit'], batch.orig_logit, batch.obs, output['value'], batch.value, adv,
                             batch.return_, None
                         )
                         ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)

@@ -195,7 +195,7 @@ class ChatCollector:
     """
     Overview:
         The class of the collector running by steps, including model inference and transition \
-            process. Use the `__call__` method to execute the whole collection process.
+        process. Use the `__call__` method to execute the whole collection process.
     """
 
     def __new__(cls, *args, **kwargs):

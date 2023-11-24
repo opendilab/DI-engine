@@ -1,12 +1,15 @@
 import torch
-from transformers.models.llama.modeling_llama import LlamaForCausalLM
+try:
+    from transformers.models.llama.modeling_llama import LlamaForCausalLM
+except ImportError:
+    from ditk import logging
+    logging.warning("Not found transformer, please install it using: pip install transformers")
 
 
 class LlamaRewardModel(LlamaForCausalLM):
 
-    def __init__(self, config, opt, tokenizer):
+    def __init__(self, config, tokenizer):
         super().__init__(config)
-        self.opt = opt
         self.tokenizer = tokenizer
         self.reward_head = torch.nn.Linear(config.hidden_size, 1, bias=False)
 
@@ -21,4 +24,4 @@ class LlamaRewardModel(LlamaForCausalLM):
         else:
             logits = self.reward_head(output.last_hidden_state).squeeze(-1)
 
-        return (logits, )
+        return logits
