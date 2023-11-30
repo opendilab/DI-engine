@@ -71,7 +71,6 @@ class MaskedCausalAttention(nn.Module):
             - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
             - out (:obj:`torch.Tensor`): Output tensor, the shape is the same as the input.
-
         Examples:
             >>> inputs = torch.randn(2, 4, 64)
             >>> model = MaskedCausalAttention(64, 5, 4, 0.1)
@@ -142,7 +141,6 @@ class Block(nn.Module):
             - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
             - output (:obj:`torch.Tensor`): Output tensor, the shape is the same as the input.
-
         Examples:
             >>> inputs = torch.randn(2, 4, 64)
             >>> model = Block(64, 5, 4, 0.1)
@@ -260,7 +258,6 @@ class DecisionTransformer(nn.Module):
         Returns:
             - output (:obj:`Tuple[torch.Tensor, torch.Tensor, torch.Tensor]`): Output contains three tensors, \
             they are correspondingly the predicted states, predicted actions and predicted return-to-go.
-
         Examples:
             >>> B, T = 4, 6
             >>> state_dim = 3
@@ -274,21 +271,16 @@ class DecisionTransformer(nn.Module):
                 n_heads=2,\
                 drop_p=0.1,\
             )
-
             >>> timesteps = torch.randint(0, 100, [B, 3 * T - 1, 1], dtype=torch.long)  # B x T
             >>> states = torch.randn([B, T, state_dim])  # B x T x state_dim
-
             >>> actions = torch.randint(0, act_dim, [B, T, 1])
             >>> action_target = torch.randint(0, act_dim, [B, T, 1])
             >>> returns_to_go_sample = torch.tensor([1, 0.8, 0.6, 0.4, 0.2, 0.]).repeat([B, 1]).unsqueeze(-1).float()
-
             >>> traj_mask = torch.ones([B, T], dtype=torch.long)  # B x T
             >>> actions = actions.squeeze(-1)
-
             >>> state_preds, action_preds, return_preds = DT_model.forward(\
                 timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go\
             )
-
             >>> assert state_preds.shape == torch.Size([B, T, state_dim])
             >>> assert return_preds.shape == torch.Size([B, T, 1])
             >>> assert action_preds.shape == torch.Size([B, T, act_dim])

@@ -199,7 +199,7 @@ class BDQ(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             BDQ forward computation graph, input observation tensor to predict q_value.
         Arguments:
@@ -316,13 +316,6 @@ class C51DQN(nn.Module):
 
     def forward(self, x: torch.Tensor) -> Dict:
         """
-        Returns:
-            - outputs (:obj:`Dict`): The output of DQN's forward, including q_value.
-        ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each possible action dimension.
-        Shapes:
-            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
-            - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
         Overview:
             C51DQN forward computation graph, input observation tensor to predict q_value and its distribution.
         Arguments:
@@ -337,7 +330,6 @@ class C51DQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
             - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where M is action_shape.
             - distribution(:obj:`torch.Tensor`): :math:`(B, M, P)`, where P is n_atom.
-
         Examples:
             >>> model = C51DQN(128, 64)  # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 128)
@@ -363,6 +355,14 @@ class C51DQN(nn.Module):
 
 @MODEL_REGISTRY.register('qrdqn')
 class QRDQN(nn.Module):
+    """
+    Overview:
+        The neural network structure and computation graph of QRDQN, which combines distributional RL and DQN. \
+        You can refer to Distributional Reinforcement Learning with Quantile Regression \
+        https://arxiv.org/pdf/1710.10044.pdf for more details.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
             self,
@@ -375,9 +375,9 @@ class QRDQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the QRDQN Model according to input arguments.
+            Initialize the QRDQN Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
@@ -429,7 +429,7 @@ class QRDQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use observation tensor to predict QRDQN's output.
             Parameter updates with QRDQN's MLPs forward setup.
@@ -439,7 +439,6 @@ class QRDQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head. Return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``
@@ -448,7 +447,6 @@ class QRDQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.
             - tau (:obj:`torch.Tensor`):  :math:`(B, M, 1)`
-
         Examples:
             >>> model = QRDQN(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -466,6 +464,14 @@ class QRDQN(nn.Module):
 
 @MODEL_REGISTRY.register('iqn')
 class IQN(nn.Module):
+    """
+    Overview:
+        The neural network structure and computation graph of IQN, which combines distributional RL and DQN. \
+        You can refer to paper Implicit Quantile Networks for Distributional Reinforcement Learning \
+        https://arxiv.org/pdf/1806.06923.pdf for more details.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
             self,
@@ -479,9 +485,9 @@ class IQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the IQN Model according to input arguments.
+            Initialize the IQN Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.
@@ -536,7 +542,7 @@ class IQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict IQN's output.
             Parameter updates with IQN's MLPs forward setup.
@@ -546,7 +552,6 @@ class IQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head. Return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``
@@ -573,6 +578,14 @@ class IQN(nn.Module):
 
 @MODEL_REGISTRY.register('fqf')
 class FQF(nn.Module):
+    """
+    Overview:
+        The neural network structure and computation graph of FQF, which combines distributional RL and DQN. \
+        You can refer to paper Fully Parameterized Quantile Function for Distributional Reinforcement Learning \
+        https://arxiv.org/pdf/1911.02140.pdf for more details.
+    Interface:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
             self,
@@ -586,9 +599,9 @@ class FQF(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the FQF Model according to input arguments.
+            Initialize the FQF Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.
@@ -643,7 +656,7 @@ class FQF(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict FQF's output.
             Parameter updates with FQF's MLPs forward setup.
@@ -685,7 +698,11 @@ class FQF(nn.Module):
 class RainbowDQN(nn.Module):
     """
     Overview:
-        RainbowDQN network (C51 + Dueling + Noisy Block)
+        The neural network structure and computation graph of RainbowDQN, which combines distributional RL and DQN. \
+        You can refer to paper Rainbow: Combining Improvements in Deep Reinforcement Learning \
+        https://arxiv.org/pdf/1710.02298.pdf for more details.
+    Interfaces:
+        ``__init__``, ``forward``
 
     .. note::
         RainbowDQN contains dueling architecture by default.
@@ -762,7 +779,7 @@ class RainbowDQN(nn.Module):
             )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use observation tensor to predict Rainbow output.
             Parameter updates with Rainbow's MLPs forward setup.
@@ -772,7 +789,6 @@ class RainbowDQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
@@ -780,7 +796,6 @@ class RainbowDQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.
             - distribution(:obj:`torch.FloatTensor`): :math:`(B, M, P)`, where P is n_atom.
-
         Examples:
             >>> model = RainbowDQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 64)
@@ -796,7 +811,7 @@ class RainbowDQN(nn.Module):
 
 
 def parallel_wrapper(forward_fn: Callable) -> Callable:
-    r"""
+    """
     Overview:
         Process timestep T and batch_size B at the same time, in other words, treat different timestep data as
         different trajectories in a batch.
@@ -941,7 +956,6 @@ class DRQN(nn.Module):
         Shapes:
             - obs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
             - logit (:obj:`torch.Tensor`): :math:`(B, M)`, where B is batch size and M is ``action_shape``
-
         Examples:
             >>> # Init input's Keys:
             >>> prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4

@@ -61,7 +61,7 @@ cartpole_sac_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='sac_discrete'),
+    policy=dict(type='discrete_sac'),
 )
 cartpole_sac_create_config = EasyDict(cartpole_sac_create_config)
 create_config = cartpole_sac_create_config

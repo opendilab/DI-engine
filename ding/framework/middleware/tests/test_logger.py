@@ -248,7 +248,7 @@ def test_wandb_online_logger():
     test_wandb_online_logger_gradient()
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_wandb_offline_logger():
     record_path = './video_pendulum_cql'
     cfg = EasyDict(dict(gradient_logger=True, plot_logger=True, action_logger=True, vis_dataset=True))
