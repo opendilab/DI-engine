@@ -15,7 +15,7 @@ class Profiler:
         A class for profiling code execution. It can be used as a context manager or a decorator.
 
     Interface:
-        ``__init__``, ``mkdir``, ``write_profile``, ``profile``
+        ``__init__``, ``mkdir``, ``write_profile``, ``profile``.
     """
 
     def __init__(self):
