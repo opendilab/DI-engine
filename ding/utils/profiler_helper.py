@@ -10,15 +10,37 @@ def register_profiler(write_profile, pr, folder_path):
 
 
 class Profiler:
+    """
+    Overview:
+        A class for profiling code execution. It can be used as a context manager or a decorator.
+
+    Interface:
+        ``__init__``, ``mkdir``, ``write_profile``, ``profile``
+    """
 
     def __init__(self):
         self.pr = cProfile.Profile()
 
-    def mkdir(self, directory):
+    def mkdir(self, directory: str):
+        """
+        OverView:
+            Create a directory if it doesn't exist.
+
+        Arguments:
+            - directory (:obj:`str`): The path of the directory to be created.
+        """
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    def write_profile(self, pr, folder_path):
+    def write_profile(self, pr, folder_path: str):
+        """
+        OverView:
+            Write the profiling results to files.
+
+        Arguments:
+            - pr: The profiler object containing the profiling results.
+            - folder_path (str): The path of the folder where the profiling files will be saved.
+        """
         pr.disable()
         s_tottime = io.StringIO()
         s_cumtime = io.StringIO()
@@ -36,6 +58,14 @@ class Profiler:
         pr.dump_stats(folder_path + "/profile.prof")
 
     def profile(self, folder_path="./tmp"):
+        """
+        OverView:
+            Enable profiling and save the results to files.
+
+        Arguments:
+            - folder_path (str, optional): The path of the folder where the profiling files will be saved. \
+                Defaults to "./tmp".
+        """
         self.mkdir(folder_path)
         self.pr.enable()
         register_profiler(self.write_profile, self.pr, folder_path)
