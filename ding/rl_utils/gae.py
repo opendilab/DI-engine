@@ -81,11 +81,12 @@ def episodic_gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97):
     bsz = value.shape[0]
     for i in range(bsz):
         val, mas, rew, don, traj = value[i], mask[i], reward[i], done[i], traj_flag[i]
-        assert val.shape[0] == rew.shape[0]
         next_val = torch.zeros_like(val)
         next_val[:-1] = val[1:]
+        reward = torch.zeros_like(val)
+        reward[-1] = rew
         gd = gae_data(
-            val.unsqueeze(-1), next_val.unsqueeze(-1), rew.unsqueeze(-1), don.unsqueeze(-1), traj.unsqueeze(-1)
+            val.unsqueeze(-1), next_val.unsqueeze(-1), reward.unsqueeze(-1), don.unsqueeze(-1), traj.unsqueeze(-1)
         )
         advs.append(gae(gd, gamma, lambda_).squeeze(-1))
     return torch.stack(advs, dim=0)

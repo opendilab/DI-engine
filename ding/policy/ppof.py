@@ -7,6 +7,8 @@ import numpy as np
 import torch
 import treetensor.torch as ttorch
 from torch.optim import AdamW
+from torch.cuda.amp import GradScaler
+from torch import autocast
 
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, gae, gae_data, ppo_error_continuous, \
     get_gae, ppo_policy_error_continuous, ArgmaxSampler, MultinomialSampler, ReparameterizationSampler, MuSampler, \
@@ -69,6 +71,8 @@ class PPOFPolicy:
     ) -> None:
         self._cfg = cfg
         self._orig_model = orig_model
+        if self._orig_model is not None:
+            self.scalar = GradScaler()
         if model is None:
             self._model = self.default_model()
         else:
@@ -170,7 +174,7 @@ class PPOFPolicy:
             with torch.no_grad():
                 if self._cfg.chat_data:
                     # [B, T]
-                    value = self._model.compute_critic(data.obs)['value'][0]
+                    value = self._model.compute_critic(data.obs)['value']
                     self._model.cpu()
                     self._orig_model.cuda()
                     data.orig_logit = self._orig_model.compute_actor(data.obs)['logit']
@@ -242,7 +246,8 @@ class PPOFPolicy:
             split_data = ttorch.split(data, self._cfg.batch_size)
             random.shuffle(list(split_data))
             for batch in split_data:
-                output = self._model.compute_actor_critic(batch.obs)
+                if not self._cfg.chat_data:
+                    output = self._model.compute_actor_critic(batch.obs)
                 adv = batch.adv
                 if self._cfg.adv_norm:
                     # Normalize advantage in a train_batch
@@ -261,12 +266,21 @@ class PPOFPolicy:
                         )
                         ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
                     else:
-                        mask = batch.mask
-                        ppo_batch = ppo_data(
-                            output['logit'], batch.orig_logit, batch.obs, output['value'], batch.value, adv,
-                            batch.return_, None
-                        )
-                        ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
+                        with autocast(device_type='cuda', dtype=torch.float16):
+                            output = self._model.compute_actor_critic(batch.obs)
+                            mask = batch.mask
+                            ppo_batch = ppo_data(
+                                output['logit'], batch.orig_logit, batch.obs, output['value'], batch.value, adv,
+                                batch.return_, None
+                            )
+                            ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
+                            kl_loss = (
+                                    torch.nn.functional.kl_div(
+                                        torch.softmax(output["logit"], dim=-1),
+                                        torch.softmax(batch.orig_logit, dim=-1),
+                                        reduction='none'
+                                    ) * mask.unsqueeze(-1)
+                            ).mean()
                 elif self._action_space == 'hybrid':
                     # discrete part (discrete policy loss and entropy loss)
                     ppo_discrete_batch = ppo_policy_data(
@@ -293,21 +307,22 @@ class PPOFPolicy:
                 if not self._cfg.chat_data:
                     wv, we = self._cfg.value_weight, self._cfg.entropy_weight
                     total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+                    self._optimizer.zero_grad()
+                    total_loss.backward()
+                    torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.grad_norm)
+                    self._optimizer.step()
                 else:
                     wv, we, wk = self._cfg.value_weight, self._cfg.entropy_weight, self._cfg.kl_penalty_weight
-                    kl_loss = (
-                        torch.nn.functional.kl_div(
-                            torch.softmax(output.logit, dim=-1),
-                            torch.softmax(batch.orig_logit, dim=-1),
-                            reduction='none'
-                        ) * mask
-                    ).mean()
                     total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss + wk * kl_loss
-
-                self._optimizer.zero_grad()
-                total_loss.backward()
-                torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.grad_norm)
-                self._optimizer.step()
+                    output = ttorch.as_tensor(output)
+                    self._optimizer.zero_grad()
+                    self.scaler.scale(total_loss).backward()
+                    # scaler.step() first unscales the gradients of the optimizer's assigned params.
+                    # If these gradients do not contain infs or NaNs, optimizer.step() is then called,
+                    # otherwise, optimizer.step() is skipped.
+                    scaler.step(self._optimizer)
+                    # Updates the scale for next iteration.
+                    scaler.update()
 
                 return_info = {
                     'cur_lr': self._optimizer.defaults['lr'],

@@ -4,12 +4,12 @@ from ding.bonus.ppof import PPOF
 from ding.model.template import LlamaVAC
 
 
-
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--actor_path', type=str)
     parser.add_argument('--critic_path', type=str)
+    parser.add_argument('--tokenizer_path', type=str)
     args = parser.parse_args()
 
     opt = EasyDict({
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     model = LlamaVAC(
         actor_path=args.actor_path,
         critic_path=args.critic_path,
-        tokenizer=get_tokenizer("/mnt/nfs/whl/rlhf/MOSS-RLHF/models/moss-rlhf-sft-model-7B-en"),
+        tokenizer_path=args.tokenizer_path,
         opt=opt
     )
 

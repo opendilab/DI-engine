@@ -143,7 +143,8 @@ class LlamaVAC(nn.Module):
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
-    def __init__(self, actor_path: str, critic_path: str, opt: Dict, enable_checkpointing: bool = True) -> None:
+    def __init__(self, actor_path: str, critic_path: str,
+                 tokenizer_path: str, opt: Dict, enable_checkpointing: bool = True) -> None:
         """
         Overview:
             Initialize the ``LlamaVAC`` model according to arguments.
@@ -153,13 +154,16 @@ class LlamaVAC(nn.Module):
             - opt (:obj:`Dict`): Options for this model.
         """
         super(LlamaVAC, self).__init__()
-        tokenizer = get_tokenizer(actor_path)
+        tokenizer = get_tokenizer(tokenizer_path)
+
         self.actor = Llama.from_pretrained(
             actor_path,
             opt=opt,
             tokenizer=tokenizer,
         )
+
         self.critic = LlamaRewardModel.from_pretrained(critic_path, tokenizer=tokenizer)
+
         if enable_checkpointing:
             self.actor.gradient_checkpointing_enable()
             self.critic.gradient_checkpointing_enable()

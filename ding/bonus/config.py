@@ -169,7 +169,7 @@ def get_instance_config(env_id: str, algorithm: str) -> EasyDict:
             cfg.learning_rate = 3e-4
         elif env_id == 'chat':
             cfg.epoch_per_collect = 1
-            cfg.batch_size = 2
+            cfg.batch_size = 1
             cfg.learning_rate = 5e-7
             cfg.answers_per_question = 3
             cfg.kl_penalty_weight = 0.1
@@ -325,12 +325,12 @@ def get_instance_env(env_id: str) -> BaseEnv:
     elif env_id == 'chat':
         from dizoo.chat.env import ChatEnv
         return ChatEnv(
-            batch_size=2,
+            batch_size=1,
             reward_model_path="/mnt/nfs/whl/rlhf/MOSS-RLHF/models/moss-rlhf-reward-model-7B-en/recover",
             tokenizer_path="/mnt/nfs/whl/rlhf/MOSS-RLHF/models/moss-rlhf-reward-model-7B-en",
             data_path="/mnt/nfs/whl/rlhf/MOSS-RLHF/data/ppo_data",
-            maxlen_prompt=1024,
-            maxlen_res=512,
+            maxlen_prompt=128,
+            maxlen_res=128,
         )
     else:
         raise KeyError("not supported env type: {}".format(env_id))

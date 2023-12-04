@@ -214,7 +214,7 @@ class ChatCollector:
         self.env = env
         self.env.seed(seed)
         self.env.launch()
-        self.env = self._envs[0]
+        self.env = self.env._envs[0]
         self.policy = policy
         self.n_sample = n_sample
         self.unroll_len = unroll_len
@@ -229,7 +229,7 @@ class ChatCollector:
         """
         device = self.policy._device
 
-        obs = ttorch.as_tensor(self.env.last_batch[0]['text_vec'])
+        obs = ttorch.as_tensor(self.env.last_batch['text_vec'])
         batch_size = obs.shape[0]
         obs = obs.to(device)
 
