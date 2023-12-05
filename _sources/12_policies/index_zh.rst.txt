@@ -30,6 +30,7 @@
     :maxdepth: 2
     :caption: 演员—评委（Actor-Critic）
 
+    ppg_zh
     ddpg_zh
     td3_zh
 

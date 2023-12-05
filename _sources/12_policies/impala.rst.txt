@@ -337,6 +337,13 @@ process is as follows.
 
     2. Here we introduce a parameter ``rho_pg_clip_ratio``, following the implementation in AlphaStar. This parameter, can give a subtle control on vtrace advantage. Usually, we will choose this parameter just same as rho_clip_ratio.
 
+Difference between old and new pipeline
+==========================================
+
+The way of task startup and the training component organization form is very different in old and new pipeline. In old pipeline, the training process is serial and intuitive, each part of the training is fully expressed in the main function.  In new pipeline, each part of the training is encapsulated as a function. The training process is completed through function calls, and use 'task.context' to control the data transfer during the training process.
+
+Meanwhile, the way of data slicing is different too. In new pipeline, data will be sliced by 'unroll_len' first, then randomly selected.
+
 
 Benchmark
 ----------
@@ -353,26 +360,40 @@ Benchmark
    * - | Pong
        | (PongNoFrameskip-v4)
      - 20
-     - .. image:: images/benchmark/IMPALA_pong.png
+     - .. image:: images/benchmark/impala_pong.png
      - `config_link_p <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_IMPALA_config.py>`_
      - | IMPALA paper shallow 200M (20.4)
    * - | Qbert
        | (QbertNoFrameskip-v4)
      - 13175
-     - .. image:: images/benchmark/IMPALA_qbert.png
+     - .. image:: images/benchmark/impala_qbert.png
      - `config_link_q <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_IMPALA_config.py>`_
      - | IMPALA paper shallow 200M (18901)
    * - | SpaceInvaders
        | (SpaceInvadersNoFrame skip-v4)
      - 977
-     - .. image:: images/benchmark/IMPALA_spaceinvaders.png
+     - .. image:: images/benchmark/impala_spaceinvaders.png
      - `config_link_s <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_IMPALA_config.py>`_
+     - | IMPALA paper shallow 200M (1726)
+
+   * - | Pong(In new pipeline)
+       | (Pong skip-v4)
+     - 21
+     - .. image:: images/benchmark/impala_pong_new_pipeline.png
+     - `config_link_np <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_impala_main.py>`_
+     - | IMPALA paper shallow 200M (20.4)
+   * - | SpaceInvaders(In new pipeline)
+       | (SpaceInvadersNoFrame skip-v4)
+     - 1006
+     - .. image:: images/benchmark/impala_spaceinvaders_new_pipeline.png
+     - `config_link_ns <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_impala_config.py>`_
      - | IMPALA paper shallow 200M (1726)
 
 P.S.：
 
 1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
-2. For the discrete action space algorithm like IMPALA, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M ``env_step``. For more details about Atari, please refer to `Atari Env Tutorial <../env_tutorial/atari.html>`_ .
+2. The environment with the in new pipeline suffix is trained using the new training process. The new training process is more concise and clear, and the data collection speed is faster.
+3. For the discrete action space algorithm like IMPALA, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M ``env_step``. For more details about Atari, please refer to `Atari Env Tutorial <../env_tutorial/atari.html>`_ .
 
 
 Reference

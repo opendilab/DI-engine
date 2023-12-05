@@ -767,6 +767,11 @@ process is as follows.</p>
 </ol>
 </div>
 </section>
+<section id="difference-between-old-and-new-pipeline">
+<h3>Difference between old and new pipeline<a class="headerlink" href="#difference-between-old-and-new-pipeline" title="Permalink to this headline">¶</a></h3>
+<p>The way of task startup and the training component organization form is very different in old and new pipeline. In old pipeline, the training process is serial and intuitive, each part of the training is fully expressed in the main function.  In new pipeline, each part of the training is encapsulated as a function. The training process is completed through function calls, and use ‘task.context’ to control the data transfer during the training process.</p>
+<p>Meanwhile, the way of data slicing is different too. In new pipeline, data will be sliced by ‘unroll_len’ first, then randomly selected.</p>
+</section>
 </section>
 <section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
@@ -794,7 +799,7 @@ process is as follows.</p>
 </div>
 </td>
 <td><p>20</p></td>
-<td><img alt="12_policies/images/benchmark/IMPALA_pong.png" src="12_policies/images/benchmark/IMPALA_pong.png" />
+<td><img alt="../_images/impala_pong.png" src="../_images/impala_pong.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_IMPALA_config.py">config_link_p</a></p></td>
 <td><div class="line-block">
@@ -808,7 +813,7 @@ process is as follows.</p>
 </div>
 </td>
 <td><p>13175</p></td>
-<td><img alt="12_policies/images/benchmark/IMPALA_qbert.png" src="12_policies/images/benchmark/IMPALA_qbert.png" />
+<td><img alt="../_images/impala_qbert.png" src="../_images/impala_qbert.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_IMPALA_config.py">config_link_q</a></p></td>
 <td><div class="line-block">
@@ -822,9 +827,37 @@ process is as follows.</p>
 </div>
 </td>
 <td><p>977</p></td>
-<td><img alt="12_policies/images/benchmark/IMPALA_spaceinvaders.png" src="12_policies/images/benchmark/IMPALA_spaceinvaders.png" />
+<td><img alt="../_images/impala_spaceinvaders.png" src="../_images/impala_spaceinvaders.png" />
 </td>
 <td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_IMPALA_config.py">config_link_s</a></p></td>
+<td><div class="line-block">
+<div class="line">IMPALA paper shallow 200M (1726)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Pong(In new pipeline)</div>
+<div class="line">(Pong skip-v4)</div>
+</div>
+</td>
+<td><p>21</p></td>
+<td><img alt="../_images/impala_pong_new_pipeline.png" src="../_images/impala_pong_new_pipeline.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_impala_main.py">config_link_np</a></p></td>
+<td><div class="line-block">
+<div class="line">IMPALA paper shallow 200M (20.4)</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">SpaceInvaders(In new pipeline)</div>
+<div class="line">(SpaceInvadersNoFrame skip-v4)</div>
+</div>
+</td>
+<td><p>1006</p></td>
+<td><img alt="../_images/impala_spaceinvaders_new_pipeline.png" src="../_images/impala_spaceinvaders_new_pipeline.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_impala_config.py">config_link_ns</a></p></td>
 <td><div class="line-block">
 <div class="line">IMPALA paper shallow 200M (1726)</div>
 </div>
@@ -835,6 +868,7 @@ process is as follows.</p>
 <p>P.S.：</p>
 <ol class="arabic simple">
 <li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+<li><p>The environment with the in new pipeline suffix is trained using the new training process. The new training process is more concise and clear, and the data collection speed is faster.</p></li>
 <li><p>For the discrete action space algorithm like IMPALA, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
 </ol>
 </section>
@@ -903,6 +937,7 @@ process is as follows.</p>
 <li><a class="reference internal" href="#config">Config</a></li>
 <li><a class="reference internal" href="#data-processing">Data Processing</a></li>
 <li><a class="reference internal" href="#optimization">Optimization</a></li>
+<li><a class="reference internal" href="#difference-between-old-and-new-pipeline">Difference between old and new pipeline</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#benchmark">Benchmark</a></li>
