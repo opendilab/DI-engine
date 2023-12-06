@@ -31,10 +31,11 @@ def get_tokenizer(path: str):
 
 class Llama(LlamaForCausalLM):
 
-    def __init__(self, config, opt, tokenizer):
+    def __init__(self, config, opt, tokenizer, enable_checkpointing):
         super().__init__(config)
         self.opt = opt
         self.tokenizer = tokenizer
+        self.enable_checkpointing = enable_checkpointing
 
     def forward(self, decoder_input, incr_state=None, is_train=True):
 
@@ -60,6 +61,8 @@ class Llama(LlamaForCausalLM):
         """
         Generate response
         """
+        if self.enable_checkpointing:
+            self.gradient_checkpointing_disable()
         maxlen_res = kwargs.pop('maxlen_res', self.opt.maxlen_res)
         temperature = kwargs.pop('temperature', self.opt.temperature)
         repetition_penalty = kwargs.pop('repetition_penalty', self.opt.repetition_penalty)
@@ -129,6 +132,8 @@ class Llama(LlamaForCausalLM):
             preds_scores.append([res_scores])
 
         best_preds_scores = [preds[0] for preds in preds_scores]
+        if self.enable_checkpointing:
+            self.gradient_checkpointing_enable()
         return best_preds_scores, preds_scores
 
 
@@ -161,8 +166,10 @@ class LlamaVAC(nn.Module):
         """
         super(LlamaVAC, self).__init__()
         tokenizer = get_tokenizer(tokenizer_path)
+        self.enable_checkpointing = enable_checkpointing
 
-        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer, torch_dtype=torch.bfloat16)
+        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer, torch_dtype=torch.bfloat16,
+                                           enable_checkpointing=enable_checkpointing)
 
         self.critic = LlamaRewardModel.from_pretrained(critic_path, tokenizer=tokenizer, torch_dtype=torch.bfloat16)
 
