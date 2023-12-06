@@ -71,8 +71,6 @@ class PPOFPolicy:
     ) -> None:
         self._cfg = cfg
         self._orig_model = orig_model
-        if self._orig_model is not None:
-            self.scalar = GradScaler()
         if model is None:
             self._model = self.default_model()
         else:
@@ -275,11 +273,11 @@ class PPOFPolicy:
                             )
                             ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
                             kl_loss = (
-                                    torch.nn.functional.kl_div(
-                                        torch.softmax(output["logit"], dim=-1),
-                                        torch.softmax(batch.orig_logit, dim=-1),
-                                        reduction='none'
-                                    ) * mask.unsqueeze(-1)
+                                torch.nn.functional.kl_div(
+                                    torch.softmax(output["logit"], dim=-1),
+                                    torch.softmax(batch.orig_logit, dim=-1),
+                                    reduction='none'
+                                ) * mask.unsqueeze(-1)
                             ).mean()
                 elif self._action_space == 'hybrid':
                     # discrete part (discrete policy loss and entropy loss)
@@ -316,13 +314,8 @@ class PPOFPolicy:
                     total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss + wk * kl_loss
                     output = ttorch.as_tensor(output)
                     self._optimizer.zero_grad()
-                    self.scaler.scale(total_loss).backward()
-                    # scaler.step() first unscales the gradients of the optimizer's assigned params.
-                    # If these gradients do not contain infs or NaNs, optimizer.step() is then called,
-                    # otherwise, optimizer.step() is skipped.
-                    scaler.step(self._optimizer)
-                    # Updates the scale for next iteration.
-                    scaler.update()
+                    total_loss.backward()
+                    self._optimizer.step()
 
                 return_info = {
                     'cur_lr': self._optimizer.defaults['lr'],

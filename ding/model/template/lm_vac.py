@@ -36,7 +36,7 @@ class Llama(LlamaForCausalLM):
         self.opt = opt
         self.tokenizer = tokenizer
 
-    def forward(self, decoder_input, incr_state=None):
+    def forward(self, decoder_input, incr_state=None, is_train=True):
 
         attention_mask = decoder_input.ne(self.tokenizer.pad_token_id)
         if incr_state is not None:
@@ -47,7 +47,7 @@ class Llama(LlamaForCausalLM):
             attention_mask=attention_mask,
             past_key_values=incr_state,
             return_dict=True,
-            use_cache=not self.training
+            use_cache=not is_train
         )
 
         logits = output.logits
@@ -84,7 +84,7 @@ class Llama(LlamaForCausalLM):
         for _token in range(maxlen_res):
             if done.all():
                 break
-            score, incr_state, *_ = self.forward(decoder_input, incr_state)
+            score, incr_state, *_ = self.forward(decoder_input, incr_state, is_train=False)
             score = score.half()
 
             # now score is bs, len, vocab_size
@@ -143,8 +143,14 @@ class LlamaVAC(nn.Module):
     """
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
-    def __init__(self, actor_path: str, critic_path: str,
-                 tokenizer_path: str, opt: Dict, enable_checkpointing: bool = True) -> None:
+    def __init__(
+            self,
+            actor_path: str,
+            critic_path: str,
+            tokenizer_path: str,
+            opt: Dict,
+            enable_checkpointing: bool = True
+    ) -> None:
         """
         Overview:
             Initialize the ``LlamaVAC`` model according to arguments.
@@ -156,13 +162,9 @@ class LlamaVAC(nn.Module):
         super(LlamaVAC, self).__init__()
         tokenizer = get_tokenizer(tokenizer_path)
 
-        self.actor = Llama.from_pretrained(
-            actor_path,
-            opt=opt,
-            tokenizer=tokenizer,
-        )
+        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer, torch_dtype=torch.bfloat16)
 
-        self.critic = LlamaRewardModel.from_pretrained(critic_path, tokenizer=tokenizer)
+        self.critic = LlamaRewardModel.from_pretrained(critic_path, tokenizer=tokenizer, torch_dtype=torch.bfloat16)
 
         if enable_checkpointing:
             self.actor.gradient_checkpointing_enable()
