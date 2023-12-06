@@ -156,7 +156,7 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
 
     Examples:
         >>> batch = [
-                {'data0': [torch.tensor([1, 2, 3]), torch.tensor([4, 5, 6])]}, 
+                {'data0': [torch.tensor([1, 2, 3]), torch.tensor([4, 5, 6])]},
                 {'data1': [torch.tensor([7, 8, 9]), torch.tensor([10, 11, 12])]}
             ]
         >>> collated_data = timestep_collate(batch)
@@ -240,21 +240,21 @@ def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence
     raise TypeError('not support element type: {}'.format(elem_type))
 
 
-from typing import Union, List, Sequence, Mapping, Any
-import torch
-
 def default_decollate(
         batch: Union[torch.Tensor, Sequence, Mapping],
         ignore: List[str] = ['prev_state', 'prev_actor_state', 'prev_critic_state']
 ) -> List[Any]:
     """
     Overview:
-        Drag out batch_size collated data's batch size to decollate it, which is the reverse operation of ``default_collate``.
+        Drag out batch_size collated data's batch size to decollate it, which is the reverse operation of \
+        ``default_collate``.
 
     Arguments:
-        - batch (:obj:`Union[torch.Tensor, Sequence, Mapping]`): The collated data batch. It can be a tensor, sequence, or mapping.
-        - ignore(:obj:`List[str]`): A list of names to be ignored. Only applicable if the input ``batch`` is a dictionary.
-            If a key is in this list, its value will remain the same without decollation. Defaults to ['prev_state', 'prev_actor_state', 'prev_critic_state'].
+        - batch (:obj:`Union[torch.Tensor, Sequence, Mapping]`): The collated data batch. It can be a tensor, \
+            sequence, or mapping.
+        - ignore(:obj:`List[str]`): A list of names to be ignored. Only applicable if the input ``batch`` is a \
+            dictionary. If a key is in this list, its value will remain the same without decollation. Defaults to \
+            ['prev_state', 'prev_actor_state', 'prev_critic_state'].
 
     Returns:
         - ret (:obj:`List[Any]`): A list with B elements, where B is the batch size.

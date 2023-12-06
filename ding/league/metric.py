@@ -150,7 +150,7 @@ class LeagueMetricEnv(TrueSkill):
         pass
 
     def rate_1vs1(self, team1: PlayerRating, team2: PlayerRating, result: List[str] = None, **kwargs) \
-    -> Tuple[PlayerRating, PlayerRating]:
+            -> Tuple[PlayerRating, PlayerRating]:
         """
         Overview:
             Rates two teams of players against each other in a 1 vs 1 match and returns the updated ratings \
