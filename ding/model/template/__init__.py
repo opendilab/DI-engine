@@ -27,3 +27,4 @@ from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import EDAC
 from .qgpo import QGPO
+from .ebm import EBM, AutoregressiveEBM

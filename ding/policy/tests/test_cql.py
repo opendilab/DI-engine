@@ -3,7 +3,7 @@ import copy
 import pytest
 import torch
 from easydict import EasyDict
-from ding.policy.cql import CQLPolicy, CQLDiscretePolicy
+from ding.policy.cql import CQLPolicy, DiscreteCQLPolicy
 from ding.utils.data import offline_data_save_type
 from tensorboardX import SummaryWriter
 from ding.model.wrapper.model_wrappers import ArgmaxSampleWrapper, EpsGreedySampleWrapper, TargetNetworkWrapper
@@ -23,7 +23,7 @@ cfg2 = copy.deepcopy(cfg1)
 cfg2.learn.auto_alpha = False
 cfg2.learn.log_space = False
 
-cfg3 = EasyDict(CQLDiscretePolicy.default_config())
+cfg3 = EasyDict(DiscreteCQLPolicy.default_config())
 cfg3.model = {}
 cfg3.model.obs_shape = obs_space
 cfg3.model.action_shape = action_space
@@ -89,7 +89,7 @@ def get_transition_discrete(size=20):
 @pytest.mark.parametrize('cfg', [cfg3, cfg4])
 @pytest.mark.unittest
 def test_cql_discrete(cfg):
-    policy = CQLDiscretePolicy(cfg, enable_field=['collect', 'eval', 'learn'])
+    policy = DiscreteCQLPolicy(cfg, enable_field=['collect', 'eval', 'learn'])
     assert type(policy._learn_model) == ArgmaxSampleWrapper
     assert type(policy._target_model) == TargetNetworkWrapper
     assert type(policy._collect_model) == EpsGreedySampleWrapper

@@ -45,10 +45,7 @@ class PwilRewardModel(BaseRewardModel):
            | ``path``                   .pkl          |                                        | file
         3  | ``sample_size``    int    1000           | sample data from expert dataset        |
                                                       | with fixed size                        |
-        4  | ``alpha``          int    5              | factor alpha                           | r = alpha * exp(
-                                                                                               | (-beta*T/sqrt(
-                                                                                               | |s_size|+ |a_size|)
-                                                                                               | )*c_i)
+        4  | ``alpha``          int    5              | factor alpha                           |
         5  | ``beta``           int    5              | factor beta                            |
         6  | ``s_size``         int    4              | state size                             |
         7  | ``a_size``         int    2              | action size                            |

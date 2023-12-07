@@ -718,10 +718,10 @@ def bdq_nstep_td_error(
 ) -> torch.Tensor:
     """
     Overview:
-        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper "Action Branching Architectures \
-        for Deep Reinforcement Learning", link: https://arxiv.org/pdf/1711.08946.
+        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper "Action Branching Architectures for \
+        Deep Reinforcement Learning", link: https://arxiv.org/pdf/1711.08946.
         In fact, the original paper only provides the 1-step TD-error calculation method, and here we extend the \
-        calculation method of n-step TD-error.
+        calculation method of n-step, i.e., TD-error:
     Arguments:
         - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): Discount factor
