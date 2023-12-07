@@ -16,7 +16,7 @@ from ding.torch_utils.network.activation import SiLU
 from ding.torch_utils.network.res_block import TemporalSpatialResBlock
 
 
-def marginal_prob_std(t, device="cuda"):
+def marginal_prob_std(t, device):
     """Compute the mean and standard deviation of $p_{0t}(x(t) | x(0))$.
     """
     t = torch.tensor(t, device=device)
@@ -106,15 +106,16 @@ class Critic_Guide(nn.Module):
 
 class QGPO_Critic(Critic_Guide):
 
-    def __init__(self, cfg, adim, sdim) -> None:
+    def __init__(self, device, cfg, adim, sdim) -> None:
         super().__init__(adim, sdim)
         # is sdim is 0  means unconditional guidance
         assert sdim > 0
         # only apply to conditional sampling here
+        self.device = device
         self.cfg = cfg
-        self.q0 = TwinQ(adim, sdim).to(self.cfg.device)
-        self.q0_target = copy.deepcopy(self.q0).requires_grad_(False).to(self.cfg.device)
-        self.qt = GuidanceQt(adim, sdim).to(self.cfg.device)
+        self.q0 = TwinQ(adim, sdim).to(self.device)
+        self.q0_target = copy.deepcopy(self.q0).requires_grad_(False).to(self.device)
+        self.qt = GuidanceQt(adim, sdim).to(self.device)
         self.qt_update_momentum = 0.005
         self.q_optimizer = torch.optim.Adam(self.q0.parameters(), lr=3e-4)
         self.qt_optimizer = torch.optim.Adam(self.qt.parameters(), lr=3e-4)
@@ -171,65 +172,21 @@ class QGPO_Critic(Critic_Guide):
         self.all_mean = torch.mean(energy, dim=-1).detach().cpu().squeeze().numpy()
         self.all_std = torch.std(energy, dim=-1).detach().cpu().squeeze().numpy()
 
-        if self.cfg.method == "mse":
-            random_t = torch.rand(a.shape[0], device=s.device) * (1. - 1e-3) + 1e-3
-            z = torch.randn_like(a)
-            alpha_t, std = marginal_prob_std(random_t)
-            perturbed_a = a * alpha_t[..., None] + z * std[..., None]
+        # CEP guidance method, as proposed in the paper
+        logsoftmax = nn.LogSoftmax(dim=1)
+        softmax = nn.Softmax(dim=1)
 
-            # calculate sample based baselines
-            # sample_based_baseline = torch.max(energy, dim=-1, keepdim=True)[0]  #<bz , 1>
-            sample_based_baseline = 0.0
-            self.debug_used = (self.q0_target(a, s).detach() * self.alpha -
-                               sample_based_baseline * self.alpha).detach().cpu().squeeze().numpy()
-            loss = torch.mean(
-                (
-                    self.qt(perturbed_a, random_t, s) - self.q0_target(a, s).detach() * self.alpha +
-                    sample_based_baseline * self.alpha
-                ) ** 2
-            )
-        elif self.cfg.method == "emse":
-            random_t = torch.rand(a.shape[0], device=s.device) * (1. - 1e-3) + 1e-3
-            z = torch.randn_like(a)
-            alpha_t, std = marginal_prob_std(random_t)
-            perturbed_a = a * alpha_t[..., None] + z * std[..., None]
-
-            # calculate sample based baselines
-            # sample_based_baseline = (torch.logsumexp(energy*self.alpha, dim=-1, keepdim=True)- np.log(energy.shape[1])) /self.alpha   #<bz , 1>
-            sample_based_baseline = torch.max(energy, dim=-1, keepdim=True)[0]  #<bz , 1>
-            self.debug_used = (self.q0_target(a, s).detach() * self.alpha -
-                               sample_based_baseline * self.alpha).detach().cpu().squeeze().numpy()
-
-            def unlinear_func(value, alpha, clip=False):
-                if clip:
-                    return torch.exp(torch.clamp(value * alpha, -100, 4.5))
-                else:
-                    return torch.exp(value * alpha)
-
-            loss = torch.mean(
-                (
-                    unlinear_func(self.qt(perturbed_a, random_t, s), 1.0, clip=True) -
-                    unlinear_func(self.q0_target(a, s).detach() - sample_based_baseline, self.alpha, clip=True)
-                ) ** 2
-            )
-        elif self.cfg.method == "CEP":
-            # CEP guidance method, as proposed in the paper
-            logsoftmax = nn.LogSoftmax(dim=1)
-            softmax = nn.Softmax(dim=1)
-
-            x0_data_energy = energy * self.alpha
-            # random_t = torch.rand((fake_a.shape[0], fake_a.shape[1]), device=s.device) * (1. - 1e-3) + 1e-3
-            random_t = torch.rand((fake_a.shape[0], ), device=s.device) * (1. - 1e-3) + 1e-3
-            random_t = torch.stack([random_t] * fake_a.shape[1], dim=1)
-            z = torch.randn_like(fake_a)
-            alpha_t, std = marginal_prob_std(random_t)
-            perturbed_fake_a = fake_a * alpha_t[..., None] + z * std[..., None]
-            xt_model_energy = self.qt(perturbed_fake_a, random_t, torch.stack([s] * fake_a.shape[1], axis=1)).squeeze()
-            p_label = softmax(x0_data_energy)
-            self.debug_used = torch.flatten(p_label).detach().cpu().numpy()
-            loss = -torch.mean(torch.sum(p_label * logsoftmax(xt_model_energy), axis=-1))  #  <bz,M>
-        else:
-            raise NotImplementedError
+        x0_data_energy = energy * self.alpha
+        # random_t = torch.rand((fake_a.shape[0], fake_a.shape[1]), device=s.device) * (1. - 1e-3) + 1e-3
+        random_t = torch.rand((fake_a.shape[0], ), device=self.device) * (1. - 1e-3) + 1e-3
+        random_t = torch.stack([random_t] * fake_a.shape[1], dim=1)
+        z = torch.randn_like(fake_a)
+        alpha_t, std = marginal_prob_std(random_t, device=self.device)
+        perturbed_fake_a = fake_a * alpha_t[..., None] + z * std[..., None]
+        xt_model_energy = self.qt(perturbed_fake_a, random_t, torch.stack([s] * fake_a.shape[1], axis=1)).squeeze()
+        p_label = softmax(x0_data_energy)
+        self.debug_used = torch.flatten(p_label).detach().cpu().numpy()
+        loss = -torch.mean(torch.sum(p_label * logsoftmax(xt_model_energy), axis=-1))  #  <bz,M>
 
         self.qt_optimizer.zero_grad(set_to_none=True)
         loss.backward()
@@ -240,14 +197,14 @@ class QGPO_Critic(Critic_Guide):
 
 class ScoreBase(nn.Module):
 
-    def __init__(self, cfg, input_dim, output_dim, marginal_prob_std, embed_dim=32):
+    def __init__(self, device, cfg, input_dim, output_dim, marginal_prob_std, embed_dim=32):
         super().__init__()
         self.cfg = cfg
         self.output_dim = output_dim
         self.embed = nn.Sequential(
             GaussianFourierProjectionTimeEncoder(embed_dim=embed_dim), nn.Linear(embed_dim, embed_dim)
         )
-        self.device = self.cfg.device
+        self.device = device
         self.noise_schedule = dpm_solver_pytorch.NoiseScheduleVP(schedule='linear')
         self.dpm_solver = dpm_solver_pytorch.DPM_Solver(
             self.forward_dmp_wrapper_fn, self.noise_schedule, predict_x0=True
@@ -255,11 +212,13 @@ class ScoreBase(nn.Module):
         # self.dpm_solver = dpm_solver_pytorch.DPM_Solver(self.forward_dmp_wrapper_fn, self.noise_schedule)
         self.marginal_prob_std = marginal_prob_std
         self.q = []
-        self.q.append(QGPO_Critic(cfg.qgpo_critic, adim=output_dim, sdim=input_dim - output_dim))
+        self.q.append(QGPO_Critic(device, cfg.qgpo_critic, adim=output_dim, sdim=input_dim - output_dim))
 
     def forward_dmp_wrapper_fn(self, x, t):
         score = self(x, t)
-        result = -(score + self.q[0].calculate_guidance(x, t, self.condition)) * self.marginal_prob_std(t)[1][..., None]
+        result = -(score + self.q[0].calculate_guidance(x, t, self.condition)) * self.marginal_prob_std(
+            t, device=self.device
+        )[1][..., None]
         return result
 
     def dpm_wrapper_sample(self, dim, batch_size, **kwargs):
@@ -317,9 +276,10 @@ class ScoreBase(nn.Module):
 
 class ScoreNet(ScoreBase):
 
-    def __init__(self, cfg, input_dim, output_dim, marginal_prob_std, embed_dim=32):
-        super().__init__(cfg.score_base, input_dim, output_dim, marginal_prob_std, embed_dim)
+    def __init__(self, device, cfg, input_dim, output_dim, marginal_prob_std, embed_dim=32):
+        super().__init__(device, cfg.score_base, input_dim, output_dim, marginal_prob_std, embed_dim)
         # The swish activation function
+        self.device = device
         self.cfg = cfg
         self.act = lambda x: x * torch.sigmoid(x)
         self.pre_sort_condition = nn.Sequential(nn.Linear(input_dim - output_dim, 32), SiLU())
@@ -360,7 +320,7 @@ class ScoreNet(ScoreBase):
         h = self.last(u0)
         self.h = h
         # Normalize output
-        return h / self.marginal_prob_std(t)[1][..., None]
+        return h / self.marginal_prob_std(t, device=self.device)[1][..., None]
 
 
 class QGPO(nn.Module):
@@ -372,13 +332,14 @@ class QGPO(nn.Module):
         self.obs_dim = cfg.obs_dim
         self.action_dim = cfg.action_dim
 
-        marginal_prob_std_fn = functools.partial(marginal_prob_std, device=self.device)
+        #marginal_prob_std_fn = functools.partial(marginal_prob_std, device=self.device)
 
         self.score_model = ScoreNet(
+            device=self.device,
             cfg=cfg.score_net,
             input_dim=self.obs_dim + self.action_dim,
             output_dim=self.action_dim,
-            marginal_prob_std=marginal_prob_std_fn,
+            marginal_prob_std=marginal_prob_std,
         )
 
     def loss_fn(self, x, marginal_prob_std, eps=1e-3):
@@ -394,7 +355,7 @@ class QGPO(nn.Module):
         """
         random_t = torch.rand(x.shape[0], device=x.device) * (1. - eps) + eps
         z = torch.randn_like(x)
-        alpha_t, std = marginal_prob_std(random_t)
+        alpha_t, std = marginal_prob_std(random_t, device=x.device)
         perturbed_x = x * alpha_t[:, None] + z * std[:, None]
         score = self.score_model(perturbed_x, random_t)
         loss = torch.mean(torch.sum((score * std[:, None] + z) ** 2, dim=(1, )))

@@ -35,15 +35,11 @@ class QGPOPolicy(Policy):
         multi_agent=False,
         model=dict(
             score_net=dict(
-                device='cuda',
                 score_base=dict(
-                    device='cuda',
                     qgpo_critic=dict(
-                        device='cuda',
                         # (float) The scale of the energy guidance when training qt.
                         # \pi_{behavior}\exp(f(s,a)) \propto \pi_{behavior}\exp(alpha * Q(s,a))
                         alpha=3,
-                        method="CEP",
                         # (float) The scale of the energy guidance when training q0.
                         # \mathcal{T}Q(s,a)=r(s,a)+\mathbb{E}_{s'\sim P(s'|s,a),a'\sim\pi_{support}(a'|s')}Q(s',a')
                         # \pi_{support} \propto \pi_{behavior}\exp(q_alpha * Q(s,a))
@@ -52,8 +48,8 @@ class QGPOPolicy(Policy):
                 ),
             ),
             device='cuda',
-            #obs_dim
-            #action_dim
+            # obs_dim
+            # action_dim
         ),
         learn=dict(
             # learning rate for behavior model training
@@ -81,16 +77,6 @@ class QGPOPolicy(Policy):
             # energy guidance scale for policy in evaluation
             # \pi_{evaluation} \propto \pi_{behavior}\exp(guidance_scale * alpha * Q(s,a))
             guidance_scale=[0.0, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0],
-        ),
-        other=dict(
-            replay_buffer=dict(
-                # (int type) replay_buffer_size: Max size of replay buffer.
-                replay_buffer_size=1000000,
-                # (int type) max_use: Max use times of one data in the buffer.
-                # Data will be removed once used for too many times.
-                # Default to infinite.
-                # max_use=256,
-            ),
         ),
     )
 
