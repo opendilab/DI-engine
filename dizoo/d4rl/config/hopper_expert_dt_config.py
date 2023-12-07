@@ -15,7 +15,7 @@ hopper_dt_config = dict(
         env_type='mujoco',
         rtg_scale=1000,
         context_len=20,
-        data_dir_prefix='/mnt/nfs/luyd/d4rl/hopper_expert-v2.pkl',
+        data_dir_prefix='d4rl/hopper_expert-v2.pkl',
     ),
     policy=dict(
         cuda=True,

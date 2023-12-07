@@ -231,7 +231,6 @@ class DTPolicy(Policy):
             )
             self.state_mean = torch.from_numpy(np.array(self._cfg.state_mean)).to(self._device)
             self.state_std = torch.from_numpy(np.array(self._cfg.state_std)).to(self._device)
-            # print(self.running_rtg, self.state_mean, self.state_std)
         self.timesteps = torch.arange(
             start=0, end=self.max_eval_ep_len, step=1
         ).repeat(self.eval_batch_size, 1).to(self._device)
@@ -258,7 +257,6 @@ class DTPolicy(Policy):
         """
         # save and forward
         data_id = list(data.keys())
-        # print(data_id)
 
         self._eval_model.eval()
         with torch.no_grad():

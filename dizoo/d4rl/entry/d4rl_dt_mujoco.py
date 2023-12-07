@@ -2,7 +2,7 @@ import gym
 import torch
 import numpy as np
 from ditk import logging
-from ding.model.template.dt import DecisionTransformer
+from ding.model.template.decision_transformer import DecisionTransformer
 from ding.policy import DTPolicy
 from ding.envs import BaseEnvManagerV2
 from ding.envs.env_wrappers.env_wrappers import AllinObsWrapper
