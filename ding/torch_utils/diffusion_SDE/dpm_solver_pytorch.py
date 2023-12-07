@@ -1,9 +1,10 @@
+#############################################################
+# This DPM-Solver snippet is from https://github.com/ChenDRAG/CEP-energy-guided-diffusion
+# wich is based on https://github.com/LuChengTHU/dpm-solver
+#############################################################
+
 import torch
-import torch.nn.functional as F
 import math
-# def logaddexp(x,y):
-#     return torch.log(torch.exp(x) + torch.exp(y))
-# torch.logaddexp = logaddexp
 
 
 class NoiseScheduleVP:

@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 
 from .nn_module import conv2d_block, fc_block
+from ding.torch_utils.network.activation import SiLU
 
 
 class ResBlock(nn.Module):
@@ -148,3 +149,21 @@ class ResFCBlock(nn.Module):
         if self.dropout is not None:
             x = self.dropout(x)
         return x
+
+
+class TemporalSpatialResBlock(nn.Module):
+
+    def __init__(self, input_dim, output_dim, t_dim=128, activation=SiLU):
+        super().__init__()
+        self.time_mlp = nn.Sequential(
+            activation(),
+            nn.Linear(t_dim, output_dim),
+        )
+        self.dense1 = nn.Sequential(nn.Linear(input_dim, output_dim), activation())
+        self.dense2 = nn.Sequential(nn.Linear(output_dim, output_dim), activation())
+        self.modify_x = nn.Linear(input_dim, output_dim) if input_dim != output_dim else nn.Identity()
+
+    def forward(self, x, t):
+        h1 = self.dense1(x) + self.time_mlp(t)
+        h2 = self.dense2(h1)
+        return h2 + self.modify_x(x)

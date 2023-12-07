@@ -2,6 +2,7 @@ from typing import Optional, Dict, Union, List
 from functools import reduce
 import operator
 import math
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -386,3 +387,17 @@ class IMPALAConvEncoder(nn.Module):
         if self.final_relu:
             x = torch.relu(x)
         return x
+
+
+class GaussianFourierProjectionTimeEncoder(nn.Module):
+    """Gaussian random features for encoding time steps."""
+
+    def __init__(self, embed_dim, scale=30.):
+        super().__init__()
+        # Randomly sample weights during initialization. These weights are fixed
+        # during optimization and are not trainable.
+        self.W = nn.Parameter(torch.randn(embed_dim // 2) * scale, requires_grad=False)
+
+    def forward(self, x):
+        x_proj = x[..., None] * self.W[None, :] * 2 * np.pi
+        return torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)

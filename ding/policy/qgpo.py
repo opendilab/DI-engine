@@ -1,22 +1,17 @@
-"""The code is adapted from https://github.com/ChenDRAG/CEP-energy-guided-diffusion
-"""
+#############################################################
+# This QGPO model is a modification implementation from https://github.com/ChenDRAG/CEP-energy-guided-diffusion
+#############################################################
 
-from typing import List, Dict, Any, Tuple
-from collections import namedtuple
+from typing import List, Dict, Any
 import functools
-import torch.nn.functional as F
 import torch
 import numpy as np
 from ding.torch_utils import to_device
 from ding.utils import POLICY_REGISTRY
-from ding.torch_utils import Adam, to_device
 from ding.utils.data import default_collate, default_decollate
-from ding.torch_utils import one_hot
 from .base_policy import Policy
 
-from ding.torch_utils.diffusion_SDE.loss import loss_fn
-from ding.torch_utils.diffusion_SDE.schedule import marginal_prob_std
-from ding.torch_utils.diffusion_SDE.model import ScoreNet
+from ding.model.template.qgpo import marginal_prob_std
 
 
 @POLICY_REGISTRY.register('qgpo')
@@ -114,7 +109,7 @@ class QGPOPolicy(Policy):
         ) else 0
         self.q_value_stop_training_iter = self._cfg.learn.q_value_stop_training_iter if hasattr(
             self._cfg.learn, 'q_value_stop_training_iter'
-        ) and self._cfg.learn.q_value_stop_training_iter>=0 else np.inf
+        ) and self._cfg.learn.q_value_stop_training_iter >= 0 else np.inf
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         if self.cuda:
@@ -127,7 +122,7 @@ class QGPOPolicy(Policy):
         # training behavior model
         if self.behavior_policy_stop_training_iter > 0:
             self._model.score_model.condition = s
-            behavior_model_training_loss = loss_fn(self._model.score_model, a, self.margin_prob_std_fn)
+            behavior_model_training_loss = self._model.loss_fn(a, self.margin_prob_std_fn)
             self.behavior_model_optimizer.zero_grad()
             behavior_model_training_loss.backward()
             self.behavior_model_optimizer.step()
@@ -170,12 +165,8 @@ class QGPOPolicy(Policy):
         self.diffusion_steps = self._cfg.eval.diffusion_steps
 
     def _forward_eval(self, data: dict) -> dict:
-        #guidance_scale = data['guidance_scale']
-        #data= data['obs']
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
-
-        #self._model.score_model.q[0].guidance_scale = guidance_scale
         states = data
         actions = self._model.score_model.select_actions(states, diffusion_steps=self.diffusion_steps)
         output = actions

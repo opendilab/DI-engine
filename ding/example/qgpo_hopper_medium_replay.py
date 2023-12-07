@@ -289,8 +289,8 @@ main_config = dict(
             batch_size=4096,
             M=16,
             diffusion_steps=15,
-            behavior_policy_stop_training_iter=600000, #1000
-            energy_guided_policy_begin_training_iter=600000, #1000
+            behavior_policy_stop_training_iter=600000,  #1000
+            energy_guided_policy_begin_training_iter=600000,  #1000
             #q_value_stop_training_iter=610000,
         ),
         collect=dict(unroll_len=1, ),
@@ -386,8 +386,6 @@ def QGPO_support_data_generator(cfg, dataset, policy) -> Callable:
     return _data_generator
 
 
-
-
 def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False) -> Callable:
     """
     Overview:
@@ -420,7 +418,7 @@ def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return
 
-        ctx.info_for_logging={}
+        ctx.info_for_logging = {}
 
         for guidance_scale in cfg.policy.eval.guidance_scale:
 
@@ -434,7 +432,7 @@ def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
             while not eval_monitor.is_finished():
                 obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
                 obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
-                data=dict(
+                data = dict(
                     guidance_scale=guidance_scale,
                     obs=obs,
                 )
@@ -467,14 +465,21 @@ def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
                     )
                 )
             elif isinstance(ctx, OfflineRLContext):
-                logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})\tguidance_scale({})'.format(ctx.train_iter, episode_return, guidance_scale))
+                logging.info(
+                    'Evaluation: Train Iter({})\tEval Reward({:.3f})\tguidance_scale({})'.format(
+                        ctx.train_iter, episode_return, guidance_scale
+                    )
+                )
             else:
                 raise TypeError("not supported ctx type: {}".format(type(ctx)))
             ctx.last_eval_iter = ctx.train_iter
             ctx.eval_value = episode_return
-            ctx.eval_value_min = min(episode_return_min, ctx.eval_value_min) if hasattr(ctx, 'eval_value_min') else episode_return_min
-            ctx.eval_value_max = max(episode_return_max, ctx.eval_value_max) if hasattr(ctx, 'eval_value_max') else episode_return_max
-            ctx.eval_value_std = max(episode_return_std, ctx.eval_value_std) if hasattr(ctx, 'eval_value_std') else episode_return_std
+            ctx.eval_value_min = min(episode_return_min,
+                                     ctx.eval_value_min) if hasattr(ctx, 'eval_value_min') else episode_return_min
+            ctx.eval_value_max = max(episode_return_max,
+                                     ctx.eval_value_max) if hasattr(ctx, 'eval_value_max') else episode_return_max
+            ctx.eval_value_std = max(episode_return_std,
+                                     ctx.eval_value_std) if hasattr(ctx, 'eval_value_std') else episode_return_std
             ctx.last_eval_value = ctx.eval_value
             ctx.eval_output = {'episode_return': episode_return}
             episode_info = eval_monitor.get_episode_info()
@@ -512,7 +517,7 @@ def main():
 
         model = QGPO(cfg=cfg.policy.model)
         policy = QGPOPolicy(cfg.policy, model=model)
-        if hasattr(cfg.policy,"load_path") and cfg.policy.load_path is not None:
+        if hasattr(cfg.policy, "load_path") and cfg.policy.load_path is not None:
             policy_state_dict = torch.load(cfg.policy.load_path, map_location=torch.device("cpu"))
             policy.learn_mode.load_state_dict(policy_state_dict)
 
@@ -527,23 +532,25 @@ def main():
         task.use(offline_data_fetcher(cfg, dataset, collate_fn=None))
         task.use(trainer(cfg, policy.learn_mode))
         task.use(interaction_qgpo_evaluator(cfg, policy.eval_mode, evaluator_env))
-        task.use(wandb_offline_logger(
-            cfg = EasyDict(
-                dict(
-                    gradient_logger=False,
-                    plot_logger=True,
-                    video_logger=False,
-                    action_logger=False,
-                    return_logger=False,
-                    vis_dataset=False,
-                )
-            ),
-            exp_config=cfg,
-            project_name=cfg.exp_name)
+        task.use(
+            wandb_offline_logger(
+                cfg=EasyDict(
+                    dict(
+                        gradient_logger=False,
+                        plot_logger=True,
+                        video_logger=False,
+                        action_logger=False,
+                        return_logger=False,
+                        vis_dataset=False,
+                    )
+                ),
+                exp_config=cfg,
+                project_name=cfg.exp_name
+            )
         )
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100000))
         task.use(offline_logger())
-        task.use(termination_checker(max_train_iter=200000+cfg.policy.learn.behavior_policy_stop_training_iter))
+        task.use(termination_checker(max_train_iter=200000 + cfg.policy.learn.behavior_policy_stop_training_iter))
         task.run()
 
 
