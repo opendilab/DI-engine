@@ -62,9 +62,11 @@ class QGPOPolicy(Policy):
         ),
         learn=dict(
             # learning rate for behavior model training
-            learning_rate=1e-3,
-            # batch size during the training
+            learning_rate=1e-4,
+            # batch size during the training of behavior model
             batch_size=4096,
+            # batch size during the training of q value
+            batch_size_q=256,
             # number of fake action support
             M=16,
             # number of diffusion time steps
@@ -74,7 +76,7 @@ class QGPOPolicy(Policy):
             # training iterations when energy-guided policy begin training
             energy_guided_policy_begin_training_iter=600000,
             # training iterations when q value stop training, default None means no limit
-            # q_value_stop_training_iter
+            q_value_stop_training_iter=1100000,
         ),
         collect=dict(
             # (int) Cut trajectories into pieces with length "unroll_len".
@@ -168,12 +170,12 @@ class QGPOPolicy(Policy):
         self.diffusion_steps = self._cfg.eval.diffusion_steps
 
     def _forward_eval(self, data: dict) -> dict:
-        guidance_scale = data['guidance_scale']
-        data= data['obs']
+        #guidance_scale = data['guidance_scale']
+        #data= data['obs']
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
 
-        self._model.score_model.q[0].guidance_scale = guidance_scale
+        #self._model.score_model.q[0].guidance_scale = guidance_scale
         states = data
         actions = self._model.score_model.select_actions(states, diffusion_steps=self.diffusion_steps)
         output = actions

@@ -1,6 +1,7 @@
 from typing import Callable, Union
 import torch
 import torch.nn as nn
+from torch.utils.data import Dataset, DataLoader
 import treetensor.torch as ttorch
 import gym
 import d4rl
@@ -20,7 +21,7 @@ from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext, OnlineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, wandb_offline_logger, termination_checker
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, offline_logger, wandb_offline_logger, termination_checker, epoch_timer
 from ding.framework.middleware.functional.evaluator import VectorEvalMonitor
 from ding.utils import set_pkg_seed
 from ding.torch_utils import to_ndarray, get_shape0
@@ -267,6 +268,7 @@ main_config = dict(
         cuda=True,
         on_policy=False,
         #load_path='./halfcheetah_medium_expert_v2_QGPO_seed0/ckpt/iteration_600000.pth.tar',
+        #load_path='./halfcheetah_medium_expert_v2_QGPO_seed0_231018_001550/ckpt/iteration_500000.pth.tar',
         model=dict(
             score_net=dict(
                 device='cuda',
@@ -285,13 +287,14 @@ main_config = dict(
             action_dim=6,
         ),
         learn=dict(
-            learning_rate=1e-3,
+            learning_rate=1e-4,
             batch_size=4096,
+            batch_size_q=256,
             M=16,
             diffusion_steps=15,
-            behavior_policy_stop_training_iter=600000, #1000
-            energy_guided_policy_begin_training_iter=600000, #1000
-            q_value_stop_training_iter=6500000, #700000,
+            behavior_policy_stop_training_iter=600000,
+            energy_guided_policy_begin_training_iter=600000,
+            q_value_stop_training_iter=1100000,
         ),
         collect=dict(unroll_len=1, ),
         eval=dict(
@@ -356,6 +359,7 @@ def QGPO_support_data_generator(cfg, dataset, policy) -> Callable:
                 )
             )
         actions_next_states = np.concatenate(actions_next_states_sampled)
+        policy._model.score_model.q[0].guidance_scale = 1.0
         return actions, actions_next_states
 
     def _data_generator(ctx: "OfflineRLContext"):
@@ -424,6 +428,8 @@ def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
 
         for guidance_scale in cfg.policy.eval.guidance_scale:
 
+            policy.get_attribute("model").score_model.q[0].guidance_scale = guidance_scale
+
             if env.closed:
                 env.launch()
             else:
@@ -434,11 +440,7 @@ def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
             while not eval_monitor.is_finished():
                 obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
                 obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
-                data=dict(
-                    guidance_scale=guidance_scale,
-                    obs=obs,
-                )
-                inference_output = policy.forward(data)
+                inference_output = policy.forward(obs)
                 if render:
                     eval_monitor.update_video(env.ready_imgs)
                     eval_monitor.update_output(inference_output)
@@ -494,10 +496,70 @@ def interaction_qgpo_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
                 }
             )
 
+            policy.get_attribute("model").score_model.q[0].guidance_scale = 1.0
+
         if stop_flag:
             task.finish = True
 
     return _evaluate
+
+
+def qgpo_offline_data_fetcher(cfg: EasyDict, dataset: Dataset, collate_fn=lambda x: x) -> Callable:
+    """
+    Overview:
+        The outer function transforms a Pytorch `Dataset` to `DataLoader`. \
+        The return function is a generator which each time fetches a batch of data from the previous `DataLoader`.\
+        Please refer to the link https://pytorch.org/tutorials/beginner/basics/data_tutorial.html \
+        and https://pytorch.org/docs/stable/data.html for more details.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
+        - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.
+    """
+    # collate_fn is executed in policy now
+    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=collate_fn)
+    dataloader_q = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size_q, shuffle=True, collate_fn=collate_fn)
+
+    behavior_policy_stop_training_iter = cfg.policy.learn.behavior_policy_stop_training_iter if hasattr(
+        cfg.policy.learn, 'behavior_policy_stop_training_iter'
+    ) else np.inf
+    energy_guided_policy_begin_training_iter = cfg.policy.learn.energy_guided_policy_begin_training_iter if hasattr(
+        cfg.policy.learn, 'energy_guided_policy_begin_training_iter'
+    ) else 0
+
+    def get_behavior_policy_training_data():
+        while True:
+            yield from dataloader
+
+    data=get_behavior_policy_training_data()
+
+    def get_q_training_data():
+        while True:
+            yield from dataloader_q
+
+    data_q=get_q_training_data()
+
+    def _fetch(ctx: "OfflineRLContext"):
+        """
+        Overview:
+            Every time this generator is iterated, the fetched data will be assigned to ctx.train_data. \
+            After the dataloader is empty, the attribute `ctx.train_epoch` will be incremented by 1.
+        Input of ctx:
+            - train_epoch (:obj:`int`): Number of `train_epoch`.
+        Output of ctx:
+            - train_data (:obj:`List[Tensor]`): The fetched data batch.
+        """
+
+        if ctx.train_iter >= energy_guided_policy_begin_training_iter:
+            ctx.train_data = next(data_q)
+        else:
+            ctx.train_data = next(data)
+
+        # TODO apply data update (e.g. priority) in offline setting when necessary
+        ctx.trained_env_step += len(ctx.train_data)
+
+    return _fetch
+
+
 
 
 def main():
@@ -523,8 +585,9 @@ def main():
             ],
             cfg=cfg.env.manager
         )
+        #task.use(epoch_timer())
         task.use(QGPO_support_data_generator(cfg, dataset, policy))
-        task.use(offline_data_fetcher(cfg, dataset, collate_fn=None))
+        task.use(qgpo_offline_data_fetcher(cfg, dataset, collate_fn=None))
         task.use(trainer(cfg, policy.learn_mode))
         task.use(interaction_qgpo_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(wandb_offline_logger(
@@ -543,7 +606,7 @@ def main():
         )
         task.use(CkptSaver(policy, cfg.exp_name, train_freq=100000))
         task.use(offline_logger())
-        task.use(termination_checker(max_train_iter=200000+cfg.policy.learn.behavior_policy_stop_training_iter))
+        task.use(termination_checker(max_train_iter=500000+cfg.policy.learn.q_value_stop_training_iter))
         task.run()
 
 
