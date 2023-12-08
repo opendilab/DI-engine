@@ -83,15 +83,15 @@ rw_lock_mapping = {}
 
 
 def get_rw_file_lock(name: str, op: str):
-    '''
+    """
     Overview:
         Get generated file lock with name and operator
     Arguments:
         - name (:obj:`str`): Lock's name.
-        - op (:obj:`str`): Assigned operator, i.e. "read" or "write".
+        - op (:obj:`str`): Assigned operator, i.e. ``read`` or ``write``.
     Returns:
         - (:obj:`RWLockFairD`): Generated rwlock
-    '''
+    """
     assert op in ['read', 'write']
     try:
         from readerwriterlock import rwlock
@@ -108,8 +108,6 @@ def get_rw_file_lock(name: str, op: str):
     elif op == 'write':
         return lock.gen_wlock()
 
-
-import fcntl
 
 class FcntlContext:
     """
@@ -139,22 +137,22 @@ class FcntlContext:
         self.f = None
 
     def __enter__(self) -> None:
-            """
-            Overview:
-                Acquires the lock and opens the lock file in write mode. \
-                If the lock file does not exist, it is created.
-            """
-            assert self.f is None, self.lock_path
-            self.f = open(self.lock_path, 'w')
-            fcntl.flock(self.f.fileno(), fcntl.LOCK_EX)
+        """
+        Overview:
+            Acquires the lock and opens the lock file in write mode. \
+            If the lock file does not exist, it is created.
+        """
+        assert self.f is None, self.lock_path
+        self.f = open(self.lock_path, 'w')
+        fcntl.flock(self.f.fileno(), fcntl.LOCK_EX)
 
     def __exit__(self, *args, **kwargs) -> None:
-            """
-            Overview:
-                Closes the file and releases any resources used by the lock_helper object.
-            """
-            self.f.close()
-            self.f = None
+        """
+        Overview:
+            Closes the file and releases any resources used by the lock_helper object.
+        """
+        self.f.close()
+        self.f = None
 
 
 def get_file_lock(name: str, op: str) -> None:

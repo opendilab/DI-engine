@@ -45,42 +45,44 @@ class DatasetNormalizer:
             Returns a string representation of the NormalizerHelper object. \
             The string representation includes the key-value pairs of the normalizers \
             stored in the NormalizerHelper object.
+        Returns:
+            - ret (:obj:`str`):A string representation of the NormalizerHelper object.
         """
         string = ''
         for key, normalizer in self.normalizers.items():
             string += f'{key}: {normalizer}]\n'
         return string
 
-    def normalize(self, x, key):
+    def normalize(self, x: float, key: str):
         """
         Overview:
             Normalize the input data using the specified key.
 
         Arguments:
-            - x (float): The input data to be normalized.
-            - key (str): The key to identify the normalizer.
+            - x (:obj:`float`): The input data to be normalized.
+            - key (:obj`str`): The key to identify the normalizer.
 
         Returns:
-            The normalized value of the input data.
+            - ret: The normalized value of the input data.
         """
         return self.normalizers[key].normalize(x)
 
-    def unnormalize(self, x, key):
+    def unnormalize(self, x: float, key: str):
         """
         Overview:
             Unnormalizes the given value `x` using the specified `key`.
 
         Arguments:
-            - x: The value to be unnormalized.
-            - key: The key to identify the normalizer.
+            - x (:obj:`float`): The value to be unnormalized.
+            - key (:obj`str`): The key to identify the normalizer.
 
         Returns:
-            - The unnormalized value.
+            - ret: The unnormalized value.
         """
         return self.normalizers[key].unnormalize(x)
 
 
-def flatten(dataset, path_lengths):
+def flatten(dataset: dict, path_lengths: list):
     """
     Overview:
         Flattens dataset of { key: [ n_episodes x max_path_length x dim ] } \
@@ -153,25 +155,27 @@ class GaussianNormalizer(Normalizer):
 
     def normalize(self, x):
         """
-        Normalize the input data.
+        Overview:
+            Normalize the input data.
 
         Arguments:
             - x: The input data to be normalized.
 
         Returns:
-            The normalized data.
+            - ret: The normalized data.
         """
         return (x - self.means) / self.stds
 
     def unnormalize(self, x):
         """
-        Unnormalize the input data.
+        Overview:
+            Unnormalize the input data.
 
         Arguments:
             - x: The input data to be unnormalized.
 
         Returns:
-            The unnormalized data.
+            - ret: The unnormalized data.
         """
         return x * self.stds + self.means
 
@@ -203,6 +207,9 @@ class CDFNormalizer(Normalizer):
         Arguments:
             - fn_name: The name of the function to be applied.
             - x: The input data.
+        
+        Returns:
+            - ret: The output of the function applied to the input data.
         """
         shape = x.shape
         # reshape to 2d
@@ -222,7 +229,7 @@ class CDFNormalizer(Normalizer):
             - x: The input data.
 
         Returns:
-            The normalized data.
+            - ret: The normalized data.
         """
         return self.wrap('normalize', x)
 
@@ -235,7 +242,7 @@ class CDFNormalizer(Normalizer):
             - x: The input data.
 
         Returns:
-            The unnormalized data.
+            - ret: The unnormalized data.
         """
         return self.wrap('unnormalize', x)
 
@@ -276,7 +283,7 @@ class CDFNormalizer1d:
             - x: The data to be normalized.
 
         Returns:
-            The normalized data.
+            - ret: The normalized data.
         """
         if self.constant:
             return x
@@ -298,7 +305,7 @@ class CDFNormalizer1d:
             - eps: A small value used for numerical stability. Defaults to 1e-4.
 
         Returns:
-            The unnormalized data.
+            - ret: The unnormalized data.
         """
         # [ -1, 1 ] --> [ 0, 1 ]
         if self.constant:
@@ -381,7 +388,7 @@ class LimitsNormalizer(Normalizer):
             - x: The input values to be normalized.
 
         Returns:
-            The normalized values.
+            - ret: The normalized values.
 
         '''
         # [ 0, 1 ]
@@ -400,7 +407,7 @@ class LimitsNormalizer(Normalizer):
             - eps: A small value used for clipping. Defaults to 1e-4.
 
         Returns:
-            The unnormalized values.
+            - ret: The unnormalized values.
 
         '''
         if x.max() > 1 + eps or x.min() < -1 - eps:
