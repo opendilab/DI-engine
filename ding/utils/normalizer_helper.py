@@ -27,7 +27,7 @@ class DatasetNormalizer:
         self.observation_dim = dataset['observations'].shape[1]
         self.action_dim = dataset['actions'].shape[1]
 
-        if type(normalizer) == str:
+        if isinstance(normalizer, str):
             normalizer = eval(normalizer)
 
         self.normalizers = {}
@@ -184,7 +184,7 @@ class CDFNormalizer(Normalizer):
     """
     Overview:
         A class that makes training data uniform (over each dimension) by transforming it with marginal CDFs.
-    
+
     Interface:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
@@ -207,7 +207,7 @@ class CDFNormalizer(Normalizer):
         Arguments:
             - fn_name (:obj:`str`): The name of the function to be applied.
             - x (:obj:`np.ndarray`): The input data.
-        
+
         Returns:
             - ret: The output of the function applied to the input data.
         """

@@ -114,7 +114,7 @@ class FcntlContext:
     Overview:
         A context manager that acquires an exclusive lock on a file using fcntl. \
         This is useful for preventing multiple processes from running the same code.
-    
+
     Interfaces:
         ``__init__``, ``__enter__``, ``__exit__``.
 
