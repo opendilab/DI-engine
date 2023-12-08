@@ -53,31 +53,31 @@ class DatasetNormalizer:
             string += f'{key}: {normalizer}]\n'
         return string
 
-    def normalize(self, x: float, key: str):
+    def normalize(self, x: np.ndarray, key: str):
         """
         Overview:
             Normalize the input data using the specified key.
 
         Arguments:
-            - x (:obj:`float`): The input data to be normalized.
+            - x (:obj:`np.ndarray`): The input data to be normalized.
             - key (:obj`str`): The key to identify the normalizer.
 
         Returns:
-            - ret: The normalized value of the input data.
+            - ret (:obj:`np.ndarray`): The normalized value of the input data.
         """
         return self.normalizers[key].normalize(x)
 
-    def unnormalize(self, x: float, key: str):
+    def unnormalize(self, x: np.ndarray, key: str):
         """
         Overview:
             Unnormalizes the given value `x` using the specified `key`.
 
         Arguments:
-            - x (:obj:`float`): The value to be unnormalized.
+            - x (:obj:`np.ndarray`): The value to be unnormalized.
             - key (:obj`str`): The key to identify the normalizer.
 
         Returns:
-            - ret: The unnormalized value.
+            - ret (:obj:`np.ndarray`): The unnormalized value.
         """
         return self.normalizers[key].unnormalize(x)
 
@@ -153,16 +153,16 @@ class GaussianNormalizer(Normalizer):
             f'''stds: {np.round(self.z * self.stds, 2)}\n'''
         )
 
-    def normalize(self, x):
+    def normalize(self, x: np.ndarray):
         """
         Overview:
             Normalize the input data.
 
         Arguments:
-            - x: The input data to be normalized.
+            - x (:obj:`np.ndarray`): The input data to be normalized.
 
         Returns:
-            - ret: The normalized data.
+            - ret (:obj:`np.ndarray`): The normalized data.
         """
         return (x - self.means) / self.stds
 
@@ -172,10 +172,10 @@ class GaussianNormalizer(Normalizer):
             Unnormalize the input data.
 
         Arguments:
-            - x: The input data to be unnormalized.
+            - x (:obj:`np.ndarray`): The input data to be unnormalized.
 
         Returns:
-            - ret: The unnormalized data.
+            - ret (:obj:`np.ndarray`): The unnormalized data.
         """
         return x * self.stds + self.means
 
@@ -199,14 +199,14 @@ class CDFNormalizer(Normalizer):
             f'{i:3d}: {cdf}' for i, cdf in enumerate(self.cdfs)
         )
 
-    def wrap(self, fn_name, x):
+    def wrap(self, fn_name: str, x: np.ndarray):
         """
         Overview:
             Wraps the given function name and applies it to the input data.
 
         Arguments:
-            - fn_name: The name of the function to be applied.
-            - x: The input data.
+            - fn_name (:obj:`str`): The name of the function to be applied.
+            - x (:obj:`np.ndarray`): The input data.
         
         Returns:
             - ret: The output of the function applied to the input data.
@@ -220,29 +220,29 @@ class CDFNormalizer(Normalizer):
             out[:, i] = fn(x[:, i])
         return out.reshape(shape)
 
-    def normalize(self, x):
+    def normalize(self, x: np.ndarray):
         """
         Overview:
             Normalizes the input data.
 
         Arguments:
-            - x: The input data.
+            - x (:obj:`np.ndarray`): The input data.
 
         Returns:
-            - ret: The normalized data.
+            - ret (:obj:`np.ndarray`): The normalized data.
         """
         return self.wrap('normalize', x)
 
-    def unnormalize(self, x):
+    def unnormalize(self, x: np.ndarray):
         """
         Overview:
             Unnormalizes the input data.
 
         Arguments:
-            - x: The input data.
+            - x (:obj:`np.ndarray`): The input data.
 
         Returns:
-            - ret: The unnormalized data.
+            - ret (:obj:`np.ndarray`):: The unnormalized data.
         """
         return self.wrap('unnormalize', x)
 
@@ -256,7 +256,7 @@ class CDFNormalizer1d:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
-    def __init__(self, X):
+    def __init__(self, X: np.ndarray):
         import scipy.interpolate as interpolate
         assert X.ndim == 1
         self.X = X.astype(np.float32)
@@ -274,16 +274,16 @@ class CDFNormalizer1d:
     def __repr__(self):
         return (f'[{np.round(self.xmin, 2):.4f}, {np.round(self.xmax, 2):.4f}')
 
-    def normalize(self, x):
+    def normalize(self, x: np.ndarray):
         """
         Overview:
             Normalize the input data.
 
         Arguments:
-            - x: The data to be normalized.
+            - x (:obj:`np.ndarray`): The data to be normalized.
 
         Returns:
-            - ret: The normalized data.
+            - ret (:obj:`np.ndarray`): The normalized data.
         """
         if self.constant:
             return x
@@ -295,17 +295,17 @@ class CDFNormalizer1d:
         y = 2 * y - 1
         return y
 
-    def unnormalize(self, x, eps=1e-4):
+    def unnormalize(self, x: np.ndarray, eps=1e-4):
         """
         Overview:
             Unnormalize the input data.
 
         Arguments:
-            - x: The data to be unnormalized.
+            - x (:obj:`np.ndarray`): The data to be unnormalized.
             - eps: A small value used for numerical stability. Defaults to 1e-4.
 
         Returns:
-            - ret: The unnormalized data.
+            - ret (:obj:`np.ndarray`): The unnormalized data.
         """
         # [ -1, 1 ] --> [ 0, 1 ]
         if self.constant:
@@ -353,16 +353,16 @@ def empirical_cdf(sample):
     return quantiles, cumprob
 
 
-def atleast_2d(x):
+def atleast_2d(x: np.ndarray):
     """
     Overview:
         Ensure that the input array has at least two dimensions.
 
     Arguments:
-        - x: The input array.
+        - x (:obj:`np.ndarray`): The input array.
 
     Returns:
-        The input array with at least two dimensions.
+        - ret (:obj:`np.ndarray`): The input array with at least two dimensions.
     """
     if x.ndim < 2:
         x = x[:, None]
@@ -379,16 +379,16 @@ class LimitsNormalizer(Normalizer):
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     '''
 
-    def normalize(self, x):
+    def normalize(self, x: np.ndarray):
         '''
         Overview:
             Normalizes the input values.
 
         Argments:
-            - x: The input values to be normalized.
+            - x (:obj:`np.ndarray`): The input values to be normalized.
 
         Returns:
-            - ret: The normalized values.
+            - ret (:obj:`np.ndarray`): The normalized values.
 
         '''
         # [ 0, 1 ]
@@ -397,17 +397,17 @@ class LimitsNormalizer(Normalizer):
         x = 2 * x - 1
         return x
 
-    def unnormalize(self, x, eps=1e-4):
+    def unnormalize(self, x: np.ndarray, eps=1e-4):
         '''
         Overview:
             Unnormalizes the input values.
 
         Arguments:
-            - x: The input values to be unnormalized.
+            - x (:obj:`np.ndarray`): The input values to be unnormalized.
             - eps: A small value used for clipping. Defaults to 1e-4.
 
         Returns:
-            - ret: The unnormalized values.
+            - ret (:obj:`np.ndarray`): The unnormalized values.
 
         '''
         if x.max() > 1 + eps or x.min() < -1 - eps:

@@ -155,7 +155,7 @@ class FcntlContext:
         self.f = None
 
 
-def get_file_lock(name: str, op: str) -> None:
+def get_file_lock(name: str, op: str) -> FcntlContext:
     """
     Overview:
         Acquires a file lock for the specified file. \
