@@ -39,7 +39,7 @@ class DatasetNormalizer:
             # key: normalizer(val)
             # for key, val in dataset.items()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Overview:
             Returns a string representation of the NormalizerHelper object. \
@@ -53,7 +53,7 @@ class DatasetNormalizer:
             string += f'{key}: {normalizer}]\n'
         return string
 
-    def normalize(self, x: np.ndarray, key: str):
+    def normalize(self, x: np.ndarray, key: str) -> np.ndarray:
         """
         Overview:
             Normalize the input data using the specified key.
@@ -67,7 +67,7 @@ class DatasetNormalizer:
         """
         return self.normalizers[key].normalize(x)
 
-    def unnormalize(self, x: np.ndarray, key: str):
+    def unnormalize(self, x: np.ndarray, key: str) -> np.ndarray:
         """
         Overview:
             Unnormalizes the given value `x` using the specified `key`.
@@ -82,7 +82,7 @@ class DatasetNormalizer:
         return self.normalizers[key].unnormalize(x)
 
 
-def flatten(dataset: dict, path_lengths: list):
+def flatten(dataset: dict, path_lengths: list) -> dict:
     """
     Overview:
         Flattens dataset of { key: [ n_episodes x max_path_length x dim ] } \
@@ -120,8 +120,8 @@ class Normalizer:
 
     def __repr__(self):
         return (
-            f'''[ Normalizer ] dim: {self.mins.size}\n    -: '''
-            f'''{np.round(self.mins, 2)}\n    +: {np.round(self.maxs, 2)}\n'''
+            f"""[ Normalizer ] dim: {self.mins.size}\n    -: """
+            f"""{np.round(self.mins, 2)}\n    +: {np.round(self.maxs, 2)}\n"""
         )
 
     def normalize(self, *args, **kwargs):
@@ -148,12 +148,12 @@ class GaussianNormalizer(Normalizer):
 
     def __repr__(self):
         return (
-            f'''[ Normalizer ] dim: {self.mins.size}\n    '''
-            f'''means: {np.round(self.means, 2)}\n    '''
-            f'''stds: {np.round(self.z * self.stds, 2)}\n'''
+            f"""[ Normalizer ] dim: {self.mins.size}\n    """
+            f"""means: {np.round(self.means, 2)}\n    """
+            f"""stds: {np.round(self.z * self.stds, 2)}\n"""
         )
 
-    def normalize(self, x: np.ndarray):
+    def normalize(self, x: np.ndarray) -> np.ndarray:
         """
         Overview:
             Normalize the input data.
@@ -166,7 +166,7 @@ class GaussianNormalizer(Normalizer):
         """
         return (x - self.means) / self.stds
 
-    def unnormalize(self, x):
+    def unnormalize(self, x: np.ndarray) -> np.ndarray:
         """
         Overview:
             Unnormalize the input data.
@@ -199,7 +199,7 @@ class CDFNormalizer(Normalizer):
             f'{i:3d}: {cdf}' for i, cdf in enumerate(self.cdfs)
         )
 
-    def wrap(self, fn_name: str, x: np.ndarray):
+    def wrap(self, fn_name: str, x: np.ndarray) -> np.ndarray:
         """
         Overview:
             Wraps the given function name and applies it to the input data.
@@ -220,7 +220,7 @@ class CDFNormalizer(Normalizer):
             out[:, i] = fn(x[:, i])
         return out.reshape(shape)
 
-    def normalize(self, x: np.ndarray):
+    def normalize(self, x: np.ndarray) -> np.ndarray:
         """
         Overview:
             Normalizes the input data.
@@ -233,7 +233,7 @@ class CDFNormalizer(Normalizer):
         """
         return self.wrap('normalize', x)
 
-    def unnormalize(self, x: np.ndarray):
+    def unnormalize(self, x: np.ndarray) -> np.ndarray:
         """
         Overview:
             Unnormalizes the input data.
@@ -271,10 +271,10 @@ class CDFNormalizer1d:
             self.xmin, self.xmax = quantiles.min(), quantiles.max()
             self.ymin, self.ymax = cumprob.min(), cumprob.max()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'[{np.round(self.xmin, 2):.4f}, {np.round(self.xmax, 2):.4f}')
 
-    def normalize(self, x: np.ndarray):
+    def normalize(self, x: np.ndarray) -> np.ndarray:
         """
         Overview:
             Normalize the input data.
@@ -295,14 +295,14 @@ class CDFNormalizer1d:
         y = 2 * y - 1
         return y
 
-    def unnormalize(self, x: np.ndarray, eps=1e-4):
+    def unnormalize(self, x: np.ndarray, eps: float = 1e-4) -> np.ndarray:
         """
         Overview:
             Unnormalize the input data.
 
         Arguments:
             - x (:obj:`np.ndarray`): The data to be unnormalized.
-            - eps: A small value used for numerical stability. Defaults to 1e-4.
+            - eps (:obj:`float`): A small value used for numerical stability. Defaults to 1e-4.
 
         Returns:
             - ret (:obj:`np.ndarray`): The unnormalized data.
@@ -315,10 +315,10 @@ class CDFNormalizer1d:
 
         if (x < self.ymin - eps).any() or (x > self.ymax + eps).any():
             print(
-                f'''[ dataset/normalization ] Warning: out of range in unnormalize: '''
-                f'''[{x.min()}, {x.max()}] | '''
-                f'''x : [{self.xmin}, {self.xmax}] | '''
-                f'''y: [{self.ymin}, {self.ymax}]'''
+                f"""[ dataset/normalization ] Warning: out of range in unnormalize: """
+                f"""[{x.min()}, {x.max()}] | """
+                f"""x : [{self.xmin}, {self.xmax}] | """
+                f"""y: [{self.ymin}, {self.ymax}]"""
             )
 
         x = np.clip(x, self.ymin, self.ymax)
@@ -327,17 +327,17 @@ class CDFNormalizer1d:
         return y
 
 
-def empirical_cdf(sample):
+def empirical_cdf(sample: np.ndarray) -> (np.ndarray, np.ndarray):
     """
     Overview:
         Compute the empirical cumulative distribution function (CDF) of a given sample.
 
     Arguments:
-        - sample (array-like): The input sample for which to compute the empirical CDF.
+        - sample (:obj:`np.ndarray`): The input sample for which to compute the empirical CDF.
 
     Returns:
-        - quantiles: The unique values in the sample.
-        - cumprob: The cumulative probabilities corresponding to the quantiles.
+        - quantiles (:obj:`np.ndarray`): The unique values in the sample.
+        - cumprob (:obj:`np.ndarray`): The cumulative probabilities corresponding to the quantiles.
 
     References:
         - Stack Overflow: https://stackoverflow.com/a/33346366
@@ -353,7 +353,7 @@ def empirical_cdf(sample):
     return quantiles, cumprob
 
 
-def atleast_2d(x: np.ndarray):
+def atleast_2d(x: np.ndarray)-> np.ndarray:
     """
     Overview:
         Ensure that the input array has at least two dimensions.
@@ -370,17 +370,17 @@ def atleast_2d(x: np.ndarray):
 
 
 class LimitsNormalizer(Normalizer):
-    '''
+    """
     Overview:
         A class that normalizes and unnormalizes values within specified limits. \
         This class maps values within the range [xmin, xmax] to the range [-1, 1].
 
     Interface:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
-    '''
+    """
 
-    def normalize(self, x: np.ndarray):
-        '''
+    def normalize(self, x: np.ndarray) -> np.ndarray:
+        """
         Overview:
             Normalizes the input values.
 
@@ -390,26 +390,26 @@ class LimitsNormalizer(Normalizer):
         Returns:
             - ret (:obj:`np.ndarray`): The normalized values.
 
-        '''
+        """
         # [ 0, 1 ]
         x = (x - self.mins) / (self.maxs - self.mins)
         # [ -1, 1 ]
         x = 2 * x - 1
         return x
 
-    def unnormalize(self, x: np.ndarray, eps=1e-4):
-        '''
+    def unnormalize(self, x: np.ndarray, eps: float = 1e-4) -> np.ndarray:
+        """
         Overview:
             Unnormalizes the input values.
 
         Arguments:
             - x (:obj:`np.ndarray`): The input values to be unnormalized.
-            - eps: A small value used for clipping. Defaults to 1e-4.
+            - eps (:obj:`float`): A small value used for clipping. Defaults to 1e-4.
 
         Returns:
             - ret (:obj:`np.ndarray`): The unnormalized values.
 
-        '''
+        """
         if x.max() > 1 + eps or x.min() < -1 - eps:
             # print(f'[ datasets/mujoco ] Warning: sample out of range | ({x.min():.4f}, {x.max():.4f})')
             x = np.clip(x, -1, 1)
