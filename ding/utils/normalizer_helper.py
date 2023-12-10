@@ -353,7 +353,7 @@ def empirical_cdf(sample: np.ndarray) -> (np.ndarray, np.ndarray):
     return quantiles, cumprob
 
 
-def atleast_2d(x: np.ndarray)-> np.ndarray:
+def atleast_2d(x: np.ndarray) -> np.ndarray:
     """
     Overview:
         Ensure that the input array has at least two dimensions.
