@@ -1,0 +1,728 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>如何高效构建决策环境 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="如何使用 Env Wrapper 快速构建决策环境" href="env_wrapper_zh.html" />
+  <link rel="prev" title="新旧pipeline的异同" href="diff_in_new_pipeline_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">最佳实践</a> &gt;</li>
+        
+      <li>如何高效构建决策环境</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/create_env_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="id1">
+<h1>如何高效构建决策环境<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>本文档将介绍 DI-engine 中用于高效构建和标准化不同类型决策环境的系列工具，从而方便使用者将各式各样的原始决策问题转化为适合使用强化学习方法解决的形式。</p>
+<p>关于一些特殊环境的说明可参考： <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh-cn/latest/04_best_practice/marl_zh.html">多智能体环境文档</a> 和
+<a class="reference external" href="https://di-engine-docs.readthedocs.io/zh-cn/latest/04_best_practice/marl_zh.html">multi-discrete 动作环境文档</a> 。</p>
+<section id="id3">
+<h2>1. 困境：决策环境复杂性<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>决策智能是一个覆盖面很广的抽象概念，从虚拟世界的多人对抗游戏到现实世界的棋类对弈和自动驾驶问题，都和决策智能技术有着紧密的联系。
+这种任务类别的复杂性已经成为制约算法研究和应用的重要挑战，如图 1 所示，为了运用现有的强化学习方法高效解决决策问题，需要使用各种技术将原始场景转化为标准的 MDP，这其中包含一系列对于观察空间，动作空间，奖励空间等信息进行预处理和变换的操作。</p>
+<a class="reference internal image-reference" href="../_images/create_env_1.jpg"><img alt="../_images/create_env_1.jpg" class="align-center" src="../_images/create_env_1.jpg" style="width: 930.0px; height: 457.2px;" /></a>
+<p>但对于不同类型的决策问题，又往往需要针对问题环境的特性，使用不同的预处理工具和算法，这就大大提高了技术的学习和迁移成本。
+举例来说，gym 环境格式是决策智能领域最经典最常用的环境接口范式，GitHub 上也存在大量这种类型的开源决策智能环境，但直接将这些 gym 格式环境与经典的强化学习算法（如 DQN/PPO/SAC）相结合，往往不一定能够很快得到性能达标的智能体。
+如果进一步深入去了解这些环境上已经训练收敛的代码示例，就会发现其中包含很多对环境的魔改和特殊适配。
+这些定制化的知识和工具，如</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>One-hot 编码</p>
+<ul>
+<li><p>目的： 将离散的类别信息表示成稀疏的二进制向量，使模型能够更好地理解和处理分类任务。</p></li>
+<li><p>实施： 对于离散的类别，将每个类别映射为一个唯一的二进制向量，其中只有一个元素为1，其余为0。</p></li>
+</ul>
+</li>
+<li><p>Position encoding</p>
+<ul>
+<li><p>目的： 在序列数据中引入位置信息，弥补模型无法捕捉元素顺序的不足，常用于处理时间序列或序列型数据。</p></li>
+<li><p>实施： 为序列中的每个元素添加表示其位置的附加信息，通常使用三角函数或学习得到的编码。</p></li>
+</ul>
+</li>
+<li><p>Discretization</p>
+<ul>
+<li><p>目的： 将连续的状态或动作空间离散化，以适应强化学习算法对离散空间的处理。</p></li>
+<li><p>实施： 将连续空间划分为有限数量的离散块，将状态或动作映射到相应的离散值。</p></li>
+</ul>
+</li>
+<li><p>Normalization</p>
+<ul>
+<li><p>目的： 将数据归一化到一定范围内，使模型更容易学习。</p></li>
+<li><p>实施： 将数据映射到一定范围内，常用的归一化方法有 min-max 归一化和 z-score 归一化。</p></li>
+</ul>
+</li>
+<li><p>Abs-&gt;rel</p>
+<ul>
+<li><p>目的： 将绝对位置信息转换为相对位置信息，使模型更容易学习。</p></li>
+<li><p>实施： 将绝对位置信息转换为相对位置信息，常用的方法有相对位置编码和相对位置注意力。</p></li>
+</ul>
+</li>
+<li><p>Padding &amp; Mask &amp; Resize</p>
+<ul>
+<li><p>目的： 将序列数据的长度统一，使模型能够处理变长序列。</p></li>
+<li><p>实施： 通过填充、掩码或截断等方式，将序列数据的长度统一。</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p>等，往往散乱地分布在不同的代码仓库和实验配置中，缺少一个统一的界面来总结和管理。</p>
+<p>DI-engine 中统一和标准化了不同类型的决策问题，提供有关主流决策智能问题的模板和实践。
+具体来说，DI-engine 首先在 DI-zoo 中集成了多种经典环境的训练和测试样例： <a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">DI-zoo Environment Versatility</a> 。</p>
+<p>而基于 DI-zoo 中的实践经验，DI-engine 中还抽象整合了环境包装器（Env Wrapper）和环境管理器（Env Manager）两类功能组件，用于更便利高效地完成决策环境的预处理和标准化，本文档将在下面两节详细展开介绍。</p>
+</section>
+<section id="env-wrapper">
+<h2>2. 易用性：环境包装器（Env Wrapper）<a class="headerlink" href="#env-wrapper" title="Permalink to this headline">¶</a></h2>
+<p>训练决策智能体时经常需要对环境的 MDP 定义进行预处理和转换，以追求更好的训练效果， 而这些处理技巧也具备一定的普适性。
+例如对于某些环境，观测状态的归一化是很常见的预处理技巧，通过统一量纲和缩小尺度让训练更快且更加稳定。</p>
+<p>基于多种不同类型决策环境的实践经验，DI-engine 将其中通用的部分提取出来，统一整合在环境包装器（Env Wrapper）中进行管理，以便后续使用和修改。
+具体来说，环境包装器顾名思义就是在常见的 gym 格式环境外部添加对应的预处理模块，便捷地加入某些对于 obs/action/reward 的预处理函数。
+一个简单的示例如下：</p>
+<p>DI-engine 提供了大量预定义且常用的 Env Wrapper，开发者可以根据自己的需求直接包裹在需要使用的环境之上。
+所有 Env Wrapper 在实现时依然遵循 <code class="docutils literal notranslate"><span class="pre">Gym.Wrapper</span></code>格式，典型的例子有:</p>
+<table class="colwidths-given docutils align-default" id="id6">
+<caption><span class="caption-text">Wrapper Functionalities</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Wrapper Name</p></th>
+<th class="head"><p>Functionality Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">EvalEpisodeReturnWrapper</div>
+</div>
+</td>
+<td><p>为整个 episode 计算整体的 return，便于训练效果分析。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">ActionRepeatWrapper</div>
+</div>
+</td>
+<td><p>添加 sticky action* 机制，即构建状态转移包含随机性的环境。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">GymHybridDictActionWrapper</div>
+</div>
+</td>
+<td><p>添加混合动作的语义转换和映射规则。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">TimeLimitWrapper</div>
+</div>
+</td>
+<td><p>添加 episode 的最大步数限制，达到最大步数之后即将 episode 截断。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">FlatObsWrapper</div>
+</div>
+</td>
+<td><p>将多维复杂的观察信息展平成一维信息。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">AllinObsWrapper</div>
+</div>
+</td>
+<td><p>将 obs/reward 等信息整合在一起构成最终的输入，常用于 Decision Transformer 类型的算法。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">NoopResetWrapper</div>
+</div>
+</td>
+<td><p>为环境添加 episode 初始时的重置方法。在一些空操作后重置环境。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">MaxAndSkipWrapper</div>
+</div>
+</td>
+<td><p>每 skip 帧返回最近的两帧的最大值。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">WarpFrameWrapper</div>
+</div>
+</td>
+<td><p>将图像帧的大小进行缩放，并将 RGB 图像转换为 GREY 图像。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">ScaledFloatFrameWrapper</div>
+</div>
+</td>
+<td><p>将状态值标准化为 0~1。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">ClipRewardWrapper</div>
+</div>
+</td>
+<td><p>通过奖励的正负将奖励裁剪为 {+1, 0, -1}。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">FrameStackWrapper</div>
+</div>
+</td>
+<td><p>将堆叠好的 n_frames 个最近的状态帧设置为当前状态。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">ObsTransposeWrapper</div>
+</div>
+</td>
+<td><p>对观测状态的各个维度进行调整，将通道维放置在状态的第一维上。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">RunningMeanStd</div>
+</div>
+</td>
+<td><p>用于更新方差、均值和计数的 wrapper，可用于观察和奖励的动态归一化。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">ObsNormWrapper</div>
+</div>
+</td>
+<td><p>根据运行均值和标准差（running mean and std）对观测状态进行归一化。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">RewardNormWrapper</div>
+</div>
+</td>
+<td><p>根据运行的标准差（running std）对环境奖励进行归一化。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">RamWrapper</div>
+</div>
+</td>
+<td><p>通过扩展观测状态的维度，将原始环境的 ram 状态转换成类似图像的状态。</p></td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">EpisodicLifeWrapper</div>
+</div>
+</td>
+<td><p>让环境中的智能体的死亡来标志一个 episode 结束（游戏结束），并且只有在真正的游戏结束时才会重置游戏。一般来讲，这样有助于算法的价值估计。</p></td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">FireResetWrapper</div>
+</div>
+</td>
+<td><p>在环境重置时采取 fire 行动。</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>* “sticky action” 机制通常是指在离散动作空间中的一种引入的技术，其中智能体在某些时间步上可能会执行与其选择的动作不同的动作。
+这种机制的目的是模拟环境中的噪声或随机性，使得智能体需要更好地适应不确定性。</p>
+</div>
+<p>更进一步地，为了简化 Env Wrapper 的配置难度，为经典决策环境提供一键可用的默认 Env Wrapper 设置，
+并直接做好相关的数据类型和接口转换（即从 gym 格式环境转换到 DI-engine 所需的 BaseEnv 衍生子环境），
+这部分模块中还设计实现了一种更便利的调用方式 DingEnvWrapper，对应的使用示例如下：</p>
+<p>有关 Env Wrapper 更详细的文档可以参考链接： <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/env_wrapper_zh.html">如何使用 Env Wrapper 快速构建决策环境</a> 。</p>
+</section>
+<section id="env-manager">
+<h2>3. 高效性：向量化环境管理器（Env Manager）<a class="headerlink" href="#env-manager" title="Permalink to this headline">¶</a></h2>
+<p>由于强化学习常常需要在训练过程中和环境实时交互收集训练，环境的向量化和并行化就成为了加速训练的重要方式。
+具体来说，如果智能体/策略需要收集一定量的数据，最朴素的方法是只运行一个环境但重复多个 episode 直到满足收集的数量要求，
+而向量化的思路则是并行地运行多个环境实例，每个环境负责收集其中一部分的数据，并且每个环境使用独占的计算资源（例如 CPU 核心）来进行运算，
+最终将所有并行运行的环境得到的数据整合在一起用于训练。</p>
+<p>因此，DI-engine 中设计并集成了环境管理器（Env Manager）模块，管理多个相同类型不同配置的环境。
+Env Manager 可以实现多个环境并行运行并返回相应信息，保持与原有环境相似的接口，从而在显著加速运行效率的同时保持与单个环境相似的使用接口，一个简单的对比示例如下：</p>
+<p>不过，虽然这种向量化环境的设计思想很明确，但在实际使用中也遇到了一些新的挑战。
+例如在算法层面，像 AlphaZero/MuZero 这类决策算法就包含一些更复杂的数据收集流程，简单的向量化环境方案离效率提升的上限还有很大的优化空间。
+而对于不同类型的环境，每个环境实例的运行时间，episode 长度，数据包大小都可能不一致，强制让所有实例向量化运行并一起返回很容易因为“木桶效应”而造成大量的冗余等待，因此也就衍生出了一些分组向量化的解决方案。
+此外，在工程实现角度，类似 Python 多进程库的不稳定性和通信开销等问题也制约了向量化的规模和期望收益。为了满足不同的需求，DI-engine 中集成了多种功能的特点的环境管理器，也将在未来的工作中不断优化和新增更好的环境并行方案，
+目前支持的环境管理器类型有 ： <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/envs/env_manager">环境管理器</a> 。</p>
+<table class="colwidths-given docutils align-default" id="id7">
+<caption><span class="caption-text">Env Managers</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Env Manager Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">BaseEnvManager</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">基础伪并行版环境管理器，适用于训练流程调试。</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">SyncSubprocessEnvManager</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">同步型子进程环境管理器，适用于大部分常见经典决策环境。</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">AsyncSubprocessEnvManager</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">异步型（组同步）子进程环境管理器，适用于环境实例之间差异性较大的环境。</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">GymVectorEnvManager</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">gym 类型环境原生的向量化环境管理器，适用于迁移较复杂的环境。</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">PoolEnvManager</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">基于 EnvPool 高效环境向量化工具的环境管理器，对于某些特定的环境有非常高效的 C++ 底层实现。</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">EnvSupervisor</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">基于 Supervisor 机制设计的子进程环境管理器，适用于运行异常较多需要保持高稳定性的环境。</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<a class="reference internal image-reference" href="../_images/create_env_2.png"><img alt="../_images/create_env_2.png" class="align-center" src="../_images/create_env_2.png" style="width: 307.5px; height: 308.5px;" /></a>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="env_wrapper_zh.html" class="btn btn-neutral float-right" title="如何使用 Env Wrapper 快速构建决策环境" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="diff_in_new_pipeline_zh.html" class="btn btn-neutral" title="新旧pipeline的异同" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">如何高效构建决策环境</a><ul>
+<li><a class="reference internal" href="#id3">1. 困境：决策环境复杂性</a></li>
+<li><a class="reference internal" href="#env-wrapper">2. 易用性：环境包装器（Env Wrapper）</a></li>
+<li><a class="reference internal" href="#env-manager">3. 高效性：向量化环境管理器（Env Manager）</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

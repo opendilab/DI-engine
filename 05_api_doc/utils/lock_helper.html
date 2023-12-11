@@ -313,7 +313,7 @@
 <dd><dl>
 <dt>Overview:</dt><dd><p>Generate a LockContext in order to make sure the thread safety.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">__enter__</span></code>, <code class="docutils literal notranslate"><span class="pre">__exit__</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">__enter__</span></code>, <code class="docutils literal notranslate"><span class="pre">__exit__</span></code>.</p>
 </dd>
 <dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">LockContext</span><span class="p">()</span> <span class="k">as</span> <span class="n">lock</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Do something here.&quot;</span><span class="p">)</span>
@@ -325,7 +325,7 @@
 <dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext.__enter__">
 <span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__enter__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Entering the context and acquire lock</p>
+<dt>Overview:</dt><dd><p>Enters the context and acquires the lock.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -334,7 +334,7 @@
 <dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext.__exit__">
 <span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__exit__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Quiting the context and release lock</p>
+<dt>Overview:</dt><dd><p>Exits the context and releases the lock.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -343,7 +343,9 @@
 <dt class="sig sig-object py" id="ding.utils.lock_helper.LockContext.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.lock_helper.LockContextType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">LockContextType.THREAD_LOCK</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/lock_helper.html#LockContext.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.lock_helper.LockContext.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Init the lock according to given type</p>
+<dt>Overview:</dt><dd><p>Init the lock according to the given type.</p>
+</dd>
+<dt>Arguments:</dt><dd><p><a href="#id1"><span class="problematic" id="id2">type_</span></a> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LockContextType</span></code>): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -357,12 +359,12 @@
 <dt>Overview:</dt><dd><p>Get generated file lock with name and operator</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>name (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>) Lock’s name.</p></li>
-<li><p>op (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>) Assigned operator, i.e. <code class="docutils literal notranslate"><span class="pre">read</span></code> or <code class="docutils literal notranslate"><span class="pre">write</span></code>.</p></li>
+<li><p>name (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Lock’s name.</p></li>
+<li><p>op (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Assigned operator, i.e. <code class="docutils literal notranslate"><span class="pre">read</span></code> or <code class="docutils literal notranslate"><span class="pre">write</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">RWLockFairD</span></code>) Generated rwlock</p></li>
+<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">RWLockFairD</span></code>): Generated rwlock</p></li>
 </ul>
 </dd>
 </dl>

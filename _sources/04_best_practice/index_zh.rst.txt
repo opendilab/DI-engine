@@ -7,6 +7,7 @@
    ding_env_zh
    custom_model_zh
    diff_in_new_pipeline_zh
+   create_env_zh
 
    env_wrapper_zh
    model_wrapper_zh
