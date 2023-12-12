@@ -14,7 +14,7 @@ hopper_dt_config = dict(
     dataset=dict(
         env_type='mujoco',
         rtg_scale=1000,
-        context_len=30,
+        context_len=20,
         data_dir_prefix='d4rl/hopper_expert-v2.pkl',
     ),
     policy=dict(
