@@ -23,7 +23,7 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class PPOF:
     """
     Overview:
-        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm PPO.
+        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm Proximal Policy Optimization(PPO).
     Interface:
         ``__init__``, ``train``, ``deploy``, ``collect_data``, ``batch_evaluate``, ``best``
     """

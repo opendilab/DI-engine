@@ -26,7 +26,7 @@ from ding.config.example.DQN import supported_env
 class DQNAgent:
     """
     Overview:
-        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm DQN.
+        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm Deep Q-Learning(DQN).
     Interface:
         ``__init__``, ``train``, ``deploy``, ``collect_data``, ``batch_evaluate``, ``best``
     """
@@ -61,10 +61,32 @@ class DQNAgent:
             - model (:obj:`torch.nn.Module`): The model of DQN algorithm, which should be an instance of class \
                 :class:`ding.model.DQN`. If not specified, a default model will be generated according to the configuration.
             - cfg (:obj:Union[EasyDict, dict]): The configuration of DQN algorithm, which is a dict. \
-                Default to None. If not specified, the default configuration will be used.
+                Default to None. If not specified, the default configuration will be used. \
+                The default configuration can be found in ``ding/config/example/DQN/gym_lunarlander_v2.py``.
             - policy_state_dict (:obj:`str`): The path of policy state dict saved by PyTorch a in local file. \
                 If specified, the policy will be loaded from this file. Default to None.
+
+        .. note::
+            An RL Agent Instance can be initialized in two basic ways. \
+            For example, we have an environment with id ``LunarLander-v2`` registered in gym, and we want to train an agent \
+            with DQN algorithm with default configuration. Then we can initialize the agent in the following ways: 
+                ``agent = DQNAgent(env_id='LunarLander-v2')`` 
+            or, if we want can specify the env_id in the configuration:
+                ``cfg = {'env': {'env_id': 'LunarLander-v2'}, 'policy': ...... }``
+                ``agent = DQNAgent(cfg=cfg)``
+            
+            There are also other arguments to specify the agent when initializing. 
+            For example, if we want to specify the environment instance:
+                ``env = CustomizedEnv('LunarLander-v2')``
+                ``agent = DQNAgent(cfg=cfg, env=env)``
+            or, if we want to specify the model:
+                ``model = DQN(**cfg.policy.model)``
+                ``agent = DQNAgent(cfg=cfg, model=model)``
+            or, if we want to reload the policy from a saved policy state dict:
+                ``agent = DQNAgent(cfg=cfg, policy_state_dict='LunarLander-v2.pth.tar')``
+            Make sure that the configuration is consistent with the saved policy state dict.
         """
+        
         assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
 
         if cfg is not None and not isinstance(cfg, EasyDict):
@@ -221,6 +243,7 @@ class DQNAgent:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
                 - eval_value_std (:obj:`np.float32`): The standard deviation of evaluation return.
         """
+
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -391,7 +414,7 @@ class DQNAgent:
         Overview:
             Load the best model from the checkpoint directory, which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
         Returns:
-            - (:obj:`PPOF`): The agent with the best model.
+            - (:obj:`DQNAgent`): The agent with the best model.
         
         .. note::
             The best model is the model with the highest evaluation return. If this method is called, the current \
