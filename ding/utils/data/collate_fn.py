@@ -31,6 +31,34 @@ def ttorch_collate(x, json: bool = False, cat_1dim: bool = True):
 
     Returns:
         The collated output tensor or nested dictionary of tensors.
+
+    Examples:
+        >>> # case 1: Collate a list of tensors
+        >>> tensors = [torch.tensor([1, 2, 3]), torch.tensor([4, 5, 6]), torch.tensor([7, 8, 9])]
+        >>> collated = ttorch_collate(tensors)
+        collated = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        >>> # case 2: Collate a nested dictionary of tensors
+        >>> nested_dict = {
+                'a': torch.tensor([1, 2, 3]),
+                'b': torch.tensor([4, 5, 6]),
+                'c': torch.tensor([7, 8, 9])
+            }
+        >>> collated = ttorch_collate(nested_dict)
+        collated = {
+            'a': torch.tensor([1, 2, 3]),
+            'b': torch.tensor([4, 5, 6]),
+            'c': torch.tensor([7, 8, 9])
+        }
+        >>> # case 3: Collate a list of nested dictionaries of tensors
+        >>> nested_dicts = [
+                {'a': torch.tensor([1, 2, 3]), 'b': torch.tensor([4, 5, 6])},
+                {'a': torch.tensor([7, 8, 9]), 'b': torch.tensor([10, 11, 12])}
+            ]
+        >>> collated = ttorch_collate(nested_dicts)
+        collated = {
+            'a': torch.tensor([[1, 2, 3], [7, 8, 9]]),
+            'b': torch.tensor([[4, 5, 6], [10, 11, 12]])
+        }
     """
 
     def inplace_fn(t):
@@ -55,14 +83,17 @@ def default_collate(batch: Sequence,
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.
+
     Arguments:
         - batch (:obj:`Sequence`): A data sequence, whose length is batch size, whose element is one piece of data.
         - cat_1dim (:obj:`bool`): Whether to concatenate tensors with shape (B, 1) to (B), defaults to True.
         - ignore_prefix (:obj:`list`): A list of prefixes to ignore when collating dictionaries, \
             defaults to ['collate_ignore'].
+
     Returns:
         - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data \
             field. The return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
+
     Example:
         >>> # a list with B tensors shaped (m, n) -->> a tensor shaped (B, m, n)
         >>> a = [torch.zeros(2,3) for _ in range(4)]
@@ -207,6 +238,25 @@ def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence
             to each data field. The return type depends on the original element type and can be a torch.Tensor, \
             Mapping, or Sequence.
 
+    Examples:
+        >>> # a list with B tensors shaped (m, n) -->> a tensor shaped (B, m, n)
+        >>> a = [torch.zeros(2,3) for _ in range(4)]
+        >>> diff_shape_collate(a).shape
+        torch.Size([4, 2, 3])
+        >>>
+        >>> # a list with B lists, each list contains m elements -->> a list of m tensors, each with shape (B, )
+        >>> a = [[0 for __ in range(3)] for _ in range(4)]
+        >>> diff_shape_collate(a)
+        [tensor([0, 0, 0, 0]), tensor([0, 0, 0, 0]), tensor([0, 0, 0, 0])]
+        >>>
+        >>> # a list with B dicts, whose values are tensors shaped :math:`(m, n)` -->>
+        >>> # a dict whose values are tensors with shape :math:`(B, m, n)`
+        >>> a = [{i: torch.zeros(i,i+1) for i in range(2, 4)} for _ in range(4)]
+        >>> print(a[0][2].shape, a[0][3].shape)
+        torch.Size([2, 3]) torch.Size([3, 4])
+        >>> b = diff_shape_collate(a)
+        >>> print(b[2].shape, b[3].shape)
+        torch.Size([4, 2, 3]) torch.Size([4, 3, 4])
     """
     elem = batch[0]
     elem_type = type(elem)

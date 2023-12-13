@@ -32,14 +32,14 @@ class Profiler:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    def write_profile(self, pr, folder_path: str):
+    def write_profile(self, pr: cProfile.Profile, folder_path: str):
         """
         OverView:
             Write the profiling results to files.
 
         Arguments:
-            - pr: The profiler object containing the profiling results.
-            - folder_path (str): The path of the folder where the profiling files will be saved.
+            - pr (:obj:`cProfile.Profile`): The profiler object containing the profiling results.
+            - folder_path (:obj:`str`): The path of the folder where the profiling files will be saved.
         """
         pr.disable()
         s_tottime = io.StringIO()
@@ -63,7 +63,7 @@ class Profiler:
             Enable profiling and save the results to files.
 
         Arguments:
-            - folder_path (str, optional): The path of the folder where the profiling files will be saved. \
+            - folder_path (:obj:`str`): The path of the folder where the profiling files will be saved. \
                 Defaults to "./tmp".
         """
         self.mkdir(folder_path)

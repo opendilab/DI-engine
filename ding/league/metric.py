@@ -146,8 +146,16 @@ class LeagueMetricEnv(TrueSkill):
 
     @staticmethod
     def _rate_1vs1(t1, t2, **kwargs):
-        # Implementation details omitted for brevity
-        pass
+        t1_elo, t2_elo = t1.elo, t2.elo
+        t1, t2 = rate_1vs1(t1, t2, **kwargs)
+        if 'drawn' in kwargs:
+            result = 0
+        else:
+            result = 1
+        t1_elo, t2_elo = EloCalculator.get_new_rating(t1_elo, t2_elo, result)
+        t1 = PlayerRating(t1.mu, t1.sigma, t1_elo)
+        t2 = PlayerRating(t2.mu, t2.sigma, t2_elo)
+        return t1, t2
 
     def rate_1vs1(self, team1: PlayerRating, team2: PlayerRating, result: List[str] = None, **kwargs) \
             -> Tuple[PlayerRating, PlayerRating]:
