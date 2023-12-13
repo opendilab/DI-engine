@@ -15,7 +15,7 @@ from ding.policy import SQLPolicy
 from ding.utils import set_pkg_seed
 from ding.utils import get_env_fps, render
 from ding.config import save_config_py, compile_config
-from ding.model import SQL
+from ding.model import DQN
 from ding.model import model_wrap
 from ding.data import DequeBuffer
 from ding.bonus.common import TrainingReturn, EvalReturn
@@ -59,7 +59,7 @@ class SQLAgent:
             - exp_name (:obj:`str`): The name of this experiment, which will be used to create the folder to save \
                 log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``. 
             - model (:obj:`torch.nn.Module`): The model of SQL algorithm, which should be an instance of class \
-                :class:`ding.model.SQL`. If not specified, a default model will be generated according to the configuration.
+                :class:`ding.model.DQN`. If not specified, a default model will be generated according to the configuration.
             - cfg (:obj:Union[EasyDict, dict]): The configuration of SQL algorithm, which is a dict. \
                 Default to None. If not specified, the default configuration will be used. \
                 The default configuration can be found in ``ding/config/example/SQL/gym_lunarlander_v2.py``.
@@ -80,7 +80,7 @@ class SQLAgent:
                 ``env = CustomizedEnv('LunarLander-v2')``
                 ``agent = SQLAgent(cfg=cfg, env=env)``
             or, if we want to specify the model:
-                ``model = SQL(**cfg.policy.model)``
+                ``model = DQN(**cfg.policy.model)``
                 ``agent = SQLAgent(cfg=cfg, model=model)``
             or, if we want to reload the policy from a saved policy state dict:
                 ``agent = SQLAgent(cfg=cfg, policy_state_dict='LunarLander-v2.pth.tar')``
@@ -126,7 +126,7 @@ class SQLAgent:
             os.makedirs(self.exp_name)
         save_config_py(self.cfg, os.path.join(self.exp_name, 'policy_config.py'))
         if model is None:
-            model = SQL(**self.cfg.policy.model)
+            model = DQN(**self.cfg.policy.model)
         self.buffer_ = DequeBuffer(size=self.cfg.policy.other.replay_buffer.replay_buffer_size)
         self.policy = SQLPolicy(self.cfg.policy, model=model)
         if policy_state_dict is not None:
