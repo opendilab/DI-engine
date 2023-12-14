@@ -23,7 +23,8 @@ from ding.bonus.common import TrainingReturn, EvalReturn
 class PPOF:
     """
     Overview:
-        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm Proximal Policy Optimization(PPO).
+        Class of agent for training, evaluation and deployment of Reinforcement learning algorithm \
+        Proximal Policy Optimization(PPO).
     Interface:
         ``__init__``, ``train``, ``deploy``, ``collect_data``, ``batch_evaluate``, ``best``
     """
@@ -86,7 +87,7 @@ class PPOF:
             - seed (:obj:`int`): The random seed, which is set before running the program. \
                 Default to 0.
             - exp_name (:obj:`str`): The name of this experiment, which will be used to create the folder to save \
-                log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``. 
+                log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``.
             - model (:obj:`torch.nn.Module`): The model of PPO algorithm, which should be an instance of class \
                 ``ding.model.PPOFModel``. If not specified, a default model will be generated according to the configuration.
             - cfg (:obj:`Union[EasyDict, dict]`): The configuration of PPO algorithm, which is a dict. \
@@ -187,7 +188,8 @@ class PPOF:
             - collector_env_num (:obj:`int`): The number of collector environments. Default to 4.
             - evaluator_env_num (:obj:`int`): The number of evaluator environments. Default to 4.
             - n_iter_log_show (:obj:`int`): The frequency of logging every training iteration. Default to 500.
-            - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. Default to 1000.
+            - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. \
+                Default to 1000.
             - context (:obj:`str`): The context of the environment manager. Default to None.
             - reward_model (:obj:`str`): The reward model name. Default to None. This argument is not supported yet.
             - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
@@ -437,10 +439,11 @@ class PPOF:
     def best(self):
         """
         Overview:
-            Load the best model from the checkpoint directory, which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
+            Load the best model from the checkpoint directory, \
+            which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
         Returns:
             - (:obj:`PPOF`): The agent with the best model.
-        
+
         .. note::
             The best model is the model with the highest evaluation return. If this method is called, the current \
             model will be replaced by the best model.

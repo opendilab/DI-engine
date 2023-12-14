@@ -418,7 +418,7 @@ class DQNAgent:
             which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
         Returns:
             - (:obj:`DQNAgent`): The agent with the best model.
-        
+
         .. note::
             The best model is the model with the highest evaluation return. If this method is called, the current \
             model will be replaced by the best model.

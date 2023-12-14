@@ -55,9 +55,10 @@ class PGAgent:
             - seed (:obj:`int`): The random seed, which is set before running the program. \
                 Default to 0.
             - exp_name (:obj:`str`): The name of this experiment, which will be used to create the folder to save \
-                log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``. 
+                log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``.
             - model (:obj:`torch.nn.Module`): The model of PG algorithm, which should be an instance of class \
-                :class:`ding.model.PG`. If not specified, a default model will be generated according to the configuration.
+                :class:`ding.model.PG`. \
+                If not specified, a default model will be generated according to the configuration.
             - cfg (:obj:Union[EasyDict, dict]): The configuration of PG algorithm, which is a dict. \
                 Default to None. If not specified, the default configuration will be used. \
                 The default configuration can be found in ``ding/config/example/PG/gym_lunarlander_v2.py``.
@@ -66,14 +67,14 @@ class PGAgent:
 
         .. note::
             An RL Agent Instance can be initialized in two basic ways. \
-            For example, we have an environment with id ``LunarLanderContinuous-v2`` registered in gym, and we want to train an agent \
-            with PG algorithm with default configuration. Then we can initialize the agent in the following ways: 
-                ``agent = PGAgent(env_id='LunarLanderContinuous-v2')`` 
+            For example, we have an environment with id ``LunarLanderContinuous-v2`` registered in gym, \
+            and we want to train an agent with PG algorithm with default configuration. \
+            Then we can initialize the agent in the following ways:
+                ``agent = PGAgent(env_id='LunarLanderContinuous-v2')``
             or, if we want can specify the env_id in the configuration:
                 ``cfg = {'env': {'env_id': 'LunarLanderContinuous-v2'}, 'policy': ...... }``
                 ``agent = PGAgent(cfg=cfg)``
-            
-            There are also other arguments to specify the agent when initializing. 
+            There are also other arguments to specify the agent when initializing.
             For example, if we want to specify the environment instance:
                 ``env = CustomizedEnv('LunarLanderContinuous-v2')``
                 ``agent = PGAgent(cfg=cfg, env=env)``
@@ -151,7 +152,8 @@ class PGAgent:
                 If not specified, it will be set according to the configuration.
             - evaluator_env_num (:obj:`int`): The evaluator environment number. Default to None. \
                 If not specified, it will be set according to the configuration.
-            - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. Default to 1000.
+            - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. \
+                Default to 1000.
             - context (:obj:`str`): The context of the environment manager. Default to None.
             - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
             - wandb_sweep (:obj:`bool`): Whether to use wandb sweep, \
@@ -405,10 +407,11 @@ class PGAgent:
     def best(self):
         """
         Overview:
-            Load the best model from the checkpoint directory, which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
+            Load the best model from the checkpoint directory, \
+            which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
         Returns:
             - (:obj:`PGAgent`): The agent with the best model.
-        
+
         .. note::
             The best model is the model with the highest evaluation return. If this method is called, the current \
             model will be replaced by the best model.
