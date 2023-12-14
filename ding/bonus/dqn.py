@@ -86,7 +86,7 @@ class DQNAgent:
                 ``agent = DQNAgent(cfg=cfg, policy_state_dict='LunarLander-v2.pth.tar')``
             Make sure that the configuration is consistent with the saved policy state dict.
         """
-        
+
         assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
 
         if cfg is not None and not isinstance(cfg, EasyDict):

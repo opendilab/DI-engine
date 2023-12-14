@@ -85,7 +85,7 @@ class TD3Agent:
                 ``agent = TD3Agent(cfg=cfg, policy_state_dict='LunarLanderContinuous-v2.pth.tar')``
             Make sure that the configuration is consistent with the saved policy state dict.
         """
-        
+
         assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
 
         if cfg is not None and not isinstance(cfg, EasyDict):
@@ -239,7 +239,7 @@ class TD3Agent:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
                 - eval_value_std (:obj:`np.float32`): The standard deviation of evaluation return.
         """
-        
+
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -334,7 +334,7 @@ class TD3Agent:
             - context (:obj:`str`): The context of the environment manager. Default to None.
             - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
         """
-        
+
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         if n_episode is not None:
@@ -380,7 +380,7 @@ class TD3Agent:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
                 - eval_value_std (:obj:`np.float32`): The standard deviation of evaluation return.
         """
-        
+
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy

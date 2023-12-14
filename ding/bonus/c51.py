@@ -86,7 +86,7 @@ class C51Agent:
                 ``agent = C51Agent(cfg=cfg, policy_state_dict='LunarLander-v2.pth.tar')``
             Make sure that the configuration is consistent with the saved policy state dict.
         """
-        
+
         assert env_id is not None or cfg is not None, "Please specify env_id or cfg."
 
         if cfg is not None and not isinstance(cfg, EasyDict):
@@ -419,7 +419,7 @@ class C51Agent:
             The best model is the model with the highest evaluation return. If this method is called, the current \
             model will be replaced by the best model.
         """
-        
+
         best_model_file_path = os.path.join(self.checkpoint_save_dir, "eval.pth.tar")
         # Load best model if it exists
         if os.path.exists(best_model_file_path):

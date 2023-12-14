@@ -229,7 +229,7 @@ class PGAgent:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
                 - eval_value_std (:obj:`np.float32`): The standard deviation of evaluation return.
         """
-        
+
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
@@ -379,7 +379,7 @@ class PGAgent:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
                 - eval_value_std (:obj:`np.float32`): The standard deviation of evaluation return.
         """
-        
+
         if debug:
             logging.getLogger().setLevel(logging.DEBUG)
         # define env and policy
