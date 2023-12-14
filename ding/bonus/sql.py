@@ -72,7 +72,7 @@ class SQLAgent:
             An RL Agent Instance can be initialized in two basic ways. \
             For example, we have an environment with id ``LunarLander-v2`` registered in gym, \
             and we want to train an agent with SQL algorithm with default configuration. \
-            Then we can initialize the agent in the following ways: 
+            Then we can initialize the agent in the following ways:
                 ``agent = SQLAgent(env_id='LunarLander-v2')``
             or, if we want can specify the env_id in the configuration:
                 ``cfg = {'env': {'env_id': 'LunarLander-v2'}, 'policy': ...... }``

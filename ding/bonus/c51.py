@@ -71,7 +71,7 @@ class C51Agent:
             An RL Agent Instance can be initialized in two basic ways. \
             For example, we have an environment with id ``LunarLander-v2`` registered in gym, \
             and we want to train an agent with C51 algorithm with default configuration. \
-            Then we can initialize the agent in the following ways: 
+            Then we can initialize the agent in the following ways:
                 ``agent = C51Agent(env_id='LunarLander-v2')``
             or, if we want can specify the env_id in the configuration:
                 ``cfg = {'env': {'env_id': 'LunarLander-v2'}, 'policy': ...... }``
@@ -155,7 +155,8 @@ class C51Agent:
                 If not specified, it will be set according to the configuration.
             - evaluator_env_num (:obj:`int`): The evaluator environment number. Default to None. \
                 If not specified, it will be set according to the configuration.
-            - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. Default to 1000.
+            - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. \
+                Default to 1000.
             - context (:obj:`str`): The context of the environment manager. Default to None.
             - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
             - wandb_sweep (:obj:`bool`): Whether to use wandb sweep, \

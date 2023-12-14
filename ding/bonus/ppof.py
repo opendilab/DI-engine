@@ -89,7 +89,8 @@ class PPOF:
             - exp_name (:obj:`str`): The name of this experiment, which will be used to create the folder to save \
                 log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``.
             - model (:obj:`torch.nn.Module`): The model of PPO algorithm, which should be an instance of class \
-                ``ding.model.PPOFModel``. If not specified, a default model will be generated according to the configuration.
+                ``ding.model.PPOFModel``. \
+                If not specified, a default model will be generated according to the configuration.
             - cfg (:obj:`Union[EasyDict, dict]`): The configuration of PPO algorithm, which is a dict. \
                 Default to None. If not specified, the default configuration will be used.
             - policy_state_dict (:obj:`str`): The path of policy state dict saved by PyTorch a in local file. \

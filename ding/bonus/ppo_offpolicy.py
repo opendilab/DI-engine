@@ -58,8 +58,8 @@ class PPOOffPolicyAgent:
                 Default to 0.
             - exp_name (:obj:`str`): The name of this experiment, which will be used to create the folder to save \
                 log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``.
-            - model (:obj:`torch.nn.Module`): The model of PPO (offpolicy) algorithm, which should be an instance of class \
-                :class:`ding.model.VAC`. \
+            - model (:obj:`torch.nn.Module`): The model of PPO (offpolicy) algorithm, \
+                which should be an instance of class :class:`ding.model.VAC`. \
                 If not specified, a default model will be generated according to the configuration.
             - cfg (:obj:Union[EasyDict, dict]): The configuration of PPO (offpolicy) algorithm, which is a dict. \
                 Default to None. If not specified, the default configuration will be used. \
@@ -146,9 +146,9 @@ class PPOOffPolicyAgent:
     ) -> TrainingReturn:
         """
         Overview:
-            Train the agent with PPO (offpolicy) algorithm for ``step`` iterations with ``collector_env_num`` collector \
-            environments and ``evaluator_env_num`` evaluator environments. Information during training will be \
-            recorded and saved by wandb.
+            Train the agent with PPO (offpolicy) algorithm for ``step`` iterations with ``collector_env_num`` \
+            collector environments and ``evaluator_env_num`` evaluator environments. \
+            Information during training will be recorded and saved by wandb.
         Arguments:
             - step (:obj:`int`): The total training environment steps of all collector environments. Default to 1e7.
             - collector_env_num (:obj:`int`): The collector environment number. Default to None. \
@@ -224,8 +224,9 @@ class PPOOffPolicyAgent:
     ) -> EvalReturn:
         """
         Overview:
-            Deploy the agent with PPO (offpolicy) algorithm by interacting with the environment, during which the replay video \
-            can be saved if ``enable_save_replay`` is True. The evaluation result will be returned.
+            Deploy the agent with PPO (offpolicy) algorithm by interacting with the environment, \
+            during which the replay video can be saved if ``enable_save_replay`` is True. \
+            The evaluation result will be returned.
         Arguments:
             - enable_save_replay (:obj:`bool`): Whether to save the replay video. Default to False.
             - concatenate_all_replay (:obj:`bool`): Whether to concatenate all replay videos into one video. \
@@ -336,7 +337,8 @@ class PPOOffPolicyAgent:
     ) -> None:
         """
         Overview:
-            Collect data with PPO (offpolicy) algorithm for ``n_episode`` episodes with ``env_num`` collector environments. \
+            Collect data with PPO (offpolicy) algorithm for ``n_episode`` episodes \
+            with ``env_num`` collector environments. \
             The collected data will be saved in ``save_data_path`` if specified, otherwise it will be saved in \
             ``exp_name/demo_data``.
         Arguments:
@@ -385,8 +387,8 @@ class PPOOffPolicyAgent:
     ) -> EvalReturn:
         """
         Overview:
-            Evaluate the agent with PPO (offpolicy) algorithm for ``n_evaluator_episode`` episodes with ``env_num`` evaluator \
-            environments. The evaluation result will be returned.
+            Evaluate the agent with PPO (offpolicy) algorithm for ``n_evaluator_episode`` episodes \
+            with ``env_num`` evaluator environments. The evaluation result will be returned.
         Arguments:
             - env_num (:obj:`int`): The number of evaluator environments. Default to 4.
             - n_evaluator_episode (:obj:`int`): The number of episodes to evaluate. Default to 4.
