@@ -87,7 +87,7 @@ def jpeg_data_compressor(data: np.ndarray) -> bytes:
         To reduce memory usage, we can choose to store the jpeg strings of image instead of the numpy array in \
         the buffer. This function encodes the observation numpy arr to the jpeg strings.
     Arguments:
-        data (:obj:`np.array`): the observation numpy arr.
+        - data (:obj:`np.array`): the observation numpy arr.
     Returns:
         - img_str (:obj:`bytes`): The compressed byte-like result.
     """
@@ -114,7 +114,7 @@ _COMPRESSORS_MAP = {
 def get_data_compressor(name: str):
     """
     Overview:
-        Get the data compressor according to the input name
+        Get the data compressor according to the input name.
     Arguments:
         - name(:obj:`str`): Name of the compressor, support ``['lz4', 'zlib', 'jpeg', 'none']``
     Return:
@@ -209,7 +209,7 @@ _DECOMPRESSORS_MAP = {
 def get_data_decompressor(name: str) -> Callable:
     """
     Overview:
-        Get the data decompressor according to the input name
+        Get the data decompressor according to the input name.
     Arguments:
         - name(:obj:`str`): Name of the decompressor, support ``['lz4', 'zlib', 'none']``
 

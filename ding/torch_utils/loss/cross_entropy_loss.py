@@ -60,10 +60,11 @@ class SoftFocalLoss(nn.Module):
                 easy samples, while a larger ``gamma`` will lead to more focus on hard samples.
             - weight (:obj:`Any`): The weight for loss of each class.
             - size_average (:obj:`bool`): By default, the losses are averaged over each loss element in the batch. \
-                Note that for some losses, there are multiple elements per sample. If the ``field size_average``is \
-                set to ``False``, the losses are instead summed for each minibatch. Ignored when reduce is ``False``.
+                Note that for some losses, there are multiple elements per sample. If the field ``size_average`` is \
+                set to ``False``, the losses are instead summed for each minibatch. Ignored when ``reduce`` is \
+                ``False``.
             - reduce (:obj:`Optional[bool]`): By default, the losses are averaged or summed over observations for \
-                each minibatch depending on size_average. When ``reduce`` is ``False``, returns a loss per batch \
+                each minibatch depending on size_average. When ``reduce`` is ``False``, returns a loss for each batch \
                 element instead and ignores ``size_average``.
         """
         super().__init__()

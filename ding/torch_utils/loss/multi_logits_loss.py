@@ -24,10 +24,10 @@ class MultiLogitsLoss(nn.Module):
     def __init__(self, criterion: str = None, smooth_ratio: float = 0.1) -> None:
         """
         Overview:
-            initialization method, use cross_entropy as default criterion
+            Initialization method, use cross_entropy as default criterion.
         Arguments:
-            - criterion (:obj:`str`): criterion type, supports ['cross_entropy', 'label_smooth_ce'].
-            - smooth_ratio (:obs:`float`): smooth_ratio for label smoothing.
+            - criterion (:obj:`str`): Criterion type, supports ['cross_entropy', 'label_smooth_ce'].
+            - smooth_ratio (:obs:`float`): Smoothing ratio for label smoothing.
         """
         super(MultiLogitsLoss, self).__init__()
         if criterion is None:
