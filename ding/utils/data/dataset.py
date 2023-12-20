@@ -1101,6 +1101,279 @@ class SequenceDataset(torch.utils.data.Dataset):
 
         batch.update(self.get_conditions(observations))
         return batch
+    
+@DATASET_REGISTRY.register('meta_traj')
+class MetaTraj(Dataset):
+    def __init__(self, cfg):
+        dataset_path = cfg.dataset.data_dir_prefix
+        self.rtg_scale = cfg.dataset.rtg_scale
+        self.context_len = cfg.dataset.context_len
+        self.env_type = cfg.dataset.env_type
+        self.no_state_normalize = cfg.policy.no_state_normalize
+        self.task_num = cfg.policy.task_num
+        self.state_dim = cfg.policy.model.obs_shape
+        self.act_dim = cfg.policy.model.act_shape
+        self.max_len = cfg.policy.max_len
+        self.max_ep_len = cfg.policy.max_ep_len
+        self.batch_size = cfg.policy.batch_size
+        self.stochastic_prompt = cfg.dataset.stochastic_prompt
+        self.need_prompt = cfg.dataset.need_prompt
+        self.task_id = 0
+        self.test_id = cfg.dataset.test_id
+        self.cond = None
+        if 'cond' in cfg.dataset:
+            self.cond = cfg.dataset.cond
+
+        try:
+            import h5py
+            import collections
+        except ImportError:
+            import sys
+            logging.warning("not found h5py package, please install it trough `pip install h5py ")
+            sys.exit(1)
+        
+        data_ = collections.defaultdict(list)
+
+        file_paths = [dataset_path + i for i in range(1, self.task_num + 1)]
+        # train_env_dataset
+        self.traj = []
+        self.state_means = []
+        self.state_stds = []
+            
+        # test_env_dataset
+        self.test_traj = []
+        self.test_state_means = []
+        self.test_state_stds = []
+
+        # for MetaDiffuser
+        if self.cond:
+            self.action_means = []
+            self.action_stds = []
+            self.test_action_means = []
+            self.test_action_stds = []
+
+        # for prompt-DT
+        if self.need_prompt:
+            self.returns = []
+            self.test_returns = []
+        
+        id = 0
+        for file_path in file_paths:
+            paths = []
+            states = []
+            if self.cond:
+                actions = []
+            if self.need_prompt:
+                retruns = []
+                total_reward = 0
+            with h5py.File(file_path, 'r') as hf:
+                use_timeouts = False
+                if 'timeouts' in hf:
+                    use_timeouts = True
+                N = hf['rewards'].shape[0]
+                for i in range(N):
+                    done_bool = bool(hf['terminals'][i])
+                    if use_timeouts:
+                        final_timestep = hf['timeouts'][i]
+                    else:
+                        final_timestep = (episode_step == 1000 - 1)
+                    for k in ['observations', 'actions', 'rewards', 'terminals']:
+                        data_[k].append(hf[k][i])
+                        if k == 'observations':
+                            states.append[hf[k][i]]
+                        if self.cond and k == 'actions':
+                            actions.append(hf[k][i])
+                        if self.need_prompt and k == 'rewards':
+                            total_reward += hf[k][i]
+                    if done_bool or final_timestep:
+                        episode_step = 0
+                        episode_data = {}
+                        for k in data_:
+                            episode_data[k] = np.array(data_[k])
+                        paths.append(episode_data)
+                        data_ = collections.defaultdict(list)
+                        
+                        if self.need_prompt:
+                            retruns.append(total_reward)
+                    episode_step += 1
+            states = np.array(states)
+            state_mean, state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
+            if self.cond:
+                action_mean, action_std = np.mean(actions, axis=0), np.std(actions, axis=0) + 1e-6
+            
+            if id not in self.test_id:
+                self.traj.append(paths)
+                self.state_means.append(state_mean)
+                self.state_stds.append(state_std)
+                if self.cond:
+                    self.action_means.append(action_mean)
+                    self.action_stds.append(action_std)
+                if self.need_prompt:
+                    self.returns.append(retruns)
+            else:
+                self.test_traj.append(paths)
+                self.test_state_means.append(state_mean)
+                self.test_state_stds.append(state_std)
+                if self.cond:
+                    self.test_action_means.append(action_mean)
+                    self.test_action_stds.append(action_std)
+                    if self.need_prompt:
+                        self.test_returns.append(retruns)
+            
+            id += 1
+
+        if self.need_prompt:
+            self.prompt_trajectories = []
+            for i in range(len(self.traj)):
+                idx = np.argsort(self.returns) # lowest to highest
+                # set 10% highest traj as prompt
+                idx = idx[-(len(self.traj[i]) / 20) : ]
+                
+                self.prompt_trajectories.append(self.traj[i][idx])
+
+            self.test_prompt_trajectories = []
+            for i in range(len(self.test_traj)):
+                idx = np.argsort(self.test_returns) 
+                idx = idx[-(len(self.test_traj[i]) / 20) : ]
+                
+                self.test_prompt_trajectories.append(self.test_traj[i][idx])
+
+
+    def get_prompt(self, sample_size=1, is_test=False, id=0):
+        if not is_test:
+            batch_inds = np.random.choice(
+                np.arange(len(self.prompt_trajectories[self.task_id])),
+                size=sample_size,
+                replace=True,
+                # p=p_sample,  # reweights so we sample according to timesteps
+            )
+            prompt_trajectories = self.prompt_trajectories[id]
+            sorted_inds = np.argsort(self.returns[id])
+        else:
+            batch_inds = np.random.choice(
+                np.arange(len(self.test_prompt_trajectories[id])),
+                size=sample_size,
+                replace=True,
+                # p=p_sample,  # reweights so we sample according to timesteps
+            )
+            prompt_trajectories = self.test_prompt_trajectories[id]
+            sorted_inds = np.argsort(self.test_returns[id])
+
+        if self.stochastic_prompt:
+            traj = prompt_trajectories[int(batch_inds[i])] # random select traj
+        else:
+            traj = prompt_trajectories[int(sorted_inds[-i])] # select the best traj with highest rewards
+            # traj = prompt_trajectories[i]
+        si = max(0, traj['rewards'].shape[0] - self.max_len -1) # select the last traj with length max_len
+
+        # get sequences from dataset
+        s = traj['observations'][si:si + self.max_len]
+        a = traj['actions'][si:si + self.max_len]
+        r = traj['rewards'][si:si + self.max_len]
+
+        timesteps = np.arange(si, si + self.max_len) 
+        rtg.append(discount_cumsum(traj['rewards'][si:], gamma=1.)[:s.shape[0] + 1])
+        if rtg.shape[0] <= s.shape[0]:
+            rtg = np.concatenate([rtg, np.zeros((1, 1, 1))], axis=1)
+
+        # padding and state + reward normalization
+        tlen = s.shape[0]
+        # if tlen !=args.K:
+        #     print('tlen not equal to k')
+        s = np.concatenate([np.zeros((self.max_len - tlen, self.state_dim)), s], axis=0)
+        if not self.no_state_normalize:
+            s = (s - self.state_means[self.task_id]) / self.state_stds[self.task_id]
+        a = np.concatenate([np.ones((self.max_len - tlen, self.act_dim)) * -10., a], axis=0)
+        r = np.concatenate([np.zeros((self.max_len - tlen, 1)), r], axis=0)
+        d = np.concatenate([np.ones((self.max_len - tlen)) * 2, d], axis=0)
+        rtg = np.concatenate([np.zeros((self.max_len - tlen, 1)), rtg], axis=0) / self.rtg_scale
+        timesteps = np.concatenate([np.zeros((self.max_len - tlen)), timesteps], axis=0)
+        mask = np.concatenate([np.zeros((self.max_len - tlen)), np.ones((tlen))], axis=0)
+
+        return s, a, rtg, timesteps, mask
+    
+    # set task id
+    def set_task_id(self, id: int):
+        self.task_id = id
+        
+    def normalize(self, data: np.array, type: str, task_id: int):
+        if type == 'obs':
+            return (data - self.test_state_means[task_id]) / self.test_state_stds[task_id]
+        else:
+            return (data - self.test_action_means[task_id]) / self.test_action_stds[task_id]
+    
+    def unnormalize(self, data: np.array, type: str, task_id: int):
+        if type == 'obs':
+            return data * self.test_state_stds[task_id] + self.test_state_means[task_id]
+        else:
+            return data * self.test_action_stds[task_id] + self.test_action_means[task_id]
+
+    # get warm start data
+    def get_pretrain_data(self, task_id: int, batch_size: int):
+        # get warm data
+        trajs = self.test_traj[task_id]
+        batch_idx = np.random.choice(
+            np.arange(len(trajs)),
+            size=batch_size,
+        )
+
+        traj = trajs[int(batch_idx)]
+
+        si = np.random.randint(0, traj[0]['reward'].shape[0])
+        traj = traj[:,si:si + self.max_len,:]
+
+        s = traj['observations']
+        a = traj['actions']
+        r = traj['rewards']
+        
+        tlen = s.shape[1]
+        s = np.concatenate([np.zeros((self.max_len - tlen, self.state_dim)), s], axis=1)
+        if not self.no_state_normalize:
+            s = (s - self.state_means[self.task_id]) / self.state_stds[self.task_id]
+        a = np.concatenate([np.ones((self.max_len - tlen, self.act_dim)) * -10., a], axis=1)
+        r = np.concatenate([np.zeros((self.max_len - tlen, 1)), r], axis=1)
+
+        s = torch.from_numpy(s).to(dtype=torch.float32)
+        a = torch.from_numpy(a).to(dtype=torch.float32)
+        r = torch.from_numpy(r).to(dtype=torch.float32)
+
+        cond_id = 0
+        cond_val = s[:,0]
+        return s, a, r, cond_id, cond_val
+
+    def __getitem__(self, index):
+        traj = self.traj[self.task_id][index]
+        si = np.random.randint(0, traj['rewards'].shape[0])
+
+        s = traj['observations'][si:si + self.max_len]
+        a = traj['actions'][si:si + self.max_len]
+        r = traj['rewards'][si:si + self.max_len]
+        timesteps = np.arange(si, si + self.max_len)
+        rtg = discount_cumsum(traj['rewards'][si:], gamma=1.)[:s.shape[0] + 1] / self.rtg_scale
+        if rtg.shape[0] <= s.shape[0]:
+            rtg = np.concatenate([rtg, np.zeros((1, 1, 1))], axis=1)
+
+        tlen = s.shape[0]
+        s = np.concatenate([np.zeros((self.max_len - tlen, self.state_dim)), s], axis=0)
+        if not self.no_state_normalize:
+            s = (s - self.state_means[self.task_id]) / self.state_stds[self.task_id]
+        a = np.concatenate([np.ones((self.max_len - tlen, self.act_dim)) * -10., a], axis=0)
+        r = np.concatenate([np.zeros((self.max_len - tlen, 1)), r], axis=0)
+        d = np.concatenate([np.ones((self.max_len - tlen)) * 2, d], axis=0)
+        rtg = np.concatenate([np.zeros((self.max_len - tlen, 1)), rtg], axis=0) / self.rtg_scale
+        timesteps = np.concatenate([np.zeros((self.max_len - tlen)), timesteps], axis=0)
+
+        mask = np.concatenate([np.zeros((self.max_len - tlen)), np.ones((tlen))], axis=0)
+        
+        if self.need_prompt:
+            prompt = self.get_prompt()
+            return prompt, timesteps, s, a, r, rtg, mask
+        elif self.cond:
+            cond_id = 0
+            cond_val = s[0]
+            return timesteps, s, a, r, rtg, mask, cond_id, cond_val
+        else:
+            return timesteps, s, a, r, rtg, mask
 
 
 def hdf5_save(exp_data, expert_data_path):

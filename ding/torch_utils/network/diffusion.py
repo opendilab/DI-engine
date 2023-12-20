@@ -35,7 +35,7 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype=torch.float32):
     return torch.tensor(betas_clipped, dtype=dtype)
 
 
-def apply_conditioning(x, conditions, action_dim):
+def apply_conditioning(x, conditions, action_dim, mask = None):
     """
     Overview:
         add condition into x
@@ -431,6 +431,7 @@ class TemporalValue(nn.Module):
         - time_dim (:obj:'): dim of time
         - dim_mults (:obj:'SequenceType'): mults of dim
         - kernel_size (:obj:'int'): kernel_size of conv1d
+        - returns_condition (:obj:'bool'): whether use an additionly condition
     """
 
     def __init__(
@@ -442,6 +443,7 @@ class TemporalValue(nn.Module):
             out_dim: int = 1,
             kernel_size: int = 5,
             dim_mults: SequenceType = [1, 2, 4, 8],
+            returns_condition: bool = False,
     ) -> None:
         super().__init__()
         dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
@@ -454,6 +456,13 @@ class TemporalValue(nn.Module):
             nn.Mish(),
             nn.Linear(dim * 4, dim),
         )
+        if returns_condition:
+            self.returns_mlp = nn.Sequential(
+                SinusoidalPosEmb(dim),
+                nn.Linear(dim, dim * 4),
+                nn.Mish(),
+                nn.Linear(dim * 4, dim),
+            )
         self.blocks = nn.ModuleList([])
 
         for ind, (dim_in, dim_out) in enumerate(in_out):
@@ -488,10 +497,15 @@ class TemporalValue(nn.Module):
             nn.Linear(fc_dim // 2, out_dim),
         )
 
-    def forward(self, x, cond, time, *args):
+    def forward(self, x, cond, time, returns=None, *args):
         # [batch, horizon, transition ] -> [batch, transition , horizon]
         x = x.transpose(1, 2)
         t = self.time_mlp(time)
+        
+        if returns:
+            returns_embed = self.returns_mlp(returns)
+            t = torch.cat([t, returns_embed], dim=-1)
+
         for resnet, resnet2, downsample in self.blocks:
             x = resnet(x, t)
             x = resnet2(x, t)

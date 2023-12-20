@@ -176,7 +176,8 @@ class DecisionTransformer(nn.Module):
         drop_p: float,
         max_timestep: int = 4096,
         state_encoder: Optional[nn.Module] = None,
-        continuous: bool = False
+        continuous: bool = False,
+        use_prompt: bool = False,
     ):
         """
         Overview:
@@ -206,6 +207,8 @@ class DecisionTransformer(nn.Module):
         # projection heads (project to embedding)
         self.embed_ln = nn.LayerNorm(h_dim)
         self.embed_timestep = nn.Embedding(max_timestep, h_dim)
+        if use_prompt:
+            self.prompt_embed_timestep = nn.Embedding(max_timestep, h_dim)
         self.drop = nn.Dropout(drop_p)
 
         self.pos_emb = nn.Parameter(torch.zeros(1, input_seq_len + 1, self.h_dim))
@@ -218,14 +221,21 @@ class DecisionTransformer(nn.Module):
             self.embed_state = torch.nn.Linear(state_dim, h_dim)
             self.predict_rtg = torch.nn.Linear(h_dim, 1)
             self.predict_state = torch.nn.Linear(h_dim, state_dim)
+            if use_prompt:
+                self.prompt_embed_state = torch.nn.Linear(state_dim, h_dim)
+                self.prompt_embed_rtg = torch.nn.Linear(1, h_dim)
             if continuous:
                 # continuous actions
                 self.embed_action = torch.nn.Linear(act_dim, h_dim)
                 use_action_tanh = True  # True for continuous actions
+                if use_prompt:
+                    self.prompt_embed_action = torch.nn.Linear(act_dim, h_dim)
             else:
                 # discrete actions
                 self.embed_action = torch.nn.Embedding(act_dim, h_dim)
                 use_action_tanh = False  # False for discrete actions
+                if use_prompt:
+                    self.prompt_embed_action = torch.nn.Embedding(act_dim, h_dim)
             self.predict_action = nn.Sequential(
                 *([nn.Linear(h_dim, act_dim)] + ([nn.Tanh()] if use_action_tanh else []))
             )
@@ -243,7 +253,8 @@ class DecisionTransformer(nn.Module):
             states: torch.Tensor,
             actions: torch.Tensor,
             returns_to_go: torch.Tensor,
-            tar: Optional[int] = None
+            tar: Optional[int] = None,
+            prompt: dict = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Overview:
@@ -299,6 +310,35 @@ class DecisionTransformer(nn.Module):
             t_p = torch.stack((returns_embeddings, state_embeddings, action_embeddings),
                               dim=1).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
             h = self.embed_ln(t_p)
+
+            if prompt is not None:
+                prompt_states, prompt_actions, prompt_returns_to_go,\
+                    prompt_timesteps, prompt_attention_mask = prompt
+                prompt_seq_length = prompt_states.shape[1]
+                prompt_state_embeddings = self.prompt_embed_state(prompt_states)
+                prompt_action_embeddings = self.prompt_embed_action(prompt_actions)
+                if prompt_returns_to_go.shape[1] % 10 == 1:
+                    prompt_returns_embeddings = self.prompt_embed_rtg(prompt_returns_to_go[:,:-1])
+                else:
+                    prompt_returns_embeddings = self.prompt_embed_rtg(prompt_returns_to_go)
+                prompt_time_embeddings = self.prompt_embed_timestep(prompt_timesteps)
+
+                prompt_state_embeddings = prompt_state_embeddings + prompt_time_embeddings
+                prompt_action_embeddings = prompt_action_embeddings + prompt_time_embeddings
+                prompt_returns_embeddings = prompt_returns_embeddings + prompt_time_embeddings
+                prompt_stacked_attention_mask = torch.stack(
+                    (prompt_attention_mask, prompt_attention_mask, prompt_attention_mask), dim=1
+                ).permute(0, 2, 1).reshape(prompt_states.shape[0], 3 * prompt_seq_length)
+
+                if prompt_stacked_inputs.shape[1] == 3 * T: # if only smaple one prompt
+                    prompt_stacked_inputs = prompt_stacked_inputs.reshape(1, -1, self.hidden_size)
+                    prompt_stacked_attention_mask = prompt_stacked_attention_mask.reshape(1, -1)
+                    h = torch.cat((prompt_stacked_inputs.repeat(B, 1, 1), h), dim=1)
+                    stacked_attention_mask = torch.cat((prompt_stacked_attention_mask.repeat(B, 1), stacked_attention_mask), dim=1)
+                else: # if sample one prompt for each traj in batch
+                    h = torch.cat((prompt_stacked_inputs, h), dim=1)
+                    stacked_attention_mask = torch.cat((prompt_stacked_attention_mask, stacked_attention_mask), dim=1)
+
             # transformer and prediction
             h = self.transformer(h)
             # get h reshaped such that its size = (B x 3 x T x h_dim) and

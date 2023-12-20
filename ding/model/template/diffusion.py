@@ -26,9 +26,12 @@ def default_sample_fn(model, x, cond, t):
     return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise, values
 
 
-def get_guide_output(guide, x, cond, t):
+def get_guide_output(guide, x, cond, t, returns=None):
     x.requires_grad_()
-    y = guide(x, cond, t).squeeze(dim=-1)
+    if returns:
+        y = guide(x, cond, t, returns).squeeze(dim=-1)
+    else:
+        y = guide(x, cond, t).squeeze(dim=-1)
     grad = torch.autograd.grad([y.sum()], [x])[0]
     x.detach()
     return y, grad
@@ -69,6 +72,50 @@ def n_step_guided_p_sample(
 
     return model_mean + model_std * noise, y
 
+def free_guidance_sample(
+    model,
+    x,
+    cond,
+    t,
+    guide1,
+    guide2,
+    returns=None,
+    scale=1,
+    t_stopgrad=0,
+    n_guide_steps=1,
+    scale_grad_by_std=True,
+    
+):
+    weight = extract(model.sqrt_one_minus_alphas_cumprod, t, x.shape)
+    model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
+    model_std = torch.exp(0.5 * model_log_variance)
+    model_var = torch.exp(model_log_variance)
+    
+    for _ in range(n_guide_steps):
+        with torch.enable_grad():
+            y1, grad1 = get_guide_output(guide1, x, cond, t, returns) # get reward
+            y2, grad2 = get_guide_output(guide2, x, cond, t) # get state
+            grad = grad1 + scale * grad2
+
+        if scale_grad_by_std:
+            grad = weight * grad
+
+        grad[t < t_stopgrad] = 0
+
+        if returns:
+            # epsilon could be epsilon or x0 itself
+            epsilon_cond = model.model(x, cond, t, returns, use_dropout=False)
+            epsilon_uncond = model.model(x, cond, t, returns, force_dropout=True)
+            epsilon = epsilon_uncond + model.condition_guidance_w * (epsilon_cond - epsilon_uncond)
+        else:
+            epsilon = model.model(x, cond, t)
+        epsilon += grad
+
+    model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t, epsilon=epsilon)
+    noise = torch.randn_like(x)
+    noise[t == 0] = 0
+
+    return model_mean + model_std * noise,
 
 class GaussianDiffusion(nn.Module):
     """
@@ -299,12 +346,12 @@ class ValueDiffusion(GaussianDiffusion):
             Gaussian diffusion model for value function.
     """
 
-    def p_losses(self, x_start, cond, target, t):
+    def p_losses(self, x_start, cond, target, t, returns=None):
         noise = torch.randn_like(x_start)
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         x_noisy = apply_conditioning(x_noisy, cond, self.action_dim)
 
-        pred = self.model(x_noisy, cond, t)
+        pred = self.model(x_noisy, cond, t, returns)
         loss = F.mse_loss(pred, target, reduction='none').mean()
         log = {
             'mean_pred': pred.mean().item(),
@@ -314,8 +361,8 @@ class ValueDiffusion(GaussianDiffusion):
 
         return loss, log
 
-    def forward(self, x, cond, t):
-        return self.model(x, cond, t)
+    def forward(self, x, cond, t, returns=None):
+        return self.model(x, cond, t, returns)
 
 
 @MODEL_REGISTRY.register('pd')
@@ -643,3 +690,158 @@ class GaussianInvDynDiffusion(nn.Module):
 
     def forward(self, cond, *args, **kwargs):
         return self.conditional_sample(cond=cond, *args, **kwargs)
+
+class GuidenceFreeDifffuser(GaussianInvDynDiffusion):
+
+    def p_mean_variance(self, x, cond, t, epsilon):
+        x_recon = self.predict_start_from_noise(x, t=t, noise=epsilon)
+
+        if self.clip_denoised:
+            x_recon.clamp_(-1., 1.)
+        else:
+            assert RuntimeError()
+
+        model_mean, posterior_variance, posterior_log_variance = self.q_posterior(x_start=x_recon, x_t=x, t=t)
+        return model_mean, posterior_variance, posterior_log_variance
+
+    def p_sample_loop(self, shape, cond, sample_fn=None, plan_size=1, **sample_kwargs):
+        device = self.betas.device
+
+        batch_size = shape[0]
+        x = torch.randn(shape, device=device)
+        x = apply_conditioning(x, cond, self.action_dim)
+
+        assert sample_fn != None
+        for i in reversed(range(0, self.n_timesteps)):
+            t = torch.full((batch_size, ), i, device=device, dtype=torch.long)
+            x = sample_fn(self, x, cond, t, **sample_kwargs)
+            x = apply_conditioning(x, cond, self.action_dim)
+
+        return x
+
+
+    def conditional_sample(self, cond, horizon=None, **sample_kwargs):
+        device = self.betas.device
+        batch_size = len(cond[0])
+        horizon = horizon or self.horizon
+        shape = (batch_size, horizon, self.obs_dim)
+        return self.p_sample_loop(shape, cond, **sample_kwargs)
+    
+    def p_losses(self, x_start, cond, t, returns=None):
+        noise = torch.randn_like(x_start)
+
+        batch_size = len(cond[0])
+        mask_rand = torch.rand([batch_size])
+        mask = torch.bernoulli(mask_rand, 0.7)
+        returns = returns * mask
+
+        x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
+        x_noisy = apply_conditioning(x_noisy, cond, 0)
+
+        x_recon = self.model(x_noisy, cond, t, returns)
+
+        if not self.predict_epsilon:
+            x_recon = apply_conditioning(x_recon, cond, 0)
+
+        assert noise.shape == x_recon.shape
+
+        if self.predict_epsilon:
+            loss = F.mse_loss(x_recon, noise, reduction='none')
+            a0_loss = (loss[:, 0, :self.action_dim] / self.loss_weights[0, :self.action_dim].to(loss.device)).mean()
+            loss = (loss * self.loss_weights.to(loss.device)).mean()
+        else:
+            loss = F.mse_loss(x_recon, x_start, reduction='none')
+            a0_loss = (loss[:, 0, :self.action_dim] / self.loss_weights[0, :self.action_dim].to(loss.device)).mean()
+            loss = (loss * self.loss_weights.to(loss.device)).mean()
+        return loss, a0_loss
+        
+
+@MODEL_REGISTRY.register('metadiffuser')
+class MetaDiffuser(nn.Module):
+
+    def __init__(
+            self,
+            dim: int,
+            obs_dim: Union[int, SequenceType],
+            action_dim: Union[int, SequenceType],
+            reward_cfg: dict,
+            diffuser_cfg: dict,
+            horizon: int,
+            **sample_kwargs,
+            ):
+        
+        self.obs_dim = obs_dim
+        self.action_dim = action_dim
+        self.horizon = horizon
+        self.sample_kwargs = sample_kwargs
+
+        self.embed = nn.Sequential(
+            nn.Linear((obs_dim * 2 + action_dim + 1) * horizon, dim * 4),
+            nn.Mish(),
+            nn.Linear(dim * 4, dim * 4),
+            nn.Mish(),
+            nn.Linear(dim * 4, dim * 4),
+            nn.Mish(),
+            nn.Linear(dim * 4, dim * 4),
+            nn.Mish(),
+            nn.Linear(dim * 4, dim)
+        )
+
+        self.reward_model = ValueDiffusion(**reward_cfg)
+
+        self.dynamic_model = nn.Sequential(
+            nn.Linear(obs_dim + action_dim + dim, 200),
+            nn.ReLU(),
+            nn.Linear(200, 200),
+            nn.ReLU(),
+            nn.Linear(200, 200),
+            nn.ReLU(),
+            nn.Linear(200, 200),
+            nn.ReLU(),
+            nn.Linear(200, 200),
+            nn.ReLU(),
+            nn.Linear(200, obs_dim),
+        )
+
+        self.diffuser = GuidenceFreeDifffuser(**diffuser_cfg)
+
+    def diffuser_loss(self, x_start, cond, t):
+        return self.diffuser.p_losses(x_start, cond, t)
+    
+    def pre_train_loss(self, traj, target, t, cond):
+        input_emb = traj.reshape(target.shape[0], -1)
+        task_idx = self.embed(input_emb)
+
+        states = traj[:,:, self.action_dim:self.action_dim + self.obs_dim]
+        actions = traj[:, :, :self.action_dim]
+        input = torch.cat([actions, states], dim=-1)
+        target_reward = target[:,-1]
+
+        target_next_state = target[:, :-1]
+        task_idxs = torch.full(states.shape[:-1], task_idx, device=task_idx.device, dtype=torch.long)
+
+        reward_loss, reward_log = self.reward_model.p_losses(input, cond, target_reward, t, task_idxs)
+        
+        
+        
+        n = states.shape[1]
+
+        state_loss = 0
+        for i in range(n):
+            next_state = self.dynamic_model(input)
+            state_loss += F.mse_loss(next_state, target_next_state, reduction='none').mean()
+        state_loss /= n
+        return state_loss, reward_loss
+
+    def get_eval(self, cond, id, batch_size = 1):
+        if batch_size > 1:
+            cond = self.repeat_cond(cond, batch_size)
+        
+        samples = self.diffuser(cond, returns=id, sample_fn=free_guidance_sample, plan_size=batch_size,
+                                guide1=self.reward_model, guide2=self.dynamic_model **self.sample_kwargs)
+        return samples[:, 0, :,self.action_dim]
+
+    def repeat_cond(self, cond, batch_size):
+        for k, v in cond.items():
+            cond[k] = v.repeat_interleave(batch_size, dim=0)
+        return cond
