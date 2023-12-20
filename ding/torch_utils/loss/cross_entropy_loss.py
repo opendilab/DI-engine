@@ -5,19 +5,26 @@ from typing import Any, Optional
 
 
 class LabelSmoothCELoss(nn.Module):
-    r"""
+    """
     Overview:
         Label smooth cross entropy loss.
     Interfaces:
-        forward
+        __init__, forward.
     """
 
     def __init__(self, ratio: float) -> None:
+        """
+        Overview:
+            Initialize the LabelSmoothCELoss object using the given arguments.
+        Arguments:
+            - ratio (:obj:`float`): The ratio of label-smoothing (the value is in 0-1). If the ratio is larger, the \
+                extent of label smoothing is larger.
+        """
         super().__init__()
         self.ratio = ratio
 
     def forward(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate label smooth cross entropy loss.
         Arguments:
@@ -35,16 +42,31 @@ class LabelSmoothCELoss(nn.Module):
 
 
 class SoftFocalLoss(nn.Module):
-    r"""
+    """
     Overview:
         Soft focal loss.
     Interfaces:
-        forward
+        __init__, forward.
     """
 
     def __init__(
             self, gamma: int = 2, weight: Any = None, size_average: bool = True, reduce: Optional[bool] = None
     ) -> None:
+        """
+        Overview:
+            Initialize the SoftFocalLoss object using the given arguments.
+        Arguments:
+            - gamma (:obj:`int`): The extent of focus on hard samples. A smaller ``gamma`` will lead to more focus on \
+                easy samples, while a larger ``gamma`` will lead to more focus on hard samples.
+            - weight (:obj:`Any`): The weight for loss of each class.
+            - size_average (:obj:`bool`): By default, the losses are averaged over each loss element in the batch. \
+                Note that for some losses, there are multiple elements per sample. If the field ``size_average`` is \
+                set to ``False``, the losses are instead summed for each minibatch. Ignored when ``reduce`` is \
+                ``False``.
+            - reduce (:obj:`Optional[bool]`): By default, the losses are averaged or summed over observations for \
+                each minibatch depending on size_average. When ``reduce`` is ``False``, returns a loss for each batch \
+                element instead and ignores ``size_average``.
+        """
         super().__init__()
         self.gamma = gamma
         self.nll_loss = torch.nn.NLLLoss2d(weight, size_average, reduce=reduce)
@@ -63,9 +85,9 @@ class SoftFocalLoss(nn.Module):
 
 
 def build_ce_criterion(cfg: dict) -> nn.Module:
-    r"""
+    """
     Overview:
-        Get a cross enntropy loss instance according to given config.
+        Get a cross entropy loss instance according to given config.
     Arguments:
         - cfg (:obj:`dict`)
     Returns:
