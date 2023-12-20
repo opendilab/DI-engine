@@ -300,36 +300,29 @@
 <span class="kn">from</span> <span class="nn">ding.torch_utils.network</span> <span class="kn">import</span> <span class="n">one_hot</span>
 
 
-<span class="k">def</span> <span class="nf">get_distance_matrix</span><span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">M</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">get_distance_matrix</span><span class="p">(</span><span class="n">lx</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ly</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">M</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="n">nlx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
     <span class="n">nly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">ly</span><span class="p">,</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">])</span>
     <span class="n">nret</span> <span class="o">=</span> <span class="n">nlx</span> <span class="o">+</span> <span class="n">nly</span> <span class="o">-</span> <span class="n">mat</span>
-
-    <span class="c1"># ret = []</span>
-    <span class="c1"># for i in range(M):</span>
-    <span class="c1">#     ret.append(lx[i] + ly - mat[i])</span>
-    <span class="c1"># ret = np.stack(ret)</span>
-    <span class="c1"># assert ret.shape == (M, M)</span>
-    <span class="c1"># assert np.all(nret == ret)</span>
     <span class="k">return</span> <span class="n">nret</span>
 
 
 <div class="viewcode-block" id="MultiLogitsLoss"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss">[docs]</a><span class="k">class</span> <span class="nc">MultiLogitsLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class for supervised learning on linklink, including basic processes.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        forward</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">        __init__, forward.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">criterion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smooth_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            initialization method, use cross_entropy as default criterion</span>
+<span class="sd">            Initialization method, use cross_entropy as default criterion.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - criterion (:obj:`str`): criterion type, supports [&#39;cross_entropy&#39;, &#39;label_smooth_ce&#39;]</span>
-<span class="sd">            - smooth_ratio (:obs:`float`): smooth_ratio for label smooth</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">            - criterion (:obj:`str`): Criterion type, supports [&#39;cross_entropy&#39;, &#39;label_smooth_ce&#39;].</span>
+<span class="sd">            - smooth_ratio (:obs:`float`): Smoothing ratio for label smoothing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MultiLogitsLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">criterion</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">criterion</span> <span class="o">=</span> <span class="s1">&#39;cross_entropy&#39;</span>
@@ -403,7 +396,7 @@
         <span class="k">return</span> <span class="n">index</span>
 
 <div class="viewcode-block" id="MultiLogitsLoss.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate multiple logits loss.</span>
 <span class="sd">        Arguments:</span>

@@ -299,19 +299,26 @@
 
 
 <div class="viewcode-block" id="LabelSmoothCELoss"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss">[docs]</a><span class="k">class</span> <span class="nc">LabelSmoothCELoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Label smooth cross entropy loss.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        forward</span>
+<span class="sd">        __init__, forward.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the LabelSmoothCELoss object using the given arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ratio (:obj:`float`): The ratio of label-smoothing (the value is in 0-1). If the ratio is larger, the \</span>
+<span class="sd">                extent of label smoothing is larger.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
 
 <div class="viewcode-block" id="LabelSmoothCELoss.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calculate label smooth cross entropy loss.</span>
 <span class="sd">        Arguments:</span>
@@ -329,16 +336,31 @@
 
 
 <div class="viewcode-block" id="SoftFocalLoss"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss">[docs]</a><span class="k">class</span> <span class="nc">SoftFocalLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Soft focal loss.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        forward</span>
+<span class="sd">        __init__, forward.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">weight</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">size_average</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">reduce</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the SoftFocalLoss object using the given arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - gamma (:obj:`int`): The extent of focus on hard samples. A smaller ``gamma`` will lead to more focus on \</span>
+<span class="sd">                easy samples, while a larger ``gamma`` will lead to more focus on hard samples.</span>
+<span class="sd">            - weight (:obj:`Any`): The weight for loss of each class.</span>
+<span class="sd">            - size_average (:obj:`bool`): By default, the losses are averaged over each loss element in the batch. \</span>
+<span class="sd">                Note that for some losses, there are multiple elements per sample. If the field ``size_average`` is \</span>
+<span class="sd">                set to ``False``, the losses are instead summed for each minibatch. Ignored when ``reduce`` is \</span>
+<span class="sd">                ``False``.</span>
+<span class="sd">            - reduce (:obj:`Optional[bool]`): By default, the losses are averaged or summed over observations for \</span>
+<span class="sd">                each minibatch depending on size_average. When ``reduce`` is ``False``, returns a loss for each batch \</span>
+<span class="sd">                element instead and ignores ``size_average``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nll_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">NLLLoss2d</span><span class="p">(</span><span class="n">weight</span><span class="p">,</span> <span class="n">size_average</span><span class="p">,</span> <span class="n">reduce</span><span class="o">=</span><span class="n">reduce</span><span class="p">)</span>
@@ -357,9 +379,9 @@
 
 
 <span class="k">def</span> <span class="nf">build_ce_criterion</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Get a cross enntropy loss instance according to given config.</span>
+<span class="sd">        Get a cross entropy loss instance according to given config.</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - cfg (:obj:`dict`)</span>
 <span class="sd">    Returns:</span>
