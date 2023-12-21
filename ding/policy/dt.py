@@ -136,7 +136,7 @@ class DTPolicy(Policy):
         if self._basic_discrete_env:
             actions = actions.to(torch.long)
             actions = actions.squeeze(-1)
-            action_target = torch.clone(actions).detach().to(self._device)
+        action_target = torch.clone(actions).detach().to(self._device)
 
         if self._atari_env:
             state_preds, action_preds, return_preds = self._learn_model.forward(
@@ -291,7 +291,7 @@ class DTPolicy(Policy):
                     self.states[i, self.t[i]] = data[i]['obs'].to(self._device)
                 else:
                     self.states[i, self.t[i]] = (data[i]['obs'].to(self._device) - self.state_mean) / self.state_std
-                self.running_rtg[i] = self.running_rtg[i] - data[i]['reward'].to(self._device)
+                self.running_rtg[i] = self.running_rtg[i] - (data[i]['reward'] / self.rtg_scale).to(self._device)
                 self.rewards_to_go[i, self.t[i]] = self.running_rtg[i]
 
                 if self.t[i] <= self.context_len:
@@ -328,6 +328,8 @@ class DTPolicy(Policy):
                         act[i] = torch.multinomial(probs[i], num_samples=1)
                 else:
                     act = torch.argmax(logits, axis=1).unsqueeze(1)
+            else:
+                act = logits
             for i in data_id:
                 self.actions[i, self.t[i]] = act[i]  # TODO: self.actions[i] should be a queue when exceed max_t
                 self.t[i] += 1

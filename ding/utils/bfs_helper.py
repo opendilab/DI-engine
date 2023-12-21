@@ -1,10 +1,21 @@
 import numpy as np
 import torch
+from gym import Env
+from typing import Tuple, List
 
 
-# BFS algorithm
-def get_vi_sequence(env, observation):
-    """Returns [L, W, W] optimal actions."""
+def get_vi_sequence(env: Env, observation: np.ndarray) -> Tuple[np.ndarray, List]:
+    """
+    Overview:
+        Given an instance of the maze environment and the current observation, using Broad-First-Search (BFS) \
+        algorithm to plan an optimal path and record the result.
+    Arguments:
+        - env (:obj:`Env`): The instance of the maze environment.
+        - observation (:obj:`np.ndarray`): The current observation.
+    Returns:
+        - output (:obj:`Tuple[np.ndarray, List]`): The BFS result. ``output[0]`` contains the BFS map after each \
+            iteration and ``output[1]`` contains the optimal actions before reaching the finishing point.
+    """
     xy = np.where(observation[Ellipsis, -1] == 1)
     start_x, start_y = xy[0][0], xy[1][0]
     target_location = env.target_location
