@@ -182,6 +182,7 @@ def offpolicy_data_fetcher(
 
     return _fetch
 
+
 def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
 
     from threading import Thread

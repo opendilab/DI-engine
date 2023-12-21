@@ -540,6 +540,7 @@ class DQNPolicy(Policy):
             )
         return {'priority': td_error_per_sample.abs().tolist()}
 
+
 @POLICY_REGISTRY.register('dqn_stdim')
 class DQNSTDIMPolicy(DQNPolicy):
     """

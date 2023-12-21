@@ -177,6 +177,7 @@ class PoolEnvManager:
             self.close()
             return self._action_space
 
+
 @ENV_MANAGER_REGISTRY.register('envpool_v2')
 class PoolEnvManagerV2:
     """
