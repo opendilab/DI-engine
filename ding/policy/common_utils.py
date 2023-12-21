@@ -30,7 +30,7 @@ def default_preprocess_learn(
     """
     # data preprocess
     elem = data[0]
-    if isinstance(elem['action'], torch.Tensor) and elem['action'].dtype in [np.int64, torch.int64]:
+    if isinstance(elem['action'], (np.ndarray, torch.Tensor)) and elem['action'].dtype in [np.int64, torch.int64]:
         data = default_collate(data, cat_1dim=True)  # for discrete action
     else:
         data = default_collate(data, cat_1dim=False)  # for continuous action

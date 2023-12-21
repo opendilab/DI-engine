@@ -11,7 +11,7 @@ class DatasetNormalizer:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
-    def __init__(self, dataset: np.ndarray, normalizer: str, path_lengths: int = None):
+    def __init__(self, dataset: np.ndarray, normalizer: str, path_lengths: list = None):
         """
         Overview:
             Initialize the NormalizerHelper object.
@@ -20,7 +20,7 @@ class DatasetNormalizer:
             - dataset (:obj:`np.ndarray`): The dataset to be normalized.
             - normalizer (:obj:`str`): The type of normalizer to be used. Can be a string representing the name of \
                 the normalizer class.
-            - path_lengths (:obj:`int`): The length of the paths in the dataset. Defaults to None.
+            - path_lengths (:obj:`list`): The length of the paths in the dataset. Defaults to None.
         """
         dataset = flatten(dataset, path_lengths)
 
