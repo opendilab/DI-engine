@@ -410,6 +410,7 @@
             <span class="nb">setattr</span><span class="p">(</span><span class="n">learner</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">))</span>
         <span class="c1"># Set policy in created learner.</span>
         <span class="n">policy_cfg</span> <span class="o">=</span> <span class="n">task_info</span><span class="p">[</span><span class="s1">&#39;policy&#39;</span><span class="p">]</span>
+        <span class="n">policy_cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">policy_cfg</span><span class="p">)</span>
         <span class="n">learner</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">create_policy</span><span class="p">(</span><span class="n">policy_cfg</span><span class="p">,</span> <span class="n">enable_field</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;learn&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">learn_mode</span>
         <span class="n">learner</span><span class="o">.</span><span class="n">setup_dataloader</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">learner</span></div>
