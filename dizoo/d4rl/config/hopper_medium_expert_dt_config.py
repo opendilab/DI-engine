@@ -2,7 +2,7 @@ from easydict import EasyDict
 from copy import deepcopy
 
 hopper_dt_config = dict(
-    exp_name='dt_log/d4rl/hopper/hopper_medium_expert_dt_seed0',
+    exp_name='dt_log/d4rl/hopper/hopper_medium_expert_dt',
     env=dict(
         env_id='Hopper-v3',
         collector_env_num=1,
@@ -14,8 +14,8 @@ hopper_dt_config = dict(
     dataset=dict(
         env_type='mujoco',
         rtg_scale=1000,
-        context_len=30,
-        data_dir_prefix='d4rl/hopper_medium_expert-v2.pkl',
+        context_len=20,
+        data_dir_prefix='d4rl/hopper_medium_expert.pkl',
     ),
     policy=dict(
         cuda=True,

@@ -193,7 +193,10 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     def producer(queue, dataset, batch_size, device):
         torch.set_num_threads(4)
         nonlocal stream
-        idx_iter = iter(range(len(dataset)))
+        idx_iter = iter(range(len(dataset) - batch_size))
+
+        if len(dataset) < batch_size:
+            logging.warning('batch_size is too large!!!!')
         with torch.cuda.stream(stream):
             while True:
                 if queue.full():
@@ -203,7 +206,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
                         start_idx = next(idx_iter)
                     except StopIteration:
                         del idx_iter
-                        idx_iter = iter(range(len(dataset)))
+                        idx_iter = iter(range(len(dataset) - batch_size))
                         start_idx = next(idx_iter)
                     data = [dataset.__getitem__(idx) for idx in range(start_idx, start_idx + batch_size)]
                     data = [[i[j] for i in data] for j in range(len(data[0]))]
@@ -213,7 +216,7 @@ def offline_data_fetcher_from_mem(cfg: EasyDict, dataset: Dataset) -> Callable:
     queue = Queue(maxsize=50)
     device = 'cuda:{}'.format(get_rank() % torch.cuda.device_count()) if cfg.policy.cuda else 'cpu'
     producer_thread = Thread(
-        target=producer, args=(queue, dataset, cfg.policy.batch_size, device), name='cuda_fetcher_producer'
+        target=producer, args=(queue, dataset, cfg.policy.learn.batch_size, device), name='cuda_fetcher_producer'
     )
 
     def _fetch(ctx: "OfflineRLContext"):

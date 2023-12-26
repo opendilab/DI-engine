@@ -116,6 +116,7 @@ class BaseCommLearner(ABC):
             setattr(learner, item, getattr(self, item))
         # Set policy in created learner.
         policy_cfg = task_info['policy']
+        policy_cfg = EasyDict(policy_cfg)
         learner.policy = create_policy(policy_cfg, enable_field=['learn']).learn_mode
         learner.setup_dataloader()
         return learner
