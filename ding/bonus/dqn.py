@@ -72,19 +72,19 @@ class DQNAgent:
             For example, we have an environment with id ``LunarLander-v2`` registered in gym, \
             and we want to train an agent with DQN algorithm with default configuration. \
             Then we can initialize the agent in the following ways:
-                ``agent = DQNAgent(env_id='LunarLander-v2')``
+                >>> agent = DQNAgent(env_id='LunarLander-v2')
             or, if we want can specify the env_id in the configuration:
-                ``cfg = {'env': {'env_id': 'LunarLander-v2'}, 'policy': ...... }``
-                ``agent = DQNAgent(cfg=cfg)``
+                >>> cfg = {'env': {'env_id': 'LunarLander-v2'}, 'policy': ...... }
+                >>> agent = DQNAgent(cfg=cfg)
             There are also other arguments to specify the agent when initializing.
             For example, if we want to specify the environment instance:
-                ``env = CustomizedEnv('LunarLander-v2')``
-                ``agent = DQNAgent(cfg=cfg, env=env)``
+                >>> env = CustomizedEnv('LunarLander-v2')
+                >>> agent = DQNAgent(cfg=cfg, env=env)
             or, if we want to specify the model:
-                ``model = DQN(**cfg.policy.model)``
-                ``agent = DQNAgent(cfg=cfg, model=model)``
+                >>> model = DQN(**cfg.policy.model)
+                >>> agent = DQNAgent(cfg=cfg, model=model)
             or, if we want to reload the policy from a saved policy state dict:
-                ``agent = DQNAgent(cfg=cfg, policy_state_dict='LunarLander-v2.pth.tar')``
+                >>> agent = DQNAgent(cfg=cfg, policy_state_dict='LunarLander-v2.pth.tar')
             Make sure that the configuration is consistent with the saved policy state dict.
         """
 
@@ -157,8 +157,11 @@ class DQNAgent:
                 If not specified, it will be set according to the configuration.
             - n_iter_save_ckpt (:obj:`int`): The frequency of saving checkpoint every training iteration. \
                 Default to 1000.
-            - context (:obj:`str`): The context of the environment manager. Default to None.
-            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
+            - context (:obj:`str`): The multi-process context of the environment manager. Default to None. \
+                It can be specified as ``spawn``, ``fork`` or ``forkserver``.
+            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False. \
+                If set True, base environment manager will be used for easy debugging. Otherwise, \
+                subprocess environment manager will be used.
             - wandb_sweep (:obj:`bool`): Whether to use wandb sweep, \
                 which is a hyper-parameter optimization process for seeking the best configurations. \
                 Default to False. If True, the wandb sweep id will be used as the experiment name.
@@ -239,7 +242,9 @@ class DQNAgent:
                 Default to None. If not specified, ``self.seed`` will be used. \
                 If ``seed`` is an integer, the agent will be deployed once. \
                 If ``seed`` is a list of integers, the agent will be deployed once for each seed in the list.
-            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
+            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False. \
+                If set True, base environment manager will be used for easy debugging. Otherwise, \
+                subprocess environment manager will be used.
         Returns:
             - (:obj:`EvalReturn`): The evaluation result, of which the attributions are:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
@@ -339,8 +344,11 @@ class DQNAgent:
                 If not specified, ``n_episode`` must be specified.
             - n_episode (:obj:`int`): The number of episodes to collect. Default to None. \
                 If not specified, ``n_sample`` must be specified.
-            - context (:obj:`str`): The context of the environment manager. Default to None.
-            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
+            - context (:obj:`str`): The multi-process context of the environment manager. Default to None. \
+                It can be specified as ``spawn``, ``fork`` or ``forkserver``.
+            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False. \
+                If set True, base environment manager will be used for easy debugging. Otherwise, \
+                subprocess environment manager will be used.
         """
 
         if debug:
@@ -378,11 +386,17 @@ class DQNAgent:
         Overview:
             Evaluate the agent with DQN algorithm for ``n_evaluator_episode`` episodes with ``env_num`` evaluator \
             environments. The evaluation result will be returned.
+            The difference between methods ``batch_evaluate`` and ``deploy`` is that ``batch_evaluate`` will create \
+            multiple evaluator environments to evaluate the agent to get an average performance, while ``deploy`` \
+            will only create one evaluator environment to evaluate the agent and save the replay video.
         Arguments:
             - env_num (:obj:`int`): The number of evaluator environments. Default to 4.
             - n_evaluator_episode (:obj:`int`): The number of episodes to evaluate. Default to 4.
-            - context (:obj:`str`): The context of the environment manager. Default to None.
-            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False.
+            - context (:obj:`str`): The multi-process context of the environment manager. Default to None. \
+                It can be specified as ``spawn``, ``fork`` or ``forkserver``.
+            - debug (:obj:`bool`): Whether to use debug mode in the environment manager. Default to False. \
+                If set True, base environment manager will be used for easy debugging. Otherwise, \
+                subprocess environment manager will be used.
         Returns:
             - (:obj:`EvalReturn`): The evaluation result, of which the attributions are:
                 - eval_value (:obj:`np.float32`): The mean of evaluation return.
@@ -411,13 +425,18 @@ class DQNAgent:
         return EvalReturn(eval_value=task.ctx.eval_value, eval_value_std=task.ctx.eval_value_std)
 
     @property
-    def best(self):
+    def best(self) -> 'DQNAgent':
         """
         Overview:
             Load the best model from the checkpoint directory, \
-            which is by default in folder ``exp_name/ckpt/eval.pth.tar``.
+            which is by default in folder ``exp_name/ckpt/eval.pth.tar``. \
+            The return value is the agent with the best model.
         Returns:
             - (:obj:`DQNAgent`): The agent with the best model.
+        Examples:
+            >>> agent = DQNAgent(env_id='LunarLander-v2')
+            >>> agent.train()
+            >>> agent = agent.best
 
         .. note::
             The best model is the model with the highest evaluation return. If this method is called, the current \
