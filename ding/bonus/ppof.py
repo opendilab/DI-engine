@@ -102,7 +102,7 @@ class PPOF:
                 Default to None. If not specified, the default configuration will be used.
             - policy_state_dict (:obj:`str`): The path of policy state dict saved by PyTorch a in local file. \
                 If specified, the policy will be loaded from this file. Default to None.
-        
+
         .. note::
             An RL Agent Instance can be initialized in two basic ways. \
             For example, we have an environment with id ``LunarLander-v2`` registered in gym, \
