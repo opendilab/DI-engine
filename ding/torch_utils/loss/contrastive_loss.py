@@ -8,10 +8,11 @@ from ding.utils import SequenceType
 
 class ContrastiveLoss(nn.Module):
     """
-        The class for contrastive learning losses.
-        Only InfoNCE loss supported currently.
-        Code Reference: https://github.com/rdevon/DIM.
-        paper: https://arxiv.org/abs/1808.06670.
+    Overview:
+        The class for contrastive learning losses. Only InfoNCE loss is supported currently. \
+        Code Reference: https://github.com/rdevon/DIM. Paper Reference: https://arxiv.org/abs/1808.06670.
+    Interfaces:
+        __init__, forward.
     """
 
     def __init__(
@@ -24,13 +25,18 @@ class ContrastiveLoss(nn.Module):
             temperature: float = 1.0,
     ) -> None:
         """
-        Args:
-            x_size: input shape for x, both the obs shape and the encoding shape are supported.
-            y_size: input shape for y, both the obs shape and the encoding shape are supported.
-            heads: a list of 2 int elems, heads[0] for x and head[1] for y.
+        Overview:
+            Initialize the ContrastiveLoss object using the given arguments.
+        Arguments:
+            - x_size (:obj:`Union[int, SequenceType]`): input shape for x, both the obs shape and the encoding shape \
+                are supported.
+            - y_size (:obj:`Union[int, SequenceType]`): Input shape for y, both the obs shape and the encoding shape \
+                are supported.
+            - heads (:obj:`SequenceType`): A list of 2 int elems, ``heads[0]`` for x and ``head[1]`` for y. \
                 Used in multi-head, global-local, local-local MI maximization process.
-            loss_type: only the InfoNCE loss is available now.
-            temperature: the parameter to adjust the log_softmax.
+            - encoder_shape (:obj:`Union[int, SequenceType]`): The dimension of encoder hidden state.
+            - loss_type: Only the InfoNCE loss is available now.
+            - temperature: The parameter to adjust the ``log_softmax``.
         """
         super(ContrastiveLoss, self).__init__()
         assert len(heads) == 2, "Expected length of 2, but got: {}".format(len(heads))
@@ -43,7 +49,7 @@ class ContrastiveLoss(nn.Module):
         self._y_encoder = self._get_encoder(y_size, heads[1])
         self._temperature = temperature
 
-    def _get_encoder(self, obs: Union[int, SequenceType], heads: int):
+    def _get_encoder(self, obs: Union[int, SequenceType], heads: int) -> nn.Module:
         from ding.model import ConvEncoder, FCEncoder
 
         if isinstance(obs, int):
@@ -61,14 +67,29 @@ class ContrastiveLoss(nn.Module):
                 encoder = ConvEncoder(obs, hidden_size_list, kernel_size=[4, 3, 2], stride=[2, 1, 1])
         return encoder
 
-    def forward(self, x: torch.Tensor, y: torch.Tensor):
+    def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """
-        Computes the noise contrastive estimation-based loss, a.k.a. infoNCE.
-        Args:
-            x: the input x, both raw obs and encoding are supported.
-            y: the input y, both raw obs and encoding are supported.
+        Overview:
+            Computes the noise contrastive estimation-based loss, a.k.a. infoNCE.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input x, both raw obs and encoding are supported.
+            - y (:obj:`torch.Tensor`): The input y, both raw obs and encoding are supported.
         Returns:
-            torch.Tensor: loss value.
+            loss (:obj:`torch.Tensor`): The calculated loss value.
+        Examples:
+            >>> x_dim = [3, 16]
+            >>> encode_shape = 16
+            >>> x = np.random.normal(0, 1, size=x_dim)
+            >>> y = x ** 2 + 0.01 * np.random.normal(0, 1, size=x_dim)
+            >>> estimator = ContrastiveLoss(dims, dims, encode_shape=encode_shape)
+            >>> loss = estimator.forward(x, y)
+        Examples:
+            >>> x_dim = [3, 1, 16, 16]
+            >>> encode_shape = 16
+            >>> x = np.random.normal(0, 1, size=x_dim)
+            >>> y = x ** 2 + 0.01 * np.random.normal(0, 1, size=x_dim)
+            >>> estimator = ContrastiveLoss(dims, dims, encode_shape=encode_shape)
+            >>> loss = estimator.forward(x, y)
         """
 
         N = x.size(0)

@@ -13,7 +13,7 @@ from dizoo.cliffwalking.envs.cliffwalking_env import CliffWalkingEnv
 def main(main_config: EasyDict, create_config: EasyDict, ckpt_path: str):
     main_config.exp_name = f'cliffwalking_dqn_seed0_deploy'
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    env = CliffWalkingEnv(cfg.env.spec)
+    env = CliffWalkingEnv(cfg.env)
     env.enable_save_replay(replay_path=f'./{main_config.exp_name}/video')
     model = DQN(**cfg.policy.model)
     state_dict = torch.load(ckpt_path, map_location='cpu')
