@@ -31,6 +31,13 @@ class DQNAgent:
         ``__init__``, ``train``, ``deploy``, ``collect_data``, ``batch_evaluate``, ``best``
     """
     supported_env_list = list(supported_env_cfg.keys())
+    """
+    Overview:
+        List of supported envs.
+    Examples:
+        >>> from ding.bonus.dqn import DQNAgent
+        >>> print(DQNAgent.supported_env_list)
+    """
 
     def __init__(
             self,

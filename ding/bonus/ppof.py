@@ -61,6 +61,13 @@ class PPOF:
         'HalfCheetah-v3',
         'Walker2d-v3',
     ]
+    """
+    Overview:
+        List of supported envs.
+    Examples:
+        >>> from ding.bonus.ppof import PPOF
+        >>> print(PPOF.supported_env_list)
+    """
 
     def __init__(
             self,

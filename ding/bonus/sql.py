@@ -32,6 +32,13 @@ class SQLAgent:
         ``__init__``, ``train``, ``deploy``, ``collect_data``, ``batch_evaluate``, ``best``
     """
     supported_env_list = list(supported_env_cfg.keys())
+    """
+    Overview:
+        List of supported envs.
+    Examples:
+        >>> from ding.bonus.sql import SQLAgent
+        >>> print(SQLAgent.supported_env_list)
+    """
 
     def __init__(
             self,
