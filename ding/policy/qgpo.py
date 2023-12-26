@@ -16,12 +16,12 @@ from ding.model.template.qgpo import marginal_prob_std
 
 @POLICY_REGISTRY.register('qgpo')
 class QGPOPolicy(Policy):
-    '''
+    """
        Overview:
             Policy class of QGPO algorithm
             Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning
             https://arxiv.org/abs/2304.12824
-    '''
+    """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -35,16 +35,14 @@ class QGPOPolicy(Policy):
         multi_agent=False,
         model=dict(
             score_net=dict(
-                score_base=dict(
-                    qgpo_critic=dict(
-                        # (float) The scale of the energy guidance when training qt.
-                        # \pi_{behavior}\exp(f(s,a)) \propto \pi_{behavior}\exp(alpha * Q(s,a))
-                        alpha=3,
-                        # (float) The scale of the energy guidance when training q0.
-                        # \mathcal{T}Q(s,a)=r(s,a)+\mathbb{E}_{s'\sim P(s'|s,a),a'\sim\pi_{support}(a'|s')}Q(s',a')
-                        # \pi_{support} \propto \pi_{behavior}\exp(q_alpha * Q(s,a))
-                        q_alpha=1,
-                    ),
+                qgpo_critic=dict(
+                    # (float) The scale of the energy guidance when training qt.
+                    # \pi_{behavior}\exp(f(s,a)) \propto \pi_{behavior}\exp(alpha * Q(s,a))
+                    alpha=3,
+                    # (float) The scale of the energy guidance when training q0.
+                    # \mathcal{T}Q(s,a)=r(s,a)+\mathbb{E}_{s'\sim P(s'|s,a),a'\sim\pi_{support}(a'|s')}Q(s',a')
+                    # \pi_{support} \propto \pi_{behavior}\exp(q_alpha * Q(s,a))
+                    q_alpha=1,
                 ),
             ),
             device='cuda',
@@ -68,10 +66,6 @@ class QGPOPolicy(Policy):
             energy_guided_policy_begin_training_iter=600000,
             # training iterations when q value stop training, default None means no limit
             q_value_stop_training_iter=1100000,
-        ),
-        collect=dict(
-            # (int) Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
         ),
         eval=dict(
             # energy guidance scale for policy in evaluation
@@ -166,11 +160,10 @@ class QGPOPolicy(Policy):
         pass
 
     def _state_dict_learn(self) -> Dict[str, Any]:
-        ret = {
+        return {
             'model': self._model.state_dict(),
             'behavior_model_optimizer': self.behavior_model_optimizer.state_dict(),
         }
-        return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._model.load_state_dict(state_dict['model'])

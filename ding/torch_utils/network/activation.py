@@ -87,15 +87,6 @@ class GELU(nn.Module):
         return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
 
 
-class SiLU(nn.Module):
-
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, x):
-        return x * torch.sigmoid(x)
-
-
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     """
     Overview:
@@ -121,7 +112,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
         "sigmoid": nn.Sigmoid(),
         "softplus": nn.Softplus(),
         "elu": nn.ELU(),
-        "silu": SiLU(),
+        "silu": torch.nn.SiLU(inplace=inplace),
         "square": Lambda(lambda x: x ** 2),
         "identity": Lambda(lambda x: x),
     }

@@ -12,7 +12,6 @@ import copy
 from ding.torch_utils import MLP
 from ding.torch_utils.diffusion_SDE import dpm_solver_pytorch
 from ding.model.common.encoder import GaussianFourierProjectionTimeEncoder
-from ding.torch_utils.network.activation import SiLU
 from ding.torch_utils.network.res_block import TemporalSpatialResBlock
 
 
@@ -65,7 +64,7 @@ class GuidanceQt(nn.Module):
             in_channels=action_dim + time_embed_dim + state_dim,
             hidden_channels=256,
             out_channels=1,
-            activation=SiLU(),
+            activation=torch.nn.SiLU(),
             layer_num=4,
             output_activation=False
         )
@@ -277,15 +276,15 @@ class ScoreBase(nn.Module):
 class ScoreNet(ScoreBase):
 
     def __init__(self, device, cfg, input_dim, output_dim, marginal_prob_std, embed_dim=32):
-        super().__init__(device, cfg.score_base, input_dim, output_dim, marginal_prob_std, embed_dim)
+        super().__init__(device, cfg, input_dim, output_dim, marginal_prob_std, embed_dim)
         # The swish activation function
         self.device = device
         self.cfg = cfg
         self.act = lambda x: x * torch.sigmoid(x)
-        self.pre_sort_condition = nn.Sequential(nn.Linear(input_dim - output_dim, 32), SiLU())
+        self.pre_sort_condition = nn.Sequential(nn.Linear(input_dim - output_dim, 32), torch.nn.SiLU())
         self.sort_t = nn.Sequential(
             nn.Linear(64, 128),
-            SiLU(),
+            torch.nn.SiLU(),
             nn.Linear(128, 128),
         )
         self.down_block1 = TemporalSpatialResBlock(output_dim, 512)

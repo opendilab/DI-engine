@@ -17,7 +17,7 @@ from ding.utils import set_pkg_seed
 from dizoo.d4rl.config.halfcheetah_medium_expert_qgpo_config import main_config, create_config
 
 
-class QGPO_D4RLDataset(torch.utils.data.Dataset):
+class qgpo_d4rl_dataset(torch.utils.data.Dataset):
 
     def __init__(self, cfg, device="cpu"):
         self.cfg = cfg
@@ -35,7 +35,7 @@ class QGPO_D4RLDataset(torch.utils.data.Dataset):
         elif reward_tune == 'iql_antmaze':
             reward = reward - 1.0
         elif reward_tune == 'iql_locomotion':
-            min_ret, max_ret = QGPO_D4RLDataset.return_range(data, 1000)
+            min_ret, max_ret = qgpo_d4rl_dataset.return_range(data, 1000)
             reward /= (max_ret - min_ret)
             reward *= 1000
         elif reward_tune == 'cql_antmaze':
@@ -94,7 +94,7 @@ def main():
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
         model = QGPO(cfg=cfg.policy.model)
         policy = QGPOPolicy(cfg.policy, model=model)
-        dataset = QGPO_D4RLDataset(cfg=cfg.dataset, device=policy._device)
+        dataset = qgpo_d4rl_dataset(cfg=cfg.dataset, device=policy._device)
         if hasattr(cfg.policy, "load_path") and cfg.policy.load_path is not None:
             policy_state_dict = torch.load(cfg.policy.load_path, map_location=torch.device("cpu"))
             policy.learn_mode.load_state_dict(policy_state_dict)

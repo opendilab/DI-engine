@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 
 from .nn_module import conv2d_block, fc_block
-from ding.torch_utils.network.activation import SiLU
 
 
 class ResBlock(nn.Module):
@@ -153,7 +152,7 @@ class ResFCBlock(nn.Module):
 
 class TemporalSpatialResBlock(nn.Module):
 
-    def __init__(self, input_dim, output_dim, t_dim=128, activation=SiLU):
+    def __init__(self, input_dim, output_dim, t_dim=128, activation=torch.nn.SiLU):
         super().__init__()
         self.time_mlp = nn.Sequential(
             activation(),

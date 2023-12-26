@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pytest
 
-from ding.model import ConvEncoder, FCEncoder, IMPALAConvEncoder
+from ding.model import ConvEncoder, FCEncoder, IMPALAConvEncoder, GaussianFourierProjectionTimeEncoder
 from ding.torch_utils import is_differentiable
 
 B = 4
@@ -61,3 +61,10 @@ class TestEncoder:
         outputs = model(inputs)
         self.output_check(model, outputs)
         assert outputs.shape == (B, 256)
+
+    def test_GaussianFourierProjectionTimeEncoder(self):
+        inputs = torch.randn(B)
+        model = GaussianFourierProjectionTimeEncoder(128)
+        print(model)
+        outputs = model(inputs)
+        assert outputs.shape == (B, 128)
