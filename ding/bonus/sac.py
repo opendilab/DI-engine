@@ -27,7 +27,9 @@ class SACAgent:
     """
     Overview:
         Class of agent for training, evaluation and deployment of Reinforcement learning algorithm \
-            Soft Actor-Critic(SAC).
+        Soft Actor-Critic(SAC).
+        For more information about the system design of RL agent, please refer to \
+        <https://di-engine-docs.readthedocs.io/en/latest/03_system/agent.html>.
     Interface:
         ``__init__``, ``train``, ``deploy``, ``collect_data``, ``batch_evaluate``, ``best``
     """
