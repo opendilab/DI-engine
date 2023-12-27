@@ -84,9 +84,8 @@ class QGPOPolicy(Policy):
         self.behavior_policy_stop_training_iter = self._cfg.learn.behavior_policy_stop_training_iter if hasattr(
             self._cfg.learn, 'behavior_policy_stop_training_iter'
         ) else np.inf
-        self.energy_guided_policy_begin_training_iter = self._cfg.learn.energy_guided_policy_begin_training_iter if hasattr(
-            self._cfg.learn, 'energy_guided_policy_begin_training_iter'
-        ) else 0
+        self.energy_guided_policy_begin_training_iter = self._cfg.learn.energy_guided_policy_begin_training_iter if \
+            hasattr(self._cfg.learn, 'energy_guided_policy_begin_training_iter') else 0
         self.q_value_stop_training_iter = self._cfg.learn.q_value_stop_training_iter if hasattr(
             self._cfg.learn, 'q_value_stop_training_iter'
         ) and self._cfg.learn.q_value_stop_training_iter >= 0 else np.inf

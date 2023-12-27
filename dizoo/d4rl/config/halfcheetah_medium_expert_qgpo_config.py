@@ -38,7 +38,6 @@ main_config = dict(
             energy_guided_policy_begin_training_iter=600000,
             q_value_stop_training_iter=1100000,
         ),
-        collect=dict(unroll_len=1, ),
         eval=dict(
             guidance_scale=[0.0, 1.0, 2.0, 3.0, 5.0, 8.0, 10.0],
             diffusion_steps=15,

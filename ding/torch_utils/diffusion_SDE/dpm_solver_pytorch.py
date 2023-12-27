@@ -20,14 +20,17 @@ class NoiseScheduleVP:
         """Create a wrapper class for the forward SDE (VP type).
 
         ***
-        Update: We support discrete-time diffusion models by implementing a picewise linear interpolation for log_alpha_t.
-                We recommend to use schedule='discrete' for the discrete-time diffusion models, especially for high-resolution images.
+        Update: We support discrete-time diffusion models by implementing a picewise linear interpolation \
+            for log_alpha_t. We recommend to use schedule='discrete' for the discrete-time diffusion models, \
+            especially for high-resolution images.
         ***
 
-        The forward SDE ensures that the condition distribution q_{t|0}(x_t | x_0) = N ( alpha_t * x_0, sigma_t^2 * I ).
-        We further define lambda_t = log(alpha_t) - log(sigma_t), which is the half-logSNR (described in the DPM-Solver paper).
-        Therefore, we implement the functions for computing alpha_t, sigma_t and lambda_t. For t in [0, T], we have:
-
+        The forward SDE ensures that the condition distribution \
+            q_{t|0}(x_t | x_0) = N ( alpha_t * x_0, sigma_t^2 * I ).
+        We further define lambda_t = log(alpha_t) - log(sigma_t), \
+        which is the half-logSNR (described in the DPM-Solver paper).
+        Therefore, we implement the functions for computing alpha_t, sigma_t and lambda_t.
+        For t in [0, T], we have:
             log_alpha_t = self.marginal_log_mean_coeff(t)
             sigma_t = self.marginal_std(t)
             lambda_t = self.marginal_lambda(t)
@@ -38,25 +41,32 @@ class NoiseScheduleVP:
 
         ===============================================================
 
-        We support both discrete-time DPMs (trained on n = 0, 1, ..., N-1) and continuous-time DPMs (trained on t in [t_0, T]).
+        We support both discrete-time DPMs (trained on n = 0, 1, ..., N-1) and \
+        continuous-time DPMs (trained on t in [t_0, T]).
 
         1. For discrete-time DPMs:
 
-            For discrete-time DPMs trained on n = 0, 1, ..., N-1, we convert the discrete steps to continuous time steps by:
+            For discrete-time DPMs trained on n = 0, 1, ..., N-1, \
+            we convert the discrete steps to continuous time steps by:
                 t_i = (i + 1) / N
             e.g. for N = 1000, we have t_0 = 1e-3 and T = t_{N-1} = 1.
             We solve the corresponding diffusion ODE from time T = 1 to time t_0 = 1e-3.
 
             Args:
-                betas: A `torch.Tensor`. The beta array for the discrete-time DPM. (See the original DDPM paper for details)
-                alphas_cumprod: A `torch.Tensor`. The cumprod alphas for the discrete-time DPM. (See the original DDPM paper for details)
+                betas: A `torch.Tensor`. The beta array for the discrete-time DPM. \
+                (See the original DDPM paper for details)
+                alphas_cumprod: A `torch.Tensor`. The cumprod alphas for the discrete-time DPM. \
+                (See the original DDPM paper for details)
 
-            Note that we always have alphas_cumprod = cumprod(betas). Therefore, we only need to set one of `betas` and `alphas_cumprod`.
+            Note that we always have alphas_cumprod = cumprod(betas). \
+            Therefore, we only need to set one of `betas` and `alphas_cumprod`.
 
             **Important**:  Please pay special attention for the args for `alphas_cumprod`:
-                The `alphas_cumprod` is the \hat{alpha_n} arrays in the notations of DDPM. Specifically, DDPMs assume that
+                The `alphas_cumprod` is the \hat{alpha_n} arrays in the notations of DDPM. \
+                Specifically, DDPMs assume that
                     q_{t_n | 0}(x_{t_n} | x_0) = N ( \sqrt{\hat{alpha_n}} * x_0, (1 - \hat{alpha_n}) * I ).
-                Therefore, the notation \hat{alpha_n} is different from the notation alpha_t in DPM-Solver. In fact, we have
+                Therefore, the notation \hat{alpha_n} is different from the notation alpha_t in DPM-Solver.
+                In fact, we have
                     alpha_{t_n} = \sqrt{\hat{alpha_n}},
                 and
                     log(alpha_{t_n}) = 0.5 * log(\hat{alpha_n}).
@@ -64,8 +74,8 @@ class NoiseScheduleVP:
 
         2. For continuous-time DPMs:
 
-            We support two types of VPSDEs: linear (DDPM) and cosine (improved-DDPM). The hyperparameters for the noise
-            schedule are the default settings in DDPM and improved-DDPM:
+            We support two types of VPSDEs: linear (DDPM) and cosine (improved-DDPM).
+            The hyperparameters for the noise schedule are the default settings in DDPM and improved-DDPM:
 
             Args:
                 beta_min: A `float` number. The smallest beta for the linear schedule.
@@ -89,7 +99,8 @@ class NoiseScheduleVP:
         # For discrete-time DPMs, given betas (the beta array for n = 0, 1, ..., N - 1):
         >>> ns = NoiseScheduleVP('discrete', betas=betas)
 
-        # For discrete-time DPMs, given alphas_cumprod (the \hat{alpha_n} array for n = 0, 1, ..., N - 1):
+        # For discrete-time DPMs, given alphas_cumprod (the \hat{alpha_n} array \
+        for n = 0, 1, ..., N - 1):
         >>> ns = NoiseScheduleVP('discrete', alphas_cumprod=alphas_cumprod)
 
         # For continuous-time DPMs (VPSDE), linear schedule:
@@ -99,7 +110,8 @@ class NoiseScheduleVP:
 
         if schedule not in ['discrete', 'linear', 'cosine']:
             raise ValueError(
-                "Unsupported noise schedule {}. The schedule needs to be 'discrete' or 'linear' or 'cosine'".
+                "Unsupported noise schedule {}. \
+                The schedule needs to be 'discrete' or 'linear' or 'cosine'".
                 format(schedule)
             )
 
@@ -387,7 +399,9 @@ class DPM_Solver:
             thresholding: A `bool`. Valid when `predict_x0` is True. Whether to use the "dynamic thresholding" in [1].
             max_val: A `float`. Valid when both `predict_x0` and `thresholding` are True. The max value for thresholding.
         
-        [1] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily Denton, Seyed Kamyar Seyed Ghasemipour, Burcu Karagol Ayan, S Sara Mahdavi, Rapha Gontijo Lopes, et al. Photorealistic text-to-image diffusion models with deep language understanding. arXiv preprint arXiv:2205.11487, 2022b.
+        [1] Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily Denton, Seyed Kamyar Seyed Ghasemipour, \
+            Burcu Karagol Ayan, S Sara Mahdavi, Rapha Gontijo Lopes, et al. \
+            Photorealistic text-to-image diffusion models with deep language understanding. arXiv preprint arXiv:2205.11487, 2022b.
         """
         self.model = model_fn
         self.noise_schedule = noise_schedule
@@ -964,7 +978,8 @@ class DPM_Solver:
         Returns:
             x_0: A pytorch tensor. The approximated solution at time `t_0`.
 
-        [1] A. Jolicoeur-Martineau, K. Li, R. Piché-Taillefer, T. Kachman, and I. Mitliagkas, "Gotta go fast when generating data with score-based models," arXiv preprint arXiv:2105.14080, 2021.
+        [1] A. Jolicoeur-Martineau, K. Li, R. Piché-Taillefer, T. Kachman, and I. Mitliagkas, \
+            "Gotta go fast when generating data with score-based models," arXiv preprint arXiv:2105.14080, 2021.
         """
         ns = self.noise_schedule
         s = t_T * torch.ones((x.shape[0], )).to(x)
@@ -1039,7 +1054,8 @@ class DPM_Solver:
                         - If steps % 2 == 1, we use (K - 1) steps of singlestep DPM-Solver-2 and 1 step of DPM-Solver-1.
                     - If `order` == 3:
                         - Denote K = (steps // 3 + 1). We take K intermediate time steps for sampling.
-                        - If steps % 3 == 0, we use (K - 2) steps of singlestep DPM-Solver-3, and 1 step of singlestep DPM-Solver-2 and 1 step of DPM-Solver-1.
+                        - If steps % 3 == 0, we use (K - 2) steps of singlestep DPM-Solver-3, and 1 step of singlestep DPM-Solver-2 \
+                            and 1 step of DPM-Solver-1.
                         - If steps % 3 == 1, we use (K - 1) steps of singlestep DPM-Solver-3 and 1 step of DPM-Solver-1.
                         - If steps % 3 == 2, we use (K - 1) steps of singlestep DPM-Solver-3 and 1 step of singlestep DPM-Solver-2.
             - 'multistep':
@@ -1188,7 +1204,8 @@ def interpolate_fn(x, xp, yp):
     """
     A piecewise linear function y = f(x), using xp and yp as keypoints.
     We implement f(x) in a differentiable way (i.e. applicable for autograd).
-    The function f(x) is well-defined for all x-axis. (For x beyond the bounds of xp, we use the outmost points of xp to define the linear function.)
+    The function f(x) is well-defined for all x-axis. \
+    (For x beyond the bounds of xp, we use the outmost points of xp to define the linear function.)
 
     Args:
         x: PyTorch tensor with shape [N, C], where N is the batch size, C is the number of channels (we use C = 1 for DPM-Solver).
