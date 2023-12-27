@@ -16,7 +16,9 @@ from ding.torch_utils.network.res_block import TemporalSpatialResBlock
 
 
 def marginal_prob_std(t, device):
-    """Compute the mean and standard deviation of $p_{0t}(x(t) | x(0))$.
+    """
+    Overview:
+        Compute the mean and standard deviation of $p_{0t}(x(t) | x(0))$.
     """
     t = torch.tensor(t, device=device)
     beta_1 = 20.0
@@ -185,7 +187,8 @@ class QGPO_Critic(Critic_Guide):
         xt_model_energy = self.qt(perturbed_fake_a, random_t, torch.stack([s] * fake_a.shape[1], axis=1)).squeeze()
         p_label = softmax(x0_data_energy)
         self.debug_used = torch.flatten(p_label).detach().cpu().numpy()
-        loss = -torch.mean(torch.sum(p_label * logsoftmax(xt_model_energy), axis=-1))  #  <bz,M>
+        #  <bz,M>
+        loss = -torch.mean(torch.sum(p_label * logsoftmax(xt_model_energy), axis=-1))
 
         self.qt_optimizer.zero_grad(set_to_none=True)
         loss.backward()
@@ -342,15 +345,16 @@ class QGPO(nn.Module):
         )
 
     def loss_fn(self, x, marginal_prob_std, eps=1e-3):
-        """The loss function for training score-based generative models.
-
-        Args:
-        model: A PyTorch model instance that represents a 
-            time-dependent score-based model.
-        x: A mini-batch of training data.    
-        marginal_prob_std: A function that gives the standard deviation of 
-            the perturbation kernel.
-        eps: A tolerance value for numerical stability.
+        """
+        Overview:
+            The loss function for training score-based generative models.
+        Arguments:
+            model: A PyTorch model instance that represents a \
+                time-dependent score-based model.
+            x: A mini-batch of training data.
+            marginal_prob_std: A function that gives the standard deviation of \
+                the perturbation kernel.
+            eps: A tolerance value for numerical stability.
         """
         random_t = torch.rand(x.shape[0], device=x.device) * (1. - eps) + eps
         z = torch.randn_like(x)
