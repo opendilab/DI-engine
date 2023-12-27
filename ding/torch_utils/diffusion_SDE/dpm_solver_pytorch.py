@@ -1079,7 +1079,8 @@ class DPM_Solver:
                         - If steps % 3 == 2, we use (K - 1) steps of singlestep DPM-Solver-3 \
                             and 1 step of singlestep DPM-Solver-2.
             - 'multistep':
-                Multistep DPM-Solver with the order of `order`. The total number of function evaluations (NFE) == `steps`.
+                Multistep DPM-Solver with the order of `order`.
+                The total number of function evaluations (NFE) == `steps`.
                 We initialize the first `order` values by lower order multistep solvers.
                 Given a fixed NFE == `steps`, the sampling procedure is:
                     Denote K = steps.
@@ -1091,8 +1092,10 @@ class DPM_Solver:
                         - We firstly use 1 step of DPM-Solver-1, then 1 step of multistep DPM-Solver-2, \
                             then (K - 2) step of multistep DPM-Solver-3.
             - 'singlestep_fixed':
-                Fixed order singlestep DPM-Solver (i.e. DPM-Solver-1 or singlestep DPM-Solver-2 or singlestep DPM-Solver-3).
-                We use singlestep DPM-Solver-`order` for `order`=1 or 2 or 3, with total [`steps` // `order`] * `order` NFE.
+                Fixed order singlestep DPM-Solver \
+                (i.e. DPM-Solver-1 or singlestep DPM-Solver-2 or singlestep DPM-Solver-3).
+                We use singlestep DPM-Solver-`order` for `order`=1 or 2 or 3, \
+                with total [`steps` // `order`] * `order` NFE.
             - 'adaptive':
                 Adaptive step size DPM-Solver (i.e. "DPM-Solver-12" and "DPM-Solver-23" in the paper).
                 We ignore `steps` and use adaptive step size DPM-Solver with a higher order of `order`.
@@ -1232,7 +1235,8 @@ def interpolate_fn(x, xp, yp):
     (For x beyond the bounds of xp, we use the outmost points of xp to define the linear function.)
 
     Args:
-        x: PyTorch tensor with shape [N, C], where N is the batch size, C is the number of channels (we use C = 1 for DPM-Solver).
+        x: PyTorch tensor with shape [N, C], where N is the batch size, C is the number of channels
+        (we use C = 1 for DPM-Solver).
         xp: PyTorch tensor with shape [C, K], where K is the number of keypoints.
         yp: PyTorch tensor with shape [C, K].
     Returns:
