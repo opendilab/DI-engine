@@ -8,3 +8,4 @@
    distributed_zh
    config_zh
    rpc_zh
+   agent_zh

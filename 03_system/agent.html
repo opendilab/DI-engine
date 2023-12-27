@@ -13,7 +13,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Best Practice &mdash; DI-engine 0.1.0 documentation</title>
+  <title>Agent &mdash; DI-engine 0.1.0 documentation</title>
   
 
   <link rel="shortcut icon" href="../_static/images/favicon.ico" />
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <link rel="index" title="Index" href="../genindex.html" />
   <link rel="search" title="Search" href="../search.html" />
-  <link rel="next" title="How to migrate your own environment to DI-engine" href="ding_env.html" />
-  <link rel="prev" title="Agent" href="../03_system/agent.html" />
+  <link rel="next" title="Best Practice" href="../04_best_practice/index.html" />
+  <link rel="prev" title="Configuration File System" href="config.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 
@@ -209,8 +209,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Best Practice</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
 </ul>
@@ -266,13 +266,15 @@
       </li>
 
         
-      <li>Best Practice</li>
+          <li><a href="index.html">System Design</a> &gt;</li>
+        
+      <li>Agent</li>
     
     
       <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="../_sources/04_best_practice/index.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+            <a href="../_sources/03_system/agent.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -296,18 +298,49 @@
             <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
-  <section id="best-practice">
-<h1>Best Practice<a class="headerlink" href="#best-practice" title="Permalink to this headline">¶</a></h1>
+  <section id="agent">
+<h1>Agent<a class="headerlink" href="#agent" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ding_env.html">How to migrate your own environment to DI-engine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="custom_model.html">How to customize the neural network model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="env_wrapper.html">How to construct environments easily with Env Wrapper</a></li>
-<li class="toctree-l1"><a class="reference internal" href="buffer.html">Buffer User Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="imitation_learning.html">How to construct a data pipeline for Imitation Learning / Offline Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="random_seed.html">Random Seed</a></li>
-</ul>
 </div>
+<section id="about-rl-agent">
+<h2>About RL Agent<a class="headerlink" href="#about-rl-agent" title="Permalink to this headline">¶</a></h2>
+<p>The RL Agent class in DI-engine, as its name implies, functions as a direct surrogate for interaction with the environment during the training or evaluation process.</p>
+<p>Once initialized, each RL Agent retains an environment, a policy instance, and its related configurations. All RL algorithms in DI-engine will be implemented as specific RL Agent classes, each equipped with the standard training or evaluation methods. The RL Agent class supports a wide range of classic RL benchmark environments including Gym Atari and Mujoco, ensuring the compatibility and versatility of the class.</p>
+<a class="reference internal image-reference" href="../_images/agent.png"><img alt="../_images/agent.png" class="align-center" src="../_images/agent.png" style="width: 684px;" /></a>
+<p>The RL Agent class provides an effective abstraction for RL pipelines. In particular, the RL Agent class includes four main methods: “train”, “deploy”, “batch_evaluate”, and “collect_data”. This abstraction allows for the combination of four distinct DI-engine pipelines into one class with four methods. This saves the previously required need of writing individual pipeline code into separate files. It solves the issue of inconsistency and confusion when users unfamiliar with reinforcement learning pipelines or DI-engine code have to train the PPO algorithm for some game environment and deploy the trained model for a video replay, necessitating the combination of the training and deployment pipelines or using the model checkpoint as an intermediary to run the pipelines separately. Thanks to the RL Agent class, a standard implementation to manage all operations is now available, allowing training and evaluation processes to be concatenated in any order or easily called by third-party pipelines.</p>
+</section>
+<section id="usage-of-rl-agent">
+<h2>Usage of RL Agent<a class="headerlink" href="#usage-of-rl-agent" title="Permalink to this headline">¶</a></h2>
+<p>The RL Agent class offers streamlined configurations for benchmark environments encountered in classic RL. These default settings have been extensively tested and deliver reliable performance. This makes it possible for new users to initiate the training process without requiring any prior information.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.bonus</span> <span class="kn">import</span> <span class="n">DQNAgent</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Initialize the agent</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">DQNAgent</span><span class="p">(</span><span class="n">env_id</span><span class="o">=</span><span class="s2">&quot;LunarLander-v2&quot;</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="s2">&quot;LunarLander-v2-DQN&quot;</span><span class="p">)</span>
+    <span class="c1"># Train the agent</span>
+    <span class="n">return_</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mi">2000000</span><span class="p">))</span>
+    <span class="c1"># Deploy the agent and render a video replay</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span><span class="n">enable_save_replay</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The RL Agent class also supports users to train RL agents using custom configurations. The configuration format can refer to the default configuration. For example, to use the DQN algorithm to train the LunarLander environment, you can refer to the file <cite>gym_lunarlander_v2.py &lt;https://github.com/opendilab/DI-engine/blob/main/ding/config/example/DQN/ gym_lunarlander_v2.py&gt;</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.bonus</span> <span class="kn">import</span> <span class="n">DQNAgent</span>
+<span class="kn">from</span> <span class="nn">ding.config.example.DQN.gym_lunarlander_v2</span> <span class="kn">import</span> <span class="n">cfg</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Initialize the agent</span>
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">DQNAgent</span><span class="p">(</span><span class="n">exp_name</span><span class="o">=</span><span class="s2">&quot;LunarLander-v2-DQN&quot;</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+    <span class="c1"># Train the agent</span>
+    <span class="n">return_</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mi">2000000</span><span class="p">))</span>
+    <span class="c1"># Deploy the agent and render a video replay</span>
+    <span class="n">agent</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span><span class="n">enable_save_replay</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The RL Agent class integrates the training and evaluation pipelines, allowing users to call training and evaluation methods in the same main file without having to use multiple files to perform training and evaluation separately. In this way, users can evaluate the performance of the agent at any time during the training process, or train the agent at any time during the evaluation process.</p>
+<a class="reference internal image-reference" href="../_images/agent_usage.png"><img alt="../_images/agent_usage.png" class="align-center" src="../_images/agent_usage.png" style="width: 1160px;" /></a>
+<p>In addition, the trained model checkpoints are accessible on the Hugging Face Hub. To download these models, we kindly request you to follow the explicit instructions provided on the respective model card webpages.
+(Take for example the <a class="reference external" href="https://huggingface.co/OpenDILabCommunity/LunarLander-v2-DQN">LunarLander-v2-DQN</a> model, for more in-depth information about downloading and deployment, simply follow the given link.)</p>
+</section>
 </section>
 
 
@@ -318,12 +351,12 @@
   
   <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
     
-    <a href="ding_env.html" class="btn btn-neutral float-right" title="How to migrate your own environment to DI-engine" accesskey="n"
+    <a href="../04_best_practice/index.html" class="btn btn-neutral float-right" title="Best Practice" accesskey="n"
       rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
         class="next-page"></a>
     
     
-    <a href="../03_system/agent.html" class="btn btn-neutral" title="Agent" accesskey="p"
+    <a href="config.html" class="btn btn-neutral" title="Configuration File System" accesskey="p"
       rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
     
   </div>
@@ -353,7 +386,11 @@
           <div class="pytorch-right-menu" id="pytorch-right-menu">
             <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
               <ul>
-<li><a class="reference internal" href="#">Best Practice</a></li>
+<li><a class="reference internal" href="#">Agent</a><ul>
+<li><a class="reference internal" href="#about-rl-agent">About RL Agent</a></li>
+<li><a class="reference internal" href="#usage-of-rl-agent">Usage of RL Agent</a></li>
+</ul>
+</li>
 </ul>
 
             </div>
