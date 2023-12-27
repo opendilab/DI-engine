@@ -39,6 +39,7 @@ main_config = dict(
             epoch_per_collect=5,
             batch_size=3200,
             learning_rate=5e-4,
+            critic_learning_rate=5e-4,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================

@@ -118,13 +118,29 @@ class HAPPOPolicy(Policy):
                             torch.nn.init.zeros_(m.bias)
                             m.weight.data.copy_(0.01 * m.weight.data)
 
-        # Optimizer
-        self._optimizer = Adam(
-            self._model.parameters(),
+        # Add the actor/critic parameters of each HAVACAgent in HAVAC to the parameter list of actor/critic_optimizer
+        actor_params = []
+        critic_params = []
+        for agent_idx in range(self._model.agent_num):
+            actor_params.append({'params': self._model.agent_models[agent_idx].actor.parameters()})
+            critic_params.append({'params': self._model.agent_models[agent_idx].critic.parameters()})
+
+        self._actor_optimizer = Adam(
+            actor_params,
             lr=self._cfg.learn.learning_rate,
             grad_clip_type=self._cfg.learn.grad_clip_type,
-            clip_value=self._cfg.learn.grad_clip_value
+            clip_value=self._cfg.learn.grad_clip_value,
+            # eps = 1e-5,
         )
+        
+        self._critic_optimizer = Adam(
+            critic_params,
+            lr=self._cfg.learn.critic_learning_rate,
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.grad_clip_value,
+            # eps = 1e-5,
+        )
+
 
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         # self._learn_model = model_wrap(
@@ -269,12 +285,16 @@ class HAPPOPolicy(Policy):
                     wv, we = self._value_weight, self._entropy_weight
                     total_loss = happo_loss.policy_loss + wv * happo_loss.value_loss - we * happo_loss.entropy_loss
 
-                    self._optimizer.zero_grad()
+                    # actor update
+                    # critic update
+                    self._actor_optimizer.zero_grad()
+                    self._critic_optimizer.zero_grad()
                     total_loss.backward()
-                    self._optimizer.step()
+                    self._actor_optimizer.step()
+                    self._critic_optimizer.step()
 
                     return_info = {
-                        'agent{}_cur_lr'.format(agent_id): self._optimizer.defaults['lr'],
+                        'agent{}_cur_lr'.format(agent_id): self._actor_optimizer.defaults['lr'],
                         'agent{}_total_loss'.format(agent_id): total_loss.item(),
                         'agent{}_policy_loss'.format(agent_id): happo_loss.policy_loss.item(),
                         'agent{}_value_loss'.format(agent_id): happo_loss.value_loss.item(),
@@ -309,19 +329,28 @@ class HAPPOPolicy(Policy):
                 dist_old = Normal(old_logits['mu'], old_logits['sigma'])
             logp_new = dist_new.log_prob(agent_data['action'])
             logp_old = dist_old.log_prob(agent_data['action'])
-            factor = factor * torch.prod(torch.exp(logp_new - logp_old), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
-            # factor = factor * torch.exp(logp_new - logp_old).reshape(all_data_len, 1).detach()
+            if len(logp_new.shape)>1:
+                # for logp with shape(B, action_shape), we need to calculate the product of all action dimensions.
+                factor = factor * torch.prod(torch.exp(logp_new - logp_old), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
+            else:
+                # for logp with shape(B, ), directly calculate factor
+                factor = factor * torch.exp(logp_new - logp_old).reshape(all_data_len, 1).detach()
         return return_infos
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
+            # 'optimizer': self._optimizer.state_dict(),
+            'actor_optimizer': self._actor_optimizer.state_dict(),
+            'critic_optimizer': self._critic_optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
+        # self._optimizer.load_state_dict(state_dict['optimizer'])
+        self._actor_optimizer.load_state_dict(state_dict['actor_optimizer'])
+        self._critic_optimizer.load_state_dict(state_dict['critic_optimizer'])
+
 
     def _init_collect(self) -> None:
         r"""
@@ -508,25 +537,6 @@ class HAPPOPolicy(Policy):
                 input = {'obs': single_agent_obs,}
                 output = self._eval_model.forward(agent_id, input, mode='compute_actor')
                 outputs.append(output)
-            # transfer data from (M, B, N)->(B, M, N)
-        #     result = {}
-        #     for key in outputs[0].keys():
-        #         if isinstance(outputs[0][key], dict):
-        #             subkeys = outputs[0][key].keys()
-        #             stacked_subvalues = {}
-        #             for subkey in subkeys:
-        #                 stacked_subvalues[subkey] = \
-        #                     torch.stack([output[key][subkey] for output in outputs], dim=0).transpose(0, 1)
-        #             result[key] = stacked_subvalues
-        #         else:
-        #             # If Value is tensor, stack it directly
-        #             if isinstance(outputs[0][key], torch.Tensor):
-        #                 result[key] = torch.stack([output[key] for output in outputs], dim=0).transpose(0, 1)
-        #             else:
-        #                 # If it is not tensor, assume that it is a non-stackable data type \
-        #                 # (such as int, float, etc.), and directly retain the original value
-        #                 result[key] = [output[key] for output in outputs]
-        # output = result
         output = self.revert_agent_data(outputs)
         if self._cuda:
             output = to_device(output, 'cpu')

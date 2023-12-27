@@ -1,5 +1,5 @@
 from easydict import EasyDict
-
+import os
 collector_env_num = 8
 evaluator_env_num = 8
 n_agent = 2
@@ -36,16 +36,20 @@ main_config = dict(
             # batch_size=3200,
             # batch_size=800,
             batch_size=320,
-            # learning_rate=5e-4,
-            learning_rate=3e-3,
+            # batch_size=100,
+            learning_rate=5e-4,
+            critic_learning_rate=5e-3,
+            # learning_rate=3e-3,
             # ==============================================================
             # The following configs is algorithm-specific
             # ==============================================================
             # (float) The loss weight of value network, policy network weight is set to 1
-            value_weight=0.5,
-            # value_weight=1,
+            # value_weight=0.5,
+            value_weight=1,
             # (float) The loss weight of entropy regularization, policy network weight is set to 1
-            entropy_weight=0.001,
+            # entropy_weight=0.001,
+            entropy_weight=0.003,
+            # entropy_weight=0.005,
             # entropy_weight=0.01,
             # (float) PPO clip ratio, defaults to 0.2
             clip_ratio=0.2,
@@ -54,12 +58,14 @@ main_config = dict(
             value_norm=True,
             ppo_param_init=True,
             grad_clip_type='clip_norm',
-            grad_clip_value=5,
+            # grad_clip_value=5,
+            grad_clip_value=10,
             # ignore_done=True,
             ignore_done=False,
         ),
         collect=dict(
             n_sample=3200,
+            # n_sample=4000,
             unroll_len=1,
             env_num=collector_env_num,
         ),
@@ -81,18 +87,6 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
-# if __name__ == '__main__':
-#     from ding.entry import serial_pipeline_onpolicy
-#     main_config.exp_name='HAPPO_result/walker/multi_mujoco_walker_2x3_happo'
-#     serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(1e7))
-from ding.entry import serial_pipeline_onpolicy
-def train(mconfig, cconfig, seed):
-    mconfig.exp_name='HAPPO_result/walker/multi_mujoco_walker_2x3_happo_bs320_lr3e3_idf_ew001_seed{}'.format(seed)
-    serial_pipeline_onpolicy((mconfig, cconfig), seed=seed, max_env_step=int(1e7))
-
-
 if __name__ == '__main__':
-    for seed in [0, 1, 2]:
-        mconfig = main_config
-        cconfig = create_config
-        train(mconfig, cconfig, seed)
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(1e7))
