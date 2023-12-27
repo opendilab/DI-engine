@@ -188,6 +188,8 @@ class HAPPOPolicy(Policy):
         """
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         all_data_len = data['obs']['agent_state'].shape[0]
+        # fator is the ratio of the old and new strategies of the first m-1 agents, initialized to 1.
+        # Each transition has its own factor. ref: http://arxiv.org/abs/2109.11251
         factor = torch.ones(all_data_len, 1)     # (B, 1)
         if self._cuda:
             data = to_device(data, self._device)
