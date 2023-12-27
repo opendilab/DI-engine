@@ -75,6 +75,7 @@ setup(
         'URLObject>=2.4.0',  # interaction
         'MarkupSafe==2.0.1',  # interaction, compatibility
         'pynng',  # parallel
+        'sniffio', # parallel
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
     ],
