@@ -309,7 +309,11 @@
 <span class="k">def</span> <span class="nf">is_sequence</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Judege whether input ``data`` is instance ``list`` or ``tuple``.</span>
+<span class="sd">        Determines if the input data is of type list or tuple.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - data: The input data to be checked.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - boolean: True if the input is a list or a tuple, False otherwise.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
 
@@ -317,13 +321,13 @@
 <span class="k">def</span> <span class="nf">sequence_mask</span><span class="p">(</span><span class="n">lengths</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">max_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">BoolTensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        create a mask for a batch sequences with different lengths</span>
+<span class="sd">        Generates a boolean mask for a batch of sequences with differing lengths.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - lengths (:obj:`torch.Tensor`): lengths in each different sequences, shape could be (n, 1) or (n)</span>
-<span class="sd">        - max_len (:obj:`int`): the padding size, if max_len is None, the padding size is the \</span>
-<span class="sd">            max length of sequences</span>
+<span class="sd">        - lengths (:obj:`torch.Tensor`): A tensor with the lengths of each sequence. Shape could be (n, 1) or (n).</span>
+<span class="sd">        - max_len (:obj:`int`, optional): The padding size. If max_len is None, the padding size is the max length of \</span>
+<span class="sd">            sequences.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - masks (:obj:`torch.BoolTensor`): mask has the same device as lengths</span>
+<span class="sd">        - masks (:obj:`torch.BoolTensor`): A boolean mask tensor. The mask has the same device as lengths.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">lengths</span> <span class="o">=</span> <span class="n">lengths</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -336,24 +340,24 @@
 
 
 <div class="viewcode-block" id="LSTMForwardWrapper"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.rnn.LSTMForwardWrapper">[docs]</a><span class="k">class</span> <span class="nc">LSTMForwardWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        A class which provides methods to use before and after `forward`, in order to wrap the LSTM `forward` method.</span>
+<span class="sd">        Class providing methods to use before and after the LSTM `forward` method.</span>
+<span class="sd">        Wraps the LSTM `forward` method.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        _before_forward, _after_forward</span>
+<span class="sd">        ``_before_forward``, ``_after_forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LSTMForwardWrapper._before_forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward">[docs]</a>    <span class="k">def</span> <span class="nf">_before_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Preprocess the inputs and previous states</span>
+<span class="sd">            Preprocesses the inputs and previous states before the LSTM `forward` method.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]</span>
-<span class="sd">            - prev_state (:obj:`Union[None, List[Dict]]`): None or tensor of size \</span>
-<span class="sd">                [num_directions*num_layers, batch_size, hidden_size]. \</span>
-<span class="sd">                If None then prv_state will be initialized to all zeros.</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): Input vector of the LSTM cell. Shape: [seq_len, batch_size, input_size]</span>
+<span class="sd">            - prev_state (:obj:`Union[None, List[Dict]]`): Previous state tensor. Shape: [num_directions*num_layers, \</span>
+<span class="sd">                batch_size, hidden_size]. If None, prv_state will be initialized to all zeros.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - prev_state (:obj:`torch.Tensor`): batch previous state in lstm</span>
+<span class="sd">            - prev_state (:obj:`torch.Tensor`): Preprocessed previous state for the LSTM batch.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;num_layers&#39;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hidden_size&#39;</span><span class="p">)</span>
@@ -397,14 +401,15 @@
 <div class="viewcode-block" id="LSTMForwardWrapper._after_forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward">[docs]</a>    <span class="k">def</span> <span class="nf">_after_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                        <span class="n">next_state</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
                        <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Post-process the next_state, return list or tensor type next_states</span>
+<span class="sd">            Post-processes the next_state after the LSTM `forward` method.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - next_state (:obj:`Tuple[torch.Tensor]`): Tuple which contains next state (h, c).</span>
-<span class="sd">            - list_next_state (:obj:`bool`): Whether to return next_state with list format, default set to False</span>
+<span class="sd">            - next_state (:obj:`Tuple[torch.Tensor]`): Tuple containing the next state (h, c).</span>
+<span class="sd">            - list_next_state (:obj:`bool`, optional): Determines the format of the returned next_state. \</span>
+<span class="sd">                If True, returns next_state in list format. Default is False.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - next_state(:obj:`Union[List[Dict], Dict[str, torch.Tensor]]`): The formatted next_state.</span>
+<span class="sd">            - next_state(:obj:`Union[List[Dict], Dict[str, torch.Tensor]]`): The post-processed next_state.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">list_next_state</span><span class="p">:</span>
             <span class="n">h</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">next_state</span>
@@ -418,15 +423,15 @@
 
 
 <div class="viewcode-block" id="LSTM"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.rnn.LSTM">[docs]</a><span class="k">class</span> <span class="nc">LSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Implimentation of LSTM cell with LN</span>
+<span class="sd">        Implementation of an LSTM cell with Layer Normalization (LN).</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        forward</span>
+<span class="sd">        ``forward``</span>
 
 <span class="sd">    .. note::</span>
 
-<span class="sd">        For beginners, you can refer to &lt;https://zhuanlan.zhihu.com/p/32085405&gt; to learn the basics about lstm</span>
+<span class="sd">        For a primer on LSTM, refer to https://zhuanlan.zhihu.com/p/32085405.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -437,15 +442,15 @@
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Initializate the LSTM cell arguments and parameters</span>
+<span class="sd">            Initialize LSTM cell parameters.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_size (:obj:`int`): size of the input vector</span>
-<span class="sd">            - hidden_size (:obj:`int`): size of the hidden state vector</span>
-<span class="sd">            - num_layers (:obj:`int`): number of lstm layers</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`): type of the normaliztion, (default: None)</span>
-<span class="sd">            - dropout (:obj:`float`): dropout rate, default to 0</span>
+<span class="sd">            - input_size (:obj:`int`): Size of the input vector.</span>
+<span class="sd">            - hidden_size (:obj:`int`): Size of the hidden state vector.</span>
+<span class="sd">            - num_layers (:obj:`int`): Number of LSTM layers.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): Normalization type, default is None.</span>
+<span class="sd">            - dropout (:obj:`float`): Dropout rate, default is 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">LSTM</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">input_size</span> <span class="o">=</span> <span class="n">input_size</span>
@@ -480,15 +485,15 @@
                 <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Take the previous state and the input and calculate the output and the nextstate</span>
+<span class="sd">            Compute output and next state given previous state and input.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]</span>
-<span class="sd">            - prev_state (:obj:`torch.Tensor`): None or tensor of size \</span>
-<span class="sd">                [num_directions*num_layers, batch_size, hidden_size]</span>
-<span class="sd">            - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): Input vector of cell, size [seq_len, batch_size, input_size].</span>
+<span class="sd">            - prev_state (:obj:`torch.Tensor`): Previous state, \</span>
+<span class="sd">                size [num_directions*num_layers, batch_size, hidden_size].</span>
+<span class="sd">            - list_next_state (:obj:`bool`): Whether to return next_state in list format, default is True.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): output from lstm</span>
-<span class="sd">            - next_state (:obj:`Union[torch.Tensor, list]`): hidden state from lstm</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Output from LSTM.</span>
+<span class="sd">            - next_state (:obj:`Union[torch.Tensor, list]`): Hidden state from LSTM.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">seq_len</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_before_forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">)</span>
@@ -524,15 +529,12 @@
 
 
 <div class="viewcode-block" id="PytorchLSTM"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.rnn.PytorchLSTM">[docs]</a><span class="k">class</span> <span class="nc">PytorchLSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Wrap the PyTorch nn.LSTM, format the input and output</span>
+<span class="sd">        Wrapper class for PyTorch&#39;s nn.LSTM, formats the input and output. For more details on nn.LSTM,</span>
+<span class="sd">        refer to https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        forward</span>
-
-<span class="sd">    .. note::</span>
-
-<span class="sd">        you can reference the &lt;https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM&gt;</span>
+<span class="sd">        ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PytorchLSTM.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.rnn.PytorchLSTM.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -541,16 +543,15 @@
                 <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Wrapped nn.LSTM.forward.</span>
+<span class="sd">            Executes nn.LSTM.forward with preprocessed input.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size \</span>
-<span class="sd">                [seq_len, batch_size, input_size]</span>
-<span class="sd">            - prev_state (:obj:`torch.Tensor`): None or tensor of size \</span>
-<span class="sd">                [num_directions*num_layers, batch_size, hidden_size]</span>
-<span class="sd">            - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): Input vector of cell, size [seq_len, batch_size, input_size].</span>
+<span class="sd">            - prev_state (:obj:`torch.Tensor`): Previous state, size [num_directions*num_layers, batch_size, \</span>
+<span class="sd">                hidden_size].</span>
+<span class="sd">            - list_next_state (:obj:`bool`): Whether to return next_state in list format, default is True.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`torch.Tensor`): output from lstm</span>
-<span class="sd">            - next_state (:obj:`Union[torch.Tensor, list]`): hidden state from lstm</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): Output from LSTM.</span>
+<span class="sd">            - next_state (:obj:`Union[torch.Tensor, list]`): Hidden state from LSTM.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">prev_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_before_forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">)</span>
         <span class="n">output</span><span class="p">,</span> <span class="n">next_state</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">)</span>
@@ -559,32 +560,48 @@
 
 
 <span class="k">class</span> <span class="nc">GRU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">,</span> <span class="n">LSTMForwardWrapper</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Wrap the torch.nn.GRUCell, format the input and output</span>
+<span class="sd">        This class extends the `torch.nn.GRUCell` and `LSTMForwardWrapper` classes, and formats inputs and outputs</span>
+<span class="sd">        accordingly.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        forward</span>
+<span class="sd">        ``forward``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        hidden_size, num_layers</span>
 
 <span class="sd">    .. note::</span>
-<span class="sd">        you can reference the &lt;https://pytorch.org/docs/stable/generated/torch.nn.GRU.html#torch.nn.GRU&gt;</span>
+<span class="sd">        For further details, refer to the official PyTorch documentation:</span>
+<span class="sd">        &lt;https://pytorch.org/docs/stable/generated/torch.nn.GRU.html#torch.nn.GRU&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the GRU class with input size, hidden size, and number of layers.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - input_size (:obj:`int`): The size of the input vector.</span>
+<span class="sd">            - hidden_size (:obj:`int`): The size of the hidden state vector.</span>
+<span class="sd">            - num_layers (:obj:`int`): The number of GRU layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GRU</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hidden_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">,</span> <span class="n">list_next_state</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                <span class="n">prev_state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">list_next_state</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">List</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Wrapped nn.GRU.forward.</span>
+<span class="sd">            Wrap the `nn.GRU.forward` method.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]</span>
-<span class="sd">            - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]</span>
-<span class="sd">            - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): Input vector of cell, tensor of size [seq_len, batch_size, input_size].</span>
+<span class="sd">            - prev_state (:obj:`Optional[torch.Tensor]`): None or tensor of \</span>
+<span class="sd">                size [num_directions*num_layers, batch_size, hidden_size].</span>
+<span class="sd">            - list_next_state (:obj:`bool`): Whether to return next_state in list format (default is True).</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`tensor`): output from GRU</span>
-<span class="sd">            - next_state (:obj:`tensor` or :obj:`list`): hidden state from GRU</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): Output from GRU.</span>
+<span class="sd">            - next_state (:obj:`torch.Tensor` or :obj:`list`): Hidden state from GRU.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># for compatibility</span>
         <span class="n">prev_state</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_before_forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">prev_state</span><span class="p">)</span>
@@ -607,20 +624,20 @@
         <span class="n">seq_len</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">LSTM</span><span class="p">,</span> <span class="n">PytorchLSTM</span><span class="p">]:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Build and return the corresponding LSTM cell</span>
+<span class="sd">        Build and return the corresponding LSTM cell based on the provided parameters.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - lstm_type (:obj:`str`): version of rnn cell, now support [&#39;normal&#39;, &#39;pytorch&#39;, &#39;hpc&#39;, &#39;gru&#39;]</span>
-<span class="sd">        - input_size (:obj:`int`): size of the input vector</span>
-<span class="sd">        - hidden_size (:obj:`int`): size of the hidden state vector</span>
-<span class="sd">        - num_layers (:obj:`int`): number of lstm layers</span>
-<span class="sd">        - norm_type (:obj:`str`): type of the normaliztion, (default: None)</span>
-<span class="sd">        - dropout (:obj:float):  dropout rate, default set to .0</span>
-<span class="sd">        - seq_len (:obj:`Optional[int]`): seq len, default set to None</span>
-<span class="sd">        - batch_size (:obj:`Optional[int]`): batch_size len, default set to None</span>
+<span class="sd">        - lstm_type (:obj:`str`): Version of RNN cell. Supported options are [&#39;normal&#39;, &#39;pytorch&#39;, &#39;hpc&#39;, &#39;gru&#39;].</span>
+<span class="sd">        - input_size (:obj:`int`): Size of the input vector.</span>
+<span class="sd">        - hidden_size (:obj:`int`): Size of the hidden state vector.</span>
+<span class="sd">        - num_layers (:obj:`int`): Number of LSTM layers (default is 1).</span>
+<span class="sd">        - norm_type (:obj:`str`): Type of normalization (default is &#39;LN&#39;).</span>
+<span class="sd">        - dropout (:obj:`float`): Dropout rate (default is 0.0).</span>
+<span class="sd">        - seq_len (:obj:`Optional[int]`): Sequence length (default is None).</span>
+<span class="sd">        - batch_size (:obj:`Optional[int]`): Batch size (default is None).</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - lstm (:obj:`Union[LSTM, PytorchLSTM]`): the corresponding lstm cell</span>
+<span class="sd">        - lstm (:obj:`Union[LSTM, PytorchLSTM]`): The corresponding LSTM cell.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">lstm_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="s1">&#39;pytorch&#39;</span><span class="p">,</span> <span class="s1">&#39;hpc&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">lstm_type</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span><span class="p">:</span>

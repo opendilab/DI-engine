@@ -292,7 +292,12 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.torch_utils.network.gtrxl</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Overview:</span>
+<span class="sd">    This file implements the core modules of GTrXL Transformer as described in</span>
+<span class="sd">    &quot;Stabilizing Transformer for Reinforcement Learning&quot; (https://arxiv.org/abs/1910.06764).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -303,30 +308,33 @@
 <span class="k">class</span> <span class="nc">PositionalEmbedding</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Positional Embedding used in vanilla Transformer</span>
+<span class="sd">        The PositionalEmbedding module implements the positional embedding used in the vanilla Transformer model.</span>
+
 <span class="sd">    .. note::</span>
-<span class="sd">        Adapted from https://github.com/kimiyoung/transformer-xl/blob/master/pytorch/mem_transformer.py</span>
+<span class="sd">        This implementation is adapted from https://github.com/kimiyoung/transformer-xl/blob/ \</span>
+<span class="sd">            master/pytorch/mem_transformer.py</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - embedding_dim: (:obj:`int`): dimension of embedding</span>
+<span class="sd">            - embedding_dim: (:obj:`int`): The dimensionality of the embeddings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PositionalEmbedding</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span> <span class="o">=</span> <span class="n">embedding_dim</span>
         <span class="n">inv_freq</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">10000</span> <span class="o">**</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">embedding_dim</span><span class="p">))</span>  <span class="c1"># (embedding_dim / 2)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;inv_freq&#39;</span><span class="p">,</span> <span class="n">inv_freq</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos_seq</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos_seq</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Compute positional embedding</span>
+<span class="sd">            Compute positional embedding given a sequence of positions.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - pos_seq: (:obj:`torch.Tensor`): positional sequence,</span>
-<span class="sd">             usually a 1D integer sequence as [seq_len-1, seq_len-2, ..., 1, 0],</span>
+<span class="sd">             - pos_seq (:obj:`torch.Tensor`): The positional sequence, \</span>
+<span class="sd">                typically a 1D tensor of integers in the form of [seq_len-1, seq_len-2, ..., 1, 0],</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - pos_embedding: (:obj:`torch.Tensor`): positional embedding. Shape (seq_len, 1, embedding_dim)</span>
+<span class="sd">            - pos_embedding (:obj:`torch.Tensor`): The computed positional embeddings. \</span>
+<span class="sd">                The shape of the tensor is (seq_len, 1, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sinusoid_inp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">pos_seq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inv_freq</span><span class="p">)</span>
         <span class="c1"># For position embedding, the order of sin/cos is negligible.</span>
@@ -338,16 +346,16 @@
 <span class="k">class</span> <span class="nc">GRUGatingUnit</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        GRU Gating Unit used in GTrXL.</span>
+<span class="sd">        The GRUGatingUnit module implements the GRU gating mechanism used in the GTrXL model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim: (:obj:`int`): dimension of input.</span>
-<span class="sd">            - bg (:obj:`bg`): gate bias. By setting bg &gt; 0 we can explicitly initialize the gating mechanism to</span>
-<span class="sd">            be close to the identity map. This can greatly improve the learning speed and stability since it</span>
-<span class="sd">            initializes the agent close to a Markovian policy (ignore attention at the beginning).</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimensionality of the input.</span>
+<span class="sd">            - bg (:obj:`bg`): The gate bias. By setting bg &gt; 0 we can explicitly initialize the gating mechanism to \</span>
+<span class="sd">                be close to the identity map. This can greatly improve the learning speed and stability since it \</span>
+<span class="sd">                initializes the agent close to a Markovian policy (ignore attention at the beginning).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GRUGatingUnit</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Wr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -363,13 +371,14 @@
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Compute output value with gating mechanism</span>
+<span class="sd">            Compute the output value using the GRU gating mechanism.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x: (:obj:`torch.Tensor`): first input.</span>
-<span class="sd">            - y: (:obj:`torch.Tensor`): second input.</span>
-<span class="sd">            x and y have same shape and last shape is input_dim.</span>
+<span class="sd">            - x: (:obj:`torch.Tensor`): The first input tensor.</span>
+<span class="sd">            - y: (:obj:`torch.Tensor`): The second input tensor. \</span>
+<span class="sd">                x and y should have the same shape and their last dimension should match the input_dim.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - g: (:obj:`torch.Tensor`): output of GRU. Same shape of x and y.</span>
+<span class="sd">            - g: (:obj:`torch.Tensor`): The output of the GRU gating mechanism. \</span>
+<span class="sd">                The shape of g matches the shapes of x and y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Wr</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ur</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Wz</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Uz</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bg</span><span class="p">)</span>
@@ -381,9 +390,10 @@
 <span class="k">class</span> <span class="nc">Memory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Stores the context used to add memory to Transformer.</span>
+<span class="sd">        A class that stores the context used to add memory to Transformer.</span>
+
 <span class="sd">    .. note::</span>
-<span class="sd">        For details refer to Transformer-XL: https://arxiv.org/abs/1901.02860</span>
+<span class="sd">        For details, refer to Transformer-XL: https://arxiv.org/abs/1901.02860</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -396,10 +406,12 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - memory_len (:obj:`int`): dimension of memory (how many past observations to use as memory)</span>
-<span class="sd">            - batch_size (:obj:`int`): dimension of each batch</span>
-<span class="sd">            - embedding_dim (:obj:`int`): dimension of embedding (dimension of a single observation after embedding)</span>
-<span class="sd">            - layer_num (:obj:`int`): number of transformer layers</span>
+<span class="sd">            - memory_len (:obj:`int`): The dimension of memory, i.e., how many past observations to use as memory.</span>
+<span class="sd">            - batch_size (:obj:`int`): The dimension of each batch.</span>
+<span class="sd">            - embedding_dim (:obj:`int`): The dimension of embedding, which is the dimension of a single observation \</span>
+<span class="sd">                after embedding.</span>
+<span class="sd">            - layer_num (:obj:`int`): The number of transformer layers.</span>
+<span class="sd">            - memory (:obj:`Optional[torch.Tensor]`): The initial memory. Default is None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Memory</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span> <span class="o">=</span> <span class="n">embedding_dim</span>
@@ -412,11 +424,11 @@
     <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init memory with an input list of tensors or create it automatically given its dimensions.</span>
+<span class="sd">            Initialize memory with an input list of tensors or create it automatically given its dimensions.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): memory input.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
-<span class="sd">            memory_len is length of memory, bs is batch size and embedding_dim is the dimension of embedding.</span>
+<span class="sd">            - memory (:obj:`Optional[torch.Tensor]`): Input memory tensor with shape \</span>
+<span class="sd">                (layer_num, memory_len, bs, embedding_dim). Its shape is (layer_num, memory_len, bs, embedding_dim), \</span>
+<span class="sd">                where memory_len is length of memory, bs is batch size and embedding_dim is the dimension of embedding.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">memory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">memory</span>
@@ -431,19 +443,19 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the memory given a sequence of hidden states.</span>
-<span class="sd">        Example for single layer:</span>
+<span class="sd">            Example for single layer:</span>
+<span class="sd">                memory_len=3, hidden_size_len=2, bs=3</span>
 
-<span class="sd">            memory_len=3, hidden_size_len=2, bs=3</span>
-
-<span class="sd">                m00 m01 m02      h00 h01 h02              m20 m21 m22</span>
-<span class="sd">            m = m10 m11 m12  h = h10 h11 h12  =&gt; new_m =  h00 h01 h02</span>
-<span class="sd">                m20 m21 m22                               h10 h11 h12</span>
+<span class="sd">                    m00 m01 m02      h00 h01 h02              m20 m21 m22</span>
+<span class="sd">                m = m10 m11 m12  h = h10 h11 h12  =&gt; new_m =  h00 h01 h02</span>
+<span class="sd">                    m20 m21 m22                               h10 h11 h12</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_state: (:obj:`List[torch.Tensor]`): hidden states to update the memory.</span>
-<span class="sd">            Shape is (cur_seq, bs, embedding_dim) for each layer. cur_seq is length of sequence.</span>
+<span class="sd">            - hidden_state: (:obj:`List[torch.Tensor]`): The hidden states to update the memory. \</span>
+<span class="sd">                Each tensor in the list has shape (cur_seq, bs, embedding_dim), where cur_seq \</span>
+<span class="sd">                is the length of the sequence.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): The updated memory, with shape \</span>
+<span class="sd">                (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hidden_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Failed to update memory! Memory would be None&#39;</span><span class="p">)</span>  <span class="c1"># TODO add support of no memory</span>
@@ -464,31 +476,38 @@
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Memory getter method.</span>
+<span class="sd">            Get the current memory.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): The current memory, \</span>
+<span class="sd">                with shape (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span>
 
     <span class="k">def</span> <span class="nf">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Move the current memory to the specified device.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            device (:obj:`str`): The device to move the memory to. Default is &#39;cpu&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">AttentionXL</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Attention of TransformerXL.</span>
+<span class="sd">         An implementation of the Attention mechanism used in the TransformerXL model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Overview:</span>
-<span class="sd">            Init AttentionXL.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the AttentionXL module.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim (:obj:`int`): dimension of input</span>
-<span class="sd">            - head_dim (:obj:`int`): dimension of each head</span>
-<span class="sd">            - head_num (:obj:`int`): number of heads for multihead attention</span>
-<span class="sd">            - dropout (:obj:`nn.Module`): dropout function</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimensionality of the input features.</span>
+<span class="sd">            - head_dim (:obj:`int`): The dimensionality of each attention head.</span>
+<span class="sd">            - head_num (:obj:`int`): The number of attention heads.</span>
+<span class="sd">            - dropout (:obj:`nn.Module`): The dropout layer to use</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AttentionXL</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">head_num</span> <span class="o">=</span> <span class="n">head_num</span>
@@ -500,28 +519,30 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">project_pos</span> <span class="o">=</span> <span class="n">fc_block</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">head_dim</span> <span class="o">*</span> <span class="n">head_num</span><span class="p">)</span>  <span class="c1"># project the positional embedding</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">head_dim</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># for scaled dot product attention</span>
 
-    <span class="k">def</span> <span class="nf">_rel_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">zero_upper</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_rel_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">zero_upper</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Relatively shift the attention score matrix.</span>
-<span class="sd">        Example:</span>
-<span class="sd">            a00 a01 a02      0 a00 a01 a02       0  a00 a01      a02  0  a10     a02  0   0</span>
-<span class="sd">            a10 a11 a12  =&gt;  0 a10 a11 a12  =&gt;  a02  0  a10  =&gt;  a11 a12  0  =&gt;  a11 a12  0</span>
-<span class="sd">            a20 a21 a22      0 a20 a21 a22      a11 a12  0       a20 a21 a22     a20 a21 a22</span>
-<span class="sd">                                                a20 a21 a22</span>
-<span class="sd">            1) Append one &quot;column&quot; of zeros to the left</span>
-<span class="sd">            2) Reshape the matrix from [3 x 4] into [4 x 3]</span>
-<span class="sd">            3) Remove the first &quot;row&quot;</span>
-<span class="sd">            4) Mask out the upper triangle (optional)</span>
+<span class="sd">            Perform a relative shift operation on the attention score matrix.</span>
+<span class="sd">            Example:</span>
+<span class="sd">                a00 a01 a02      0 a00 a01 a02       0  a00 a01      a02  0  a10     a02  0   0</span>
+<span class="sd">                a10 a11 a12  =&gt;  0 a10 a11 a12  =&gt;  a02  0  a10  =&gt;  a11 a12  0  =&gt;  a11 a12  0</span>
+<span class="sd">                a20 a21 a22      0 a20 a21 a22      a11 a12  0       a20 a21 a22     a20 a21 a22</span>
+<span class="sd">                                                    a20 a21 a22</span>
+<span class="sd">                1) Append one &quot;column&quot; of zeros to the left</span>
+<span class="sd">                2) Reshape the matrix from [3 x 4] into [4 x 3]</span>
+<span class="sd">                3) Remove the first &quot;row&quot;</span>
+<span class="sd">                4) Mask out the upper triangle (optional)</span>
+
 <span class="sd">        .. note::</span>
 <span class="sd">            See the following material for better understanding:</span>
 <span class="sd">                https://github.com/kimiyoung/transformer-xl/issues/8</span>
 <span class="sd">                https://arxiv.org/pdf/1901.02860.pdf (Appendix B)</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): input tensor of shape (cur_seq, full_seq, bs, head_num).</span>
-<span class="sd">            - zero_upper (:obj:`bool`): if True set the upper-right triangle to zero.</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor with shape (cur_seq, full_seq, bs, head_num).</span>
+<span class="sd">            - zero_upper (:obj:`bool`): If True, the upper-right triangle of the matrix is set to zero.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): input after relative shift. Shape (cur_seq, full_seq, bs, head_num).</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor after the relative shift operation, \</span>
+<span class="sd">                with shape (cur_seq, full_seq, bs, head_num).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x_padded</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># step 1</span>
         <span class="n">x_padded</span> <span class="o">=</span> <span class="n">x_padded</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>  <span class="c1"># step 2</span>
@@ -540,18 +561,20 @@
             <span class="n">v</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
             <span class="n">mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Overview:</span>
-<span class="sd">            Compute AttentionXL.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Compute the forward pass for the AttentionXL module.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): attention input of shape (cur_seq, bs, input_dim)</span>
-<span class="sd">            - pos_embedding (:obj:`torch.Tensor`): positional embedding of shape (full_seq, 1, full_seq)</span>
-<span class="sd">            - full_input (:obj:`torch.Tensor`): memory + input concatenation of shape (full_seq, bs, input_dim)</span>
-<span class="sd">            - u (:obj:`torch.nn.Parameter`): content parameter of shape (head_num, head_dim)</span>
-<span class="sd">            - v (:obj:`torch.nn.Parameter`): position parameter of shape (head_num, head_dim)</span>
-<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): attention mask of shape (cur_seq, full_seq, 1)</span>
-<span class="sd">            full_seq = prev_seq + cur_seq</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): The attention input with shape (cur_seq, bs, input_dim).</span>
+<span class="sd">            - pos_embedding (:obj:`torch.Tensor`): The positional embedding with shape (full_seq, 1, full_seq).</span>
+<span class="sd">            - full_input (:obj:`torch.Tensor`): The concatenated memory and input tensor with shape \</span>
+<span class="sd">                (full_seq, bs, input_dim).</span>
+<span class="sd">            - u (:obj:`torch.nn.Parameter`): The content parameter with shape (head_num, head_dim).</span>
+<span class="sd">            - v (:obj:`torch.nn.Parameter`): The position parameter with shape (head_num, head_dim).</span>
+<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): The attention mask with shape (cur_seq, full_seq, 1). \</span>
+<span class="sd">                If None, no masking is applied.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`torch.Tensor`): attention output of shape (cur_seq, bs, input_dim)</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): The output of the attention mechanism with shape (cur_seq, bs, input_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bs</span><span class="p">,</span> <span class="n">cur_seq</span><span class="p">,</span> <span class="n">full_seq</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">full_input</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">prev_seq</span> <span class="o">=</span> <span class="n">full_seq</span> <span class="o">-</span> <span class="n">cur_seq</span>
@@ -600,7 +623,7 @@
 <span class="k">class</span> <span class="nc">GatedTransformerXLLayer</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Attention layer of GTrXL</span>
+<span class="sd">        This class implements the attention layer of GTrXL (Gated Transformer-XL).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -616,16 +639,19 @@
             <span class="n">gru_bias</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize GatedTransformerXLLayer.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim (:obj:`int`): dimension of input</span>
-<span class="sd">            - head_dim (:obj:`int`): dimension of each head</span>
-<span class="sd">            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp</span>
-<span class="sd">            - head_num (:obj:`int`): number of heads for multihead attention</span>
-<span class="sd">            - mlp_num (:obj:`int`): number of mlp layers in attention layer</span>
-<span class="sd">            - dropout (:obj:`nn.Module`): dropout</span>
-<span class="sd">            - activation (:obj:`nn.Module`): activation function</span>
-<span class="sd">            - gru_gating (:obj:`bool`): if False replace GRU gates with residual connections</span>
-<span class="sd">            - gru_bias (:obj:`float`): GRU gate bias</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimension of the input tensor.</span>
+<span class="sd">            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention.</span>
+<span class="sd">            - hidden_dim (:obj:`int`): The dimension of the hidden layer in the MLP.</span>
+<span class="sd">            - head_num (:obj:`int`): The number of heads for the multi-head attention.</span>
+<span class="sd">            - mlp_num (:obj:`int`): The number of MLP layers in the attention layer.</span>
+<span class="sd">            - dropout (:obj:`nn.Module`): The dropout module used in the MLP and attention layers.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The activation function to be used in the MLP layers.</span>
+<span class="sd">            - gru_gating (:obj:`bool`, optional): Whether to use GRU gates. If False, replace GRU gates with \</span>
+<span class="sd">                residual connections. Default is True.</span>
+<span class="sd">            - gru_bias (:obj:`float`, optional): The bias of the GRU gate. Default is 2.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GatedTransformerXLLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">dropout</span>
@@ -660,16 +686,17 @@
             <span class="n">memory</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
             <span class="n">mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Overview:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
 <span class="sd">            Compute forward pass of GTrXL layer.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): attention input of shape (cur_seq, bs, input_dim)</span>
-<span class="sd">            - pos_embedding (:obj:`torch.Tensor`): positional embedding of shape (full_seq, 1, full_seq)</span>
-<span class="sd">            - u (:obj:`torch.nn.Parameter`): content parameter of shape (head_num, head_dim)</span>
-<span class="sd">            - v (:obj:`torch.nn.Parameter`): position parameter of shape (head_num, head_dim)</span>
-<span class="sd">            - memory (:obj:`Optional[torch.Tensor]`): memory of shape (prev_seq, bs, input_dim)</span>
-<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): attention mask of shape (cur_seq, full_seq, 1)</span>
-<span class="sd">            full_seq = prev_seq + cur_seq</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): The attention input tensor of shape (cur_seq, bs, input_dim).</span>
+<span class="sd">            - pos_embedding (:obj:`torch.Tensor`): The positional embedding tensor of shape (full_seq, 1, full_seq).</span>
+<span class="sd">            - u (:obj:`torch.nn.Parameter`): The content parameter tensor of shape (head_num, head_dim).</span>
+<span class="sd">            - v (:obj:`torch.nn.Parameter`): The position parameter tensor of shape (head_num, head_dim).</span>
+<span class="sd">            - memory (:obj:`torch.Tensor`): The memory tensor of shape (prev_seq, bs, input_dim).</span>
+<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): The attention mask tensor of shape (cur_seq, full_seq, 1).</span>
+<span class="sd">                Default is None.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - output (:obj:`torch.Tensor`): layer output of shape (cur_seq, bs, input_dim)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -688,10 +715,8 @@
 <div class="viewcode-block" id="GTrXL"><a class="viewcode-back" href="../../../../12_policies/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL">[docs]</a><span class="k">class</span> <span class="nc">GTrXL</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        GTrXL Transformer implementation.</span>
-
-<span class="sd">    .. note::</span>
-<span class="sd">        For details refer to Stabilizing Transformer for Reinforcement Learning: https://arxiv.org/abs/1910.06764</span>
+<span class="sd">        GTrXL Transformer implementation as described in &quot;Stabilizing Transformer for Reinforcement Learning&quot;</span>
+<span class="sd">        (https://arxiv.org/abs/1910.06764).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -710,20 +735,23 @@
         <span class="n">use_embedding_layer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Overview:</span>
-<span class="sd">            Init GTrXL Model</span>
+<span class="sd">            Init GTrXL Model.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim (:obj:`int`): dimension of input (dimension of a single observation)</span>
-<span class="sd">            - head_dim (:obj:`int`): dimension of each head</span>
-<span class="sd">            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp</span>
-<span class="sd">            - embedding_dim (:obj:`int`): dimension of embedding (dimension of a single observation after embedding)</span>
-<span class="sd">            - head_num (:obj:`int`): number of heads for multihead attention</span>
-<span class="sd">            - mlp_num (:obj:`int`): number of mlp layers in attention layer</span>
-<span class="sd">            - layer_num (:obj:`int`): number of transformer layers</span>
-<span class="sd">            - dropout_ratio (:obj:`float`): dropout ratio</span>
-<span class="sd">            - activation (:obj:`nn.Module`): activation function</span>
-<span class="sd">            - gru_gating (:obj:`bool`): if False replace GRU gates with residual connections</span>
-<span class="sd">            - gru_bias (:obj:`float`): GRU gate bias</span>
-<span class="sd">            - use_embedding_layer (:obj:`bool`): default True. If False, don&#39;t use input embedding layer.</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimension of the input observation.</span>
+<span class="sd">            - head_dim (:obj:`int`, optional): The dimension of each head. Default is 128.</span>
+<span class="sd">            - embedding_dim (:obj:`int`, optional): The dimension of the embedding. Default is 256.</span>
+<span class="sd">            - head_num (:obj:`int`, optional): The number of heads for multi-head attention. Default is 2.</span>
+<span class="sd">            - mlp_num (:obj:`int`, optional): The number of MLP layers in the attention layer. Default is 2.</span>
+<span class="sd">            - layer_num (:obj:`int`, optional): The number of transformer layers. Default is 3.</span>
+<span class="sd">            - memory_len (:obj:`int`, optional): The length of memory. Default is 64.</span>
+<span class="sd">            - dropout_ratio (:obj:`float`, optional): The dropout ratio. Default is 0.</span>
+<span class="sd">            - activation (:obj:`nn.Module`, optional): The activation function. Default is nn.ReLU().</span>
+<span class="sd">            - gru_gating (:obj:`bool`, optional): If False, replace GRU gates with residual connections. \</span>
+<span class="sd">                Default is True.</span>
+<span class="sd">            - gru_bias (:obj:`float`, optional): The GRU gate bias. Default is 2.0.</span>
+<span class="sd">            - use_embedding_layer (:obj:`bool`, optional): If False, don&#39;t use input embedding layer. Default is True.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            - AssertionError: If `embedding_dim` is not an even number.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GTrXL</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">assert</span> <span class="n">embedding_dim</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;embedding_dim=</span><span class="si">{}</span><span class="s1"> should be even&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_dim</span><span class="p">)</span>
@@ -767,8 +795,9 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Clear or set the memory of GTrXL.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - batch_size (:obj:`Optional[int]`): batch size</span>
-<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): input memory. Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - batch_size (:obj:`Optional[int]`): The batch size. Default is None.</span>
+<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): The input memory with shape \</span>
+<span class="sd">                (layer_num, memory_len, bs, embedding_dim). Default is None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">Memory</span><span class="p">(</span><span class="n">memory_len</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_len</span><span class="p">,</span> <span class="n">layer_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_num</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -779,10 +808,10 @@
 <div class="viewcode-block" id="GTrXL.get_memory"><a class="viewcode-back" href="../../../../12_policies/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL.get_memory">[docs]</a>    <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Returns memory of GTrXL.</span>
+<span class="sd">            Returns the memory of GTrXL.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized. \</span>
-<span class="sd">                Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - memory (:obj:`Optional[torch.Tensor]`): The output memory or None if memory has not been initialized. \</span>
+<span class="sd">                The shape is (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -792,16 +821,16 @@
 <div class="viewcode-block" id="GTrXL.forward"><a class="viewcode-back" href="../../../../12_policies/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">return_mem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            GTrXL forward pass.</span>
+<span class="sd">            Performs a forward pass on the GTrXL.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).</span>
-<span class="sd">            - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to \</span>
-<span class="sd">                ``True`` in order to transpose along the first and second dimension and obtain shape \</span>
-<span class="sd">                (seq_len, bs, input_size). This param doesn&#39;t affects the output memory.</span>
-<span class="sd">            - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor with shape (seq_len, bs, input_size).</span>
+<span class="sd">            - batch_first (:obj:`bool`, optional): If the input data has shape (bs, seq_len, input_size), \</span>
+<span class="sd">                set this parameter to True to transpose along the first and second dimension and obtain shape \</span>
+<span class="sd">                (seq_len, bs, input_size). This does not affect the output memory. Default is False. \</span>
+<span class="sd">            - return_mem (:obj:`bool`, optional): If False, return only the output tensor without dict. Default is True.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape \</span>
-<span class="sd">             (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size)</span>
+<span class="sd">            - x (:obj:`Dict[str, torch.Tensor]`): A dictionary containing the transformer output of shape \</span>
+<span class="sd">             (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">batch_first</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># bs x cur_seq x input_dim -&gt; cur_seq x bs x input_dim</span>

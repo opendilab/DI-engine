@@ -298,51 +298,58 @@
 
 
 <div class="viewcode-block" id="SoftArgmax"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.soft_argmax.SoftArgmax">[docs]</a><span class="k">class</span> <span class="nc">SoftArgmax</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        An nn.Module that computes SoftArgmax</span>
+<span class="sd">        A neural network module that computes the SoftArgmax operation (essentially a 2-dimensional spatial softmax),</span>
+<span class="sd">        which is often used for location regression tasks. It converts a feature map (such as a heatmap) into precise</span>
+<span class="sd">        coordinate locations.</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 
-<span class="sd">    .. note:</span>
-
-<span class="sd">        For more softargmax info, you can refere to</span>
-<span class="sd">        the wiki page &lt;https://wikimili.com/en/Softmax_function&gt; or</span>
-<span class="sd">        the lecture &lt;https://mc.ai/softmax-function-beyond-the-basics/&gt;</span>
-
+<span class="sd">    .. note::</span>
+<span class="sd">        For more information on SoftArgmax, you can refer to &lt;https://en.wikipedia.org/wiki/Softmax_function&gt;</span>
+<span class="sd">        and the paper &lt;https://arxiv.org/pdf/1504.00702.pdf&gt;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Initialize the SoftArgmax module</span>
+<span class="sd">            Initialize the SoftArgmax module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SoftArgmax</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
 <div class="viewcode-block" id="SoftArgmax.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.soft_argmax.SoftArgmax.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Soft-argmax for location regression</span>
+<span class="sd">            Perform the forward pass of the SoftArgmax operation.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): predict heat map</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor, typically a heatmap representing predicted locations.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - location (:obj:`torch.Tensor`): predict location</span>
+<span class="sd">            - location (:obj:`torch.Tensor`): The predicted coordinates as a result of the SoftArgmax operation.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - x: :math:`(B, C, H, W)`, while B is the batch size, C is number of channels, \</span>
-<span class="sd">                H and W stands for height and width</span>
-<span class="sd">            - location: :math:`(B, 2)`, while B is the batch size</span>
+<span class="sd">            - x: :math:`(B, C, H, W)`, where `B` is the batch size, `C` is the number of channels, \</span>
+<span class="sd">                and `H` and `W` represent height and width respectively.</span>
+<span class="sd">            - location: :math:`(B, 2)`, where `B` is the batch size and 2 represents the coordinates (height, width).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Unpack the dimensions of the input tensor</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">device</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
-        <span class="c1"># 1 channel</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Ensure the input tensor has a single channel</span>
+        <span class="k">assert</span> <span class="n">C</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Input tensor should have only one channel&quot;</span>
+        <span class="c1"># Create a meshgrid for the height (h_kernel) and width (w_kernel)</span>
         <span class="n">h_kernel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">h_kernel</span> <span class="o">=</span> <span class="n">h_kernel</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+
         <span class="n">w_kernel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">w_kernel</span> <span class="o">=</span> <span class="n">w_kernel</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Apply the softmax function across the spatial dimensions (height and width)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">h_kernel</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-        <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">w_kernel</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="c1"># Compute the expected values for height and width by multiplying the probability map by the meshgrids</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">h_kernel</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># Sum over the channel, height, and width dimensions</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">w_kernel</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># Sum over the channel, height, and width dimensions</span>
+
+        <span class="c1"># Stack the height and width coordinates along a new dimension to form the final output tensor</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
 </pre></div>
 

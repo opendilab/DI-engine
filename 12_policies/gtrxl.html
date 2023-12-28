@@ -378,27 +378,23 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.gtrxl.</span></span><span class="sig-name descname"><span class="pre">GTrXL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_len</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gru_gating</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gru_bias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_embedding_layer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>GTrXL Transformer implementation.</p>
+<dt>Overview:</dt><dd><p>GTrXL Transformer implementation as described in “Stabilizing Transformer for Reinforcement Learning”
+(<a class="reference external" href="https://arxiv.org/abs/1910.06764">https://arxiv.org/abs/1910.06764</a>).</p>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For details refer to Stabilizing Transformer for Reinforcement Learning: <a class="reference external" href="https://arxiv.org/abs/1910.06764">https://arxiv.org/abs/1910.06764</a></p>
-</div>
 <dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_first</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_mem</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>GTrXL forward pass.</p>
+<dt>Overview:</dt><dd><p>Performs a forward pass on the GTrXL.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input tensor. Shape (seq_len, bs, input_size).</p></li>
-<li><p>batch_first (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): if the input data has shape (bs, seq_len, input_size), set this param to                 <code class="docutils literal notranslate"><span class="pre">True</span></code> in order to transpose along the first and second dimension and obtain shape                 (seq_len, bs, input_size). This param doesn’t affects the output memory.</p></li>
-<li><p>return_mem (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): if this param is False, return only the output tensor without dict.</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input tensor with shape (seq_len, bs, input_size).</p></li>
+<li><p>batch_first (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>, optional): If the input data has shape (bs, seq_len, input_size),                 set this parameter to True to transpose along the first and second dimension and obtain shape                 (seq_len, bs, input_size). This does not affect the output memory. Default is False.             - return_mem (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>, optional): If False, return only the output tensor without dict. Default is True.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): dict containing transformer output of shape              (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size)</p></li>
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): A dictionary containing the transformer output of shape              (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size).</p></li>
 </ul>
 </dd>
 </dl>
@@ -408,10 +404,10 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">get_memory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL.get_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Returns memory of GTrXL.</p>
+<dt>Overview:</dt><dd><p>Returns the memory of GTrXL.</p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>memory: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): output memory or None if memory has not been initialized.                 Shape is (layer_num, memory_len, bs, embedding_dim).</p></li>
+<li><p>memory (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): The output memory or None if memory has not been initialized.                 The shape is (layer_num, memory_len, bs, embedding_dim).</p></li>
 </ul>
 </dd>
 </dl>
@@ -424,8 +420,8 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
 <dt>Overview:</dt><dd><p>Clear or set the memory of GTrXL.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>batch_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): batch size</p></li>
-<li><p>state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): input memory. Shape is (layer_num, memory_len, bs, embedding_dim).</p></li>
+<li><p>batch_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): The batch size. Default is None.</p></li>
+<li><p>state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): The input memory with shape                 (layer_num, memory_len, bs, embedding_dim). Default is None.</p></li>
 </ul>
 </dd>
 </dl>

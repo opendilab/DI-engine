@@ -294,16 +294,20 @@
   <h1>Source code for ding.torch_utils.network.scatter_connection</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">ding.hpc_rl</span> <span class="kn">import</span> <span class="n">hpc_wrapper</span>
 
 
-<span class="k">def</span> <span class="nf">shape_fn_scatter_connection</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">shape_fn_scatter_connection</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Return shape of scatter_connection for hpc</span>
+<span class="sd">        Return the shape of scatter_connection for HPC.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - args (:obj:`Tuple`): The arguments passed to the scatter_connection function.</span>
+<span class="sd">        - kwargs (:obj:`Dict`): The keyword arguments passed to the scatter_connection function.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - shape (:obj:`list`): List like [B, M, N, H, W, scatter_type]</span>
+<span class="sd">        - shape (:obj:`List[int]`): A list representing the shape of scatter_connection, \</span>
+<span class="sd">            in the form of [B, M, N, H, W, scatter_type].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">tmp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -318,20 +322,20 @@
 
 
 <div class="viewcode-block" id="ScatterConnection"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.scatter_connection.ScatterConnection">[docs]</a><span class="k">class</span> <span class="nc">ScatterConnection</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Scatter feature to its corresponding location</span>
-<span class="sd">        In AlphaStar, each entity is embedded into a tensor,</span>
+<span class="sd">        Scatter feature to its corresponding location. In AlphaStar, each entity is embedded into a tensor,</span>
 <span class="sd">        and these tensors are scattered into a feature map with map size.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scatter_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init class</span>
+<span class="sd">            Initialize the ScatterConnection object.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - scatter_type (:obj:`str`): Supports [&#39;add&#39;, &#39;cover&#39;]. If two entities have the same location, \</span>
-<span class="sd">                scatter_type decides the first one should be covered or added to second one</span>
+<span class="sd">            - scatter_type (:obj:`str`): The scatter type, which decides the behavior when two entities have the \</span>
+<span class="sd">                same location. It can be either &#39;add&#39; or &#39;cover&#39;. If &#39;add&#39;, the first one will be added to the \</span>
+<span class="sd">                second one. If &#39;cover&#39;, the first one will be covered by the second one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ScatterConnection</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scatter_type</span> <span class="o">=</span> <span class="n">scatter_type</span>
@@ -347,26 +351,19 @@
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">spatial_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">location</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            scatter x into a spatial feature map</span>
+<span class="sd">            Scatter input tensor &#39;x&#39; into a spatial feature map.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means \</span>
-<span class="sd">                the dimension of entity attributes</span>
-<span class="sd">            - spatial_size (:obj:`tuple`): Tuple[H, W], the size of spatial feature x will be scattered into</span>
-<span class="sd">            - location (:obj:`tensor`): :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor of shape `(B, M, N)`, where `B` is the batch size, `M` \</span>
+<span class="sd">                is the number of entities, and `N` is the dimension of entity attributes.</span>
+<span class="sd">            - spatial_size (:obj:`Tuple[int, int]`): The size `(H, W)` of the spatial feature map into which &#39;x&#39; \</span>
+<span class="sd">                will be scattered, where `H` is the height and `W` is the width.</span>
+<span class="sd">            - location (:obj:`torch.Tensor`): The tensor of locations of shape `(B, M, 2)`. \</span>
+<span class="sd">                Each location should be (y, x).</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the\</span>
-<span class="sd">                scattered feature map</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means \</span>
-<span class="sd">                the dimension of entity attributes</span>
-<span class="sd">            - Size: Tuple type :math: `[H, W]`</span>
-<span class="sd">            - Location: :math: `(B, M, 2)` torch.LongTensor, each location should be (y, x)</span>
-<span class="sd">            - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size</span>
-
-<span class="sd">        .. note::</span>
-
-<span class="sd">            When there are some overlapping in locations, ``cover`` mode will result in the loss of information, we</span>
-<span class="sd">            use the addition as temporal substitute.</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): The scattered feature map of shape `(B, N, H, W)`.</span>
+<span class="sd">        Note:</span>
+<span class="sd">            When there are some overlapping in locations, &#39;cover&#39; mode will result in the loss of information.</span>
+<span class="sd">            &#39;add&#39; mode is used as a temporary substitute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
@@ -387,27 +384,19 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            scatter x into a spatial feature map</span>
+<span class="sd">            Scatter input tensor &#39;x&#39; into a spatial feature map using separate x and y coordinates.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`tensor`): input tensor :math: `(B, M, N)` where `M` means the number of entity, `N` means\</span>
-<span class="sd">                the dimension of entity attributes</span>
-<span class="sd">            - spatial_size (:obj:`tuple`): Tuple[H, W], the size of spatial feature x will be scattered into</span>
-<span class="sd">            - coord_x (:obj:`tensor`): :math: `(B, M)` torch.LongTensor, each location should be x</span>
-<span class="sd">            - coord_y (:obj:`tensor`): :math: `(B, M)` torch.LongTensor, each location should be y</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor of shape `(B, M, N)`, where `B` is the batch size, `M` \</span>
+<span class="sd">                is the number of entities, and `N` is the dimension of entity attributes.</span>
+<span class="sd">            - spatial_size (:obj:`Tuple[int, int]`): The size `(H, W)` of the spatial feature map into which &#39;x&#39; \</span>
+<span class="sd">                will be scattered, where `H` is the height and `W` is the width.</span>
+<span class="sd">            - coord_x (:obj:`torch.Tensor`): The x-coordinates tensor of shape `(B, M)`.</span>
+<span class="sd">            - coord_y (:obj:`torch.Tensor`): The y-coordinates tensor of shape `(B, M)`.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`tensor`): :math: `(B, N, H, W)` where `H` and `W` are spatial_size, return the\</span>
-<span class="sd">                scattered feature map</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - Input: :math: `(B, M, N)` where `M` means the number of entity, `N` means\</span>
-<span class="sd">                the dimension of entity attributes</span>
-<span class="sd">            - Size: Tuple[H, W]</span>
-<span class="sd">            - Coord_x: :math: `(B, M)` torch.LongTensor, each location should be x</span>
-<span class="sd">            - Coord_y: :math: `(B, M)` torch.LongTensor, each location should be y</span>
-<span class="sd">            - Output: :math: `(B, N, H, W)` where `H` and `W` are spatial_size</span>
-
-<span class="sd">        note:</span>
-<span class="sd">            when there are some overlapping in locations, ``cover`` mode will result in the loss of information, we</span>
-<span class="sd">            use the addition as temporal substitute.</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): The scattered feature map of shape `(B, N, H, W)`.</span>
+<span class="sd">        Note:</span>
+<span class="sd">            When there are some overlapping in locations, &#39;cover&#39; mode will result in the loss of information.</span>
+<span class="sd">            &#39;add&#39; mode is used as a temporary substitute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">device</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>

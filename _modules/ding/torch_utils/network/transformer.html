@@ -302,23 +302,23 @@
 
 
 <div class="viewcode-block" id="Attention"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.Attention">[docs]</a><span class="k">class</span> <span class="nc">Attention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        For each entry embedding, compute individual attention across all entries, add them up to get output attention</span>
+<span class="sd">        For each entry embedding, compute individual attention across all entries, add them up to get output attention.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        split, forward</span>
+<span class="sd">        ``split``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init attention</span>
+<span class="sd">            Initialize the Attention module with the provided dimensions and dropout layer.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim (:obj:`int`): dimension of input</span>
-<span class="sd">            - head_dim (:obj:`int`): dimension of each head</span>
-<span class="sd">            - output_dim (:obj:`int`): dimension of output</span>
-<span class="sd">            - head_num (:obj:`int`): head num for multihead attention</span>
-<span class="sd">            - dropout (:obj:`nn.Module`): dropout layer</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimension of the input.</span>
+<span class="sd">            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.</span>
+<span class="sd">            - output_dim (:obj:`int`): The dimension of the output.</span>
+<span class="sd">            - head_num (:obj:`int`): The number of heads in the multi-head attention mechanism.</span>
+<span class="sd">            - dropout (:obj:`nn.Module`): The dropout layer used in the attention mechanism.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Attention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">head_num</span> <span class="o">=</span> <span class="n">head_num</span>
@@ -328,14 +328,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="n">fc_block</span><span class="p">(</span><span class="n">head_dim</span> <span class="o">*</span> <span class="n">head_num</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Attention.split"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.Attention.split">[docs]</a>    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Split input to get multihead queries, keys, values</span>
+<span class="sd">            Split the input to get multi-head queries, keys, and values.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): query or key or value</span>
-<span class="sd">            - T (:obj:`bool`): whether to transpose output</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The tensor to be split, which could be a query, key, or value.</span>
+<span class="sd">            - T (:obj:`bool`, optional): If True, transpose the output tensors. Defaults to False.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - x (:obj:`List[torch.Tensor]`): list of output tensors for each head</span>
+<span class="sd">            - x (:obj:`List[torch.Tensor]`): A list of output tensors for each head.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">)</span>
@@ -345,14 +345,15 @@
         <span class="k">return</span> <span class="n">x</span></div>
 
 <div class="viewcode-block" id="Attention.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.Attention.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">           Compute attention</span>
+<span class="sd">            Compute the attention from the input tensor.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): input tensor</span>
-<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): mask out invalid entries</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor for the forward computation.</span>
+<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`, optional): Optional mask to exclude invalid entries.</span>
+<span class="sd">                Defaults to None.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - attention (:obj:`torch.Tensor`): attention tensor</span>
+<span class="sd">            - attention (:obj:`torch.Tensor`): The computed attention tensor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -376,27 +377,29 @@
 
 
 <div class="viewcode-block" id="TransformerLayer"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.TransformerLayer">[docs]</a><span class="k">class</span> <span class="nc">TransformerLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        In transformer layer, first computes entries&#39;s attention and applies a feedforward layer</span>
+<span class="sd">        In transformer layer, first computes entries&#39;s attention and applies a feedforward layer.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">mlp_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">dropout</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init transformer layer</span>
+<span class="sd">            Initialize the TransformerLayer with the provided dimensions, dropout layer, and activation function.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim (:obj:`int`): dimension of input</span>
-<span class="sd">            - head_dim (:obj:`int`): dimension of each head</span>
-<span class="sd">            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp</span>
-<span class="sd">            - output_dim (:obj:`int`): dimension of output</span>
-<span class="sd">            - head_num (:obj:`int`): number of heads for multihead attention</span>
-<span class="sd">            - mlp_num (:obj:`int`): number of mlp layers</span>
-<span class="sd">            - dropout (:obj:`nn.Module`): dropout layer</span>
-<span class="sd">            - activation (:obj:`nn.Module`): activation function</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimension of the input.</span>
+<span class="sd">            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.</span>
+<span class="sd">            - hidden_dim (:obj:`int`): The dimension of the hidden layer in the MLP (Multi-Layer Perceptron).</span>
+<span class="sd">            - output_dim (:obj:`int`): The dimension of the output.</span>
+<span class="sd">            - head_num (:obj:`int`): The number of heads in the multi-head attention mechanism.</span>
+<span class="sd">            - mlp_num (:obj:`int`): The number of layers in the MLP.</span>
+<span class="sd">            - dropout (:obj:`nn.Module`): The dropout layer used in the attention mechanism.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The activation function used in the MLP.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">TransformerLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">Attention</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">,</span> <span class="n">head_num</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>
@@ -415,29 +418,32 @@
 <div class="viewcode-block" id="TransformerLayer.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.TransformerLayer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Transformer layer forward</span>
+<span class="sd">            Compute the forward pass through the Transformer layer.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`Tuple[torch.Tensor, torch.Tensor]`): x and mask</span>
+<span class="sd">            - inputs (:obj:`Tuple[torch.Tensor, torch.Tensor]`): A tuple containing the input tensor `x` and</span>
+<span class="sd">                the mask tensor.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`Tuple[torch.Tensor, torch.Tensor]`): predict value and mask</span>
+<span class="sd">            - output (:obj:`Tuple[torch.Tensor, torch.Tensor]`): A tuple containing the predicted value tensor and</span>
+<span class="sd">                the mask tensor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">inputs</span>
         <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mask</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm1</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span>
         <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layernorm2</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">m</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">mask</span></div></div>
 
 
 <div class="viewcode-block" id="Transformer"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.Transformer">[docs]</a><span class="k">class</span> <span class="nc">Transformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Transformer implementation</span>
+<span class="sd">        Implementation of the Transformer model.</span>
 
 <span class="sd">    .. note::</span>
-
-<span class="sd">        For details refer to Attention is all you need: http://arxiv.org/abs/1706.03762</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">        For more details, refer to &quot;Attention is All You Need&quot;: http://arxiv.org/abs/1706.03762.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -451,19 +457,20 @@
         <span class="n">dropout_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init transformer</span>
+<span class="sd">            Initialize the Transformer with the provided dimensions, dropout layer, activation function,</span>
+<span class="sd">            and layer numbers.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - input_dim (:obj:`int`): dimension of input</span>
-<span class="sd">            - head_dim (:obj:`int`): dimension of each head</span>
-<span class="sd">            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp</span>
-<span class="sd">            - output_dim (:obj:`int`): dimension of output</span>
-<span class="sd">            - head_num (:obj:`int`): number of heads for multihead attention</span>
-<span class="sd">            - mlp_num (:obj:`int`): number of mlp layers</span>
-<span class="sd">            - layer_num (:obj:`int`): number of transformer layers</span>
-<span class="sd">            - dropout_ratio (:obj:`float`): dropout ratio</span>
-<span class="sd">            - activation (:obj:`nn.Module`): activation function</span>
+<span class="sd">            - input_dim (:obj:`int`): The dimension of the input.</span>
+<span class="sd">            - head_dim (:obj:`int`): The dimension of each head in the multi-head attention mechanism.</span>
+<span class="sd">            - hidden_dim (:obj:`int`): The dimension of the hidden layer in the MLP (Multi-Layer Perceptron).</span>
+<span class="sd">            - output_dim (:obj:`int`): The dimension of the output.</span>
+<span class="sd">            - head_num (:obj:`int`): The number of heads in the multi-head attention mechanism.</span>
+<span class="sd">            - mlp_num (:obj:`int`): The number of layers in the MLP.</span>
+<span class="sd">            - layer_num (:obj:`int`): The number of Transformer layers.</span>
+<span class="sd">            - dropout_ratio (:obj:`float`): The dropout ratio for the dropout layer.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The activation function used in the MLP.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Transformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="n">fc_block</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)</span>
@@ -478,16 +485,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">main</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Transformer.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.Transformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Transformer forward</span>
+<span class="sd">            Perform the forward pass through the Transformer.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): input tensor. Shape (B, N, C), B is batch size, \</span>
-<span class="sd">                N is number of entries, C is feature dimension</span>
-<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): bool tensor, can be used to mask out invalid entries in attention. \</span>
-<span class="sd">                Shape (B, N), B is batch size, N is number of entries</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor, with shape `(B, N, C)`, where `B` is batch size, \</span>
+<span class="sd">                `N` is the number of entries, and `C` is the feature dimension.</span>
+<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`, optional): The mask tensor (bool), used to mask out invalid \</span>
+<span class="sd">                entries in attention. It has shape `(B, N)`, where `B` is batch size and `N` is number of \</span>
+<span class="sd">                entries. Defaults to None.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): transformer output</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The output tensor from the Transformer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -498,12 +506,23 @@
 
 
 <span class="k">class</span> <span class="nc">ScaledDotProductAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Implementation of dot product attentionn with scaling.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">        Implementation of Scaled Dot Product Attention, a key component of Transformer models.</span>
+<span class="sd">        This class performs the dot product of the query, key and value tensors, scales it with the square root of the</span>
+<span class="sd">        dimension of the key vector (d_k) and applies dropout for regularization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the ScaledDotProductAttention module with the dimension of the key vector and the dropout rate.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - d_k (:obj:`int`): The dimension of the key vector. This will be used to scale the dot product of the \</span>
+<span class="sd">                query and key.</span>
+<span class="sd">            - dropout (:obj:`float`, optional): The dropout rate to be applied after the softmax operation. \</span>
+<span class="sd">                Defaults to 0.0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ScaledDotProductAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">d_k</span> <span class="o">=</span> <span class="n">d_k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
@@ -515,6 +534,18 @@
             <span class="n">v</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
             <span class="n">mask</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Perform the Scaled Dot Product Attention operation on the query, key and value tensors.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - q (:obj:`torch.Tensor`): The query tensor.</span>
+<span class="sd">            - k (:obj:`torch.Tensor`): The key tensor.</span>
+<span class="sd">            - v (:obj:`torch.Tensor`): The value tensor.</span>
+<span class="sd">            - mask (:obj:`Optional[torch.Tensor]`): An optional mask tensor to be applied on the attention scores.</span>
+<span class="sd">                Defaults to None.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): The output tensor after the attention operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">attn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">q</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_k</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">k</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># inplace modification for reasonable softmax</span>
