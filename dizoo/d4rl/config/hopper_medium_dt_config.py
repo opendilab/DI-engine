@@ -14,8 +14,8 @@ hopper_dt_config = dict(
     dataset=dict(
         env_type='mujoco',
         rtg_scale=1000,
-        context_len=30,
-        data_dir_prefix='d4rl/hopper_medium-v2.pkl',
+        context_len=20,
+        data_dir_prefix='d4rl/hopper_medium_expert-v2.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -47,7 +47,7 @@ hopper_dt_config = dict(
             data_type='d4rl_trajectory',
             unroll_len=1,
         ),
-        eval=dict(evaluator=dict(eval_freq=100, ), ),
+        eval=dict(evaluator=dict(eval_freq=1000, ), ),
     ),
 )
 

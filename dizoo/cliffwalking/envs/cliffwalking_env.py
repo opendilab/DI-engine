@@ -23,6 +23,9 @@ class CliffWalkingEnv(BaseEnv):
         self._init_flag = False
         self._replay_path = None
         self._observation_space = gym.spaces.Box(low=0, high=1, shape=(48, ), dtype=np.float32)
+        self._env = gym.make(
+                "CliffWalking", render_mode=self._cfg.render_mode, max_episode_steps=self._cfg.max_episode_steps
+            )
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
@@ -64,8 +67,10 @@ class CliffWalkingEnv(BaseEnv):
         np.random.seed(seed)
 
     def step(self, action: Union[int, np.ndarray]) -> BaseEnvTimestep:
-        if isinstance(action, np.ndarray) and action.shape == (1, ):
-            action = action.squeeze()  # 0-dim array
+        if isinstance(action, np.ndarray):
+            if action.shape == (1, ):
+                action = action.squeeze()  # 0-dim array
+            action = action.item()
         obs, reward, done, info = self._env.step(action)
         obs_encode = self._encode_obs(obs)
         self._eval_episode_return += reward

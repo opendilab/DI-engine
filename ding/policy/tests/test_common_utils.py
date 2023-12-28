@@ -25,6 +25,10 @@ data_type_test = [
 
 def get_action(shape, dtype, class_type):
     if class_type == "numpy":
+        if dtype == "int64":
+            dtype = np.int64
+        elif dtype == "float32":
+            dtype = np.float32
         return np.random.randn(*shape).astype(dtype)
     else:
         if dtype == "int64":

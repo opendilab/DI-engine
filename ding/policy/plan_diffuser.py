@@ -178,7 +178,7 @@ class PDPolicy(Policy):
         self.step_start_update_target = self._cfg.learn.step_start_update_target
         self.target_weight = self._cfg.learn.target_weight
         self.value_step = self._cfg.learn.value_step
-        self.use_target = True
+        self.use_target = False
         self.horizon = self._cfg.model.diffuser_model_cfg.horizon
         self.include_returns = self._cfg.learn.include_returns
 

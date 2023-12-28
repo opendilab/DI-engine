@@ -2,9 +2,9 @@ from easydict import EasyDict
 from copy import deepcopy
 
 walk2d_dt_config = dict(
-    exp_name='dt_log/d4rl/walk2d/walk2d_medium_dt_seed0',
+    exp_name='dt_log/d4rl/walk2d/walk2d_medium_dt',
     env=dict(
-        env_id='Walk2d-v3',
+        env_id='Walker2d-v3',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -14,8 +14,8 @@ walk2d_dt_config = dict(
     dataset=dict(
         env_type='mujoco',
         rtg_scale=1000,
-        context_len=30,
-        data_dir_prefix='d4rl/walk2d_medium-v2.pkl',
+        context_len=20,
+        data_dir_prefix='d4rl/walker2d_medium-v2.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -23,7 +23,7 @@ walk2d_dt_config = dict(
         state_mean=None,
         state_std=None,
         evaluator_env_num=8,
-        env_name='Walk2d-v3',
+        env_name='Walker2d-v3',
         rtg_target=5000,  # max target return to go
         max_eval_ep_len=1000,  # max lenght of one episode
         wt_decay=1e-4,
@@ -32,8 +32,8 @@ walk2d_dt_config = dict(
         weight_decay=0.1,
         clip_grad_norm_p=0.25,
         model=dict(
-            state_dim=11,
-            act_dim=3,
+            state_dim=17,
+            act_dim=6,
             n_blocks=3,
             h_dim=128,
             context_len=20,

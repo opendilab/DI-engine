@@ -16,6 +16,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', '-s', type=int, default=10)
-    parser.add_argument('--config', '-c', type=str, default='hopper_expert_cql_config.py')
+    parser.add_argument('--config', '-c', type=str, default='halfcheetah_medium_pd_config.py')
     args = parser.parse_args()
     train(args)

@@ -389,13 +389,10 @@ class D4RLTrajectoryDataset(Dataset):
 
             self.trajectories = paths
 
-            # calculate min len of traj, state mean and variance
-            # and returns_to_go for all traj
-            min_len = 10 ** 6
+            # calculate state mean and variance and returns_to_go for all traj
             states = []
             for traj in self.trajectories:
                 traj_len = traj['observations'].shape[0]
-                min_len = min(min_len, traj_len)
                 states.append(traj['observations'])
                 # calculate returns to go and rescale them
                 traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
@@ -408,46 +405,6 @@ class D4RLTrajectoryDataset(Dataset):
             for traj in self.trajectories:
                 traj['observations'] = (traj['observations'] - self.state_mean) / self.state_std
 
-            # self.trajectories = {}
-            # exp_key = ['rewards', 'terminals', 'timeouts']
-            # for k in dataset.keys():
-            #     logging.info(f'Load {k} data.')
-            #     if k in exp_key:
-            #         self.trajectories[k] = np.expand_dims(dataset[k][:], axis=1)
-            #     else:
-            #         self.trajectories[k] = dataset[k][:]
-
-            # # used for input normalization
-            # states = np.concatenate(self.trajectories['observations'], axis=0)
-            # self.state_mean, self.state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
-
-            # # normalize states
-            # self.trajectories['observations'] = (self.trajectories['observations'] - self.state_mean) / self.state_std
-            # self.trajectories['returns_to_go'] = discount_cumsum(self.trajectories['rewards'], 1.0) / rtg_scale
-
-            # datalen = self.trajectories['rewards'].shape[0]
-
-            # use_timeouts = False
-            # if 'timeouts' in dataset:
-            #     use_timeouts = True
-
-            # data_ = collections.defaultdict(list)
-            # episode_step = 0
-            # trajectories_tmp = []
-            # for i in range(datalen):
-            #     done_bool = bool(self.trajectories['terminals'][i])
-            #     final_timestep = (episode_step == 1000-1)
-            #     for k in ['observations', 'actions', 'returns_to_go']:
-            #         data_[k].append(self.trajectories[k][i])
-            #     if done_bool or final_timestep:
-            #         episode_step = 0
-            #         episode_data = {}
-            #         for k in data_:
-            #             episode_data[k] = np.array(data_[k])
-            #         trajectories_tmp.append(episode_data)
-            #         data_ = collections.defaultdict(list)
-            #     episode_step += 1
-            # self.trajectories = trajectories_tmp
         elif 'pkl' in dataset_path:
             if 'dqn' in dataset_path:
                 # load dataset
@@ -493,11 +450,8 @@ class D4RLTrajectoryDataset(Dataset):
                 with open(dataset_path, 'rb') as f:
                     self.trajectories = pickle.load(f)
 
-                min_len = 10 ** 6
                 states = []
                 for traj in self.trajectories:
-                    traj_len = traj['observations'].shape[0]
-                    min_len = min(min_len, traj_len)
                     states.append(traj['observations'])
                     # calculate returns to go and rescale them
                     traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
@@ -1090,11 +1044,13 @@ class SequenceDataset(torch.utils.data.Dataset):
                 'trajectories': trajectories,
                 'returns': returns,
                 'done': done,
+                'action': actions,
             }
         else:
             batch = {
                 'trajectories': trajectories,
                 'done': done,
+                'action': actions,
             }
 
         batch.update(self.get_conditions(observations))
