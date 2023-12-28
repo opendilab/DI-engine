@@ -22,7 +22,7 @@ class PopArt(nn.Module):
         updates in multi-task learning, as described in the paper <https://arxiv.org/abs/1809.04474>.
 
     Interface:
-        __init__, reset_parameters, forward, update_parameters
+        ``__init__``, ``reset_parameters``, ``forward``, ``update_parameters``
     """
 
     def __init__(

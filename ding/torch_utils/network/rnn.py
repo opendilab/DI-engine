@@ -133,7 +133,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     Overview:
         Implementation of an LSTM cell with Layer Normalization (LN).
     Interface:
-        ``forward``.
+        ``forward``
 
     .. note::
 
@@ -240,7 +240,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         Wrapper class for PyTorch's nn.LSTM, formats the input and output. For more details on nn.LSTM,
         refer to https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM
     Interface:
-        forward
+        ``forward``
     """
 
     def forward(self,

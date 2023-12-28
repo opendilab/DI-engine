@@ -7,7 +7,7 @@ from .nn_module import conv2d_block, fc_block
 
 
 class ResBlock(nn.Module):
-    r"""
+    """
     Overview:
         Residual Block with 2D convolution layers, including 3 types:
             basic block:
@@ -21,8 +21,9 @@ class ResBlock(nn.Module):
                 input channel: C
                 x -> 3*3*C -> norm -> act -> 3*3*C -> norm -> act -> out
                 \__________________ 3*3*C ____________________/+
+        For more details, please refer to `Deep Residual Learning for Image Recognition <https://arxiv.org/abs/1512.03385>`_.
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(
@@ -101,20 +102,20 @@ class ResBlock(nn.Module):
 
 
 class ResFCBlock(nn.Module):
-    r"""
+    """
     Overview:
         Residual Block with 2 fully connected layers.
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
         \_____________________________________/+
 
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(
         self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN', dropout: float = None
     ):
-        r"""
+        """
         Overview:
             Init the fully connected layer residual block.
         Arguments:
@@ -133,7 +134,7 @@ class ResFCBlock(nn.Module):
         self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Return the output of the redisual block.
         Arguments:

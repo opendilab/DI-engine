@@ -496,7 +496,7 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
         - num_first (:obj:`bool`, optional): If False, the one-hot encoding is added as the last dimension; otherwise, \
             it is added as the first dimension. Default is False.
     Returns:
-        - one_hot (:obj:`torch.FloatTensor`): The one-hot encoded tensor
+        - one_hot (:obj:`torch.FloatTensor`): The one-hot encoded tensor.
     Example:
         >>> one_hot(2*torch.ones([2,2]).long(),3)
         tensor([[[0., 0., 1.],
@@ -572,7 +572,7 @@ class BilinearUpsample(nn.Module):
     Overview:
         This module upsamples the input to the given scale_factor using the bilinear mode.
     Interface:
-        forward
+        ``forward``
     """
 
     def __init__(self, scale_factor: Union[float, List[float]]) -> None:
@@ -629,7 +629,7 @@ class NoiseLinearLayer(nn.Module):
     Overview:
         This is a linear layer with random noise.
     Interface:
-        reset_noise, reset_parameters, forward
+        ``reset_noise``, ``reset_parameters``, ``forward``
     """
 
     def __init__(self, in_channels: int, out_channels: int, sigma0: int = 0.4) -> None:

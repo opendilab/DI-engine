@@ -12,7 +12,7 @@ class Attention(nn.Module):
     Overview:
         For each entry embedding, compute individual attention across all entries, add them up to get output attention.
     Interfaces:
-        split, forward
+        ``split``, ``forward``
     """
 
     def __init__(self, input_dim: int, head_dim: int, output_dim: int, head_num: int, dropout: nn.Module) -> None:
@@ -87,7 +87,7 @@ class TransformerLayer(nn.Module):
     Overview:
         In transformer layer, first computes entries's attention and applies a feedforward layer.
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(
