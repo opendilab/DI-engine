@@ -4,6 +4,7 @@ API Doc
 .. toctree::
     :maxdepth: 1
 
+    agent
     config
     env
     model

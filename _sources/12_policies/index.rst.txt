@@ -66,6 +66,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     cql
     td3_bc
     edac
+    dt
 
 .. toctree::
     :maxdepth: 2
