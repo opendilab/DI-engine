@@ -6,16 +6,15 @@ import torch.nn.functional as F
 class SoftArgmax(nn.Module):
     """
     Overview:
-        A neural network module that computes the SoftArgmax operation (essentially a 2-dimensional softmax),
+        A neural network module that computes the SoftArgmax operation (essentially a 2-dimensional spatial softmax),
         which is often used for location regression tasks. It converts a feature map (such as a heatmap) into precise
         coordinate locations.
     Interface:
         ``__init__``, ``forward``
 
     .. note::
-        For more information on SoftArgmax,
-        you can refer to the wiki page <https://wikimili.com/en/Softmax_function> or
-        this lecture <https://mc.ai/softmax-function-beyond-the-basics/>.
+        For more information on SoftArgmax, you can refer to <https://en.wikipedia.org/wiki/Softmax_function>
+        and the paper <https://arxiv.org/pdf/1504.00702.pdf>.
     """
 
     def __init__(self):
