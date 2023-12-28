@@ -50,12 +50,12 @@ from torch import Tensor
 class BilinearGeneral(nn.Module):
     """
     Overview:
-        Bilinear implementation as in:
-        Multiplicative Interactions and Where to Find Them, ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH
+        Bilinear implementation as in: Multiplicative Interactions and Where to Find Them,
+        ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH.
     Arguments:
-        - in1_features (:obj:`int`): size of each first input sample
-        - in2_features (:obj:`int`): size of each second input sample
-        - out_features (:obj:`int`): size of each output sample
+        - in1_features (:obj:`int`): The size of each first input sample.
+        - in2_features (:obj:`int`): The size of each second input sample.
+        - out_features (:obj:`int`): The size of each output sample.
     """
 
     def __init__(self, in1_features, in2_features, out_features):
@@ -95,9 +95,9 @@ class TorchBilinearCustomized(nn.Module):
     Overview:
         Customized Torch Bilinear implementation.
     Arguments:
-        - in1_features (:obj:`int`): size of each first input sample
-        - in2_features (:obj:`int`): size of each second input sample
-        - out_features (:obj:`int`): size of each output sample
+        - in1_features (:obj:`int`): The size of each first input sample.
+        - in2_features (:obj:`int`): The size of each second input sample.
+        - out_features (:obj:`int`): The size of each output sample.
     """
 
     def __init__(self, in1_features, in2_features, out_features):
@@ -125,9 +125,9 @@ Overview:
     Implementation of the Bilinear layer as in PyTorch:
     https://pytorch.org/docs/stable/generated/torch.nn.Bilinear.html#torch.nn.Bilinear
 Arguments:
-    - in1_features (:obj:`int`): size of each first input sample
-    - in2_features (:obj:`int`): size of each second input sample
-    - out_features (:obj:`int`): size of each output sample
+    - in1_features (:obj:`int`): The size of each first input sample.
+    - in2_features (:obj:`int`): The size of each second input sample.
+    - out_features (:obj:`int`): The size of each output sample.
     - bias (:obj:`bool`): If set to False, the layer will not learn an additive bias. Default: ``True``.
 """
 TorchBilinear = nn.Bilinear
@@ -154,10 +154,10 @@ class FiLM(nn.Module):
         Overview:
             Forward propagation.
         Arguments:
-            - feature (:obj:`torch.Tensor`). The input feature, shape (batch_size, feature_dim)
-            - context (:obj:`torch.Tensor`). The input context, shape (batch_size, context_dim)
+            - feature (:obj:`torch.Tensor`). The input feature, shape (batch_size, feature_dim).
+            - context (:obj:`torch.Tensor`). The input context, shape (batch_size, context_dim).
         Returns:
-            - conditioned_feature : torch.Tensor. The output feature after FiLM, shape (batch_size, feature_dim)
+            - conditioned_feature : torch.Tensor. The output feature after FiLM, shape (batch_size, feature_dim).
         """
         # Pass context through the fully connected layer
         out = self.context_layer(context)
@@ -210,7 +210,7 @@ class VectorMerge(nn.Module):
         Merges multiple vector streams. Streams are first transformed through layer normalization, relu, and linear
         layers, then summed. They don't need to have the same size. Gating can also be used before the sum.
     Arguments:
-        - input_sizes (:obj:`Dict[str, int]`): A dictionary mapping input names to their size (a single
+        - input_sizes (:obj:`Dict[str, int]`): A dictionary mapping input names to their size (a single \
             integer for 1d inputs, or None for 0d inputs). If an input size is None, we assume it's ().
         - output_size (:obj:`int`): The size of the output vector.
         - gating_type (:obj:`GatingType`): The type of gating mechanism to use.
@@ -231,14 +231,12 @@ class VectorMerge(nn.Module):
         Overview:
             Initialize the `VectorMerge` module.
         Arguments:
-            - input_sizes (:obj:`Dict[str, int]`): A dictionary mapping input names to their sizes.
-              The size is a single integer for 1D inputs, or `None` for 0D inputs.
-              If an input size is `None`, we assume it's `()`.
+            - input_sizes (:obj:`Dict[str, int]`): A dictionary mapping input names to their sizes. \
+                The size is a single integer for 1D inputs, or `None` for 0D inputs. \
+                If an input size is `None`, we assume it's `()`.
             - output_size (:obj:`int`): The size of the output vector.
-            - gating_type (:obj:`GatingType`): The type of gating mechanism to use.
-              Default is `GatingType.NONE`.
-            - use_layer_norm (:obj:`bool`): Whether to use layer normalization.
-              Default is `True`.
+            - gating_type (:obj:`GatingType`): The type of gating mechanism to use. Default is `GatingType.NONE`.
+            - use_layer_norm (:obj:`bool`): Whether to use layer normalization. Default is `True`.
         """
         super().__init__()
         self._input_sizes = OrderedDict(input_sizes)

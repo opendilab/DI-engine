@@ -11,8 +11,8 @@ class GumbelSoftmax(nn.Module):
         __init__, forward, gumbel_softmax_sample
 
     .. note::
-        For more information on GumbelSoftmax, refer to the paper [Categorical
-            Reparameterization with Gumbel-Softmax](https://arxiv.org/abs/1611.01144).
+        For more information on GumbelSoftmax, refer to the paper [Categorical Reparameterization \
+        with Gumbel-Softmax](https://arxiv.org/abs/1611.01144).
     """
 
     def __init__(self) -> None:
@@ -49,8 +49,8 @@ class GumbelSoftmax(nn.Module):
         Returns:
             - output (:obj:`torch.Tensor`): Sample from Gumbel-Softmax distribution.
         Shapes:
-            - Input, x: :math:`(B, N)`, where `B` is the batch size and `N` is the number of classes.
-            - Output: :math:`(B, N)`, where `B` is the batch size and `N` is the number of classes.
+            - x: its shape is :math:`(B, N)`, where `B` is the batch size and `N` is the number of classes.
+            - y: its shape is :math:`(B, N)`, where `B` is the batch size and `N` is the number of classes.
         """
         y = self.gumbel_softmax_sample(x, temperature)
         if hard:

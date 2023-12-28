@@ -1,3 +1,8 @@
+"""
+Overview:
+    This file implements the core modules of GTrXL Transformer as described in
+    "Stabilizing Transformer for Reinforcement Learning" (https://arxiv.org/abs/1910.06764).
+"""
 from typing import Optional, Dict, List
 import warnings
 import numpy as np
@@ -31,10 +36,10 @@ class PositionalEmbedding(nn.Module):
         Overview:
             Compute positional embedding given a sequence of positions.
         Arguments:
-             - pos_seq (:obj:`torch.Tensor`): The positional sequence,
+             - pos_seq (:obj:`torch.Tensor`): The positional sequence, \
                 typically a 1D tensor of integers in the form of [seq_len-1, seq_len-2, ..., 1, 0],
         Returns:
-            - pos_embedding (:obj:`torch.Tensor`): The computed positional embeddings.
+            - pos_embedding (:obj:`torch.Tensor`): The computed positional embeddings. \
                 The shape of the tensor is (seq_len, 1, embedding_dim).
         """
         sinusoid_inp = torch.outer(pos_seq, self.inv_freq)
@@ -54,8 +59,8 @@ class GRUGatingUnit(torch.nn.Module):
         """
         Arguments:
             - input_dim (:obj:`int`): The dimensionality of the input.
-            - bg (:obj:`bg`): The gate bias. By setting bg > 0 we can explicitly initialize the gating mechanism to
-                be close to the identity map. This can greatly improve the learning speed and stability since it
+            - bg (:obj:`bg`): The gate bias. By setting bg > 0 we can explicitly initialize the gating mechanism to \
+                be close to the identity map. This can greatly improve the learning speed and stability since it \
                 initializes the agent close to a Markovian policy (ignore attention at the beginning).
         """
         super(GRUGatingUnit, self).__init__()
@@ -75,10 +80,10 @@ class GRUGatingUnit(torch.nn.Module):
             Compute the output value using the GRU gating mechanism.
         Arguments:
             - x: (:obj:`torch.Tensor`): The first input tensor.
-            - y: (:obj:`torch.Tensor`): The second input tensor.
+            - y: (:obj:`torch.Tensor`): The second input tensor. \
                 x and y should have the same shape and their last dimension should match the input_dim.
         Returns:
-            - g: (:obj:`torch.Tensor`): The output of the GRU gating mechanism.
+            - g: (:obj:`torch.Tensor`): The output of the GRU gating mechanism. \
                 The shape of g matches the shapes of x and y.
         """
         r = self.sigmoid(self.Wr(y) + self.Ur(x))
@@ -109,7 +114,7 @@ class Memory:
         Arguments:
             - memory_len (:obj:`int`): The dimension of memory, i.e., how many past observations to use as memory.
             - batch_size (:obj:`int`): The dimension of each batch.
-            - embedding_dim (:obj:`int`): The dimension of embedding, which is the dimension of a single observation
+            - embedding_dim (:obj:`int`): The dimension of embedding, which is the dimension of a single observation \
                 after embedding.
             - layer_num (:obj:`int`): The number of transformer layers.
             - memory (:obj:`Optional[torch.Tensor]`): The initial memory. Default is None.
@@ -127,8 +132,8 @@ class Memory:
         Overview:
             Initialize memory with an input list of tensors or create it automatically given its dimensions.
         Arguments:
-            - memory (:obj:`Optional[torch.Tensor]`): Input memory tensor with shape
-                (layer_num, memory_len, bs, embedding_dim). Its shape is (layer_num, memory_len, bs, embedding_dim),
+            - memory (:obj:`Optional[torch.Tensor]`): Input memory tensor with shape \
+                (layer_num, memory_len, bs, embedding_dim). Its shape is (layer_num, memory_len, bs, embedding_dim), \
                 where memory_len is length of memory, bs is batch size and embedding_dim is the dimension of embedding.
         """
         if memory is not None:
@@ -151,11 +156,11 @@ class Memory:
                 m = m10 m11 m12  h = h10 h11 h12  => new_m =  h00 h01 h02
                     m20 m21 m22                               h10 h11 h12
         Arguments:
-            - hidden_state: (:obj:`List[torch.Tensor]`): The hidden states to update the memory.
-                Each tensor in the list has shape (cur_seq, bs, embedding_dim),
-                where cur_seq is the length of the sequence.
+            - hidden_state: (:obj:`List[torch.Tensor]`): The hidden states to update the memory. \
+                Each tensor in the list has shape (cur_seq, bs, embedding_dim), where cur_seq \
+                is the length of the sequence.
         Returns:
-            - memory: (:obj:`Optional[torch.Tensor]`): The updated memory, with shape
+            - memory: (:obj:`Optional[torch.Tensor]`): The updated memory, with shape \
                 (layer_num, memory_len, bs, embedding_dim).
         """
         if self.memory is None or hidden_state is None:
@@ -179,7 +184,7 @@ class Memory:
         Overview:
             Get the current memory.
         Returns:
-            - memory: (:obj:`Optional[torch.Tensor]`): The current memory,
+            - memory: (:obj:`Optional[torch.Tensor]`): The current memory, \
                 with shape (layer_num, memory_len, bs, embedding_dim).
         """
         return self.memory
@@ -223,7 +228,7 @@ class AttentionXL(torch.nn.Module):
     def _rel_shift(self, x: torch.Tensor, zero_upper: bool = False) -> torch.Tensor:
         """
         Overview:
-             Perform a relative shift operation on the attention score matrix.
+            Perform a relative shift operation on the attention score matrix.
             Example:
                 a00 a01 a02      0 a00 a01 a02       0  a00 a01      a02  0  a10     a02  0   0
                 a10 a11 a12  =>  0 a10 a11 a12  =>  a02  0  a10  =>  a11 a12  0  =>  a11 a12  0
@@ -239,10 +244,10 @@ class AttentionXL(torch.nn.Module):
                 https://github.com/kimiyoung/transformer-xl/issues/8
                 https://arxiv.org/pdf/1901.02860.pdf (Appendix B)
         Arguments:
-           - x (:obj:`torch.Tensor`): The input tensor with shape (cur_seq, full_seq, bs, head_num).
+            - x (:obj:`torch.Tensor`): The input tensor with shape (cur_seq, full_seq, bs, head_num).
             - zero_upper (:obj:`bool`): If True, the upper-right triangle of the matrix is set to zero.
         Returns:
-            - x (:obj:`torch.Tensor`): The input tensor after the relative shift operation,
+            - x (:obj:`torch.Tensor`): The input tensor after the relative shift operation, \
                 with shape (cur_seq, full_seq, bs, head_num).
         """
         x_padded = F.pad(x, [1, 0])  # step 1
@@ -268,11 +273,11 @@ class AttentionXL(torch.nn.Module):
         Arguments:
             - inputs (:obj:`torch.Tensor`): The attention input with shape (cur_seq, bs, input_dim).
             - pos_embedding (:obj:`torch.Tensor`): The positional embedding with shape (full_seq, 1, full_seq).
-            - full_input (:obj:`torch.Tensor`): The concatenated memory and input tensor with shape
+            - full_input (:obj:`torch.Tensor`): The concatenated memory and input tensor with shape \
                 (full_seq, bs, input_dim).
             - u (:obj:`torch.nn.Parameter`): The content parameter with shape (head_num, head_dim).
             - v (:obj:`torch.nn.Parameter`): The position parameter with shape (head_num, head_dim).
-            - mask (:obj:`Optional[torch.Tensor]`): The attention mask with shape (cur_seq, full_seq, 1).
+            - mask (:obj:`Optional[torch.Tensor]`): The attention mask with shape (cur_seq, full_seq, 1). \
                 If None, no masking is applied.
         Returns:
             - output (:obj:`torch.Tensor`): The output of the attention mechanism with shape (cur_seq, bs, input_dim).
@@ -350,8 +355,8 @@ class GatedTransformerXLLayer(torch.nn.Module):
             - mlp_num (:obj:`int`): The number of MLP layers in the attention layer.
             - dropout (:obj:`nn.Module`): The dropout module used in the MLP and attention layers.
             - activation (:obj:`nn.Module`): The activation function to be used in the MLP layers.
-            - gru_gating (:obj:`bool`, optional): Whether to use GRU gates. If False, replace GRU gates with residual
-                connections. Default is True.
+            - gru_gating (:obj:`bool`, optional): Whether to use GRU gates. If False, replace GRU gates with \
+                residual connections. Default is True.
             - gru_bias (:obj:`float`, optional): The bias of the GRU gate. Default is 2.
         """
         super(GatedTransformerXLLayer, self).__init__()
@@ -441,14 +446,14 @@ class GTrXL(nn.Module):
             - input_dim (:obj:`int`): The dimension of the input observation.
             - head_dim (:obj:`int`, optional): The dimension of each head. Default is 128.
             - embedding_dim (:obj:`int`, optional): The dimension of the embedding. Default is 256.
-            - head_num (:obj:`int`, optional): The number of heads for multihead attention. Default is 2.
+            - head_num (:obj:`int`, optional): The number of heads for multi-head attention. Default is 2.
             - mlp_num (:obj:`int`, optional): The number of MLP layers in the attention layer. Default is 2.
             - layer_num (:obj:`int`, optional): The number of transformer layers. Default is 3.
             - memory_len (:obj:`int`, optional): The length of memory. Default is 64.
             - dropout_ratio (:obj:`float`, optional): The dropout ratio. Default is 0.
             - activation (:obj:`nn.Module`, optional): The activation function. Default is nn.ReLU().
-            - gru_gating (:obj:`bool`, optional): If False, replace GRU gates with residual connections
-                . Default is True.
+            - gru_gating (:obj:`bool`, optional): If False, replace GRU gates with residual connections. \
+                Default is True.
             - gru_bias (:obj:`float`, optional): The GRU gate bias. Default is 2.0.
             - use_embedding_layer (:obj:`bool`, optional): If False, don't use input embedding layer. Default is True.
         Raises:
@@ -497,7 +502,7 @@ class GTrXL(nn.Module):
             Clear or set the memory of GTrXL.
         Arguments:
             - batch_size (:obj:`Optional[int]`): The batch size. Default is None.
-            - state (:obj:`Optional[torch.Tensor]`): The input memory with shape
+            - state (:obj:`Optional[torch.Tensor]`): The input memory with shape \
                 (layer_num, memory_len, bs, embedding_dim). Default is None.
         """
         self.memory = Memory(memory_len=self.memory_len, layer_num=self.layer_num, embedding_dim=self.embedding_dim)
@@ -511,7 +516,7 @@ class GTrXL(nn.Module):
         Overview:
             Returns the memory of GTrXL.
         Returns:
-            - memory (:obj:`Optional[torch.Tensor]`): The output memory or None if memory has not been initialized.
+            - memory (:obj:`Optional[torch.Tensor]`): The output memory or None if memory has not been initialized. \
                 The shape is (layer_num, memory_len, bs, embedding_dim).
         """
         if self.memory is None:
@@ -524,13 +529,13 @@ class GTrXL(nn.Module):
         Overview:
             Performs a forward pass on the GTrXL.
         Arguments:
-           - x (:obj:`torch.Tensor`): The input tensor with shape (seq_len, bs, input_size).
-            - batch_first (:obj:`bool`, optional): If the input data has shape (bs, seq_len, input_size),
-                set this parameter to True to transpose along the first and second dimension and obtain shape
-                (seq_len, bs, input_size). This does not affect the output memory. Default is False.
+            - x (:obj:`torch.Tensor`): The input tensor with shape (seq_len, bs, input_size).
+            - batch_first (:obj:`bool`, optional): If the input data has shape (bs, seq_len, input_size), \
+                set this parameter to True to transpose along the first and second dimension and obtain shape \
+                (seq_len, bs, input_size). This does not affect the output memory. Default is False. \
             - return_mem (:obj:`bool`, optional): If False, return only the output tensor without dict. Default is True.
         Returns:
-            - x (:obj:`Dict[str, torch.Tensor]`): A dictionary containing the transformer output of shape
+            - x (:obj:`Dict[str, torch.Tensor]`): A dictionary containing the transformer output of shape \
              (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size).
         """
         if batch_first:

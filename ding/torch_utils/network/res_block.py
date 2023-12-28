@@ -44,7 +44,7 @@ class ResBlock(nn.Module):
                 supports ['BN', 'LN', 'IN', 'GN', 'SyncBN', None].
             - res_type (:obj:`str`): Type of residual block, supports ['basic', 'bottleneck', 'downsample']
             - bias (:obj:`bool`): Whether to add a learnable bias to the conv2d_block. default set to True.
-            - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None,
+            - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None, \
                 which means out_channels = in_channels.
         """
         super(ResBlock, self).__init__()

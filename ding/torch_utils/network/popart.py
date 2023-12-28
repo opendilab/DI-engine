@@ -2,9 +2,9 @@
 Implementation of ``POPART`` algorithm for reward rescale.
 <link https://arxiv.org/abs/1602.07714 link>
 
-POPART is an adaptive normalization algorithm to normalized the targets used in the learning updates.
+POPART is an adaptive normalization algorithm to normalize the targets used in the learning updates.
 The two main components in POPART are:
-**ART**: to update scale and shift such that the return is appropriately normalized
+**ART**: to update scale and shift such that the return is appropriately normalized,
 **POP**: to preserve the outputs of the unnormalized function when we change the scale and shift.
 
 """
@@ -72,7 +72,7 @@ class PopArt(nn.Module):
             Implement the forward computation of the linear layer and return both the output and the
             normalized output of the layer.
         Arguments:
-            - x (:obj:`torch.Tensor`): Input tensor
+            - x (:obj:`torch.Tensor`): Input tensor which is to be normalized.
         Returns:
             - output (:obj:`Dict[str, torch.Tensor]`): A dictionary contains 'pred' and 'unnormalized_pred'.
         """

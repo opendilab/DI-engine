@@ -146,9 +146,9 @@ class Transformer(nn.Module):
         Implementation of the Transformer model.
 
     .. note::
-        For more details, refer to "Attention is All You Need": http://arxiv.org/abs/1706.03762
+        For more details, refer to "Attention is All You Need": http://arxiv.org/abs/1706.03762.
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(
@@ -195,11 +195,11 @@ class Transformer(nn.Module):
         Overview:
             Perform the forward pass through the Transformer.
         Arguments:
-            - x (:obj:`torch.Tensor`): The input tensor, with shape `(B, N, C)`, where `B` is batch size,
-              `N` is the number of entries, and `C` is the feature dimension.
-            - mask (:obj:`Optional[torch.Tensor]`, optional): The mask tensor (bool), used to mask out invalid entries
-                in attention.
-              It has shape `(B, N)`, where `B` is batch size and `N` is number of entries. Defaults to None.
+            - x (:obj:`torch.Tensor`): The input tensor, with shape `(B, N, C)`, where `B` is batch size, \
+                `N` is the number of entries, and `C` is the feature dimension.
+            - mask (:obj:`Optional[torch.Tensor]`, optional): The mask tensor (bool), used to mask out invalid \
+                entries in attention. It has shape `(B, N)`, where `B` is batch size and `N` is number of \
+                entries. Defaults to None.
         Returns:
             - x (:obj:`torch.Tensor`): The output tensor from the Transformer.
         """
@@ -224,9 +224,9 @@ class ScaledDotProductAttention(nn.Module):
         Overview:
             Initialize the ScaledDotProductAttention module with the dimension of the key vector and the dropout rate.
         Arguments:
-            - d_k (:obj:`int`): The dimension of the key vector. This will be used to scale the dot product of the
+            - d_k (:obj:`int`): The dimension of the key vector. This will be used to scale the dot product of the \
                 query and key.
-            - dropout (:obj:`float`, optional): The dropout rate to be applied after the softmax operation.
+            - dropout (:obj:`float`, optional): The dropout rate to be applied after the softmax operation. \
                 Defaults to 0.0.
         """
         super(ScaledDotProductAttention, self).__init__()

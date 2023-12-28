@@ -8,7 +8,7 @@ class SoftArgmax(nn.Module):
     Overview:
         An nn.Module that computes the SoftArgmax operation.
     Interface:
-        __init__, forward
+        ``__init__``, ``forward``
 
     .. note::
         For more information on SoftArgmax, you can refer to the wiki page <https://wikimili.com/en/Softmax_function> or
@@ -31,8 +31,8 @@ class SoftArgmax(nn.Module):
         Returns:
             - location (:obj:`torch.Tensor`): The predicted location.
         Shapes:
-            - x: :math:`(B, C, H, W)`, where `B` is the batch size, `C` is the number of channels,
-              and `H` and `W` represent height and width respectively.
+            - x: :math:`(B, C, H, W)`, where `B` is the batch size, `C` is the number of channels, \
+                and `H` and `W` represent height and width respectively.
             - location: :math:`(B, 2)`, where `B` is the batch size.
         """
         B, C, H, W = x.shape

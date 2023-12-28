@@ -665,7 +665,7 @@ def make_blocks(
         - drop_path_rate (:obj:`float`, optional): The drop path rate, defaults to 0.
         - **kwargs: Additional keyword arguments.
     Returns:
-        - Tuple[List[Tuple[str, nn.Module]], List[Dict[str, Union[int, str]]]]:
+        - Tuple[List[Tuple[str, nn.Module]], List[Dict[str, Union[int, str]]]]: \
             A tuple that includes a list of blocks for the network and a feature info list.
     """
     stages = []
@@ -734,10 +734,10 @@ class ResNet(nn.Module):
         - stem_type (:obj:`str`, optional): The type of stem. Default is ''.
         - replace_stem_pool (:obj:`bool`, optional): Whether to replace stem pooling. Default is False.
         - output_stride (:obj:`int`, optional): Output stride of the network. Default is 32.
-        - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of
+        - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of \
             residual blocks.
         - down_kernel_size (:obj:`int`, optional): Kernel size of residual block downsampling path. Default is 1.
-        - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between
+        - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between \
             stages/downsample. Default is False.
         - act_layer (:obj:`nn.Module`, optional): Activation layer. Default is nn.ReLU.
         - norm_layer (:obj:`nn.Module`, optional): Normalization layer. Default is nn.BatchNorm2d.
@@ -746,7 +746,7 @@ class ResNet(nn.Module):
         - drop_path_rate (:obj:`float`, optional): Drop path rate. Default is 0.0.
         - drop_block_rate (:obj:`float`, optional): Drop block rate. Default is 0.0.
         - global_pool (:obj:`str`, optional): Global pooling type. Default is 'avg'.
-        - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero.
+        - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. \
             Default is True.
         - block_args (:obj:`dict`, optional): Additional arguments for block. Default is None.
     """
@@ -790,7 +790,7 @@ class ResNet(nn.Module):
             - stem_type (:obj:`str`, optional): The type of stem. Default is ''.
             - replace_stem_pool (:obj:`bool`, optional): Whether to replace stem pooling. Default is False.
             - output_stride (:obj:`int`, optional): Output stride of the network. Default is 32.
-            - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of
+            - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of \
                 residual blocks. Default is 1.
             - down_kernel_size (:obj:`int`, optional): Kernel size of residual block downsampling path. Default is 1.
             - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between
@@ -802,7 +802,7 @@ class ResNet(nn.Module):
             - drop_path_rate (:obj:`float`, optional): Drop path rate. Default is 0.0.
             - drop_block_rate (:obj:`float`, optional): Drop block rate. Default is 0.0.
             - global_pool (:obj:`str`, optional): Global pooling type. Default is 'avg'.
-            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero.
+            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. \
                 Default is True.
             - block_args (:obj:`Optional[dict]`, optional): Additional arguments for block. Default is None.
         """

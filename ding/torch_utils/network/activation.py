@@ -28,8 +28,8 @@ class Lambda(nn.Module):
 class GLU(nn.Module):
     """
     Overview:
-        Gating Linear Unit (GLU), a specific type of activation function. This module also supports 2D convolution,
-         in which case, the input and context must have the same shape.
+        Gating Linear Unit (GLU), a specific type of activation function, which is first proposed in
+        [Language Modeling with Gated Convolutional Networks](https://arxiv.org/pdf/1612.08083.pdf).
     Interfaces:
         ``forward``.
     """
@@ -73,7 +73,8 @@ class GLU(nn.Module):
 class Swish(nn.Module):
     """
     Overview:
-        Swish activation function, which is a smooth, non-monotonic activation function.
+        Swish activation function, which is a smooth, non-monotonic activation function. For more details, please refer
+        to [Searching for Activation Functions](https://arxiv.org/pdf/1710.05941.pdf).
     """
 
     def __init__(self):
@@ -92,8 +93,7 @@ class Swish(nn.Module):
         Returns:
             - x (:obj:`torch.Tensor`): The output tensor after Swish transformation.
         """
-        x = x * torch.sigmoid(x)
-        return x
+        return x * torch.sigmoid(x)
 
 
 class GELU(nn.Module):
@@ -102,7 +102,7 @@ class GELU(nn.Module):
         Gaussian Error Linear Units (GELU) activation function, which is widely used in NLP models like GPT, BERT.
         For more details, please refer to the original paper: https://arxiv.org/pdf/1606.08415.pdf.
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(self):
@@ -125,11 +125,11 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     Overview:
         Build and return the activation module according to the given type.
     Arguments:
-        - activation (:obj:str): The type of activation module, now supports
-        ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity'].
-        - inplace (:obj:bool, optional): Execute the operation in-place in activation, defaults to None.
+        - activation (:obj:`str`): The type of activation module, now supports \
+            ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity'].
+        - inplace (Optional[:obj:`bool`): Execute the operation in-place in activation, defaults to None.
     Returns:
-        - act_func (:obj:nn.module): The corresponding activation module.
+        - act_func (:obj:`nn.module`): The corresponding activation module.
     """
     if inplace is not None:
         assert activation == 'relu', 'inplace argument is not compatible with {}'.format(activation)
