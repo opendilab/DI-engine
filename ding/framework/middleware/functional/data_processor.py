@@ -334,12 +334,12 @@ def qgpo_support_data_generator(cfg, dataset, policy) -> Callable:
     actions_generated = False
 
     def generate_fake_actions():
-        policy._model.score_model.q[0].guidance_scale = 0.0
+        policy._model.q.guidance_scale = 0.0
         allstates = dataset.states[:].cpu().numpy()
         actions_sampled = []
         for states in tqdm.tqdm(np.array_split(allstates, allstates.shape[0] // 4096 + 1)):
             actions_sampled.append(
-                policy._model.score_model.sample(
+                policy._model.sample(
                     states, sample_per_state=cfg.policy.learn.M, diffusion_steps=cfg.policy.learn.diffusion_steps
                 )
             )
@@ -349,12 +349,12 @@ def qgpo_support_data_generator(cfg, dataset, policy) -> Callable:
         actions_next_states_sampled = []
         for next_states in tqdm.tqdm(np.array_split(allnextstates, allnextstates.shape[0] // 4096 + 1)):
             actions_next_states_sampled.append(
-                policy._model.score_model.sample(
+                policy._model.sample(
                     next_states, sample_per_state=cfg.policy.learn.M, diffusion_steps=cfg.policy.learn.diffusion_steps
                 )
             )
         actions_next_states = np.concatenate(actions_next_states_sampled)
-        policy._model.score_model.q[0].guidance_scale = 1.0
+        policy._model.q.guidance_scale = 1.0
         return actions, actions_next_states
 
     def _data_generator(ctx: "OfflineRLContext"):

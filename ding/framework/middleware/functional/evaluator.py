@@ -469,7 +469,7 @@ def qgpo_interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
 
         for guidance_scale in cfg.policy.eval.guidance_scale:
 
-            policy.get_attribute("model").score_model.q[0].guidance_scale = guidance_scale
+            policy.get_attribute("model").q.guidance_scale = guidance_scale
 
             if env.closed:
                 env.launch()
@@ -544,7 +544,7 @@ def qgpo_interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
                 }
             )
 
-            policy.get_attribute("model").score_model.q[0].guidance_scale = 1.0
+            policy.get_attribute("model").q.guidance_scale = 1.0
 
         if stop_flag:
             task.finish = True

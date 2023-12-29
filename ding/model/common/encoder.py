@@ -493,7 +493,7 @@ class GaussianFourierProjectionTimeEncoder(nn.Module):
         super().__init__()
         # Randomly sample weights during initialization. These weights are fixed
         # during optimization and are not trainable.
-        self.W = nn.Parameter(torch.randn(embed_dim // 2) * scale, requires_grad=False)
+        self.W = nn.Parameter(torch.randn(embed_dim // 2) * scale * 2 * np.pi, requires_grad=False)
 
     def forward(self, x):
         """
@@ -512,5 +512,5 @@ class GaussianFourierProjectionTimeEncoder(nn.Module):
             >>> x = torch.randn(100)
             >>> output = encoder(x)
         """
-        x_proj = x[..., None] * self.W[None, :] * 2 * np.pi
+        x_proj = x[..., None] * self.W[None, :]
         return torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)

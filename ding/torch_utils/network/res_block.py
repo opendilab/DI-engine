@@ -151,18 +151,44 @@ class ResFCBlock(nn.Module):
 
 
 class TemporalSpatialResBlock(nn.Module):
+    """
+    Overview:
+        Residual Block using MLP layers for both temporal and spatial input.
+        t → time_mlp  →  h1 → dense2 → h2 → out
+                       ↗+                ↗+
+        x →  dense1 →                  ↗
+          ↘                          ↗
+            → modify_x →   →   →   →
+    """
 
-    def __init__(self, input_dim, output_dim, t_dim=128, activation=torch.nn.SiLU):
+    def __init__(self, input_dim, output_dim, t_dim=128, activation=torch.nn.SiLU()):
+        """
+        Overview:
+            Init the temporal spatial residual block.
+        Arguments:
+            - input_dim (:obj:`int`): The number of channels in the input tensor.
+            - output_dim (:obj:`int`): The number of channels in the output tensor.
+            - t_dim (:obj:`int`): The dimension of the temporal input.
+            - activation (:obj:`nn.Module`): The optional activation function.
+        """
         super().__init__()
+        # temporal input is the embedding of time, which is a Gaussian Fourier Feature tensor
         self.time_mlp = nn.Sequential(
-            activation(),
+            activation,
             nn.Linear(t_dim, output_dim),
         )
-        self.dense1 = nn.Sequential(nn.Linear(input_dim, output_dim), activation())
-        self.dense2 = nn.Sequential(nn.Linear(output_dim, output_dim), activation())
+        self.dense1 = nn.Sequential(nn.Linear(input_dim, output_dim), activation)
+        self.dense2 = nn.Sequential(nn.Linear(output_dim, output_dim), activation)
         self.modify_x = nn.Linear(input_dim, output_dim) if input_dim != output_dim else nn.Identity()
 
-    def forward(self, x, t):
+    def forward(self, x, t) -> torch.Tensor:
+        """
+        Overview:
+            Return the redisual block output.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input tensor.
+            - t (:obj:`torch.Tensor`): The temporal input tensor.
+        """
         h1 = self.dense1(x) + self.time_mlp(t)
         h2 = self.dense2(h1)
         return h2 + self.modify_x(x)

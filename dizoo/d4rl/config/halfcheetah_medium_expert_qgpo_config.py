@@ -2,7 +2,6 @@ from easydict import EasyDict
 
 main_config = dict(
     exp_name='halfcheetah_medium_expert_v2_QGPO_seed0',
-    seed=0,
     env=dict(
         env_id="halfcheetah-medium-expert-v2",
         evaluator_env_num=8,
@@ -16,13 +15,9 @@ main_config = dict(
         on_policy=False,
         #load_path='./halfcheetah_medium_expert_v2_QGPO_seed0/ckpt/iteration_600000.pth.tar',
         model=dict(
-            score_net=dict(
-                score_base=dict(
-                    qgpo_critic=dict(
-                        alpha=3,
-                        q_alpha=1,
-                    ),
-                ),
+            qgpo_critic=dict(
+                alpha=3,
+                q_alpha=1,
             ),
             device='cuda',
             obs_dim=17,
