@@ -3,17 +3,15 @@ import torch.nn as nn
 
 
 def build_normalization(norm_type: str, dim: Optional[int] = None) -> nn.Module:
-    r"""
+    """
     Overview:
-        Build the corresponding normalization module
+        Construct the corresponding normalization module. For beginners,
+        refer to [this article](https://zhuanlan.zhihu.com/p/34879333) to learn more about batch normalization.
     Arguments:
-        - norm_type (:obj:`str`): type of the normaliztion, now support ['BN', 'LN', 'IN', 'SyncBN']
-        - dim (:obj:`int`): dimension of the normalization, when norm_type is in [BN, IN]
+        - norm_type (:obj:`str`): Type of the normalization. Currently supports ['BN', 'LN', 'IN', 'SyncBN'].
+        - dim (:obj:`Optional[int]`): Dimension of the normalization, applicable when norm_type is in ['BN', 'IN'].
     Returns:
-        - norm_func (:obj:`nn.Module`): the corresponding batch normalization function
-
-    .. note::
-        For beginers, you can refer to <https://zhuanlan.zhihu.com/p/34879333> to learn more about batch normalization.
+        - norm_func (:obj:`nn.Module`): The corresponding batch normalization function.
     """
     if dim is None:
         key = norm_type

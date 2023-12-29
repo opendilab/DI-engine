@@ -1,12 +1,23 @@
 import math
+from collections.abc import Callable
 
 import torch
 import torch.nn as nn
 
 
 class Lambda(nn.Module):
+    """
+    Overview:
+        A custom lambda module for constructing custom layers.
+    """
 
-    def __init__(self, f):
+    def __init__(self, f: Callable):
+        """
+        Overview:
+            Initialize the lambda module with a given function.
+        Arguments:
+            - f (:obj:`Callable`): a python function
+        """
         super(Lambda, self).__init__()
         self.f = f
 
@@ -17,24 +28,22 @@ class Lambda(nn.Module):
 class GLU(nn.Module):
     """
     Overview:
-        Gating Linear Unit.
+        Gating Linear Unit (GLU), a specific type of activation function, which is first proposed in
+        [Language Modeling with Gated Convolutional Networks](https://arxiv.org/pdf/1612.08083.pdf).
     Interfaces:
         ``forward``.
-
-    .. tip::
-        This module also supports 2D convolution, in which case, the input and context must have the same shape.
     """
 
     def __init__(self, input_dim: int, output_dim: int, context_dim: int, input_type: str = 'fc') -> None:
         """
         Overview:
-            Init GLU
+            Initialize the GLU module.
         Arguments:
-            - input_dim (:obj:`int`): the input dimension
-            - output_dim (:obj:`int`): the output dimension
-            - context_dim (:obj:`int`): the context dimension
-            - input_type (:obj:`str`): the type of input, now support ['fc', 'conv2d']
-        """
+            - input_dim (:obj:`int`): The dimension of the input tensor.
+            - output_dim (:obj:`int`): The dimension of the output tensor.
+            - context_dim (:obj:`int`): The dimension of the context tensor.
+            - input_type (:obj:`str`): The type of input, now supports ['fc', 'conv2d']
+    """
         super(GLU, self).__init__()
         assert (input_type in ['fc', 'conv2d'])
         if input_type == 'fc':
@@ -45,14 +54,14 @@ class GLU(nn.Module):
             self.layer2 = nn.Conv2d(input_dim, output_dim, 1, 1, 0)
 
     def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            Return GLU computed tensor
+            Compute the GLU transformation of the input tensor.
         Arguments:
-            - x (:obj:`torch.Tensor`) : the input tensor
-            - context (:obj:`torch.Tensor`) : the context tensor
+            - x (:obj:`torch.Tensor`): The input tensor.
+            - context (:obj:`torch.Tensor`): The context tensor.
         Returns:
-            - x (:obj:`torch.Tensor`): the computed tensor
+            - x (:obj:`torch.Tensor`): The output tensor after GLU transformation.
         """
         gate = self.layer1(context)
         gate = torch.sigmoid(gate)
@@ -62,39 +71,63 @@ class GLU(nn.Module):
 
 
 class Swish(nn.Module):
+    """
+    Overview:
+        Swish activation function, which is a smooth, non-monotonic activation function. For more details, please refer
+        to [Searching for Activation Functions](https://arxiv.org/pdf/1710.05941.pdf).
+    """
 
     def __init__(self):
+        """
+        Overview:
+            Initialize the Swish module.
+        """
         super(Swish, self).__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x * torch.sigmoid(x)
-        return x
+        """
+        Overview:
+            Compute the Swish transformation of the input tensor.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input tensor.
+        Returns:
+            - x (:obj:`torch.Tensor`): The output tensor after Swish transformation.
+        """
+        return x * torch.sigmoid(x)
 
 
 class GELU(nn.Module):
-    r"""
+    """
     Overview:
         Gaussian Error Linear Units (GELU) activation function, which is widely used in NLP models like GPT, BERT.
-        The original paper can be viewed in: <link https://arxiv.org/pdf/1606.08415.pdf link>
+        For more details, please refer to the original paper: https://arxiv.org/pdf/1606.08415.pdf.
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(self):
         super(GELU, self).__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            Compute the GELU transformation of the input tensor.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input tensor.
+        Returns:
+            - x (:obj:`torch.Tensor`): The output tensor after GELU transformation.
+        """
         return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
 
 
 def build_activation(activation: str, inplace: bool = None) -> nn.Module:
     """
     Overview:
-        Return the activation module according to the given type.
+        Build and return the activation module according to the given type.
     Arguments:
         - activation (:obj:`str`): The type of activation module, now supports \
             ['relu', 'glu', 'prelu', 'swish', 'gelu', 'tanh', 'sigmoid', 'softplus', 'elu', 'square', 'identity'].
-        - inplace (:obj:`bool`): Execute the operation in-place in activation, defaults to ``None``.
+        - inplace (Optional[:obj:`bool`): Execute the operation in-place in activation, defaults to None.
     Returns:
         - act_func (:obj:`nn.module`): The corresponding activation module.
     """

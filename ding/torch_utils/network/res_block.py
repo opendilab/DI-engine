@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -7,7 +7,7 @@ from .nn_module import conv2d_block, fc_block
 
 
 class ResBlock(nn.Module):
-    r"""
+    """
     Overview:
         Residual Block with 2D convolution layers, including 3 types:
             basic block:
@@ -21,8 +21,10 @@ class ResBlock(nn.Module):
                 input channel: C
                 x -> 3*3*C -> norm -> act -> 3*3*C -> norm -> act -> out
                 \__________________ 3*3*C ____________________/+
+        For more details, please refer to `Deep Residual Learning for Image Recognition
+        <https://arxiv.org/abs/1512.03385>`_.
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(
@@ -39,12 +41,12 @@ class ResBlock(nn.Module):
             Init the 2D convolution residual block.
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor.
-            - activation (:obj:`nn.Module`): the optional activation function.
-            - norm_type (:obj:`str`): type of the normalization, default set to 'BN'(Batch Normalization), \
+            - activation (:obj:`nn.Module`): The optional activation function.
+            - norm_type (:obj:`str`): Type of the normalization, default set to 'BN'(Batch Normalization), \
                 supports ['BN', 'LN', 'IN', 'GN', 'SyncBN', None].
-            - res_type (:obj:`str`): type of residual block, supports ['basic', 'bottleneck', 'downsample']
-            - bias (:obj:`bool`): whether adds a learnable bias to the conv2d_block. default set to True.
-            - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None,
+            - res_type (:obj:`str`): Type of residual block, supports ['basic', 'bottleneck', 'downsample']
+            - bias (:obj:`bool`): Whether to add a learnable bias to the conv2d_block. default set to True.
+            - out_channels (:obj:`int`): Number of channels in the output tensor, default set to None, \
                 which means out_channels = in_channels.
         """
         super(ResBlock, self).__init__()
@@ -81,7 +83,7 @@ class ResBlock(nn.Module):
             self.conv3 = conv2d_block(in_channels, out_channels, 3, 2, 1, activation=None, norm_type=None, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Return the redisual block output.
         Arguments:
@@ -101,20 +103,20 @@ class ResBlock(nn.Module):
 
 
 class ResFCBlock(nn.Module):
-    r"""
+    """
     Overview:
         Residual Block with 2 fully connected layers.
         x -> fc1 -> norm -> act -> fc2 -> norm -> act -> out
         \_____________________________________/+
 
     Interfaces:
-        forward
+        ``forward``
     """
 
     def __init__(
         self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN', dropout: float = None
     ):
-        r"""
+        """
         Overview:
             Init the fully connected layer residual block.
         Arguments:
@@ -133,9 +135,9 @@ class ResFCBlock(nn.Module):
         self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            Return the redisual block output.
+            Return the output of the redisual block.
         Arguments:
             - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
