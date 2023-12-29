@@ -1102,7 +1102,8 @@ class ReparameterizationHead(nn.Module):
     Interfaces:
         ``__init__``, ``forward``.
     """
-
+    # The "happo" type here is to align with the sigma initialization method of the network in the original HAPPO \
+    # paper. The code here needs to be optimized later.
     default_sigma_type = ['fixed', 'independent', 'conditioned', 'happo']
     default_bound_type = ['tanh', None]
 
@@ -1158,7 +1159,7 @@ class ReparameterizationHead(nn.Module):
         elif self.sigma_type == 'happo':
             self.sigma_x_coef = 1.
             self.sigma_y_coef = 0.5
-            # This parameter (x_coef, y_coef) refers to the HAPPO paper
+            # This parameter (x_coef, y_coef) refers to the HAPPO paper http://arxiv.org/abs/2109.11251.
             self.log_sigma_param = nn.Parameter(torch.ones(1, output_size) * self.sigma_x_coef)
 
     def forward(self, x: torch.Tensor) -> Dict:
