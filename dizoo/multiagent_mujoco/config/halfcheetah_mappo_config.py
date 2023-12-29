@@ -75,16 +75,6 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
-from ding.entry import serial_pipeline_onpolicy
-def train(mconfig, cconfig, seed):
-    mconfig.exp_name='HAPPO_result/multi_mujoco_halfcheetah_2x3_mappo_seed{}'.format(seed)
-    serial_pipeline_onpolicy((mconfig, cconfig), seed=seed, max_env_step=int(1e7))
-
-
 if __name__ == '__main__':
-    for seed in [1, 2]:
-        mconfig = main_config
-        cconfig = create_config
-        train(mconfig, cconfig, seed)
-    # from ding.entry import serial_pipeline_onpolicy
-    # serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(1e7))
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(1e7))
