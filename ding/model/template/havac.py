@@ -251,9 +251,9 @@ class HAVACAgent(nn.Module):
             )
         # must use list, not nn.ModuleList
         self.actor = [self.actor_encoder, self.actor_rnn, self.actor_head] if self.use_lstm \
-                        else [self.actor_encoder, self.actor_head]
+            else [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_rnn, self.critic_head] if self.use_lstm \
-                        else [self.critic_encoder, self.critic_head]
+            else [self.critic_encoder, self.critic_head]
         # for convenience of call some apis(such as: self.critic.parameters()), but may cause
         # misunderstanding when print(self)
         self.actor = nn.ModuleList(self.actor)
