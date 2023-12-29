@@ -1,7 +1,7 @@
-from typing import List, Dict, Any, Tuple, Union, Optional
+from typing import List, Dict, Any, Tuple, Optional
 from collections import namedtuple
-import torch
 import copy
+import torch
 
 from ding.torch_utils import RMSprop, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
@@ -15,12 +15,8 @@ from .base_policy import Policy
 class QMIXPolicy(Policy):
     """
     Overview:
-        Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
-            you can view the paper in the following link https://arxiv.org/abs/1803.11485
-    Interface:
-        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn \
-            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval \
-            _reset_eval, _get_train_sample, default_model
+        Policy class of QMIX algorithm. QMIX is a multi-agent reinforcement learning algorithm, \
+        you can view the paper in the following link https://arxiv.org/abs/1803.11485.
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -55,48 +51,48 @@ class QMIXPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # learn_mode config
         learn=dict(
+            # (int) How many updates(iterations) to train after collector's one collection.
+            # Bigger "update_per_collect" means bigger off-policy.
+            # collect data -> update policy-> collect data -> ...
             update_per_collect=20,
+            # (int) How many samples in a training batch.
             batch_size=32,
+            # (float) The step size of gradient descent.
             learning_rate=0.0005,
             clip_value=100,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) Target network update momentum parameter.
-            # in [0, 1].
+            # (float) Target network update momentum parameter, in [0, 1].
             target_update_theta=0.008,
-            # (float) The discount factor for future rewards,
-            # in [0, 1].
+            # (float) The discount factor for future rewards, in [0, 1].
             discount_factor=0.99,
-            # (bool) Whether to use double DQN mechanism(target q for surpassing over estimation)
+            # (bool) Whether to use double DQN mechanism(target q for surpassing over estimation).
             double_q=False,
         ),
+        # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_episode] shoule be set
-            # n_episode=32,
-            # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
+            # (int) How many training samples collected in one collection procedure.
+            # In each collect phase, we collect a total of <n_sample> sequence samples, a sample with length unroll_len.
+            # n_sample=32,
+            # (int) Split trajectories into pieces with length ``unroll_len``, the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=10,
         ),
-        eval=dict(),
+        eval=dict(),  # for compatibility
         other=dict(
             eps=dict(
-                # (str) Type of epsilon decay
+                # (str) Type of epsilon decay.
                 type='exp',
                 # (float) Start value for epsilon decay, in [0, 1].
-                # 0 means not use epsilon decay.
                 start=1,
                 # (float) Start value for epsilon decay, in [0, 1].
                 end=0.05,
-                # (int) Decay length(env step)
+                # (int) Decay length(env step).
                 decay=50000,
             ),
             replay_buffer=dict(
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
                 replay_buffer_size=5000,
-                # (int) The maximum reuse times of each data
-                max_reuse=1e+9,
-                max_staleness=1e+9,
             ),
         ),
     )
@@ -117,17 +113,25 @@ class QMIXPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the learner model of QMIXPolicy
-        Arguments:
-            .. note::
+            Initialize the learn mode of policy, including some attributes and modules. For QMIX, it mainly contains \
+            optimizer, algorithm-specific arguments such as gamma, main and target model. Because of the use of RNN, \
+            all the models should be wrappered with ``hidden_state`` which needs to be initialized with proper size.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
 
-                The _init_learn method takes the argument from the self._cfg.learn in the config file
+        .. tip::
+            For multi-agent algorithm, we often need to use ``agent_num`` to initialize some necessary variables.
 
-            - learning_rate (:obj:`float`): The learning rate fo the optimizer
-            - gamma (:obj:`float`): The discount factor
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
             - agent_num (:obj:`int`): Since this is a multi-agent algorithm, we need to input the agent num.
-            - batch_size (:obj:`int`): Need batch size info to init hidden_state plugins
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -163,8 +167,8 @@ class QMIXPolicy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
 
-    def _data_preprocess_learn(self, data: List[Any]) -> dict:
-        r"""
+    def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
         Overview:
             Preprocess the data to fit the required data format for learning
         Arguments:
@@ -181,22 +185,35 @@ class QMIXPolicy(Policy):
         data['done'] = data['done'].float()
         return data
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
+    def _forward_learn(self, data: List[List[Dict[str, Any]]]) -> Dict[str, Any]:
+        """
         Overview:
-            Forward and backward function of learn mode.
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data (trajectory for QMIX) from the replay buffer and then \
+            returns the output result, including various training information such as loss, q value, grad_norm.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
-                np.ndarray or dict/list combinations.
+            - data (:obj:`List[List[Dict[int, Any]]]`): The input data used for policy forward, including a batch of \
+                training samples. For each dict element, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the time and \
+                batch dimension by the utility functions ``self._data_preprocess_learn``. \
+                For QMIX, each element in list is a trajectory with the length of ``unroll_len``, and the element in \
+                trajectory list is a dict containing at least the following keys: ``obs``, ``action``, ``prev_state``, \
+                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight`` \
+                and ``value_gamma``.
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
-                recorded in text log and tensorboard, values are python scalar or a list of scalars.
-        ArgumentsKeys:
-            - necessary: ``obs``, ``next_obs``, ``action``, ``reward``, ``weight``, ``prev_state``, ``done``
-        ReturnsKeys:
-            - necessary: ``cur_lr``, ``total_loss``
-                - cur_lr (:obj:`float`): Current learning rate
-                - total_loss (:obj:`float`): The calculated loss
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for QMIXPolicy: ``ding.policy.tests.test_qmix``.
         """
         data = self._data_preprocess_learn(data)
         # ====================
@@ -249,21 +266,24 @@ class QMIXPolicy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        r"""
+        """
         Overview:
-            Reset learn model to the state indicated by data_id
+            Reset some stateful variables for learn mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different trajectories in ``data_id`` will have different hidden state in RNN.
         Arguments:
-            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
-                the model state to the state indicated by data_id
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                (i.e. RNN hidden_state in QMIX) specified by ``data_id``.
         """
         self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
-        r"""
+        """
         Overview:
-            Return the state_dict of learn mode, usually including model and optimizer.
+            Return the state_dict of learn mode, usually including model, target_model and optimizer.
         Returns:
-            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
         """
         return {
             'model': self._learn_model.state_dict(),
@@ -276,7 +296,7 @@ class QMIXPolicy(Policy):
         Overview:
             Load the state_dict variable into policy learn mode.
         Arguments:
-            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
 
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
@@ -288,11 +308,17 @@ class QMIXPolicy(Policy):
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample and the hidden_state plugin.
+            Initialize the collect mode of policy, including related attributes and modules. For QMIX, it contains the \
+            collect_model to balance the exploration and exploitation with epsilon-greedy sample mechanism and \
+            maintain the hidden state of rnn. Besides, there are some initialization operations about other \
+            algorithm-specific arguments such as burnin_step, unroll_len and nstep.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(
@@ -305,18 +331,34 @@ class QMIXPolicy(Policy):
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict, eps: float) -> dict:
-        r"""
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function for collect mode with eps_greedy
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs. Besides, this policy also needs ``eps`` argument for \
+            exploration, i.e., classic epsilon-greedy exploration strategy.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+            - eps (:obj:`float`): The epsilon value for exploration.
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (prev_state) for learn mode defined in ``self._process_transition`` method. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            RNN's hidden states are maintained in the policy, so we don't need pass them into data but to reset the \
+            hidden states with ``_reset_collect`` method when episode ends. Besides, the previous hidden states are \
+            necessary for training, so we need to return them in ``_process_transition`` method.
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for QMIXPolicy: ``ding.policy.tests.test_qmix``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -332,43 +374,73 @@ class QMIXPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        r"""
+        """
         Overview:
-            Reset collect model to the state indicated by data_id
+            Reset some stateful variables for eval mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in evaluation in ``data_id`` will have different hidden state in RNN.
         Arguments:
-            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
-                the model state to the state indicated by data_id
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                (i.e., RNN hidden_state in QMIX) specified by ``data_id``.
         """
         self._collect_model.reset(data_id=data_id)
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
+    def _process_transition(self, obs: torch.Tensor, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
         Overview:
-            Generate dict type transition data from inputs.
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For QMIX, it contains obs, next_obs, action, prev_state, reward, done.
         Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action', 'prev_state']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done']\
-                (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, usually including ``agent_obs`` \
+                and ``global_obs`` in multi-agent environment like MPE and SMAC.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For QMIX, it contains the action and the prev_state of RNN.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-            - transition (:obj:`dict`): Dict type transition data, including 'obs', 'next_obs', 'prev_state',\
-                'action', 'reward', 'done'
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'prev_state': model_output['prev_state'],
-            'action': model_output['action'],
+            'prev_state': policy_output['prev_state'],
+            'action': policy_output['action'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _init_eval(self) -> None:
-        r"""
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy and the hidden_state plugin.
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In QMIX, a train sample is processed transitions with unroll_len \
+            length. This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each sample is a fixed-length \
+                trajectory, and each element in a sample is the similar format as input transitions.
+        """
+        return get_train_sample(transitions, self._unroll_len)
+
+    def _init_eval(self) -> None:
+        """
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules. For QMIX, it contains the \
+            eval model to greedily select action with argmax q_value mechanism and main the hidden state.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         self._eval_model = model_wrap(
             self._model,
@@ -381,16 +453,31 @@ class QMIXPolicy(Policy):
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
-        r"""
+        """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs. ``_forward_eval`` often use argmax sample method to get actions that \
+            q_value is the highest.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            RNN's hidden states are maintained in the policy, so we don't need pass them into data but to reset the \
+            hidden states with ``_reset_eval`` method when the episode ends.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for QMIXPolicy: ``ding.policy.tests.test_qmix``.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -406,31 +493,24 @@ class QMIXPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        r"""
+        """
         Overview:
-            Reset eval model to the state indicated by data_id
+            Reset some stateful variables for eval mode when necessary, such as the hidden state of RNN or the \
+            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in evaluation in ``data_id`` will have different hidden state in RNN.
         Arguments:
-            - data_id (:obj:`Optional[List[int]]`): The id that store the state and we will reset\
-                the model state to the state indicated by data_id
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                (i.e., RNN hidden_state in QMIX) specified by ``data_id``.
         """
         self._eval_model.reset(data_id=data_id)
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the train sample from trajectory.
-        Arguments:
-            - data (:obj:`list`): The trajectory's cache
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
-        """
-        return get_train_sample(data, self._unroll_len)
-
     def _monitor_vars_learn(self) -> List[str]:
-        r"""
+        """
         Overview:
-            Return variables' name if variables are to used in monitor.
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
         Returns:
-            - vars (:obj:`List[str]`): Variables' name list.
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
         """
         return ['cur_lr', 'total_loss', 'total_q', 'target_total_q', 'grad_norm', 'target_reward_total_q']

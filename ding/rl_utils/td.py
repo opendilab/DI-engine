@@ -237,7 +237,7 @@ def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_
         - nstep (:obj:`int`): nstep num
         - value_gamma (:obj:`torch.Tensor`): Discount factor for value
     Returns:
-        - return_ (:obj:`torch.Tensor`): nstep return
+        - return (:obj:`torch.Tensor`): nstep return
     Shapes:
         - data (:obj:`nstep_return_data`): the nstep_return_data containing\
              ['reward', 'next_value', 'done']
@@ -718,15 +718,10 @@ def bdq_nstep_td_error(
 ) -> torch.Tensor:
     """
     Overview:
-        Multistep (1 step or n step) td_error for BDQ algorithm, \
-            referenced paper Action Branching Architectures for Deep Reinforcement Learning \
-            <https://arxiv.org/pdf/1711.08946>
-        In fact, the original paper only provides the 1-step TD-error calculation method, \
-            and here we extend the calculation method of n-step.
-                TD-error:
-                    y_d = \sigma_{t=0}^{nstep} \gamma^t * r_t + \gamma^{nstep} * Q_d'(s', argmax Q_d(s', a_d))
-                    TD-error = \frac{1}{D} * (y_d - Q_d(s, a_d))^2
-                    Loss = mean(TD-error)
+        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper "Action Branching Architectures for \
+        Deep Reinforcement Learning", link: https://arxiv.org/pdf/1711.08946.
+        In fact, the original paper only provides the 1-step TD-error calculation method, and here we extend the \
+        calculation method of n-step, i.e., TD-error:
     Arguments:
         - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): Discount factor
@@ -738,7 +733,7 @@ def bdq_nstep_td_error(
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
         - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor
     Shapes:
-        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing\
+        - data (:obj:`q_nstep_td_data`): The q_nstep_td_data containing \
             ['q', 'next_n_q', 'action', 'reward', 'done']
         - q (:obj:`torch.FloatTensor`): :math:`(B, D, N)` i.e. [batch_size, branch_num, action_bins_per_branch]
         - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, D, N)`

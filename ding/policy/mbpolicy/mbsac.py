@@ -36,7 +36,6 @@ class MBSACPolicy(SACPolicy):
         == ====================   ========    =============  ==================================
 
     .. note::
-
         For other configs, please refer to ding.policy.sac.SACPolicy.
     """
 

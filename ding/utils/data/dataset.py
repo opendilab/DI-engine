@@ -11,7 +11,7 @@ import torch
 import numpy as np
 
 from ding.utils.bfs_helper import get_vi_sequence
-from ding.utils import DATASET_REGISTRY, import_module
+from ding.utils import DATASET_REGISTRY, import_module, DatasetNormalizer
 from ding.rl_utils import discount_cumsum
 
 
@@ -389,13 +389,10 @@ class D4RLTrajectoryDataset(Dataset):
 
             self.trajectories = paths
 
-            # calculate min len of traj, state mean and variance
-            # and returns_to_go for all traj
-            min_len = 10 ** 6
+            # calculate state mean and variance and returns_to_go for all traj
             states = []
             for traj in self.trajectories:
                 traj_len = traj['observations'].shape[0]
-                min_len = min(min_len, traj_len)
                 states.append(traj['observations'])
                 # calculate returns to go and rescale them
                 traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
@@ -408,46 +405,6 @@ class D4RLTrajectoryDataset(Dataset):
             for traj in self.trajectories:
                 traj['observations'] = (traj['observations'] - self.state_mean) / self.state_std
 
-            # self.trajectories = {}
-            # exp_key = ['rewards', 'terminals', 'timeouts']
-            # for k in dataset.keys():
-            #     logging.info(f'Load {k} data.')
-            #     if k in exp_key:
-            #         self.trajectories[k] = np.expand_dims(dataset[k][:], axis=1)
-            #     else:
-            #         self.trajectories[k] = dataset[k][:]
-
-            # # used for input normalization
-            # states = np.concatenate(self.trajectories['observations'], axis=0)
-            # self.state_mean, self.state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
-
-            # # normalize states
-            # self.trajectories['observations'] = (self.trajectories['observations'] - self.state_mean) / self.state_std
-            # self.trajectories['returns_to_go'] = discount_cumsum(self.trajectories['rewards'], 1.0) / rtg_scale
-
-            # datalen = self.trajectories['rewards'].shape[0]
-
-            # use_timeouts = False
-            # if 'timeouts' in dataset:
-            #     use_timeouts = True
-
-            # data_ = collections.defaultdict(list)
-            # episode_step = 0
-            # trajectories_tmp = []
-            # for i in range(datalen):
-            #     done_bool = bool(self.trajectories['terminals'][i])
-            #     final_timestep = (episode_step == 1000-1)
-            #     for k in ['observations', 'actions', 'returns_to_go']:
-            #         data_[k].append(self.trajectories[k][i])
-            #     if done_bool or final_timestep:
-            #         episode_step = 0
-            #         episode_data = {}
-            #         for k in data_:
-            #             episode_data[k] = np.array(data_[k])
-            #         trajectories_tmp.append(episode_data)
-            #         data_ = collections.defaultdict(list)
-            #     episode_step += 1
-            # self.trajectories = trajectories_tmp
         elif 'pkl' in dataset_path:
             if 'dqn' in dataset_path:
                 # load dataset
@@ -493,11 +450,8 @@ class D4RLTrajectoryDataset(Dataset):
                 with open(dataset_path, 'rb') as f:
                     self.trajectories = pickle.load(f)
 
-                min_len = 10 ** 6
                 states = []
                 for traj in self.trajectories:
-                    traj_len = traj['observations'].shape[0]
-                    min_len = min(min_len, traj_len)
                     states.append(traj['observations'])
                     # calculate returns to go and rescale them
                     traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
@@ -675,6 +629,53 @@ class D4RLTrajectoryDataset(Dataset):
             return timesteps, states, actions, rtgs, traj_mask
 
 
+@DATASET_REGISTRY.register('d4rl_diffuser')
+class D4RLDiffuserDataset(Dataset):
+
+    def __init__(self, dataset_path: str, context_len: int, rtg_scale: float) -> None:
+
+        self.context_len = context_len
+
+        # load dataset
+        with open(dataset_path, 'rb') as f:
+            self.trajectories = pickle.load(f)
+
+        if isinstance(self.trajectories[0], list):
+            # for our collected dataset, e.g. cartpole/lunarlander case
+            trajectories_tmp = []
+
+            original_keys = ['obs', 'next_obs', 'action', 'reward']
+            keys = ['observations', 'next_observations', 'actions', 'rewards']
+            for key, o_key in zip(keys, original_keys):
+                trajectories_tmp = [
+                    {
+                        key: np.stack(
+                            [
+                                self.trajectories[eps_index][transition_index][o_key]
+                                for transition_index in range(len(self.trajectories[eps_index]))
+                            ],
+                            axis=0
+                        )
+                    } for eps_index in range(len(self.trajectories))
+                ]
+            self.trajectories = trajectories_tmp
+
+        states = []
+        for traj in self.trajectories:
+            traj_len = traj['observations'].shape[0]
+            states.append(traj['observations'])
+            # calculate returns to go and rescale them
+            traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
+
+        # used for input normalization
+        states = np.concatenate(states, axis=0)
+        self.state_mean, self.state_std = np.mean(states, axis=0), np.std(states, axis=0) + 1e-6
+
+        # normalize states
+        for traj in self.trajectories:
+            traj['observations'] = (traj['observations'] - self.state_mean) / self.state_std
+
+
 class FixedReplayBuffer(object):
     """Object composed of a list of OutofGraphReplayBuffers."""
 
@@ -826,6 +827,234 @@ class BCODataset(Dataset):
     @property
     def action(self):
         return self._data['action']
+
+
+@DATASET_REGISTRY.register('diffuser_traj')
+class SequenceDataset(torch.utils.data.Dataset):
+
+    def __init__(self, cfg):
+        import gym
+
+        env_id = cfg.env.env_id
+        data_path = cfg.policy.collect.get('data_path', None)
+        env = gym.make(env_id)
+
+        dataset = env.get_dataset()
+
+        self.returns_scale = cfg.env.returns_scale
+        self.horizon = cfg.env.horizon
+        self.max_path_length = cfg.env.max_path_length
+        self.discount = cfg.policy.learn.discount_factor
+        self.discounts = self.discount ** np.arange(self.max_path_length)[:, None]
+        self.use_padding = cfg.env.use_padding
+        self.include_returns = cfg.env.include_returns
+        self.env_id = cfg.env.env_id
+        itr = self.sequence_dataset(env, dataset)
+        self.n_episodes = 0
+
+        fields = {}
+        for k in dataset.keys():
+            if 'metadata' in k:
+                continue
+            fields[k] = []
+        fields['path_lengths'] = []
+
+        for i, episode in enumerate(itr):
+            path_length = len(episode['observations'])
+            assert path_length <= self.max_path_length
+            fields['path_lengths'].append(path_length)
+            for key, val in episode.items():
+                if key not in fields:
+                    fields[key] = []
+                if val.ndim < 2:
+                    val = np.expand_dims(val, axis=-1)
+                shape = (self.max_path_length, val.shape[-1])
+                arr = np.zeros(shape, dtype=np.float32)
+                arr[:path_length] = val
+                fields[key].append(arr)
+            if episode['terminals'].any() and cfg.env.termination_penalty and 'timeouts' in episode:
+                assert not episode['timeouts'].any(), 'Penalized a timeout episode for early termination'
+                fields['rewards'][-1][path_length - 1] += cfg.env.termination_penalty
+            self.n_episodes += 1
+
+        for k in fields.keys():
+            fields[k] = np.array(fields[k])
+
+        self.normalizer = DatasetNormalizer(fields, cfg.policy.normalizer, path_lengths=fields['path_lengths'])
+        self.indices = self.make_indices(fields['path_lengths'], self.horizon)
+
+        self.observation_dim = cfg.env.obs_dim
+        self.action_dim = cfg.env.action_dim
+        self.fields = fields
+        self.normalize()
+        self.normed = False
+        if cfg.env.normed:
+            self.vmin, self.vmax = self._get_bounds()
+            self.normed = True
+
+        # shapes = {key: val.shape for key, val in self.fields.items()}
+        # print(f'[ datasets/mujoco ] Dataset fields: {shapes}')
+
+    def sequence_dataset(self, env, dataset=None):
+        import collections
+        N = dataset['rewards'].shape[0]
+        if 'maze2d' in env.spec.id:
+            dataset = self.maze2d_set_terminals(env, dataset)
+        data_ = collections.defaultdict(list)
+
+        # The newer version of the dataset adds an explicit
+        # timeouts field. Keep old method for backwards compatability.
+        use_timeouts = 'timeouts' in dataset
+
+        episode_step = 0
+        for i in range(N):
+            done_bool = bool(dataset['terminals'][i])
+            if use_timeouts:
+                final_timestep = dataset['timeouts'][i]
+            else:
+                final_timestep = (episode_step == env._max_episode_steps - 1)
+
+            for k in dataset:
+                if 'metadata' in k:
+                    continue
+                data_[k].append(dataset[k][i])
+
+            if done_bool or final_timestep:
+                episode_step = 0
+                episode_data = {}
+                for k in data_:
+                    episode_data[k] = np.array(data_[k])
+                if 'maze2d' in env.spec.id:
+                    episode_data = self.process_maze2d_episode(episode_data)
+                yield episode_data
+                data_ = collections.defaultdict(list)
+
+            episode_step += 1
+
+    def maze2d_set_terminals(self, env, dataset):
+        goal = env.get_target()
+        threshold = 0.5
+
+        xy = dataset['observations'][:, :2]
+        distances = np.linalg.norm(xy - goal, axis=-1)
+        at_goal = distances < threshold
+        timeouts = np.zeros_like(dataset['timeouts'])
+
+        # timeout at time t iff
+        #      at goal at time t and
+        #      not at goal at time t + 1
+        timeouts[:-1] = at_goal[:-1] * ~at_goal[1:]
+
+        timeout_steps = np.where(timeouts)[0]
+        path_lengths = timeout_steps[1:] - timeout_steps[:-1]
+
+        print(
+            f'[ utils/preprocessing ] Segmented {env.spec.id} | {len(path_lengths)} paths | '
+            f'min length: {path_lengths.min()} | max length: {path_lengths.max()}'
+        )
+
+        dataset['timeouts'] = timeouts
+        return dataset
+
+    def process_maze2d_episode(self, episode):
+        '''
+            adds in `next_observations` field to episode
+        '''
+        assert 'next_observations' not in episode
+        length = len(episode['observations'])
+        next_observations = episode['observations'][1:].copy()
+        for key, val in episode.items():
+            episode[key] = val[:-1]
+        episode['next_observations'] = next_observations
+        return episode
+
+    def normalize(self, keys=['observations', 'actions']):
+        '''
+            normalize fields that will be predicted by the diffusion model
+        '''
+        for key in keys:
+            array = self.fields[key].reshape(self.n_episodes * self.max_path_length, -1)
+            normed = self.normalizer.normalize(array, key)
+            self.fields[f'normed_{key}'] = normed.reshape(self.n_episodes, self.max_path_length, -1)
+
+    def make_indices(self, path_lengths, horizon):
+        '''
+            makes indices for sampling from dataset;
+            each index maps to a datapoint
+        '''
+        indices = []
+        for i, path_length in enumerate(path_lengths):
+            max_start = min(path_length - 1, self.max_path_length - horizon)
+            if not self.use_padding:
+                max_start = min(max_start, path_length - horizon)
+            for start in range(max_start):
+                end = start + horizon
+                indices.append((i, start, end))
+        indices = np.array(indices)
+        return indices
+
+    def get_conditions(self, observations):
+        '''
+            condition on current observation for planning
+        '''
+        if 'maze2d' in self.env_id:
+            return {'condition_id': [0, self.horizon - 1], 'condition_val': [observations[0], observations[-1]]}
+        else:
+            return {'condition_id': [0], 'condition_val': [observations[0]]}
+
+    def __len__(self):
+        return len(self.indices)
+
+    def _get_bounds(self):
+        print('[ datasets/sequence ] Getting value dataset bounds...', end=' ', flush=True)
+        vmin = np.inf
+        vmax = -np.inf
+        for i in range(len(self.indices)):
+            value = self.__getitem__(i)['returns'].item()
+            vmin = min(value, vmin)
+            vmax = max(value, vmax)
+        print('✓')
+        return vmin, vmax
+
+    def normalize_value(self, value):
+        # [0, 1]
+        normed = (value - self.vmin) / (self.vmax - self.vmin)
+        # [-1, 1]
+        normed = normed * 2 - 1
+        return normed
+
+    def __getitem__(self, idx, eps=1e-4):
+        path_ind, start, end = self.indices[idx]
+
+        observations = self.fields['normed_observations'][path_ind, start:end]
+        actions = self.fields['normed_actions'][path_ind, start:end]
+        done = self.fields['terminals'][path_ind, start:end]
+
+        # conditions = self.get_conditions(observations)
+        trajectories = np.concatenate([actions, observations], axis=-1)
+
+        if self.include_returns:
+            rewards = self.fields['rewards'][path_ind, start:]
+            discounts = self.discounts[:len(rewards)]
+            returns = (discounts * rewards).sum()
+            if self.normed:
+                returns = self.normalize_value(returns)
+            returns = np.array([returns / self.returns_scale], dtype=np.float32)
+            batch = {
+                'trajectories': trajectories,
+                'returns': returns,
+                'done': done,
+                'action': actions,
+            }
+        else:
+            batch = {
+                'trajectories': trajectories,
+                'done': done,
+                'action': actions,
+            }
+
+        batch.update(self.get_conditions(observations))
+        return batch
 
 
 def hdf5_save(exp_data, expert_data_path):
