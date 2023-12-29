@@ -89,8 +89,9 @@ class TestHAVAC:
         )
         agent_idx = random.randint(0, agent_num - 1)
         output = model(agent_idx, data, mode='compute_actor_critic')
-        assert set(output.keys()) == set(['logit', 'actor_next_state', 'actor_hidden_state',
-                                          'value', 'critic_next_state', 'critic_hidden_state'])
+        assert set(output.keys()) == set(
+            ['logit', 'actor_next_state', 'actor_hidden_state', 'value', 'critic_next_state', 'critic_hidden_state']
+        )
         assert output['logit'].shape == (T, bs, action_dim)
         assert output['value'].shape == (T, bs)
         loss = output['logit'].sum() + output['value'].sum()
