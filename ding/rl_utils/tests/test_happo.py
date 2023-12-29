@@ -44,6 +44,7 @@ def test_happo(use_value_clip, dual_clip, weight, factor):
     assert isinstance(logit_new.grad, torch.Tensor)
     assert isinstance(value_new.grad, torch.Tensor)
 
+
 @pytest.mark.unittest
 @pytest.mark.parametrize('use_value_clip, dual_clip, weight, factor', args)
 def test_ppo_error_continous(use_value_clip, dual_clip, weight, factor):
@@ -59,7 +60,7 @@ def test_ppo_error_continous(use_value_clip, dual_clip, weight, factor):
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
     data = happo_data(mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight, factor)
-    loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip,happo_factor=True)
+    loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip, happo_factor=True)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
     assert mu_sigma_new['mu'].grad is None

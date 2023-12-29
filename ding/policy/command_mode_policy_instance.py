@@ -186,9 +186,11 @@ class SQLCommandModePolicy(SQLPolicy, EpsCommandModePolicy):
 class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('happo_command')
 class HAPPOCommandModePolicy(HAPPOPolicy, DummyCommandModePolicy):
     pass
+
 
 @POLICY_REGISTRY.register('ppo_stdim_command')
 class PPOSTDIMCommandModePolicy(PPOSTDIMPolicy, DummyCommandModePolicy):

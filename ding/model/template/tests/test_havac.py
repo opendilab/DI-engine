@@ -25,7 +25,7 @@ class TestHAVAC:
             agent_obs_shape=obs_dim,
             global_obs_shape=global_obs_dim,
             action_shape=action_dim,
-            agent_num = agent_num,
+            agent_num=agent_num,
             use_lstm=True,
         )
         agent_idx = random.randint(0, agent_num - 1)
@@ -54,7 +54,7 @@ class TestHAVAC:
             agent_obs_shape=obs_dim,
             global_obs_shape=global_obs_dim,
             action_shape=action_dim,
-            agent_num = agent_num,
+            agent_num=agent_num,
             use_lstm=True,
         )
         agent_idx = random.randint(0, agent_num - 1)
@@ -84,12 +84,12 @@ class TestHAVAC:
             agent_obs_shape=obs_dim,
             global_obs_shape=global_obs_dim,
             action_shape=action_dim,
-            agent_num = agent_num,
+            agent_num=agent_num,
             use_lstm=True,
         )
         agent_idx = random.randint(0, agent_num - 1)
         output = model(agent_idx, data, mode='compute_actor_critic')
-        assert set(output.keys()) == set(['logit', 'actor_next_state', 'actor_hidden_state', \
+        assert set(output.keys()) == set(['logit', 'actor_next_state', 'actor_hidden_state',
                                           'value', 'critic_next_state', 'critic_hidden_state'])
         assert output['logit'].shape == (T, bs, action_dim)
         assert output['value'].shape == (T, bs)

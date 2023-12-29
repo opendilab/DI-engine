@@ -106,18 +106,23 @@ class HAVAC(nn.Module):
         """
         super(HAVAC, self).__init__()
         self.agent_num = agent_num
-        self.agent_models = nn.ModuleList([HAVACAgent(
-            agent_obs_shape = agent_obs_shape,
-            global_obs_shape = global_obs_shape,
-            action_shape = action_shape,
-            use_lstm = use_lstm,
-            action_space = action_space,
-            ) for _ in range(agent_num)])
-        
+        self.agent_models = nn.ModuleList(
+            [
+                HAVACAgent(
+                    agent_obs_shape=agent_obs_shape,
+                    global_obs_shape=global_obs_shape,
+                    action_shape=action_shape,
+                    use_lstm=use_lstm,
+                    action_space=action_space,
+                ) for _ in range(agent_num)
+            ]
+        )
+
     def forward(self, agent_idx, input_data, mode):
         selected_agent_model = self.agent_models[agent_idx]
         output = selected_agent_model(input_data, mode)
         return output
+
 
 class HAVACAgent(nn.Module):
     """
@@ -318,7 +323,7 @@ class HAVACAgent(nn.Module):
 
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit encoding tensor.
-            - actor_next_state: 
+            - actor_next_state:
             - hidden_state
         Shapes:
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is ``action_shape``

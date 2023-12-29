@@ -105,7 +105,7 @@ class HAPPOPolicy(Policy):
                     #     torch.nn.init.constant_(self._model.agent_models[agent_id].actor_head.log_sigma_param, 1)
                     # The above initialization step has been changed to reparameterizationHead.
                     for m in list(self._model.agent_models[agent_id].critic.modules()) + \
-                        list(self._model.agent_models[agent_id].actor.modules()):
+                    list(self._model.agent_models[agent_id].actor.modules()):
                         if isinstance(m, torch.nn.Linear):
                             # orthogonal initialization
                             torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
@@ -132,7 +132,7 @@ class HAPPOPolicy(Policy):
             clip_value=self._cfg.learn.grad_clip_value,
             # eps = 1e-5,
         )
-        
+
         self._critic_optimizer = Adam(
             critic_params,
             lr=self._cfg.learn.critic_learning_rate,
@@ -140,7 +140,6 @@ class HAPPOPolicy(Policy):
             clip_value=self._cfg.learn.grad_clip_value,
             # eps = 1e-5,
         )
-
 
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         # self._learn_model = model_wrap(
@@ -165,15 +164,15 @@ class HAPPOPolicy(Policy):
         self._learn_model.reset()
 
     def prepocess_data_agent(self, data):
-            ret ={}
-            for key, value in data.items():
-                if isinstance(value, dict):
-                    ret[key] = self.prepocess_data_agent(value)
-                elif isinstance(value, torch.Tensor) and len(value.shape) > 1:
-                    ret[key] = value.transpose(0, 1)
-                else:
-                    ret[key] = value
-            return ret
+        ret = {}
+        for key, value in data.items():
+            if isinstance(value, dict):
+                ret[key] = self.prepocess_data_agent(value)
+            elif isinstance(value, torch.Tensor) and len(value.shape) > 1:
+                ret[key] = value.transpose(0, 1)
+            else:
+                ret[key] = value
+        return ret
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -190,7 +189,7 @@ class HAPPOPolicy(Policy):
         all_data_len = data['obs']['agent_state'].shape[0]
         # fator is the ratio of the old and new strategies of the first m-1 agents, initialized to 1.
         # Each transition has its own factor. ref: http://arxiv.org/abs/2109.11251
-        factor = torch.ones(all_data_len, 1)     # (B, 1)
+        factor = torch.ones(all_data_len, 1)  # (B, 1)
         if self._cuda:
             data = to_device(data, self._device)
             factor = to_device(factor, self._device)
@@ -204,17 +203,17 @@ class HAPPOPolicy(Policy):
 
         for agent_id in range(self._cfg.agent_num):
             agent_data = {}
-            for key,value in data.items():
+            for key, value in data.items():
                 if value is not None:
                     if type(value) is dict:
-                        agent_data[key] = {k: v[agent_id] for k,v in value.items()}   # not feasible for rnn
-                    elif len(value.shape)>1:
+                        agent_data[key] = {k: v[agent_id] for k, v in value.items()}  # not feasible for rnn
+                    elif len(value.shape) > 1:
                         agent_data[key] = data[key][agent_id]
                     else:
                         agent_data[key] = data[key]
                 else:
                     agent_data[key] = data[key]
-                    
+
             # update factor
             agent_data['factor'] = factor
             # calculate old_logits of all data in buffer for later factor
@@ -238,7 +237,9 @@ class HAPPOPolicy(Policy):
                             next_value *= self._running_mean_std.std
 
                         traj_flag = agent_data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
-                        compute_adv_data = gae_data(value, next_value, agent_data['reward'], agent_data['done'], traj_flag)
+                        compute_adv_data = gae_data(
+                            value, next_value, agent_data['reward'], agent_data['done'], traj_flag
+                        )
                         agent_data['adv'] = gae(compute_adv_data, self._gamma, self._gae_lambda)
 
                         unnormalized_returns = value + agent_data['adv']
@@ -331,9 +332,11 @@ class HAPPOPolicy(Policy):
                 dist_old = Normal(old_logits['mu'], old_logits['sigma'])
             logp_new = dist_new.log_prob(agent_data['action'])
             logp_old = dist_old.log_prob(agent_data['action'])
-            if len(logp_new.shape)>1:
+            if len(logp_new.shape) > 1:
                 # for logp with shape(B, action_shape), we need to calculate the product of all action dimensions.
-                factor = factor * torch.prod(torch.exp(logp_new - logp_old), dim=-1).reshape(all_data_len, 1).detach() # attention the shape
+                factor = factor * torch.prod(
+                    torch.exp(logp_new - logp_old), dim=-1
+                ).reshape(all_data_len, 1).detach()  # attention the shape
             else:
                 # for logp with shape(B, ), directly calculate factor
                 factor = factor * torch.exp(logp_new - logp_old).reshape(all_data_len, 1).detach()
@@ -352,7 +355,6 @@ class HAPPOPolicy(Policy):
         # self._optimizer.load_state_dict(state_dict['optimizer'])
         self._actor_optimizer.load_state_dict(state_dict['actor_optimizer'])
         self._critic_optimizer.load_state_dict(state_dict['critic_optimizer'])
-
 
     def _init_collect(self) -> None:
         r"""
@@ -388,14 +390,16 @@ class HAPPOPolicy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        data = {k: v.transpose(0, 1) for k,v in data.items()}   # not feasible for rnn
+        data = {k: v.transpose(0, 1) for k, v in data.items()}  # not feasible for rnn
         self._collect_model.eval()
         with torch.no_grad():
             outputs = []
             for agent_id in range(self._cfg.agent_num):
                 # output = self._collect_model.forward(agent_id, data, mode='compute_actor_critic')
-                single_agent_obs = {k: v[agent_id] for k,v in data.items()}
-                input = {'obs': single_agent_obs,}
+                single_agent_obs = {k: v[agent_id] for k, v in data.items()}
+                input = {
+                    'obs': single_agent_obs,
+                }
                 output = self._collect_model.forward(agent_id, input, mode='compute_actor_critic')
                 outputs.append(output)
             # transfer data from (M, B, N)->(B, M, N)
@@ -416,7 +420,7 @@ class HAPPOPolicy(Policy):
                         # If it is not tensor, assume that it is a non-stackable data type \
                         # (such as int, float, etc.), and directly retain the original value
                         result[key] = [output[key] for output in outputs]
-        output = result    
+        output = result
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -468,12 +472,8 @@ class HAPPOPolicy(Policy):
             with torch.no_grad():
                 last_values = []
                 for agent_id in range(self._cfg.agent_num):
-                    inputs = {'obs':
-                                {k: unsqueeze(v[agent_id], 0) for k,v in data[-1]['next_obs'].items()}
-                    }
-                    last_value = self._collect_model.forward(
-                        agent_id, inputs, mode='compute_actor_critic'
-                    )['value']
+                    inputs = {'obs': {k: unsqueeze(v[agent_id], 0) for k, v in data[-1]['next_obs'].items()}}
+                    last_value = self._collect_model.forward(agent_id, inputs, mode='compute_actor_critic')['value']
                     last_values.append(last_value)
                 last_value = torch.cat(last_values)
             if len(last_value.shape) == 2:  # multi_agent case:
@@ -530,13 +530,15 @@ class HAPPOPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         # transfer data from (B, M, N)->(M, B, N)
-        data = {k: v.transpose(0, 1) for k,v in data.items()}   # not feasible for rnn
+        data = {k: v.transpose(0, 1) for k, v in data.items()}  # not feasible for rnn
         self._eval_model.eval()
         with torch.no_grad():
             outputs = []
             for agent_id in range(self._cfg.agent_num):
-                single_agent_obs = {k: v[agent_id] for k,v in data.items()}
-                input = {'obs': single_agent_obs,}
+                single_agent_obs = {k: v[agent_id] for k, v in data.items()}
+                input = {
+                    'obs': single_agent_obs,
+                }
                 output = self._eval_model.forward(agent_id, input, mode='compute_actor')
                 outputs.append(output)
         output = self.revert_agent_data(outputs)
@@ -545,7 +547,6 @@ class HAPPOPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    
     def default_model(self) -> Tuple[str, List[str]]:
         return 'havac', ['ding.model.template.havac']
 
@@ -566,7 +567,7 @@ class HAPPOPolicy(Policy):
         prefixes = [f'agent{i}_' for i in range(self._cfg.agent_num)]
         variables = [prefix + var for prefix in prefixes for var in variables]
         return variables
-    
+
     def revert_agent_data(self, data):
         ret = {}
         # Traverse all keys of the first output

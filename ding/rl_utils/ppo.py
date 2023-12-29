@@ -25,9 +25,8 @@ ppo_info = namedtuple('ppo_info', ['approx_kl', 'clipfrac'])
 happo_data = namedtuple(
     'happo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight', 'factor']
 )
-happo_policy_data = namedtuple(
-    'happo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight', 'factor']
-)
+happo_policy_data = namedtuple('happo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight', 'factor'])
+
 
 def shape_fn_ppo(args, kwargs):
     r"""
@@ -121,7 +120,7 @@ def ppo_policy_error(
         clip_ratio: float = 0.2,
         dual_clip: Optional[float] = None,
         happo_factor: bool = False
-        ) -> Tuple[namedtuple, namedtuple]:
+) -> Tuple[namedtuple, namedtuple]:
     '''
     Overview:
         Get PPO policy loss
@@ -323,7 +322,8 @@ def ppo_error_continuous(
     if happo_factor:
         if dual_clip is not None:
             # shape factor: (B,1)  surr1: (B,)
-            policy_loss = (-torch.max(factor_batch.squeeze(1) * torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+            policy_loss = (-torch.max(factor_batch.squeeze(1) * torch.min(surr1, surr2), dual_clip * adv) *
+                           weight).mean()
         else:
             policy_loss = (-factor_batch.squeeze(1) * torch.min(surr1, surr2) * weight).mean()
     else:
