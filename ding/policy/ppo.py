@@ -75,7 +75,7 @@ class PPOPolicy(Policy):
         # collect_mode config
         collect=dict(
             # (int) How many training samples collected in one collection procedure.
-            # Only one of [n_sample, n_episode] shoule be set.
+            # Only one of [n_sample, n_episode] should be set.
             # n_sample=64,
             # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
@@ -511,7 +511,8 @@ class PPOPolicy(Policy):
         elif self._action_space == 'discrete':
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         elif self._action_space == 'hybrid':
-            self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
+            self._eval_model = model_wrap(self._model, wrapper_name='hybrid_reparam_multinomial_sample')
+
         self._eval_model.reset()
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
