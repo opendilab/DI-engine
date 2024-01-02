@@ -18,6 +18,7 @@ def marginal_prob_std(t, device):
     Overview:
         Compute the mean and standard deviation of $p_{0t}(x(t) | x(0))$.
     """
+
     t = torch.tensor(t, device=device)
     beta_1 = 20.0
     beta_0 = 0.1
@@ -28,8 +29,21 @@ def marginal_prob_std(t, device):
 
 
 class TwinQ(nn.Module):
+    """
+    Overview:
+        Twin Q network for QGPO, which has two Q networks.
+    Interfaces:
+        ``__init__``, ``forward``, ``both``
+    """
 
     def __init__(self, action_dim, state_dim):
+        """
+        Overview:
+            Initialization of Twin Q.
+        Arguments:
+            - action_dim (:obj:`int`): The dimension of action.
+            - state_dim (:obj:`int`): The dimension of state.
+        """
         super().__init__()
         self.q1 = MLP(
             in_channels=state_dim + action_dim,
@@ -49,16 +63,46 @@ class TwinQ(nn.Module):
         )
 
     def both(self, action, condition=None):
+        """
+        Overview:
+            Return the output of two Q networks.
+        Arguments:
+            - action (:obj:`torch.Tensor`): The input action.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
         as_ = torch.cat([action, condition], -1) if condition is not None else action
         return self.q1(as_), self.q2(as_)
 
     def forward(self, action, condition=None):
+        """
+        Overview:
+            Return the minimum output of two Q networks.
+        Arguments:
+            - action (:obj:`torch.Tensor`): The input action.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
         return torch.min(*self.both(action, condition))
 
 
 class GuidanceQt(nn.Module):
+    """
+    Overview:
+        Energy Guidance Qt network for QGPO. \
+            In the origin paper, the energy guidance is trained by CEP method.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(self, action_dim, state_dim, time_embed_dim=32):
+        """
+        Overview:
+            Initialization of Guidance Qt.
+        Arguments:
+            - action_dim (:obj:`int`): The dimension of action.
+            - state_dim (:obj:`int`): The dimension of state.
+            - time_embed_dim (:obj:`int`): The dimension of time embedding. \
+                The time embedding is a Gaussian Fourier Feature tensor.
+        """
         super().__init__()
         self.qt = MLP(
             in_channels=action_dim + time_embed_dim + state_dim,
@@ -73,14 +117,38 @@ class GuidanceQt(nn.Module):
         )
 
     def forward(self, action, t, condition=None):
+        """
+        Overview:
+            Return the output of Guidance Qt.
+        Arguments:
+            - action (:obj:`torch.Tensor`): The input action.
+            - t (:obj:`torch.Tensor`): The input time.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
         embed = self.embed(t)
         ats = torch.cat([action, embed, condition], -1) if condition is not None else torch.cat([action, embed], -1)
         return self.qt(ats)
 
 
 class QGPO_Critic(nn.Module):
+    """
+    Overview:
+        QGPO critic network.
+    Interfaces:
+        ``__init__``, ``forward``, ``calculateQ``, ``calculate_guidance``
+    """
 
     def __init__(self, device, cfg, action_dim, state_dim) -> None:
+        """
+        Overview:
+            Initialization of QGPO critic.
+        Arguments:
+            - device (:obj:`torch.device`): The device to use.
+            - cfg (:obj:`EasyDict`): The config dict.
+            - action_dim (:obj:`int`): The dimension of action.
+            - state_dim (:obj:`int`): The dimension of state.
+        """
+
         super().__init__()
         # is state_dim is 0  means unconditional guidance
         assert state_dim > 0
@@ -95,6 +163,15 @@ class QGPO_Critic(nn.Module):
         self.guidance_scale = 1.0
 
     def calculate_guidance(self, a, t, condition=None):
+        """
+        Overview:
+            Calculate the guidance for conditional sampling.
+        Arguments:
+            - a (:obj:`torch.Tensor`): The input action.
+            - t (:obj:`torch.Tensor`): The input time.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
+
         with torch.enable_grad():
             a.requires_grad_(True)
             Q_t = self.qt(a, t, condition)
@@ -102,15 +179,48 @@ class QGPO_Critic(nn.Module):
         return guidance.detach()
 
     def forward(self, a, condition=None):
+        """
+        Overview:
+            Return the output of QGPO critic.
+        Arguments:
+            - a (:obj:`torch.Tensor`): The input action.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
+
         return self.q0(a, condition)
 
     def calculateQ(self, a, condition=None):
+        """
+        Overview:
+            Return the output of QGPO critic.
+        Arguments:
+            - a (:obj:`torch.Tensor`): The input action.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
+
         return self(a, condition)
 
 
 class ScoreNet(nn.Module):
+    """
+    Overview:
+        Score-based generative model for QGPO.
+    Interfaces:
+        ``__init__``, ``forward``, ``score_model_loss_fn``
+    """
 
     def __init__(self, device, input_dim, output_dim, embed_dim=32):
+        """
+        Overview:
+            Initialization of ScoreNet.
+        Arguments:
+            - device (:obj:`torch.device`): The device to use.
+            - input_dim (:obj:`int`): The dimension of input.
+            - output_dim (:obj:`int`): The dimension of output.
+            - embed_dim (:obj:`int`): The dimension of time embedding. \
+                The time embedding is a Gaussian Fourier Feature tensor.
+        """
+
         super().__init__()
 
         # origin score base
@@ -135,6 +245,15 @@ class ScoreNet(nn.Module):
         self.last = nn.Linear(1024, output_dim)
 
     def forward(self, x, t, condition):
+        """
+        Overview:
+            Return the output of ScoreNet.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input tensor.
+            - t (:obj:`torch.Tensor`): The input time.
+            - condition (:obj:`torch.Tensor`): The input condition.
+        """
+
         embed = self.embed(t)
         embed = torch.cat([self.pre_sort_condition(condition), embed], dim=-1)
         embed = self.sort_t(embed)
@@ -152,8 +271,22 @@ class ScoreNet(nn.Module):
 
 
 class QGPO(nn.Module):
+    """
+    Overview:
+        Model of QGPO algorithm.
+    Interfaces:
+        ``__init__``, ``calculateQ``, ``select_actions``, ``sample``, ``score_model_loss_fn``, ``q_loss_fn``, \
+            ``qt_loss_fn``
+    """
 
     def __init__(self, cfg: EasyDict) -> None:
+        """
+        Overview:
+            Initialization of QGPO.
+        Arguments:
+            - cfg (:obj:`EasyDict`): The config dict.
+        """
+
         super(QGPO, self).__init__()
         self.device = cfg.device
         self.obs_dim = cfg.obs_dim
@@ -170,11 +303,26 @@ class QGPO(nn.Module):
         self.q = QGPO_Critic(self.device, cfg.qgpo_critic, action_dim=self.action_dim, state_dim=self.obs_dim)
 
     def calculateQ(self, s, a):
+        """
+        Overview:
+            Calculate the Q value.
+        Arguments:
+            - s (:obj:`torch.Tensor`): The input state.
+            - a (:obj:`torch.Tensor`): The input action.
+        """
+
         return self.q(a, s)
 
     def select_actions(self, states, diffusion_steps=15):
+        """
+        Overview:
+            Select actions for conditional sampling.
+        Arguments:
+            - states (:obj:`list`): The input states.
+            - diffusion_steps (:obj:`int`): The diffusion steps.
+        """
 
-        def forward_dmp_wrapper_fn(x, t):
+        def forward_dpm_wrapper_fn(x, t):
             score = self.score_model(x, t, condition=states)
             result = -(score + self.q.calculate_guidance(x, t, states)) * marginal_prob_std(
                 t, device=self.device
@@ -192,7 +340,7 @@ class QGPO(nn.Module):
 
             init_x = torch.randn(states.shape[0], self.action_dim, device=self.device)
             results = DPM_Solver(
-                forward_dmp_wrapper_fn, self.noise_schedule, predict_x0=True
+                forward_dpm_wrapper_fn, self.noise_schedule, predict_x0=True
             ).sample(
                 init_x, steps=diffusion_steps, order=2
             ).cpu().numpy()
@@ -204,8 +352,16 @@ class QGPO(nn.Module):
         return out_actions
 
     def sample(self, states, sample_per_state=16, diffusion_steps=15):
+        """
+        Overview:
+            Sample actions for conditional sampling.
+        Arguments:
+            - states (:obj:`list`): The input states.
+            - sample_per_state (:obj:`int`): The number of samples per state.
+            - diffusion_steps (:obj:`int`): The diffusion steps.
+        """
 
-        def forward_dmp_wrapper_fn(x, t):
+        def forward_dpm_wrapper_fn(x, t):
             score = self.score_model(x, t, condition=states)
             result = -(score + self.q.calculate_guidance(x, t, states)) * marginal_prob_std(
                 t, device=self.device
@@ -220,7 +376,7 @@ class QGPO(nn.Module):
 
             init_x = torch.randn(states.shape[0], self.action_dim, device=self.device)
             results = DPM_Solver(
-                forward_dmp_wrapper_fn, self.noise_schedule, predict_x0=True
+                forward_dpm_wrapper_fn, self.noise_schedule, predict_x0=True
             ).sample(
                 init_x, steps=diffusion_steps, order=2
             ).cpu().numpy()
@@ -240,6 +396,7 @@ class QGPO(nn.Module):
             x: A mini-batch of training data.
             eps: A tolerance value for numerical stability.
         """
+
         random_t = torch.rand(x.shape[0], device=x.device) * (1. - eps) + eps
         z = torch.randn_like(x)
         alpha_t, std = marginal_prob_std(random_t, device=x.device)
@@ -249,6 +406,19 @@ class QGPO(nn.Module):
         return loss
 
     def q_loss_fn(self, a, s, r, s_, d, fake_a_, discount=0.99):
+        """
+        Overview:
+            The loss function for training Q function.
+        Arguments:
+            - a (:obj:`torch.Tensor`): The input action.
+            - s (:obj:`torch.Tensor`): The input state.
+            - r (:obj:`torch.Tensor`): The input reward.
+            - s_ (:obj:`torch.Tensor`): The input next state.
+            - d (:obj:`torch.Tensor`): The input done.
+            - fake_a_ (:obj:`torch.Tensor`): The input fake action.
+            - discount (:obj:`float`): The discount factor.
+        """
+
         with torch.no_grad():
             softmax = nn.Softmax(dim=1)
             next_energy = self.q.q0_target(fake_a_, torch.stack([s_] * fake_a_.shape[1], axis=1)).detach().squeeze()
@@ -261,6 +431,14 @@ class QGPO(nn.Module):
         return q_loss
 
     def qt_loss_fn(self, s, fake_a):
+        """
+        Overview:
+            The loss function for training Guidance Qt.
+        Arguments:
+            - s (:obj:`torch.Tensor`): The input state.
+            - fake_a (:obj:`torch.Tensor`): The input fake action.
+        """
+
         # input  many s <bz, S>  anction <bz, M, A>,
         energy = self.q.q0_target(fake_a, torch.stack([s] * fake_a.shape[1], axis=1)).detach().squeeze()
 
