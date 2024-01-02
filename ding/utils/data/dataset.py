@@ -1108,14 +1108,13 @@ class MetaTraj(Dataset):
         dataset_path = cfg.dataset.data_dir_prefix
         self.rtg_scale = cfg.dataset.rtg_scale
         self.context_len = cfg.dataset.context_len
-        self.env_type = cfg.dataset.env_type
         self.no_state_normalize = cfg.policy.no_state_normalize
         self.task_num = cfg.policy.task_num
-        self.state_dim = cfg.policy.model.obs_shape
-        self.act_dim = cfg.policy.model.act_shape
+        self.state_dim = cfg.policy.model.obs_dim
+        self.act_dim = cfg.policy.model.act_dim
         self.max_len = cfg.policy.max_len
         self.max_ep_len = cfg.policy.max_ep_len
-        self.batch_size = cfg.policy.batch_size
+        self.batch_size = cfg.policy.learn.batch_size
         self.stochastic_prompt = cfg.dataset.stochastic_prompt
         self.need_prompt = cfg.dataset.need_prompt
         self.task_id = 0

@@ -39,9 +39,11 @@ class MDPolicy(Policy):
         # normalizer type
         normalizer='GaussianNormalizer',
         model=dict(
+            dim=32,
+            obs_dim=17,
+            action_dim=6,
             diffuser_cfg=dict(
                 # the type of model
-                model='TemporalUnet',
                 # config of model
                 model_cfg=dict(
                     # model dim, In GaussianInvDynDiffusion, it is obs_dim. In others, it is obs_dim + action_dim
@@ -70,8 +72,7 @@ class MDPolicy(Policy):
                 clip_denoised=False,
                 action_weight=10,
             ),
-            value_model='ValueDiffusion',
-            value_model_cfg=dict(
+            reward_cfg=dict(
                 # the type of model
                 model='TemporalValue',
                 # config of model
@@ -96,6 +97,7 @@ class MDPolicy(Policy):
                 clip_denoised=False,
                 action_weight=1.0,
             ),
+            horizon=80,
             # guide_steps for p sample
             n_guide_steps=2,
             # scale of grad for p sample
