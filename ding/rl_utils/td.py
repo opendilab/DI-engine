@@ -687,14 +687,18 @@ def q_nstep_td_error(
     q, next_n_q, action, next_n_action, reward, done, weight = data
     if weight is None:
         weight = torch.ones_like(reward)
-    if len(action.shape) > 1:  # MARL case
+
+    if len(action.shape) == 1:  # single agent case
+        action = action.unsqueeze(-1)
+    elif len(action.shape) > 1:  # MARL case
         reward = reward.unsqueeze(-1)
         weight = weight.unsqueeze(-1)
         done = done.unsqueeze(-1)
         if value_gamma is not None:
             value_gamma = value_gamma.unsqueeze(-1)
 
-    q_s_a = q.gather(-1, action.unsqueeze(-1)).squeeze(-1)
+    q_s_a = q.gather(-1, action).squeeze(-1)
+
     target_q_s_a = next_n_q.gather(-1, next_n_action.unsqueeze(-1)).squeeze(-1)
 
     if cum_reward:
@@ -718,10 +722,10 @@ def bdq_nstep_td_error(
 ) -> torch.Tensor:
     """
     Overview:
-        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper "Action Branching Architectures \
-        for Deep Reinforcement Learning", link: https://arxiv.org/pdf/1711.08946.
+        Multistep (1 step or n step) td_error for BDQ algorithm, referenced paper "Action Branching Architectures for \
+        Deep Reinforcement Learning", link: https://arxiv.org/pdf/1711.08946.
         In fact, the original paper only provides the 1-step TD-error calculation method, and here we extend the \
-        calculation method of n-step TD-error.
+        calculation method of n-step, i.e., TD-error:
     Arguments:
         - data (:obj:`q_nstep_td_data`): The input data, q_nstep_td_data to calculate loss
         - gamma (:obj:`float`): Discount factor

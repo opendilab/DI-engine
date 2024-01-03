@@ -5,6 +5,17 @@ from trueskill import TrueSkill, Rating, rate_1vs1
 
 
 class EloCalculator(object):
+    """
+    Overview:
+        A class that calculates Elo ratings for players based on game results.
+
+    Attributes:
+        - score (:obj:`dict`): A dictionary that maps game results to scores.
+
+    Interfaces:
+        ``__init__``, ``get_new_rating``, ``get_new_rating_array``.
+    """
+
     score = {
         1: 1.0,  # win
         0: 0.5,  # draw
@@ -18,6 +29,20 @@ class EloCalculator(object):
                        result: int,
                        k_factor: int = 32,
                        beta: int = 200) -> Tuple[int, int]:
+        """
+        Overview:
+            Calculates the new ratings for two players based on their current ratings and game result.
+
+        Arguments:
+            - rating_a (:obj:`int`): The current rating of player A.
+            - rating_b (:obj:`int`): The current rating of player B.
+            - result (:obj:`int`): The result of the game: 1 for player A win, 0 for draw, -1 for player B win.
+            - k_factor (:obj:`int`): The K-factor used in the Elo rating system. Defaults to 32.
+            - beta (:obj:`int`): The beta value used in the Elo rating system. Defaults to 200.
+
+        Returns:
+            -ret (:obj:`Tuple[int, int]`): The new ratings for player A and player B, respectively.
+        """
         assert result in [1, 0, -1]
         expect_a = 1. / (1. + math.pow(10, (rating_b - rating_a) / (2. * beta)))
         expect_b = 1. / (1. + math.pow(10, (rating_a - rating_b) / (2. * beta)))
@@ -35,10 +60,25 @@ class EloCalculator(object):
             beta: int = 200
     ) -> np.ndarray:
         """
+        Overview:
+            Calculates the new ratings for multiple players based on their current ratings, game results, \
+            and game counts.
+
+        Arguments:
+            - rating (obj:`np.ndarray`): An array of current ratings for each player.
+            - result (obj:`np.ndarray`): An array of game results, where 1 represents a win, 0 represents a draw, \
+                and -1 represents a loss.
+            - game_count (obj:`np.ndarray`): An array of game counts for each player.
+            - k_factor (obj:`int`): The K-factor used in the Elo rating system. Defaults to 32.
+            - beta (obj:`int`): The beta value used in the Elo rating system. Defaults to 200.
+
+        Returns:
+            -ret(obj:`np.ndarray`): An array of new ratings for each player.
+
         Shapes:
-            rating: :math:`(N, )`, N is the number of player
-            result: :math:`(N, N)`
-            game_count: :math:`(N, N)`
+            - rating (obj:`np.ndarray`): :math:`(N, )`, N is the number of player
+            - result (obj:`np.ndarray`): :math:`(N, N)`
+            - game_count (obj:`np.ndarray`): :math:`(N, N)`
         """
         rating_diff = np.expand_dims(rating, 0) - np.expand_dims(rating, 1)
         expect = 1. / (1. + np.power(10, rating_diff / (2. * beta))) * game_count
@@ -48,6 +88,13 @@ class EloCalculator(object):
 
 
 class PlayerRating(Rating):
+    """
+    Overview:
+        Represents the rating of a player.
+
+    Interfaces:
+        ``__init__``, ``__repr__``.
+    """
 
     def __init__(self, mu: float = None, sigma: float = None, elo_init: int = None) -> None:
         super(PlayerRating, self).__init__(mu, sigma)
@@ -62,7 +109,11 @@ class PlayerRating(Rating):
 class LeagueMetricEnv(TrueSkill):
     """
     Overview:
-        TrueSkill rating system among game players, for more details pleas refer to ``https://trueskill.org/``
+        A class that represents a TrueSkill rating system for game players. Inherits from the TrueSkill class. \
+        For more details, please refer to https://trueskill.org/.
+
+    Interfaces:
+        ``__init__``, ``create_rating``, ``rate_1vs1``, ``rate_1vsC``.
     """
 
     def __init__(self, *args, elo_init: int = 1200, **kwargs) -> None:
@@ -70,6 +121,21 @@ class LeagueMetricEnv(TrueSkill):
         self.elo_init = elo_init
 
     def create_rating(self, mu: float = None, sigma: float = None, elo_init: int = None) -> PlayerRating:
+        """
+        Overview:
+            Creates a new player rating object with the specified mean, standard deviation, and Elo rating.
+
+        Arguments:
+            - mu (:obj:`float`): The mean value of the player's skill rating. If not provided, the default \
+                TrueSkill mean is used.
+            - sigma (:obj:`float`): The standard deviation of the player's skill rating. If not provided, \
+                the default TrueSkill sigma is used.
+            - elo_init (:obj:int`): The initial Elo rating value for the player. If not provided, the default \
+                elo_init value of the LeagueMetricEnv class is used.
+
+        Returns:
+            - PlayerRating: A player rating object with the specified mean, standard deviation, and Elo rating.
+        """
         if mu is None:
             mu = self.mu
         if sigma is None:
@@ -91,11 +157,23 @@ class LeagueMetricEnv(TrueSkill):
         t2 = PlayerRating(t2.mu, t2.sigma, t2_elo)
         return t1, t2
 
-    def rate_1vs1(self,
-                  team1: PlayerRating,
-                  team2: PlayerRating,
-                  result: List[str] = None,
-                  **kwargs) -> Tuple[PlayerRating, PlayerRating]:
+    def rate_1vs1(self, team1: PlayerRating, team2: PlayerRating, result: List[str] = None, **kwargs) \
+            -> Tuple[PlayerRating, PlayerRating]:
+        """
+        Overview:
+            Rates two teams of players against each other in a 1 vs 1 match and returns the updated ratings \
+                for both teams.
+
+        Arguments:
+            - team1 (:obj:`PlayerRating`): The rating object representing the first team of players.
+            - team2 (:obj:`PlayerRating`): The rating object representing the second team of players.
+            - result (:obj:`List[str]`): The result of the match. Can be 'wins', 'draws', or 'losses'. If \
+                not provided, the default behavior is to rate the match as a win for team1.
+
+        Returns:
+            - ret (:obj:`Tuple[PlayerRating, PlayerRating]`): A tuple containing the updated ratings for team1 \
+                and team2.
+        """
         if result is None:
             return self._rate_1vs1(team1, team2, **kwargs)
         else:
@@ -111,6 +189,19 @@ class LeagueMetricEnv(TrueSkill):
         return team1, team2
 
     def rate_1vsC(self, team1: PlayerRating, team2: PlayerRating, result: List[str]) -> PlayerRating:
+        """
+        Overview:
+            Rates a team of players against a single player in a 1 vs C match and returns the updated rating \
+            for the team.
+
+        Arguments:
+            - team1 (:obj:`PlayerRating`): The rating object representing the team of players.
+            - team2 (:obj:`PlayerRating`): The rating object representing the single player.
+            - result (:obj:`List[str]`): The result of the match. Can be 'wins', 'draws', or 'losses'.
+
+        Returns:
+            - PlayerRating: The updated rating for the team of players.
+        """
         for r in result:
             if r == 'wins':
                 team1, _ = self._rate_1vs1(team1, team2)

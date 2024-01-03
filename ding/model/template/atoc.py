@@ -5,28 +5,24 @@ import torch.nn as nn
 
 from ding.utils import squeeze, MODEL_REGISTRY, SequenceType
 from ding.torch_utils import MLP
-from ..common import RegressionHead
+from ding.model.common import RegressionHead
 
 
 class ATOCAttentionUnit(nn.Module):
-    r"""
+    """
     Overview:
-        the attention unit of the atoc network. We now implement it as two-layer MLP, same as the original paper
-
+        The attention unit of the ATOC network. We now implement it as two-layer MLP, same as the original paper.
     Interface:
-        __init__, forward
+        ``__init__``, ``forward``
 
     .. note::
-
         "ATOC paper: We use two-layer MLP to implement the attention unit but it is also can be realized by RNN."
-
     """
 
     def __init__(self, thought_size: int, embedding_size: int) -> None:
-        r"""
+        """
         Overview:
-            init the attention unit according to the size of input args
-
+            Initialize the attention unit according to the size of input arguments.
         Arguments:
             - thought_size (:obj:`int`): the size of input thought
             - embedding_size (:obj:`int`): the size of hidden layers
@@ -42,15 +38,19 @@ class ATOCAttentionUnit(nn.Module):
         self._act2 = nn.Sigmoid()
 
     def forward(self, data: Union[Dict, torch.Tensor]) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            forward method take the thought of agents as input and output the prob of these agent\
-                being initiator
-
+            Take the thought of agents as input and generate the probability of these agent being initiator
         Arguments:
             - x (:obj:`Union[Dict, torch.Tensor`): the input tensor or dict contain the thoughts tensor
-            - ret (:obj:`torch.Tensor`): the output initiator prob
-
+            - ret (:obj:`torch.Tensor`): the output initiator probability
+        Shapes:
+            - data['thought']: :math:`(M, B, N)`, M is the num of thoughts to integrate,\
+                B is batch_size and N is thought size
+        Examples:
+            >>> attention_unit = ATOCAttentionUnit(64, 64)
+            >>> thought = torch.randn(2, 3, 64)
+            >>> attention_unit(thought)
         """
         x = data
         if isinstance(data, Dict):
@@ -61,24 +61,21 @@ class ATOCAttentionUnit(nn.Module):
         x = self._act1(x)
         x = self._fc3(x)
         x = self._act2(x)
-        # return {'initiator': x}
         return x.squeeze(-1)
 
 
 class ATOCCommunicationNet(nn.Module):
-    r"""
+    """
     Overview:
-        atoc commnication net is a bi-direction LSTM, so it can integrate all the thoughts in the group
-
+        This ATOC commnication net is a bi-direction LSTM, so it can integrate all the thoughts in the group.
     Interface:
-        __init__, forward
+        ``__init__``, ``forward``
     """
 
     def __init__(self, thought_size: int) -> None:
-        r"""
+        """
         Overview:
-            init method of the communication network
-
+            Initialize the communication network according to the size of input arguments.
         Arguments:
             - thought_size (:obj:`int`): the size of input thought
 
@@ -93,32 +90,34 @@ class ATOCCommunicationNet(nn.Module):
         self._bi_lstm = nn.LSTM(self._thought_size, self._comm_hidden_size, bidirectional=True)
 
     def forward(self, data: Union[Dict, torch.Tensor]):
-        r"""
+        """
         Overview:
-            the forward method that integrate thoughts
+            The forward of ATOCCommunicationNet integrates thoughts in the group.
         Arguments:
             - x (:obj:`Union[Dict, torch.Tensor`): the input tensor or dict contain the thoughts tensor
             - out (:obj:`torch.Tensor`): the integrated thoughts
         Shapes:
             - data['thoughts']: :math:`(M, B, N)`, M is the num of thoughts to integrate,\
                 B is batch_size and N is thought size
+        Examples:
+            >>> comm_net = ATOCCommunicationNet(64)
+            >>> thoughts = torch.randn(2, 3, 64)
+            >>> comm_net(thoughts)
         """
         self._bi_lstm.flatten_parameters()
         x = data
         if isinstance(data, Dict):
             x = data['thoughts']
         out, _ = self._bi_lstm(x)
-        # return {'thoughts': out}
         return out
 
 
 class ATOCActorNet(nn.Module):
-    r"""
+    """
     Overview:
-        the overall ATOC actor network
-
+        The actor network of ATOC.
     Interface:
-        __init__, forward
+        ``__init__``, ``forward``
 
         .. note::
             "ATOC paper: The neural networks use ReLU and batch normalization for some hidden layers."
@@ -139,10 +138,9 @@ class ATOCActorNet(nn.Module):
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
     ):
-        r"""
+        """
         Overview:
-            the init method of atoc actor network
-
+            Initialize the actor network of ATOC
         Arguments:
             - obs_shape(:obj:`Union[Tuple, int]`): the observation size
             - thought_size (:obj:`int`): the size of thoughts
@@ -194,11 +192,9 @@ class ATOCActorNet(nn.Module):
             self.comm_net = ATOCCommunicationNet(self._thought_size)
 
     def forward(self, obs: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            the forward method of actor network, take the input obs, and calculate the corresponding action, group, \
-                initiator_prob, thoughts, etc...
-
+            Take the input obs, and calculate the corresponding action, group, initiator_prob, thoughts, etc...
         Arguments:
             - obs (:obj:`Dict`): the input obs containing the observation
         Returns:
@@ -207,6 +203,18 @@ class ATOCActorNet(nn.Module):
         ReturnsKeys:
             - necessary: ``action``
             - optional: ``group``, ``initiator_prob``, ``is_initiator``, ``new_thoughts``, ``old_thoughts``
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, A, N)`, where B is batch size, A is agent num, N is obs size
+            - action (:obj:`torch.Tensor`): :math:`(B, A, M)`, where M is action size
+            - group (:obj:`torch.Tensor`): :math:`(B, A, A)`
+            - initiator_prob (:obj:`torch.Tensor`): :math:`(B, A)`
+            - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
+            - new_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`
+            - old_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`
+        Examples:
+            >>> actor_net = ATOCActorNet(64, 64, 64, 3)
+            >>> obs = torch.randn(2, 3, 64)
+            >>> actor_net(obs)
         """
         assert len(obs.shape) == 3
         self._cur_batch_size = obs.shape[0]
@@ -238,6 +246,25 @@ class ATOCActorNet(nn.Module):
             return {'action': action}
 
     def _get_initiate_group(self, current_thoughts):
+        """
+        Overview:
+            Calculate the initiator probability, group and is_initiator
+        Arguments:
+            - current_thoughts (:obj:`torch.Tensor`): tensor of current thoughts
+        Returns:
+            - init_prob (:obj:`torch.Tensor`): tesnor of initiator probability
+            - is_initiator (:obj:`torch.Tensor`): tensor of is initiator
+            - group (:obj:`torch.Tensor`): tensor of group
+        Shapes:
+            - current_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`, where M is thought size
+            - init_prob (:obj:`torch.Tensor`): :math:`(B, A)`
+            - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
+            - group (:obj:`torch.Tensor`): :math:`(B, A, A)`
+        Examples:
+            >>> actor_net = ATOCActorNet(64, 64, 64, 3)
+            >>> current_thoughts = torch.randn(2, 3, 64)
+            >>> actor_net._get_initiate_group(current_thoughts)
+        """
         if not self._communication:
             raise NotImplementedError
         init_prob = self.attention(current_thoughts)  # B, A
@@ -267,10 +294,25 @@ class ATOCActorNet(nn.Module):
 
     def _get_new_thoughts(self, current_thoughts, group, is_initiator):
         """
+        Overview:
+            Calculate the new thoughts according to current thoughts, group and is_initiator
+        Arguments:
+            - current_thoughts (:obj:`torch.Tensor`): tensor of current thoughts
+            - group (:obj:`torch.Tensor`): tensor of group
+            - is_initiator (:obj:`torch.Tensor`): tensor of is initiator
+        Returns:
+            - new_thoughts (:obj:`torch.Tensor`): tensor of new thoughts
         Shapes:
             - current_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`, where M is thought size
             - group: (:obj:`torch.Tensor`): :math:`(B, A, A)`
             - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
+            - new_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`
+        Examples:
+            >>> actor_net = ATOCActorNet(64, 64, 64, 3)
+            >>> current_thoughts = torch.randn(2, 3, 64)
+            >>> group = torch.randn(2, 3, 3)
+            >>> is_initiator = torch.randn(2, 3)
+            >>> actor_net._get_new_thoughts(current_thoughts, group, is_initiator)
         """
         if not self._communication:
             raise NotImplementedError
@@ -306,12 +348,13 @@ class ATOCActorNet(nn.Module):
 
 @MODEL_REGISTRY.register('atoc')
 class ATOC(nn.Module):
-    r"""
+    """
     Overview:
         The QAC network of ATOC, a kind of extension of DDPG for MARL.
-
+        Learning Attentional Communication for Multi-Agent Cooperation
+        https://arxiv.org/abs/1805.07733
     Interface:
-        __init__, forward, compute_critic, compute_actor, optimize_actor_attention
+        ``__init__``, ``forward``, ``compute_critic``, ``compute_actor``, ``optimize_actor_attention``
     """
     mode = ['compute_actor', 'compute_critic', 'optimize_actor_attention']
 
@@ -330,10 +373,9 @@ class ATOC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            init the atoc QAC network
-
+            Initialize the ATOC QAC network
         Arguments:
             - obs_shape(:obj:`Union[Tuple, int]`): the observation space shape
             - thought_size (:obj:`int`): the size of thoughts
@@ -367,16 +409,33 @@ class ATOC(nn.Module):
         )
 
     def _compute_delta_q(self, obs: torch.Tensor, actor_outputs: Dict) -> torch.Tensor:
-        r"""
+        """
         Overview:
             calculate the delta_q according to obs and actor_outputs
-
         Arguments:
             - obs (:obj:`torch.Tensor`): the observations
             - actor_outputs (:obj:`dict`): the output of actors
             - delta_q (:obj:`Dict`): the calculated delta_q
+        Returns:
+            - delta_q (:obj:`Dict`): the calculated delta_q
         ArgumentsKeys:
             - necessary: ``new_thoughts``, ``old_thoughts``, ``group``, ``is_initiator``
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, A, N)`, where B is batch size, A is agent num, N is obs size
+            - actor_outputs (:obj:`Dict`): the output of actor network, including  ``action``, ``new_thoughts``, \
+                ``old_thoughts``, ``group``, ``initiator_prob``, ``is_initiator``
+            - action (:obj:`torch.Tensor`): :math:`(B, A, M)` where M is action size
+            - new_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)` where M is thought size
+            - old_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)` where M is thought size
+            - group (:obj:`torch.Tensor`): :math:`(B, A, A)`
+            - initiator_prob (:obj:`torch.Tensor`): :math:`(B, A)`
+            - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
+            - delta_q (:obj:`torch.Tensor`): :math:`(B, A)`
+        Examples:
+            >>> net = ATOC(64, 64, 64, 3)
+            >>> obs = torch.randn(2, 3, 64)
+            >>> actor_outputs = net.compute_actor(obs)
+            >>> net._compute_delta_q(obs, actor_outputs)
         """
         if not self._communication:
             raise NotImplementedError
@@ -413,10 +472,9 @@ class ATOC(nn.Module):
         return curr_delta_q
 
     def compute_actor(self, obs: torch.Tensor, get_delta_q: bool = False) -> Dict[str, torch.Tensor]:
-        r'''
+        '''
         Overview:
             compute the action according to inputs, call the _compute_delta_q function to compute delta_q
-
         Arguments:
             - obs (:obj:`torch.Tensor`): observation
             - get_delta_q (:obj:`bool`) : whether need to get delta_q
@@ -425,7 +483,19 @@ class ATOC(nn.Module):
         ReturnsKeys:
             - necessary: ``action``
             - optional: ``group``, ``initiator_prob``, ``is_initiator``, ``new_thoughts``, ``old_thoughts``, ``delta_q``
-
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, A, N)`, where B is batch size, A is agent num, N is obs size
+            - action (:obj:`torch.Tensor`): :math:`(B, A, M)`, where M is action size
+            - group (:obj:`torch.Tensor`): :math:`(B, A, A)`
+            - initiator_prob (:obj:`torch.Tensor`): :math:`(B, A)`
+            - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
+            - new_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`
+            - old_thoughts (:obj:`torch.Tensor`): :math:`(B, A, M)`
+            - delta_q (:obj:`torch.Tensor`): :math:`(B, A)`
+        Examples:
+            >>> net = ATOC(64, 64, 64, 3)
+            >>> obs = torch.randn(2, 3, 64)
+            >>> net.compute_actor(obs)
         '''
         outputs = self.actor(obs)
         if get_delta_q and self._communication:
@@ -435,10 +505,25 @@ class ATOC(nn.Module):
 
     def compute_critic(self, inputs: Dict) -> Dict:
         """
+        Overview:
+            compute the q_value according to inputs
+        Arguments:
+            - inputs (:obj:`Dict`): the inputs contain the obs and action
+        Returns:
+            - outputs (:obj:`Dict`): the output of critic network
         ArgumentsKeys:
             - necessary: ``obs``, ``action``
         ReturnsKeys:
             - necessary: ``q_value``
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(B, A, N)`, where B is batch size, A is agent num, N is obs size
+            - action (:obj:`torch.Tensor`): :math:`(B, A, M)`, where M is action size
+            - q_value (:obj:`torch.Tensor`): :math:`(B, A)`
+        Examples:
+            >>> net = ATOC(64, 64, 64, 3)
+            >>> obs = torch.randn(2, 3, 64)
+            >>> action = torch.randn(2, 3, 64)
+            >>> net.compute_critic({'obs': obs, 'action': action})
         """
         obs, action = inputs['obs'], inputs['action']
         if len(action.shape) == 2:  # (B, A) -> (B, A, 1)
@@ -448,14 +533,31 @@ class ATOC(nn.Module):
         return {'q_value': x}
 
     def optimize_actor_attention(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        r"""
+        """
         Overview:
             return the actor attention loss
-
         Arguments:
             - inputs (:obj:`Dict`): the inputs contain the delta_q, initiator_prob, and is_initiator
         Returns
             - loss (:obj:`Dict`): the loss of actor attention unit
+        ArgumentsKeys:
+            - necessary: ``delta_q``, ``initiator_prob``, ``is_initiator``
+        ReturnsKeys:
+            - necessary: ``loss``
+        Shapes:
+            - delta_q (:obj:`torch.Tensor`): :math:`(B, A)`
+            - initiator_prob (:obj:`torch.Tensor`): :math:`(B, A)`
+            - is_initiator (:obj:`torch.Tensor`): :math:`(B, A)`
+            - loss (:obj:`torch.Tensor`): :math:`(1)`
+        Examples:
+            >>> net = ATOC(64, 64, 64, 3)
+            >>> delta_q = torch.randn(2, 3)
+            >>> initiator_prob = torch.randn(2, 3)
+            >>> is_initiator = torch.randn(2, 3)
+            >>> net.optimize_actor_attention(
+            >>>     {'delta_q': delta_q,
+            >>>      'initiator_prob': initiator_prob,
+            >>>      'is_initiator': is_initiator})
         """
         if not self._communication:
             raise NotImplementedError

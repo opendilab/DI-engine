@@ -6,36 +6,29 @@ import torch.nn.functional as F
 from ding.torch_utils.network import one_hot
 
 
-def get_distance_matrix(lx, ly, mat, M: int) -> np.ndarray:
+def get_distance_matrix(lx: np.ndarray, ly: np.ndarray, mat: np.ndarray, M: int) -> np.ndarray:
     nlx = np.broadcast_to(lx, [M, M]).T
     nly = np.broadcast_to(ly, [M, M])
     nret = nlx + nly - mat
-
-    # ret = []
-    # for i in range(M):
-    #     ret.append(lx[i] + ly - mat[i])
-    # ret = np.stack(ret)
-    # assert ret.shape == (M, M)
-    # assert np.all(nret == ret)
     return nret
 
 
 class MultiLogitsLoss(nn.Module):
-    '''
+    """
     Overview:
         Base class for supervised learning on linklink, including basic processes.
     Interface:
-        forward
-    '''
+        __init__, forward.
+    """
 
     def __init__(self, criterion: str = None, smooth_ratio: float = 0.1) -> None:
-        '''
+        """
         Overview:
-            initialization method, use cross_entropy as default criterion
+            Initialization method, use cross_entropy as default criterion.
         Arguments:
-            - criterion (:obj:`str`): criterion type, supports ['cross_entropy', 'label_smooth_ce']
-            - smooth_ratio (:obs:`float`): smooth_ratio for label smooth
-        '''
+            - criterion (:obj:`str`): Criterion type, supports ['cross_entropy', 'label_smooth_ce'].
+            - smooth_ratio (:obs:`float`): Smoothing ratio for label smoothing.
+        """
         super(MultiLogitsLoss, self).__init__()
         if criterion is None:
             criterion = 'cross_entropy'
@@ -109,7 +102,7 @@ class MultiLogitsLoss(nn.Module):
         return index
 
     def forward(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate multiple logits loss.
         Arguments:

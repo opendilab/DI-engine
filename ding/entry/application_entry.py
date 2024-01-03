@@ -26,9 +26,9 @@ def eval(
         load_path: Optional[str] = None,
         replay_path: Optional[str] = None,
 ) -> float:
-    r"""
+    """
     Overview:
-        Pure evaluation entry.
+        Pure policy evaluation entry. Evaluate mean episode return and save replay videos.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \

@@ -31,7 +31,7 @@ gym_hybrid_hppo_config = dict(
             epoch_per_collect=10,
             batch_size=320,
             learning_rate=3e-4,
-            entropy_weight=0.03,
+            entropy_weight=0.5,
             adv_norm=True,
             value_norm=True,
         ),

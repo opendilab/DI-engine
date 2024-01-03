@@ -14,7 +14,7 @@ class CollaQMultiHeadAttention(nn.Module):
     Overview:
         The head of collaq attention module.
     Interface:
-        __init__, forward
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -69,8 +69,26 @@ class CollaQMultiHeadAttention(nn.Module):
             - q (:obj:`torch.nn.Sequential`): the transformer information q
             - k (:obj:`torch.nn.Sequential`): the transformer information k
             - v (:obj:`torch.nn.Sequential`): the transformer information v
-        Output:
+        Returns:
             - q (:obj:`torch.nn.Sequential`): the transformer output q
+            - residual (:obj:`torch.nn.Sequential`): the transformer output residual
+        Shapes:
+            - q (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \
+                N is the size of input q
+            - k (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \
+                N is the size of input k
+            - v (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \
+                N is the size of input v
+            - q (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \
+                N is the size of output q
+            - residual (:obj:`torch.nn.Sequential`): :math:`(B, L, N)` where B is batch_size, L is sequence length, \
+                N is the size of output residual
+        Examples:
+            >>> net = CollaQMultiHeadAttention(1, 2, 3, 4, 5, 6)
+            >>> q = torch.randn(1, 2, 2)
+            >>> k = torch.randn(1, 3, 3)
+            >>> v = torch.randn(1, 3, 3)
+            >>> q, residual = net(q, k, v)
         """
         d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
         batch_size, len_q, len_k, len_v = q.size(0), q.size(1), k.size(1), v.size(1)
@@ -104,7 +122,7 @@ class CollaQSMACAttentionModule(nn.Module):
         Collaq attention module. Used to get agent's attention observation. It includes agent's observation\
             and agent's part of the observation information of the agent's concerned allies
     Interface:
-        __init__, _cut_obs, forward
+        ``__init__``, ``_cut_obs``, ``forward``
     """
 
     def __init__(
@@ -140,9 +158,16 @@ class CollaQSMACAttentionModule(nn.Module):
             cut the observed information into self's observation and allay's observation
         Arguments:
             - obs (:obj:`torch.Tensor`): input each agent's observation
-        Return:
+        Returns:
             - self_features (:obj:`torch.Tensor`): output self agent's attention observation
             - ally_features (:obj:`torch.Tensor`): output ally agent's attention observation
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \
+                A is agent_num, N is obs_shape
+            - self_features (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \
+                A is agent_num, N is self_feature_range[1] - self_feature_range[0]
+            - ally_features (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \
+                A is agent_num, N is ally_feature_range[1] - ally_feature_range[0]
         """
         # obs shape = (T, B, A, obs_shape)
         self_features = obs[:, :, :, self.self_feature_range[0]:self.self_feature_range[1]]
@@ -155,8 +180,11 @@ class CollaQSMACAttentionModule(nn.Module):
             forward computation to get agent's attention observation information
         Arguments:
             - obs (:obj:`torch.Tensor`): input each agent's observation
-        Return:
+        Returns:
             - obs (:obj:`torch.Tensor`): output agent's attention observation
+        Shapes:
+            - obs (:obj:`torch.Tensor`): :math:`(T, B, A, N)` where T is timestep, B is batch_size, \
+                A is agent_num, N is obs_shape
         """
         # obs shape = (T, B ,A, obs_shape)
         obs = inputs
@@ -182,9 +210,16 @@ class CollaQSMACAttentionModule(nn.Module):
 class CollaQ(nn.Module):
     """
     Overview:
-        CollaQ network
+        The network of CollaQ (Collaborative Q-learning) algorithm.
+        It includes two parts: q_network and q_alone_network.
+        The q_network is used to get the q_value of the agent's observation and \
+        the agent's part of the observation information of the agent's concerned allies.
+        The q_alone_network is used to get the q_value of the agent's observation and \
+        the agent's observation information without the agent's concerned allies.
+        Multi-Agent Collaboration via Reward Attribution Decomposition
+        https://arxiv.org/abs/2010.08531
     Interface:
-        __init__, forward, _setup_global_encoder
+        ``__init__``, ``forward``, ``_setup_global_encoder``
     """
 
     def __init__(
@@ -275,7 +310,8 @@ class CollaQ(nn.Module):
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
         Overview:
-            forward computation graph of collaQ network
+            The forward method calculates the q_value of each agent and the total q_value of all agents.
+            The q_value of each agent is calculated by the q_network, and the total q_value is calculated by the mixer.
         Arguments:
             - data (:obj:`dict`): input data dict with keys ['obs', 'prev_state', 'action']
                 - agent_state (:obj:`torch.Tensor`): each agent local state(obs)
@@ -302,6 +338,32 @@ class CollaQ(nn.Module):
             - total_q (:obj:`torch.Tensor`): :math:`(T, B)`
             - agent_q (:obj:`torch.Tensor`): :math:`(T, B, A, P)`, where P is action_shape
             - next_state (:obj:`list`): math:`(B, A)`, a list of length B, and each element is a list of length A
+        Examples:
+            >>> collaQ_model = CollaQ(
+            >>>     agent_num=4,
+            >>>     obs_shape=32,
+            >>>     alone_obs_shape=24,
+            >>>     global_obs_shape=32 * 4,
+            >>>     action_shape=9,
+            >>>     hidden_size_list=[128, 64],
+            >>>     self_feature_range=[8, 10],
+            >>>     ally_feature_range=[10, 16],
+            >>>     attention_size=64,
+            >>>     mixer=True,
+            >>>     activation=torch.nn.Tanh()
+            >>> )
+            >>> data={
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(8, 4, 4, 32),
+            >>>         'agent_alone_state': torch.randn(8, 4, 4, 24),
+            >>>         'agent_alone_padding_state': torch.randn(8, 4, 4, 32),
+            >>>         'global_state': torch.randn(8, 4, 32 * 4),
+            >>>         'action_mask': torch.randint(0, 2, size=(8, 4, 4, 9))
+            >>>     },
+            >>>     'prev_state': [[[None for _ in range(4)] for _ in range(3)] for _ in range(4)],
+            >>>     'action': torch.randint(0, 9, size=(8, 4, 4))
+            >>> }
+            >>> output = collaQ_model(data, single_step=False)
         """
         agent_state, agent_alone_state = data['obs']['agent_state'], data['obs']['agent_alone_state']
         agent_alone_padding_state = data['obs']['agent_alone_padding_state']
@@ -426,7 +488,7 @@ class CollaQ(nn.Module):
         Arguments:
             - global_obs_shape (:obj:`int`): the dimension of global observation state
             - embedding_size (:obj:`int`): the dimension of state emdedding
-        Return:
+        Returns:
             - outputs (:obj:`torch.nn.Module`): Global observation encoding network
         """
         return MLP(global_obs_shape, embedding_size, embedding_size, 2, activation=self._act)

@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Dict, Callable
 import torch
 import numpy as np
 import treetensor.torch as ttorch
@@ -12,10 +12,25 @@ def default_preprocess_learn(
         use_priority: bool = False,
         use_nstep: bool = False,
         ignore_done: bool = False,
-) -> dict:
+) -> Dict[str, torch.Tensor]:
+    """
+    Overview:
+        Default data pre-processing in policy's ``_forward_learn`` method, including stacking batch data, preprocess \
+        ignore done, nstep and priority IS weight.
+    Arguments:
+        - data (:obj:`List[Any]`): The list of a training batch samples, each sample is a dict of PyTorch Tensor.
+        - use_priority_IS_weight (:obj:`bool`): Whether to use priority IS weight correction, if True, this function \
+            will set the weight of each sample to the priority IS weight.
+        - use_priority (:obj:`bool`): Whether to use priority, if True, this function will set the priority IS weight.
+        - use_nstep (:obj:`bool`): Whether to use nstep TD error, if True, this function will reshape the reward.
+        - ignore_done (:obj:`bool`): Whether to ignore done, if True, this function will set the done to 0.
+    Returns:
+        - data (:obj:`Dict[str, torch.Tensor]`): The preprocessed dict data whose values can be directly used for \
+            the following model forward and loss computation.
+    """
     # data preprocess
-    if data[0]['action'].dtype in [np.int8, np.int16, np.int32, np.int64, torch.int8, torch.int16, torch.int32,
-                                   torch.int64]:
+    elem = data[0]
+    if isinstance(elem['action'], (np.ndarray, torch.Tensor)) and elem['action'].dtype in [np.int64, torch.int64]:
         data = default_collate(data, cat_1dim=True)  # for discrete action
     else:
         data = default_collate(data, cat_1dim=False)  # for continuous action
@@ -42,7 +57,7 @@ def default_preprocess_learn(
     else:
         data['weight'] = data.get('weight', None)
     if use_nstep:
-        # Reward reshaping for n-step
+        # reward reshaping for n-step
         reward = data['reward']
         if len(reward.shape) == 1:
             reward = reward.unsqueeze(1)
@@ -55,7 +70,23 @@ def default_preprocess_learn(
     return data
 
 
-def single_env_forward_wrapper(forward_fn):
+def single_env_forward_wrapper(forward_fn: Callable) -> Callable:
+    """
+    Overview:
+        Wrap policy to support gym-style interaction between policy and single environment.
+    Arguments:
+        - forward_fn (:obj:`Callable`): The original forward function of policy.
+    Returns:
+        - wrapped_forward_fn (:obj:`Callable`): The wrapped forward function of policy.
+    Examples:
+        >>> env = gym.make('CartPole-v0')
+        >>> policy = DQNPolicy(...)
+        >>> forward_fn = single_env_forward_wrapper(policy.eval_mode.forward)
+        >>> obs = env.reset()
+        >>> action = forward_fn(obs)
+        >>> next_obs, rew, done, info = env.step(action)
+
+    """
 
     def _forward(obs):
         obs = {0: unsqueeze(to_tensor(obs))}
@@ -66,7 +97,24 @@ def single_env_forward_wrapper(forward_fn):
     return _forward
 
 
-def single_env_forward_wrapper_ttorch(forward_fn, cuda=True):
+def single_env_forward_wrapper_ttorch(forward_fn: Callable, cuda: bool = True) -> Callable:
+    """
+    Overview:
+        Wrap policy to support gym-style interaction between policy and single environment for treetensor (ttorch) data.
+    Arguments:
+        - forward_fn (:obj:`Callable`): The original forward function of policy.
+        - cuda (:obj:`bool`): Whether to use cuda in policy, if True, this function will move the input data to cuda.
+    Returns:
+        - wrapped_forward_fn (:obj:`Callable`): The wrapped forward function of policy.
+
+    Examples:
+        >>> env = gym.make('CartPole-v0')
+        >>> policy = PPOFPolicy(...)
+        >>> forward_fn = single_env_forward_wrapper_ttorch(policy.eval)
+        >>> obs = env.reset()
+        >>> action = forward_fn(obs)
+        >>> next_obs, rew, done, info = env.step(action)
+    """
 
     def _forward(obs):
         # unsqueeze means add batch dim, i.e. (O, ) -> (1, O)

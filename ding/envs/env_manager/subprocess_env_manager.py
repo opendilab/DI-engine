@@ -43,7 +43,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     config = dict(
         episode_num=float("inf"),
-        max_retry=5,
+        max_retry=1,
         step_timeout=None,
         auto_reset=True,
         retry_type='reset',
@@ -678,7 +678,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
     config = dict(
         episode_num=float("inf"),
-        max_retry=5,
+        max_retry=1,
         step_timeout=None,
         auto_reset=True,
         reset_timeout=None,

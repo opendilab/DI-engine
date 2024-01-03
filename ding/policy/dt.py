@@ -1,7 +1,4 @@
-"""The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
-"""
-
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from collections import namedtuple
 import torch.nn.functional as F
 import torch
@@ -9,16 +6,15 @@ import numpy as np
 from ding.torch_utils import to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_decollate
-from ding.torch_utils import one_hot
 from .base_policy import Policy
 
 
 @POLICY_REGISTRY.register('dt')
 class DTPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of Decision Transformer algorithm in discrete environments.
-        Paper link: https://arxiv.org/abs/2106.01345
+        Paper link: https://arxiv.org/abs/2106.01345.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -42,13 +38,37 @@ class DTPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For example about DQN, its registered name is ``dqn`` and the import_names is \
+            ``ding.model.template.q_learning``.
+        """
         return 'dt', ['ding.model.template.dt']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For Decision Transformer, \
+            it mainly contains the optimizer, algorithm-specific arguments such as rtg_scale and lr scheduler.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         # rtg_scale: scale of `return to go`
         # rtg_target: max target of `return to go`
@@ -83,14 +103,26 @@ class DTPolicy(Policy):
 
         self.max_env_score = -1.0
 
-    def _forward_learn(self, data: list) -> Dict[str, Any]:
-        r"""
-            Overview:
-                Forward and backward function of learn mode.
-            Arguments:
-                - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
-            Returns:
-                - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+    def _forward_learn(self, data: List[torch.Tensor]) -> Dict[str, Any]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the offline dataset and then returns the output \
+            result, including various training information such as loss, current learning rate.
+        Arguments:
+            - data (:obj:`List[torch.Tensor]`): The input data used for policy forward, including a series of \
+                processed torch.Tensor data, i.e., timesteps, states, actions, returns_to_go, traj_mask.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
         """
         self._learn_model.train()
 
@@ -104,7 +136,7 @@ class DTPolicy(Policy):
         if self._basic_discrete_env:
             actions = actions.to(torch.long)
             actions = actions.squeeze(-1)
-            action_target = torch.clone(actions).detach().to(self._device)
+        action_target = torch.clone(actions).detach().to(self._device)
 
         if self._atari_env:
             state_preds, action_preds, return_preds = self._learn_model.forward(
@@ -145,9 +177,20 @@ class DTPolicy(Policy):
         }
 
     def _init_eval(self) -> None:
-        r"""
+        """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
+            Initialize the eval mode of policy, including related attributes and modules. For DQN, it contains the \
+            eval model, some algorithm-specific parameters such as context_len, max_eval_ep_len, etc.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. tip::
+            For the evaluation of complete episodes, we need to maintain some historical information for transformer \
+            inference. These variables need to be initialized in ``_init_eval`` and reset in ``_reset_eval`` when \
+            necessary.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         self._eval_model = self._model
         # init data
@@ -196,6 +239,22 @@ class DTPolicy(Policy):
         )
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of eval mode (evaluation policy performance, such as interacting with envs. \
+            Forward means that the policy gets some input data (current obs/return-to-go and historical information) \
+            from the envs and then returns the output data, such as the action to interact with the envs. \
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs and \
+                reward to calculate running return-to-go. The key of the dict is environment id and the value is the \
+                corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e. environment id.
+
+        .. note::
+            Decision Transformer will do different operations for different types of envs in evaluation.
+        """
         # save and forward
         data_id = list(data.keys())
 
@@ -232,7 +291,7 @@ class DTPolicy(Policy):
                     self.states[i, self.t[i]] = data[i]['obs'].to(self._device)
                 else:
                     self.states[i, self.t[i]] = (data[i]['obs'].to(self._device) - self.state_mean) / self.state_std
-                self.running_rtg[i] = self.running_rtg[i] - data[i]['reward'].to(self._device)
+                self.running_rtg[i] = self.running_rtg[i] - (data[i]['reward'] / self.rtg_scale).to(self._device)
                 self.rewards_to_go[i, self.t[i]] = self.running_rtg[i]
 
                 if self.t[i] <= self.context_len:
@@ -269,6 +328,8 @@ class DTPolicy(Policy):
                         act[i] = torch.multinomial(probs[i], num_samples=1)
                 else:
                     act = torch.argmax(logits, axis=1).unsqueeze(1)
+            else:
+                act = logits
             for i in data_id:
                 self.actions[i, self.t[i]] = act[i]  # TODO: self.actions[i] should be a queue when exceed max_t
                 self.t[i] += 1
@@ -279,7 +340,17 @@ class DTPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _reset_eval(self, data_id: List[int] = None) -> None:
+    def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        """
+        Overview:
+            Reset some stateful variables for eval mode when necessary, such as the historical info of transformer \
+            for decision transformer. If ``data_id`` is None, it means to reset all the stateful \
+            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \
+            different environments/episodes in evaluation in ``data_id`` will have different history.
+        Arguments:
+            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \
+                specified by ``data_id``.
+        """
         # clean data
         if data_id is None:
             self.t = [0 for _ in range(self.eval_batch_size)]
@@ -339,21 +410,14 @@ class DTPolicy(Policy):
                     self.timesteps[i] = torch.arange(start=0, end=self.max_eval_ep_len, step=1).to(self._device)
                 self.rewards_to_go[i] = torch.zeros((self.max_eval_ep_len, 1), dtype=torch.float32, device=self._device)
 
-    def _state_dict_learn(self) -> Dict[str, Any]:
-        return {
-            'model': self._learn_model.state_dict(),
-            # 'target_model': self._target_model.state_dict(),
-            'optimizer': self._optimizer.state_dict(),
-        }
-
-    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._optimizer.load_state_dict(state_dict['optimizer'])
-
-    def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
-        self._eval_model.load_state_dict(state_dict)
-
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return ['cur_lr', 'action_loss']
 
     def _init_collect(self) -> None:
