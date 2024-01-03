@@ -168,8 +168,13 @@ class LlamaVAC(nn.Module):
         tokenizer = get_tokenizer(tokenizer_path)
         self.enable_checkpointing = enable_checkpointing
 
-        self.actor = Llama.from_pretrained(actor_path, opt=opt, tokenizer=tokenizer, torch_dtype=torch.bfloat16,
-                                           enable_checkpointing=enable_checkpointing)
+        self.actor = Llama.from_pretrained(
+            actor_path,
+            opt=opt,
+            tokenizer=tokenizer,
+            torch_dtype=torch.bfloat16,
+            enable_checkpointing=enable_checkpointing
+        )
 
         self.critic = LlamaRewardModel.from_pretrained(critic_path, tokenizer=tokenizer, torch_dtype=torch.bfloat16)
 

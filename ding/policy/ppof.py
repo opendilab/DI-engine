@@ -323,6 +323,7 @@ class PPOFPolicy:
                     'policy_loss': ppo_loss.policy_loss.item(),
                     'value_loss': ppo_loss.value_loss.item(),
                     'entropy_loss': ppo_loss.entropy_loss.item(),
+                    'kl_loss': kl_loss.item(),
                     'adv_max': adv.max().item(),
                     'adv_mean': adv.mean().item(),
                     'value_mean': output.value.mean().item(),
