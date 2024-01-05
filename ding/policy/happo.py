@@ -6,8 +6,8 @@ import numpy as np
 from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device, to_dtype, unsqueeze, ContrastiveLoss
-from ding.rl_utils import happo_data, happo_error, happo_policy_error, happo_policy_data, get_gae_with_default_last_value, \
-    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, happo_error_continuous, \
+from ding.rl_utils import happo_data, happo_error, happo_policy_error, happo_policy_data, \
+    v_nstep_td_data, v_nstep_td_error, get_train_sample, gae, gae_data, happo_error_continuous, \
     get_gae
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd

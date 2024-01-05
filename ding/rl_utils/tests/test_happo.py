@@ -10,7 +10,7 @@ use_value_clip_args = [True, False]
 dual_clip_args = [None, 5.0]
 random_weight = torch.rand(4) + 1
 weight_args = [None, random_weight]
-factor_args = [torch.rand(4,1)]
+factor_args = [torch.rand(4, 1)]
 args = [item for item in product(*[use_value_clip_args, dual_clip_args, weight_args, factor_args])]
 
 
