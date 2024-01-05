@@ -3,14 +3,14 @@ from itertools import product
 import numpy as np
 import torch
 
-from ding.rl_utils import happo_data, ppo_error, ppo_error_continuous
+from ding.rl_utils import happo_data, happo_error, happo_error_continuous
 from ding.rl_utils.ppo import shape_fn_ppo
 
 use_value_clip_args = [True, False]
 dual_clip_args = [None, 5.0]
 random_weight = torch.rand(4) + 1
 weight_args = [None, random_weight]
-factor_args = [torch.rand(4)]
+factor_args = [torch.rand(4,1)]
 args = [item for item in product(*[use_value_clip_args, dual_clip_args, weight_args, factor_args])]
 
 
@@ -34,7 +34,7 @@ def test_happo(use_value_clip, dual_clip, weight, factor):
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
     data = happo_data(logit_new, logit_old, action, value_new, value_old, adv, return_, weight, factor)
-    loss, info = ppo_error(data, use_value_clip=use_value_clip, dual_clip=dual_clip, happo_factor=True)
+    loss, info = happo_error(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
     assert logit_new.grad is None
@@ -47,7 +47,7 @@ def test_happo(use_value_clip, dual_clip, weight, factor):
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('use_value_clip, dual_clip, weight, factor', args)
-def test_ppo_error_continous(use_value_clip, dual_clip, weight, factor):
+def test_happo_error_continous(use_value_clip, dual_clip, weight, factor):
     B, N = 4, 6
     mu_sigma_new = {'mu': torch.rand(B, N).requires_grad_(True), 'sigma': torch.rand(B, N).requires_grad_(True)}
     mu_sigma_old = {
@@ -60,7 +60,7 @@ def test_ppo_error_continous(use_value_clip, dual_clip, weight, factor):
     adv = torch.rand(B)
     return_ = torch.randn(B) * 2
     data = happo_data(mu_sigma_new, mu_sigma_old, action, value_new, value_old, adv, return_, weight, factor)
-    loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip, happo_factor=True)
+    loss, info = happo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
     assert mu_sigma_new['mu'].grad is None
