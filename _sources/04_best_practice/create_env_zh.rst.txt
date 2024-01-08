@@ -64,7 +64,7 @@ DI-engine 中统一和标准化了不同类型的决策问题，提供有关主�
 而基于 DI-zoo 中的实践经验，DI-engine 中还抽象整合了环境包装器（Env Wrapper）和环境管理器（Env Manager）两类功能组件，用于更便利高效地完成决策环境的预处理和标准化，本文档将在下面两节详细展开介绍。
 
 2. 易用性：环境包装器（Env Wrapper）
-----------------------------------
+-------------------------------------
 
 训练决策智能体时经常需要对环境的 MDP 定义进行预处理和转换，以追求更好的训练效果， 而这些处理技巧也具备一定的普适性。
 例如对于某些环境，观测状态的归一化是很常见的预处理技巧，通过统一量纲和缩小尺度让训练更快且更加稳定。
@@ -74,6 +74,7 @@ DI-engine 中统一和标准化了不同类型的决策问题，提供有关主�
 一个简单的示例如下：
 
 .. code:: python
+
     # 创建 Atari Pong 环境
     env = gym.make('PongNoFrameskip-v4')
     # 添加 episode 初始的空操作 Env Wrapper，避免游戏刚开始的随机性
@@ -138,6 +139,7 @@ DI-engine 提供了大量预定义且常用的 Env Wrapper，开发者可以根�
 这部分模块中还设计实现了一种更便利的调用方式 DingEnvWrapper，对应的使用示例如下：
 
 .. code:: python
+
     import gym
     from ding.envs import DingEnvWrapper
 
@@ -151,7 +153,7 @@ DI-engine 提供了大量预定义且常用的 Env Wrapper，开发者可以根�
 有关 Env Wrapper 更详细的文档可以参考链接： `如何使用 Env Wrapper 快速构建决策环境 <https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/env_wrapper_zh.html>`_ 。
 
 3. 高效性：向量化环境管理器（Env Manager）
-----------------------------------
+------------------------------------------
 
 由于强化学习常常需要在训练过程中和环境实时交互收集训练，环境的向量化和并行化就成为了加速训练的重要方式。
 具体来说，如果智能体/策略需要收集一定量的数据，最朴素的方法是只运行一个环境但重复多个 episode 直到满足收集的数量要求，

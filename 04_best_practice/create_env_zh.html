@@ -364,6 +364,14 @@
 <p>基于多种不同类型决策环境的实践经验，DI-engine 将其中通用的部分提取出来，统一整合在环境包装器（Env Wrapper）中进行管理，以便后续使用和修改。
 具体来说，环境包装器顾名思义就是在常见的 gym 格式环境外部添加对应的预处理模块，便捷地加入某些对于 obs/action/reward 的预处理函数。
 一个简单的示例如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 创建 Atari Pong 环境</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;PongNoFrameskip-v4&#39;</span><span class="p">)</span>
+<span class="c1"># 添加 episode 初始的空操作 Env Wrapper，避免游戏刚开始的随机性</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
+<span class="c1"># 添加将连续四个环境帧进行合并的 Env Wrapper</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">MaxAndSkipEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">skip</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>DI-engine 提供了大量预定义且常用的 Env Wrapper，开发者可以根据自己的需求直接包裹在需要使用的环境之上。
 所有 Env Wrapper 在实现时依然遵循 <code class="docutils literal notranslate"><span class="pre">Gym.Wrapper</span></code>格式，典型的例子有:</p>
 <table class="colwidths-given docutils align-default" id="id6">
@@ -502,6 +510,17 @@
 <p>更进一步地，为了简化 Env Wrapper 的配置难度，为经典决策环境提供一键可用的默认 Env Wrapper 设置，
 并直接做好相关的数据类型和接口转换（即从 gym 格式环境转换到 DI-engine 所需的 BaseEnv 衍生子环境），
 这部分模块中还设计实现了一种更便利的调用方式 DingEnvWrapper，对应的使用示例如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span>
+
+<span class="n">cartpole_env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;CartPole-v0&#39;</span><span class="p">))</span>
+<span class="n">pendulum_env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Pendulum-v1&#39;</span><span class="p">))</span>
+<span class="n">lunarlander_env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;LunarLander-v2&#39;</span><span class="p">,</span> <span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">})</span>
+<span class="n">mujoco_env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Ant-v3&#39;</span><span class="p">,</span> <span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;mujoco_default&#39;</span><span class="p">})</span>
+<span class="n">atari_env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;PongNoFrameskip-v4&#39;</span><span class="p">,</span> <span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;atari_default&#39;</span><span class="p">})</span>
+<span class="n">gym_hybrid_env</span> <span class="o">=</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Moving-v0&#39;</span><span class="p">,</span> <span class="n">env_wrapper</span><span class="o">=</span><span class="s1">&#39;gym_hybrid_default&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
 <p>有关 Env Wrapper 更详细的文档可以参考链接： <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/env_wrapper_zh.html">如何使用 Env Wrapper 快速构建决策环境</a> 。</p>
 </section>
 <section id="env-manager">

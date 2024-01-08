@@ -1,4 +1,4 @@
-Agent
+ding.agent
 ----------
 
 
@@ -63,7 +63,7 @@ PGAgent
 
 
 ppo_offpolicy
-========
+===============
 Please refer to ``ding/bonus/ppo_offpolicy.py`` for more details.
 
 

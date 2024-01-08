@@ -1,0 +1,557 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>HAPPO &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="ICM" href="icm_zh.html" />
+  <link rel="prev" title="QMIX" href="qmix_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>HAPPO</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/happo_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="happo">
+<h1>HAPPO<a class="headerlink" href="#happo" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>HAPPO (Heterogeneous-Agent Proximal Policy Optimisation) 是在论文 <a class="reference external" href="http://arxiv.org/abs/2109.11251">Trust Region Policy Optimisation in Multi-Agent Reinforcement Learning</a> 中提出的，一种基于信任区域方法 (trust region methods) 的多智能体强化学习算法。
+在传统的单智能体强化学习中，信任区域方法被广泛应用，能够保证学习到的策略逐渐改善，从而在各种任务中取得卓越性能。
+然而，在多智能体强化学习中，由于各个智能体的策略更新可能存在冲突，传统的单智能体信任区域方法无法简单地应用于协作场景。</p>
+<p>HAPPO 算法基于单智能体上的 TRPO 和 PPO 算法 <a class="reference external" href="https://arxiv.org/abs/1707.06347">Proximal policy optimization algorithms</a> ，针对多智能体协作场景中的信任区域学习进行了扩展和优化，基于论文中的多智能体优势分解引理 (multi-agent advantage decomposition lemma)，提出了多智能体的顺序策略更新方案 (sequential policy update scheme)。
+进而构建了针对多智能体的trust region算法：HATRPO (Heterogenous-Agent Trust Region Policy Optimisation) 和 HAPPO (Heterogeneous-Agent Proximal Policy Optimisation)</p>
+</section>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>HAPPO 采用了 <strong>信任域方法，但不需要智能体共享参数，并且不对联合价值函数的分解性做出任何限制性假设</strong> 。</p></li>
+<li><p>HAPPO 是一种 <strong>无模型(model-free)、基于策略(policy-based)、同策略(on-policy)</strong> 的多智能体强化学习方法。</p></li>
+<li><p>HAPPO 支持 <strong>离散(discrete)和连续(continuous)</strong> 的动作空间。</p></li>
+<li><p>HAPPO 考虑了 <strong>部分可观察(partially observable)</strong> 的情景，其中每个智能体的 Actor 网络只获得个体观察。</p></li>
+<li><p>HAPPO 的神经网络模型中可以使用 <strong>RNN</strong> 。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>关键方程或关键图形<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>多智能体场景下，对于任意有序的智能体子集 <span class="math notranslate nohighlight">\(i_{1:m}=\left( i_1,...,i_m \right)\)</span> 的状态动作值函数定义为：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Q_{\mathbf{\pi}}(s,\mathbf{a}^{i_{1:m}})\overset{\Delta}{=}\mathbb{E}_{\mathbf{a}^{-i_{1:m}}\sim\mathbf{\pi}^{-i_{1:m}}}[Q_{\mathbf{\pi}}(s,\mathbf{a}^{i_{1:m}},\mathbf{a}^{-i_{1:m}})].\\\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(-i_{1:m}\)</span> 表示 <span class="math notranslate nohighlight">\(i_{1:m}\)</span> 的补集，简单来说，这个函数表示如果智能体 <span class="math notranslate nohighlight">\(i_{1:m}\)</span> 在状态 <span class="math notranslate nohighlight">\(s\)</span> 下采取联合行动 <span class="math notranslate nohighlight">\(\mathbf{a}^{i_{1:m}}\)</span> ，平均回报是多少。
+在此基础上，定义多智能体优势函数 (Multi-agent Advantage Function) 如下:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A_\pi^{i_{1:m}}(s,\mathbf{a}^{j_{1:k}},\mathbf{a}^{i_{1:m}})=Q_\mathbf{\pi}^{j_{1:k},i_{1:m}}(s,\mathbf{a}^{j_{1:k}},\mathbf{a}^{i_{1:m}})-Q_\mathbf{\pi}^{j_{1:k}}(s,\mathbf{a}^{j_{1:k}})\\\end{split}\]</div>
+<p>该函数将智能体 <span class="math notranslate nohighlight">\(i_{1:m}\)</span> 的联合动作 <span class="math notranslate nohighlight">\(\mathbf{a}^{i_{1:m}}\)</span> 和智能体 <span class="math notranslate nohighlight">\(i_{1:k}\)</span> 的联合动作 <span class="math notranslate nohighlight">\(\mathbf{a}^{i_{1:k}}\)</span> 的平均价值进行比较。
+根据 Multi-Agent Advantage Decomposition Lemma，对于任何有序智能体的子集 <span class="math notranslate nohighlight">\(i_{1:m}\)</span> ：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}A_\mathbf{\pi}^{i_{1:m}}(s,\mathbf{a}^{i_{1:m}})=\sum_{j=1}^{m}{A_\mathbf{\pi}^{i_j}(s,\mathbf{a}^{i_{1:j-1}},a^{i_j})}.\\\end{split}\]</div>
+<p>如果每个智能体 <span class="math notranslate nohighlight">\({i_j}\)</span> 都知道智能体 <span class="math notranslate nohighlight">\(i_{1:j-1}\)</span> 做什么，那么它便可以做出动作 <span class="math notranslate nohighlight">\(a^{i_j}_{*}\)</span> ，以最大化自己的multi-agent advantage（其最大值始终为正）。</p>
+<p>由于 HAPPO 的近似多智能体信任域目标涉及旧的策略 <span class="math notranslate nohighlight">\({\pi}^{i_m}\)</span> 和候选的策略 <span class="math notranslate nohighlight">\(\hat{\pi}^{i_m}\)</span> ，还涉及多个智能体 <span class="math notranslate nohighlight">\(i_{1:m-1}\)</span> 刚更新的联合策略。
+所以使用重要性抽样（importance sampling），智能体 <span class="math notranslate nohighlight">\(i_{1:m-1}\)</span> 已经进行了更新，智能体 <span class="math notranslate nohighlight">\(i_{m}\)</span> 则计算如下 ratio：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\hat{\pi}^{i_m}(a^{i_m}|s)}{{\pi}^{i_m}(a^{i_m}|s)}\cdot \frac{\bar{\mathbf\pi}^{i_{1:m-1}}(\mathbf{a}^{i_{1:m-1}}|s)}{\mathbf{\pi}^{i_{1:m-1}}(\mathbf{a}^{i_{1:m-1}}|s)}\\\end{split}\]</div>
+<p>所以对于来自旧的联合策略 <span class="math notranslate nohighlight">\(\mathbf\pi^{1:m-1}\)</span> 的数据，计算上述 ratio 即可用于当前策略的训练。</p>
+<p>PPO 对 TRPO 做了简化运算；HAPPO 基于同样的道理对 HATRPO 的中二阶微分的编码和计算进行简化，而使用一阶导数。HATRPO 相关由于受约束的HATRPO目标与TRPO具有相同的代数形式，因此可以使用 clip 目标来实现。</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbb{E}_{s\sim\rho^{\mathbf \pi},\mathbf{a}\sim\mathbf{\pi}} \left[\min\left(\frac{\hat{\pi}^{i_m}(a^{i_m}|s)}{{\pi}^{i_m}(a^{i_m}|s)} M_{\mathbf \pi}(s,\mathbf{a}),\text{clip}(\frac{\hat{\pi}^{i_m}(a^{i_m}|s)}{{\pi}^{i_m}(a^{i_m}|s)},1\pm\epsilon)M_{\mathbf \pi}(s,\mathbf{a})\right)\right]\\\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\frac{\hat{\pi}^{i_m}(a^{i_m}|s)}{{\pi}^{i_m}(a^{i_m}|s)}\)</span> 和 PPO 类似，为智能体 <span class="math notranslate nohighlight">\(i_{m}\)</span> 新旧策略 ratio；
+而 <span class="math notranslate nohighlight">\(M_{\mathbf \pi}(s,\mathbf{a})=\frac {\bar {\mathbf \pi }^{i_{1:m-1}}(\mathbf{a}^{i_{1:m-1}}|s)}{\mathbf{\pi}^{i_{1:m-1}}(\mathbf{a}^{i_{1:m-1}}|s)} \cdot A_{\mathbf{\pi}}(s,\mathbf{a})\)</span> ，
+其中 <span class="math notranslate nohighlight">\(A_{\mathbf{\pi}}(s,\mathbf{a})\)</span> 是联合优势函数， <span class="math notranslate nohighlight">\(\frac{\bar {\mathbf \pi }^{i_{1:m-1}}(\mathbf{a}^{i_{1:m-1}}|s)}{\mathbf{\pi}^{i_{1:m-1}}(\mathbf{a}^{i_{1:m-1}}|s)}\)</span> 为智能体 <span class="math notranslate nohighlight">\(i_{1:m-1}\)</span> 新旧联合策略的 ratio。</p>
+<p>这样可以确保进行小步幅地策略更新。clip目标对于策略参数是可微的，所以我们所要做的就是初始化 <span class="math notranslate nohighlight">\(\theta^{i_m}=\theta_{old}^{i_m}\)</span> ，并多次进行更新。</p>
+<p>其他关于 PPO 的细节可见 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh-cn/latest/12_policies/ppo.html">PPO 文档</a> 。</p>
+</section>
+<section id="id4">
+<h2>算法伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/HAPPO_pseudo_code.png"><img alt="../_images/HAPPO_pseudo_code.png" class="align-center" src="../_images/HAPPO_pseudo_code.png" style="width: 386.0px; height: 287.0px;" /></a>
+<p>HAPPO 也可以选择在模型中加入 <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/best_practice/rnn.html">RNN</a> 。</p>
+</section>
+<section id="id5">
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>算法的默认设置如下：</p>
+<p>HAPPO 使用的网络接口定义如下，其中包含了 n_agent 个的 model：</p>
+<p>而单个智能体的 model 与 PPO 的类似：</p>
+</section>
+<section id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Halfcheetah</p>
+<p>(Halfcheetah-v2)</p>
+</td>
+<td><p>5356</p></td>
+<td><img alt="../_images/happo_halfcheetah.png" src="../_images/happo_halfcheetah.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/multiagent_mujoco/config/halfcheetah_happo_config.py">config_link_ha</a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Simple-spread</p>
+<p>(simple_spread_v2)</p>
+</td>
+<td><p>-136.8</p></td>
+<td><img alt="../_images/happo_ptz.png" src="../_images/happo_ptz.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/ptz_simple_spread_happo_config.py">config_link_ha</a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id7">
+<h2>引用<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Kuba, Jakub Grudzien, et al. “Trust region policy optimisation in multi-agent reinforcement learning.” arXiv preprint arXiv:2109.11251 (2021).</p></li>
+<li><p>Schulman, John, et al. “Proximal policy optimization algorithms.” arXiv preprint arXiv:1707.06347 (2017).</p></li>
+</ul>
+</section>
+<section id="id8">
+<h2>其他开源实现<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>TRPO-in-MARL</p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="icm_zh.html" class="btn btn-neutral float-right" title="ICM" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="qmix_zh.html" class="btn btn-neutral" title="QMIX" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">HAPPO</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">核心要点</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键图形</a></li>
+<li><a class="reference internal" href="#id4">算法伪代码</a></li>
+<li><a class="reference internal" href="#id5">实现</a></li>
+<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li><a class="reference internal" href="#id7">引用</a></li>
+<li><a class="reference internal" href="#id8">其他开源实现</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

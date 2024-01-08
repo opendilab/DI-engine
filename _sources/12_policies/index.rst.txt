@@ -26,6 +26,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     sql
     sqn
     mdqn
+    averaged_dqn
 
 .. toctree::
     :maxdepth: 2
@@ -67,6 +68,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     td3_bc
     edac
     dt
+    diffuser
 
 .. toctree::
     :maxdepth: 2
