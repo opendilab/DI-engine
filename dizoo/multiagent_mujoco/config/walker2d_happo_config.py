@@ -31,7 +31,6 @@ main_config = dict(
             use_lstm=False,
         ),
         learn=dict(
-            multi_gpu=False,
             epoch_per_collect=5,
             # batch_size=3200,
             # batch_size=800,
@@ -71,7 +70,7 @@ main_config = dict(
         ),
         eval=dict(
             env_num=evaluator_env_num,
-            evaluator=dict(eval_freq=50, ),
+            evaluator=dict(eval_freq=1000, ),
         ),
         other=dict(),
     ),

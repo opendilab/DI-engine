@@ -5,17 +5,7 @@ import torch.nn as nn
 from torch.distributions import Independent, Normal
 from ding.hpc_rl import hpc_wrapper
 
-# ppo_data = namedtuple(
-#     'ppo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
-# )
-# ppo_data_continuous = namedtuple(
-#     'ppo_data_continuous',
-#     ['mu_sigma_new', 'mu_sigma_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
-# )
-# ppo_policy_data = namedtuple('ppo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight'])
-# ppo_policy_data_continuous = namedtuple(
-#     'ppo_policy_data_continuous', ['mu_sigma_new', 'mu_sigma_old', 'action', 'adv', 'weight']
-# )
+
 happo_value_data = namedtuple('happo_value_data', ['value_new', 'value_old', 'return_', 'weight'])
 happo_loss = namedtuple('happo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 happo_policy_loss = namedtuple('happo_policy_loss', ['policy_loss', 'entropy_loss'])
@@ -26,26 +16,6 @@ happo_data = namedtuple(
 happo_policy_data = namedtuple('happo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight', 'factor'])
 
 
-def shape_fn_ppo(args, kwargs):
-    r"""
-    Overview:
-        Return shape of ppo for hpc
-    Returns:
-        shape: [B, N]
-    """
-    if len(args) <= 0:
-        tmp = kwargs['data'].logit_new.shape
-    else:
-        tmp = args[0].logit_new.shape
-    return tmp
-
-
-@hpc_wrapper(
-    shape_fn=shape_fn_ppo,
-    namedtuple_data=True,
-    include_args=[0, 1, 2, 3],
-    include_kwargs=['data', 'clip_ratio', 'use_value_clip', 'dual_clip']
-)
 def happo_error(
         data: namedtuple,
         clip_ratio: float = 0.2,
