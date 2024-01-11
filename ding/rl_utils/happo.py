@@ -5,7 +5,6 @@ import torch.nn as nn
 from torch.distributions import Independent, Normal
 from ding.hpc_rl import hpc_wrapper
 
-
 happo_value_data = namedtuple('happo_value_data', ['value_new', 'value_old', 'return_', 'weight'])
 happo_loss = namedtuple('happo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 happo_policy_loss = namedtuple('happo_policy_loss', ['policy_loss', 'entropy_loss'])
