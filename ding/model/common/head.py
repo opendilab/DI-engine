@@ -1102,8 +1102,9 @@ class ReparameterizationHead(nn.Module):
     Interfaces:
         ``__init__``, ``forward``.
     """
-
-    default_sigma_type = ['fixed', 'independent', 'conditioned']
+    # The "happo" type here is to align with the sigma initialization method of the network in the original HAPPO \
+    # paper. The code here needs to be optimized later.
+    default_sigma_type = ['fixed', 'independent', 'conditioned', 'happo']
     default_bound_type = ['tanh', None]
 
     def __init__(
@@ -1155,6 +1156,11 @@ class ReparameterizationHead(nn.Module):
             self.log_sigma_param = nn.Parameter(torch.zeros(1, output_size))
         elif self.sigma_type == 'conditioned':
             self.log_sigma_layer = nn.Linear(hidden_size, output_size)
+        elif self.sigma_type == 'happo':
+            self.sigma_x_coef = 1.
+            self.sigma_y_coef = 0.5
+            # This parameter (x_coef, y_coef) refers to the HAPPO paper http://arxiv.org/abs/2109.11251.
+            self.log_sigma_param = nn.Parameter(torch.ones(1, output_size) * self.sigma_x_coef)
 
     def forward(self, x: torch.Tensor) -> Dict:
         """
@@ -1190,6 +1196,9 @@ class ReparameterizationHead(nn.Module):
         elif self.sigma_type == 'conditioned':
             log_sigma = self.log_sigma_layer(x)
             sigma = torch.exp(torch.clamp(log_sigma, -20, 2))
+        elif self.sigma_type == 'happo':
+            log_sigma = self.log_sigma_param + torch.zeros_like(mu)
+            sigma = torch.sigmoid(log_sigma / self.sigma_x_coef) * self.sigma_y_coef
         return {'mu': mu, 'sigma': sigma}
 
 

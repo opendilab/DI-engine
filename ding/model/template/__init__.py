@@ -27,3 +27,4 @@ from .procedure_cloning import ProcedureCloningMCTS, ProcedureCloningBFS
 from .bcq import BCQ
 from .edac import EDAC
 from .ebm import EBM, AutoregressiveEBM
+from .havac import HAVAC
