@@ -114,20 +114,48 @@ class Normalizer:
     """
 
     def __init__(self, X):
+        """
+        Overview:
+            Initialize the Normalizer object.
+        Arguments:
+            - X (:obj:`np.ndarray`): The data to be normalized.
+        """
+
         self.X = X.astype(np.float32)
         self.mins = X.min(axis=0)
         self.maxs = X.max(axis=0)
 
     def __repr__(self):
+        """
+        Overview:
+            Returns a string representation of the Normalizer object.
+        """
+
         return (
             f"""[ Normalizer ] dim: {self.mins.size}\n    -: """
             f"""{np.round(self.mins, 2)}\n    +: {np.round(self.maxs, 2)}\n"""
         )
 
     def normalize(self, *args, **kwargs):
+        """
+        Overview:
+            Normalize the input data.
+        Arguments:
+            - args (:obj:`list`): The arguments passed to the ``normalize`` function.
+            - kwargs (:obj:`dict`): The keyword arguments passed to the ``normalize`` function.
+        """
+
         raise NotImplementedError()
 
     def unnormalize(self, *args, **kwargs):
+        """
+        Overview:
+            Unnormalize the input data.
+        Arguments:
+            - args (:obj:`list`): The arguments passed to the ``unnormalize`` function.
+            - kwargs (:obj:`dict`): The keyword arguments passed to the ``unnormalize`` function.
+        """
+
         raise NotImplementedError()
 
 
@@ -141,12 +169,27 @@ class GaussianNormalizer(Normalizer):
     """
 
     def __init__(self, *args, **kwargs):
+        """
+        Overview:
+            Initialize the GaussianNormalizer object.
+        Arguments:
+            - args (:obj:`list`): The arguments passed to the ``__init__`` function of the parent class, \
+                i.e., the Normalizer class.
+            - kwargs (:obj:`dict`): The keyword arguments passed to the ``__init__`` function of the parent class, \
+                i.e., the Normalizer class.
+        """
+
         super().__init__(*args, **kwargs)
         self.means = self.X.mean(axis=0)
         self.stds = self.X.std(axis=0)
         self.z = 1
 
     def __repr__(self):
+        """
+        Overview:
+            Returns a string representation of the GaussianNormalizer object.
+        """
+
         return (
             f"""[ Normalizer ] dim: {self.mins.size}\n    """
             f"""means: {np.round(self.means, 2)}\n    """
@@ -190,11 +233,23 @@ class CDFNormalizer(Normalizer):
     """
 
     def __init__(self, X):
+        """
+        Overview:
+            Initialize the CDFNormalizer object.
+        Arguments:
+            - X (:obj:`np.ndarray`): The data to be normalized.
+        """
+
         super().__init__(atleast_2d(X))
         self.dim = self.X.shape[1]
         self.cdfs = [CDFNormalizer1d(self.X[:, i]) for i in range(self.dim)]
 
     def __repr__(self):
+        """
+        Overview:
+            Returns a string representation of the CDFNormalizer object.
+        """
+
         return f'[ CDFNormalizer ] dim: {self.mins.size}\n' + '    |    '.join(
             f'{i:3d}: {cdf}' for i, cdf in enumerate(self.cdfs)
         )
@@ -257,6 +312,13 @@ class CDFNormalizer1d:
     """
 
     def __init__(self, X: np.ndarray):
+        """
+        Overview:
+            Initialize the CDFNormalizer1d object.
+        Arguments:
+            - X (:obj:`np.ndarray`): The data to be normalized.
+        """
+
         import scipy.interpolate as interpolate
         assert X.ndim == 1
         self.X = X.astype(np.float32)
@@ -272,6 +334,11 @@ class CDFNormalizer1d:
             self.ymin, self.ymax = cumprob.min(), cumprob.max()
 
     def __repr__(self) -> str:
+        """
+        Overview:
+            Returns a string representation of the CDFNormalizer1d object.
+        """
+
         return (f'[{np.round(self.xmin, 2):.4f}, {np.round(self.xmax, 2):.4f}')
 
     def normalize(self, x: np.ndarray) -> np.ndarray:

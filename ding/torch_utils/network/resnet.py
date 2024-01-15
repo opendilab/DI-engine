@@ -93,6 +93,8 @@ class AvgPool2dSame(nn.AvgPool2d):
     """
     Overview:
         Tensorflow-like 'SAME' wrapper for 2D average pooling.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -203,6 +205,8 @@ class ClassifierHead(nn.Module):
     """
     Overview:
         Classifier head with configurable global pooling and dropout.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -280,6 +284,8 @@ class BasicBlock(nn.Module):
         The basic building block for models like ResNet. This class extends pytorch's Module class.
         It represents a standard block of layers including two convolutions, batch normalization,
         an optional attention mechanism, and activation functions.
+    Interfaces:
+        ``__init__``, ``forward``, ``zero_init_last_bn``
     Properties:
         - expansion (:obj:int): Specifies the expansion factor for the planes of the conv layers.
     """
@@ -409,7 +415,7 @@ class Bottleneck(nn.Module):
         implementation of ResNet. This block is designed with several layers including a convolutional layer,
         normalization layer, activation layer, attention layer, anti-aliasing layer, and a dropout layer.
     Interfaces:
-        forward, zero_init_last_bn
+        ``__init__``, ``forward``, ``zero_init_last_bn``
     Properties:
         expansion, inplanes, planes, stride, downsample, cardinality, base_width, reduce_first, dilation, \
         first_dilation, act_layer, norm_layer, attn_layer, aa_layer, drop_block, drop_path
@@ -723,32 +729,8 @@ class ResNet(nn.Module):
         Implements ResNet, ResNeXt, SE-ResNeXt, and SENet models. This implementation supports various modifications
         based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details
          about the variants and options, please refer to the 'Bag of Tricks' paper: https://arxiv.org/pdf/1812.01187.
-    Arguments:
-        - block (:obj:`nn.Module`): Class for the residual block. Options are BasicBlockGl, BottleneckGl.
-        - layers (:obj:`list` of :obj:`int`): Numbers of layers in each block.
-        - num_classes (:obj:`int`, optional): Number of classification classes. Default is 1000.
-        - in_chans (:obj:`int`, optional): Number of input (color) channels. Default is 3.
-        - cardinality (:obj:`int`, optional): Number of convolution groups for 3x3 conv in Bottleneck. Default is 1.
-        - base_width (:obj:`int`, optional): Factor determining bottleneck channels. Default is 64.
-        - stem_width (:obj:`int`, optional): Number of channels in stem convolutions. Default is 64.
-        - stem_type (:obj:`str`, optional): The type of stem. Default is ''.
-        - replace_stem_pool (:obj:`bool`, optional): Whether to replace stem pooling. Default is False.
-        - output_stride (:obj:`int`, optional): Output stride of the network. Default is 32.
-        - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of \
-            residual blocks.
-        - down_kernel_size (:obj:`int`, optional): Kernel size of residual block downsampling path. Default is 1.
-        - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between \
-            stages/downsample. Default is False.
-        - act_layer (:obj:`nn.Module`, optional): Activation layer. Default is nn.ReLU.
-        - norm_layer (:obj:`nn.Module`, optional): Normalization layer. Default is nn.BatchNorm2d.
-        - aa_layer (:obj:`nn.Module`, optional): Anti-aliasing layer. Default is None.
-        - drop_rate (:obj:`float`, optional): Dropout probability before classifier, for training. Default is 0.0.
-        - drop_path_rate (:obj:`float`, optional): Drop path rate. Default is 0.0.
-        - drop_block_rate (:obj:`float`, optional): Drop block rate. Default is 0.0.
-        - global_pool (:obj:`str`, optional): Global pooling type. Default is 'avg'.
-        - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. \
-            Default is True.
-        - block_args (:obj:`dict`, optional): Additional arguments for block. Default is None.
+    Interfaces:
+        ``__init__``, ``forward``, ``zero_init_last_bn``, ``get_classifier``
     """
 
     def __init__(

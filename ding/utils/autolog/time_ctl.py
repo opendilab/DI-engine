@@ -9,6 +9,8 @@ class BaseTime(metaclass=ABCMeta):
     """
     Overview:
         Abstract time interface
+    Interface:
+        ``time``
     """
 
     @abstractmethod
@@ -27,7 +29,8 @@ class NaturalTime(BaseTime):
     """
     Overview:
         Natural time object
-
+    Interface:
+        ``__init__``, ``time``
     Example:
         >>> from ding.utils.autolog.time_ctl import NaturalTime
         >>> time_ = NaturalTime()
@@ -62,7 +65,8 @@ class TickTime(BaseTime):
     """
     Overview:
         Tick time object
-
+    Interface:
+        ``__init__``, ``step``, ``time``
     Example:
         >>> from ding.utils.autolog.time_ctl import TickTime
         >>> time_ = TickTime()
@@ -73,8 +77,8 @@ class TickTime(BaseTime):
         Overview:
             Constructor of TickTime
 
-        Args:
-            init (int, optional): init tick time, default is 1
+        Arguments:
+            - init (:obj:`int`): initial time, default is 0
         """
         self.__tick_time = init
 
@@ -83,11 +87,11 @@ class TickTime(BaseTime):
         Overview
             Step the time forward for this TickTime
 
-        Args:
-             delta (int, optional): steps to step forward, default is 1
+        Arguments:
+            - delta (:obj:`int`): steps to step forward, default is 1
 
         Returns:
-            int: new time after stepping
+            - time (:obj:`int`): new time after stepping
 
         Example:
             >>> from ding.utils.autolog.time_ctl import TickTime
@@ -128,7 +132,8 @@ class TimeProxy(BaseTime):
     Overview:
         Proxy of time object, it can freeze time, sometimes useful when reproducing.
         This object is thread-safe, and also freeze and unfreeze operation is strictly ordered.
-
+    Interface:
+        ``__init__``, ``freeze``, ``unfreeze``, ``time``, ``current_time``
     Example:
         >>> from ding.utils.autolog.time_ctl import TickTime, TimeProxy
         >>> tick_time_ = TickTime()
@@ -150,10 +155,10 @@ class TimeProxy(BaseTime):
         Overview:
             Constructor for Time proxy
 
-        Args:
-            time_ (BaseTime): another time object it based on
-            frozen (bool, optional): this object will be frozen immediately if true, otherwise not, default is False
-            lock_type (LockContextType, optional): type of the lock, default is THREAD_LOCK
+        Arguments:
+            - time_ (:obj:`BaseTime`): another time object it based on
+            - frozen (:obj:`bool`): this object will be frozen immediately if true, otherwise not, default is False
+            - lock_type (:obj:`LockContextType`): type of the lock, default is THREAD_LOCK
         """
         self.__time = time_
         self.__current_time = self.__time.time()

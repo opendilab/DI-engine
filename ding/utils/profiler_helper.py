@@ -19,6 +19,11 @@ class Profiler:
     """
 
     def __init__(self):
+        """
+        Overview:
+            Initialize the Profiler object.
+        """
+
         self.pr = cProfile.Profile()
 
     def mkdir(self, directory: str):

@@ -6,6 +6,13 @@ _ValueType = TypeVar('_ValueType')
 
 
 def _to_exception(exception) -> Callable[[Any], Exception]:
+    """
+    Overview:
+        Convert exception to callable exception.
+    Arguments:
+        - exception (:obj:`Exception`): The exception to be converted.
+    """
+
     if hasattr(exception, '__call__'):
         return exception
     elif isinstance(exception, Exception):
@@ -21,6 +28,13 @@ def _to_exception(exception) -> Callable[[Any], Exception]:
 
 
 def _to_loader(value) -> 'ILoaderClass':
+    """
+    Overview:
+        Convert value to loader.
+    Arguments:
+        - value (:obj:`Any`): The value to be converted.
+    """
+
     if isinstance(value, ILoaderClass):
         return value
     elif isinstance(value, tuple):
@@ -78,6 +92,11 @@ Loader = _to_loader
 
 
 def _reset_exception(loader, eg: Callable[[Any, Exception], Exception]):
+    """
+    Overview:
+        Reset exception of loader.
+    """
+
     loader = Loader(loader)
 
     def _load(value):
@@ -90,15 +109,42 @@ def _reset_exception(loader, eg: Callable[[Any, Exception], Exception]):
 
 
 class ILoaderClass:
+    """
+    Overview:
+        Base class of loader.
+    Interfaces:
+        ``__init__``, ``_load``, ``load``, ``check``, ``__call__``, ``__and__``, ``__or__``, ``__rshift__``
+    """
 
     @abstractmethod
     def _load(self, value: _ValueType) -> _ValueType:
+        """
+        Overview:
+            Load the value.
+        Arguments:
+            - value (:obj:`_ValueType`): The value to be loaded.
+        """
+
         raise NotImplementedError
 
     def __load(self, value: _ValueType) -> _ValueType:
+        """
+        Overview:
+            Load the value.
+        Arguments:
+            - value (:obj:`_ValueType`): The value to be loaded.
+        """
+
         return self._load(value)
 
     def __check(self, value: _ValueType) -> bool:
+        """
+        Overview:
+            Check whether the value is valid.
+        Arguments:
+            - value (:obj:`_ValueType`): The value to be checked.
+        """
+
         try:
             self._load(value)
         except CAPTURE_EXCEPTIONS:
@@ -107,15 +153,42 @@ class ILoaderClass:
             return True
 
     def load(self, value: _ValueType) -> _ValueType:
+        """
+        Overview:
+            Load the value.
+        Arguments:
+            - value (:obj:`_ValueType`): The value to be loaded.
+        """
+
         return self.__load(value)
 
     def check(self, value: _ValueType) -> bool:
+        """
+        Overview:
+            Check whether the value is valid.
+        Arguments:
+            - value (:obj:`_ValueType`): The value to be checked.
+        """
+
         return self.__check(value)
 
     def __call__(self, value: _ValueType) -> _ValueType:
+        """
+        Overview:
+            Load the value.
+        Arguments:
+            - value (:obj:`_ValueType`): The value to be loaded.
+        """
+
         return self.__load(value)
 
     def __and__(self, other) -> 'ILoaderClass':
+        """
+        Overview:
+            Combine two loaders.
+        Arguments:
+            - other (:obj:`ILoaderClass`): The other loader.
+        """
 
         def _load(value: _ValueType) -> _ValueType:
             self.load(value)
@@ -124,9 +197,22 @@ class ILoaderClass:
         return Loader(_load)
 
     def __rand__(self, other) -> 'ILoaderClass':
+        """
+        Overview:
+            Combine two loaders.
+        Arguments:
+            - other (:obj:`ILoaderClass`): The other loader.
+        """
+
         return Loader(other) & self
 
     def __or__(self, other) -> 'ILoaderClass':
+        """
+        Overview:
+            Combine two loaders.
+        Arguments:
+            - other (:obj:`ILoaderClass`): The other loader.
+        """
 
         def _load(value: _ValueType) -> _ValueType:
             try:
@@ -137,9 +223,22 @@ class ILoaderClass:
         return Loader(_load)
 
     def __ror__(self, other) -> 'ILoaderClass':
+        """
+        Overview:
+            Combine two loaders.
+        Arguments:
+            - other (:obj:`ILoaderClass`): The other loader.
+        """
+
         return Loader(other) | self
 
     def __rshift__(self, other) -> 'ILoaderClass':
+        """
+        Overview:
+            Combine two loaders.
+        Arguments:
+            - other (:obj:`ILoaderClass`): The other loader.
+        """
 
         def _load(value: _ValueType) -> _ValueType:
             _return_value = self.load(value)
@@ -148,4 +247,11 @@ class ILoaderClass:
         return Loader(_load)
 
     def __rrshift__(self, other) -> 'ILoaderClass':
+        """
+        Overview:
+            Combine two loaders.
+        Arguments:
+            - other (:obj:`ILoaderClass`): The other loader.
+        """
+
         return Loader(other) >> self

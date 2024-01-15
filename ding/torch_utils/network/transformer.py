@@ -12,7 +12,7 @@ class Attention(nn.Module):
     Overview:
         For each entry embedding, compute individual attention across all entries, add them up to get output attention.
     Interfaces:
-        ``split``, ``forward``
+        ``__init__``, ``split``, ``forward``
     """
 
     def __init__(self, input_dim: int, head_dim: int, output_dim: int, head_num: int, dropout: nn.Module) -> None:
@@ -87,7 +87,7 @@ class TransformerLayer(nn.Module):
     Overview:
         In transformer layer, first computes entries's attention and applies a feedforward layer.
     Interfaces:
-        ``forward``
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -148,7 +148,7 @@ class Transformer(nn.Module):
     .. note::
         For more details, refer to "Attention is All You Need": http://arxiv.org/abs/1706.03762.
     Interfaces:
-        ``forward``
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -217,6 +217,8 @@ class ScaledDotProductAttention(nn.Module):
         Implementation of Scaled Dot Product Attention, a key component of Transformer models.
         This class performs the dot product of the query, key and value tensors, scales it with the square root of the
         dimension of the key vector (d_k) and applies dropout for regularization.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, d_k: int, dropout: float = 0.0) -> None:

@@ -25,7 +25,7 @@ def is_sequence(data):
 
 
 def sequence_mask(lengths: torch.Tensor, max_len: Optional[int] = None) -> torch.BoolTensor:
-    r"""
+    """
     Overview:
         Generates a boolean mask for a batch of sequences with differing lengths.
     Arguments:
@@ -133,7 +133,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     Overview:
         Implementation of an LSTM cell with Layer Normalization (LN).
     Interface:
-        ``forward``
+        ``__init__``, ``forward``
 
     .. note::
 
@@ -178,6 +178,11 @@ class LSTM(nn.Module, LSTMForwardWrapper):
         self._init()
 
     def _init(self):
+        """
+        Overview:
+            Initialize the parameters of the LSTM cell.
+        """
+
         gain = math.sqrt(1. / self.hidden_size)
         for l in range(self.num_layers):
             torch.nn.init.uniform_(self.wx[l], -gain, gain)
@@ -271,7 +276,7 @@ class GRU(nn.GRUCell, LSTMForwardWrapper):
         This class extends the `torch.nn.GRUCell` and `LSTMForwardWrapper` classes, and formats inputs and outputs
         accordingly.
     Interface:
-        ``forward``
+        ``__init__``, ``forward``
     Properties:
         hidden_size, num_layers
 

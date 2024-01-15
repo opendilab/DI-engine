@@ -9,7 +9,7 @@ from .time_helper_cuda import get_cuda_time_wrapper
 
 
 def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callable[[], 'TimeWrapper']:
-    r"""
+    """
     Overview:
         Build the timehelper
 
@@ -46,7 +46,7 @@ def build_time_helper(cfg: EasyDict = None, wrapper_type: str = None) -> Callabl
 
 
 class EasyTimer:
-    r"""
+    """
     Overview:
         A decent timer wrapper that can be used easily.
 
@@ -61,7 +61,7 @@ class EasyTimer:
     """
 
     def __init__(self, cuda=True):
-        r"""
+        """
         Overview:
             Init class EasyTimer
 
@@ -76,7 +76,7 @@ class EasyTimer:
         self.value = 0.0
 
     def __enter__(self):
-        r"""
+        """
         Overview:
             Enter timer, start timing
         """
@@ -84,7 +84,7 @@ class EasyTimer:
         self._timer.start_time()
 
     def __exit__(self, *args):
-        r"""
+        """
         Overview:
             Exit timer, stop timing
         """
@@ -92,7 +92,7 @@ class EasyTimer:
 
 
 class TimeWrapperTime(TimeWrapper):
-    r"""
+    """
     Overview:
         A class method that inherit from ``TimeWrapper`` class
 
@@ -103,7 +103,7 @@ class TimeWrapperTime(TimeWrapper):
     # overwrite
     @classmethod
     def start_time(cls):
-        r"""
+        """
         Overview:
             Implement and override the ``start_time`` method in ``TimeWrapper`` class
         """
@@ -112,7 +112,7 @@ class TimeWrapperTime(TimeWrapper):
     # overwrite
     @classmethod
     def end_time(cls):
-        r"""
+        """
         Overview:
             Implement and override the end_time method in ``TimeWrapper`` class
 
@@ -146,11 +146,18 @@ class WatchDog(object):
     """
 
     def __init__(self, timeout: int = 1):
+        """
+        Overview:
+            Initialize watchdog with ``timeout`` value.
+        Arguments:
+            - timeout (:obj:`int`): Timeout value of the ``watchdog [seconds]``.
+        """
+
         self._timeout = timeout + 1
         self._failed = False
 
     def start(self):
-        r"""
+        """
         Overview:
             Start watchdog.
         """
@@ -159,10 +166,18 @@ class WatchDog(object):
 
     @staticmethod
     def _event(signum: Any, frame: Any):
+        """
+        Overview:
+            Event handler for watchdog.
+        Arguments:
+            - signum (:obj:`Any`): Signal number.
+            - frame (:obj:`Any`): Current stack frame.
+        """
+
         raise TimeoutError()
 
     def stop(self):
-        r"""
+        """
         Overview:
             Stop watchdog with ``alarm(0)``, ``SIGALRM``, and ``SIG_DFL`` signals.
         """

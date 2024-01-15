@@ -32,6 +32,8 @@ class ScatterConnection(nn.Module):
     Overview:
         Scatter feature to its corresponding location. In AlphaStar, each entity is embedded into a tensor,
         and these tensors are scattered into a feature map with map size.
+    Interfaces:
+        ``__init__``, ``forward``, ``xy_forward``
     """
 
     def __init__(self, scatter_type: str) -> None:

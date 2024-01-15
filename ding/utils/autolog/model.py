@@ -11,6 +11,12 @@ _TimeObjectType = TypeVar('_TimeObjectType', bound=BaseTime)
 
 
 class _LoggedModelMeta(ABCMeta):
+    """
+    Overview:
+        Metaclass of LoggedModel, used to find all LoggedValue properties and register them.
+    Interface:
+        ``__init__``
+    """
 
     def __init__(cls, name: str, bases: tuple, namespace: dict):
 
@@ -76,13 +82,23 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         >>>     print(ll.avg['value']())  # average value of last 10 secs
 
     Interface:
-        __init__, fixed_time, current_time, freeze, unfreeze, register_attribute_value, __getattr__
+        ``__init__``, ``time``, ``expire``, ``fixed_time``, ``current_time``, ``freeze``, ``unfreeze``, \
+        ``register_attribute_value``, ``__getattr__``, ``get_property_attribute``
 
     Property:
-        time, expire
+        - time (:obj:`BaseTime`): The time.
+        - expire (:obj:`float`): The expire time.
     """
 
     def __init__(self, time_: _TimeObjectType, expire: _TimeType):
+        """
+        Overview:
+            Initialize the LoggedModel object using the given arguments.
+        Arguments:
+            - time_ (:obj:`BaseTime`): The time.
+            - expire (:obj:`float`): The expire time.   
+        """
+
         self.__time = time_
         self.__time_proxy = TimeProxy(self.__time, frozen=False)
         self.__init_time = self.__time_proxy.time()
@@ -96,12 +112,29 @@ class LoggedModel(metaclass=_LoggedModelMeta):
 
     @property
     def __properties(self) -> List[str]:
+        """
+        Overview:
+            Get all property names.
+        """
+
         return getattr(self, _LOGGED_MODEL__PROPERTIES)
 
     def __get_property_ranged_data(self, name: str) -> TimeRangedData:
+        """
+        Overview:
+            Get ranged data of one property.
+        Arguments:
+            - name (:obj:`str`): The property name.
+        """
+
         return getattr(self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name)
 
     def __init_properties(self):
+        """
+        Overview:
+            Initialize all properties.
+        """
+
         for name in self.__properties:
             setattr(
                 self, _LOGGED_MODEL__PROPERTY_ATTR_PREFIX + name,
@@ -109,6 +142,12 @@ class LoggedModel(metaclass=_LoggedModelMeta):
             )
 
     def __get_range_values_func(self, name: str):
+        """
+        Overview:
+            Get range_values function of one property.
+        Arguments:
+            - name (:obj:`str`): The property name.
+        """
 
         def _func(mode: TimeMode = TimeMode.RELATIVE_LIFECYCLE):
             _current_time = self.__time_proxy.time()
@@ -130,6 +169,11 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         return _func
 
     def __register_default_funcs(self):
+        """
+        Overview:
+            Register default functions.
+        """
+
         for name in self.__properties:
             self.register_attribute_value('range_values', name, self.__get_range_values_func(name))
 
@@ -196,6 +240,10 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         """
         Overview:
             Register a new attribute for one of the values. Example can be found in overview of class.
+        Arguments:
+            - attribute_name (:obj:`str`): name of attribute
+            - property_name (:obj:`str`): name of property
+            - value (:obj:`Any`): value of attribute
         """
         self.__methods[attribute_name] = self.__methods.get(attribute_name, {})
         self.__methods[attribute_name][property_name] = value
@@ -210,7 +258,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         Overview:
             Support all methods registered.
 
-        Args:
+        Arguments:
             attribute_name (str): name of attribute
 
         Return:

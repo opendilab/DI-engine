@@ -10,7 +10,7 @@ class CloudPickleWrapper:
     Overview:
         CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression).
     Interfaces:
-        __init__.
+        ``__init__``, ``__getstate__``, ``__setstate__``.
     """
 
     def __init__(self, data: Any) -> None:
@@ -23,9 +23,23 @@ class CloudPickleWrapper:
         self.data = data
 
     def __getstate__(self) -> bytes:
+        """
+        Overview:
+            Get the state of the CloudPickleWrapper.
+        Returns:
+            - data (:obj:`bytes`): The dumped byte-like result.
+        """
+
         return cloudpickle.dumps(self.data)
 
     def __setstate__(self, data: bytes) -> None:
+        """
+        Overview:
+            Set the state of the CloudPickleWrapper.
+        Arguments:
+            - data (:obj:`bytes`): The dumped byte-like result.
+        """
+
         if isinstance(data, (tuple, list, np.ndarray)):  # pickle is faster
             self.data = pickle.loads(data)
         else:
@@ -60,7 +74,7 @@ def zlib_data_compressor(data: Any) -> bytes:
 
 
 def lz4_data_compressor(data: Any) -> bytes:
-    r"""
+    """
     Overview:
         Return the compressed original data (lz4 compressor).The compressor outputs in binary format.
     Arguments:

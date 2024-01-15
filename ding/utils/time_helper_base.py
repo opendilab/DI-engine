@@ -1,5 +1,5 @@
 class TimeWrapper(object):
-    r"""
+    """
     Overview:
         Abstract class method that defines ``TimeWrapper`` class
 
@@ -9,11 +9,11 @@ class TimeWrapper(object):
 
     @classmethod
     def wrapper(cls, fn):
-        r"""
+        """
         Overview:
             Classmethod wrapper, wrap a function and automatically return its running time
-
-        - fn (:obj:`function`): The function to be wrap and timed
+        Arguments:
+            - fn (:obj:`function`): The function to be wrap and timed
         """
 
         def time_func(*args, **kwargs):
@@ -26,7 +26,7 @@ class TimeWrapper(object):
 
     @classmethod
     def start_time(cls):
-        r"""
+        """
         Overview:
             Abstract classmethod, start timing
         """
@@ -34,7 +34,7 @@ class TimeWrapper(object):
 
     @classmethod
     def end_time(cls):
-        r"""
+        """
         Overview:
             Abstract classmethod, stop timing
         """

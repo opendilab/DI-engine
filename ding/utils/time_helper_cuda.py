@@ -4,7 +4,7 @@ from .time_helper_base import TimeWrapper
 
 
 def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
-    r"""
+    """
     Overview:
         Return the ``TimeWrapperCuda`` class, this wrapper aims to ensure compatibility in no cuda device
 
@@ -18,7 +18,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
 
     # TODO find a way to autodoc the class within method
     class TimeWrapperCuda(TimeWrapper):
-        r"""
+        """
         Overview:
             A class method that inherit from ``TimeWrapper`` class
 
@@ -36,7 +36,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
         # overwrite
         @classmethod
         def start_time(cls):
-            r"""
+            """
             Overview:
                 Implement and overide the ``start_time`` method in ``TimeWrapper`` class
             """
@@ -46,7 +46,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
         # overwrite
         @classmethod
         def end_time(cls):
-            r"""
+            """
             Overview:
                 Implement and overide the end_time method in ``TimeWrapper`` class
             Returns:

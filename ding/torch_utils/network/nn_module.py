@@ -199,7 +199,7 @@ def deconv2d_block(
         activation: int = None,
         norm_type: int = None
 ) -> nn.Sequential:
-    r"""
+    """
     Overview:
         Create a 2-dimensional transpose convolution layer with activation and normalization.
     Arguments:
@@ -457,6 +457,8 @@ class ChannelShuffle(nn.Module):
     Overview:
         Apply channel shuffle to the input tensor. For more details about the channel shuffle,
         please refer to the 'ShuffleNet' paper: https://arxiv.org/abs/1707.01083
+    Interface:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, group_num: int) -> None:
@@ -538,11 +540,11 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
 
 
 class NearestUpsample(nn.Module):
-    r"""
+    """
     Overview:
         This module upsamples the input to the given scale_factor using the nearest mode.
     Interface:
-        ``forward``
+        ``__init__``, ``forward``
     """
 
     def __init__(self, scale_factor: Union[float, List[float]]) -> None:
@@ -572,7 +574,7 @@ class BilinearUpsample(nn.Module):
     Overview:
         This module upsamples the input to the given scale_factor using the bilinear mode.
     Interface:
-        ``forward``
+        ``__init__``, ``forward``
     """
 
     def __init__(self, scale_factor: Union[float, List[float]]) -> None:
@@ -625,11 +627,11 @@ def binary_encode(y: torch.Tensor, max_val: torch.Tensor) -> torch.Tensor:
 
 
 class NoiseLinearLayer(nn.Module):
-    r"""
+    """
     Overview:
         This is a linear layer with random noise.
     Interface:
-        ``reset_noise``, ``reset_parameters``, ``forward``
+        ``__init__``, ``reset_noise``, ``reset_parameters``, ``forward``
     """
 
     def __init__(self, in_channels: int, out_channels: int, sigma0: int = 0.4) -> None:
@@ -659,7 +661,10 @@ class NoiseLinearLayer(nn.Module):
         """
         Overview:
             Scale the noise.
+        Arguments:
+            - size (:obj:`Union[int, Tuple]`): The size of the noise.
         """
+
         x = torch.randn(size)
         x = x.sign().mul(x.abs().sqrt())
         return x
@@ -748,6 +753,8 @@ class NaiveFlatten(nn.Module):
     """
     Overview:
         This module is a naive implementation of the flatten operation.
+    Interface:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, start_dim: int = 1, end_dim: int = -1) -> None:

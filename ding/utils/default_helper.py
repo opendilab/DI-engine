@@ -42,7 +42,7 @@ def lists_to_dicts(
         data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]],
         recursive: bool = False,
 ) -> Union[Mapping[object, object], NamedTuple]:
-    r"""
+    """
     Overview:
         Transform a list of dicts to a dict of lists.
     Arguments:
@@ -77,7 +77,7 @@ def lists_to_dicts(
 
 
 def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, object]]:
-    r"""
+    """
     Overview:
         Transform a dict of lists to a list of dicts.
 
@@ -121,6 +121,8 @@ def squeeze(data: object) -> object:
     """
     Overview:
         Squeeze data from tuple, list or dict to single object
+    Arguments:
+        - data (:obj:`object`): data to be squeezed
     Example:
         >>> a = (4, )
         >>> a = squeeze(a)
@@ -148,7 +150,7 @@ def default_get(
         default_fn: Optional[Callable] = None,
         judge_fn: Optional[Callable] = None
 ) -> Any:
-    r"""
+    """
     Overview:
         Getting the value by input, checks generically on the inputs with \
         at least ``data`` and ``name``. If ``name`` exists in ``data``, \
@@ -180,7 +182,7 @@ def default_get(
 
 
 def list_split(data: list, step: int) -> List[list]:
-    r"""
+    """
     Overview:
         Split list of data by step.
     Arguments:
@@ -210,7 +212,7 @@ def list_split(data: list, step: int) -> List[list]:
 
 
 def error_wrapper(fn, default_ret, warning_msg=""):
-    r"""
+    """
     Overview:
         wrap the function, so that any Exception in the function will be catched and return the default_ret
     Arguments:
@@ -239,7 +241,7 @@ def error_wrapper(fn, default_ret, warning_msg=""):
 
 
 class LimitedSpaceContainer:
-    r"""
+    """
     Overview:
         A space simulator.
     Interface:
@@ -438,10 +440,27 @@ def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
 
 @lru_cache()
 def one_time_warning(warning_msg: str) -> None:
+    """
+    Overview:
+        Print warning message only once.
+    Arguments:
+        - warning_msg (:obj:`str`): Warning message.
+    """
+
     logging.warning(warning_msg)
 
 
 def split_fn(data, indices, start, end):
+    """
+    Overview:
+        Split data by indices
+    Arguments:
+        - data (:obj:`Union[List, Dict, torch.Tensor, ttorch.Tensor]`): data to be analysed
+        - indices (:obj:`np.ndarray`): indices to split
+        - start (:obj:`int`): start index
+        - end (:obj:`int`): end index
+    """
+
     if data is None:
         return None
     elif isinstance(data, list):
@@ -455,6 +474,15 @@ def split_fn(data, indices, start, end):
 
 
 def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
+    """
+    Overview:
+        Split data into batches
+    Arguments:
+        - data (:obj:`dict`): data to be analysed
+        - split_size (:obj:`int`): split size
+        - shuffle (:obj:`bool`): whether shuffle
+    """
+
     assert isinstance(data, dict), type(data)
     length = []
     for k, v in data.items():

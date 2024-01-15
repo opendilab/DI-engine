@@ -5,6 +5,13 @@ from .utils import check_only
 
 
 def is_type(type_: type) -> ILoaderClass:
+    """
+    Overview:
+        Create a type loader.
+    Arguments:
+        - type_ (:obj:`type`): The type.
+    """
+
     if isinstance(type_, type):
         return Loader(type_)
     else:
@@ -12,10 +19,22 @@ def is_type(type_: type) -> ILoaderClass:
 
 
 def to_type(type_: type) -> ILoaderClass:
+    """
+    Overview:
+        Create a type loader.
+    Arguments:
+        - type_ (:obj:`type`): The type.
+    """
+
     return Loader(lambda v: type_(v))
 
 
 def is_callable() -> ILoaderClass:
+    """
+    Overview:
+        Create a callable loader.
+    """
+
     return _reset_exception(
         check_only(prop('__call__')),
         lambda v, e: TypeError('callable expected but {func} not found'.format(func=repr('__call__')))
@@ -23,6 +42,13 @@ def is_callable() -> ILoaderClass:
 
 
 def prop(attr_name: str) -> ILoaderClass:
+    """
+    Overview:
+        Create a attribute loader.
+    Arguments:
+        - attr_name (:obj:`str`): The attribute name.
+    """
+
     return Loader(
         (
             lambda v: hasattr(v, attr_name), lambda v: getattr(v, attr_name),
@@ -32,6 +58,13 @@ def prop(attr_name: str) -> ILoaderClass:
 
 
 def method(method_name: str) -> ILoaderClass:
+    """
+    Overview:
+        Create a method loader.
+    Arguments:
+        - method_name (:obj:`str`): The method name.
+    """
+
     return _reset_exception(
         prop(method_name) >> is_callable(), lambda v, e:
         TypeError('type {type} not support function {func}'.format(type=repr(type(v).__name__), func=repr('__iter__')))
@@ -39,8 +72,24 @@ def method(method_name: str) -> ILoaderClass:
 
 
 def fcall(*args, **kwargs) -> ILoaderClass:
+    """
+    Overview:
+        Create a function loader.
+    Arguments:
+        - args (:obj:`Tuple[Any]`): The args.
+        - kwargs (:obj:`Dict[str, Any]`): The kwargs.
+    """
+
     return Loader(lambda v: v(*args, **kwargs))
 
 
 def fpartial(*args, **kwargs) -> ILoaderClass:
+    """
+    Overview:
+        Create a partial function loader.
+    Arguments:
+        - args (:obj:`Tuple[Any]`): The args.
+        - kwargs (:obj:`Dict[str, Any]`): The kwargs.
+    """
+
     return Loader(lambda v: partial(v, *args, **kwargs))

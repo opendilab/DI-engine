@@ -4,7 +4,7 @@ from torch import Tensor, Size
 
 
 def fold_batch(x: Tensor, nonbatch_ndims: int = 1) -> Tuple[Tensor, Size]:
-    r"""
+    """
     Overview:
         :math:`(T, B, X) \leftarrow (T*B, X)`\
         Fold the first (ndim - nonbatch_ndims) dimensions of a tensor as batch dimension.\
@@ -39,7 +39,7 @@ def fold_batch(x: Tensor, nonbatch_ndims: int = 1) -> Tuple[Tensor, Size]:
 
 
 def unfold_batch(x: Tensor, batch_dims: Union[Size, Tuple]) -> Tensor:
-    r"""
+    """
     Overview:
         Unfold the batch dimension of a tensor.
 
@@ -62,7 +62,7 @@ def unfold_batch(x: Tensor, batch_dims: Union[Size, Tuple]) -> Tensor:
 
 
 def unsqueeze_repeat(x: Tensor, repeat_times: int, unsqueeze_dim: int = 0) -> Tensor:
-    r"""
+    """
     Overview:
         Squeeze the tensor on `unsqueeze_dim` and then repeat in this dimension for `repeat_times` times.\
         This is useful for preproprocessing the input to an model ensemble.

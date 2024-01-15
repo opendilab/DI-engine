@@ -52,13 +52,20 @@ class BilinearGeneral(nn.Module):
     Overview:
         Bilinear implementation as in: Multiplicative Interactions and Where to Find Them,
         ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH.
-    Arguments:
-        - in1_features (:obj:`int`): The size of each first input sample.
-        - in2_features (:obj:`int`): The size of each second input sample.
-        - out_features (:obj:`int`): The size of each output sample.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, in1_features, in2_features, out_features):
+        """
+        Overview:
+            Initialize the Bilinear layer.
+        Arguments:
+            - in1_features (:obj:`int`): The size of each first input sample.
+            - in2_features (:obj:`int`): The size of each second input sample.
+            - out_features (:obj:`int`): The size of each output sample.
+        """
+
         super(BilinearGeneral, self).__init__()
         # Initialize the weight matrices W and U, and the bias vectors V and b
         self.W = nn.Parameter(torch.Tensor(out_features, in1_features, in2_features))
@@ -71,6 +78,11 @@ class BilinearGeneral(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Overview:
+            Initialize the parameters of the Bilinear layer.
+        """
+
         stdv = 1. / np.sqrt(self.in1_features)
         self.W.data.uniform_(-stdv, stdv)
         self.U.data.uniform_(-stdv, stdv)
@@ -78,6 +90,14 @@ class BilinearGeneral(nn.Module):
         self.b.data.uniform_(-stdv, stdv)
 
     def forward(self, x, z):
+        """
+        Overview:
+            compute the bilinear function.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The first input tensor.
+            - z (:obj:`torch.Tensor`): The second input tensor.
+        """
+
         # Compute the bilinear function
         # x^TWz
         out_W = torch.einsum('bi,kij,bj->bk', x, self.W, z)
@@ -94,13 +114,20 @@ class TorchBilinearCustomized(nn.Module):
     """
     Overview:
         Customized Torch Bilinear implementation.
-    Arguments:
-        - in1_features (:obj:`int`): The size of each first input sample.
-        - in2_features (:obj:`int`): The size of each second input sample.
-        - out_features (:obj:`int`): The size of each output sample.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, in1_features, in2_features, out_features):
+        """
+        Overview:
+            Initialize the Bilinear layer.
+        Arguments:
+            - in1_features (:obj:`int`): The size of each first input sample.
+            - in2_features (:obj:`int`): The size of each second input sample.
+            - out_features (:obj:`int`): The size of each output sample.        
+        """
+
         super(TorchBilinearCustomized, self).__init__()
         self.in1_features = in1_features
         self.in2_features = in2_features
@@ -110,11 +137,24 @@ class TorchBilinearCustomized(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Overview:
+            Initialize the parameters of the Bilinear layer.
+        """
+
         bound = 1 / math.sqrt(self.in1_features)
         nn.init.uniform_(self.weight, -bound, bound)
         nn.init.uniform_(self.bias, -bound, bound)
 
     def forward(self, x, z):
+        """
+        Overview:
+            Compute the bilinear function.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The first input tensor.
+            - z (:obj:`torch.Tensor`): The second input tensor.
+        """
+
         # Using torch.einsum for the bilinear operation
         out = torch.einsum('bi,oij,bj->bo', x, self.weight, z) + self.bias
         return out.squeeze(-1)
@@ -138,12 +178,19 @@ class FiLM(nn.Module):
     Overview:
         Feature-wise Linear Modulation (FiLM) Layer.
         This layer applies feature-wise affine transformation based on context.
-    Arguments:
-        - feature_dim (:obj:`int`). The dimension of the input feature vector.
-        - context_dim (:obj:`int`). The dimension of the input context vector.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, feature_dim, context_dim):
+        """
+        Overview:
+            Initialize the FiLM layer.
+        Arguments:
+            - feature_dim (:obj:`int`). The dimension of the input feature vector.
+            - context_dim (:obj:`int`). The dimension of the input context vector.
+        """
+
         super(FiLM, self).__init__()
         # Define the fully connected layer for context
         # The output dimension is twice the feature dimension for gamma and beta
@@ -159,6 +206,7 @@ class FiLM(nn.Module):
         Returns:
             - conditioned_feature : torch.Tensor. The output feature after FiLM, shape (batch_size, feature_dim).
         """
+
         # Pass context through the fully connected layer
         out = self.context_layer(context)
         # Split the output into two parts: gamma and beta
@@ -184,6 +232,8 @@ class SumMerge(nn.Module):
     Overview:
         A PyTorch module that merges a list of tensors by computing their sum. All input tensors must have the same
         size. This module can work with any type of tensor (vector, units or visual).
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def forward(self, tensors: List[Tensor]) -> Tensor:
@@ -209,12 +259,8 @@ class VectorMerge(nn.Module):
     Overview:
         Merges multiple vector streams. Streams are first transformed through layer normalization, relu, and linear
         layers, then summed. They don't need to have the same size. Gating can also be used before the sum.
-    Arguments:
-        - input_sizes (:obj:`Dict[str, int]`): A dictionary mapping input names to their size (a single \
-            integer for 1d inputs, or None for 0d inputs). If an input size is None, we assume it's ().
-        - output_size (:obj:`int`): The size of the output vector.
-        - gating_type (:obj:`GatingType`): The type of gating mechanism to use.
-        - use_layer_norm (:obj:`bool`): Whether to use layer normalization.
+    Interface:
+        ``__init__``, ``encode``, ``_compute_gate``, ``forward``
 
     .. note::
         For more details about the gating types, please refer to the GatingType enum class.
