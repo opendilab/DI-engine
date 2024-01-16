@@ -433,12 +433,15 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
     return _evaluate
 
 
-def qgpo_interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False) -> Callable:
+def qgpo_interaction_evaluator(
+        cfg: EasyDict, guidance_scale, policy: Policy, env: BaseEnvManager, render: bool = False
+) -> Callable:
     """
     Overview:
         The middleware that executes the evaluation.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
+        - guidance_scale (:obj:`float`): The guidance scale for evaluation.
         - policy (:obj:`Policy`): The policy to be evaluated.
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
         - render (:obj:`bool`): Whether to render env images and policy logits.
@@ -462,89 +465,85 @@ def qgpo_interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManage
 
         # evaluation will be executed if the task begins or enough train_iter after last evaluation
         if ctx.last_eval_iter != -1 and \
-           (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
-            return
+                (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
+            if ctx.train_iter != ctx.last_eval_iter:
+                return
 
         ctx.info_for_logging = {}
 
-        for guidance_scale in cfg.policy.eval.guidance_scale:
+        if env.closed:
+            env.launch()
+        else:
+            env.reset()
+        policy.reset()
+        eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
 
-            policy.get_attribute("model").q.guidance_scale = guidance_scale
-
-            if env.closed:
-                env.launch()
-            else:
-                env.reset()
-            policy.reset()
-            eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
-
-            while not eval_monitor.is_finished():
-                obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
-                obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
-                inference_output = policy.forward(obs)
-                if render:
-                    eval_monitor.update_video(env.ready_imgs)
-                    eval_monitor.update_output(inference_output)
-                output = [v for v in inference_output.values()]
-                action = [to_ndarray(v['action']) for v in output]  # TBD
-                timesteps = env.step(action)
-                for timestep in timesteps:
-                    env_id = timestep.env_id.item()
-                    if timestep.done:
-                        policy.reset([env_id])
-                        reward = timestep.info.eval_episode_return
-                        eval_monitor.update_reward(env_id, reward)
-                        if 'episode_info' in timestep.info:
-                            eval_monitor.update_info(env_id, timestep.info.episode_info)
-            episode_return = eval_monitor.get_episode_return()
-
-            episode_return_min = np.min(episode_return)
-            episode_return_max = np.max(episode_return)
-            episode_return_std = np.std(episode_return)
-            episode_return = np.mean(episode_return)
-            stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
-            if isinstance(ctx, OnlineRLContext):
-                logging.info(
-                    'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})\tguidance_scale({})'.format(
-                        ctx.train_iter, ctx.env_step, episode_return, guidance_scale
-                    )
-                )
-            elif isinstance(ctx, OfflineRLContext):
-                logging.info(
-                    'Evaluation: Train Iter({})\tEval Reward({:.3f})\tguidance_scale({})'.format(
-                        ctx.train_iter, episode_return, guidance_scale
-                    )
-                )
-            else:
-                raise TypeError("not supported ctx type: {}".format(type(ctx)))
-            ctx.last_eval_iter = ctx.train_iter
-            ctx.eval_value = episode_return
-            ctx.eval_value_min = min(episode_return_min,
-                                     ctx.eval_value_min) if hasattr(ctx, 'eval_value_min') else episode_return_min
-            ctx.eval_value_max = max(episode_return_max,
-                                     ctx.eval_value_max) if hasattr(ctx, 'eval_value_max') else episode_return_max
-            ctx.eval_value_std = max(episode_return_std,
-                                     ctx.eval_value_std) if hasattr(ctx, 'eval_value_std') else episode_return_std
-            ctx.last_eval_value = ctx.eval_value
-            ctx.eval_output = {'episode_return': episode_return}
-            episode_info = eval_monitor.get_episode_info()
-            if episode_info is not None:
-                ctx.eval_output['episode_info'] = episode_info
+        while not eval_monitor.is_finished():
+            obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
+            obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
+            data = {'s': obs, 'guidance_scale': guidance_scale}
+            inference_output = policy.forward(data)
             if render:
-                ctx.eval_output['replay_video'] = eval_monitor.get_episode_video()
-                ctx.eval_output['output'] = eval_monitor.get_episode_output()
-            else:
-                ctx.eval_output['output'] = output  # for compatibility
-            ctx.info_for_logging.update(
-                {
-                    f'guidance_scale[{guidance_scale}]/eval_episode_return': episode_return,
-                    f'guidance_scale[{guidance_scale}]/eval_episode_return_min': episode_return_min,
-                    f'guidance_scale[{guidance_scale}]/eval_episode_return_max': episode_return_max,
-                    f'guidance_scale[{guidance_scale}]/eval_episode_return_std': episode_return_std,
-                }
-            )
+                eval_monitor.update_video(env.ready_imgs)
+                eval_monitor.update_output(inference_output)
+            output = [v for v in inference_output.values()]
+            action = [to_ndarray(v['action']) for v in output]  # TBD
+            timesteps = env.step(action)
+            for timestep in timesteps:
+                env_id = timestep.env_id.item()
+                if timestep.done:
+                    policy.reset([env_id])
+                    reward = timestep.info.eval_episode_return
+                    eval_monitor.update_reward(env_id, reward)
+                    if 'episode_info' in timestep.info:
+                        eval_monitor.update_info(env_id, timestep.info.episode_info)
+        episode_return = eval_monitor.get_episode_return()
 
-            policy.get_attribute("model").q.guidance_scale = 1.0
+        episode_return_min = np.min(episode_return)
+        episode_return_max = np.max(episode_return)
+        episode_return_std = np.std(episode_return)
+        episode_return = np.mean(episode_return)
+        stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
+        if isinstance(ctx, OnlineRLContext):
+            logging.info(
+                'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})\tguidance_scale({})'.format(
+                    ctx.train_iter, ctx.env_step, episode_return, guidance_scale
+                )
+            )
+        elif isinstance(ctx, OfflineRLContext):
+            logging.info(
+                'Evaluation: Train Iter({})\tEval Reward({:.3f})\tguidance_scale({})'.format(
+                    ctx.train_iter, episode_return, guidance_scale
+                )
+            )
+        else:
+            raise TypeError("not supported ctx type: {}".format(type(ctx)))
+        ctx.last_eval_iter = ctx.train_iter
+        ctx.eval_value = episode_return if not hasattr(ctx, 'eval_value') or ctx.eval_value < episode_return else 0
+        ctx.eval_value_min = min(episode_return_min,
+                                 ctx.eval_value_min) if hasattr(ctx, 'eval_value_min') else episode_return_min
+        ctx.eval_value_max = max(episode_return_max,
+                                 ctx.eval_value_max) if hasattr(ctx, 'eval_value_max') else episode_return_max
+        ctx.eval_value_std = max(episode_return_std,
+                                 ctx.eval_value_std) if hasattr(ctx, 'eval_value_std') else episode_return_std
+        ctx.last_eval_value = ctx.eval_value
+        ctx.eval_output = {'episode_return': episode_return}
+        episode_info = eval_monitor.get_episode_info()
+        if episode_info is not None:
+            ctx.eval_output['episode_info'] = episode_info
+        if render:
+            ctx.eval_output['replay_video'] = eval_monitor.get_episode_video()
+            ctx.eval_output['output'] = eval_monitor.get_episode_output()
+        else:
+            ctx.eval_output['output'] = output  # for compatibility
+        ctx.info_for_logging.update(
+            {
+                f'guidance_scale[{guidance_scale}]/eval_episode_return': episode_return,
+                f'guidance_scale[{guidance_scale}]/eval_episode_return_min': episode_return_min,
+                f'guidance_scale[{guidance_scale}]/eval_episode_return_max': episode_return_max,
+                f'guidance_scale[{guidance_scale}]/eval_episode_return_std': episode_return_std,
+            }
+        )
 
         if stop_flag:
             task.finish = True

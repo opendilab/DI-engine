@@ -17,6 +17,9 @@ def marginal_prob_std(t, device):
     """
     Overview:
         Compute the mean and standard deviation of $p_{0t}(x(t) | x(0))$.
+    Arguments:
+        - t (:obj:`torch.Tensor`): The input time.
+        - device (:obj:`torch.device`): The device to use.
     """
 
     t = torch.tensor(t, device=device)
@@ -160,9 +163,8 @@ class QGPO_Critic(nn.Module):
 
         self.alpha = cfg.alpha
         self.q_alpha = cfg.q_alpha
-        self.guidance_scale = 1.0
 
-    def calculate_guidance(self, a, t, condition=None):
+    def calculate_guidance(self, a, t, condition=None, guidance_scale=1.0):
         """
         Overview:
             Calculate the guidance for conditional sampling.
@@ -170,12 +172,13 @@ class QGPO_Critic(nn.Module):
             - a (:obj:`torch.Tensor`): The input action.
             - t (:obj:`torch.Tensor`): The input time.
             - condition (:obj:`torch.Tensor`): The input condition.
+            - guidance_scale (:obj:`float`): The scale of guidance.
         """
 
         with torch.enable_grad():
             a.requires_grad_(True)
             Q_t = self.qt(a, t, condition)
-            guidance = self.guidance_scale * torch.autograd.grad(torch.sum(Q_t), a)[0]
+            guidance = guidance_scale * torch.autograd.grad(torch.sum(Q_t), a)[0]
         return guidance.detach()
 
     def forward(self, a, condition=None):
@@ -313,20 +316,22 @@ class QGPO(nn.Module):
 
         return self.q(a, s)
 
-    def select_actions(self, states, diffusion_steps=15):
+    def select_actions(self, states, diffusion_steps=15, guidance_scale=1.0):
         """
         Overview:
             Select actions for conditional sampling.
         Arguments:
             - states (:obj:`list`): The input states.
             - diffusion_steps (:obj:`int`): The diffusion steps.
+            - guidance_scale (:obj:`float`): The scale of guidance.
         """
 
         def forward_dpm_wrapper_fn(x, t):
             score = self.score_model(x, t, condition=states)
-            result = -(score + self.q.calculate_guidance(x, t, states)) * marginal_prob_std(
-                t, device=self.device
-            )[1][..., None]
+            result = -(score +
+                       self.q.calculate_guidance(x, t, states, guidance_scale=guidance_scale)) * marginal_prob_std(
+                           t, device=self.device
+                       )[1][..., None]
             return result
 
         self.eval()
@@ -351,7 +356,7 @@ class QGPO(nn.Module):
         self.train()
         return out_actions
 
-    def sample(self, states, sample_per_state=16, diffusion_steps=15):
+    def sample(self, states, sample_per_state=16, diffusion_steps=15, guidance_scale=1.0):
         """
         Overview:
             Sample actions for conditional sampling.
@@ -359,13 +364,13 @@ class QGPO(nn.Module):
             - states (:obj:`list`): The input states.
             - sample_per_state (:obj:`int`): The number of samples per state.
             - diffusion_steps (:obj:`int`): The diffusion steps.
+            - guidance_scale (:obj:`float`): The scale of guidance.
         """
 
         def forward_dpm_wrapper_fn(x, t):
             score = self.score_model(x, t, condition=states)
-            result = -(score + self.q.calculate_guidance(x, t, states)) * marginal_prob_std(
-                t, device=self.device
-            )[1][..., None]
+            result = -(score + self.q.calculate_guidance(x, t, states, guidance_scale=guidance_scale)) \
+                * marginal_prob_std(t, device=self.device)[1][..., None]
             return result
 
         self.eval()

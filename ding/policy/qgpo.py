@@ -73,7 +73,10 @@ class QGPOPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Learn mode init method.
+            Learn mode initialization method. For QGPO, it mainly contains the optimizer, \
+            algorithm-specific arguments such as qt_update_momentum, discount, behavior_policy_stop_training_iter, \
+            energy_guided_policy_begin_training_iter and q_value_stop_training_iter, etc.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
         """
         self.cuda = self._cfg.cuda
 
@@ -107,6 +110,9 @@ class QGPOPolicy(Policy):
             - result (:obj:`dict`): Dict type data of algorithm results.
         """
 
+        if self.cuda:
+            data = to_device(data, self._device)
+
         s = data['s']
         a = data['a']
         r = data['r']
@@ -114,15 +120,6 @@ class QGPOPolicy(Policy):
         d = data['d']
         fake_a = data['fake_a']
         fake_a_ = data['fake_a_']
-
-        if self.cuda:
-            s = to_device(s, self._device)
-            a = to_device(a, self._device)
-            r = to_device(r, self._device)
-            s_ = to_device(s_, self._device)
-            d = to_device(d, self._device)
-            fake_a = to_device(fake_a, self._device)
-            fake_a_ = to_device(fake_a_, self._device)
 
         # training behavior model
         if self.behavior_policy_stop_training_iter > 0:
@@ -134,7 +131,7 @@ class QGPOPolicy(Policy):
             self.behavior_model_optimizer.step()
 
             self.behavior_policy_stop_training_iter -= 1
-            behavior_model_training_loss = behavior_model_training_loss.detach().cpu().numpy()
+            behavior_model_training_loss = behavior_model_training_loss.item()
         else:
             behavior_model_training_loss = 0
 
@@ -145,7 +142,7 @@ class QGPOPolicy(Policy):
             if self.q_value_stop_training_iter > 0:
                 q0_loss = self._model.q_loss_fn(a, s, r, s_, d, fake_a_, discount=self.discount)
 
-                self.q_optimizer.zero_grad(set_to_none=True)
+                self.q_optimizer.zero_grad()
                 q0_loss.backward()
                 self.q_optimizer.step()
 
@@ -155,17 +152,17 @@ class QGPOPolicy(Policy):
                         self.qt_update_momentum * param.data + (1 - self.qt_update_momentum) * target_param.data
                     )
 
-                q0_loss = q0_loss.detach().cpu().numpy()
+                q0_loss = q0_loss.item()
 
             else:
                 q0_loss = 0
             qt_loss = self._model.qt_loss_fn(s, fake_a)
 
-            self.qt_optimizer.zero_grad(set_to_none=True)
+            self.qt_optimizer.zero_grad()
             qt_loss.backward()
             self.qt_optimizer.step()
 
-            qt_loss = qt_loss.detach().cpu().numpy()
+            qt_loss = qt_loss.item()
 
         else:
             q0_loss = 0
@@ -183,53 +180,59 @@ class QGPOPolicy(Policy):
     def _init_collect(self) -> None:
         """
         Overview:
-            Collect mode init method.
+            Collect mode initialization method. Not supported for QGPO.
         """
         pass
 
     def _forward_collect(self) -> None:
         """
         Overview:
-            Forward function for collect mode.
+            Forward function for collect mode. Not supported for QGPO.
         """
         pass
 
     def _init_eval(self) -> None:
         """
         Overview:
-            Eval mode init method.
+            Eval mode initialization method. For QGPO, it mainly contains the guidance_scale and diffusion_steps, etc.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
         """
-        self.guidance_scale = self._cfg.eval.guidance_scale
+
         self.diffusion_steps = self._cfg.eval.diffusion_steps
 
     def _forward_eval(self, data: dict) -> dict:
         """
         Overview:
-            Forward function for eval mode.
+            Forward function for eval mode. The eval process is based on the energy-guided policy, \
+            which is modeled as a diffusion model by parameterizing the score function.
         Arguments:
             - data (:obj:`dict`): Dict type data.
         Returns:
             - output (:obj:`dict`): Dict type data of algorithm output.
         """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        states = data
-        actions = self._model.select_actions(states, diffusion_steps=self.diffusion_steps)
+        guidance_scale = data['guidance_scale']
+        states = data['s']
+
+        data_id = list(states.keys())
+        states = default_collate(list(states.values()))
+        actions = self._model.select_actions(
+            states, diffusion_steps=self.diffusion_steps, guidance_scale=guidance_scale
+        )
         output = actions
 
         return {i: {"action": d} for i, d in zip(data_id, output)}
 
-    def _get_train_sample(self) -> None:
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Overview:
-            Get the train sample from the replay buffer.
+            Get the train sample from the replay buffer, currently not supported for QGPO.
         """
         pass
 
     def _process_transition(self) -> None:
         """
         Overview:
-            Process the transition data.
+            Process the transition data, currently not supported for QGPO.
         """
         pass
 
