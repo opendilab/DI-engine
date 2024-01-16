@@ -18,15 +18,16 @@ class ExperienceDataset(Dataset):
     Overview:
         A dataset class for storing and accessing experience data.
 
-    Arguments:
-        data (:obj:`dict`): A dictionary containing the experience data, where the keys represent the data types \
-        and the values are the corresponding data arrays.
-
     Interface:
         ``__init__``, ``__len__``, ``__getitem__``.
     """
 
     def __init__(self, data):
+        """
+        Arguments:
+            - data (:obj:`dict`): A dictionary containing the experience data, where the keys represent the data types \
+                and the values are the corresponding data arrays.
+        """
         super().__init__()
         self.data = data
 
@@ -51,8 +52,9 @@ class PPGPolicy(Policy):
     Overview:
         Policy class of PPG algorithm. PPG is a policy gradient algorithm with auxiliary phase training. \
         The auxiliary phase training is proposed to distill the value into the policy network, \
-        while making sure the policy network does not change the action predictions (kl div loss).
-        
+        while making sure the policy network does not change the action predictions (kl div loss). \
+        Paper link: https://arxiv.org/abs/2009.04416.
+
     Interface:
         ``_init_learn``, ``_data_preprocess_learn``, ``_forward_learn``, ``_state_dict_learn``, \
         ``_load_state_dict_learn``, ``_init_collect``, ``_forward_collect``, ``_process_transition``, \
@@ -151,7 +153,7 @@ class PPGPolicy(Policy):
         Overview:
             Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
             automatically call this method to get the default model setting and create model.
-        
+
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
         """
@@ -242,7 +244,7 @@ class PPGPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
                 recorded in text log and tensorboard, values are python scalar or a list of scalars. \
                 For the detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
-        
+
         ReturnsKeys:
             - necessary: "current lr", "total_loss", "policy_loss", "value_loss", "entropy_loss", \
                         "adv_abs_max", "approx_kl", "clipfrac", \
@@ -260,7 +262,7 @@ class PPGPolicy(Policy):
                     during the auxiliary phase, it's the value loss we train the value network during auxiliary phase.
                 - behavioral_cloning_loss (:obj:`float`): The behavioral cloning loss, used to optimize the auxiliary\
                      objective while otherwise preserving the original policy.
-        
+
         .. note::
             The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
             For the data type that not supported, the main reason is that the corresponding model does not support it. \
@@ -423,9 +425,10 @@ class PPGPolicy(Policy):
 
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
-                    other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
-                    method. The key of the dict is the same as the input data, i.e. environment id.
-        
+                    other necessary data (action logit and value) for learn mode defined in \
+                    ``self._process_transition`` method. The key of the dict is the same as the input data, \
+                    i.e. environment id.
+
         .. tip::
             If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
             related data as extra keyword arguments of this method.
@@ -460,12 +463,12 @@ class PPGPolicy(Policy):
                 - obs (:obj:`Any`): Env observation
                 - model_output (:obj:`dict`): The output of the policy network with the observation \
                 as input. For PPG, it contains the state value, action and the logit of the action.
-                - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
-                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
-                reward, done, info, etc.
+                - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step \
+                method, except all the elements have been transformed into tensor data. Usually, it contains the next \
+                obs, reward, done, info, etc.
         Returns:
                - transition (:obj:`dict`): The processed transition data of the current timestep.
-        
+
         .. note::
             ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
             You can delete this field to save memory occupancy if you do not need nstep return.
@@ -543,7 +546,7 @@ class PPGPolicy(Policy):
             Initialize the eval mode of policy, including related attributes and modules. For PPG, it contains the \
             eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete \
             action). This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
-        
+
         .. note::
             If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
             with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
@@ -709,10 +712,10 @@ class PPGPolicy(Policy):
 class PPGOffPolicy(Policy):
     """
     Overview:
-        Policy class of PPG algorithm with off-policy training mode. We implement off-policy PPG with two buffers \
-        with different data use constraint (max_use), which policy buffer offers data for policy phase \
-        while value buffer provides auxiliary phase's data. The whole training procedure is similar to \
-        off-policy PPO but execute additional auxiliary phase with a fixed frequency.
+        Policy class of PPG algorithm with off-policy training mode. Off-policy PPG contains two different data \
+        max_use buffers. The policy buffer offers data for policy phase , while the value buffer provides auxiliary \
+        phase's data. The whole training procedure is similar to off-policy PPO but execute additional auxiliary \
+        phase with a fixed frequency.
     Interface:
         ``_init_learn``, ``_data_preprocess_learn``, ``_forward_learn``, ``_state_dict_learn``, \
         ``_load_state_dict_learn``, ``_init_collect``, ``_forward_collect``, ``_process_transition``, \
@@ -817,7 +820,7 @@ class PPGOffPolicy(Policy):
         Overview:
             Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
             automatically call this method to get the default model setting and create model.
-        
+
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
 
@@ -901,8 +904,9 @@ class PPGOffPolicy(Policy):
         Arguments:
             - data (:obj:`Dict[str, Any]`): Input data used for policy forward, including the \
                 collected training samples from replay buffer. For each element in dict, the key of the \
-                dict is the name of data items and the value is the corresponding data. Usually, the value is \
-                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \
+                dict is the name of data items and the value is the corresponding data. Usually, \
+                the class type of value is either torch.Tensor or np.ndarray, or a dict/list containing \
+                either torch.Tensor or np.ndarray items In the ``_forward_learn`` method, data \
                 often need to first be stacked in the batch dimension by some utility functions such as \
                 ``default_preprocess_learn``. \
                 For PPGOff, each element in list is a dict containing at least the following keys: ``obs``, \
@@ -912,7 +916,7 @@ class PPGOffPolicy(Policy):
             - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
                 recorded in text log and tensorboard, values are python scalar or a list of scalars. \
                 For the detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
-        
+
         ReturnsKeys:
             - necessary: "current lr", "total_loss", "policy_loss", "value_loss", "entropy_loss", \
                 "adv_abs_max", "approx_kl", "clipfrac", \
@@ -1069,9 +1073,10 @@ class PPGOffPolicy(Policy):
 
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
-                    other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \
-                    method. The key of the dict is the same as the input data, i.e. environment id.
-        
+                    other necessary data (action logit and value) for learn mode defined in \
+                    ``self._process_transition`` method. The key of the dict is the same as the input data, \
+                    i.e. environment id.
+
         .. tip::
             If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
             related data as extra keyword arguments of this method.
@@ -1106,12 +1111,12 @@ class PPGOffPolicy(Policy):
                 - obs (:obj:`Any`): Env observation
                 - model_output (:obj:`dict`): The output of the policy network with the observation \
                 as input. For PPG, it contains the state value, action and the logit of the action.
-                - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
-                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
-                reward, done, info, etc.
+                - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step \
+                method, except all the elements have been transformed into tensor data. Usually, it contains the next \
+                obs, reward, done, info, etc.
         Returns:
                - transition (:obj:`dict`): The processed transition data of the current timestep.
-        
+
         .. note::
             ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
             You can delete this field to save memory occupancy if you do not need nstep return.
@@ -1173,7 +1178,7 @@ class PPGOffPolicy(Policy):
             Initialize the eval mode of policy, including related attributes and modules. For PPG, it contains the \
             eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete \
             action). This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
-        
+
         .. note::
             If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
             with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
