@@ -28,3 +28,4 @@ from .bcq import BCQ
 from .edac import EDAC
 from .qgpo import QGPO
 from .ebm import EBM, AutoregressiveEBM
+from .havac import HAVAC

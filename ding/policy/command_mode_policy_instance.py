@@ -51,6 +51,7 @@ from .bcq import BCQPolicy
 from .edac import EDACPolicy
 from .prompt_pg import PromptPGPolicy
 from .plan_diffuser import PDPolicy
+from .happo import HAPPOPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -183,6 +184,11 @@ class SQLCommandModePolicy(SQLPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('ppo_command')
 class PPOCommandModePolicy(PPOPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('happo_command')
+class HAPPOCommandModePolicy(HAPPOPolicy, DummyCommandModePolicy):
     pass
 
 
