@@ -819,7 +819,7 @@
 <span class="sd">            - figure_path (:obj:`str`): The file directory path for all environments to save figures.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">figure_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">enable_save_figure</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">enable_save_figure</span><span class="p">(</span><span class="n">figure_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BaseEnvManager.close"><a class="viewcode-back" href="../../../../05_api_doc/env.html#ding.envs.BaseEnvManager.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
