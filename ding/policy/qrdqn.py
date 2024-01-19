@@ -153,7 +153,7 @@ class QRDQNPolicy(DQNPolicy):
             result, including various training information such as loss, current lr.
 
         Arguments:
-            - data (:obj:`dict`): input data used for policy forward, including the \
+            - data (:obj:`dict`): Input data used for policy forward, including the \
                 collected training samples from replay buffer. For each element in dict, the key of the \
                 dict is the name of data items and the value is the corresponding data. Usually, the value is \
                 torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \

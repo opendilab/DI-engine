@@ -165,10 +165,14 @@ class D4PGPolicy(DDPGPolicy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Initialize the learn mode of policy, including related attributes and modules. For D4PG, it mainly \
-            contains optimizer, algorithm-specific arguments such as v_min, v_max and n_atom. This method \
-            also executes some special network initializations and prepares running mean/std monitor for value. \
-            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+            Initialize the D4PG policy's learning mode, which involves setting up key components \
+            specific to the D4PG algorithm. This includes creating separate optimizers for the actor \
+            and critic networks, a distinctive trait of D4PG's actor-critic approach, and configuring \
+            algorithm-specific parameters such as v_min, v_max, and n_atom for the distributional aspect \
+            of the critic. Additionally, the method sets up the target model with momentum-based updates, \
+            crucial for stabilizing learning, and optionally integrates noise into the target model for \
+            effective exploration. This method is invoked during the '__init__' if 'learn' is specified \
+            in 'enable_field'.
 
         .. note::
             For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
@@ -227,7 +231,7 @@ class D4PGPolicy(DDPGPolicy):
 
         self._forward_learn_cnt = 0  # count iterations
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \
@@ -244,8 +248,8 @@ class D4PGPolicy(DDPGPolicy):
                 ``action``, ``reward``, ``next_obs``. Sometimes, it also contains other keys such as ``weight``.
 
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): The output result dict of forward learn, \
-                containing at least the "actor lr", "critic lr", "different losses", "q_value", "action", "priority", \
+            - info_dict (:obj:`Dict[str, Any]`): The output result dict of forward learn, containing at \
+                least the "cur_lr_actor", "cur_lr_critic", "different losses", "q_value", "action", "priority", \
                 keys. Additionally, loss_dict also contains other keys, which are mainly used for monitoring and \
                 debugging. "q_value_dict" is used to record the q_value statistics.
 

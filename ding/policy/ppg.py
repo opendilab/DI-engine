@@ -245,24 +245,6 @@ class PPGPolicy(Policy):
                 recorded in text log and tensorboard, values are python scalar or a list of scalars. \
                 For the detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
 
-        ReturnsKeys:
-            - necessary: "current lr", "total_loss", "policy_loss", "value_loss", "entropy_loss", \
-                        "adv_abs_max", "approx_kl", "clipfrac", \
-                        "aux_value_loss", "auxiliary_loss", "behavioral_cloning_loss".
-
-                - current_lr (:obj:`float`): Current learning rate.
-                - total_loss (:obj:`float`): The calculated loss.
-                - policy_loss (:obj:`float`): The policy(actor) loss of ppg.
-                - value_loss (:obj:`float`): The value(critic) loss of ppg.
-                - entropy_loss (:obj:`float`): The entropy loss.
-                - auxiliary_loss (:obj:`float`): The auxiliary loss, we use the value function loss \
-                    as the auxiliary objective, thereby sharing features between the policy and value function\
-                    while minimizing distortions to the policy.
-                - aux_value_loss (:obj:`float`): The auxiliary value loss, we need to train the value network extra \
-                    during the auxiliary phase, it's the value loss we train the value network during auxiliary phase.
-                - behavioral_cloning_loss (:obj:`float`): The behavioral cloning loss, used to optimize the auxiliary\
-                     objective while otherwise preserving the original policy.
-
         .. note::
             The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
             For the data type that not supported, the main reason is that the corresponding model does not support it. \
@@ -396,7 +378,7 @@ class PPGPolicy(Policy):
     def _init_collect(self) -> None:
         """
         Overview:
-            Initialize the collect mode of policy, including related attributes and modules. For PPO, it contains the \
+            Initialize the collect mode of policy, including related attributes and modules. For PPG, it contains the \
             collect_model to balance the exploration and exploitation (e.g. the multinomial sample mechanism in \
             discrete action space), and other algorithm-specific arguments such as unroll_len and gae_lambda.
             This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
@@ -457,17 +439,17 @@ class PPGPolicy(Policy):
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         """
         Overview:
-               Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
             saved in replay buffer. For PPG, it contains obs, next_obs, action, reward, done, logit, value.
         Arguments:
-                - obs (:obj:`Any`): Env observation
-                - model_output (:obj:`dict`): The output of the policy network with the observation \
+            - obs (:obj:`Any`): Env observation
+            - model_output (:obj:`dict`): The output of the policy network with the observation \
                 as input. For PPG, it contains the state value, action and the logit of the action.
-                - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step \
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step \
                 method, except all the elements have been transformed into tensor data. Usually, it contains the next \
                 obs, reward, done, info, etc.
         Returns:
-               - transition (:obj:`dict`): The processed transition data of the current timestep.
+            - transition (:obj:`dict`): The processed transition data of the current timestep.
 
         .. note::
             ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \
@@ -484,7 +466,7 @@ class PPGPolicy(Policy):
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> Union[None, List[Any]]:
         """
         Overview:
             For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
@@ -494,7 +476,7 @@ class PPGPolicy(Policy):
             In addition, you can also implement this method as an identity function and do the data processing \
             in ``self._forward_learn`` method.
         Arguments:
-            - data (:obj:`list`): The trajectory data (a list of transition), each element is \
+            - data (:obj:`List[Dict[str, Any]]`): The trajectory data (a list of transition), each element is \
                 the same format as the return value of ``self._process_transition`` method.
         Returns:
             - samples (:obj:`dict`): The processed train samples, each element is the similar format \
