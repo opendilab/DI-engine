@@ -44,6 +44,13 @@ def apply_conditioning(x, conditions, action_dim, mask = None):
         x[:, t, action_dim:] = val.clone()
     return x
 
+class Mish(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self,x):
+        x = x * (torch.tanh(F.softplus(x)))
+        return x
 
 class DiffusionConv1d(nn.Module):
 
@@ -197,7 +204,7 @@ class ResidualTemporalBlock(nn.Module):
     ) -> None:
         super().__init__()
         if mish:
-            act = nn.Mish()
+            act = Mish()#nn.Mish()
         else:
             act = nn.SiLU()
         self.blocks = nn.ModuleList(
@@ -214,7 +221,8 @@ class ResidualTemporalBlock(nn.Module):
             if in_channels != out_channels else nn.Identity()
 
     def forward(self, x, t):
-        out = self.blocks[0](x) + self.time_mlp(t).unsqueeze(-1)
+        out = self.blocks[0](x)
+        out += self.time_mlp(t).unsqueeze(-1)
         out = self.blocks[1](out)
         return out + self.residual_conv(x)
 
@@ -254,7 +262,7 @@ class DiffusionUNet1d(nn.Module):
             act = nn.SiLU()
         else:
             mish = True
-            act = nn.Mish()
+            act = Mish()#nn.Mish()
 
         self.time_dim = dim
         self.returns_dim = dim
@@ -272,8 +280,6 @@ class DiffusionUNet1d(nn.Module):
 
         if self.returns_condition:
             self.returns_mlp = nn.Sequential(
-                nn.Linear(1, dim),
-                act,
                 nn.Linear(dim, dim * 4),
                 act,
                 nn.Linear(dim * 4, dim),
@@ -444,6 +450,7 @@ class TemporalValue(nn.Module):
             kernel_size: int = 5,
             dim_mults: SequenceType = [1, 2, 4, 8],
             returns_condition: bool = False,
+            no_need_ret_sin: bool =False,
     ) -> None:
         super().__init__()
         dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
@@ -453,16 +460,27 @@ class TemporalValue(nn.Module):
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
             nn.Linear(dim, dim * 4),
-            nn.Mish(),
+            #nn.Mish(),
+            Mish(),
             nn.Linear(dim * 4, dim),
         )
         if returns_condition:
-            self.returns_mlp = nn.Sequential(
-                SinusoidalPosEmb(dim),
-                nn.Linear(dim, dim * 4),
-                nn.Mish(),
-                nn.Linear(dim * 4, dim),
-            )
+            time_dim += time_dim
+            if not no_need_ret_sin:
+                self.returns_mlp = nn.Sequential(
+                    SinusoidalPosEmb(dim),
+                    nn.Linear(dim, dim * 4),
+                    #nn.Mish(),
+                    Mish(),
+                    nn.Linear(dim * 4, dim),
+                )
+            else:
+                self.returns_mlp = nn.Sequential(
+                    nn.Linear(dim, dim * 4),
+                    #nn.Mish(),
+                    Mish(),
+                    nn.Linear(dim * 4, dim),
+                )
         self.blocks = nn.ModuleList([])
 
         for ind, (dim_in, dim_out) in enumerate(in_out):
@@ -493,7 +511,8 @@ class TemporalValue(nn.Module):
         fc_dim = mid_dim_3 * max(horizon, 1)
         self.final_block = nn.Sequential(
             nn.Linear(fc_dim + time_dim, fc_dim // 2),
-            nn.Mish(),
+            #nn.Mish(),
+            Mish(),
             nn.Linear(fc_dim // 2, out_dim),
         )
 
@@ -502,14 +521,18 @@ class TemporalValue(nn.Module):
         x = x.transpose(1, 2)
         t = self.time_mlp(time)
         
-        if returns:
+        if returns is not None:
             returns_embed = self.returns_mlp(returns)
             t = torch.cat([t, returns_embed], dim=-1)
 
         for resnet, resnet2, downsample in self.blocks:
+            # print('x:',x)
             x = resnet(x, t)
+            # print('after res1 x:',x)
             x = resnet2(x, t)
+            # print('after res2 x:',x)
             x = downsample(x)
+            # print('after down x:',x)
 
         x = self.mid_block1(x, t)
         x = self.mid_down1(x)

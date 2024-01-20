@@ -7,6 +7,7 @@ from ding.torch_utils import to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_decollate
 from ding.policy.dt import DTPolicy
+from ding.model import model_wrap
 
 @POLICY_REGISTRY.register('promptdt')
 class PDTPolicy(DTPolicy):
@@ -15,6 +16,9 @@ class PDTPolicy(DTPolicy):
         Policy class of Decision Transformer algorithm in discrete environments.
         Paper link: https://arxiv.org/pdf/2206.13499.
     """
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'dt', ['ding.model.template.decision_transformer']
+
     def _forward_learn(self, data: List[torch.Tensor]) -> Dict[str, Any]:
         """
         Overview:
@@ -37,8 +41,41 @@ class PDTPolicy(DTPolicy):
 
         """
         self._learn_model.train()
+        self.have_train = True
 
-        prompt, timesteps, states, actions, rewards, returns_to_go, traj_mask = data
+        if self._cuda:
+            data = to_device(data, self._device)
+
+        p_s, p_a, p_rtg, p_t, p_mask, timesteps, states, actions, rewards, returns_to_go, \
+            traj_mask = [], [], [], [], [], [], [], [], [], [], []
+
+        for d in data:
+            p, timestep, s, a, r, rtg, mask = d
+            timesteps.append(timestep)
+            states.append(s)
+            actions.append(a)
+            rewards.append(r)
+            returns_to_go.append(rtg)
+            traj_mask.append(mask)
+            ps, pa, prtg, pt, pm = p
+            p_s.append(ps)
+            p_a.append(pa)
+            p_rtg.append(prtg)
+            p_mask.append(pm)
+            p_t.append(pt)
+        
+        timesteps = torch.stack(timesteps, dim=0)
+        states = torch.stack(states, dim=0)
+        actions = torch.stack(actions, dim=0)
+        rewards = torch.stack(rewards, dim=0)
+        returns_to_go = torch.stack(returns_to_go, dim=0)
+        traj_mask = torch.stack(traj_mask, dim=0)
+        p_s = torch.stack(p_s, dim=0)
+        p_a = torch.stack(p_a, dim=0)
+        p_rtg = torch.stack(p_rtg, dim=0)
+        p_mask = torch.stack(p_mask, dim=0)
+        p_t = torch.stack(p_t, dim=0)
+        prompt = (p_s, p_a, p_rtg, p_t, p_mask)
 
         # The shape of `returns_to_go` may differ with different dataset (B x T or B x T x 1),
         # and we need a 3-dim tensor
@@ -88,12 +125,16 @@ class PDTPolicy(DTPolicy):
             'total_loss': action_loss.detach().cpu().item(),
         }
     
-    def get_dataloader(self, dataloader):
+    def init_dataprocess_func(self, dataloader):
         self.dataloader = dataloader
     
     def _init_eval(self) -> None:
-        self.task_id = [0] * self.eval_batch_size
-        super()._init_eval()
+        self.test_num = self._cfg.learn.test_num
+        self._eval_model = self._model
+        self.eval_batch_size = self._cfg.evaluator_env_num
+        self.task_id = None
+        self.test_task_id = [[] for _ in range(self.eval_batch_size)]
+        self.have_train =False
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         prompt = []
@@ -188,5 +229,11 @@ class PDTPolicy(DTPolicy):
     
     
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self.task_id[data_id] += 1
-        super()._reset_eval(data_id)
+        if self.have_train:
+            if data_id is None:
+                data_id = list(range(self.eval_batch_size))
+            if self.task_id is not None:
+                for id in data_id:
+                    self.task_id[id] = (self.task_id[id] + 1) % self.test_num
+            else:
+                self.task_id = [0] * self.eval_batch_size

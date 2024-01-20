@@ -39,10 +39,10 @@ class MDPolicy(Policy):
         # normalizer type
         normalizer='GaussianNormalizer',
         model=dict(
-            dim=32,
+            dim=64,
             obs_dim=17,
             action_dim=6,
-            diffuser_cfg=dict(
+            diffuser_model_cfg=dict(
                 # the type of model
                 # config of model
                 model_cfg=dict(
@@ -70,7 +70,6 @@ class MDPolicy(Policy):
                 loss_discount=1.0,
                 # whether clip denoise
                 clip_denoised=False,
-                action_weight=10,
             ),
             reward_cfg=dict(
                 # the type of model
@@ -138,8 +137,6 @@ class MDPolicy(Policy):
             gradient_accumulate_every=2,
             # train_epoch = train_epoch * gradient_accumulate_every
             train_epoch=60000,
-            # batch_size of every env when eval
-            plan_batch_size=64,
 
             # step start update target model and frequence
             step_start_update_target=2000,
@@ -157,7 +154,7 @@ class MDPolicy(Policy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'md', ['ding.model.template.diffusion']
+        return 'metadiffuser', ['ding.model.template.diffusion']
     
     def _init_learn(self) -> None:
         r"""
@@ -172,7 +169,6 @@ class MDPolicy(Policy):
         self.obs_dim = self._cfg.model.diffuser_model_cfg.obs_dim
         self.n_timesteps = self._cfg.model.diffuser_model_cfg.n_timesteps
         self.gradient_accumulate_every = self._cfg.learn.gradient_accumulate_every
-        self.plan_batch_size = self._cfg.learn.plan_batch_size
         self.gradient_steps = 1
         self.update_target_freq = self._cfg.learn.update_target_freq
         self.step_start_update_target = self._cfg.learn.step_start_update_target
@@ -182,6 +178,9 @@ class MDPolicy(Policy):
         self.include_returns = self._cfg.learn.include_returns
         self.eval_batch_size = self._cfg.learn.eval_batch_size
         self.warm_batch_size = self._cfg.learn.warm_batch_size
+        self.test_num = self._cfg.learn.test_num
+        self.have_train = False
+        self._forward_learn_cnt = 0
 
         self._plan_optimizer = Adam(
             self._model.diffuser.model.parameters(),
@@ -202,38 +201,69 @@ class MDPolicy(Policy):
         self._learn_model.reset()
 
     def _forward_learn(self, data: List[torch.Tensor]) -> Dict[str, Any]:
+        self.have_train = True
         loss_dict = {}
 
         if self._cuda:
             data = to_device(data, self._device)
-        timesteps, obs, acts, rewards, rtg, masks, cond_id, cond_vals = data
-        obs, next_obs = obs[:-1], obs[1:]
-        acts = acts[:-1]
-        rewards = rewards[:-1]
-        conds = {cond_id: cond_vals}
+        
+        obs, acts, rewards, cond_ids, cond_vals = [], [], [], [], []
+        for d in data:
+            timesteps, ob, act, reward, rtg, masks, cond_id, cond_val = d
+            obs.append(ob)
+            acts.append(act)
+            rewards.append(reward)
+            cond_ids.append(cond_id)
+            cond_vals.append(cond_val)
+
+        obs = torch.stack(obs, dim=0)
+        acts = torch.stack(acts, dim=0)
+        rewards = torch.stack(rewards, dim=0)
+        cond_vals = torch.stack(cond_vals, dim=0)
+
+        obs, next_obs = obs[:,:-1], obs[:,1:]
+        acts = acts[:,:-1]
+        rewards = rewards[:,:-1]
+        conds = {cond_ids[0]: cond_vals}
         
 
         self._learn_model.train()
-        pre_traj = torch.cat([acts, obs, rewards, next_obs], dim=1)
-        target = torch.cat([next_obs, rewards], dim=1)
-        traj = torch.cat([acts, obs], dim=1)
+        pre_traj = torch.cat([acts, obs, rewards, next_obs], dim=-1).to(self._device)
+        target = torch.cat([next_obs, rewards], dim=-1).to(self._device)
+        traj = torch.cat([acts, obs], dim=-1).to(self._device)
 
         batch_size = len(traj)
         t = torch.randint(0, self.n_timesteps, (batch_size, ), device=traj.device).long()
-        state_loss, reward_loss = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
-        loss_dict = {'state_loss': state_loss, 'reward_loss': reward_loss}
-        total_loss = state_loss + reward_loss
-
-        self._pre_train_optimizer.zero()
+        state_loss, reward_loss, reward_log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
+        loss_dict = {'dynamic_loss': state_loss, 'reward_loss': reward_loss}
+        total_loss = (state_loss + reward_loss) / self.gradient_accumulate_every
         total_loss.backward()
-        self._pre_train_optimizer.step()
-        self.update_model_average(self._target_model, self._learn_model)
+        
+        if self.gradient_steps >= self.gradient_accumulate_every:
+            self._pre_train_optimizer.step()
+            self._pre_train_optimizer.zero_grad()
 
-        diffuser_loss = self._learn_model.diffuser_loss(traj, conds, t)
-        self._plan_optimizer.zero()
+        task_id = self._learn_model.get_task_id(pre_traj)
+
+        diffuser_loss, a0_loss = self._learn_model.diffuser_loss(traj, conds, t, task_id)
+        loss_dict['diffuser_loss'] = diffuser_loss
+        loss_dict['a0_loss'] = a0_loss
+        diffuser_loss = diffuser_loss / self.gradient_accumulate_every
         diffuser_loss.backward()
-        self._plan_optimizer.step()
-        self.update_model_average(self._target_model, self._learn_model)
+        
+        if self.gradient_steps >= self.gradient_accumulate_every:
+            self._plan_optimizer.step()
+            self._plan_optimizer.zero_grad()
+            self.gradient_steps = 1
+        else:
+            self.gradient_steps += 1
+
+        self._forward_learn_cnt += 1
+        if self._forward_learn_cnt % self.update_target_freq == 0:
+            if self._forward_learn_cnt < self.step_start_update_target:
+                self._target_model.load_state_dict(self._model.state_dict())
+            else:
+                self.update_model_average(self._target_model, self._learn_model)
 
         return loss_dict
 
@@ -252,12 +282,9 @@ class MDPolicy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return [
-            'diffuse_loss',
+            'diffuser_loss',
             'reward_loss',
             'dynamic_loss',
-            'max_return',
-            'min_return',
-            'mean_return',
             'a0_loss',
         ]
     
@@ -272,31 +299,33 @@ class MDPolicy(Policy):
     def _init_eval(self):
         self._eval_model = model_wrap(self._target_model, wrapper_name='base')
         self._eval_model.reset()
-        self.task_id = [0] * self.eval_batch_size
+        self.task_id = None
+        self.test_task_id = [[] for _ in range(self.eval_batch_size)]
+        # self.task_id = [0] * self.eval_batch_size
         
 
-        obs, acts, rewards, cond_ids, cond_vals = \
-            self.dataloader.get_pretrain_data(self.task_id[0], self.warm_batch_size * self.eval_batch_size)
-        obs = to_device(obs, self._device)
-        acts = to_device(acts, self._device)
-        rewards = to_device(rewards, self._device)
-        cond_vals = to_device(cond_vals, self._device)
+        # obs, acts, rewards, cond_ids, cond_vals = \
+        #     self.dataloader.get_pretrain_data(self.task_id[0], self.warm_batch_size * self.eval_batch_size)
+        # obs = to_device(obs, self._device)
+        # acts = to_device(acts, self._device)
+        # rewards = to_device(rewards, self._device)
+        # cond_vals = to_device(cond_vals, self._device)
         
-        obs, next_obs = obs[:-1], obs[1:]
-        acts = acts[:-1]
-        rewards = rewards[:-1]
-        pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=1)
-        target = torch.cat([next_obs, rewards], dim=1)
-        batch_size = len(pre_traj)
-        conds = {cond_ids: cond_vals}
+        # obs, next_obs = obs[:-1], obs[1:]
+        # acts = acts[:-1]
+        # rewards = rewards[:-1]
+        # pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=1)
+        # target = torch.cat([next_obs, rewards], dim=1)
+        # batch_size = len(pre_traj)
+        # conds = {cond_ids: cond_vals}
 
-        t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
-        state_loss, reward_loss = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
-        total_loss = state_loss + reward_loss
-        self._pre_train_optimizer.zero()
-        total_loss.backward()
-        self._pre_train_optimizer.step()
-        self.update_model_average(self._target_model, self._learn_model)
+        # t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
+        # state_loss, reward_loss = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
+        # total_loss = state_loss + reward_loss
+        # self._pre_train_optimizer.zero()
+        # total_loss.backward()
+        # self._pre_train_optimizer.step()
+        # self.update_model_average(self._target_model, self._learn_model)
 
     def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
         data_id = list(data.keys())
@@ -305,45 +334,70 @@ class MDPolicy(Policy):
         self._eval_model.eval()
         obs = []
         for i in range(self.eval_batch_size):
-            obs.append(self.dataloader.normalize(data, 'observations', self.task_id[i]))
-
+            if not self._cfg.no_state_normalize:
+                obs.append(self.dataloader.normalize(data[i], 'obs', self.task_id[i]))
+        
         with torch.no_grad():
-            obs = torch.tensor(obs)
+            obs = torch.stack(obs, dim=0)
             if self._cuda:
                 obs = to_device(obs, self._device)
             conditions = {0: obs}
-            action = self._eval_model.get_eval(conditions, self.plan_batch_size)
+            action = self._eval_model.get_eval(conditions, self.test_task_id)
             if self._cuda:
                 action = to_device(action, 'cpu')
             for i in range(self.eval_batch_size):
-                action[i] = self.dataloader.unnormalize(action, 'actions', self.task_id[i])
+                if not self._cfg.no_action_normalize:
+                    action[i] = self.dataloader.unnormalize(action[i], 'actions', self.task_id[i])
             action = torch.tensor(action).to('cpu') 
         output = {'action': action}
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self.task_id[data_id] += 1
+        if self.have_train:
+            if data_id is None:
+                data_id = list(range(self.eval_batch_size))
+            if self.task_id is not None:
+                for id in data_id:
+                    self.task_id[id] = (self.task_id[id] + 1) % self.test_num
+            else:
+                self.task_id = [0] * self.eval_batch_size
+            
+            for id in data_id:
+                obs, acts, rewards, cond_ids, cond_vals = \
+                    self.dataloader.get_pretrain_data(self.task_id[id], self.warm_batch_size)
+                obs = to_device(obs, self._device)
+                acts = to_device(acts, self._device)
+                rewards = to_device(rewards, self._device)
+                cond_vals = to_device(cond_vals, self._device)
 
-        obs, acts, rewards, cond_ids, cond_vals = \
-            self.dataloader.get_pretrain_data(self.task_id[data_id], self.warm_batch_size)
-        obs = to_device(obs, self._device)
-        acts = to_device(acts, self._device)
-        rewards = to_device(rewards, self._device)
-        cond_vals = to_device(cond_vals, self._device)
+                obs, next_obs = obs[:, :-1], obs[:, 1:]
+                acts = acts[:, :-1]
+                rewards = rewards[:, :-1]
+        
+                pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=-1)
+                target = torch.cat([next_obs, rewards], dim=-1)
+                batch_size = len(pre_traj)
+                conds = {cond_ids: cond_vals}
 
-        obs, next_obs = obs[:-1], obs[1:]
-        acts = acts[:-1]
-        rewards = rewards[:-1]
-        pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=1)
-        target = torch.cat([next_obs, rewards], dim=1)
-        batch_size = len(pre_traj)
-        conds = {cond_ids: cond_vals}
+                t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
+                state_loss, reward_loss, log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
+                total_loss = state_loss + reward_loss
+                self._pre_train_optimizer.zero_grad()
+                total_loss.backward()
+                self._pre_train_optimizer.step()
+                self.update_model_average(self._target_model, self._learn_model)
+                
+                self.test_task_id[id] = self._target_model.get_task_id(pre_traj)[0]
 
-        t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
-        state_loss, reward_loss = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
-        total_loss = state_loss + reward_loss
-        self._pre_train_optimizer.zero()
-        total_loss.backward()
-        self._pre_train_optimizer.step()
-        self.update_model_average(self._target_model, self._learn_model)
+    def _init_collect(self) -> None:
+        pass
+
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
+        pass
+
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+        pass
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        pass

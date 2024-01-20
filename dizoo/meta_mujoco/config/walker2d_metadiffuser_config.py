@@ -1,9 +1,9 @@
 from easydict import EasyDict
 
 main_config = dict(
-    exp_name="walker2d_medium_expert_pd_seed0",
+    exp_name="walker_params_md_seed0",
     env=dict(
-        env_id='walker2d-medium-expert-v2',
+        env_id='walker_params',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -18,22 +18,27 @@ main_config = dict(
         horizon=32,
         obs_dim=17,
         action_dim=6,
+        test_num=10,
     ),
     policy=dict(
         cuda=True,
-        max_len=1000,
-        max_ep_len=1000,
+        max_len=32,
+        max_ep_len=200,
         task_num=40,
+        train_num=1,
         obs_dim=17,
-        action_dim=6,
+        act_dim=6,
+        no_state_normalize=False,
+        no_action_normalize=False,
+        need_init_dataprocess=True,
         model=dict(
             diffuser_model_cfg=dict(
                 model='DiffusionUNet1d',
                 model_cfg=dict(
                     transition_dim=23,
-                    dim=32,
-                    dim_mults=[1, 2, 4, 8],
-                    returns_condition=False,
+                    dim=64,
+                    dim_mults=[1, 4, 8],
+                    returns_condition=True,
                     kernel_size=5,
                     attention=False,
                 ),
@@ -42,17 +47,20 @@ main_config = dict(
                 action_dim=6,
                 n_timesteps=20,
                 predict_epsilon=False,
+                condition_guidance_w=1.2,
                 loss_discount=1,
-                action_weight=10,
             ),
             reward_cfg=dict(
                 model='TemporalValue',
                 model_cfg=dict(
                     horizon = 32,
                     transition_dim=23,
-                    dim=32,
-                    dim_mults=[1, 2, 4, 8],
+                    dim=64,
+                    out_dim=32,
+                    dim_mults=[1, 4, 8],
                     kernel_size=5,
+                    returns_condition=True,
+                    no_need_ret_sin=True,
                 ),
                 horizon=32,
                 obs_dim=17,
@@ -61,7 +69,7 @@ main_config = dict(
                 predict_epsilon=True,
                 loss_discount=1,
             ),
-            horizon=80,
+            horizon=32,
             n_guide_steps=2,
             scale=0.1,
             t_stopgrad=2,
@@ -76,25 +84,30 @@ main_config = dict(
             learning_rate=2e-4,
             discount_factor=0.99,
             learner=dict(hook=dict(save_ckpt_after_iter=1000000000, )),
+            eval_batch_size=8,
+            warm_batch_size=640,
+            test_num=10,
         ),
-        collect=dict(data_type='diffuser_traj', ),
+        collect=dict(data_type='meta_traj', ),
         eval=dict(
             evaluator=dict(
                 eval_freq=500, 
-                test_env_list=[5,10,22,31,18,1,12,9,25,38],
+                test_env_num=10,
             ),
             test_ret=0.9,
         ),
-        dateset=dict(
-            data_dir_prefix=1,
-            rtg_scale=1,
-            context_len=1,
-            stochastic_prompt=False,
-            need_prompt=False,
-            test_id=[5,10,22,31,18,1,12,9,25,38],
-            cond=True
-        ),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
+    ),
+    dataset=dict(
+        data_dir_prefix='/mnt/nfs/share/meta/walker_traj/buffers_walker_param_train',
+        rtg_scale=1,
+        context_len=1,
+        stochastic_prompt=False,
+        need_prompt=False,
+        test_id=[5,10,22,31,18,1,12,9,25,38],
+        cond=True,
+        env_param_path='/mnt/nfs/share/meta/walker/env_walker_param_train_task',
+        need_next_obs=True,
     ),
 )
 
@@ -103,12 +116,12 @@ main_config = main_config
 
 create_config = dict(
     env=dict(
-        type='d4rl',
-        import_names=['dizoo.d4rl.envs.d4rl_env'],
+        type='meta',
+        import_names=['dizoo.meta_mujoco.envs.meta_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='meta_subprocess'),
     policy=dict(
-        type='pd',
+        type='metadiffuser',
     ),
     replay_buffer=dict(type='naive', ),
 )

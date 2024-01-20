@@ -1,9 +1,12 @@
 from typing import Any, Union, List
 import copy
 import gym
+import numpy as np
 from easydict import EasyDict
 
-from CORRO.environments.make_env import make_env
+#from CORRO.environments.make_env import make_env
+
+from rand_param_envs.make_env import make_env
 
 from ding.torch_utils import to_ndarray, to_list
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -20,7 +23,7 @@ class MujocoEnv(BaseEnv):
 
     def reset(self) -> Any:
         if not self._init_flag:
-            self._env = make_env(self._cfg.env_id, 1, seed=self._cfg.seed)
+            self._env = make_env(self._cfg.env_id, 1, seed=self._cfg.seed, n_tasks=self._cfg.test_num)
             self._env.observation_space.dtype = np.float32
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
@@ -54,6 +57,12 @@ class MujocoEnv(BaseEnv):
     def __repr__(self) -> str:
         return "DI-engine D4RL Env({})".format(self._cfg.env_id)
     
+    def set_all_goals(self, params):
+        self._env.set_all_goals(params)
+    
+    def reset_task(self, id):
+        self._env.reset_task(id)
+    
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:
         collector_cfg = copy.deepcopy(cfg)
@@ -66,6 +75,11 @@ class MujocoEnv(BaseEnv):
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
         evaluator_cfg.get('norm_reward', EasyDict(use_norm=False, )).use_norm = False
         return [evaluator_cfg for _ in range(evaluator_env_num)]
+    
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+        self._seed = seed
+        self._dynamic_seed = dynamic_seed
+        np.random.seed(self._seed)
 
     @property
     def observation_space(self) -> gym.spaces.Space:

@@ -18,7 +18,7 @@ from typing import Union, Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ding.utils import SequenceType
+from ding.utils import SequenceType, MODEL_REGISTRY
 
 
 class MaskedCausalAttention(nn.Module):
@@ -156,7 +156,7 @@ class Block(nn.Module):
         # x = x + self.mlp(self.ln2(x))
         return x
 
-
+@MODEL_REGISTRY.register('dt')
 class DecisionTransformer(nn.Module):
     """
     Overview:
@@ -303,7 +303,9 @@ class DecisionTransformer(nn.Module):
             # time embeddings are treated similar to positional embeddings
             state_embeddings = self.embed_state(states) + time_embeddings
             action_embeddings = self.embed_action(actions) + time_embeddings
-            returns_embeddings = self.embed_rtg(returns_to_go) + time_embeddings
+            returns_embeddings = self.embed_rtg(returns_to_go) 
+            returns_embeddings += time_embeddings
+            
 
             # stack rtg, states and actions and reshape sequence as
             # (r_0, s_0, a_0, r_1, s_1, a_1, r_2, s_2, a_2 ...)
@@ -326,12 +328,15 @@ class DecisionTransformer(nn.Module):
                 prompt_state_embeddings = prompt_state_embeddings + prompt_time_embeddings
                 prompt_action_embeddings = prompt_action_embeddings + prompt_time_embeddings
                 prompt_returns_embeddings = prompt_returns_embeddings + prompt_time_embeddings
+                prompt_stacked_inputs = torch.stack(
+                    (prompt_returns_embeddings, prompt_state_embeddings, prompt_action_embeddings), dim=1
+                ).permute(0, 2, 1, 3).reshape(prompt_states.shape[0], 3 * prompt_seq_length, self.h_dim)
                 prompt_stacked_attention_mask = torch.stack(
                     (prompt_attention_mask, prompt_attention_mask, prompt_attention_mask), dim=1
                 ).permute(0, 2, 1).reshape(prompt_states.shape[0], 3 * prompt_seq_length)
 
                 if prompt_stacked_inputs.shape[1] == 3 * T: # if only smaple one prompt
-                    prompt_stacked_inputs = prompt_stacked_inputs.reshape(1, -1, self.hidden_size)
+                    prompt_stacked_inputs = prompt_stacked_inputs.reshape(1, -1, self.h_dim)
                     prompt_stacked_attention_mask = prompt_stacked_attention_mask.reshape(1, -1)
                     h = torch.cat((prompt_stacked_inputs.repeat(B, 1, 1), h), dim=1)
                     stacked_attention_mask = torch.cat((prompt_stacked_attention_mask.repeat(B, 1), stacked_attention_mask), dim=1)
