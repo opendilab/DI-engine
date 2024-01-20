@@ -832,3 +832,23 @@ class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
             info = remove_illegal_item(info)
             new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
         return new_data
+    
+@ENV_MANAGER_REGISTRY.register('meta_subprocess')
+class MetaSyncSubprocessEnvManager(SyncSubprocessEnvManager):
+
+    @property
+    def method_name_list(self) -> list:
+        return [
+            'reset', 'step', 'seed', 'close', 'enable_save_replay', 'render', 'reward_shaping', 'enable_save_figure',
+            'set_all_goals', 'reset_task'
+        ]
+
+    def set_all_goals(self, params):
+        for p in self._pipe_parents.values():
+            p.send(['set_all_goals', [params], {}])
+        data = {i: p.recv() for i, p in self._pipe_parents.items()}
+    
+    def reset_task(self, id):
+        for p in self._pipe_parents.values():
+            p.send(['reset_task', [id], {}])
+        data = {i: p.recv() for i, p in self._pipe_parents.items()}
