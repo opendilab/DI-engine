@@ -16,3 +16,4 @@ from .base_parallel_collector import BaseParallelCollector, create_parallel_coll
 from .zergling_parallel_collector import ZerglingParallelCollector
 from .marine_parallel_collector import MarineParallelCollector
 from .comm import BaseCommCollector, FlaskFileSystemCollector, create_comm_collector, NaiveCollector
+from .interaction_serial_meta_evaluator import InteractionSerialMetaEvaluator
