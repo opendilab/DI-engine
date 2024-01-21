@@ -93,9 +93,6 @@ def free_guidance_sample(
     
 ):
     weight = extract(model.sqrt_one_minus_alphas_cumprod, t, x.shape)
-    model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
-    model_std = torch.exp(0.5 * model_log_variance)
-    model_var = torch.exp(model_log_variance)
     
     for _ in range(n_guide_steps):
         with torch.enable_grad():
@@ -117,7 +114,16 @@ def free_guidance_sample(
             epsilon = model.model(x, cond, t)
         epsilon += grad
 
-    model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t, epsilon=epsilon)
+    t = t.detach().to(torch.int64)
+    x_recon = model.predict_start_from_noise(x, t=t, noise=epsilon)
+
+    if model.clip_denoised:
+        x_recon.clamp_(-1., 1.)
+    else:
+        assert RuntimeError()
+
+    model_mean, _, model_log_variance = model.p_mean_variance(x=x_recon, cond=cond, t=t, epsilon=epsilon)
+    model_std = torch.exp(0.5 * model_log_variance)
     noise = torch.randn_like(x)
     noise[t == 0] = 0
 
