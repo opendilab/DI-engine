@@ -1508,7 +1508,7 @@ class AllinObsWrapper(gym.Wrapper):
         self._observation_space = gym.spaces.Dict(
             {
                 'obs': self.env.observation_space,
-                'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32)
+                'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32, shape=(1, ))
             }
         )
         return ret

@@ -525,7 +525,7 @@ class BaseEnvManager(object):
             - figure_path (:obj:`str`): The file directory path for all environments to save figures.
         """
         assert figure_path is not None
-        self._env[env_id].enable_save_figure(figure_path)
+        self._envs[env_id].enable_save_figure(figure_path)
 
     def close(self) -> None:
         """
