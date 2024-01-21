@@ -132,7 +132,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
     """
     Overview:
         Implementation of an LSTM cell with Layer Normalization (LN).
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
 
     .. note::
@@ -244,7 +244,7 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
     Overview:
         Wrapper class for PyTorch's nn.LSTM, formats the input and output. For more details on nn.LSTM,
         refer to https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM
-    Interface:
+    Interfaces:
         ``forward``
     """
 
@@ -275,7 +275,7 @@ class GRU(nn.GRUCell, LSTMForwardWrapper):
     Overview:
         This class extends the `torch.nn.GRUCell` and `LSTMForwardWrapper` classes, and formats inputs and outputs
         accordingly.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     Properties:
         hidden_size, num_layers

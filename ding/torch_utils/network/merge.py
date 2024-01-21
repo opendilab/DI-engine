@@ -56,7 +56,7 @@ class BilinearGeneral(nn.Module):
         ``__init__``, ``forward``
     """
 
-    def __init__(self, in1_features, in2_features, out_features):
+    def __init__(self, in1_features: int, in2_features: int, out_features: int):
         """
         Overview:
             Initialize the Bilinear layer.
@@ -89,7 +89,7 @@ class BilinearGeneral(nn.Module):
         self.V.data.uniform_(-stdv, stdv)
         self.b.data.uniform_(-stdv, stdv)
 
-    def forward(self, x, z):
+    def forward(self, x: torch.Tensor, z: torch.Tensor):
         """
         Overview:
             compute the bilinear function.
@@ -118,7 +118,7 @@ class TorchBilinearCustomized(nn.Module):
         ``__init__``, ``forward``
     """
 
-    def __init__(self, in1_features, in2_features, out_features):
+    def __init__(self, in1_features: int, in2_features: int, out_features: int):
         """
         Overview:
             Initialize the Bilinear layer.
@@ -182,7 +182,7 @@ class FiLM(nn.Module):
         ``__init__``, ``forward``
     """
 
-    def __init__(self, feature_dim, context_dim):
+    def __init__(self, feature_dim: int, context_dim: int):
         """
         Overview:
             Initialize the FiLM layer.
@@ -196,7 +196,7 @@ class FiLM(nn.Module):
         # The output dimension is twice the feature dimension for gamma and beta
         self.context_layer = nn.Linear(context_dim, 2 * feature_dim)
 
-    def forward(self, feature, context):
+    def forward(self, feature: torch.Tensor, context: torch.Tensor):
         """
         Overview:
             Forward propagation.
@@ -259,7 +259,7 @@ class VectorMerge(nn.Module):
     Overview:
         Merges multiple vector streams. Streams are first transformed through layer normalization, relu, and linear
         layers, then summed. They don't need to have the same size. Gating can also be used before the sum.
-    Interface:
+    Interfaces:
         ``__init__``, ``encode``, ``_compute_gate``, ``forward``
 
     .. note::

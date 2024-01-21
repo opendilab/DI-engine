@@ -244,7 +244,7 @@ class LimitedSpaceContainer:
     """
     Overview:
         A space simulator.
-    Interface:
+    Interfaces:
         ``__init__``, ``get_residual_space``, ``release_space``
     """
 
@@ -521,7 +521,7 @@ class RunningMeanStd(object):
     """
     Overview:
        Wrapper to update new variable, new mean, and new count
-    Interface:
+    Interfaces:
         ``__init__``, ``update``, ``reset``, ``new_shape``
     Properties:
         - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``

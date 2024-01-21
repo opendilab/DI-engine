@@ -16,7 +16,7 @@ class AsyncDataLoader(IDataLoader):
     """
     Overview:
         An asynchronous dataloader.
-    Interface:
+    Interfaces:
         ``__init__``, ``__iter__``, ``__next__``, ``_get_data``, ``_async_loop``, ``_worker_loop``, ``_cuda_loop``, \
             ``_get_data``, ``close``
     """

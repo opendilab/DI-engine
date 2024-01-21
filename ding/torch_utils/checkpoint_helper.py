@@ -26,7 +26,7 @@ class CheckpointHelper:
     """
     Overview:
         Help to save or load checkpoint by give args.
-    Interface:
+    Interfaces:
         ``__init__``, ``save``, ``load``, ``_remove_prefix``, ``_add_prefix``, ``_load_matched_model_state_dict``
     """
 
@@ -257,7 +257,7 @@ class CountVar(object):
     """
     Overview:
         Number counter
-    Interface:
+    Interfaces:
         ``__init__``, ``update``, ``add``
     Properties:
         - val (:obj:`int`): the value of the counter

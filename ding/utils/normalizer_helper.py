@@ -7,7 +7,7 @@ class DatasetNormalizer:
         The `DatasetNormalizer` class provides functionality to normalize and unnormalize data in a dataset.
         It takes a dataset as input and applies a normalizer function to each key in the dataset.
 
-    Interface:
+    Interfaces:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
@@ -109,7 +109,7 @@ class Normalizer:
     Overview:
         Parent class, subclass by defining the `normalize` and `unnormalize` methods
 
-    Interface:
+    Interfaces:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
@@ -125,10 +125,12 @@ class Normalizer:
         self.mins = X.min(axis=0)
         self.maxs = X.max(axis=0)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Overview:
             Returns a string representation of the Normalizer object.
+        Returns:
+            - ret (:obj:`str`): A string representation of the Normalizer object.
         """
 
         return (
@@ -164,7 +166,7 @@ class GaussianNormalizer(Normalizer):
     Overview:
         A class that normalizes data to zero mean and unit variance.
 
-    Interface:
+    Interfaces:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
@@ -184,10 +186,12 @@ class GaussianNormalizer(Normalizer):
         self.stds = self.X.std(axis=0)
         self.z = 1
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Overview:
             Returns a string representation of the GaussianNormalizer object.
+        Returns:
+            - ret (:obj:`str`): A string representation of the GaussianNormalizer object.
         """
 
         return (
@@ -228,7 +232,7 @@ class CDFNormalizer(Normalizer):
     Overview:
         A class that makes training data uniform (over each dimension) by transforming it with marginal CDFs.
 
-    Interface:
+    Interfaces:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
@@ -244,10 +248,12 @@ class CDFNormalizer(Normalizer):
         self.dim = self.X.shape[1]
         self.cdfs = [CDFNormalizer1d(self.X[:, i]) for i in range(self.dim)]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Overview:
             Returns a string representation of the CDFNormalizer object.
+        Returns:
+            - ret (:obj:`str`): A string representation of the CDFNormalizer object.
         """
 
         return f'[ CDFNormalizer ] dim: {self.mins.size}\n' + '    |    '.join(
@@ -307,7 +313,7 @@ class CDFNormalizer1d:
     Overview:
         CDF normalizer for a single dimension. This class provides methods to normalize and unnormalize data \
         using the Cumulative Distribution Function (CDF) approach.
-    Interface:
+    Interfaces:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 
@@ -442,7 +448,7 @@ class LimitsNormalizer(Normalizer):
         A class that normalizes and unnormalizes values within specified limits. \
         This class maps values within the range [xmin, xmax] to the range [-1, 1].
 
-    Interface:
+    Interfaces:
         ``__init__``, ``__repr__``, ``normalize``, ``unnormalize``.
     """
 

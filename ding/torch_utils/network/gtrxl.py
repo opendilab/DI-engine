@@ -15,7 +15,7 @@ class PositionalEmbedding(nn.Module):
     """
     Overview:
         The PositionalEmbedding module implements the positional embedding used in the vanilla Transformer model.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     
     .. note::
@@ -59,7 +59,7 @@ class GRUGatingUnit(torch.nn.Module):
     """
     Overview:
         The GRUGatingUnit module implements the GRU gating mechanism used in the GTrXL model.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -109,7 +109,7 @@ class Memory:
     """
     Overview:
         A class that stores the context used to add memory to Transformer.
-    Interface:
+    Interfaces:
         ``__init__``, ``init``, ``update``, ``get``, ``to``
 
     .. note::
@@ -224,7 +224,7 @@ class AttentionXL(torch.nn.Module):
     """
     Overview:
          An implementation of the Attention mechanism used in the TransformerXL model.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -356,7 +356,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
     """
     Overview:
         This class implements the attention layer of GTrXL (Gated Transformer-XL).
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -453,7 +453,7 @@ class GTrXL(nn.Module):
     Overview:
         GTrXL Transformer implementation as described in "Stabilizing Transformer for Reinforcement Learning"
         (https://arxiv.org/abs/1910.06764).
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``, ``reset_memory``, ``get_memory``
     """
 

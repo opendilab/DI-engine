@@ -55,8 +55,17 @@ class ContrastiveLoss(nn.Module):
             Create the encoder for the input obs.
         Arguments:
             - obs_size (:obj:`Union[int, SequenceType]`): input shape for x, both the obs shape and the encoding shape \
-                are supported.
+                are supported. If the obs_size is an int, it means the obs is a 1D vector. If the obs_size is a list \
+                such as [1, 16, 16], it means the obs is a 3D image with shape [1, 16, 16].
             - heads (:obj:`int`): The number of heads.
+        Returns:
+            - encoder (:obj:`nn.Module`): The encoder module.
+        Examples:
+            >>> obs_size = 16
+            or
+            >>> obs_size = [1, 16, 16]
+            >>> heads = 1
+            >>> encoder = self._create_encoder(obs_size, heads)
         """
         from ding.model import ConvEncoder, FCEncoder
 

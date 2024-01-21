@@ -31,7 +31,7 @@ class NaiveRLDataset(Dataset):
     """
     Overview:
         Naive RL dataset, which is used for offline RL algorithms.
-    Interface:
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     """
 
@@ -73,7 +73,7 @@ class D4RLDataset(Dataset):
     """
     Overview:
         D4RL dataset, which is used for offline RL algorithms.
-    Interface:
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     Properties:
         - mean (:obj:`np.ndarray`): Mean of the dataset.
@@ -223,8 +223,10 @@ class D4RLDataset(Dataset):
 class HDF5Dataset(Dataset):
     """
     Overview:
-        HDF5 dataset, which is used for offline RL algorithms.
-    Interface:
+        HDF5 dataset is saved in hdf5 format, which is used for offline RL algorithms.
+        The hdf5 format is a common format for storing large numerical arrays in Python.
+        For more details, please refer to https://support.hdfgroup.org/HDF5/.
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     Properties:
         - mean (:obj:`np.ndarray`): Mean of the dataset.
@@ -306,7 +308,7 @@ class HDF5Dataset(Dataset):
             logging.info(f'Load {k} data.')
             self._data[k] = dataset[k][:]
 
-    def _cal_statistics(self, eps=1e-3):
+    def _cal_statistics(self, eps: float = 1e-3):
         """
         Overview:
             Calculate the statistics of the dataset.
@@ -374,7 +376,7 @@ class D4RLTrajectoryDataset(Dataset):
     """
     Overview:
         D4RL trajectory dataset, which is used for offline RL algorithms.
-    Interface:
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     """
 
@@ -843,7 +845,7 @@ class D4RLDiffuserDataset(Dataset):
     """
     Overview:
         D4RL diffuser dataset, which is used for offline RL algorithms.
-    Interface:
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     """
 
@@ -903,7 +905,7 @@ class FixedReplayBuffer(object):
     """
     Overview:
         Object composed of a list of OutofGraphReplayBuffers.
-    Interface:
+    Interfaces:
         ``__init__``, ``get_transition_elements``, ``sample_transition_batch``
     """
 
@@ -993,8 +995,8 @@ class FixedReplayBuffer(object):
 class PCDataset(Dataset):
     """
     Overview:
-        Dataset for pre-computed BFS.
-    Interface:
+        Dataset for Procedure Cloning.
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     """
 
@@ -1099,8 +1101,8 @@ def load_bfs_datasets(train_seeds=1, test_seeds=5):
 class BCODataset(Dataset):
     """
     Overview:
-        Dataset for BCO.
-    Interface:
+        Dataset for Behavioral Cloning from Observation.
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     Properties:
         - obs (:obj:`np.ndarray`): The observation array.
@@ -1162,7 +1164,7 @@ class SequenceDataset(torch.utils.data.Dataset):
     """
     Overview:
         Dataset for diffuser.
-    Interface:
+    Interfaces:
         ``__init__``, ``__len__``, ``__getitem__``
     """
 

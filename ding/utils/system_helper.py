@@ -41,7 +41,7 @@ class PropagatingThread(Thread):
     """
     Overview:
         Subclass of Thread that propagates execution exception in the thread to the caller
-    Interface:
+    Interfaces:
         ``run``, ``join``
     Examples:
         >>> def func():

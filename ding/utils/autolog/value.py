@@ -11,7 +11,7 @@ class LoggedValue:
         This class's instances will be associated with their owner LoggedModel instance, all the LoggedValue
         of one LoggedModel will shared the only one time object (defined in time_ctl), so that timeline can
         be managed properly.
-    Interface:
+    Interfaces:
         ``__init__``, ``__get__``, ``__set__``
     Properties:
         - __property_name (:obj:`str`): The name of the property.

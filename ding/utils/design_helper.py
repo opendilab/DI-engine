@@ -7,7 +7,7 @@ class SingletonMetaclass(ABCMeta):
     """
     Overview:
         Returns the given type instance in input class
-    Interface:
+    Interfaces:
         ``__call__``
     """
     instances = {}

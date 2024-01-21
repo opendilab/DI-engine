@@ -120,7 +120,7 @@ class SinusoidalPosEmb(nn.Module):
     def __init__(self, dim: int) -> None:
         """
         Overview:
-            initialization of SinusoidalPosEmb class
+            Initialization of SinusoidalPosEmb class
         Arguments:
             - dim (:obj:`int`): dimension of embeding
         """
@@ -158,7 +158,7 @@ class Residual(nn.Module):
     def __init__(self, fn):
         """
         Overview:
-            initialization of Residual class
+            Initialization of Residual class
         Arguments:
             - fn (:obj:`nn.Module`): function of residual block
         """
@@ -188,7 +188,7 @@ class LayerNorm(nn.Module):
     def __init__(self, dim, eps=1e-5) -> None:
         """
         Overview:
-            initialization of LayerNorm class
+            Initialization of LayerNorm class
         Arguments:
             - dim (:obj:`int`): dimension of input
             - eps (:obj:`float`): eps of LayerNorm
@@ -224,7 +224,7 @@ class PreNorm(nn.Module):
     def __init__(self, dim, fn) -> None:
         """
         Overview:
-            initialization of PreNorm class
+            Initialization of PreNorm class
         Arguments:
             - dim (:obj:`int`): dimension of input
             - fn (:obj:`nn.Module`): function of residual block
@@ -256,7 +256,7 @@ class LinearAttention(nn.Module):
     def __init__(self, dim, heads=4, dim_head=32) -> None:
         """
         Overview:
-            initialization of LinearAttention class
+            Initialization of LinearAttention class
         Arguments:
             - dim (:obj:`int`): dimension of input
             - heads (:obj:`int`): heads of attention
@@ -300,7 +300,7 @@ class ResidualTemporalBlock(nn.Module):
     ) -> None:
         """
         Overview:
-            initialization of ResidualTemporalBlock class
+            Initialization of ResidualTemporalBlock class
         Arguments:
             - in_channels (:obj:'int'): dim of in_channels
             - out_channels (:obj:'int'): dim of out_channels
@@ -360,7 +360,7 @@ class DiffusionUNet1d(nn.Module):
     ) -> None:
         """
         Overview:
-            initialization of DiffusionUNet1d class
+            Initialization of DiffusionUNet1d class
         Arguments:
             - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim
             - dim (:obj:'int'): dim of layer
@@ -579,7 +579,7 @@ class TemporalValue(nn.Module):
     ) -> None:
         """
         Overview:
-            initialization of TemporalValue class
+            Initialization of TemporalValue class
         Arguments:
             - horizon (:obj:'int'): horizon of trajectory
             - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim

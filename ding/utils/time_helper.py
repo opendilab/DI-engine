@@ -50,7 +50,7 @@ class EasyTimer:
     Overview:
         A decent timer wrapper that can be used easily.
 
-    Interface:
+    Interfaces:
         ``__init__``, ``__enter__``, ``__exit__``
 
     Example:
@@ -96,7 +96,7 @@ class TimeWrapperTime(TimeWrapper):
     Overview:
         A class method that inherit from ``TimeWrapper`` class
 
-    Interface:
+    Interfaces:
         ``start_time``, ``end_time``
     """
 
@@ -134,7 +134,7 @@ class WatchDog(object):
     .. note::
             If it is not reset before exceeding this value, ``TimeourError`` raised.
 
-    Interface:
+    Interfaces:
         ``start``, ``stop``
 
     Examples:

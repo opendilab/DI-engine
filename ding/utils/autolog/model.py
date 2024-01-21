@@ -14,7 +14,7 @@ class _LoggedModelMeta(ABCMeta):
     """
     Overview:
         Metaclass of LoggedModel, used to find all LoggedValue properties and register them.
-    Interface:
+    Interfaces:
         ``__init__``
     """
 
@@ -81,7 +81,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
         >>>     print(ll.range_values['value'](TimeMode.ABSOLUTE))  # use absolute time
         >>>     print(ll.avg['value']())  # average value of last 10 secs
 
-    Interface:
+    Interfaces:
         ``__init__``, ``time``, ``expire``, ``fixed_time``, ``current_time``, ``freeze``, ``unfreeze``, \
         ``register_attribute_value``, ``__getattr__``, ``get_property_attribute``
 

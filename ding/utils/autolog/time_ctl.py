@@ -9,7 +9,7 @@ class BaseTime(metaclass=ABCMeta):
     """
     Overview:
         Abstract time interface
-    Interface:
+    Interfaces:
         ``time``
     """
 
@@ -29,7 +29,7 @@ class NaturalTime(BaseTime):
     """
     Overview:
         Natural time object
-    Interface:
+    Interfaces:
         ``__init__``, ``time``
     Example:
         >>> from ding.utils.autolog.time_ctl import NaturalTime
@@ -65,7 +65,7 @@ class TickTime(BaseTime):
     """
     Overview:
         Tick time object
-    Interface:
+    Interfaces:
         ``__init__``, ``step``, ``time``
     Example:
         >>> from ding.utils.autolog.time_ctl import TickTime
@@ -132,7 +132,7 @@ class TimeProxy(BaseTime):
     Overview:
         Proxy of time object, it can freeze time, sometimes useful when reproducing.
         This object is thread-safe, and also freeze and unfreeze operation is strictly ordered.
-    Interface:
+    Interfaces:
         ``__init__``, ``freeze``, ``unfreeze``, ``time``, ``current_time``
     Example:
         >>> from ding.utils.autolog.time_ctl import TickTime, TimeProxy

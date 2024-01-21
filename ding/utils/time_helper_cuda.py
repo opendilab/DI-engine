@@ -26,7 +26,7 @@ def get_cuda_time_wrapper() -> Callable[[], 'TimeWrapper']:
                 Must use torch.cuda.synchronize(), reference: \
                 <https://blog.csdn.net/u013548568/article/details/81368019>
 
-        Interface:
+        Interfaces:
             ``start_time``, ``end_time``
         """
         # cls variable is initialized on loading this class

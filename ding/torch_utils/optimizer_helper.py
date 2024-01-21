@@ -108,7 +108,7 @@ class Adam(torch.optim.Adam):
     """
     Overview:
         Rewrited Adam optimizer to support more features.
-    Interface:
+    Interfaces:
         ``__init__``, ``step``, ``_state_init``, ``get_grad``
     """
 
@@ -396,7 +396,7 @@ class RMSprop(torch.optim.RMSprop):
     r"""
     Overview:
         Rewrited RMSprop optimizer to support more features.
-    Interface:
+    Interfaces:
         ``__init__``, ``step``, ``_state_init``, ``get_grad``
     """
 
@@ -646,7 +646,7 @@ class PCGrad():
     Overview:
         PCGrad optimizer to support multi-task.
         you can view the paper in the following link https://arxiv.org/pdf/2001.06782.pdf
-    Interface:
+    Interfaces:
         ``__init__``, ``zero_grad``, ``step``, ``pc_backward``
     Properties:
         - optimizer (:obj:`torch.optim`): the optimizer to be used

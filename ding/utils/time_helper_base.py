@@ -3,7 +3,7 @@ class TimeWrapper(object):
     Overview:
         Abstract class method that defines ``TimeWrapper`` class
 
-    Interface:
+    Interfaces:
         ``wrapper``, ``start_time``, ``end_time``
     """
 

@@ -13,7 +13,7 @@ class Conv2dSame(torch.nn.Conv2d):
     """
     Overview:
          Conv2dSame Network for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -59,7 +59,7 @@ class DreamerLayerNorm(nn.Module):
     """
     Overview:
          DreamerLayerNorm Network for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -93,7 +93,7 @@ class DenseHead(nn.Module):
     """
     Overview:
        DenseHead Network for value head, reward head, and discount head of dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -186,7 +186,7 @@ class ActionHead(nn.Module):
     """
     Overview:
        ActionHead Network for action head of dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -316,7 +316,7 @@ class SampleDist:
     """
     Overview:
        A kind of sample Dist for ActionHead of dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mean``, ``mode``, ``entropy``
     """
 
@@ -366,7 +366,7 @@ class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
     """
     Overview:
        A kind of onehot Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mode``, ``sample``
     """
 
@@ -420,7 +420,7 @@ class TwoHotDistSymlog:
     """
     Overview:
        A kind of twohotsymlog Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mode``, ``mean``, ``log_prob``, ``log_prob_target``
     """
 
@@ -505,7 +505,7 @@ class SymlogDist:
     """
     Overview:
        A kind of Symlog Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``entropy``, ``mode``, ``mean``, ``log_prob``
     """
 
@@ -572,7 +572,7 @@ class ContDist:
     """
     Overview:
        A kind of ordinary Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``
     """
 
@@ -632,7 +632,7 @@ class Bernoulli:
     """
     Overview:
        A kind of Bernoulli Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``
     """
 
@@ -703,7 +703,7 @@ class UnnormalizedHuber(torchd.normal.Normal):
     """
     Overview:
        A kind of UnnormalizedHuber Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mode``, ``log_prob``
     """
 
@@ -742,7 +742,7 @@ class SafeTruncatedNormal(torchd.normal.Normal):
     """
     Overview:
        A kind of SafeTruncatedNormal Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``sample``
     """
 
@@ -786,7 +786,7 @@ class TanhBijector(torchd.Transform):
     """
     Overview:
        A kind of TanhBijector Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``_forward``, ``_inverse``, ``_forward_log_det_jacobian``
     """
 

@@ -21,7 +21,7 @@ class PopArt(nn.Module):
         PopArt normalization, which is a method to automatically adapt the contribution of each task to the agent's
         updates in multi-task learning, as described in the paper <https://arxiv.org/abs/1809.04474>.
 
-    Interface:
+    Interfaces:
         ``__init__``, ``reset_parameters``, ``forward``, ``update_parameters``
     """
 

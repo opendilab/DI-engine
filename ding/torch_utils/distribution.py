@@ -12,7 +12,7 @@ class Pd(object):
     """
     Overview:
         Abstract class for parameterizable probability distributions and sampling functions.
-    Interface:
+    Interfaces:
         ``neglogp``, ``entropy``, ``noise_mode``, ``mode``, ``sample``
 
     .. tip::
@@ -68,7 +68,7 @@ class CategoricalPd(Pd):
     """
     Overview:
         Catagorical probility distribution sampler
-    Interface:
+    Interfaces:
         ``__init__``, ``neglogp``, ``entropy``, ``noise_mode``, ``mode``, ``sample``
     """
 
@@ -191,7 +191,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
     Overview:
         Wrapped ``torch.distributions.Categorical``
 
-    Interface:
+    Interfaces:
         ``__init__``, ``update_logits``, ``update_probs``, ``sample``, ``neglogp``, ``mode``, ``entropy``
     """
 

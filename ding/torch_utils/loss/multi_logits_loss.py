@@ -10,7 +10,7 @@ class MultiLogitsLoss(nn.Module):
     """
     Overview:
         Base class for supervised learning on linklink, including basic processes.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``.
     """
 
@@ -129,6 +129,7 @@ class MultiLogitsLoss(nn.Module):
                 ly[visy] += d
         return index
 
+    @staticmethod
     def _get_distance_matrix(lx: np.ndarray, ly: np.ndarray, mat: np.ndarray, M: int) -> np.ndarray:
         """
         Overview:

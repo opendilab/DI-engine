@@ -457,7 +457,7 @@ class ChannelShuffle(nn.Module):
     Overview:
         Apply channel shuffle to the input tensor. For more details about the channel shuffle,
         please refer to the 'ShuffleNet' paper: https://arxiv.org/abs/1707.01083
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -543,7 +543,7 @@ class NearestUpsample(nn.Module):
     """
     Overview:
         This module upsamples the input to the given scale_factor using the nearest mode.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -573,7 +573,7 @@ class BilinearUpsample(nn.Module):
     """
     Overview:
         This module upsamples the input to the given scale_factor using the bilinear mode.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -630,7 +630,7 @@ class NoiseLinearLayer(nn.Module):
     """
     Overview:
         This is a linear layer with random noise.
-    Interface:
+    Interfaces:
         ``__init__``, ``reset_noise``, ``reset_parameters``, ``forward``
     """
 
@@ -753,7 +753,7 @@ class NaiveFlatten(nn.Module):
     """
     Overview:
         This module is a naive implementation of the flatten operation.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 

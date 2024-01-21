@@ -39,7 +39,7 @@ class SegmentTree:
     Overview:
         Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
         non-leaf nodes are to do some operations on its left and right child.
-    Interface:
+    Interfaces:
         ``__init__``, ``reduce``, ``__setitem__``, ``__getitem__``
     """
 
@@ -134,7 +134,7 @@ class SumSegmentTree(SegmentTree):
     """
     Overview:
         Sum segment tree, which is inherited from ``SegmentTree``. Init by passing ``operation='sum'``.
-    Interface:
+    Interfaces:
         ``__init__``, ``find_prefixsum_idx``
     """
 
@@ -169,7 +169,7 @@ class MinSegmentTree(SegmentTree):
     """
     Overview:
         Min segment tree, which is inherited from ``SegmentTree``. Init by passing ``operation='min'``.
-    Interface:
+    Interfaces:
         ``__init__``
     """
 

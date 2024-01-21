@@ -29,5 +29,7 @@ class DataParallel(nn.DataParallel):
             Return the parameters of the module.
         Arguments:
             - recurse (:obj:`bool`): Whether to return the parameters of the submodules.
+        Returns:
+            - params (:obj:`generator`): The generator of the parameters.
         """
         return self.module.parameters(recurse=True)
