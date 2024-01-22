@@ -14,68 +14,90 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('a2c')
 class A2CPolicy(Policy):
-    r"""
+    """
     Overview:
-        Policy class of A2C algorithm.
+        Policy class of A2C (Advantage Actor-Critic) algorithm, proposed in https://arxiv.org/abs/1602.01783.
     """
     config = dict(
-        # (string) RL policy register name (refer to function "register_policy").
+        # (str) Name of the registered RL policy (refer to the "register_policy" function).
         type='a2c',
-        # (bool) Whether to use cuda for network.
+        # (bool) Flag to enable CUDA for model computation.
         cuda=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
-        on_policy=True,  # for a2c strictly on policy algorithm, this line should not be seen by users
+        # (bool) Flag for using on-policy training (training policy is the same as the behavior policy).
+        on_policy=True,
+        # (bool) Flag for enabling priority experience replay. Must be False when priority_IS_weight is False.
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Flag for using Importance Sampling weights to correct updates. Requires `priority` to be True.
         priority_IS_weight=False,
-        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous']
+        # (str) Type of action space used in the policy, with valid options ['discrete', 'continuous'].
         action_space='discrete',
+        # learn_mode configuration
         learn=dict(
-
-            # (int) for a2c, update_per_collect must be 1.
-            update_per_collect=1,  # fixed value, this line should not be modified by users
+            # (int) Number of updates per data collection. A2C requires this to be set to 1.
+            update_per_collect=1,
+            # (int) Batch size for learning.
             batch_size=64,
+            # (float) Learning rate for optimizer.
             learning_rate=0.001,
-            # (List[float])
+            # (tuple[float, float]) Coefficients used for computing running averages of gradient and its square.
             betas=(0.9, 0.999),
-            # (float)
+            # (float) Term added to the denominator to improve numerical stability in optimizer.
             eps=1e-8,
-            # (float)
+            # (float) Maximum norm for gradients.
             grad_norm=0.5,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) loss weight of the value network, the weight of policy network is set to 1
+            # (float) Scaling factor for value network loss relative to policy network loss.
             value_weight=0.5,
-            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
+            # (float) Weight of entropy regularization in the loss function.
             entropy_weight=0.01,
-            # (bool) Whether to normalize advantage. Default to False.
+            # (bool) Flag to enable normalization of advantages.
             adv_norm=False,
+            # (bool) Whether or not to consider "done" flags for episode termination.
+            # When False, episodes are processed as if they are not done.
             ignore_done=False,
         ),
+        # collect_mode configuration
         collect=dict(
-            # (int) collect n_sample data, train model n_iteration times
-            # n_sample=80,
+            # (int) The length of rollout for data collection.
             unroll_len=1,
-            # ==============================================================
-            # The following configs is algorithm-specific
-            # ==============================================================
-            # (float) discount factor for future reward, defaults int [0, 1]
+            # (float) Discount factor for calculating future rewards, typically in the range [0, 1].
             discount_factor=0.9,
-            # (float) the trade-off factor lambda to balance 1step td and mc
+            # (float) Trade-off parameter for balancing TD-error and Monte Carlo error in GAE.
             gae_lambda=0.95,
         ),
+        # eval_mode configuration (kept empty for compatibility purposes)
         eval=dict(),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): \
+                Tuple containing the registered model name and model's import_names.
+        """
         return 'vac', ['ding.model.template.vac']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For A2C, it mainly \
+            contains optimizer, algorithm-specific arguments such as value_weight, entropy_weight, adv_norm
+            and grad_norm, and main model. \
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         assert self._cfg.action_space in ["continuous", "discrete"]
         # Optimizer
@@ -98,15 +120,32 @@ class A2CPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
-        Overview:
-            Forward and backward function of learn mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs','adv']
-        Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as policy_loss, value_loss, entropy_loss.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For A2C, each element in list is a dict containing at least the following keys: \
+                ['obs', 'action', 'adv', 'value', 'weight'].
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement your own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+        """
+        # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
@@ -135,7 +174,6 @@ class A2CPolicy(Policy):
             # ====================
             # A2C-learning update
             # ====================
-
             self._optimizer.zero_grad()
             total_loss.backward()
 
@@ -160,22 +198,44 @@ class A2CPolicy(Policy):
         }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
-        r"""
-        Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
         """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. For A2C, it contains the \
+            collect_model to balance the exploration and exploitation with ``reparam_sample`` or ``multinomial_sample`` \
+             mechanism, and other algorithm-specific arguments such as gamma and gae_lambda.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
 
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+        """
         assert self._cfg.action_space in ["continuous", "discrete"]
         self._unroll_len = self._cfg.collect.unroll_len
 
@@ -189,17 +249,19 @@ class A2CPolicy(Policy):
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
 
-    def _forward_collect(self, data: dict) -> dict:
-        r"""
+    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of collect mode.
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                dict is the same as the input data, i.e. environment id.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -213,51 +275,67 @@ class A2CPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
-        r"""
+    def _process_transition(self, obs: Any, policy_output: Dict[str, torch.Tensor], timestep: namedtuple) -> Dict[str, torch.Tensor]:
+        """
         Overview:
-            Generate dict type transition data from inputs.
+            Process and pack one timestep transition data into a dict, which can be directly used for training and \
+            saved in replay buffer. For A2C, it contains obs, next_obs, action, value, reward, done.
         Arguments:
-            - obs (:obj:`Any`): Env observation
-            - model_output (:obj:`dict`): Output of collect model, including at least ['action']
-            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
-                (here 'obs' indicates obs after env step).
+            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.
+            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \
+                as input. For A2C, it contains the action and the value of the state.
+            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \
+                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \
+                reward, done, info, etc.
         Returns:
-            - transition (:obj:`dict`): Dict type transition data.
+            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.
         """
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'value': model_output['value'],
+            'action': policy_output['action'],
+            'value': policy_output['value'],
             'reward': timestep.reward,
             'done': timestep.done,
         }
         return transition
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-        Overview:
-            Get the trajectory and the n step return data, then sample from the n_step return data
-        Arguments:
-            - data (:obj:`list`): The trajectory's buffer list
-        Returns:
-            - samples (:obj:`dict`): The training samples generated
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        data = get_gae_with_default_last_value(
-            data,
-            data[-1]['done'],
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In A2C, a train sample is a processed transition. \
+            This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help the learner amortize relevant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                in the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is similar in format \
+                to input transitions, but may contain more data for training, such as advantages.
+        """
+        transitions = get_gae_with_default_last_value(
+            transitions,
+            transitions[-1]['done'],
             gamma=self._gamma,
             gae_lambda=self._gae_lambda,
             cuda=self._cuda,
         )
-        return get_train_sample(data, self._unroll_len)
+        return get_train_sample(transitions, self._unroll_len)
 
     def _init_eval(self) -> None:
-        r"""
+        """
         Overview:
-            Evaluate mode init method. Called by ``self.__init__``.
-            Init eval model with argmax strategy.
+            Initialize the eval mode of policy, including related attributes and modules. For A2C, it contains the \
+            eval model to greedily select action with ``argmax_sample`` mechanism (For discrete action space) and \
+            ``deterministic_sample`` mechanism (For continuous action space). \
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
         """
         assert self._cfg.action_space in ["continuous", "discrete"]
         self._action_space = self._cfg.action_space
@@ -267,17 +345,24 @@ class A2CPolicy(Policy):
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
-        r"""
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
         Overview:
-            Forward function of eval mode, similar to ``self._forward_collect``.
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs.
         Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
         Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
-        ReturnsKeys
-            - necessary: ``action``
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e., environment id.
+
+        .. note::
+            The input value can be ``torch.Tensor`` or dict/list combinations, current policy supports all of them. \
+            For the data type that is not supported, the main reason is that the corresponding model does not \
+            support it. You can implement your own model rather than use the default model. For more information, \
+            please raise an issue in GitHub repo, and we will continue to follow up.
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -292,4 +377,11 @@ class A2CPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss', 'entropy_loss', 'adv_abs_max', 'grad_norm']

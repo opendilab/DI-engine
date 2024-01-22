@@ -95,7 +95,7 @@ class DQNPolicy(Policy):
         priority_IS_weight=False,
         # (float) Discount factor(gamma) for returns.
         discount_factor=0.97,
-        # (int) The number of step for calculating target q_value.
+        # (int) The number of steps for calculating target q_value.
         nstep=1,
         model=dict(
             # (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.
@@ -111,10 +111,10 @@ class DQNPolicy(Policy):
             batch_size=64,
             # (float) The step size of gradient descent.
             learning_rate=0.001,
-            # (int) Frequence of target network update.
+            # (int) Frequency of target network update.
             # Only one of [target_update_freq, target_theta] should be set.
             target_update_freq=100,
-            # (float) : Used for soft update of the target network.
+            # (float): Used for soft update of the target network.
             # aka. Interpolation factor in EMA update for target network.
             # Only one of [target_update_freq, target_theta] should be set.
             target_theta=0.005,
@@ -130,12 +130,12 @@ class DQNPolicy(Policy):
         # collect_mode config
         collect=dict(
             # (int) How many training samples collected in one collection procedure.
-            # Only one of [n_sample, n_episode] shoule be set.
+            # Only one of [n_sample, n_episode] should be set.
             n_sample=8,
             # (int) Split episodes or trajectories into pieces with length `unroll_len`.
             unroll_len=1,
         ),
-        eval=dict(),  # for compability
+        eval=dict(),  # for compatibility
         # other config
         other=dict(
             # Epsilon greedy with decay.
@@ -165,7 +165,7 @@ class DQNPolicy(Policy):
             - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
 
         .. note::
-            The user can define and use customized network model but must obey the same inferface definition indicated \
+            The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For example about DQN, its registered name is ``dqn`` and the import_names is \
             ``ding.model.template.q_learning``.
         """
@@ -242,7 +242,7 @@ class DQNPolicy(Policy):
         .. note::
             The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
             For the data type that not supported, the main reason is that the corresponding model does not support it. \
-            You can implement you own model rather than use the default model. For more information, please raise an \
+            You can implement your own model rather than use the default model. For more information, please raise an \
             issue in GitHub repo and we will continue to follow up.
 
         .. note::
@@ -398,7 +398,7 @@ class DQNPolicy(Policy):
             For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
             can be used for training directly. In DQN with nstep TD, a train sample is a processed transition. \
             This method is usually used in collectors to execute necessary \
-            RL data preprocessing before training, which can help learner amortize revelant time consumption. \
+            RL data preprocessing before training, which can help learner amortize relevant time consumption. \
             In addition, you can also implement this method as an identity function and do the data processing \
             in ``self._forward_learn`` method.
         Arguments:
