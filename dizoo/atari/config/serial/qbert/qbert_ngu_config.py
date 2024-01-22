@@ -5,23 +5,22 @@ evaluator_env_num = 8
 nstep = 5
 max_env_step = int(10e6)
 
-montezuma_ngu_config = dict(
-    exp_name='montezuma_ngu_seed0',
+qbert_ngu_config = dict(
+    exp_name='qbert_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=8,
-        env_id='MontezumaRevengeNoFrameskip-v4',
-        #'ALE/MontezumaRevenge-v5' is available. But special setting is needed after gym make.
+        n_evaluator_episode=evaluator_env_num,
+        env_id='QbertNoFrameskip-v4',
         obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
-        stop_value=int(1e5),
+        stop_value=int(1e6),
         frame_stack=4,
     ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',
-        learning_rate=0.001,
+        learning_rate=1e-4,
         obs_shape=[4, 84, 84],
-        action_shape=18,
+        action_shape=6,
         batch_size=320,
         update_per_collect=10,
         only_use_last_five_frames_for_icm_rnd=False,
@@ -45,11 +44,11 @@ montezuma_ngu_config = dict(
         # please refer to ngu_reward_model for details.
         last_nonzero_reward_weight=1,
         intrinsic_reward_type='add',
-        learning_rate=0.001,
+        learning_rate=1e-4,
         obs_shape=[4, 84, 84],
-        action_shape=18,
+        action_shape=6,
         batch_size=320,
-        update_per_collect=10,  # 32*100/64=50
+        update_per_collect=10,
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
         nstep=nstep,
@@ -67,10 +66,10 @@ montezuma_ngu_config = dict(
         # (int) <learn_unroll_len> is the total length of [sequence sample] minus
         # the length of burnin part in [sequence sample],
         # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
-        learn_unroll_len=80,  # set this key according to the episode length
+        learn_unroll_len=40,  # set this key according to the episode length
         model=dict(
             obs_shape=[4, 84, 84],
-            action_shape=18,
+            action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
             collector_env_num=collector_env_num,
         ),
@@ -100,7 +99,7 @@ montezuma_ngu_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(2e3),
+                replay_buffer_size=int(2e4),
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -109,9 +108,9 @@ montezuma_ngu_config = dict(
         ),
     ),
 )
-montezuma_ngu_config = EasyDict(montezuma_ngu_config)
-main_config = montezuma_ngu_config
-montezuma_ngu_create_config = dict(
+qbert_ngu_config = EasyDict(qbert_ngu_config)
+main_config = qbert_ngu_config
+qbert_ngu_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -121,9 +120,10 @@ montezuma_ngu_create_config = dict(
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
 )
-montezuma_ngu_create_config = EasyDict(montezuma_ngu_create_config)
-create_config = montezuma_ngu_create_config
+qbert_ngu_create_config = EasyDict(qbert_ngu_create_config)
+create_config = qbert_ngu_create_config
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline_reward_model_ngu
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0, max_env_step=max_env_step)
+    # or you can enter `ding -m serial_ngu -c qbert_ngu_config.py -s 0`
+    from ding.entry import serial_pipeline_ngu
+    serial_pipeline_ngu([main_config, create_config], seed=0, max_env_step=max_env_step)
