@@ -653,7 +653,7 @@ class Bernoulli:
         Overview:
             Get attribute.
         Arguments:
-            - name (:obj:`str`): Attribute name.  
+            - name (:obj:`str`): Attribute name.
         """
 
         return getattr(self._dist, name)
