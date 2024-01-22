@@ -3,8 +3,8 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 nstep = 5
-pong_ngu_config = dict(
-    exp_name='pong_ngu_seed0',
+spaceinvaders_ngu_config = dict(
+    exp_name='spaceinvaders_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -107,9 +107,9 @@ pong_ngu_config = dict(
         ),
     ),
 )
-pong_ngu_config = EasyDict(pong_ngu_config)
-main_config = pong_ngu_config
-pong_ngu_create_config = dict(
+spaceinvaders_ngu_config = EasyDict(spaceinvaders_ngu_config)
+main_config = spaceinvaders_ngu_config
+spaceinvaders_ngu_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -119,10 +119,10 @@ pong_ngu_create_config = dict(
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
 )
-pong_ngu_create_config = EasyDict(pong_ngu_create_config)
-create_config = pong_ngu_create_config
+spaceinvaders_ngu_create_config = EasyDict(spaceinvaders_ngu_create_config)
+create_config = spaceinvaders_ngu_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial_ngu -c pong_ngu_config.py -s 0`
+    # or you can enter `ding -m serial_ngu -c spaceinvaders_ngu_config.py -s 0`
     from ding.entry import serial_pipeline_ngu
     serial_pipeline_ngu([main_config, create_config], seed=0)
