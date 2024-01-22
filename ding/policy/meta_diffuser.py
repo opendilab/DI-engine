@@ -342,7 +342,7 @@ class MDPolicy(Policy):
             if self._cuda:
                 obs = to_device(obs, self._device)
             conditions = {0: obs}
-            action = self._eval_model.get_eval(conditions, self.test_task_id)
+            action = self._eval_model.get_eval(conditions, self.test_task_id, self._cfg.learn.plan_batch_size)
             if self._cuda:
                 action = to_device(action, 'cpu')
             for i in range(self.eval_batch_size):

@@ -85,8 +85,9 @@ main_config = dict(
             discount_factor=0.99,
             learner=dict(hook=dict(save_ckpt_after_iter=1000000000, )),
             eval_batch_size=8,
-            warm_batch_size=640,
+            warm_batch_size=32,
             test_num=10,
+            plan_batch_size=1,
         ),
         collect=dict(data_type='meta_traj', ),
         eval=dict(

@@ -93,6 +93,8 @@ def free_guidance_sample(
     
 ):
     weight = extract(model.sqrt_one_minus_alphas_cumprod, t, x.shape)
+    # model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
+    # model_std = torch.exp(0.5 * model_log_variance)
     
     for _ in range(n_guide_steps):
         with torch.enable_grad():
@@ -114,20 +116,12 @@ def free_guidance_sample(
             epsilon = model.model(x, cond, t)
         epsilon += grad
 
-    t = t.detach().to(torch.int64)
-    x_recon = model.predict_start_from_noise(x, t=t, noise=epsilon)
-
-    if model.clip_denoised:
-        x_recon.clamp_(-1., 1.)
-    else:
-        assert RuntimeError()
-
-    model_mean, _, model_log_variance = model.p_mean_variance(x=x_recon, cond=cond, t=t, epsilon=epsilon)
+    model_mean, _, model_log_variance = model.p_mean_variance(x=x, cond=cond, t=t, epsilon=epsilon)
     model_std = torch.exp(0.5 * model_log_variance)
     noise = torch.randn_like(x)
     noise[t == 0] = 0
 
-    return model_mean + model_std * noise
+    return model_mean + model_std * noise, y1
 
 class GaussianDiffusion(nn.Module):
     """
@@ -740,10 +734,16 @@ class GuidenceFreeDifffuser(GaussianInvDynDiffusion):
         assert sample_fn != None
         for i in reversed(range(0, self.n_timesteps)):
             t = torch.full((batch_size, ), i, device=device, dtype=torch.long)
-            x = sample_fn(self, x, cond, t, **sample_kwargs)
+            x, values = sample_fn(self, x, cond, t, **sample_kwargs)
             x = apply_conditioning(x, cond, self.action_dim)
 
-        return x
+        values = values.reshape(-1, plan_size, *values.shape[1:])
+        x = x.reshape(-1, plan_size, *x.shape[1:])
+        if plan_size > 1:
+            inds = torch.argsort(values, dim=1, descending=True)
+            inds = inds.unsqueeze(-1).expand_as(x)
+            x = x.gather(1, inds)
+        return x[:,0]
 
 
     def conditional_sample(self, cond, horizon=None, **sample_kwargs):
@@ -861,9 +861,12 @@ class MetaDiffuser(nn.Module):
         return state_loss, reward_loss, reward_log
 
     def get_eval(self, cond, id, batch_size = 1):
+        id = torch.stack(id, dim=0)
         if batch_size > 1:
             cond = self.repeat_cond(cond, batch_size)
-        id = torch.stack(id, dim=0)
+            id = id.unsqueeze(1).repeat_interleave(batch_size, dim=1)
+            id = id.reshape(-1, id.shape[-1])
+        
         samples = self.diffuser(cond, returns=id, sample_fn=free_guidance_sample, plan_size=batch_size,
                                 guide1=self.reward_model, guide2=self.dynamic_model, **self.sample_kwargs)
         return samples[:, 0, :self.action_dim]
