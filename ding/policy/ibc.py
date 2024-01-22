@@ -24,8 +24,8 @@ class IBCPolicy(BehaviourCloningPolicy):
 
     .. note::
         The code is adapted from the pytorch version of IBC https://github.com/kevinzakka/ibc, which only supports the \
-         derivative-free optimization (dfo) variants. This implementation moves a step forward and supports all variants \
-          of energy-based model mentioned in the paper (dfo, autoregressive dfo, and mcmc).
+        derivative-free optimization (dfo) variants. This implementation moves a step forward and supports all \
+        variants of energy-based model mentioned in the paper (dfo, autoregressive dfo, and mcmc).
     """
 
     config = dict(

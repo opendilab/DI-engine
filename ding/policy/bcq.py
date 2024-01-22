@@ -18,7 +18,8 @@ from .common_utils import default_preprocess_learn
 class BCQPolicy(Policy):
     """
     Overview:
-        Policy class of BCQ (Batch-Constrained deep Q-learning) algorithm, proposed in https://arxiv.org/abs/1812.02900.
+        Policy class of BCQ (Batch-Constrained deep Q-learning) algorithm, proposed in \
+        https://arxiv.org/abs/1812.02900.
     """
 
     config = dict(

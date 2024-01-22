@@ -229,8 +229,8 @@ class A2CPolicy(Policy):
         """
         Overview:
             Initialize the collect mode of policy, including related attributes and modules. For A2C, it contains the \
-            collect_model to balance the exploration and exploitation with ``reparam_sample`` or ``multinomial_sample`` \
-             mechanism, and other algorithm-specific arguments such as gamma and gae_lambda.
+            collect_model to balance the exploration and exploitation with ``reparam_sample`` or \
+            ``multinomial_sample`` mechanism, and other algorithm-specific arguments such as gamma and gae_lambda. \
             This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
 
         .. note::
@@ -276,7 +276,8 @@ class A2CPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, policy_output: Dict[str, torch.Tensor], timestep: namedtuple) -> Dict[str, torch.Tensor]:
+    def _process_transition(self, obs: Any, policy_output: Dict[str, torch.Tensor],
+                            timestep: namedtuple) -> Dict[str, torch.Tensor]:
         """
         Overview:
             Process and pack one timestep transition data into a dict, which can be directly used for training and \

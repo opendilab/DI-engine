@@ -12,15 +12,23 @@ from .dqn import DQNPolicy
 
 
 def compute_grad_norm(model):
-    # compute grad norm of a network's parameters
+    """
+    Overview:
+        Compute grad norm of a network's parameters.
+    Arguments:
+        - model (:obj:`nn.Module`): The network to compute grad norm.
+    Returns:
+        - grad_norm (:obj:`torch.Tensor`): The grad norm of the network's parameters.
+    """
     return torch.norm(torch.stack([torch.norm(p.grad.detach(), 2.0) for p in model.parameters()]), 2.0)
 
 
 @POLICY_REGISTRY.register('fqf')
 class FQFPolicy(DQNPolicy):
-    r"""
+    """
     Overview:
-        Policy class of FQF (Fully Parameterized Quantile Function) algorithm, proposed in https://arxiv.org/pdf/1911.02140.pdf.
+        Policy class of FQF (Fully Parameterized Quantile Function) algorithm, proposed in
+        https://arxiv.org/pdf/1911.02140.pdf.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
