@@ -3,16 +3,17 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 nstep = 5
+max_env_step = int(10e6)
+
 spaceinvaders_ngu_config = dict(
     exp_name='spaceinvaders_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        env_id='PongNoFrameskip-v4',
-        #'ALE/Pong-v5' is available. But special setting is needed after gym make.
+        env_id='SpaceInvadersNoFrameskip-v4',
         obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
-        stop_value=20,
+        stop_value=int(1e6),
         frame_stack=4,
     ),
     rnd_reward_model=dict(
@@ -61,7 +62,7 @@ spaceinvaders_ngu_config = dict(
         priority_IS_weight=True,
         discount_factor=0.997,
         nstep=nstep,
-        burnin_step=2,
+        burnin_step=20,
         # (int) <learn_unroll_len> is the total length of [sequence sample] minus
         # the length of burnin part in [sequence sample],
         # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
@@ -125,4 +126,4 @@ create_config = spaceinvaders_ngu_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_ngu -c spaceinvaders_ngu_config.py -s 0`
     from ding.entry import serial_pipeline_ngu
-    serial_pipeline_ngu([main_config, create_config], seed=0)
+    serial_pipeline_ngu([main_config, create_config], seed=0, max_env_step=max_env_step)

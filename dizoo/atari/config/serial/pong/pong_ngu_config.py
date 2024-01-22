@@ -3,6 +3,8 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 nstep = 5
+max_env_step = int(10e6)
+
 pong_ngu_config = dict(
     exp_name='pong_ngu_seed0',
     env=dict(
@@ -61,7 +63,7 @@ pong_ngu_config = dict(
         priority_IS_weight=True,
         discount_factor=0.997,
         nstep=nstep,
-        burnin_step=2,
+        burnin_step=20,
         # (int) <learn_unroll_len> is the total length of [sequence sample] minus
         # the length of burnin part in [sequence sample],
         # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
@@ -125,4 +127,4 @@ create_config = pong_ngu_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_ngu -c pong_ngu_config.py -s 0`
     from ding.entry import serial_pipeline_ngu
-    serial_pipeline_ngu([main_config, create_config], seed=0)
+    serial_pipeline_ngu([main_config, create_config], seed=0, max_env_step=max_env_step)
