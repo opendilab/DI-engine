@@ -1,11 +1,12 @@
-from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
+from typing import List, Dict, Any, Tuple
+
 import torch
 
-from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_train_sample, \
-                        a2c_error_continuous
-from ding.torch_utils import Adam, to_device
 from ding.model import model_wrap
+from ding.rl_utils import a2c_data, a2c_error, get_gae_with_default_last_value, get_train_sample, \
+    a2c_error_continuous
+from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY, split_data_generator
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy

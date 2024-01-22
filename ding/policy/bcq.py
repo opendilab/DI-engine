@@ -1,15 +1,14 @@
-from typing import List, Dict, Any, Tuple, Union
-from collections import namedtuple
 import copy
-import numpy as np
+from collections import namedtuple
+from typing import List, Dict, Any, Tuple
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
-from ding.torch_utils import Adam, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, get_nstep_return_data
 from ding.model import model_wrap
 from ding.policy import Policy
+from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, get_nstep_return_data
+from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .common_utils import default_preprocess_learn
@@ -17,94 +16,97 @@ from .common_utils import default_preprocess_learn
 
 @POLICY_REGISTRY.register('bcq')
 class BCQPolicy(Policy):
+    """
+    Overview:
+        Policy class of BCQ (Batch-Constrained deep Q-learning) algorithm, proposed in https://arxiv.org/abs/1812.02900.
+    """
+
     config = dict(
+        # (str) Name of the registered RL policy (refer to the "register_policy" function).
         type='bcq',
-        # (bool) Whether to use cuda for network.
+        # (bool) Indicates if CUDA should be used for network operations.
         cuda=False,
-        # (bool type) priority: Determine whether to use priority in buffer sample.
-        # Default False in SAC.
+        # (bool) Determines whether priority sampling is used in the replay buffer. Default is False.
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) If True, Importance Sampling Weight is used to correct updates. Requires 'priority' to be True.
         priority_IS_weight=False,
-        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
-        # Default 10000 in SAC.
+        # (int) Number of random samples in replay buffer before training begins. Default is 10000.
         random_collect_size=10000,
+        # (int) The number of steps for calculating target q_value.
         nstep=1,
         model=dict(
-            # (List) Hidden list for actor network head.
+            # (List[int]) Sizes of the hidden layers in the actor network.
             actor_head_hidden_size=[400, 300],
-
-            # (List) Hidden list for critic network head.
+            # (List[int]) Sizes of the hidden layers in the critic network.
             critic_head_hidden_size=[400, 300],
-            # Max perturbation hyper-parameter for BCQ
+            # (float) Maximum perturbation for BCQ. Controls exploration in action space.
             phi=0.05,
         ),
         learn=dict(
-
-            # How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
+            # (int) Number of policy updates per data collection step. Higher values indicate more off-policy training.
             update_per_collect=1,
-            # (int) Minibatch size for gradient descent.
+            # (int) Batch size for each gradient descent step.
             batch_size=100,
-
-            # (float type) learning_rate_q: Learning rate for soft q network.
-            # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
+            # (float) Learning rate for the Q-network. Set to 1e-3 if `model.value_network` is True.
             learning_rate_q=3e-4,
-            # (float type) learning_rate_policy: Learning rate for policy network.
-            # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
+            # (float) Learning rate for the policy network. Set to 1e-3 if `model.value_network` is True.
             learning_rate_policy=3e-4,
-            # (float type) learning_rate_vae: Learning rate for vae network.
-            # `learning_rate_value` should be initialized, when model.vae_network is True.
-            # Please set to 3e-4, when model.vae_network is True.
+            # (float) Learning rate for the VAE network. Initialize if `model.vae_network` is True.
             learning_rate_vae=3e-4,
-            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
-            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
-            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
-            # However, interaction with HalfCheetah always gets done with done is False,
-            # Since we inplace done==True with done==False to keep
-            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
-            # when the episode step is greater than max episode step.
+            # (bool) If True, 'done' signals resulting from environment time limits are ignored.
+            # Useful for tasks with fixed episode lengths. Default is False.
             ignore_done=False,
-
-            # (float type) target_theta: Used for soft update of the target network,
-            # aka. Interpolation factor in polyak averaging for target networks.
-            # Default to 0.005.
+            # (float) Polyak averaging coefficient for the target network update. Typically small.
             target_theta=0.005,
-            # (float) discount factor for the discounted sum of rewards, aka. gamma.
+            # (float) Discount factor for future rewards, often denoted as gamma.
             discount_factor=0.99,
+            # (float) Lambda for TD(lambda) learning. Weighs the trade-off between bias and variance.
             lmbda=0.75,
-
-            # (float) Weight uniform initialization range in the last output layer
+            # (float) Range for uniform weight initialization in the output layer.
             init_w=3e-3,
         ),
         collect=dict(
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) Length of trajectory segments for unrolling. Set to higher for longer dependencies.
             unroll_len=1,
         ),
         eval=dict(),
         other=dict(
             replay_buffer=dict(
-                # (int type) replay_buffer_size: Max size of replay buffer.
+                # (int) Maximum size of the replay buffer.
                 replay_buffer_size=1000000,
-                # (int type) max_use: Max use times of one data in the buffer.
-                # Data will be removed once used for too many times.
-                # Default to infinite.
-                # max_use=256,
             ),
         ),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): \
+                Tuple containing the registered model name and model's import_names.
+        """
         return 'bcq', ['ding.model.template.bcq']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For BCQ, it mainly \
+            contains optimizer, algorithm-specific arguments such as gamma, main and target model. \
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         # Init
         self._priority = self._cfg.priority
@@ -140,12 +142,35 @@ class BCQPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
         self._target_model.reset()
-
         self._forward_learn_cnt = 0
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        loss_dict = {}
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as policy_loss, value_loss, entropy_loss.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For A2C, each element in list is a dict containing at least the following keys: \
+                ['obs', 'action', 'adv', 'value', 'weight'].
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
 
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement your own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+        """
+        loss_dict = {}
+        # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
             data,
             use_priority=self._priority,
@@ -197,7 +222,7 @@ class BCQPolicy(Policy):
             # the value of a policy according to the maximum entropy objective
             # find min one as target q value
             target_q_value = self.lmbda * torch.min(target_q_value[0], target_q_value[1]) \
-                + (1 - self.lmbda) * torch.max(target_q_value[0], target_q_value[1])
+                             + (1 - self.lmbda) * torch.max(target_q_value[0], target_q_value[1])
             target_q_value = target_q_value.reshape(batch_size, -1).max(1)[0].reshape(-1, 1)
 
         q_data0 = v_1step_td_data(q_value[0], target_q_value, reward, done, data['weight'])
@@ -230,12 +255,25 @@ class BCQPolicy(Policy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return [
             'td_error', 'target_q_value', 'critic_loss', 'twin_critic_loss', 'actor_loss', 'recons_loss', 'kld_loss',
             'vae_loss'
         ]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         ret = {
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
@@ -245,11 +283,38 @@ class BCQPolicy(Policy):
         }
         return ret
 
-    def _init_eval(self):
+    def _init_eval(self) -> None:
+        """
+        Overview:
+            Initialize the eval mode of policy, including related attributes and modules.
+            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_eval`` method, you'd better name them \
+            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.
+        """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> Dict[str, Any]:
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \
+            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \
+            action to interact with the envs.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \
+                key of the dict is the same as the input data, i.e., environment id.
+
+        .. note::
+            The input value can be ``torch.Tensor`` or dict/list combinations, current policy supports all of them. \
+            For the data type that is not supported, the main reason is that the corresponding model does not \
+            support it. You can implement your own model rather than use the default model. For more information, \
+            please raise an issue in GitHub repo, and we will continue to follow up.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -264,26 +329,44 @@ class BCQPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _init_collect(self) -> None:
+        """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. For A2C, it contains the \
+            collect_model to balance the exploration and exploitation with ``eps_greedy_sample`` \
+             mechanism, and other algorithm-specific arguments such as gamma and nstep.
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+        """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.nstep  # necessary for parallel
+        self._gamma = self._cfg.discount_factor
+        self._nstep = self._cfg.nstep
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
+
+    def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. In A2C, a train sample is a processed transition. \
+            This method is usually used in collectors to execute necessary \
+            RL data preprocessing before training, which can help the learner amortize relevant time consumption. \
+            In addition, you can also implement this method as an identity function and do the data processing \
+            in ``self._forward_learn`` method.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
+                in the same format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is similar in format \
+                to input transitions, but may contain more data for training, such as advantages.
+        """
+        transitions = get_nstep_return_data(transitions, self._nstep, gamma=self._gamma)
+        return get_train_sample(transitions, self._unroll_len)
 
     def _forward_collect(self, data: dict, **kwargs) -> dict:
         pass
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         pass
-
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
-            Overview:
-                Get the trajectory and the n step return data, then sample from the n_step return data
-            Arguments:
-                - data (:obj:`list`): The trajectory's cache
-            Returns:
-                - samples (:obj:`dict`): The training samples generated
-            """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
