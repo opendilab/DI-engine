@@ -51,6 +51,8 @@ from .bcq import BCQPolicy
 from .edac import EDACPolicy
 from .prompt_pg import PromptPGPolicy
 from .plan_diffuser import PDPolicy
+from .meta_diffuser import MDPolicy
+from .prompt_dt import PDTPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -448,4 +450,12 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('prompt_pg_command')
 class PromptPGCommandModePolicy(PromptPGPolicy, DummyCommandModePolicy):
+    pass
+
+@POLICY_REGISTRY.register('metadiffuser_command')
+class MDCommandModePolicy(MDPolicy, DummyCommandModePolicy):
+    pass
+
+@POLICY_REGISTRY.register('promptdt_command')
+class PDTCommandModePolicy(PDTPolicy, DummyCommandModePolicy):
     pass
