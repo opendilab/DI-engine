@@ -1,22 +1,26 @@
-from typing import List, Dict, Any, Tuple, Union
 import copy
+from typing import List, Dict, Any, Tuple
+
 import torch
 
-from ding.torch_utils import Adam, RMSprop, to_device
-from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, \
-    get_train_sample, get_nstep_return_data
 from ding.model import model_wrap
+from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss
+from ding.torch_utils import Adam, RMSprop, to_device
 from ding.utils import POLICY_REGISTRY
-from ding.utils.data import default_collate, default_decollate
-from .dqn import DQNPolicy
 from .common_utils import default_preprocess_learn
+from .dqn import DQNPolicy
+
+
+def compute_grad_norm(model):
+    # compute grad norm of a network's parameters
+    return torch.norm(torch.stack([torch.norm(p.grad.detach(), 2.0) for p in model.parameters()]), 2.0)
 
 
 @POLICY_REGISTRY.register('fqf')
 class FQFPolicy(DQNPolicy):
     r"""
     Overview:
-        Policy class of FQF algorithm.
+        Policy class of FQF (Fully Parameterized Quantile Function) algorithm, proposed in https://arxiv.org/pdf/1911.02140.pdf.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -46,70 +50,94 @@ class FQFPolicy(DQNPolicy):
     """
 
     config = dict(
-        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
+        # (str) Name of the RL policy registered in "POLICY_REGISTRY" function.
         type='fqf',
-        # (bool) Whether to use cuda for network.
+        # (bool) Flag to enable/disable CUDA for network computation.
         cuda=False,
-        # (bool) Whether the RL algorithm is on-policy or off-policy.
+        # (bool) Indicator of the RL algorithm's policy type (True for on-policy algorithms).
         on_policy=False,
-        # (bool) Whether use priority(priority sample, IS weight, update priority)
+        # (bool) Toggle for using prioritized experience replay (priority sampling and updating).
         priority=False,
-        # (float) Reward's future discount factor, aka. gamma.
+        # (float) Discount factor (gamma) for calculating the future reward.
         discount_factor=0.97,
-        # (int) N-step reward for target q_value estimation
+        # (int) Number of steps to consider for calculating n-step returns.
         nstep=1,
         learn=dict(
-
-            # How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
+            # (int) Number of training iterations per data collection from the environment.
             update_per_collect=3,
+            # (int) Size of minibatch for each update.
             batch_size=64,
+            # (float) Fractional learning rate for the fraction proposal network.
             learning_rate_fraction=2.5e-9,
+            # (float) Learning rate for the quantile regression network.
             learning_rate_quantile=0.00005,
             # ==============================================================
-            # The following configs are algorithm-specific
+            # Algorithm-specific configurations
             # ==============================================================
-            # (int) Frequence of target network update.
+            # (int) Frequency of target network updates.
             target_update_freq=100,
-            # (float) Threshold of Huber loss. In the FQF paper, this is denoted by kappa. Default to 1.0.
+            # (float) Huber loss threshold (kappa in the FQF paper).
             kappa=1.0,
-            # (float) Coefficient of entropy_loss.
+            # (float) Coefficient for the entropy loss term.
             ent_coef=0,
-            # (bool) Whether ignore done(usually for max step termination env)
+            # (bool) Whether to ignore the 'done' signal (useful in environments with max step termination).
             ignore_done=False,
         ),
-        # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
+            # (int) Specify one of [n_sample, n_step, n_episode] for data collection.
             # n_sample=8,
-            # (int) Cut trajectories into pieces with length "unroll_len".
+            # (int) Length of trajectory segments for processing.
             unroll_len=1,
         ),
         eval=dict(),
-        # other config
         other=dict(
-            # Epsilon greedy with decay.
+            # Epsilon-greedy strategy with a decay mechanism.
             eps=dict(
-                # (str) Decay type. Support ['exp', 'linear'].
+                # (str) Type of decay mechanism ['exp' for exponential, 'linear'].
                 type='exp',
+                # (float) Initial value of epsilon in epsilon-greedy exploration.
                 start=0.95,
+                # (float) Final value of epsilon after decay.
                 end=0.1,
-                # (int) Decay length(env step)
+                # (int) Number of environment steps over which epsilon is decayed.
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000, )
+            replay_buffer=dict(
+                # (int) Size of the replay buffer.
+                replay_buffer_size=10000,
+            ),
         ),
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): \
+                Tuple containing the registered model name and model's import_names.
+        """
         return 'fqf', ['ding.model.template.q_learning']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For FQF, it mainly \
+            contains optimizer, algorithm-specific arguments such as gamma, nstep, kappa ent_coef, main and \
+            target model. This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         # Optimizer
@@ -143,15 +171,32 @@ class FQFPolicy(DQNPolicy):
         self._learn_model.reset()
         self._target_model.reset()
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
-        Overview:
-            Forward and backward function of learn mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
-        Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as policy_loss, value_loss, entropy_loss.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For FQF, each element in list is a dict containing at least the following keys: \
+                ['obs', 'action', 'reward', 'next_obs'].
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement your own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+        """
+        # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(
             data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
         )
@@ -182,18 +227,11 @@ class FQFPolicy(DQNPolicy):
             data['weight']
         )
         value_gamma = data.get('value_gamma')
-
         entropy_loss = -self._ent_coef * entropies.mean()
-
         fraction_loss = fqf_calculate_fraction_loss(q_tau_i.detach(), q_value, quantiles, data['action']) + entropy_loss
-
         quantile_loss, td_error_per_sample = fqf_nstep_td_error(
             data_n, self._gamma, nstep=self._nstep, kappa=self._kappa, value_gamma=value_gamma
         )
-
-        # compute grad norm of a network's parameters
-        def compute_grad_norm(model):
-            return torch.norm(torch.stack([torch.norm(p.grad.detach(), 2.0) for p in model.parameters()]), 2.0)
 
         # ====================
         # fraction_proposal network update
@@ -240,12 +278,25 @@ class FQFPolicy(DQNPolicy):
         }
 
     def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return [
             'cur_lr_fraction_loss', 'cur_lr_quantile_loss', 'logit', 'fraction_loss', 'quantile_loss',
             'total_norm_quantiles_proposal', 'total_norm_Q', 'total_norm_fqf_fc', 'total_norm_encoder'
         ]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
+        """
         return {
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
@@ -254,6 +305,17 @@ class FQFPolicy(DQNPolicy):
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._fraction_loss_optimizer.load_state_dict(state_dict['optimizer_fraction_loss'])
