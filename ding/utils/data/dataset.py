@@ -1335,7 +1335,7 @@ class SequenceDataset(torch.utils.data.Dataset):
         Overview:
             Normalize the dataset, normalize fields that will be predicted by the diffusion model
         Arguments:
-            - keys (:obj:`list`): The list of keys.       
+            - keys (:obj:`list`): The list of keys.
         """
 
         for key in keys:

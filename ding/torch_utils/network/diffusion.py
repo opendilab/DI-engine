@@ -150,7 +150,7 @@ class SinusoidalPosEmb(nn.Module):
 class Residual(nn.Module):
     """
     Overview:
-        Basic Residual block 
+        Basic Residual block
     Interfaces:
         ``__init__``, ``forward``
     """

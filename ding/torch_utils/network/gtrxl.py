@@ -17,7 +17,7 @@ class PositionalEmbedding(nn.Module):
         The PositionalEmbedding module implements the positional embedding used in the vanilla Transformer model.
     Interfaces:
         ``__init__``, ``forward``
-    
+
     .. note::
         This implementation is adapted from https://github.com/kimiyoung/transformer-xl/blob/ \
             master/pytorch/mem_transformer.py

@@ -96,7 +96,7 @@ class LoggedModel(metaclass=_LoggedModelMeta):
             Initialize the LoggedModel object using the given arguments.
         Arguments:
             - time_ (:obj:`BaseTime`): The time.
-            - expire (:obj:`float`): The expire time.   
+            - expire (:obj:`float`): The expire time.
         """
 
         self.__time = time_

@@ -125,7 +125,7 @@ class TorchBilinearCustomized(nn.Module):
         Arguments:
             - in1_features (:obj:`int`): The size of each first input sample.
             - in2_features (:obj:`int`): The size of each second input sample.
-            - out_features (:obj:`int`): The size of each output sample.        
+            - out_features (:obj:`int`): The size of each output sample.
         """
 
         super(TorchBilinearCustomized, self).__init__()
