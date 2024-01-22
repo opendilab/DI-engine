@@ -309,7 +309,10 @@
 <span class="k">class</span> <span class="nc">QRDQNPolicy</span><span class="p">(</span><span class="n">DQNPolicy</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Policy class of QRDQN algorithm.</span>
+<span class="sd">        Policy class of QRDQN algorithm. QRDQN (https://arxiv.org/pdf/1710.10044.pdf) is a distributional RL \</span>
+<span class="sd">        algorithm, which is an extension of DQN. The main idea of QRDQN is to use quantile regression to \</span>
+<span class="sd">        estimate the quantile of the distribution of the return value, and then use the quantile to calculate \</span>
+<span class="sd">        the quantile loss.</span>
 
 <span class="sd">    Config:</span>
 <span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
@@ -391,13 +394,31 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
+<span class="sd">            automatically call this method to get the default model setting and create model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s1">&#39;qrdqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init the optimizer, algorithm config, main and target models.</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For QRDQN, it mainly \</span>
+<span class="sd">            contains optimizer, algorithm-specific arguments such as nstep and gamma. This method \</span>
+<span class="sd">            also executes some special network initializations and prepares running mean/std monitor for value.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="c1"># Optimizer</span>
@@ -419,14 +440,38 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward and backward function of learn mode.</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, current lr.</span>
+
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;next_obs&#39;]</span>
+<span class="sd">            - data (:obj:`dict`): Input data used for policy forward, including the \</span>
+<span class="sd">                collected training samples from replay buffer. For each element in dict, the key of the \</span>
+<span class="sd">                dict is the name of data items and the value is the corresponding data. Usually, the value is \</span>
+<span class="sd">                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \</span>
+<span class="sd">                often need to first be stacked in the batch dimension by some utility functions such as \</span>
+<span class="sd">                ``default_preprocess_learn``. \</span>
+<span class="sd">                For QRDQN, each element in list is a dict containing at least the following keys: ``obs``, \</span>
+<span class="sd">                ``action``, ``reward``, ``next_obs``. Sometimes, it also contains other keys such as ``weight``.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The output result dict of forward learn, \</span>
+<span class="sd">                containing current lr, total_loss and priority. When discrete action satisfying \</span>
+<span class="sd">                len(data[&#39;action&#39;])==1, it also could contain ``action_distribution`` which is used \</span>
+<span class="sd">                to draw histogram on tensorboard. For more information, please refer to the :class:`DQNPolicy`.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for QRDQNPolicy: ``ding.policy.tests.test_qrdqn``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">use_priority</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_priority</span><span class="p">,</span> <span class="n">ignore_done</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">,</span> <span class="n">use_nstep</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>

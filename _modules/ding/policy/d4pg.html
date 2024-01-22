@@ -308,9 +308,12 @@
 
 <div class="viewcode-block" id="D4PGPolicy"><a class="viewcode-back" href="../../../12_policies/d4pg.html#ding.policy.d4pg.D4PGPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;d4pg&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">D4PGPolicy</span><span class="p">(</span><span class="n">DDPGPolicy</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Policy class of D4PG algorithm.</span>
+<span class="sd">        Policy class of D4PG algorithm. D4PG is a variant of DDPG, which uses distributional critic. \</span>
+<span class="sd">        The distributional critic is implemented by using quantile regression. \</span>
+<span class="sd">        Paper link: https://arxiv.org/abs/1804.08617.</span>
+
 <span class="sd">    Property:</span>
 <span class="sd">        learn_mode, collect_mode, eval_mode</span>
 <span class="sd">    Config:</span>
@@ -443,13 +446,38 @@
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the default neural network model class for D4PGPolicy. ``__init__`` method will \</span>
+<span class="sd">            automatically call this method to get the default model setting and create model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s1">&#39;qac_dist&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac_dist&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init actor and critic optimizers, algorithm config, main and target models.</span>
+<span class="sd">            Initialize the D4PG policy&#39;s learning mode, which involves setting up key components \</span>
+<span class="sd">            specific to the D4PG algorithm. This includes creating separate optimizers for the actor \</span>
+<span class="sd">            and critic networks, a distinctive trait of D4PG&#39;s actor-critic approach, and configuring \</span>
+<span class="sd">            algorithm-specific parameters such as v_min, v_max, and n_atom for the distributional aspect \</span>
+<span class="sd">            of the critic. Additionally, the method sets up the target model with momentum-based updates, \</span>
+<span class="sd">            crucial for stabilizing learning, and optionally integrates noise into the target model for \</span>
+<span class="sd">            effective exploration. This method is invoked during the &#39;__init__&#39; if &#39;learn&#39; is specified \</span>
+<span class="sd">            in &#39;enable_field&#39;.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
@@ -497,14 +525,36 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># count iterations</span>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Forward and backward function of learn mode.</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as different loss, actor and critic lr.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - data (:obj:`dict`): Dict type data, including at least [&#39;obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;next_obs&#39;]</span>
+<span class="sd">            - data (:obj:`dict`): Input data used for policy forward, including the \</span>
+<span class="sd">                collected training samples from replay buffer. For each element in dict, the key of the \</span>
+<span class="sd">                dict is the name of data items and the value is the corresponding data. Usually, the value is \</span>
+<span class="sd">                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \</span>
+<span class="sd">                often need to first be stacked in the batch dimension by some utility functions such as \</span>
+<span class="sd">                ``default_preprocess_learn``. \</span>
+<span class="sd">                For D4PG, each element in list is a dict containing at least the following keys: ``obs``, \</span>
+<span class="sd">                ``action``, ``reward``, ``next_obs``. Sometimes, it also contains other keys such as ``weight``.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The output result dict of forward learn, containing at \</span>
+<span class="sd">                least the &quot;cur_lr_actor&quot;, &quot;cur_lr_critic&quot;, &quot;different losses&quot;, &quot;q_value&quot;, &quot;action&quot;, &quot;priority&quot;, \</span>
+<span class="sd">                keys. Additionally, loss_dict also contains other keys, which are mainly used for monitoring and \</span>
+<span class="sd">                debugging. &quot;q_value_dict&quot; is used to record the q_value statistics.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for D4PGPolicy: ``ding.policy.tests.test_d4pg``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">loss_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
@@ -585,23 +635,36 @@
         <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traj</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Overview:</span>
-<span class="sd">                Get the trajectory and the n step return data, then sample from the n_step return data</span>
-<span class="sd">            Arguments:</span>
-<span class="sd">                - traj (:obj:`list`): The trajectory&#39;s buffer list</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - samples (:obj:`dict`): The training samples generated</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Process the data of a given trajectory (transitions, a list of transition) into a list of sample that \</span>
+<span class="sd">            can be used for training directly. The sample is generated by the following steps: \</span>
+<span class="sd">            1. Calculate the nstep return data. \</span>
+<span class="sd">            2. Sample the data from the nstep return data. \</span>
+<span class="sd">            3. Stack the data in the batch dimension. \</span>
+<span class="sd">            4. Return the sample data. \</span>
+<span class="sd">            For D4PG, the nstep return data is generated by ``get_nstep_return_data`` and the sample data is \</span>
+<span class="sd">            generated by ``get_train_sample``.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            - traj (:obj:`list`): The trajectory data (a list of transition), each element is \</span>
+<span class="sd">            the same format as the return value of ``self._process_transition`` method.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - samples (:obj:`dict`): The training samples generated, including at least the following keys: \</span>
+<span class="sd">            ``&#39;obs&#39;``, ``&#39;next_obs&#39;``, ``&#39;action&#39;``, ``&#39;reward&#39;``, ``&#39;done&#39;``, ``&#39;weight&#39;``, ``&#39;value_gamma&#39;``. \</span>
+<span class="sd">            For more information, please refer to the ``get_train_sample`` method.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">get_nstep_return_data</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return variables&#39; name if variables are to used in monitor.</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - vars (:obj:`List[str]`): Variables&#39; name list.</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;cur_lr_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;cur_lr_critic&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;actor_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">ret</span></div>
