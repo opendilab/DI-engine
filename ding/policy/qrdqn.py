@@ -15,7 +15,10 @@ from .common_utils import default_preprocess_learn
 class QRDQNPolicy(DQNPolicy):
     r"""
     Overview:
-        Policy class of QRDQN algorithm.
+        Policy class of QRDQN algorithm. QRDQN (https://arxiv.org/pdf/1710.10044.pdf) is a distributional RL \
+        algorithm, which is an extension of DQN. The main idea of QRDQN is to use quantile regression to \
+        estimate the quantile of the distribution of the return value, and then use the quantile to calculate \
+        the quantile loss.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -97,13 +100,31 @@ class QRDQNPolicy(DQNPolicy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
         return 'qrdqn', ['ding.model.template.q_learning']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init the optimizer, algorithm config, main and target models.
+            Initialize the learn mode of policy, including related attributes and modules. For QRDQN, it mainly \
+            contains optimizer, algorithm-specific arguments such as nstep and gamma. This method \
+            also executes some special network initializations and prepares running mean/std monitor for value.
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         # Optimizer
@@ -125,14 +146,38 @@ class QRDQNPolicy(DQNPolicy):
         self._target_model.reset()
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
-        Overview:
-            Forward and backward function of learn mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
-        Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, current lr.
+
+        Arguments:
+            - data (:obj:`dict`): Input data used for policy forward, including the \
+                collected training samples from replay buffer. For each element in dict, the key of the \
+                dict is the name of data items and the value is the corresponding data. Usually, the value is \
+                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \
+                often need to first be stacked in the batch dimension by some utility functions such as \
+                ``default_preprocess_learn``. \
+                For QRDQN, each element in list is a dict containing at least the following keys: ``obs``, \
+                ``action``, ``reward``, ``next_obs``. Sometimes, it also contains other keys such as ``weight``.
+
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The output result dict of forward learn, \
+                containing current lr, total_loss and priority. When discrete action satisfying \
+                len(data['action'])==1, it also could contain ``action_distribution`` which is used \
+                to draw histogram on tensorboard. For more information, please refer to the :class:`DQNPolicy`.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for QRDQNPolicy: ``ding.policy.tests.test_qrdqn``.
+        """
+
         data = default_preprocess_learn(
             data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
         )
