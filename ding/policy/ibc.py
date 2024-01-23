@@ -76,7 +76,7 @@ class IBCPolicy(BehaviourCloningPolicy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            Returns the default model configuration used by the IBC algorithm. ``__init__`` method will \
             automatically call this method to get the default model setting and create model.
 
         Returns:

@@ -54,8 +54,13 @@ class BCQPolicy(Policy):
             learning_rate_policy=3e-4,
             # (float) Learning rate for the VAE network. Initialize if `model.vae_network` is True.
             learning_rate_vae=3e-4,
-            # (bool) If True, 'done' signals resulting from environment time limits are ignored.
-            # Useful for tasks with fixed episode lengths. Default is False.
+            # (bool) If set to True, the 'done' signals that indicate the end of an episode due to environment time
+            # limits are disregarded. By default, this is set to False. This setting is particularly useful for tasks
+            # that have a predetermined episode length, such as HalfCheetah and various other MuJoCo environments,
+            # where the maximum length is capped at 1000 steps. When enabled, any 'done' signal triggered by reaching
+            # the maximum episode steps will be overridden to 'False'. This ensures the accurate calculation of the
+            # Temporal Difference (TD) error, using the formula `gamma * (1 - done) * next_v + reward`,
+            # even when the episode surpasses the predefined step limit.
             ignore_done=False,
             # (float) Polyak averaging coefficient for the target network update. Typically small.
             target_theta=0.005,
@@ -82,7 +87,7 @@ class BCQPolicy(Policy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            Returns the default model configuration used by the BCQ algorithm. ``__init__`` method will \
             automatically call this method to get the default model setting and create model.
 
         Returns:
@@ -157,7 +162,7 @@ class BCQPolicy(Policy):
                 value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
                 combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
                 dimension by some utility functions such as ``default_preprocess_learn``. \
-                For A2C, each element in list is a dict containing at least the following keys: \
+                For BCQ, each element in list is a dict containing at least the following keys: \
                 ['obs', 'action', 'adv', 'value', 'weight'].
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
@@ -209,7 +214,7 @@ class BCQPolicy(Policy):
         # train_critic
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
 
-        with torch.no_grad():
+        with (torch.no_grad()):
             next_obs_rep = torch.repeat_interleave(next_obs, 10, 0)
             z = torch.randn((next_obs_rep.shape[0], self.latent_dim)).to(self._device).clamp(-0.5, 0.5)
             vae_action = self._model.vae.decode_with_obs(z, next_obs_rep)['reconstruction_action']
@@ -223,7 +228,7 @@ class BCQPolicy(Policy):
             # the value of a policy according to the maximum entropy objective
             # find min one as target q value
             target_q_value = self.lmbda * torch.min(target_q_value[0], target_q_value[1]) \
-                             + (1 - self.lmbda) * torch.max(target_q_value[0], target_q_value[1])
+                + (1 - self.lmbda) * torch.max(target_q_value[0], target_q_value[1])
             target_q_value = target_q_value.reshape(batch_size, -1).max(1)[0].reshape(-1, 1)
 
         q_data0 = v_1step_td_data(q_value[0], target_q_value, reward, done, data['weight'])
@@ -332,7 +337,7 @@ class BCQPolicy(Policy):
     def _init_collect(self) -> None:
         """
         Overview:
-            Initialize the collect mode of policy, including related attributes and modules. For A2C, it contains the \
+            Initialize the collect mode of policy, including related attributes and modules. For BCQ, it contains the \
             collect_model to balance the exploration and exploitation with ``eps_greedy_sample`` \
              mechanism, and other algorithm-specific arguments such as gamma and nstep.
             This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
@@ -351,7 +356,7 @@ class BCQPolicy(Policy):
         """
         Overview:
             For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. In A2C, a train sample is a processed transition. \
+            can be used for training directly. In BCQ, a train sample is a processed transition. \
             This method is usually used in collectors to execute necessary \
             RL data preprocessing before training, which can help the learner amortize relevant time consumption. \
             In addition, you can also implement this method as an identity function and do the data processing \

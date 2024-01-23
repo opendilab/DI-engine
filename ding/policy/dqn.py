@@ -114,17 +114,17 @@ class DQNPolicy(Policy):
             # (int) Frequency of target network update.
             # Only one of [target_update_freq, target_theta] should be set.
             target_update_freq=100,
-            # (float): Used for soft update of the target network.
+            # (float) Used for soft update of the target network.
             # aka. Interpolation factor in EMA update for target network.
             # Only one of [target_update_freq, target_theta] should be set.
             target_theta=0.005,
-            # (bool) Whether ignore done(usually for max step termination env).
-            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
-            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
-            # However, interaction with HalfCheetah always gets done with done is False,
-            # Since we inplace done==True with done==False to keep
-            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
-            # when the episode step is greater than max episode step.
+            # (bool) If set to True, the 'done' signals that indicate the end of an episode due to environment time
+            # limits are disregarded. By default, this is set to False. This setting is particularly useful for tasks
+            # that have a predetermined episode length, such as HalfCheetah and various other MuJoCo environments,
+            # where the maximum length is capped at 1000 steps. When enabled, any 'done' signal triggered by reaching
+            # the maximum episode steps will be overridden to 'False'. This ensures the accurate calculation of the
+            # Temporal Difference (TD) error, using the formula `gamma * (1 - done) * next_v + reward`,
+            # even when the episode surpasses the predefined step limit.
             ignore_done=False,
         ),
         # collect_mode config

@@ -40,7 +40,7 @@ class A2CPolicy(Policy):
             batch_size=64,
             # (float) Learning rate for optimizer.
             learning_rate=0.001,
-            # (tuple[float, float]) Coefficients used for computing running averages of gradient and its square.
+            # (Tuple[float, float]) Coefficients used for computing running averages of gradient and its square.
             betas=(0.9, 0.999),
             # (float) Term added to the denominator to improve numerical stability in optimizer.
             eps=1e-8,
@@ -52,8 +52,13 @@ class A2CPolicy(Policy):
             entropy_weight=0.01,
             # (bool) Flag to enable normalization of advantages.
             adv_norm=False,
-            # (bool) Whether or not to consider "done" flags for episode termination.
-            # When False, episodes are processed as if they are not done.
+            # (bool) If set to True, the 'done' signals that indicate the end of an episode due to environment time
+            # limits are disregarded. By default, this is set to False. This setting is particularly useful for tasks
+            # that have a predetermined episode length, such as HalfCheetah and various other MuJoCo environments,
+            # where the maximum length is capped at 1000 steps. When enabled, any 'done' signal triggered by reaching
+            # the maximum episode steps will be overridden to 'False'. This ensures the accurate calculation of the
+            # Temporal Difference (TD) error, using the formula `gamma * (1 - done) * next_v + reward`,
+            # even when the episode surpasses the predefined step limit.
             ignore_done=False,
         ),
         # collect_mode configuration

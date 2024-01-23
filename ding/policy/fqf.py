@@ -88,7 +88,13 @@ class FQFPolicy(DQNPolicy):
             kappa=1.0,
             # (float) Coefficient for the entropy loss term.
             ent_coef=0,
-            # (bool) Whether to ignore the 'done' signal (useful in environments with max step termination).
+            # (bool) If set to True, the 'done' signals that indicate the end of an episode due to environment time
+            # limits are disregarded. By default, this is set to False. This setting is particularly useful for tasks
+            # that have a predetermined episode length, such as HalfCheetah and various other MuJoCo environments,
+            # where the maximum length is capped at 1000 steps. When enabled, any 'done' signal triggered by reaching
+            # the maximum episode steps will be overridden to 'False'. This ensures the accurate calculation of the
+            # Temporal Difference (TD) error, using the formula `gamma * (1 - done) * next_v + reward`,
+            # even when the episode surpasses the predefined step limit.
             ignore_done=False,
         ),
         collect=dict(
@@ -120,7 +126,7 @@ class FQFPolicy(DQNPolicy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            Returns the default model configuration used by the FQF algorithm. ``__init__`` method will \
             automatically call this method to get the default model setting and create model.
 
         Returns:
