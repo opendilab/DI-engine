@@ -17,6 +17,10 @@ from ding.rl_utils import discount_cumsum
 
 @dataclass
 class DatasetStatistics:
+    """
+    Overview:
+        Dataset statistics.
+    """
     mean: np.ndarray  # obs
     std: np.ndarray  # obs
     action_bounds: np.ndarray
@@ -24,8 +28,21 @@ class DatasetStatistics:
 
 @DATASET_REGISTRY.register('naive')
 class NaiveRLDataset(Dataset):
+    """
+    Overview:
+        Naive RL dataset, which is used for offline RL algorithms.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    """
 
     def __init__(self, cfg) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`dict`): Config dict.
+        """
+
         assert type(cfg) in [str, EasyDict], "invalid cfg type: {}".format(type(cfg))
         if isinstance(cfg, EasyDict):
             self._data_path = cfg.policy.collect.data_path
@@ -35,16 +52,44 @@ class NaiveRLDataset(Dataset):
             self._data: List[Dict[str, torch.Tensor]] = pickle.load(f)
 
     def __len__(self) -> int:
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         return len(self._data)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Get the item of the dataset.
+        """
+
         return self._data[idx]
 
 
 @DATASET_REGISTRY.register('d4rl')
 class D4RLDataset(Dataset):
+    """
+    Overview:
+        D4RL dataset, which is used for offline RL algorithms.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    Properties:
+        - mean (:obj:`np.ndarray`): Mean of the dataset.
+        - std (:obj:`np.ndarray`): Std of the dataset.
+        - action_bounds (:obj:`np.ndarray`): Action bounds of the dataset.
+        - statistics (:obj:`dict`): Statistics of the dataset.
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`dict`): Config dict.
+        """
+
         import gym
         try:
             import d4rl  # register d4rl enviroments with open ai gym
@@ -72,13 +117,34 @@ class D4RLDataset(Dataset):
         self._data = []
         self._load_d4rl(dataset)
 
+    @property
+    def data(self) -> List:
+        return self._data
+
     def __len__(self) -> int:
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         return len(self._data)
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Get the item of the dataset.
+        """
+
         return self._data[idx]
 
     def _load_d4rl(self, dataset: Dict[str, np.ndarray]) -> None:
+        """
+        Overview:
+            Load the d4rl dataset.
+        Arguments:
+            - dataset (:obj:`Dict[str, np.ndarray]`): The d4rl dataset.
+        """
+
         for i in range(len(dataset['observations'])):
             trans_data = {}
             trans_data['obs'] = torch.from_numpy(dataset['observations'][i])
@@ -89,6 +155,15 @@ class D4RLDataset(Dataset):
             self._data.append(trans_data)
 
     def _cal_statistics(self, dataset, env, eps=1e-3, add_action_buffer=True):
+        """
+        Overview:
+            Calculate the statistics of the dataset.
+        Arguments:
+            - dataset (:obj:`Dict[str, np.ndarray]`): The d4rl dataset.
+            - env (:obj:`gym.Env`): The environment.
+            - eps (:obj:`float`): Epsilon.
+        """
+
         self._mean = dataset['observations'].mean(0)
         self._std = dataset['observations'].std(0) + eps
         action_max = dataset['actions'].max(0)
@@ -100,31 +175,78 @@ class D4RLDataset(Dataset):
         self._action_bounds = np.stack([action_min, action_max], axis=0)
 
     def _normalize_states(self, dataset):
+        """
+        Overview:
+            Normalize the states.
+        Arguments:
+            - dataset (:obj:`Dict[str, np.ndarray]`): The d4rl dataset.
+        """
+
         dataset['observations'] = (dataset['observations'] - self._mean) / self._std
         dataset['next_observations'] = (dataset['next_observations'] - self._mean) / self._std
         return dataset
 
     @property
     def mean(self):
+        """
+        Overview:
+            Get the mean of the dataset.
+        """
+
         return self._mean
 
     @property
     def std(self):
+        """
+        Overview:
+            Get the std of the dataset.
+        """
+
         return self._std
 
     @property
     def action_bounds(self) -> np.ndarray:
+        """
+        Overview:
+            Get the action bounds of the dataset.
+        """
+
         return self._action_bounds
 
     @property
     def statistics(self) -> dict:
+        """
+        Overview:
+            Get the statistics of the dataset.
+        """
+
         return DatasetStatistics(mean=self.mean, std=self.std, action_bounds=self.action_bounds)
 
 
 @DATASET_REGISTRY.register('hdf5')
 class HDF5Dataset(Dataset):
+    """
+    Overview:
+        HDF5 dataset is saved in hdf5 format, which is used for offline RL algorithms.
+        The hdf5 format is a common format for storing large numerical arrays in Python.
+        For more details, please refer to https://support.hdfgroup.org/HDF5/.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    Properties:
+        - mean (:obj:`np.ndarray`): Mean of the dataset.
+        - std (:obj:`np.ndarray`): Std of the dataset.
+        - action_bounds (:obj:`np.ndarray`): Action bounds of the dataset.
+        - statistics (:obj:`dict`): Statistics of the dataset.
+    """
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`dict`): Config dict.
+        """
+
         try:
             import h5py
         except ImportError:
@@ -147,9 +269,21 @@ class HDF5Dataset(Dataset):
             pass
 
     def __len__(self) -> int:
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         return len(self._data['obs']) - self.context_len
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+        """
+        Overview:
+            Get the item of the dataset.
+        Arguments:
+            - idx (:obj:`int`): The index of the dataset.
+        """
+
         if self.context_len == 0:  # for other offline RL algorithms
             return {k: self._data[k][idx] for k in self._data.keys()}
         else:  # for decision transformer
@@ -166,12 +300,26 @@ class HDF5Dataset(Dataset):
             return timesteps, states, actions, rtgs, traj_mask
 
     def _load_data(self, dataset: Dict[str, np.ndarray]) -> None:
+        """
+        Overview:
+            Load the dataset.
+        Arguments:
+            - dataset (:obj:`Dict[str, np.ndarray]`): The dataset.
+        """
+
         self._data = {}
         for k in dataset.keys():
             logging.info(f'Load {k} data.')
             self._data[k] = dataset[k][:]
 
-    def _cal_statistics(self, eps=1e-3):
+    def _cal_statistics(self, eps: float = 1e-3):
+        """
+        Overview:
+            Calculate the statistics of the dataset.
+        Arguments:
+            - eps (:obj:`float`): Epsilon.
+        """
+
         self._mean = self._data['obs'].mean(0)
         self._std = self._data['obs'].std(0) + eps
         action_max = self._data['action'].max(0)
@@ -182,28 +330,59 @@ class HDF5Dataset(Dataset):
         self._action_bounds = np.stack([action_min, action_max], axis=0)
 
     def _normalize_states(self):
+        """
+        Overview:
+            Normalize the states.
+        """
+
         self._data['obs'] = (self._data['obs'] - self._mean) / self._std
         self._data['next_obs'] = (self._data['next_obs'] - self._mean) / self._std
 
     @property
     def mean(self):
+        """
+        Overview:
+            Get the mean of the dataset.
+        """
+
         return self._mean
 
     @property
     def std(self):
+        """
+        Overview:
+            Get the std of the dataset.
+        """
+
         return self._std
 
     @property
     def action_bounds(self) -> np.ndarray:
+        """
+        Overview:
+            Get the action bounds of the dataset.
+        """
+
         return self._action_bounds
 
     @property
     def statistics(self) -> dict:
+        """
+        Overview:
+            Get the statistics of the dataset.
+        """
+
         return DatasetStatistics(mean=self.mean, std=self.std, action_bounds=self.action_bounds)
 
 
 @DATASET_REGISTRY.register('d4rl_trajectory')
 class D4RLTrajectoryDataset(Dataset):
+    """
+    Overview:
+        D4RL trajectory dataset, which is used for offline RL algorithms.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    """
 
     # from infos.py from official d4rl github repo
     REF_MIN_SCORE = {
@@ -346,6 +525,13 @@ class D4RLTrajectoryDataset(Dataset):
     }
 
     def __init__(self, cfg: dict) -> None:
+        """
+        Overview:
+            Initialization method.
+        Arguments:
+            - cfg (:obj:`dict`): Config dict.
+        """
+
         dataset_path = cfg.dataset.data_dir_prefix
         rtg_scale = cfg.dataset.rtg_scale
         self.context_len = cfg.dataset.context_len
@@ -549,21 +735,50 @@ class D4RLTrajectoryDataset(Dataset):
             # return obss, actions, returns, done_idxs, rtg, timesteps
 
     def get_max_timestep(self) -> int:
+        """
+        Overview:
+            Get the max timestep of the dataset.
+        """
+
         return max(self.timesteps)
 
     def get_state_stats(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Overview:
+            Get the state mean and std of the dataset.
+        """
+
         return deepcopy(self.state_mean), deepcopy(self.state_std)
 
     def get_d4rl_dataset_stats(self, env_d4rl_name: str) -> Dict[str, list]:
+        """
+        Overview:
+            Get the d4rl dataset stats.
+        Arguments:
+            - env_d4rl_name (:obj:`str`): The d4rl env name.
+        """
+
         return self.D4RL_DATASET_STATS[env_d4rl_name]
 
     def __len__(self) -> int:
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         if self.env_type != 'atari':
             return len(self.trajectories)
         else:
             return len(self.obss) - self.context_len
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Overview:
+            Get the item of the dataset.
+        Arguments:
+            - idx (:obj:`int`): The index of the dataset.
+        """
+
         if self.env_type != 'atari':
             traj = self.trajectories[idx]
             traj_len = traj['observations'].shape[0]
@@ -631,8 +846,22 @@ class D4RLTrajectoryDataset(Dataset):
 
 @DATASET_REGISTRY.register('d4rl_diffuser')
 class D4RLDiffuserDataset(Dataset):
+    """
+    Overview:
+        D4RL diffuser dataset, which is used for offline RL algorithms.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    """
 
     def __init__(self, dataset_path: str, context_len: int, rtg_scale: float) -> None:
+        """
+        Overview:
+            Initialization method of D4RLDiffuserDataset.
+        Arguments:
+            - dataset_path (:obj:`str`): The dataset path.
+            - context_len (:obj:`int`): The length of the context.
+            - rtg_scale (:obj:`float`): The scale of the returns to go.
+        """
 
         self.context_len = context_len
 
@@ -677,17 +906,26 @@ class D4RLDiffuserDataset(Dataset):
 
 
 class FixedReplayBuffer(object):
-    """Object composed of a list of OutofGraphReplayBuffers."""
+    """
+    Overview:
+        Object composed of a list of OutofGraphReplayBuffers.
+    Interfaces:
+        ``__init__``, ``get_transition_elements``, ``sample_transition_batch``
+    """
 
     def __init__(self, data_dir, replay_suffix, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
-        """Initialize the FixedReplayBuffer class.
-    Args:
-      data_dir: str, log Directory from which to load the replay buffer.
-      replay_suffix: int, If not None, then only load the replay buffer
-        corresponding to the specific suffix in data directory.
-      *args: Arbitrary extra arguments.
-      **kwargs: Arbitrary keyword arguments.
-    """
+        """
+        Overview:
+            Initialize the FixedReplayBuffer class.
+        Arguments:
+            - data_dir (:obj:`str`): log Directory from which to load the replay buffer.
+            - replay_suffix (:obj:`int`): If not None, then only load the replay buffer \
+                corresponding to the specific suffix in data directory.
+            - args (:obj:`list`): Arbitrary extra arguments.
+            - kwargs (:obj:`dict`): Arbitrary keyword arguments.
+
+        """
+
         self._args = args
         self._kwargs = kwargs
         self._data_dir = data_dir
@@ -703,7 +941,13 @@ class FixedReplayBuffer(object):
             # self._load_replay_buffers(num_buffers=50)
 
     def load_single_buffer(self, suffix):
-        """Load a single replay buffer."""
+        """
+        Overview:
+            Load a single replay buffer.
+        Arguments:
+            - suffix (:obj:`int`): The suffix of the replay buffer.
+        """
+
         replay_buffer = self._load_buffer(suffix)
         if replay_buffer is not None:
             self._replay_buffers = [replay_buffer]
@@ -712,7 +956,13 @@ class FixedReplayBuffer(object):
             self._loaded_buffers = True
 
     def _load_buffer(self, suffix):
-        """Loads a OutOfGraphReplayBuffer replay buffer."""
+        """
+        Overview:
+            Loads a OutOfGraphReplayBuffer replay buffer.
+        Arguments:
+            - suffix (:obj:`int`): The suffix of the replay buffer.
+        """
+
         try:
             from dopamine.replay_memory import circular_replay_buffer
             STORE_FILENAME_PREFIX = circular_replay_buffer.STORE_FILENAME_PREFIX
@@ -726,26 +976,72 @@ class FixedReplayBuffer(object):
             raise ('can not load')
 
     def get_transition_elements(self):
+        """
+        Overview:
+            Returns the transition elements.
+        """
+
         return self._replay_buffers[0].get_transition_elements()
 
     def sample_transition_batch(self, batch_size=None, indices=None):
+        """
+        Overview:
+            Returns a batch of transitions (including any extra contents).
+        Arguments:
+            - batch_size (:obj:`int`): The batch size.
+            - indices (:obj:`list`): The indices of the batch.
+        """
+
         buffer_index = np.random.randint(self._num_replay_buffers)
         return self._replay_buffers[buffer_index].sample_transition_batch(batch_size=batch_size, indices=indices)
 
 
 class PCDataset(Dataset):
+    """
+    Overview:
+        Dataset for Procedure Cloning.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    """
 
     def __init__(self, all_data):
+        """
+        Overview:
+            Initialization method of PCDataset.
+        Arguments:
+            - all_data (:obj:`tuple`): The tuple of all data.
+        """
+
         self._data = all_data
 
     def __getitem__(self, item):
+        """
+        Overview:
+            Get the item of the dataset.
+        Arguments:
+            - item (:obj:`int`): The index of the dataset.
+        """
+
         return {'obs': self._data[0][item], 'bfs_in': self._data[1][item], 'bfs_out': self._data[2][item]}
 
     def __len__(self):
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         return self._data[0].shape[0]
 
 
 def load_bfs_datasets(train_seeds=1, test_seeds=5):
+    """
+    Overview:
+        Load BFS datasets.
+    Arguments:
+        - train_seeds (:obj:`int`): The number of train seeds.
+        - test_seeds (:obj:`int`): The number of test seeds.
+    """
+
     from dizoo.maze.envs import Maze
 
     def load_env(seed):
@@ -807,32 +1103,83 @@ def load_bfs_datasets(train_seeds=1, test_seeds=5):
 
 @DATASET_REGISTRY.register('bco')
 class BCODataset(Dataset):
+    """
+    Overview:
+        Dataset for Behavioral Cloning from Observation.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    Properties:
+        - obs (:obj:`np.ndarray`): The observation array.
+        - action (:obj:`np.ndarray`): The action array.
+    """
 
     def __init__(self, data=None):
+        """
+        Overview:
+            Initialization method of BCODataset.
+        Arguments:
+            - data (:obj:`dict`): The data dict.
+        """
+
         if data is None:
             raise ValueError('Dataset can not be empty!')
         else:
             self._data = data
 
     def __len__(self):
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         return len(self._data['obs'])
 
     def __getitem__(self, idx):
+        """
+        Overview:
+            Get the item of the dataset.
+        Arguments:
+            - idx (:obj:`int`): The index of the dataset.
+        """
+
         return {k: self._data[k][idx] for k in self._data.keys()}
 
     @property
     def obs(self):
+        """
+        Overview:
+            Get the observation array.
+        """
+
         return self._data['obs']
 
     @property
     def action(self):
+        """
+        Overview:
+            Get the action array.
+        """
+
         return self._data['action']
 
 
 @DATASET_REGISTRY.register('diffuser_traj')
 class SequenceDataset(torch.utils.data.Dataset):
+    """
+    Overview:
+        Dataset for diffuser.
+    Interfaces:
+        ``__init__``, ``__len__``, ``__getitem__``
+    """
 
     def __init__(self, cfg):
+        """
+        Overview:
+            Initialization method of SequenceDataset.
+        Arguments:
+            - cfg (:obj:`dict`): The config dict.
+        """
+
         import gym
 
         env_id = cfg.env.env_id
@@ -896,6 +1243,13 @@ class SequenceDataset(torch.utils.data.Dataset):
         # print(f'[ datasets/mujoco ] Dataset fields: {shapes}')
 
     def sequence_dataset(self, env, dataset=None):
+        """
+        Overview:
+            Sequence the dataset.
+        Arguments:
+            - env (:obj:`gym.Env`): The gym env.
+        """
+
         import collections
         N = dataset['rewards'].shape[0]
         if 'maze2d' in env.spec.id:
@@ -932,6 +1286,14 @@ class SequenceDataset(torch.utils.data.Dataset):
             episode_step += 1
 
     def maze2d_set_terminals(self, env, dataset):
+        """
+        Overview:
+            Set the terminals for maze2d.
+        Arguments:
+            - env (:obj:`gym.Env`): The gym env.
+            - dataset (:obj:`dict`): The dataset dict.
+        """
+
         goal = env.get_target()
         threshold = 0.5
 
@@ -957,9 +1319,13 @@ class SequenceDataset(torch.utils.data.Dataset):
         return dataset
 
     def process_maze2d_episode(self, episode):
-        '''
-            adds in `next_observations` field to episode
-        '''
+        """
+        Overview:
+            Process the maze2d episode, adds in `next_observations` field to episode.
+        Arguments:
+            - episode (:obj:`dict`): The episode dict.
+        """
+
         assert 'next_observations' not in episode
         length = len(episode['observations'])
         next_observations = episode['observations'][1:].copy()
@@ -969,19 +1335,27 @@ class SequenceDataset(torch.utils.data.Dataset):
         return episode
 
     def normalize(self, keys=['observations', 'actions']):
-        '''
-            normalize fields that will be predicted by the diffusion model
-        '''
+        """
+        Overview:
+            Normalize the dataset, normalize fields that will be predicted by the diffusion model
+        Arguments:
+            - keys (:obj:`list`): The list of keys.
+        """
+
         for key in keys:
             array = self.fields[key].reshape(self.n_episodes * self.max_path_length, -1)
             normed = self.normalizer.normalize(array, key)
             self.fields[f'normed_{key}'] = normed.reshape(self.n_episodes, self.max_path_length, -1)
 
     def make_indices(self, path_lengths, horizon):
-        '''
-            makes indices for sampling from dataset;
-            each index maps to a datapoint
-        '''
+        """
+        Overview:
+            Make indices for sampling from dataset. Each index maps to a datapoint.
+        Arguments:
+            - path_lengths (:obj:`np.ndarray`): The path length array.
+            - horizon (:obj:`int`): The horizon.
+        """
+
         indices = []
         for i, path_length in enumerate(path_lengths):
             max_start = min(path_length - 1, self.max_path_length - horizon)
@@ -994,18 +1368,32 @@ class SequenceDataset(torch.utils.data.Dataset):
         return indices
 
     def get_conditions(self, observations):
-        '''
-            condition on current observation for planning
-        '''
+        """
+        Overview:
+            Get the conditions on current observation for planning.
+        Arguments:
+            - observations (:obj:`np.ndarray`): The observation array.
+        """
+
         if 'maze2d' in self.env_id:
             return {'condition_id': [0, self.horizon - 1], 'condition_val': [observations[0], observations[-1]]}
         else:
             return {'condition_id': [0], 'condition_val': [observations[0]]}
 
     def __len__(self):
+        """
+        Overview:
+            Get the length of the dataset.
+        """
+
         return len(self.indices)
 
     def _get_bounds(self):
+        """
+        Overview:
+            Get the bounds of the dataset.
+        """
+
         print('[ datasets/sequence ] Getting value dataset bounds...', end=' ', flush=True)
         vmin = np.inf
         vmax = -np.inf
@@ -1017,6 +1405,13 @@ class SequenceDataset(torch.utils.data.Dataset):
         return vmin, vmax
 
     def normalize_value(self, value):
+        """
+        Overview:
+            Normalize the value.
+        Arguments:
+            - value (:obj:`np.ndarray`): The value array.
+        """
+
         # [0, 1]
         normed = (value - self.vmin) / (self.vmax - self.vmin)
         # [-1, 1]
@@ -1024,6 +1419,14 @@ class SequenceDataset(torch.utils.data.Dataset):
         return normed
 
     def __getitem__(self, idx, eps=1e-4):
+        """
+        Overview:
+            Get the item of the dataset.
+        Arguments:
+            - idx (:obj:`int`): The index of the dataset.
+            - eps (:obj:`float`): The epsilon.
+        """
+
         path_ind, start, end = self.indices[idx]
 
         observations = self.fields['normed_observations'][path_ind, start:end]
@@ -1058,6 +1461,11 @@ class SequenceDataset(torch.utils.data.Dataset):
 
 
 def hdf5_save(exp_data, expert_data_path):
+    """
+    Overview:
+        Save the data to hdf5.
+    """
+
     try:
         import h5py
     except ImportError:
@@ -1073,15 +1481,30 @@ def hdf5_save(exp_data, expert_data_path):
 
 
 def naive_save(exp_data, expert_data_path):
+    """
+    Overview:
+        Save the data to pickle.
+    """
+
     with open(expert_data_path, 'wb') as f:
         pickle.dump(exp_data, f)
 
 
 def offline_data_save_type(exp_data, expert_data_path, data_type='naive'):
+    """
+    Overview:
+        Save the offline data.
+    """
+
     globals()[data_type + '_save'](exp_data, expert_data_path)
 
 
 def create_dataset(cfg, **kwargs) -> Dataset:
+    """
+    Overview:
+        Create dataset.
+    """
+
     cfg = EasyDict(cfg)
     import_module(cfg.get('import_names', []))
     return DATASET_REGISTRY.build(cfg.policy.collect.data_type, cfg=cfg, **kwargs)

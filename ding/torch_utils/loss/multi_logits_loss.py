@@ -6,19 +6,12 @@ import torch.nn.functional as F
 from ding.torch_utils.network import one_hot
 
 
-def get_distance_matrix(lx: np.ndarray, ly: np.ndarray, mat: np.ndarray, M: int) -> np.ndarray:
-    nlx = np.broadcast_to(lx, [M, M]).T
-    nly = np.broadcast_to(ly, [M, M])
-    nret = nlx + nly - mat
-    return nret
-
-
 class MultiLogitsLoss(nn.Module):
     """
     Overview:
         Base class for supervised learning on linklink, including basic processes.
-    Interface:
-        __init__, forward.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(self, criterion: str = None, smooth_ratio: float = 0.1) -> None:
@@ -38,6 +31,15 @@ class MultiLogitsLoss(nn.Module):
             self.ratio = smooth_ratio
 
     def _label_process(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.LongTensor:
+        """
+        Overview:
+            Process the label according to the criterion.
+        Arguments:
+            - logits (:obj:`torch.Tensor`): Predicted logits.
+            - labels (:obj:`torch.LongTensor`): Ground truth.
+        Returns:
+            - ret (:obj:`torch.LongTensor`): Processed label.
+        """
         N = logits.shape[1]
         if self.criterion == 'cross_entropy':
             return one_hot(labels, num=N)
@@ -48,10 +50,28 @@ class MultiLogitsLoss(nn.Module):
             return ret
 
     def _nll_loss(self, nlls: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
+        """
+        Overview:
+            Calculate the negative log likelihood loss.
+        Arguments:
+            - nlls (:obj:`torch.Tensor`): Negative log likelihood loss.
+            - labels (:obj:`torch.LongTensor`): Ground truth.
+        Returns:
+            - ret (:obj:`torch.Tensor`): Calculated loss.
+        """
         ret = (-nlls * (labels.detach()))
         return ret.sum(dim=1)
 
     def _get_metric_matrix(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
+        """
+        Overview:
+            Calculate the metric matrix.
+        Arguments:
+            - logits (:obj:`torch.Tensor`): Predicted logits.
+            - labels (:obj:`torch.LongTensor`): Ground truth.
+        Returns:
+            - metric (:obj:`torch.Tensor`): Calculated metric matrix.
+        """
         M, N = logits.shape
         labels = self._label_process(logits, labels)
         logits = F.log_softmax(logits, dim=1)
@@ -63,6 +83,14 @@ class MultiLogitsLoss(nn.Module):
         return torch.stack(metric, dim=0)
 
     def _match(self, matrix: torch.Tensor):
+        """
+        Overview:
+            Match the metric matrix.
+        Arguments:
+            - matrix (:obj:`torch.Tensor`): Metric matrix.
+        Returns:
+            - index (:obj:`np.ndarray`): Matched index.
+        """
         mat = matrix.clone().detach().to('cpu').numpy()
         mat = -mat  # maximize
         M = mat.shape[0]
@@ -88,7 +116,7 @@ class MultiLogitsLoss(nn.Module):
             while True:
                 visx.fill(False)
                 visy.fill(False)
-                distance_matrix = get_distance_matrix(lx, ly, mat, M)
+                distance_matrix = self._get_distance_matrix(lx, ly, mat, M)
                 binary_distance_matrix = np.abs(distance_matrix) < 1e-4
                 if has_augmented_path(i, binary_distance_matrix):
                     break
@@ -100,6 +128,22 @@ class MultiLogitsLoss(nn.Module):
                 lx[visx] -= d
                 ly[visy] += d
         return index
+
+    @staticmethod
+    def _get_distance_matrix(lx: np.ndarray, ly: np.ndarray, mat: np.ndarray, M: int) -> np.ndarray:
+        """
+        Overview:
+            Get distance matrix.
+        Arguments:
+            - lx (:obj:`np.ndarray`): lx.
+            - ly (:obj:`np.ndarray`): ly.
+            - mat (:obj:`np.ndarray`): mat.
+            - M (:obj:`int`): M.
+        """
+        nlx = np.broadcast_to(lx, [M, M]).T
+        nly = np.broadcast_to(ly, [M, M])
+        nret = nlx + nly - mat
+        return nret
 
     def forward(self, logits: torch.Tensor, labels: torch.LongTensor) -> torch.Tensor:
         """

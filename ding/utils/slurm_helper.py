@@ -14,6 +14,11 @@ MANAGER_NODE_TABLE = {
 
 
 def get_ip() -> str:
+    """
+    Overview:
+        Get the ip of the current node
+    """
+
     assert os.environ.get('SLURMD_NODENAME'), 'not found SLURMD_NODENAME env variable'
     # expecting nodename to be like: 'SH-IDC1-10-5-36-64'
     nodename = os.environ.get('SLURMD_NODENAME', '')
@@ -22,9 +27,11 @@ def get_ip() -> str:
 
 
 def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
-    r"""
+    """
     Overview:
         Look up the manager node of the slurm cluster and return the node ip
+    Arguments:
+        - node_ip (:obj:`Optional[str]`): The ip of the current node
     """
     if 'SLURM_JOB_ID' not in os.environ:
         from ditk import logging
@@ -44,6 +51,11 @@ def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
 
 # get all info of cluster
 def get_cls_info() -> Dict[str, list]:
+    """
+    Overview:
+        Get the cluster info
+    """
+
     ret_dict = {}
     info = subprocess.getoutput('sinfo -Nh').split('\n')
     for line in info:
@@ -61,6 +73,13 @@ def get_cls_info() -> Dict[str, list]:
 
 
 def node_to_partition(target_node: str) -> Tuple[str, str]:
+    """
+    Overview:
+        Get the partition of the target node
+    Arguments:
+        - target_node (:obj:`str`): The target node
+    """
+
     info = subprocess.getoutput('sinfo -Nh').split('\n')
     for line in info:
         line = line.strip().split()
@@ -73,10 +92,24 @@ def node_to_partition(target_node: str) -> Tuple[str, str]:
 
 
 def node_to_host(node: str) -> str:
+    """
+    Overview:
+        Get the host of the node
+    Arguments:
+        - node (:obj:`str`): The node
+    """
+
     return '.'.join(node.split('-')[-4:])
 
 
 def find_free_port_slurm(node: str) -> int:
+    """
+    Overview:
+        Find a free port on the node
+    Arguments:
+        - node (:obj:`str`): The node
+    """
+
     partition = node_to_partition(node)
     if partition == 'spring_scheduler':
         comment = '--comment=spring-submit'

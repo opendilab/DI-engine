@@ -8,7 +8,7 @@ from typing import Any
 
 
 def get_ip() -> str:
-    r"""
+    """
     Overview:
         Get the ``ip(host)`` of socket
     Returns:
@@ -22,7 +22,7 @@ def get_ip() -> str:
 
 
 def get_pid() -> int:
-    r"""
+    """
     Overview:
         ``os.getpid``
     """
@@ -30,7 +30,7 @@ def get_pid() -> int:
 
 
 def get_task_uid() -> str:
-    r"""
+    """
     Overview:
         Get the slurm ``job_id``, ``pid`` and ``uid``
     """
@@ -41,7 +41,7 @@ class PropagatingThread(Thread):
     """
     Overview:
         Subclass of Thread that propagates execution exception in the thread to the caller
-    Interface:
+    Interfaces:
         ``run``, ``join``
     Examples:
         >>> def func():
@@ -52,6 +52,11 @@ class PropagatingThread(Thread):
     """
 
     def run(self) -> None:
+        """
+        Overview:
+            Run the thread
+        """
+
         self.exc = None
         try:
             self.ret = self._target(*self._args, **self._kwargs)
@@ -59,6 +64,11 @@ class PropagatingThread(Thread):
             self.exc = e
 
     def join(self) -> Any:
+        """
+        Overview:
+            Join the thread
+        """
+
         super(PropagatingThread, self).join()
         if self.exc:
             raise RuntimeError('Exception in thread({})'.format(id(self))) from self.exc
@@ -66,9 +76,11 @@ class PropagatingThread(Thread):
 
 
 def find_free_port(host: str) -> int:
-    r"""
+    """
     Overview:
         Look up the free port list and return one
+    Arguments:
+        - host (:obj:`str`): The host
     """
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(('', 0))

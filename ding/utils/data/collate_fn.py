@@ -176,7 +176,7 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
         Each timestepped data field is represented as a tensor with shape [T, B, any_dims], where T is the length \
         of the sequence, B is the batch size, and any_dims represents the shape of the tensor at each timestep.
 
-    Args:
+    Arguments:
         - batch(:obj:`List[Dict[str, Any]]`): A list of dictionaries with length B, where each dictionary represents \
             a timestepped data field. Each dictionary contains a key-value pair, where the key is the name of the \
             data field and the value is a sequence of torch.Tensor objects with any shape.

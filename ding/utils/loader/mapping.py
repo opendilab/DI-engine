@@ -10,23 +10,61 @@ MAPPING_ERRORS = List[MAPPING_ERROR_ITEM]
 
 
 class MappingError(CompositeStructureError):
+    """
+    Overview:
+        Mapping error.
+    Interfaces:
+        ``__init__``, ``errors``
+    """
 
     def __init__(self, key_errors: MAPPING_ERRORS, value_errors: MAPPING_ERRORS):
+        """
+        Overview:
+            Initialize the MappingError.
+        Arguments:
+            - key_errors (:obj:`MAPPING_ERRORS`): The key errors.
+            - value_errors (:obj:`MAPPING_ERRORS`): The value errors.
+        """
+
         self.__key_errors = list(key_errors or [])
         self.__value_errors = list(value_errors or [])
         self.__errors = self.__key_errors + self.__value_errors
 
     def key_errors(self) -> MAPPING_ERRORS:
+        """
+        Overview:
+            Get the key errors.
+        """
+
         return self.__key_errors
 
     def value_errors(self) -> MAPPING_ERRORS:
+        """
+        Overview:
+            Get the value errors.
+        """
+
         return self.__value_errors
 
     def errors(self) -> MAPPING_ERRORS:
+        """
+        Overview:
+            Get the errors.
+        """
+
         return self.__errors
 
 
 def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
+    """
+    Overview:
+        Create a mapping loader.
+    Arguments:
+        - key_loader (:obj:`ILoaderClass`): The key loader.
+        - value_loader (:obj:`ILoaderClass`): The value loader.
+        - type_back (:obj:`bool`): Whether to convert the type back.
+    """
+
     key_loader = Loader(key_loader)
     value_loader = Loader(value_loader)
 
@@ -67,6 +105,13 @@ def mapping(key_loader, value_loader, type_back: bool = True) -> ILoaderClass:
 
 
 def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True) -> ILoaderClass:
+    """
+    Overview:
+        Create a mapping filter loader.
+    Arguments:
+        - check (:obj:`Callable[[Any, Any], bool]`): The check function.
+        - type_back (:obj:`bool`): Whether to convert the type back.
+    """
 
     def _load(value):
         _result = {key_: value_ for key_, value_ in value.items() if check(key_, value_)}
@@ -79,14 +124,29 @@ def mpfilter(check: Callable[[Any, Any], bool], type_back: bool = True) -> ILoad
 
 
 def mpkeys() -> ILoaderClass:
+    """
+    Overview:
+        Create a mapping keys loader.
+    """
+
     return method('items') & method('keys') & Loader(lambda v: set(v.keys()))
 
 
 def mpvalues() -> ILoaderClass:
+    """
+    Overview:
+        Create a mapping values loader.
+    """
+
     return method('items') & method('values') & Loader(lambda v: set(v.values()))
 
 
 def mpitems() -> ILoaderClass:
+    """
+    Overview:
+        Create a mapping items loader.
+    """
+
     return method('items') & Loader(lambda v: set([(key, value) for key, value in v.items()]))
 
 
@@ -94,10 +154,25 @@ _INDEX_PRECHECK = method('__getitem__')
 
 
 def item(key) -> ILoaderClass:
+    """
+    Overview:
+        Create a item loader.
+    Arguments:
+        - key (:obj:`Any`): The key.
+    """
+
     return _INDEX_PRECHECK & Loader(
         (lambda v: key in v.keys(), lambda v: v[key], KeyError('key {key} not found'.format(key=repr(key))))
     )
 
 
 def item_or(key, default) -> ILoaderClass:
+    """
+    Overview:
+        Create a item or loader.
+    Arguments:
+        - key (:obj:`Any`): The key.
+        - default (:obj:`Any`): The default value.
+    """
+
     return _INDEX_PRECHECK & (item(key) | raw(default))

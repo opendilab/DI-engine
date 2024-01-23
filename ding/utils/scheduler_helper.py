@@ -9,7 +9,7 @@ class Scheduler(object):
         For example, models often benefits from reducing entropy weight once the learning process stagnates.
         This scheduler reads a metrics quantity and if no improvement is seen for a 'patience' number of epochs,
         the corresponding parameter is increased or decreased, which decides on the 'schedule_mode'.
-    Args:
+    Arguments:
         - schedule_flag (:obj:`bool`): Indicates whether to use scheduler in training pipeline.
             Default: False
         - schedule_mode (:obj:`str`): One of 'reduce', 'add','multi','div'. The schecule_mode
@@ -48,13 +48,13 @@ class Scheduler(object):
     )
 
     def __init__(self, merged_scheduler_config: EasyDict) -> None:
-        '''
+        """
         Overview:
             Initialize the scheduler.
-        Args:
+        Arguments:
             - merged_scheduler_config (:obj:`EasyDict`): the scheduler config, which merges the user
                 config and defaul config
-        '''
+        """
 
         schedule_mode = merged_scheduler_config.schedule_mode
         factor = merged_scheduler_config.factor
@@ -100,7 +100,7 @@ class Scheduler(object):
         self.bad_epochs_num = 0
 
     def step(self, metrics: float, param: float) -> float:
-        '''
+        """
         Overview:
             Decides whether to update the scheduled parameter
         Args:
@@ -108,7 +108,7 @@ class Scheduler(object):
             - param (:obj:`float`): parameter need to be updated
         Returns:
             - step_param (:obj:`float`): parameter after one step
-        '''
+        """
         assert isinstance(metrics, float), 'The metrics should be converted to a float number'
         cur_metrics = metrics
 
@@ -129,14 +129,14 @@ class Scheduler(object):
         return param
 
     def update_param(self, param: float) -> float:
-        '''
+        """
         Overview:
             update the scheduling parameter
         Args:
             - param (:obj:`float`): parameter need to be updated
         Returns:
             - updated param (:obj:`float`): parameter after updating
-        '''
+        """
         schedule_fn = {
             'reduce': lambda x, y, z: max(x - y, z[0]),
             'add': lambda x, y, z: min(x + y, z[1]),
@@ -153,20 +153,20 @@ class Scheduler(object):
 
     @property
     def in_cooldown(self) -> bool:
-        '''
+        """
         Overview:
             Checks whether the scheduler is in cooldown peried. If in cooldown, the scheduler
             will ignore any bad epochs.
-        '''
+        """
         return self.cooldown_counter > 0
 
     def is_better(self, cur: float) -> bool:
-        '''
+        """
         Overview:
             Checks whether the current metrics is better than last matric with respect to threshold.
         Args:
             - cur (:obj:`float`): current metrics
-        '''
+        """
         if self.last_metrics is None:
             return True
 

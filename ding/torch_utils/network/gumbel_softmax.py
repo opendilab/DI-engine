@@ -8,7 +8,7 @@ class GumbelSoftmax(nn.Module):
     Overview:
         An `nn.Module` that computes GumbelSoftmax.
     Interfaces:
-        __init__, forward, gumbel_softmax_sample
+        ``__init__``, ``forward``, ``gumbel_softmax_sample``
 
     .. note::
         For more information on GumbelSoftmax, refer to the paper [Categorical Reparameterization \

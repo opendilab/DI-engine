@@ -20,7 +20,7 @@ def is_fake_link():
 
 
 def get_rank() -> int:
-    r"""
+    """
     Overview:
         Get the rank of ``linklink`` model, return 0 if use ``FakeLink``.
 
@@ -33,7 +33,7 @@ def get_rank() -> int:
 
 
 def get_world_size() -> int:
-    r"""
+    """
     Overview:
         Get the ``world_size`` of ``linklink model``, return 0 if use ``FakeLink``.
 
@@ -46,7 +46,7 @@ def get_world_size() -> int:
 
 
 def broadcast(value: torch.Tensor, rank: int) -> None:
-    r"""
+    """
     Overview:
         Use ``linklink.broadcast`` and raise error when using ``FakeLink``
     Arguments:
@@ -59,7 +59,7 @@ def broadcast(value: torch.Tensor, rank: int) -> None:
 
 
 def allreduce(data: torch.Tensor, op: str = 'sum') -> None:
-    r"""
+    """
     Overview:
         Call ``linklink.allreduce`` on the data
     Arguments:
@@ -79,7 +79,7 @@ def allreduce(data: torch.Tensor, op: str = 'sum') -> None:
 
 
 def allreduce_async(data: torch.Tensor, op: str = 'sum') -> None:
-    r"""
+    """
     Overview:
         Call ``linklink.allreduce_async`` on the data
     Arguments:
@@ -99,7 +99,7 @@ def allreduce_async(data: torch.Tensor, op: str = 'sum') -> None:
 
 
 def get_group(group_size: int) -> List:
-    r"""
+    """
     Overview:
         Get the group segmentation of ``group_size`` each group
     Arguments:
@@ -114,9 +114,11 @@ def get_group(group_size: int) -> List:
 
 
 def dist_mode(func: Callable) -> Callable:
-    r"""
+    """
     Overview:
         Wrap the function so that in can init and finalize automatically before each call
+    Arguments:
+        - func (:obj:`Callable`): the function to wrap
     """
 
     def wrapper(*args, **kwargs):
@@ -128,7 +130,7 @@ def dist_mode(func: Callable) -> Callable:
 
 
 def dist_init(method: str = 'slurm', device_id: int = 0) -> Tuple[int, int]:
-    r"""
+    """
     Overview:
         Init the distribution
     Arguments:
@@ -152,7 +154,7 @@ def dist_init(method: str = 'slurm', device_id: int = 0) -> Tuple[int, int]:
 
 
 def dist_finalize() -> None:
-    r"""
+    """
     Overview:
         Finalize ``linklink``, see ``linklink.finalize()``
     """
@@ -160,25 +162,53 @@ def dist_finalize() -> None:
 
 
 class DistContext:
+    """
+    Overview:
+        A context manager for ``linklink`` distribution
+    Interfaces:
+        ``__init__``, ``__enter__``, ``__exit__``
+    """
 
     def __init__(self) -> None:
+        """
+        Overview:
+            Initialize the ``DistContext``
+        """
+
         pass
 
     def __enter__(self) -> None:
+        """
+        Overview:
+            Initialize ``linklink`` distribution
+        """
+
         dist_init()
 
     def __exit__(self, *args, **kwargs) -> Any:
+        """
+        Overview:
+            Finalize ``linklink`` distribution
+        Arugments:
+            - args (:obj:`Tuple`): The arguments passed to the ``__exit__`` function.
+            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.
+        """
+
         dist_finalize()
 
 
 def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
-    r"""
+    """
     Overview:
         Split the group according to ``worldsize``, ``rank`` and ``num_groups``
-
+    Arguments:
+        - world_size (:obj:`int`): The world size
+        - rank (:obj:`int`): The rank
+        - num_groups (:obj:`int`): The number of groups
     .. note::
         With faulty input, raise ``array split does not result in an equal division``
     """
+
     groups = []
     rank_list = np.split(np.arange(world_size), num_groups)
     rank_list = [list(map(int, x)) for x in rank_list]
@@ -189,4 +219,9 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
 
 
 def synchronize():
+    """
+    Overview:
+        Synchronize the process
+    """
+
     get_link().synchronize()

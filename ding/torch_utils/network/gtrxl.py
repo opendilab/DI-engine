@@ -15,6 +15,8 @@ class PositionalEmbedding(nn.Module):
     """
     Overview:
         The PositionalEmbedding module implements the positional embedding used in the vanilla Transformer model.
+    Interfaces:
+        ``__init__``, ``forward``
 
     .. note::
         This implementation is adapted from https://github.com/kimiyoung/transformer-xl/blob/ \
@@ -23,9 +25,12 @@ class PositionalEmbedding(nn.Module):
 
     def __init__(self, embedding_dim: int):
         """
+        Overview:
+            Initialize the PositionalEmbedding module.
         Arguments:
             - embedding_dim: (:obj:`int`): The dimensionality of the embeddings.
         """
+
         super(PositionalEmbedding, self).__init__()
         self.embedding_dim = embedding_dim
         inv_freq = 1 / (10000 ** (torch.arange(0.0, embedding_dim, 2.0) / embedding_dim))  # (embedding_dim / 2)
@@ -42,6 +47,7 @@ class PositionalEmbedding(nn.Module):
             - pos_embedding (:obj:`torch.Tensor`): The computed positional embeddings. \
                 The shape of the tensor is (seq_len, 1, embedding_dim).
         """
+
         sinusoid_inp = torch.outer(pos_seq, self.inv_freq)
         # For position embedding, the order of sin/cos is negligible.
         # This is because tokens are consumed by the matrix multiplication which is permutation-invariant.
@@ -53,16 +59,21 @@ class GRUGatingUnit(torch.nn.Module):
     """
     Overview:
         The GRUGatingUnit module implements the GRU gating mechanism used in the GTrXL model.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, input_dim: int, bg: float = 2.):
         """
+        Overview:
+            Initialize the GRUGatingUnit module.
         Arguments:
             - input_dim (:obj:`int`): The dimensionality of the input.
             - bg (:obj:`bg`): The gate bias. By setting bg > 0 we can explicitly initialize the gating mechanism to \
                 be close to the identity map. This can greatly improve the learning speed and stability since it \
                 initializes the agent close to a Markovian policy (ignore attention at the beginning).
         """
+
         super(GRUGatingUnit, self).__init__()
         self.Wr = torch.nn.Linear(input_dim, input_dim, bias=False)
         self.Ur = torch.nn.Linear(input_dim, input_dim, bias=False)
@@ -86,6 +97,7 @@ class GRUGatingUnit(torch.nn.Module):
             - g: (:obj:`torch.Tensor`): The output of the GRU gating mechanism. \
                 The shape of g matches the shapes of x and y.
         """
+
         r = self.sigmoid(self.Wr(y) + self.Ur(x))
         z = self.sigmoid(self.Wz(y) + self.Uz(x) - self.bg)
         h = self.tanh(self.Wg(y) + self.Ug(torch.mul(r, x)))  # element wise multiplication
@@ -97,6 +109,8 @@ class Memory:
     """
     Overview:
         A class that stores the context used to add memory to Transformer.
+    Interfaces:
+        ``__init__``, ``init``, ``update``, ``get``, ``to``
 
     .. note::
         For details, refer to Transformer-XL: https://arxiv.org/abs/1901.02860
@@ -111,6 +125,8 @@ class Memory:
             memory: Optional[torch.Tensor] = None
     ) -> None:
         """
+        Overview:
+            Initialize the Memory module.
         Arguments:
             - memory_len (:obj:`int`): The dimension of memory, i.e., how many past observations to use as memory.
             - batch_size (:obj:`int`): The dimension of each batch.
@@ -119,6 +135,7 @@ class Memory:
             - layer_num (:obj:`int`): The number of transformer layers.
             - memory (:obj:`Optional[torch.Tensor]`): The initial memory. Default is None.
         """
+
         super(Memory, self).__init__()
         self.embedding_dim = embedding_dim
         self.bs = batch_size
@@ -136,6 +153,7 @@ class Memory:
                 (layer_num, memory_len, bs, embedding_dim). Its shape is (layer_num, memory_len, bs, embedding_dim), \
                 where memory_len is length of memory, bs is batch size and embedding_dim is the dimension of embedding.
         """
+
         if memory is not None:
             self.memory = memory
             layer_num_plus1, self.memory_len, self.bs, self.embedding_dim = memory.shape
@@ -163,6 +181,7 @@ class Memory:
             - memory: (:obj:`Optional[torch.Tensor]`): The updated memory, with shape \
                 (layer_num, memory_len, bs, embedding_dim).
         """
+
         if self.memory is None or hidden_state is None:
             raise ValueError('Failed to update memory! Memory would be None')  # TODO add support of no memory
         sequence_len = hidden_state[0].shape[0]
@@ -187,6 +206,7 @@ class Memory:
             - memory: (:obj:`Optional[torch.Tensor]`): The current memory, \
                 with shape (layer_num, memory_len, bs, embedding_dim).
         """
+
         return self.memory
 
     def to(self, device: str = 'cpu'):
@@ -196,6 +216,7 @@ class Memory:
         Arguments:
             device (:obj:`str`): The device to move the memory to. Default is 'cpu'.
         """
+
         self.memory = self.memory.to(device)
 
 
@@ -203,6 +224,8 @@ class AttentionXL(torch.nn.Module):
     """
     Overview:
          An implementation of the Attention mechanism used in the TransformerXL model.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, input_dim: int, head_dim: int, head_num: int, dropout: nn.Module) -> None:
@@ -215,6 +238,7 @@ class AttentionXL(torch.nn.Module):
             - head_num (:obj:`int`): The number of attention heads.
             - dropout (:obj:`nn.Module`): The dropout layer to use
         """
+
         super(AttentionXL, self).__init__()
         self.head_num = head_num
         self.head_dim = head_dim
@@ -250,6 +274,7 @@ class AttentionXL(torch.nn.Module):
             - x (:obj:`torch.Tensor`): The input tensor after the relative shift operation, \
                 with shape (cur_seq, full_seq, bs, head_num).
         """
+
         x_padded = F.pad(x, [1, 0])  # step 1
         x_padded = x_padded.view(x.size(0), x.size(1), x.size(3) + 1, x.size(2))  # step 2
         x = x_padded[:, :, 1:].view_as(x)  # step 3
@@ -282,6 +307,7 @@ class AttentionXL(torch.nn.Module):
         Returns:
             - output (:obj:`torch.Tensor`): The output of the attention mechanism with shape (cur_seq, bs, input_dim).
         """
+
         bs, cur_seq, full_seq = inputs.shape[1], inputs.shape[0], full_input.shape[0]
         prev_seq = full_seq - cur_seq
 
@@ -330,6 +356,8 @@ class GatedTransformerXLLayer(torch.nn.Module):
     """
     Overview:
         This class implements the attention layer of GTrXL (Gated Transformer-XL).
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -359,6 +387,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
                 residual connections. Default is True.
             - gru_bias (:obj:`float`, optional): The bias of the GRU gate. Default is 2.
         """
+
         super(GatedTransformerXLLayer, self).__init__()
         self.dropout = dropout
         self.gating = gru_gating
@@ -406,6 +435,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
         Returns:
             - output (:obj:`torch.Tensor`): layer output of shape (cur_seq, bs, input_dim)
         """
+
         # concat memory with input across sequence dimension
         full_input = torch.cat([memory, inputs], dim=0)  # full_seq x bs x input_dim
         x1 = self.layernorm1(full_input)
@@ -423,6 +453,8 @@ class GTrXL(nn.Module):
     Overview:
         GTrXL Transformer implementation as described in "Stabilizing Transformer for Reinforcement Learning"
         (https://arxiv.org/abs/1910.06764).
+    Interfaces:
+        ``__init__``, ``forward``, ``reset_memory``, ``get_memory``
     """
 
     def __init__(
@@ -459,6 +491,7 @@ class GTrXL(nn.Module):
         Raises:
             - AssertionError: If `embedding_dim` is not an even number.
         """
+
         super(GTrXL, self).__init__()
         assert embedding_dim % 2 == 0, 'embedding_dim={} should be even'.format(input_dim)
         self.head_num = head_num
@@ -505,6 +538,7 @@ class GTrXL(nn.Module):
             - state (:obj:`Optional[torch.Tensor]`): The input memory with shape \
                 (layer_num, memory_len, bs, embedding_dim). Default is None.
         """
+
         self.memory = Memory(memory_len=self.memory_len, layer_num=self.layer_num, embedding_dim=self.embedding_dim)
         if batch_size is not None:
             self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num)
@@ -519,6 +553,7 @@ class GTrXL(nn.Module):
             - memory (:obj:`Optional[torch.Tensor]`): The output memory or None if memory has not been initialized. \
                 The shape is (layer_num, memory_len, bs, embedding_dim).
         """
+
         if self.memory is None:
             return None
         else:
@@ -538,6 +573,7 @@ class GTrXL(nn.Module):
             - x (:obj:`Dict[str, torch.Tensor]`): A dictionary containing the transformer output of shape \
              (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size).
         """
+
         if batch_first:
             x = torch.transpose(x, 1, 0)  # bs x cur_seq x input_dim -> cur_seq x bs x input_dim
         cur_seq, bs = x.shape[:2]

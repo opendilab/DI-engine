@@ -9,11 +9,11 @@ import torch.nn.functional as F
 
 
 class Pd(object):
-    r"""
+    """
     Overview:
         Abstract class for parameterizable probability distributions and sampling functions.
-    Interface:
-        neglogp, entropy, noise_mode, mode, sample
+    Interfaces:
+        ``neglogp``, ``entropy``, ``noise_mode``, ``mode``, ``sample``
 
     .. tip::
 
@@ -21,7 +21,7 @@ class Pd(object):
     """
 
     def neglogp(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate cross_entropy between input x and logits
         Arguments:
@@ -32,7 +32,7 @@ class Pd(object):
         raise NotImplementedError
 
     def entropy(self) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate the softmax entropy of logits
         Arguments:
@@ -43,21 +43,21 @@ class Pd(object):
         raise NotImplementedError
 
     def noise_mode(self):
-        r"""
+        """
         Overview:
             Add noise to logits. This method is designed for randomness
         """
         raise NotImplementedError
 
     def mode(self):
-        r"""
+        """
         Overview:
             Return logits argmax result. This method is designed for deterministic.
         """
         raise NotImplementedError
 
     def sample(self):
-        r"""
+        """
         Overview:
             Sample from logits's distribution by using softmax. This method is designed for multinomial.
         """
@@ -65,15 +65,15 @@ class Pd(object):
 
 
 class CategoricalPd(Pd):
-    r"""
+    """
     Overview:
         Catagorical probility distribution sampler
-    Interface:
-        update_logits, neglogp, entropy, noise_mode, mode, sample
+    Interfaces:
+        ``__init__``, ``neglogp``, ``entropy``, ``noise_mode``, ``mode``, ``sample``
     """
 
     def __init__(self, logits: torch.Tensor = None) -> None:
-        r"""
+        """
         Overview:
             Init the Pd with logits
         Arguments:
@@ -82,7 +82,7 @@ class CategoricalPd(Pd):
         self.update_logits(logits)
 
     def update_logits(self, logits: torch.Tensor) -> None:
-        r"""
+        """
         Overview:
             Updata logits
         Arguments:
@@ -91,7 +91,7 @@ class CategoricalPd(Pd):
         self.logits = logits
 
     def neglogp(self, x, reduction: str = 'mean') -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate cross_entropy between input x and logits
         Arguments:
@@ -103,7 +103,7 @@ class CategoricalPd(Pd):
         return F.cross_entropy(self.logits, x, reduction=reduction)
 
     def entropy(self, reduction: str = 'mean') -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate the softmax entropy of logits
         Arguments:
@@ -191,16 +191,22 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
     Overview:
         Wrapped ``torch.distributions.Categorical``
 
-    Interface:
-        update_logits, update_probs, sample, neglogp, mode, entropy
+    Interfaces:
+        ``__init__``, ``update_logits``, ``update_probs``, ``sample``, ``neglogp``, ``mode``, ``entropy``
     """
 
     def __init__(self, probs: torch.Tensor = None) -> None:
+        """
+        Overview:
+            Initialize the CategoricalPdPytorch object.
+        Arguments:
+            - probs (:obj:`torch.Tensor`): The tensor of probabilities.
+        """
         if probs is not None:
             self.update_probs(probs)
 
     def update_logits(self, logits: torch.Tensor) -> None:
-        r"""
+        """
         Overview:
             Updata logits
         Arguments:
@@ -209,7 +215,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         super().__init__(logits=logits)
 
     def update_probs(self, probs: torch.Tensor) -> None:
-        r"""
+        """
         Overview:
             Updata probs
         Arguments:
@@ -218,7 +224,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         super().__init__(probs=probs)
 
     def sample(self) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Sample from logits's distribution by using softmax
         Return:
@@ -227,7 +233,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         return super().sample()
 
     def neglogp(self, actions: torch.Tensor, reduction: str = 'mean') -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate cross_entropy between input x and logits
         Arguments:
@@ -244,7 +250,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
             return neglogp.mean(dim=0)
 
     def mode(self) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Return logits argmax result
         Return:
@@ -253,7 +259,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         return self.probs.argmax(dim=-1)
 
     def entropy(self, reduction: str = None) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate the softmax entropy of logits
         Arguments:

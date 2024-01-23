@@ -465,7 +465,7 @@ class LogDict(dict):
     Overview:
         Derived from ``dict``. Would convert ``torch.Tensor`` to ``list`` for convenient logging.
     Interfaces:
-        __setitem__, update.
+        ``_transform``, ``__setitem__``, ``update``.
     """
 
     def _transform(self, data: Any) -> None:
@@ -525,7 +525,7 @@ class CudaFetcher(object):
     Overview:
         Fetch data from source, and transfer it to a specified device.
     Interfaces:
-        __init__, run, close, __next__.
+        ``__init__``, ``__next__``, ``run``, ``close``.
     """
 
     def __init__(self, data_source: Iterable, device: str, queue_size: int = 4, sleep: float = 0.1) -> None:
@@ -577,6 +577,11 @@ class CudaFetcher(object):
         self._end_flag = True
 
     def _producer(self) -> None:
+        """
+        Overview:
+            Keep fetching data from source, change the device, and put into ``queue`` for request.
+        """
+
         with torch.cuda.stream(self._stream):
             while not self._end_flag:
                 if self._queue.full():

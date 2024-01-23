@@ -138,6 +138,16 @@ class EDACPolicy(SACPolicy):
         ),
     )
 
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
+        return 'edac', ['ding.model.template.edac']
+
     def _init_learn(self) -> None:
         r"""
         Overview:

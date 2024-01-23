@@ -9,7 +9,7 @@ class SoftArgmax(nn.Module):
         A neural network module that computes the SoftArgmax operation (essentially a 2-dimensional spatial softmax),
         which is often used for location regression tasks. It converts a feature map (such as a heatmap) into precise
         coordinate locations.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
 
     .. note::
