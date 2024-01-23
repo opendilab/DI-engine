@@ -266,7 +266,7 @@ def save_file_rediscluster(path, data):
 
 
 def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = False) -> object:
-    r"""
+    """
     Overview:
         Read file from path
     Arguments:
@@ -296,7 +296,7 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
 
 
 def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> None:
-    r"""
+    """
     Overview:
         Save data to file of path
     Arguments:
@@ -327,7 +327,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
 
 
 def remove_file(path: str, fs_type: Union[None, str] = None) -> None:
-    r"""
+    """
     Overview:
         Remove file
     Arguments:

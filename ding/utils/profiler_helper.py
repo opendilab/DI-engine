@@ -14,11 +14,16 @@ class Profiler:
     Overview:
         A class for profiling code execution. It can be used as a context manager or a decorator.
 
-    Interface:
+    Interfaces:
         ``__init__``, ``mkdir``, ``write_profile``, ``profile``.
     """
 
     def __init__(self):
+        """
+        Overview:
+            Initialize the Profiler object.
+        """
+
         self.pr = cProfile.Profile()
 
     def mkdir(self, directory: str):

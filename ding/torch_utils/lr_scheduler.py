@@ -6,6 +6,17 @@ from torch.optim.lr_scheduler import LambdaLR
 
 
 def get_lr_ratio(epoch: int, warmup_epochs: int, learning_rate: float, lr_decay_epochs: int, min_lr: float) -> float:
+    """
+    Overview:
+        Get learning rate ratio for each epoch.
+    Arguments:
+        - epoch (:obj:`int`): Current epoch.
+        - warmup_epochs (:obj:`int`): Warmup epochs.
+        - learning_rate (:obj:`float`): Learning rate.
+        - lr_decay_epochs (:obj:`int`): Learning rate decay epochs.
+        - min_lr (:obj:`float`): Minimum learning rate.
+    """
+
     # 1) linear warmup for warmup_epochs.
     if epoch < warmup_epochs:
         return epoch / warmup_epochs
@@ -26,6 +37,17 @@ def cos_lr_scheduler(
         lr_decay_epochs: float = 100,
         min_lr: float = 6e-5
 ) -> torch.optim.lr_scheduler.LambdaLR:
+    """
+    Overview:
+        Cosine learning rate scheduler.
+    Arguments:
+        - optimizer (:obj:`torch.optim.Optimizer`): Optimizer.
+        - learning_rate (:obj:`float`): Learning rate.
+        - warmup_epochs (:obj:`float`): Warmup epochs.
+        - lr_decay_epochs (:obj:`float`): Learning rate decay epochs.
+        - min_lr (:obj:`float`): Minimum learning rate.
+    """
+
     return LambdaLR(
         optimizer,
         partial(

@@ -6,7 +6,10 @@ from .default_helper import one_time_warning
 
 class OrchestratorLauncher(object):
     """
-    Overview: object to manage di-orchestrator in existing k8s cluster
+    Overview:
+        Object to manage di-orchestrator in existing k8s cluster
+    Interfaces:
+        ``__init__``, ``create_orchestrator``, ``delete_orchestrator``
     """
 
     def __init__(
@@ -18,6 +21,18 @@ class OrchestratorLauncher(object):
             cert_manager_version: str = 'v1.3.1',
             cert_manager_registry: str = 'quay.io/jetstack'
     ) -> None:
+        """
+        Overview:
+            Initialize the OrchestratorLauncher object.
+        Arguments:
+            - version (:obj:`str`): The version of di-orchestrator.
+            - name (:obj:`str`): The name of di-orchestrator.
+            - cluster (:obj:`K8sLauncher`): The k8s cluster to deploy di-orchestrator.
+            - registry (:obj:`str`): The docker registry to pull images.
+            - cert_manager_version (:obj:`str`): The version of cert-manager.
+            - cert_manager_registry (:obj:`str`): The docker registry to pull cert-manager images.
+        """
+
         self.name = name
         self.version = version
         self.cluster = cluster
@@ -47,6 +62,11 @@ class OrchestratorLauncher(object):
         self._check_kubectl_tools()
 
     def _check_kubectl_tools(self) -> None:
+        """
+        Overview:
+            Check if kubectl tools is installed.
+        """
+
         args = ['which', 'kubectl']
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, _ = proc.communicate()
@@ -56,6 +76,11 @@ class OrchestratorLauncher(object):
             )
 
     def create_orchestrator(self) -> None:
+        """
+        Overview:
+            Create di-orchestrator in k8s cluster.
+        """
+
         print('Creating orchestrator...')
         if self.cluster is not None:
             self.cluster.preload_images(self._images)
@@ -69,6 +94,11 @@ class OrchestratorLauncher(object):
         wait_to_be_ready(self._namespace, self._webhook)
 
     def delete_orchestrator(self) -> None:
+        """
+        Overview:
+            Delete di-orchestrator in k8s cluster.
+        """
+
         print('Deleting orchestrator...')
         for item in [self.cert_manager, self.installer]:
             args = ['kubectl', 'delete', '-f', f'{item}']
@@ -81,6 +111,13 @@ class OrchestratorLauncher(object):
 
 
 def create_components_from_config(config: str) -> None:
+    """
+    Overview:
+        Create components from config file.
+    Arguments:
+        - config (:obj:`str`): The config file.
+    """
+
     args = ['kubectl', 'create', '-f', f'{config}']
     proc = subprocess.Popen(args, stderr=subprocess.PIPE)
     _, err = proc.communicate()
@@ -93,6 +130,15 @@ def create_components_from_config(config: str) -> None:
 
 
 def wait_to_be_ready(namespace: str, component: str, timeout: int = 120) -> None:
+    """
+    Overview:
+        Wait for the component to be ready.
+    Arguments:
+        - namespace (:obj:`str`): The namespace of the component.
+        - component (:obj:`str`): The name of the component.
+        - timeout (:obj:`int`): The timeout of waiting.
+    """
+
     try:
         from kubernetes import config, client, watch
     except ModuleNotFoundError:

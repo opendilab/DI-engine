@@ -9,8 +9,23 @@ COLLECTION_ERRORS = List[COLLECTION_ERROR_ITEM]
 
 
 class CollectionError(CompositeStructureError):
+    """
+    Overview:
+        Collection error.
+    Interfaces:
+        ``__init__``, ``errors``
+    Properties:
+        ``errors``
+    """
 
     def __init__(self, errors: COLLECTION_ERRORS):
+        """
+        Overview:
+            Initialize the CollectionError.
+        Arguments:
+            - errors (:obj:`COLLECTION_ERRORS`): The errors.
+        """
+
         self.__errors = list(errors or [])
         CompositeStructureError.__init__(
             self, '{count} error(s) found in collection.'.format(count=repr(list(self.__errors)))
@@ -18,10 +33,23 @@ class CollectionError(CompositeStructureError):
 
     @property
     def errors(self) -> COLLECTION_ERRORS:
+        """
+        Overview:
+            Get the errors.
+        """
+
         return self.__errors
 
 
 def collection(loader, type_back: bool = True) -> ILoaderClass:
+    """
+    Overview:
+        Create a collection loader.
+    Arguments:
+        - loader (:obj:`ILoaderClass`): The loader.
+        - type_back (:obj:`bool`): Whether to convert the type back.
+    """
+
     loader = Loader(loader)
 
     def _load(value):
@@ -47,6 +75,13 @@ def collection(loader, type_back: bool = True) -> ILoaderClass:
 
 
 def tuple_(*loaders) -> ILoaderClass:
+    """
+    Overview:
+        Create a tuple loader.
+    Arguments:
+        - loaders (:obj:`tuple`): The loaders.
+    """
+
     loaders = [Loader(loader) for loader in loaders]
 
     def _load(value: tuple):
@@ -56,6 +91,13 @@ def tuple_(*loaders) -> ILoaderClass:
 
 
 def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -> ILoaderClass:
+    """
+    Overview:
+        Create a length loader.
+    Arguments:
+        - min_length (:obj:`int`): The minimum length.
+        - max_length (:obj:`int`): The maximum length.
+    """
 
     def _load(value):
         _length = len(value)
@@ -74,10 +116,23 @@ def length(min_length: Optional[int] = None, max_length: Optional[int] = None) -
 
 
 def length_is(length_: int) -> ILoaderClass:
+    """
+    Overview:
+        Create a length loader.
+    Arguments:
+        - length_ (:obj:`int`): The length.
+    """
+
     return length(min_length=length_, max_length=length_)
 
 
 def contains(content) -> ILoaderClass:
+    """
+    Overview:
+        Create a contains loader.
+    Arguments:
+        - content (:obj:`Any`): The content.
+    """
 
     def _load(value):
         if content not in value:
@@ -89,6 +144,13 @@ def contains(content) -> ILoaderClass:
 
 
 def cofilter(checker: Callable[[Any], bool], type_back: bool = True) -> ILoaderClass:
+    """
+    Overview:
+        Create a cofilter loader.
+    Arguments:
+        - checker (:obj:`Callable[[Any], bool]`): The checker.
+        - type_back (:obj:`bool`): Whether to convert the type back.
+    """
 
     def _load(value):
         _result = [item for item in value if checker(item)]
@@ -100,6 +162,12 @@ def cofilter(checker: Callable[[Any], bool], type_back: bool = True) -> ILoaderC
 
 
 def tpselector(*indices) -> ILoaderClass:
+    """
+    Overview:
+        Create a tuple selector loader.
+    Arguments:
+        - indices (:obj:`tuple`): The indices.
+    """
 
     def _load(value: tuple):
         return tuple([value[index] for index in indices])

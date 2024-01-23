@@ -12,6 +12,10 @@ def extract(a, t, x_shape):
     """
     Overview:
         extract output from a through index t.
+    Arguments:
+        - a (:obj:`torch.Tensor`): input tensor
+        - t (:obj:`torch.Tensor`): index tensor
+        - x_shape (:obj:`torch.Tensor`): shape of x
     """
     b, *_ = t.shape
     out = a.gather(-1, t)
@@ -23,6 +27,10 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008, dtype=torch.float32):
     Overview:
         cosine schedule
         as proposed in https://openreview.net/forum?id=-NEXDKk8gZ
+    Arguments:
+        - timesteps (:obj:`int`): timesteps of diffusion step
+        - s (:obj:`float`): s
+        - dtype (:obj:`torch.dtype`): dtype of beta
     Return:
         Tensor of beta [timesteps,], computing by cosine.
     """
@@ -39,6 +47,10 @@ def apply_conditioning(x, conditions, action_dim):
     """
     Overview:
         add condition into x
+    Arguments:
+        - x (:obj:`torch.Tensor`): input tensor
+        - conditions (:obj:`dict`): condition dict, key is timestep, value is condition
+        - action_dim (:obj:`int`): action dim
     """
     for t, val in conditions.items():
         x[:, t, action_dim:] = val.clone()
@@ -46,6 +58,12 @@ def apply_conditioning(x, conditions, action_dim):
 
 
 class DiffusionConv1d(nn.Module):
+    """
+    Overview:
+        Conv1d with activation and normalization for diffusion models.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(
             self,
@@ -72,10 +90,14 @@ class DiffusionConv1d(nn.Module):
         self.norm = nn.GroupNorm(n_groups, out_channels)
         self.act = activation
 
-    def forward(self, inputs):
+    def forward(self, inputs) -> torch.Tensor:
         """
         Overview:
             compute conv1d for inputs.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): input tensor
+        Return:
+            - out (:obj:`torch.Tensor`): output tensor
         """
         x = self.conv1(inputs)
         # [batch, channels, horizon] -> [batch, channels, 1, horizon]
@@ -90,17 +112,32 @@ class DiffusionConv1d(nn.Module):
 class SinusoidalPosEmb(nn.Module):
     """
     Overview:
-        compute sin position embeding
+        class for computing sin position embeding
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
-    def __init__(
-            self,
-            dim: int,
-    ) -> None:
+    def __init__(self, dim: int) -> None:
+        """
+        Overview:
+            Initialization of SinusoidalPosEmb class
+        Arguments:
+            - dim (:obj:`int`): dimension of embeding
+        """
+
         super().__init__()
         self.dim = dim
 
-    def forward(self, x):
+    def forward(self, x) -> torch.Tensor:
+        """
+        Overview:
+            compute sin position embeding
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor
+        Return:
+            - emb (:obj:`torch.Tensor`): output tensor
+        """
+
         device = x.device
         half_dim = self.dim // 2
         emb = math.log(10000) / (half_dim - 1)
@@ -111,27 +148,65 @@ class SinusoidalPosEmb(nn.Module):
 
 
 class Residual(nn.Module):
+    """
+    Overview:
+        Basic Residual block
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(self, fn):
+        """
+        Overview:
+            Initialization of Residual class
+        Arguments:
+            - fn (:obj:`nn.Module`): function of residual block
+        """
+
         super().__init__()
         self.fn = fn
 
     def forward(self, x, *arg, **kwargs):
+        """
+        Overview:
+            compute residual block
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor
+        """
+
         return self.fn(x, *arg, **kwargs) + x
 
 
 class LayerNorm(nn.Module):
     """
-    Overview: LayerNorm, compute dim = 1, because Temporal input x [batch, dim, horizon]
+    Overview:
+        LayerNorm, compute dim = 1, because Temporal input x [batch, dim, horizon]
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, dim, eps=1e-5) -> None:
+        """
+        Overview:
+            Initialization of LayerNorm class
+        Arguments:
+            - dim (:obj:`int`): dimension of input
+            - eps (:obj:`float`): eps of LayerNorm
+        """
+
         super().__init__()
         self.eps = eps
         self.g = nn.Parameter(torch.ones(1, dim, 1))
         self.b = nn.Parameter(torch.zeros(1, dim, 1))
 
     def forward(self, x):
+        """
+        Overview:
+            compute LayerNorm
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor
+        """
+
         print('x.shape:', x.shape)
         var = torch.var(x, dim=1, unbiased=False, keepdim=True)
         mean = torch.mean(x, dim=1, keepdim=True)
@@ -139,13 +214,33 @@ class LayerNorm(nn.Module):
 
 
 class PreNorm(nn.Module):
+    """
+    Overview:
+        PreNorm, compute dim = 1, because Temporal input x [batch, dim, horizon]
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(self, dim, fn) -> None:
+        """
+        Overview:
+            Initialization of PreNorm class
+        Arguments:
+            - dim (:obj:`int`): dimension of input
+            - fn (:obj:`nn.Module`): function of residual block
+        """
+
         super().__init__()
         self.fn = fn
         self.norm = LayerNorm(dim)
 
     def forward(self, x):
+        """
+        Overview:
+            compute PreNorm
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor
+        """
         x = self.norm(x)
         return self.fn(x)
 
@@ -154,13 +249,19 @@ class LinearAttention(nn.Module):
     """
     Overview:
         Linear Attention head
-    Arguments:
-        - dim (:obj:'int'): dim of input
-        - heads (:obj:'int'): num of head
-        - dim_head (:obj:'int'): dim of head
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, dim, heads=4, dim_head=32) -> None:
+        """
+        Overview:
+            Initialization of LinearAttention class
+        Arguments:
+            - dim (:obj:`int`): dimension of input
+            - heads (:obj:`int`): heads of attention
+            - dim_head (:obj:`int`): dim of head
+        """
         super().__init__()
         self.scale = dim_head ** -0.5
         self.heads = heads
@@ -169,6 +270,12 @@ class LinearAttention(nn.Module):
         self.to_out = nn.Conv1d(hidden_dim, dim, 1)
 
     def forward(self, x):
+        """
+        Overview:
+            compute LinearAttention
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor
+        """
         qkv = self.to_qkv(x).chunk(3, dim=1)
         q, k, v = map(lambda t: t.reshape(t.shape[0], self.heads, -1, t.shape[-1]), qkv)
         q = q * self.scale
@@ -184,17 +291,23 @@ class ResidualTemporalBlock(nn.Module):
     """
     Overview:
         Residual block of temporal
-    Arguments:
-        - in_channels (:obj:'int'): dim of in_channels
-        - out_channels (:obj:'int'): dim of out_channels
-        - embed_dim (:obj:'int'): dim of embeding layer
-        - kernel_size (:obj:'int'): kernel_size of conv1d
-        - mish (:obj:'bool'): whether use mish as a activate function
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(
             self, in_channels: int, out_channels: int, embed_dim: int, kernel_size: int = 5, mish: bool = True
     ) -> None:
+        """
+        Overview:
+            Initialization of ResidualTemporalBlock class
+        Arguments:
+            - in_channels (:obj:'int'): dim of in_channels
+            - out_channels (:obj:'int'): dim of out_channels
+            - embed_dim (:obj:'int'): dim of embeding layer
+            - kernel_size (:obj:'int'): kernel_size of conv1d
+            - mish (:obj:'bool'): whether use mish as a activate function
+        """
         super().__init__()
         if mish:
             act = nn.Mish()
@@ -214,12 +327,25 @@ class ResidualTemporalBlock(nn.Module):
             if in_channels != out_channels else nn.Identity()
 
     def forward(self, x, t):
+        """
+        Overview:
+            compute residual block
+        Arguments:
+            - x (:obj:'tensor'): input tensor
+            - t (:obj:'tensor'): time tensor
+        """
         out = self.blocks[0](x) + self.time_mlp(t).unsqueeze(-1)
         out = self.blocks[1](out)
         return out + self.residual_conv(x)
 
 
 class DiffusionUNet1d(nn.Module):
+    """
+    Overview:
+        Diffusion unet for 1d vector data
+    Interfaces:
+        ``__init__``, ``forward``, ``get_pred``
+    """
 
     def __init__(
             self,
@@ -234,7 +360,7 @@ class DiffusionUNet1d(nn.Module):
     ) -> None:
         """
         Overview:
-            temporal net
+            Initialization of DiffusionUNet1d class
         Arguments:
             - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim
             - dim (:obj:'int'): dim of layer
@@ -325,13 +451,15 @@ class DiffusionUNet1d(nn.Module):
 
     def forward(self, x, cond, time, returns=None, use_dropout: bool = True, force_dropout: bool = False):
         """
+        Overview:
+            compute diffusion unet forward
         Arguments:
-            x (:obj:'tensor'): noise trajectory
-            cond (:obj:'tuple'): [ (time, state), ... ] state is init state of env, time = 0
-            time (:obj:'int'): timestep of diffusion step
-            returns (:obj:'tensor'): condition returns of trajectory, returns is normal return
-            use_dropout (:obj:'bool'): Whether use returns condition mask
-            force_dropout (:obj:'bool'): Whether use returns condition
+            - x (:obj:'tensor'): noise trajectory
+            - cond (:obj:'tuple'): [ (time, state), ... ] state is init state of env, time = 0
+            - time (:obj:'int'): timestep of diffusion step
+            - returns (:obj:'tensor'): condition returns of trajectory, returns is normal return
+            - use_dropout (:obj:'bool'): Whether use returns condition mask
+            - force_dropout (:obj:'bool'): Whether use returns condition
         """
         if self.cale_energy:
             x_inp = x
@@ -383,6 +511,17 @@ class DiffusionUNet1d(nn.Module):
             return x
 
     def get_pred(self, x, cond, time, returns: bool = None, use_dropout: bool = True, force_dropout: bool = False):
+        """
+        Overview:
+            compute diffusion unet forward
+        Arguments:
+            - x (:obj:'tensor'): noise trajectory
+            - cond (:obj:'tuple'): [ (time, state), ... ] state is init state of env, time = 0
+            - time (:obj:'int'): timestep of diffusion step
+            - returns (:obj:'tensor'): condition returns of trajectory, returns is normal return
+            - use_dropout (:obj:'bool'): Whether use returns condition mask
+            - force_dropout (:obj:'bool'): Whether use returns condition
+        """
         # [batch, horizon, transition ] -> [batch, transition , horizon]
         x = x.transpose(1, 2)
         t = self.time_mlp(time)
@@ -424,13 +563,8 @@ class TemporalValue(nn.Module):
     """
     Overview:
         temporal net for value function
-    Arguments:
-        - horizon (:obj:'int'): horizon of trajectory
-        - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim
-        - dim (:obj:'int'): dim of layer
-        - time_dim (:obj:'): dim of time
-        - dim_mults (:obj:'SequenceType'): mults of dim
-        - kernel_size (:obj:'int'): kernel_size of conv1d
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -443,6 +577,18 @@ class TemporalValue(nn.Module):
             kernel_size: int = 5,
             dim_mults: SequenceType = [1, 2, 4, 8],
     ) -> None:
+        """
+        Overview:
+            Initialization of TemporalValue class
+        Arguments:
+            - horizon (:obj:'int'): horizon of trajectory
+            - transition_dim (:obj:'int'): dim of transition, it is obs_dim + action_dim
+            - dim (:obj:'int'): dim of layer
+            - time_dim (:obj:'int'): dim of time
+            - out_dim (:obj:'int'): dim of output
+            - kernel_size (:obj:'int'): kernel_size of conv1d
+            - dim_mults (:obj:'SequenceType'): mults of dim
+        """
         super().__init__()
         dims = [transition_dim, *map(lambda m: dim * m, dim_mults)]
         in_out = list(zip(dims[:-1], dims[1:]))
@@ -489,6 +635,14 @@ class TemporalValue(nn.Module):
         )
 
     def forward(self, x, cond, time, *args):
+        """
+        Overview:
+            compute temporal value forward
+        Arguments:
+            - x (:obj:'tensor'): noise trajectory
+            - cond (:obj:'tuple'): [ (time, state), ... ] state is init state of env, time = 0
+            - time (:obj:'int'): timestep of diffusion step
+        """
         # [batch, horizon, transition ] -> [batch, transition , horizon]
         x = x.transpose(1, 2)
         t = self.time_mlp(time)

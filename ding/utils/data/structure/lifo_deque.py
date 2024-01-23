@@ -4,7 +4,10 @@ from collections import deque
 
 class LifoDeque(LifoQueue):
     """
-    Like LifoQueue, but automatically replaces the oldest data when the queue is full.
+    Overview:
+        Like LifoQueue, but automatically replaces the oldest data when the queue is full.
+    Interfaces:
+        ``_init``, ``_put``, ``_get``
     """
 
     def _init(self, maxsize):

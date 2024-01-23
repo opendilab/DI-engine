@@ -5,7 +5,7 @@ _IterTargetType = TypeVar('_IterTargetType')
 
 
 def iter_mapping(iter_: Iterable[_IterType], mapping: Callable[[_IterType], _IterTargetType]):
-    r"""
+    """
     Overview:
         Map a list of iterable elements to input iteration callable
     Arguments:
