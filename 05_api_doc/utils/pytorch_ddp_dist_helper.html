@@ -367,6 +367,14 @@ None, if not async_op or if not part of the group</p>
 </section>
 <section id="module-ding.utils.pytorch_ddp_dist_helper.allreduce">
 <span id="allreduce"></span><h3>allreduce<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.allreduce" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>All reduce the tensor <code class="docutils literal notranslate"><span class="pre">x</span></code> in the world</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the tensor to be reduced</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 <section id="module-ding.utils.pytorch_ddp_dist_helper.get_group">
 <span id="get-group"></span><h3>get_group<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_group" title="Permalink to this headline">¶</a></h3>
@@ -384,12 +392,24 @@ None, if not async_op or if not part of the group</p>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Wrap the function so that in can init and finalize automatically before each call</p>
 </dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>func (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): the function to be wrapped</p></li>
+</ul>
+</dd>
 </dl>
 </section>
 <section id="module-ding.utils.pytorch_ddp_dist_helper.dist_init">
 <span id="dist-init"></span><h3>dist_init<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_init" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
-<dt>Overview:</dt><dd><p>Init the distributed training setting</p>
+<dt>Overview:</dt><dd><p>Initialize the distributed training setting</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>backend (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The backend of the distributed training, support <code class="docutils literal notranslate"><span class="pre">['nccl',</span> <span class="pre">'gloo']</span></code></p></li>
+<li><p>addr (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The address of the master node</p></li>
+<li><p>port (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The port of the master node</p></li>
+<li><p>rank (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The rank of current process</p></li>
+<li><p>world_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The total number of processes</p></li>
+</ul>
 </dd>
 </dl>
 </section>

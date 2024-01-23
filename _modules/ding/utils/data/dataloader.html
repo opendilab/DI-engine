@@ -307,11 +307,12 @@
 
 
 <div class="viewcode-block" id="AsyncDataLoader"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader">[docs]</a><span class="k">class</span> <span class="nc">AsyncDataLoader</span><span class="p">(</span><span class="n">IDataLoader</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        An asynchronous dataloader.</span>
-<span class="sd">    Interface:</span>
-<span class="sd">        __init__, __iter__, __next__, close</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``__iter__``, ``__next__``, ``_get_data``, ``_async_loop``, ``_worker_loop``, ``_cuda_loop``, \</span>
+<span class="sd">            ``_get_data``, ``close``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="AsyncDataLoader.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -632,6 +633,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Delete this dataloader.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 <div class="viewcode-block" id="AsyncDataLoader.close"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

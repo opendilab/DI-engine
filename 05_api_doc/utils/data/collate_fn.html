@@ -349,7 +349,7 @@
 <dl>
 <dt>Overview:</dt><dd><p>Collates a batch of timestepped data fields into tensors with the outer dimension being the batch size.         Each timestepped data field is represented as a tensor with shape [T, B, any_dims], where T is the length         of the sequence, B is the batch size, and any_dims represents the shape of the tensor at each timestep.</p>
 </dd>
-<dt>Args:</dt><dd><ul class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
 <li><p>batch(<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): A list of dictionaries with length B, where each dictionary represents             a timestepped data field. Each dictionary contains a key-value pair, where the key is the name of the             data field and the value is a sequence of torch.Tensor objects with any shape.</p></li>
 </ul>
 </dd>

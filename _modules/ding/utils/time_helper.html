@@ -303,7 +303,7 @@
 
 
 <span class="k">def</span> <span class="nf">build_time_helper</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">wrapper_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="s1">&#39;TimeWrapper&#39;</span><span class="p">]:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Build the timehelper</span>
 
@@ -340,11 +340,11 @@
 
 
 <div class="viewcode-block" id="EasyTimer"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.EasyTimer">[docs]</a><span class="k">class</span> <span class="nc">EasyTimer</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A decent timer wrapper that can be used easily.</span>
 
-<span class="sd">    Interface:</span>
+<span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``__enter__``, ``__exit__``</span>
 
 <span class="sd">    Example:</span>
@@ -355,7 +355,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="EasyTimer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.EasyTimer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init class EasyTimer</span>
 
@@ -370,7 +370,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span></div>
 
 <div class="viewcode-block" id="EasyTimer.__enter__"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.EasyTimer.__enter__">[docs]</a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Enter timer, start timing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -378,7 +378,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">start_time</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="EasyTimer.__exit__"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.EasyTimer.__exit__">[docs]</a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Exit timer, stop timing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -386,18 +386,18 @@
 
 
 <div class="viewcode-block" id="TimeWrapperTime"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapperTime">[docs]</a><span class="k">class</span> <span class="nc">TimeWrapperTime</span><span class="p">(</span><span class="n">TimeWrapper</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A class method that inherit from ``TimeWrapper`` class</span>
 
-<span class="sd">    Interface:</span>
+<span class="sd">    Interfaces:</span>
 <span class="sd">        ``start_time``, ``end_time``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># overwrite</span>
 <div class="viewcode-block" id="TimeWrapperTime.start_time"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapperTime.start_time">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">start_time</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Implement and override the ``start_time`` method in ``TimeWrapper`` class</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -406,7 +406,7 @@
     <span class="c1"># overwrite</span>
 <div class="viewcode-block" id="TimeWrapperTime.end_time"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapperTime.end_time">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">end_time</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Implement and override the end_time method in ``TimeWrapper`` class</span>
 
@@ -428,7 +428,7 @@
 <span class="sd">    .. note::</span>
 <span class="sd">            If it is not reset before exceeding this value, ``TimeourError`` raised.</span>
 
-<span class="sd">    Interface:</span>
+<span class="sd">    Interfaces:</span>
 <span class="sd">        ``start``, ``stop``</span>
 
 <span class="sd">    Examples:</span>
@@ -440,11 +440,18 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="WatchDog.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.WatchDog.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize watchdog with ``timeout`` value.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - timeout (:obj:`int`): Timeout value of the ``watchdog [seconds]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span> <span class="o">=</span> <span class="n">timeout</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_failed</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="WatchDog.start"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.WatchDog.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Start watchdog.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -453,10 +460,18 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_event</span><span class="p">(</span><span class="n">signum</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Event handler for watchdog.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - signum (:obj:`Any`): Signal number.</span>
+<span class="sd">            - frame (:obj:`Any`): Current stack frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">()</span>
 
 <div class="viewcode-block" id="WatchDog.stop"><a class="viewcode-back" href="../../../05_api_doc/utils/time_helper.html#ding.utils.time_helper.WatchDog.stop">[docs]</a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Stop watchdog with ``alarm(0)``, ``SIGALRM``, and ``SIG_DFL`` signals.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

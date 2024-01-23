@@ -303,6 +303,8 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A custom lambda module for constructing custom layers.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
@@ -315,7 +317,13 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">Lambda</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">f</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Compute the function of the input tensor.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
 
@@ -325,7 +333,7 @@
 <span class="sd">        Gating Linear Unit (GLU), a specific type of activation function, which is first proposed in</span>
 <span class="sd">        [Language Modeling with Gated Convolutional Networks](https://arxiv.org/pdf/1612.08083.pdf).</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``forward``.</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">context_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">input_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;fc&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -369,6 +377,8 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        Swish activation function, which is a smooth, non-monotonic activation function. For more details, please refer</span>
 <span class="sd">        to [Searching for Activation Functions](https://arxiv.org/pdf/1710.05941.pdf).</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -396,10 +406,14 @@
 <span class="sd">        Gaussian Error Linear Units (GELU) activation function, which is widely used in NLP models like GPT, BERT.</span>
 <span class="sd">        For more details, please refer to the original paper: https://arxiv.org/pdf/1606.08415.pdf.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``forward``</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the GELU module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">GELU</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>

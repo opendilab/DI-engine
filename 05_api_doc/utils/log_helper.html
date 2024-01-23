@@ -327,6 +327,12 @@
 </section>
 <section id="module-ding.utils.log_helper.LoggerFactory">
 <span id="loggerfactory"></span><h3>LoggerFactory<a class="headerlink" href="#module-ding.utils.log_helper.LoggerFactory" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>LoggerFactory is a factory class for <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">create_logger</span></code>, <code class="docutils literal notranslate"><span class="pre">get_tabulate_vars</span></code>, <code class="docutils literal notranslate"><span class="pre">get_tabulate_vars_hor</span></code></p>
+</dd>
+</dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="ding.utils.log_helper.LoggerFactory.create_logger">
 <span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.LoggerFactory.</span></span><span class="sig-name descname"><span class="pre">create_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">logging.Logger</span></span></span><a class="headerlink" href="#ding.utils.log_helper.LoggerFactory.create_logger" title="Permalink to this definition">¶</a></dt>
@@ -358,6 +364,19 @@
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>string (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Text description in tabular form of all vars</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.utils.log_helper.LoggerFactory.get_tabulate_vars_hor">
+<span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.LoggerFactory.</span></span><span class="sig-name descname"><span class="pre">get_tabulate_vars_hor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ding.utils.log_helper.LoggerFactory.get_tabulate_vars_hor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the text description in tabular form of all vars</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>variables (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[str]</span></code>): Names of the vars to query.</p></li>
 </ul>
 </dd>
 </dl>

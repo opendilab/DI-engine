@@ -357,10 +357,9 @@
 <li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bytes</span></code>): The compressed byte-like result.</p></li>
 </ul>
 </dd>
-<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lz4</span><span class="o">.</span><span class="n">block</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">))</span>
-<span class="go">b&#39;\x14\x00\x00\x00R\x80\x04\x95\t\x00\x01\x00\x90\x8c\x05Hello\x94.&#39;</span>
-</pre></div>
-</div>
+<dt>Examples:</dt><dd><pre class="doctest literal-block">&gt;&gt;&gt; lz4.block.compress(pickle.dumps(&quot;Hello&quot;))
+b'R      Hello.'
+</pre>
 </dd>
 </dl>
 </section>

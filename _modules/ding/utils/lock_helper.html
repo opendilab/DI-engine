@@ -340,7 +340,7 @@
 <span class="sd">            Init the lock according to the given type.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            type_ (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.</span>
+<span class="sd">           - type_ (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">_LOCK_TYPE_MAPPING</span><span class="p">[</span><span class="n">type_</span><span class="p">]()</span></div>
 
@@ -369,6 +369,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Exits the context and releases the lock.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - args (:obj:`Tuple`): The arguments passed to the ``__exit__`` function.</span>
+<span class="sd">            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div></div>
 
@@ -414,7 +417,7 @@
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; lock_path = &quot;/path/to/lock/file&quot;</span>
-<span class="sd">        &gt;&gt;&gt;with FcntlContext(lock_path) as lock:</span>
+<span class="sd">        &gt;&gt;&gt; with FcntlContext(lock_path) as lock:</span>
 <span class="sd">        &gt;&gt;&gt;    # Perform operations while the lock is held</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -444,6 +447,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Closes the file and releases any resources used by the lock_helper object.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - args (:obj:`Tuple`): The arguments passed to the ``__exit__`` function.</span>
+<span class="sd">            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>

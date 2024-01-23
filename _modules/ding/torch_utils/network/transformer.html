@@ -306,7 +306,7 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        For each entry embedding, compute individual attention across all entries, add them up to get output attention.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``split``, ``forward``</span>
+<span class="sd">        ``__init__``, ``split``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -381,7 +381,7 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        In transformer layer, first computes entries&#39;s attention and applies a feedforward layer.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``forward``</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -442,7 +442,7 @@
 <span class="sd">    .. note::</span>
 <span class="sd">        For more details, refer to &quot;Attention is All You Need&quot;: http://arxiv.org/abs/1706.03762.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``forward``</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -511,6 +511,8 @@
 <span class="sd">        Implementation of Scaled Dot Product Attention, a key component of Transformer models.</span>
 <span class="sd">        This class performs the dot product of the query, key and value tensors, scales it with the square root of the</span>
 <span class="sd">        dimension of the key vector (d_k) and applies dropout for regularization.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

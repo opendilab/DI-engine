@@ -300,19 +300,12 @@
 <span class="kn">from</span> <span class="nn">ding.torch_utils.network</span> <span class="kn">import</span> <span class="n">one_hot</span>
 
 
-<span class="k">def</span> <span class="nf">get_distance_matrix</span><span class="p">(</span><span class="n">lx</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ly</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">M</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="n">nlx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">nly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">ly</span><span class="p">,</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">])</span>
-    <span class="n">nret</span> <span class="o">=</span> <span class="n">nlx</span> <span class="o">+</span> <span class="n">nly</span> <span class="o">-</span> <span class="n">mat</span>
-    <span class="k">return</span> <span class="n">nret</span>
-
-
 <div class="viewcode-block" id="MultiLogitsLoss"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss">[docs]</a><span class="k">class</span> <span class="nc">MultiLogitsLoss</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Base class for supervised learning on linklink, including basic processes.</span>
-<span class="sd">    Interface:</span>
-<span class="sd">        __init__, forward.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">criterion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">smooth_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -332,6 +325,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">smooth_ratio</span>
 
     <span class="k">def</span> <span class="nf">_label_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Process the label according to the criterion.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - logits (:obj:`torch.Tensor`): Predicted logits.</span>
+<span class="sd">            - labels (:obj:`torch.LongTensor`): Ground truth.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - ret (:obj:`torch.LongTensor`): Processed label.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span> <span class="o">==</span> <span class="s1">&#39;cross_entropy&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">one_hot</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>
@@ -342,10 +344,28 @@
             <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="nf">_nll_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nlls</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the negative log likelihood loss.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - nlls (:obj:`torch.Tensor`): Negative log likelihood loss.</span>
+<span class="sd">            - labels (:obj:`torch.LongTensor`): Ground truth.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - ret (:obj:`torch.Tensor`): Calculated loss.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">nlls</span> <span class="o">*</span> <span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">detach</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">ret</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_metric_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the metric matrix.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - logits (:obj:`torch.Tensor`): Predicted logits.</span>
+<span class="sd">            - labels (:obj:`torch.LongTensor`): Ground truth.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - metric (:obj:`torch.Tensor`): Calculated metric matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">M</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_process</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -357,6 +377,14 @@
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Match the metric matrix.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - matrix (:obj:`torch.Tensor`): Metric matrix.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - index (:obj:`np.ndarray`): Matched index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="o">-</span><span class="n">mat</span>  <span class="c1"># maximize</span>
         <span class="n">M</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -382,7 +410,7 @@
             <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="n">visx</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">visy</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-                <span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">get_distance_matrix</span><span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+                <span class="n">distance_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_distance_matrix</span><span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="n">ly</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
                 <span class="n">binary_distance_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-4</span>
                 <span class="k">if</span> <span class="n">has_augmented_path</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">binary_distance_matrix</span><span class="p">):</span>
                     <span class="k">break</span>
@@ -394,6 +422,22 @@
                 <span class="n">lx</span><span class="p">[</span><span class="n">visx</span><span class="p">]</span> <span class="o">-=</span> <span class="n">d</span>
                 <span class="n">ly</span><span class="p">[</span><span class="n">visy</span><span class="p">]</span> <span class="o">+=</span> <span class="n">d</span>
         <span class="k">return</span> <span class="n">index</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_distance_matrix</span><span class="p">(</span><span class="n">lx</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ly</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">M</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get distance matrix.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - lx (:obj:`np.ndarray`): lx.</span>
+<span class="sd">            - ly (:obj:`np.ndarray`): ly.</span>
+<span class="sd">            - mat (:obj:`np.ndarray`): mat.</span>
+<span class="sd">            - M (:obj:`int`): M.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nlx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">lx</span><span class="p">,</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">nly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">ly</span><span class="p">,</span> <span class="p">[</span><span class="n">M</span><span class="p">,</span> <span class="n">M</span><span class="p">])</span>
+        <span class="n">nret</span> <span class="o">=</span> <span class="n">nlx</span> <span class="o">+</span> <span class="n">nly</span> <span class="o">-</span> <span class="n">mat</span>
+        <span class="k">return</span> <span class="n">nret</span>
 
 <div class="viewcode-block" id="MultiLogitsLoss.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_loss.html#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

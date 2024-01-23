@@ -308,7 +308,7 @@
 
 
 <span class="k">def</span> <span class="nf">calculate_grad_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        calculate grad norm of the parameters whose grad norms are not None in the model.</span>
 <span class="sd">    Arguments:</span>
@@ -332,7 +332,7 @@
 
 
 <span class="k">def</span> <span class="nf">calculate_grad_norm_without_bias_two_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        calculate grad norm of the parameters whose grad norms are not None in the model.</span>
 <span class="sd">    Arguments:</span>
@@ -348,6 +348,14 @@
 
 
 <span class="k">def</span> <span class="nf">grad_ignore_norm</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">max_norm</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Clip the gradient norm of an iterable of parameters.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - parameters (:obj:`Iterable`): an iterable of torch.Tensor</span>
+<span class="sd">        - max_norm (:obj:`float`): the max norm of the gradients</span>
+<span class="sd">        - norm_type (:obj:`float`): 2.0 means use norm2 to clip</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameters</span><span class="p">]</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="p">))</span>
@@ -369,6 +377,13 @@
 
 
 <span class="k">def</span> <span class="nf">grad_ignore_value</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">clip_value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Clip the gradient value of an iterable of parameters.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - parameters (:obj:`Iterable`): an iterable of torch.Tensor</span>
+<span class="sd">        - clip_value (:obj:`float`): the value to start clipping</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">parameters</span><span class="p">]</span>
     <span class="n">clip_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">clip_value</span><span class="p">)</span>
@@ -384,11 +399,11 @@
 
 
 <div class="viewcode-block" id="Adam"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.Adam">[docs]</a><span class="k">class</span> <span class="nc">Adam</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Rewrited Adam optimizer to support more features.</span>
-<span class="sd">    Interface:</span>
-<span class="sd">        __init__, step</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``step``, ``_state_init``, ``get_grad``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -412,7 +427,7 @@
         <span class="n">ignore_norm_type</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
         <span class="n">ignore_momentum_timestep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init method of refactored Adam class</span>
 <span class="sd">        Arguments:</span>
@@ -483,6 +498,14 @@
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">amsgrad</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the state of the optimizer</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - p (:obj:`torch.Tensor`): the parameter to be optimized</span>
+<span class="sd">            - amsgrad (:obj:`bool`): whether to use the AMSGrad variant of this algorithm from the paper\</span>
+<span class="sd">                On the Convergence of Adam and Beyond &lt;https://arxiv.org/abs/1904.09237&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_exp_avg_sq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="c1"># others</span>
@@ -502,7 +525,7 @@
             <span class="n">state</span><span class="p">[</span><span class="s1">&#39;max_exp_avg_sq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Adam.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.Adam.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Performs a single optimization step</span>
 <span class="sd">        Arguments:</span>
@@ -667,8 +690,8 @@
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Rewrited RMSprop optimizer to support more features.</span>
-<span class="sd">    Interface:</span>
-<span class="sd">        __init__, step</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``step``, ``_state_init``, ``get_grad``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -692,7 +715,7 @@
         <span class="n">ignore_norm_type</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
         <span class="n">ignore_momentum_timestep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            init method of refactored Adam class</span>
 <span class="sd">        Arguments:</span>
@@ -749,6 +772,16 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">momentum</span><span class="p">,</span> <span class="n">centered</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the state of the optimizer</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - p (:obj:`torch.Tensor`): the parameter to be optimized</span>
+<span class="sd">            - momentum (:obj:`float`): the momentum coefficient</span>
+<span class="sd">            - centered (:obj:`bool`): if True, compute the centered RMSprop, \</span>
+<span class="sd">                the gradient is normalized by an estimation of its variance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;thre_square_avg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -759,7 +792,7 @@
             <span class="n">state</span><span class="p">[</span><span class="s1">&#39;grad_avg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RMSprop.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.RMSprop.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Performs a single optimization step</span>
 <span class="sd">        Arguments:</span>
@@ -889,6 +922,11 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">get_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            calculate grad norm of the parameters whose grad norms are not None in the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">total_norm</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_groups</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">requires_grad</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
@@ -902,35 +940,55 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        PCGrad optimizer to support multi-task.</span>
 <span class="sd">        you can view the paper in the following link https://arxiv.org/pdf/2001.06782.pdf</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``zero_grad``, ``step``, ``pc_backward``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - optimizer (:obj:`torch.optim`): the optimizer to be used</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialization of PCGrad optimizer</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - optimizer (:obj:`torch.optim`): the optimizer to be used</span>
+<span class="sd">            - reduction (:obj:`str`): the reduction method, support [&#39;mean&#39;, &#39;sum&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduction</span> <span class="o">=</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">reduction</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            get the optimizer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span>
 
     <span class="k">def</span> <span class="nf">zero_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        clear the gradient of the parameters</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            clear the gradient of the parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        update the parameters with the gradient</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            update the parameters with the gradient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">pc_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectives</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        calculate the gradient of the parameters</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            calculate the gradient of the parameters</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - objectives: a list of objectives</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">,</span> <span class="n">has_grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pack_grad</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
         <span class="n">pc_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_conflicting</span><span class="p">(</span><span class="n">grads</span><span class="p">,</span> <span class="n">has_grads</span><span class="p">)</span>
@@ -939,6 +997,15 @@
         <span class="k">return</span>
 
     <span class="k">def</span> <span class="nf">_project_conflicting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">has_grads</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            project the conflicting gradient to the orthogonal space</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - grads (:obj:`list`): a list of the gradient of the parameters</span>
+<span class="sd">            - has_grads (:obj:`list`): a list of mask represent whether the parameter has gradient</span>
+<span class="sd">            - shapes (:obj:`list`): a list of the shape of the parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">shared</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">has_grads</span><span class="p">)</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
         <span class="n">pc_grad</span><span class="p">,</span> <span class="n">num_task</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">grads</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">g_i</span> <span class="ow">in</span> <span class="n">pc_grad</span><span class="p">:</span>
@@ -959,9 +1026,12 @@
         <span class="k">return</span> <span class="n">merged_grad</span>
 
     <span class="k">def</span> <span class="nf">_set_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        set the modified gradients to the network</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            set the modified gradients to the network</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - grads (:obj:`list`): a list of the gradient of the parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
@@ -972,13 +1042,16 @@
         <span class="k">return</span>
 
     <span class="k">def</span> <span class="nf">_pack_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectives</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        pack the gradient of the parameters of the network for each objective</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            pack the gradient of the parameters of the network for each objective</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - objectives: a list of objectives</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - grad: a list of the gradient of the parameters</span>
 <span class="sd">            - shape: a list of the shape of the parameters</span>
 <span class="sd">            - has_grad: a list of mask represent whether the parameter has gradient</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">,</span> <span class="n">has_grads</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objectives</span><span class="p">:</span>
@@ -991,6 +1064,14 @@
         <span class="k">return</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">,</span> <span class="n">has_grads</span>
 
     <span class="k">def</span> <span class="nf">_unflatten_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            unflatten the gradient of the parameters of the network</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - grads (:obj:`list`): a list of the gradient of the parameters</span>
+<span class="sd">            - shapes (:obj:`list`): a list of the shape of the parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">unflatten_grad</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
@@ -999,17 +1080,26 @@
         <span class="k">return</span> <span class="n">unflatten_grad</span>
 
     <span class="k">def</span> <span class="nf">_flatten_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            flatten the gradient of the parameters of the network</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - grads (:obj:`list`): a list of the gradient of the parameters</span>
+<span class="sd">            - shapes (:obj:`list`): a list of the shape of the parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">flatten_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">g</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">flatten_grad</span>
 
     <span class="k">def</span> <span class="nf">_retrieve_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        get the gradient of the parameters of the network with specific objective</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            get the gradient of the parameters of the network with specific objective</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - grad: a list of the gradient of the parameters</span>
 <span class="sd">            - shape: a list of the shape of the parameters</span>
 <span class="sd">            - has_grad: a list of mask represent whether the parameter has gradient</span>
-<span class="sd">        &#39;&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">grad</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">has_grad</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">param_groups</span><span class="p">:</span>
@@ -1028,7 +1118,7 @@
 
 
 <span class="k">def</span> <span class="nf">configure_weight_decay</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">weight_decay</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Separating out all parameters of the model into two buckets: those that will experience</span>
 <span class="sd">    weight decay for regularization and those that won&#39;t (biases, and layer-norm or embedding weights).</span>

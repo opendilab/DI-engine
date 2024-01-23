@@ -311,7 +311,7 @@
 <dt>Overview:</dt><dd><p>Gating Linear Unit (GLU), a specific type of activation function, which is first proposed in
 [Language Modeling with Gated Convolutional Networks](<a class="reference external" href="https://arxiv.org/pdf/1612.08083.pdf">https://arxiv.org/pdf/1612.08083.pdf</a>).</p>
 </dd>
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code>.</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -453,21 +453,13 @@ to the module and set to the out_channel of the conv layer.</p>
 <li><p>stride (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): Stride of the convolution. Default is 1.</p></li>
 <li><p>padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): Zero-padding added to both sides of the input. Default is 0.</p></li>
 <li><p>output_padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): Additional size added to one side of the output shape. Default is 0.</p></li>
-<li><dl class="simple">
-<dt>groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): Number of blocked connections from input channels to output channels. </dt><dd><p>Default is 1.</p>
-</dd>
-</dl>
-</li>
+<li><p>groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): Number of blocked connections from input channels to output channels.             Default is 1.</p></li>
 <li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): The optional activation function.</p></li>
 <li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>, optional): Type of the normalization.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): A sequential list containing the torch layers of the 2-dimensional </dt><dd><p>transpose convolution layer.</p>
-</dd>
-</dl>
-</li>
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): A sequential list containing the torch layers of the 2-dimensional             transpose convolution layer.</p></li>
 </ul>
 </dd>
 </dl>
@@ -616,6 +608,8 @@ Optional normalization can be done to the dim 1 (across the channels).</p>
 <dt>Overview:</dt><dd><p>Apply channel shuffle to the input tensor. For more details about the channel shuffle,
 please refer to the ‘ShuffleNet’ paper: <a class="reference external" href="https://arxiv.org/abs/1707.01083">https://arxiv.org/abs/1707.01083</a></p>
 </dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+</dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.ChannelShuffle.forward">
@@ -645,7 +639,7 @@ please refer to the ‘ShuffleNet’ paper: <a class="reference external" href="
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>This module upsamples the input to the given scale_factor using the nearest mode.</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -676,7 +670,7 @@ please refer to the ‘ShuffleNet’ paper: <a class="reference external" href="
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>This module upsamples the input to the given scale_factor using the bilinear mode.</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -707,7 +701,7 @@ please refer to the ‘ShuffleNet’ paper: <a class="reference external" href="
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>This is a linear layer with random noise.</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">reset_noise</span></code>, <code class="docutils literal notranslate"><span class="pre">reset_parameters</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reset_noise</span></code>, <code class="docutils literal notranslate"><span class="pre">reset_parameters</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -795,7 +789,7 @@ __________________ 3*3*C ____________________/+</p>
 </dl>
 <p>For more details, please refer to <a class="reference external" href="https://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a>.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -828,7 +822,7 @@ __________________ 3*3*C ____________________/+</p>
 x -&gt; fc1 -&gt; norm -&gt; act -&gt; fc2 -&gt; norm -&gt; act -&gt; out
 _____________________________________/+</p>
 </dd>
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -913,7 +907,7 @@ Wraps the LSTM <cite>forward</cite> method.</p>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Implementation of an LSTM cell with Layer Normalization (LN).</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -954,7 +948,7 @@ Wraps the LSTM <cite>forward</cite> method.</p>
 <dt>Overview:</dt><dd><p>Wrapper class for PyTorch’s nn.LSTM, formats the input and output. For more details on nn.LSTM,
 refer to <a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM">https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM</a></p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -1014,6 +1008,8 @@ refer to <a class="reference external" href="https://pytorch.org/docs/stable/gen
 <dt>Overview:</dt><dd><p>Scatter feature to its corresponding location. In AlphaStar, each entity is embedded into a tensor,
 and these tensors are scattered into a feature map with map size.</p>
 </dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">xy_forward</span></code></p>
+</dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.torch_utils.network.scatter_connection.ScatterConnection.forward">
@@ -1053,7 +1049,7 @@ and these tensors are scattered into a feature map with map size.</p>
 which is often used for location regression tasks. It converts a feature map (such as a heatmap) into precise
 coordinate locations.</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -1097,7 +1093,7 @@ and the paper &lt;<a class="reference external" href="https://arxiv.org/pdf/1504
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>For each entry embedding, compute individual attention across all entries, add them up to get output attention.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">split</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">split</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -1151,7 +1147,7 @@ and the paper &lt;<a class="reference external" href="https://arxiv.org/pdf/1504
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>In transformer layer, first computes entries’s attention and applies a feedforward layer.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -1196,7 +1192,7 @@ and the paper &lt;<a class="reference external" href="https://arxiv.org/pdf/1504
 <p>For more details, refer to “Attention is All You Need”: <a class="reference external" href="http://arxiv.org/abs/1706.03762">http://arxiv.org/abs/1706.03762</a>.</p>
 </div>
 <dl class="simple">
-<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
 <dl class="py method">

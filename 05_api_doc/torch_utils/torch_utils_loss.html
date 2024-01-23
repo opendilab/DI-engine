@@ -310,7 +310,7 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Label smooth cross entropy loss.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>__init__, forward.</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -342,7 +342,7 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Soft focal loss.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>__init__, forward.</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -372,7 +372,14 @@
 <dt>Overview:</dt><dd><p>Get a cross entropy loss instance according to given config.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>)</p></li>
+<li><dl class="simple">
+<dt>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>)<span class="classifier">Config dict. It contains:</span></dt><dd><ul>
+<li><p>type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Type of loss function, now supports [‘cross_entropy’, ‘label_smooth_ce’,                 ‘soft_focal_loss’].</p></li>
+<li><p>kwargs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Arguments for the corresponding loss function.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -392,7 +399,7 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Base class for supervised learning on linklink, including basic processes.</p>
 </dd>
-<dt>Interface:</dt><dd><p>__init__, forward.</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>.</p>
 </dd>
 </dl>
 <dl class="py method">

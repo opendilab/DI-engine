@@ -340,7 +340,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Abstract class method that defines <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">wrapper</span></code>, <code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">wrapper</span></code>, <code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -367,10 +367,11 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Classmethod wrapper, wrap a function and automatically return its running time</p>
 </dd>
-</dl>
-<ul class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
 <li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">function</span></code>): The function to be wrap and timed</p></li>
 </ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -384,7 +385,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>A class method that inherit from <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -435,7 +436,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <dd><dl>
 <dt>Overview:</dt><dd><p>A decent timer wrapper that can be used easily.</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">__enter__</span></code>, <code class="docutils literal notranslate"><span class="pre">__exit__</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">__enter__</span></code>, <code class="docutils literal notranslate"><span class="pre">__exit__</span></code></p>
 </dd>
 <dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wait_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wait_timer</span><span class="p">:</span>
@@ -497,7 +498,7 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <p>If it is not reset before exceeding this value, <code class="docutils literal notranslate"><span class="pre">TimeourError</span></code> raised.</p>
 </div>
 <dl>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code></p>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">watchdog</span> <span class="o">=</span> <span class="n">WatchDog</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># x is a timeout value</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="o">...</span>
@@ -510,7 +511,15 @@ and <code class="docutils literal notranslate"><span class="pre">ding.utils.time
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.time_helper.WatchDog.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#WatchDog.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.WatchDog.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize watchdog with <code class="docutils literal notranslate"><span class="pre">timeout</span></code> value.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>timeout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Timeout value of the <code class="docutils literal notranslate"><span class="pre">watchdog</span> <span class="pre">[seconds]</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.time_helper.WatchDog.start">

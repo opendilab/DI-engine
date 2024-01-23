@@ -312,7 +312,7 @@
 <dt>Overview:</dt><dd><p>Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
 non-leaf nodes are to do some operations on its left and right child.</p>
 </dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>, <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code></p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">reduce</span></code>, <code class="docutils literal notranslate"><span class="pre">__setitem__</span></code>, <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -384,7 +384,13 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></span><span class="sig-name descname"><span class="pre">SumSegmentTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Sum segment tree, which is inherited from <code class="docutils literal notranslate"><span class="pre">SegmentTree</span></code>. Init by passing <code class="docutils literal notranslate"><span class="pre">operation='sum'</span></code>.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">find_prefixsum_idx</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.segment_tree.SumSegmentTree.__getitem__">
 <span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -406,6 +412,10 @@ non-leaf nodes are to do some operations on its left and right child.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#SumSegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.SumSegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Init sum segment tree by passing <code class="docutils literal notranslate"><span class="pre">operation='sum'</span></code></p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>capacity (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Capacity of the tree (the number of the leaf nodes).</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -470,7 +480,13 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.segment_tree.</span></span><span class="sig-name descname"><span class="pre">MinSegmentTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#MinSegmentTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Min segment tree, which is inherited from <code class="docutils literal notranslate"><span class="pre">SegmentTree</span></code>. Init by passing <code class="docutils literal notranslate"><span class="pre">operation='min'</span></code>.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
 <dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree.__getitem__">
 <span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -491,7 +507,11 @@ and sum_{j}leaf[j] &gt; <code class="docutils literal notranslate"><span class="
 <dt class="sig sig-object py" id="ding.utils.segment_tree.MinSegmentTree.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/utils/segment_tree.html#MinSegmentTree.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.segment_tree.MinSegmentTree.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Init sum segment tree by passing <code class="docutils literal notranslate"><span class="pre">operation='min'</span></code></p>
+<dt>Overview:</dt><dd><p>Initialize sum segment tree by passing <code class="docutils literal notranslate"><span class="pre">operation='min'</span></code></p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>capacity (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Capacity of the tree (the number of the leaf nodes).</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

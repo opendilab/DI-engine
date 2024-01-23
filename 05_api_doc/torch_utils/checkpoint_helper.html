@@ -325,7 +325,7 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Help to save or load checkpoint by give args.</p>
 </dd>
-<dt>Interface:</dt><dd><p>save, load</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">save</span></code>, <code class="docutils literal notranslate"><span class="pre">load</span></code>, <code class="docutils literal notranslate"><span class="pre">_remove_prefix</span></code>, <code class="docutils literal notranslate"><span class="pre">_add_prefix</span></code>, <code class="docutils literal notranslate"><span class="pre">_load_matched_model_state_dict</span></code></p>
 </dd>
 </dl>
 <dl class="py method">
@@ -348,11 +348,7 @@
 <li><p>prefix (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): prefix to be processed on state_dict</p></li>
 <li><p>strict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): args of model.load_state_dict</p></li>
 <li><p>logger_prefix (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): prefix of logger</p></li>
-<li><dl class="simple">
-<dt>state_dict_mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): A list containing state_dict keys, </dt><dd><p>which shouldn’t be loaded into model(after prefix op)</p>
-</dd>
-</dl>
-</li>
+<li><p>state_dict_mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): A list containing state_dict keys,                 which shouldn’t be loaded into model(after prefix op)</p></li>
 </ul>
 </dd>
 </dl>
@@ -395,7 +391,11 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Number counter</p>
 </dd>
-<dt>Interface:</dt><dd><p>val, update, add</p>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">update</span></code>, <code class="docutils literal notranslate"><span class="pre">add</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>val (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): the value of the counter</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
