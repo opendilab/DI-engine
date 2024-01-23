@@ -117,6 +117,10 @@ class D4RLDataset(Dataset):
         self._data = []
         self._load_d4rl(dataset)
 
+    @property
+    def data(self) -> List:
+        return self._data
+
     def __len__(self) -> int:
         """
         Overview:
