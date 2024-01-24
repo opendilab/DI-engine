@@ -280,7 +280,8 @@ class IBCPolicy(BehaviourCloningPolicy):
         Overview:
             Set the statistics of the environment, including the action space and the observation space.
         Arguments:
-            - statistics (:obj:`EasyDict`): The statistics of the environment.
+            - statistics (:obj:`EasyDict`): The statistics of the environment. For IBC, it contains at least the \
+                following keys: ['action_bounds'].
         """
         self._stochastic_optimizer.set_action_bounds(statistics.action_bounds)
 

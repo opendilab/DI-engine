@@ -353,23 +353,7 @@ class BCQPolicy(Policy):
         self._collect_model.reset()
 
     def _get_train_sample(self, transitions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Overview:
-            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. In BCQ, a train sample is a processed transition. \
-            This method is usually used in collectors to execute necessary \
-            RL data preprocessing before training, which can help the learner amortize relevant time consumption. \
-            In addition, you can also implement this method as an identity function and do the data processing \
-            in ``self._forward_learn`` method.
-        Arguments:
-            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \
-                in the same format as the return value of ``self._process_transition`` method.
-        Returns:
-            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is similar in format \
-                to input transitions, but may contain more data for training, such as advantages.
-        """
-        transitions = get_nstep_return_data(transitions, self._nstep, gamma=self._gamma)
-        return get_train_sample(transitions, self._unroll_len)
+        pass
 
     def _forward_collect(self, data: dict, **kwargs) -> dict:
         pass

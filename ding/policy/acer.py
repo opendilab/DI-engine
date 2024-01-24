@@ -47,11 +47,11 @@ class ACERPolicy(Policy):
     config = dict(
         type='acer',
         cuda=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+        # (bool) whether to use on-policy training pipeline (behaviour policy and training policy are the same)
         # here we follow ppo serial pipeline, the original is False
         on_policy=False,
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         learn=dict(
             # (str) the type of gradient clip method
@@ -295,7 +295,7 @@ class ACERPolicy(Policy):
             Update values and rewards with the weight
         Arguments:
             - output (:obj:`Dict[int, Any]`): Dict type data, output of learn_model forward. \
-             Values are torch.Tensor or np.ndarray or dict/list combinations,keys are value, logit.
+             Values are torch.Tensor or np.ndarray or dict/list combinations, keys are value, logit.
             - data (:obj:`Dict[int, Any]`): Dict type data, input of policy._forward_learn \
              Values are torch.Tensor or np.ndarray or dict/list combinations. Keys includes at \
              least ['logit', 'action', 'reward', 'done',]
@@ -378,7 +378,7 @@ class ACERPolicy(Policy):
             action, values are torch.Tensor or np.ndarray or dict/list combinations,keys \
             are env_id indicated by integer.
         Returns:
-            - output (:obj:`Dict[int, Dict[str,Any]]`): Dict of predicting policy_output(logit, action) for each env.
+            - output (:obj:`Dict[int, Dict[str, Any]]`): Dict of predicting policy_output(logit, action) for each env.
         ReturnsKeys
             - necessary: ``logit``, ``action``
         """
@@ -479,7 +479,7 @@ class ACERPolicy(Policy):
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
         .. note::
-            The user can define and use customized network model but must obey the same interface definition indicated \
-            by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
+            The user can define and use a customized network model but must obey the same interface definition \
+            indicated by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
         return ['actor_loss', 'bc_loss', 'policy_loss', 'critic_loss', 'entropy_loss', 'kl_div']

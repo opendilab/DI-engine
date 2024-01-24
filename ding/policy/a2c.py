@@ -134,11 +134,11 @@ class A2CPolicy(Policy):
             result, including various training information such as policy_loss, value_loss, entropy_loss.
         Arguments:
             - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
-                training samples. For each element in list, the key of the dict is the name of data items and the \
+                training samples. For each element in the list, the key of the dict is the name of data items and the \
                 value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
                 combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
                 dimension by some utility functions such as ``default_preprocess_learn``. \
-                For A2C, each element in list is a dict containing at least the following keys: \
+                For A2C, each element in the list is a dict containing at least the following keys: \
                 ['obs', 'action', 'adv', 'value', 'weight'].
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
@@ -147,9 +147,9 @@ class A2CPolicy(Policy):
 
         .. note::
             The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
-            For the data type that not supported, the main reason is that the corresponding model does not support it. \
-            You can implement your own model rather than use the default model. For more information, please raise an \
-            issue in GitHub repo and we will continue to follow up.
+            For the data type that is not supported, the main reason is that the corresponding model does not support \
+             it. You can implement your own model rather than use the default model. For more information, please \
+             raise an issue in GitHub repo, and we will continue to follow up.
         """
         # Data preprocessing operations, such as stack data, cpu to cuda device
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
