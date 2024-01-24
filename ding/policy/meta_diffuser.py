@@ -181,6 +181,7 @@ class MDPolicy(Policy):
         self.test_num = self._cfg.learn.test_num
         self.have_train = False
         self._forward_learn_cnt = 0
+        self.encoder_len = self._cfg.learn.encoder_len
 
         self._plan_optimizer = Adam(
             self._model.diffuser.model.parameters(),
@@ -231,6 +232,8 @@ class MDPolicy(Policy):
         pre_traj = torch.cat([acts, obs, rewards, next_obs], dim=-1).to(self._device)
         target = torch.cat([next_obs, rewards], dim=-1).to(self._device)
         traj = torch.cat([acts, obs], dim=-1).to(self._device)
+        pre_traj = pre_traj[:, :self.encoder_len]
+        target = pre_traj[:, :self.encoder_len]
 
         batch_size = len(traj)
         t = torch.randint(0, self.n_timesteps, (batch_size, ), device=traj.device).long()
@@ -333,7 +336,7 @@ class MDPolicy(Policy):
 
         self._eval_model.eval()
         obs = []
-        for i in range(self.eval_batch_size):
+        for i in range(len(data)):
             if not self._cfg.no_state_normalize:
                 obs.append(self.dataloader.normalize(data[i], 'obs', self.task_id[i]))
         
@@ -342,53 +345,87 @@ class MDPolicy(Policy):
             if self._cuda:
                 obs = to_device(obs, self._device)
             conditions = {0: obs}
-            action = self._eval_model.get_eval(conditions, self.test_task_id, self._cfg.learn.plan_batch_size)
+            action = self._eval_model.get_eval(conditions, self.test_task_id[:len(data)], self._cfg.learn.plan_batch_size)
             if self._cuda:
                 action = to_device(action, 'cpu')
-            for i in range(self.eval_batch_size):
+            for i in range(len(data)):
                 if not self._cfg.no_action_normalize:
                     action[i] = self.dataloader.unnormalize(action[i], 'actions', self.task_id[i])
             action = torch.tensor(action).to('cpu') 
         output = {'action': action}
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
+    
+    def warm_train(self, id: int):
+        self.task_id = [id] * self.eval_batch_size
+        obs, acts, rewards, cond_ids, cond_vals = \
+            self.dataloader.get_pretrain_data(id, self.warm_batch_size)
+        obs = to_device(obs, self._device)
+        acts = to_device(acts, self._device)
+        rewards = to_device(rewards, self._device)
+        cond_vals = to_device(cond_vals, self._device)
 
+        obs, next_obs = obs[:, :-1], obs[:, 1:]
+        acts = acts[:, :-1]
+        rewards = rewards[:, :-1]
+
+        pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=-1)
+        target = torch.cat([next_obs, rewards], dim=-1)
+        batch_size = len(pre_traj)
+        conds = {cond_ids: cond_vals}
+        pre_traj = pre_traj[:, :self.encoder_len]
+        target = pre_traj[:, :self.encoder_len]
+
+        t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
+        state_loss, reward_loss, log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
+        total_loss = state_loss + reward_loss
+        self._pre_train_optimizer.zero_grad()
+        total_loss.backward()
+        self._pre_train_optimizer.step()
+        self.update_model_average(self._target_model, self._learn_model)
+
+        self.test_task_id = [self._target_model.get_task_id(pre_traj)[0]] * self.eval_batch_size
+        
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         if self.have_train:
-            if data_id is None:
-                data_id = list(range(self.eval_batch_size))
-            if self.task_id is not None:
-                for id in data_id:
-                    self.task_id[id] = (self.task_id[id] + 1) % self.test_num
-            else:
+            if self.task_id is None:
                 self.task_id = [0] * self.eval_batch_size
+            # if data_id is None:
+            #     data_id = list(range(self.eval_batch_size))
+            # if self.task_id is not None:
+            #     for id in data_id:
+            #         self.task_id[id] = (self.task_id[id] + 1) % self.test_num
+            # else:
+            #     self.task_id = [0] * self.eval_batch_size
             
-            for id in data_id:
-                obs, acts, rewards, cond_ids, cond_vals = \
-                    self.dataloader.get_pretrain_data(self.task_id[id], self.warm_batch_size)
-                obs = to_device(obs, self._device)
-                acts = to_device(acts, self._device)
-                rewards = to_device(rewards, self._device)
-                cond_vals = to_device(cond_vals, self._device)
+            # for id in data_id:
+            #     obs, acts, rewards, cond_ids, cond_vals = \
+            #         self.dataloader.get_pretrain_data(self.task_id[id], self.warm_batch_size)
+            #     obs = to_device(obs, self._device)
+            #     acts = to_device(acts, self._device)
+            #     rewards = to_device(rewards, self._device)
+            #     cond_vals = to_device(cond_vals, self._device)
 
-                obs, next_obs = obs[:, :-1], obs[:, 1:]
-                acts = acts[:, :-1]
-                rewards = rewards[:, :-1]
+            #     obs, next_obs = obs[:, :-1], obs[:, 1:]
+            #     acts = acts[:, :-1]
+            #     rewards = rewards[:, :-1]
         
-                pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=-1)
-                target = torch.cat([next_obs, rewards], dim=-1)
-                batch_size = len(pre_traj)
-                conds = {cond_ids: cond_vals}
+            #     pre_traj = torch.cat([acts, obs, next_obs, rewards], dim=-1)
+            #     target = torch.cat([next_obs, rewards], dim=-1)
+            #     batch_size = len(pre_traj)
+            #     conds = {cond_ids: cond_vals}
+            #     pre_traj = pre_traj[:, :self.encoder_len]
+            #     target = pre_traj[:, :self.encoder_len]
 
-                t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
-                state_loss, reward_loss, log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
-                total_loss = state_loss + reward_loss
-                self._pre_train_optimizer.zero_grad()
-                total_loss.backward()
-                self._pre_train_optimizer.step()
-                self.update_model_average(self._target_model, self._learn_model)
+            #     t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
+            #     state_loss, reward_loss, log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
+            #     total_loss = state_loss + reward_loss
+            #     self._pre_train_optimizer.zero_grad()
+            #     total_loss.backward()
+            #     self._pre_train_optimizer.step()
+            #     self.update_model_average(self._target_model, self._learn_model)
                 
-                self.test_task_id[id] = self._target_model.get_task_id(pre_traj)[0]
+            #     self.test_task_id[id] = self._target_model.get_task_id(pre_traj)[0]
 
     def _init_collect(self) -> None:
         pass

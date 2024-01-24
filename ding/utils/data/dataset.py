@@ -1299,6 +1299,7 @@ class MetaTraj(Dataset):
     # get warm start data
     def get_pretrain_data(self, task_id: int, batch_size: int):
         # get warm data
+        print('task_id:',task_id)
         trajs = self.test_traj[task_id]
         batch_idx = np.random.choice(
             np.arange(len(trajs)),

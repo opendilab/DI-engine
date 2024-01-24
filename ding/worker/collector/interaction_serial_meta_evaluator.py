@@ -61,11 +61,14 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
             n_episode: Optional[int] = None,
             force_render: bool = False,
             policy_kwargs: Optional[Dict] = {},
+            policy_warm_func: namedtuple = None,
     ) -> Tuple[bool, Dict[str, List]]:
         infos = defaultdict(list)
         for i in range(self.test_env_num):
             print('-----------------------------start task ', i)
             self._env.reset_task(i)
+            if policy_warm_func is not None:
+                policy_warm_func(i)
             info = self.sub_eval(save_ckpt_fn, train_iter, envstep, n_episode, \
                                                   force_render, policy_kwargs, i)
             for key, val in info.items():
@@ -74,7 +77,7 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
                 infos[key].append(val)
         
         meta_infos = defaultdict(list)
-        for key, val in info.items():
+        for key, val in infos.items():
             meta_infos[key] = np.array(val).mean()
         
         episode_return = meta_infos['reward_mean']

@@ -93,7 +93,7 @@ def free_guidance_sample(
     
 ):
     weight = extract(model.sqrt_one_minus_alphas_cumprod, t, x.shape)
-    # model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
+    model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
     # model_std = torch.exp(0.5 * model_log_variance)
     
     for _ in range(n_guide_steps):
@@ -794,6 +794,7 @@ class MetaDiffuser(nn.Module):
             reward_cfg: dict,
             diffuser_model_cfg: dict,
             horizon: int,
+            encoder_horizon: int,
             **sample_kwargs,
             ):
         super().__init__()
@@ -802,9 +803,10 @@ class MetaDiffuser(nn.Module):
         self.action_dim = action_dim
         self.horizon = horizon
         self.sample_kwargs = sample_kwargs
+        self.encoder_horizon = encoder_horizon
 
         self.embed = nn.Sequential(
-            nn.Linear((obs_dim * 2 + action_dim + 1) * horizon, dim * 4),
+            nn.Linear((obs_dim * 2 + action_dim + 1) * encoder_horizon, dim * 4),
             #nn.Mish(),
             Mish(),
             nn.Linear(dim * 4, dim * 4),
@@ -850,7 +852,7 @@ class MetaDiffuser(nn.Module):
         reward_loss, reward_log = self.reward_model.p_losses(input, cond, target_reward, t, task_idx)
         
         
-        task_idxs = task_idx.unsqueeze(1).repeat_interleave(self.horizon,dim=1)
+        task_idxs = task_idx.unsqueeze(1).repeat_interleave(self.encoder_horizon, dim=1)
 
         input = torch.cat([input, task_idxs], dim=-1)
         input = input.reshape(-1, input.shape[-1])

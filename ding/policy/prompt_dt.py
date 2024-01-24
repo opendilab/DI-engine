@@ -230,10 +230,5 @@ class PDTPolicy(DTPolicy):
     
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         if self.have_train:
-            if data_id is None:
-                data_id = list(range(self.eval_batch_size))
-            if self.task_id is not None:
-                for id in data_id:
-                    self.task_id[id] = (self.task_id[id] + 1) % self.test_num
-            else:
+            if self.task_id is None:
                 self.task_id = [0] * self.eval_batch_size
