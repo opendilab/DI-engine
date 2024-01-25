@@ -341,11 +341,11 @@
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;acer&#39;</span><span class="p">,</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)</span>
+        <span class="c1"># (bool) whether to use on-policy training pipeline (behaviour policy and training policy are the same)</span>
         <span class="c1"># here we follow ppo serial pipeline, the original is False</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
+        <span class="c1"># (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (str) the type of gradient clip method</span>
@@ -589,7 +589,7 @@
 <span class="sd">            Update values and rewards with the weight</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - output (:obj:`Dict[int, Any]`): Dict type data, output of learn_model forward. \</span>
-<span class="sd">             Values are torch.Tensor or np.ndarray or dict/list combinations,keys are value, logit.</span>
+<span class="sd">             Values are torch.Tensor or np.ndarray or dict/list combinations, keys are value, logit.</span>
 <span class="sd">            - data (:obj:`Dict[int, Any]`): Dict type data, input of policy._forward_learn \</span>
 <span class="sd">             Values are torch.Tensor or np.ndarray or dict/list combinations. Keys includes at \</span>
 <span class="sd">             least [&#39;logit&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;done&#39;,]</span>
@@ -672,7 +672,7 @@
 <span class="sd">            action, values are torch.Tensor or np.ndarray or dict/list combinations,keys \</span>
 <span class="sd">            are env_id indicated by integer.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - output (:obj:`Dict[int, Dict[str,Any]]`): Dict of predicting policy_output(logit, action) for each env.</span>
+<span class="sd">            - output (:obj:`Dict[int, Dict[str, Any]]`): Dict of predicting policy_output(logit, action) for each env.</span>
 <span class="sd">        ReturnsKeys</span>
 <span class="sd">            - necessary: ``logit``, ``action``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -773,8 +773,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names</span>
 <span class="sd">        .. note::</span>
-<span class="sd">            The user can define and use customized network model but must obey the same interface definition indicated \</span>
-<span class="sd">            by import_names path. For IMPALA, ``ding.model.interface.IMPALA``</span>
+<span class="sd">            The user can define and use a customized network model but must obey the same interface definition \</span>
+<span class="sd">            indicated by import_names path. For IMPALA, ``ding.model.interface.IMPALA``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;actor_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;bc_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;critic_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;entropy_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;kl_div&#39;</span><span class="p">]</span></div>
 </pre></div>

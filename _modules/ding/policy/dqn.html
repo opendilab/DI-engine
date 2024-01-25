@@ -389,7 +389,7 @@
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (float) Discount factor(gamma) for returns.</span>
         <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
-        <span class="c1"># (int) The number of step for calculating target q_value.</span>
+        <span class="c1"># (int) The number of steps for calculating target q_value.</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (list(int)) Sequence of ``hidden_size`` of subsequent conv layers and the final dense layer.</span>
@@ -405,31 +405,31 @@
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
             <span class="c1"># (float) The step size of gradient descent.</span>
             <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
-            <span class="c1"># (int) Frequence of target network update.</span>
+            <span class="c1"># (int) Frequency of target network update.</span>
             <span class="c1"># Only one of [target_update_freq, target_theta] should be set.</span>
             <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-            <span class="c1"># (float) : Used for soft update of the target network.</span>
+            <span class="c1"># (float) Used for soft update of the target network.</span>
             <span class="c1"># aka. Interpolation factor in EMA update for target network.</span>
             <span class="c1"># Only one of [target_update_freq, target_theta] should be set.</span>
             <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
-            <span class="c1"># (bool) Whether ignore done(usually for max step termination env).</span>
-            <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
-            <span class="c1"># These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.</span>
-            <span class="c1"># However, interaction with HalfCheetah always gets done with done is False,</span>
-            <span class="c1"># Since we inplace done==True with done==False to keep</span>
-            <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
-            <span class="c1"># when the episode step is greater than max episode step.</span>
+            <span class="c1"># (bool) If set to True, the &#39;done&#39; signals that indicate the end of an episode due to environment time</span>
+            <span class="c1"># limits are disregarded. By default, this is set to False. This setting is particularly useful for tasks</span>
+            <span class="c1"># that have a predetermined episode length, such as HalfCheetah and various other MuJoCo environments,</span>
+            <span class="c1"># where the maximum length is capped at 1000 steps. When enabled, any &#39;done&#39; signal triggered by reaching</span>
+            <span class="c1"># the maximum episode steps will be overridden to &#39;False&#39;. This ensures the accurate calculation of the</span>
+            <span class="c1"># Temporal Difference (TD) error, using the formula `gamma * (1 - done) * next_v + reward`,</span>
+            <span class="c1"># even when the episode surpasses the predefined step limit.</span>
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="c1"># collect_mode config</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (int) How many training samples collected in one collection procedure.</span>
-            <span class="c1"># Only one of [n_sample, n_episode] shoule be set.</span>
+            <span class="c1"># Only one of [n_sample, n_episode] should be set.</span>
             <span class="n">n_sample</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
             <span class="c1"># (int) Split episodes or trajectories into pieces with length `unroll_len`.</span>
             <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compability</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compatibility</span>
         <span class="c1"># other config</span>
         <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># Epsilon greedy with decay.</span>
@@ -459,7 +459,7 @@
 <span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
+<span class="sd">            The user can define and use customized network model but must obey the same interface definition indicated \</span>
 <span class="sd">            by import_names path. For example about DQN, its registered name is ``dqn`` and the import_names is \</span>
 <span class="sd">            ``ding.model.template.q_learning``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -536,7 +536,7 @@
 <span class="sd">        .. note::</span>
 <span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
 <span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
-<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            You can implement your own model rather than use the default model. For more information, please raise an \</span>
 <span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
 
 <span class="sd">        .. note::</span>
@@ -692,7 +692,7 @@
 <span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
 <span class="sd">            can be used for training directly. In DQN with nstep TD, a train sample is a processed transition. \</span>
 <span class="sd">            This method is usually used in collectors to execute necessary \</span>
-<span class="sd">            RL data preprocessing before training, which can help learner amortize revelant time consumption. \</span>
+<span class="sd">            RL data preprocessing before training, which can help learner amortize relevant time consumption. \</span>
 <span class="sd">            In addition, you can also implement this method as an identity function and do the data processing \</span>
 <span class="sd">            in ``self._forward_learn`` method.</span>
 <span class="sd">        Arguments:</span>

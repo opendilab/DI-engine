@@ -350,11 +350,11 @@
 <dt class="sig sig-object py" id="ding.policy.Policy._create_model">
 <span class="sig-name descname"><span class="pre">_create_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="reference internal" href="../_modules/ding/policy/base_policy.html#Policy._create_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.Policy._create_model" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Create or validate the neural network model according to input configures and model. If the input model is             None, then the model will be created according to <code class="docutils literal notranslate"><span class="pre">default_model</span></code> method and <code class="docutils literal notranslate"><span class="pre">cfg.model</span></code> field.             Otherwise, the model will be verified as an instance of <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> and set to the <code class="docutils literal notranslate"><span class="pre">model</span></code>             instance created by outside caller.</p>
+<dt>Overview:</dt><dd><p>Create or validate the neural network model according to the input configuration and model.             If the input model is None, then the model will be created according to <code class="docutils literal notranslate"><span class="pre">default_model</span></code>             method and <code class="docutils literal notranslate"><span class="pre">cfg.model</span></code> field. Otherwise, the model will be verified as an instance of             <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> and set to the <code class="docutils literal notranslate"><span class="pre">model</span></code> instance created by outside caller.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): The final merged config used to initialize policy.</p></li>
-<li><p>model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>): The neural network model used to initialize policy. User can refer to                 the default model defined in corresponding policy to customize its own model.</p></li>
+<li><p>model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>): The neural network model used to initialize policy. User can refer to                 the default model defined in the corresponding policy to customize its own model.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -482,7 +482,7 @@
 <dt class="sig sig-object py" id="ding.policy.Policy._init_eval">
 <em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">_init_eval</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/policy/base_policy.html#Policy._init_eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.Policy._init_eval" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Initialize the eval mode of policy, including related attributes and modules. This method will be             called in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method if <code class="docutils literal notranslate"><span class="pre">eval</span></code> field is in <code class="docutils literal notranslate"><span class="pre">enable_field</span></code>. Almost different policies have             its own eval mode, so this method must be overrided in subclass.</p>
+<dt>Overview:</dt><dd><p>Initialize the eval mode of policy, including related attributes and modules. This method will be             called in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method if <code class="docutils literal notranslate"><span class="pre">eval</span></code> field is in <code class="docutils literal notranslate"><span class="pre">enable_field</span></code>. Almost different policies have             its own eval mode, so this method must be override in subclass.</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -672,7 +672,7 @@
 <dt class="sig sig-object py" id="ding.policy.Policy._set_attribute">
 <span class="sig-name descname"><span class="pre">_set_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/policy/base_policy.html#Policy._set_attribute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.Policy._set_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>In order to control the access of the policy attributes, we expose different modes to outside rather than             directly use the policy instance. And we also provide a method to set the attribute of the policy in             different modes. And the new attribute will named as <code class="docutils literal notranslate"><span class="pre">_{name}</span></code>.</p>
+<dt>Overview:</dt><dd><p>In order to control the access of the policy attributes, we expose different modes to outside rather than             directly use the policy instance. And we also provide a method to set the attribute of the policy in             different modes. And the new attribute will name as <code class="docutils literal notranslate"><span class="pre">_{name}</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>name (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The name of the attribute.</p></li>
@@ -733,7 +733,7 @@
 <dt class="sig sig-object py" id="ding.policy.Policy.collect_mode">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">collect_mode</span></span><em class="property"><span class="pre">:</span> <span class="pre">ding.policy.base_policy.collect_function</span></em><a class="headerlink" href="#ding.policy.Policy.collect_mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Return the interfaces of collect mode of policy, which is used to train the model. Here we use namedtuple             to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived             subclass can override the interfaces to customize its own collect mode.</p>
+<dt>Overview:</dt><dd><p>Return the interfaces of collect mode of policy, which is used to train the model. Here we use namedtuple             to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived             subclass can override the interfaces to customize its own collect mode.</p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>interfaces (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy.collect_function</span></code>): The interfaces of collect mode of policy, it is a                 namedtuple whose values of distinct fields are different internal methods.</p></li>
@@ -809,7 +809,7 @@
 <dt class="sig sig-object py" id="ding.policy.Policy.learn_mode">
 <em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">learn_mode</span></span><em class="property"><span class="pre">:</span> <span class="pre">ding.policy.base_policy.learn_function</span></em><a class="headerlink" href="#ding.policy.Policy.learn_mode" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Return the interfaces of learn mode of policy, which is used to train the model. Here we use namedtuple             to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived             subclass can override the interfaces to customize its own learn mode.</p>
+<dt>Overview:</dt><dd><p>Return the interfaces of learn mode of policy, which is used to train the model. Here we use namedtuple             to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived             subclass can override the interfaces to customize its own learn mode.</p>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>interfaces (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Policy.learn_function</span></code>): The interfaces of learn mode of policy, it is a namedtuple                 whose values of distinct fields are different internal methods.</p></li>
@@ -838,7 +838,7 @@
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This method is only used in multi-gpu training, and it shoule be called after <code class="docutils literal notranslate"><span class="pre">backward</span></code> method and             before <code class="docutils literal notranslate"><span class="pre">step</span></code> method. The user can also use <code class="docutils literal notranslate"><span class="pre">bp_update_sync</span></code> config to control whether to synchronize             gradients allreduce and optimizer updates.</p>
+<p>This method is only used in multi-gpu training, and it should be called after <code class="docutils literal notranslate"><span class="pre">backward</span></code> method and             before <code class="docutils literal notranslate"><span class="pre">step</span></code> method. The user can also use <code class="docutils literal notranslate"><span class="pre">bp_update_sync</span></code> config to control whether to synchronize             gradients allreduce and optimizer updates.</p>
 </div>
 </dd></dl>
 
@@ -1490,7 +1490,7 @@
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The input value can be torch.Tensor or dict/list combinations and current policy supports all of them.             For the data type that not supported, the main reason is that the corresponding model does not support it.             You can implement you own model rather than use the default model. For more information, please raise an             issue in GitHub repo and we will continue to follow up.</p>
+<p>The input value can be torch.Tensor or dict/list combinations and current policy supports all of them.             For the data type that not supported, the main reason is that the corresponding model does not support it.             You can implement your own model rather than use the default model. For more information, please raise an             issue in GitHub repo and we will continue to follow up.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1502,7 +1502,7 @@
 <dt class="sig sig-object py" id="ding.policy.DQNPolicy._get_train_sample">
 <span class="sig-name descname"><span class="pre">_get_train_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transitions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/policy/dqn.html#DQNPolicy._get_train_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.DQNPolicy._get_train_sample" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>For a given trajectory (transitions, a list of transition) data, process it into a list of sample that             can be used for training directly. In DQN with nstep TD, a train sample is a processed transition.             This method is usually used in collectors to execute necessary             RL data preprocessing before training, which can help learner amortize revelant time consumption.             In addition, you can also implement this method as an identity function and do the data processing             in <code class="docutils literal notranslate"><span class="pre">self._forward_learn</span></code> method.</p>
+<dt>Overview:</dt><dd><p>For a given trajectory (transitions, a list of transition) data, process it into a list of sample that             can be used for training directly. In DQN with nstep TD, a train sample is a processed transition.             This method is usually used in collectors to execute necessary             RL data preprocessing before training, which can help learner amortize relevant time consumption.             In addition, you can also implement this method as an identity function and do the data processing             in <code class="docutils literal notranslate"><span class="pre">self._forward_learn</span></code> method.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>transitions (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]</span></code>): The trajectory data (a list of transition), each element is                 in the same format as the return value of <code class="docutils literal notranslate"><span class="pre">self._process_transition</span></code> method.</p></li>
@@ -1644,7 +1644,7 @@ This method will be called in <code class="docutils literal notranslate"><span c
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The user can define and use customized network model but must obey the same inferface definition indicated             by import_names path. For example about DQN, its registered name is <code class="docutils literal notranslate"><span class="pre">dqn</span></code> and the import_names is             <code class="docutils literal notranslate"><span class="pre">ding.model.template.q_learning</span></code>.</p>
+<p>The user can define and use customized network model but must obey the same interface definition indicated             by import_names path. For example about DQN, its registered name is <code class="docutils literal notranslate"><span class="pre">dqn</span></code> and the import_names is             <code class="docutils literal notranslate"><span class="pre">ding.model.template.q_learning</span></code>.</p>
 </div>
 </dd></dl>
 
@@ -3272,7 +3272,7 @@ This method will be called in <code class="docutils literal notranslate"><span c
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The output data of policy forward, including at least the action and                 other necessary data for learn mode defined in <code class="docutils literal notranslate"><span class="pre">self._process_transition</span></code> method. The key of the                 dict is the same as the input data, i.e. environment id.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The output data of policy forward, including at least the action and                 other necessary data for learn mode defined in <code class="docutils literal notranslate"><span class="pre">self._process_transition</span></code> method. The key of the                 dict is the same as the input data, i.e., environment id.</p></li>
 </ul>
 </dd>
 </dl>
@@ -3800,7 +3800,7 @@ Paper link: <a class="reference external" href="https://arxiv.org/pdf/1802.09477
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The output data of policy forward, including at least the action and                 other necessary data for learn mode defined in <code class="docutils literal notranslate"><span class="pre">self._process_transition</span></code> method. The key of the                 dict is the same as the input data, i.e. environment id.</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[int,</span> <span class="pre">Any]</span></code>): The output data of policy forward, including at least the action and                 other necessary data for learn mode defined in <code class="docutils literal notranslate"><span class="pre">self._process_transition</span></code> method. The key of the                 dict is the same as the input data, i.e., environment id.</p></li>
 </ul>
 </dd>
 </dl>

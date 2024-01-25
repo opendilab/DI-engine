@@ -490,14 +490,14 @@
 <div class="viewcode-block" id="Policy._create_model"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._create_model">[docs]</a>    <span class="k">def</span> <span class="nf">_create_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Create or validate the neural network model according to input configures and model. If the input model is \</span>
-<span class="sd">            None, then the model will be created according to ``default_model`` method and ``cfg.model`` field. \</span>
-<span class="sd">            Otherwise, the model will be verified as an instance of ``torch.nn.Module`` and set to the ``model`` \</span>
-<span class="sd">            instance created by outside caller.</span>
+<span class="sd">            Create or validate the neural network model according to the input configuration and model. \</span>
+<span class="sd">            If the input model is None, then the model will be created according to ``default_model`` \</span>
+<span class="sd">            method and ``cfg.model`` field. Otherwise, the model will be verified as an instance of \</span>
+<span class="sd">            ``torch.nn.Module`` and set to the ``model`` instance created by outside caller.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - cfg (:obj:`EasyDict`): The final merged config used to initialize policy.</span>
 <span class="sd">            - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. User can refer to \</span>
-<span class="sd">                the default model defined in corresponding policy to customize its own model.</span>
+<span class="sd">                the default model defined in the corresponding policy to customize its own model.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - model (:obj:`torch.nn.Module`): The created neural network model. The different modes of policy will \</span>
 <span class="sd">                add distinct wrappers and plugins to the model, which is used to train, collect and evaluate.</span>
@@ -566,7 +566,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the eval mode of policy, including related attributes and modules. This method will be \</span>
 <span class="sd">            called in ``__init__`` method if ``eval`` field is in ``enable_field``. Almost different policies have \</span>
-<span class="sd">            its own eval mode, so this method must be overrided in subclass.</span>
+<span class="sd">            its own eval mode, so this method must be override in subclass.</span>
 
 <span class="sd">        .. note::</span>
 <span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_eval`` \</span>
@@ -583,7 +583,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the interfaces of learn mode of policy, which is used to train the model. Here we use namedtuple \</span>
-<span class="sd">            to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \</span>
+<span class="sd">            to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived \</span>
 <span class="sd">            subclass can override the interfaces to customize its own learn mode.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - interfaces (:obj:`Policy.learn_function`): The interfaces of learn mode of policy, it is a namedtuple \</span>
@@ -610,7 +610,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the interfaces of collect mode of policy, which is used to train the model. Here we use namedtuple \</span>
-<span class="sd">            to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \</span>
+<span class="sd">            to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived \</span>
 <span class="sd">            subclass can override the interfaces to customize its own collect mode.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - interfaces (:obj:`Policy.collect_function`): The interfaces of collect mode of policy, it is a \</span>
@@ -664,7 +664,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            In order to control the access of the policy attributes, we expose different modes to outside rather than \</span>
 <span class="sd">            directly use the policy instance. And we also provide a method to set the attribute of the policy in \</span>
-<span class="sd">            different modes. And the new attribute will named as ``_{name}``.</span>
+<span class="sd">            different modes. And the new attribute will name as ``_{name}``.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - name (:obj:`str`): The name of the attribute.</span>
 <span class="sd">            - value (:obj:`Any`): The value of the attribute.</span>
@@ -710,7 +710,7 @@
 <span class="sd">            - model (:obj:`torch.nn.Module`): The model to synchronize gradients.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            This method is only used in multi-gpu training, and it shoule be called after ``backward`` method and \</span>
+<span class="sd">            This method is only used in multi-gpu training, and it should be called after ``backward`` method and \</span>
 <span class="sd">            before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \</span>
 <span class="sd">            gradients allreduce and optimizer updates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
