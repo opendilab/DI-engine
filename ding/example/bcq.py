@@ -15,7 +15,7 @@ from dizoo.d4rl.config.halfcheetah_medium_bcq_config import main_config, create_
 
 def main():
     # If you don't have offline data, you need to prepare if first and set the data_path in config
-    # For demostration, we also can train a RL policy (e.g. SAC) and collect some data
+    # For demonstration, we also can train a RL policy (e.g. SAC) and collect some data
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     ding_init(cfg)
