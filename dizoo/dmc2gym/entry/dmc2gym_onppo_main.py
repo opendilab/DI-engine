@@ -7,7 +7,7 @@ import dmc2gym
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, BaseEnvManager
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnWrapper, BaseEnvManager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 from dizoo.dmc2gym.config.dmc2gym_ppo_config import cartpole_balance_ppo_config
@@ -71,10 +71,12 @@ def wrapped_dmc2gym_env(cfg):
             width=default_cfg["width"],
             frame_skip=default_cfg["frame_skip"]
         ),
-        cfg={'env_wrapper': [
-            lambda env: Dmc2GymWrapper(env, default_cfg),
-            lambda env: EvalEpisodeReturnEnv(env),
-        ]}
+        cfg={
+            'env_wrapper': [
+                lambda env: Dmc2GymWrapper(env, default_cfg),
+                lambda env: EvalEpisodeReturnWrapper(env),
+            ]
+        }
     )
 
 

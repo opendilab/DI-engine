@@ -5,17 +5,11 @@ from .ddpg import DDPGPolicy
 
 @POLICY_REGISTRY.register('td3')
 class TD3Policy(DDPGPolicy):
-    r"""
+    """
     Overview:
-        Policy class of TD3 algorithm.
-
-        Since DDPG and TD3 share many common things, we can easily derive this TD3
+        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3 \
         class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.
-
-        https://arxiv.org/pdf/1802.09477.pdf
-
-    Property:
-        learn_mode, collect_mode, eval_mode
+        Paper link: https://arxiv.org/pdf/1802.09477.pdf
 
     Config:
 
@@ -68,9 +62,7 @@ class TD3Policy(DDPGPolicy):
         type='td3',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool type) on_policy: Determine whether on-policy or off-policy.
-        # on-policy setting influences the behaviour of buffer.
-        # Default False in TD3.
+        # (bool) on_policy: Determine whether on-policy or off-policy. Default False in TD3.
         on_policy=False,
         # (bool) Whether use priority(priority sample, IS weight, update priority)
         # Default False in TD3.
@@ -80,6 +72,8 @@ class TD3Policy(DDPGPolicy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
+        # (bool) Whether to need policy data in process transition.
+        transition_with_policy_data=False,
         # (str) Action space type
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward
@@ -92,9 +86,9 @@ class TD3Policy(DDPGPolicy):
             # Default True for TD3, False for DDPG.
             twin_critic=True,
         ),
+        # learn_mode config
         learn=dict(
-
-            # How many updates(iterations) to train after collector's one collection.
+            # (int) How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
@@ -112,7 +106,7 @@ class TD3Policy(DDPGPolicy):
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
             ignore_done=False,
-            # (float type) target_theta: Used for soft update of the target network,
+            # (float) target_theta: Used for soft update of the target network,
             # aka. Interpolation factor in polyak averaging for target networks.
             # Default to 0.005.
             target_theta=0.005,
@@ -130,30 +124,37 @@ class TD3Policy(DDPGPolicy):
             noise_sigma=0.2,
             # (dict) Limit for range of target policy smoothing noise, aka. noise_clip.
             noise_range=dict(
+                # (int) min value of noise
                 min=-0.5,
+                # (int) max value of noise
                 max=0.5,
             ),
         ),
+        # collect_mode config
         collect=dict(
+            # (int) How many training samples collected in one collection procedure.
+            # Only one of [n_sample, n_episode] shoule be set.
             # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
         ),
-        eval=dict(
-            evaluator=dict(
-                # (int) Evaluate every "eval_freq" training iterations.
-                eval_freq=5000,
-            ),
-        ),
+        eval=dict(),  # for compability
         other=dict(
             replay_buffer=dict(
-                # (int) Maximum size of replay buffer.
+                # (int) Maximum size of replay buffer. Usually, larger buffer size is better.
                 replay_buffer_size=100000,
             ),
         ),
     )
 
-    def monitor_vars(self) -> List[str]:
+    def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
         return ["q_value", "loss", "lr", "entropy", "target_q_value", "td_error"]

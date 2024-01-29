@@ -52,11 +52,11 @@ class TestDynaWorldModel:
                 return (torch.zeros(B), torch.rand(B, O), obs.sum(-1) > 0)
 
         from ding.policy import SACPolicy
-        from ding.model import QAC
+        from ding.model import ContinuousQAC
 
         policy_config = SACPolicy.default_config()
         policy_config.model.update(dict(obs_shape=2, action_shape=2))
-        model = QAC(**policy_config.model)
+        model = ContinuousQAC(**policy_config.model)
         policy = SACPolicy(policy_config, model=model).collect_mode
 
         fake_model = FakeModel(fake_config, None, None)

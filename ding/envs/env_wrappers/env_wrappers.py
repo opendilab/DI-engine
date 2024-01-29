@@ -1,72 +1,95 @@
-# Borrow a lot from openai baselines:
-# https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
+"""
+This code is adapted from OpenAI Baselines:
+    https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
-from typing import Union, List, Tuple
-from easydict import EasyDict
-from functools import reduce
-from collections import deque
+List of Environment Wrappers:
+- NoopResetWrapper: This wrapper facilitates the sampling of initial states by executing a random number of
+    no-operation actions upon environment reset.
+- MaxAndSkipWrapper: Incorporates max pooling across time steps, a method that reduces the temporal dimension by taking
+    the maximum value over specified time intervals.
+- WarpFrameWrapper: Implements frame warping by resizing the images to 84x84, a common preprocessing step in
+    reinforcement learning on visual data, as described in the DeepMind Nature paper and subsequent works.
+- ScaledFloatFrameWrapper: Normalizes observations to a range of 0 to 1, which is a common requirement for neural
+    network inputs.
+- ClipRewardWrapper: Clips the reward to {-1, 0, +1} based on its sign. This simplifies the reward structure and
+    can make learning more stable in environments with high variance in rewards.
+- DelayRewardWrapper: Returns cumulative reward at defined intervals, and at all other times, returns a reward of 0.
+    This can be useful for sparse reward problems.
+- FrameStackWrapper: Stacks the latest 'n' frames as a single observation. This allows the agent to have a sense of
+    dynamics and motion from the stacked frames.
+- ObsTransposeWrapper: Transposes the observation to bring the channel to the first dimension, a common requirement
+    for convolutional neural networks.
+- ObsNormWrapper: Normalizes observations based on a running mean and standard deviation. This can help to standardize
+    inputs for the agent and speed up learning.
+- RewardNormWrapper: Normalizes reward based on a running standard deviation, which can stabilize learning in
+    environments with high variance in rewards.
+- RamWrapper: Wraps a RAM-based environment into an image-like environment. This can be useful for applying
+    image-based algorithms to RAM-based Atari games.
+- EpisodicLifeWrapper: Treats end of life as the end of an episode, but only resets on true game over. This can help
+    the agent better differentiate between losing a life and losing the game.
+- FireResetWrapper: Executes the 'fire' action upon environment reset. This is specific to certain Atari games where
+    the 'fire' action starts the game.
+- GymHybridDictActionWrapper: Transforms the original `gym.spaces.Tuple` action space into a `gym.spaces.Dict`.
+- FlatObsWrapper: Flattens image and language observations into a single vector, which can be helpful for input into
+    certain types of models.
+- StaticObsNormWrapper: Provides functionality for normalizing observations according to a static mean and
+    standard deviation.
+- EvalEpisodeReturnWrapper: Evaluates the return over an episode during evaluation, providing a more comprehensive
+    view of the agent's performance.
+- GymToGymnasiumWrapper: Adapts environments from the Gym library to be compatible with the Gymnasium library.
+- AllinObsWrapper: Consolidates all information into the observation, useful for environments where the agent's
+    observation should include additional information such as the current score or time remaining.
+- ObsPlusPrevActRewWrapper: This wrapper is used in policy NGU. It sets a dict as the new wrapped observation,
+    which includes the current observation, previous action and previous reward.
+"""
+
 import copy
 import operator
+from collections import deque
+from functools import reduce
+from typing import Union, Any, Tuple, Dict, List
+
 import gym
 import gymnasium
 import numpy as np
-from torch import float32
+from easydict import EasyDict
 
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_WRAPPER_REGISTRY, import_module
-'''
-Env Wrapper List:
-    - NoopResetWrapper: Sample initial states by taking random number of no-ops on reset.
-    - MaxAndSkipWrapper: Max pooling across time steps
-    - WarpFrameWrapper: Warp frames to 84x84 as done in the Nature paper and later work.
-    - ScaledFloatFrameWrapper: Normalize observations to 0~1.
-    - ClipRewardWrapper: Clip the reward to {+1, 0, -1} by its sign.
-    - DelayRewardWrapper: Return cumulative reward at intervals; At other time, return reward of 0.
-    - FrameStackWrapper: Stack latest n frames(usually 4 in Atari) as one observation.
-    - ObsTransposeWrapper: Transpose observation to put channel to first dim.
-    - ObsNormWrapper: Normalize observations according to running mean and std.
-    - RewardNormWrapper: Normalize reward according to running std.
-    - RamWrapper: Wrap ram env into image-like env
-    - EpisodicLifeWrapper: Make end-of-life == end-of-episode, but only reset on true game over.
-    - FireResetWrapper: Take fire action at environment reset.
-    - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space
-        to ``gym.spaces.Dict``.
-    - FlatObsWrapper: Flatten image and language observation into a vector.
-'''
 
 
 @ENV_WRAPPER_REGISTRY.register('noop_reset')
 class NoopResetWrapper(gym.Wrapper):
     """
     Overview:
-       Sample initial states by taking random number of no-ops on reset.  \
-       No-op is assumed to be action 0.
-    Interface:
-        ``__init__``, ``reset``, ``new_shape``
+       Sample initial states by taking random number of no-ops on reset.  No-op is assumed to be action 0.
+    Interfaces:
+        __init__, reset
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
         - noop_max (:obj:`int`): the maximum value of no-ops to run.
     """
 
-    def __init__(self, env, noop_max=30):
+    def __init__(self, env: gym.Env, noop_max: int = 30):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+            Initialize the NoopResetWrapper.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
-            - noop_max (:obj:`int`): the maximum value of no-ops to run.
+            - noop_max (:obj:`int`): the maximum value of no-ops to run. Defaults to 30.
         """
         super().__init__(env)
         self.noop_max = noop_max
         self.noop_action = 0
         assert env.unwrapped.get_action_meanings()[0] == 'NOOP'
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
         Overview:
-            Resets the state of the environment and returns an initial observation.
+            Resets the state of the environment and returns an initial observation,
+            after taking a random number of no-ops.
         Returns:
-            - observation (:obj:`Any`): the initial observation.
+            - observation (:obj:`Any`): The initial observation after no-ops.
         """
         self.env.reset()
         noops = np.random.randint(1, self.noop_max + 1)
@@ -81,41 +104,39 @@ class NoopResetWrapper(gym.Wrapper):
 class MaxAndSkipWrapper(gym.Wrapper):
     """
     Overview:
-       Return only every `skip`-th frame (frameskipping) using most  \
-       recent raw observations (for max pooling across time steps)
-    Interface:
-        ``__init__``, ``step``, ``new_shape``
+       Wraps the environment to return only every ``skip``-th frame (frameskipping) \
+       using most recent raw observations (for max pooling across time steps).
+    Interfaces:
+        __init__, step
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - skip (:obj:`int`): number of `skip`-th frame.
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - skip (:obj:`int`): Number of ``skip``-th frame. Defaults to 4.
     """
 
-    def __init__(self, env, skip=4):
+    def __init__(self, env: gym.Env, skip: int = 4):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+            Initialize the MaxAndSkipWrapper.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
-            - skip (:obj:`int`): number of `skip`-th frame.
+            - env (:obj:`gym.Env`): The environment to wrap.
+            - skip (:obj:`int`): Number of ``skip``-th frame. Defaults to 4.
         """
         super().__init__(env)
         self._skip = skip
 
-    def step(self, action):
+    def step(self, action: Union[int, np.ndarray]) -> tuple:
         """
         Overview:
-            Step the environment with the given action. Repeat action,  \
-                sum reward, and max over last observations.
+            Take the given action and repeat it for a specified number of steps. \
+            The rewards are summed up and the maximum frame over the last observations is returned.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Any`): The action to repeat.
         Returns:
-            - max_frame (:obj:`np.array`) : max over last observations
-            - total_reward (:obj:`Any`) : amount of reward returned after previous action
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further step()  \
-                calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful for  \
+            - max_frame (:obj:`np.array`): Max over last observations
+            - total_reward (:obj:`Any`): Sum of rewards after previous action.
+            - done (:obj:`Bool`): Whether the episode has ended.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for  \
                 debugging, and sometimes learning)
-
         """
         obs_list, total_reward, done = [], 0., False
         for i in range(self._skip):
@@ -132,21 +153,25 @@ class MaxAndSkipWrapper(gym.Wrapper):
 class WarpFrameWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Warp frames to 84x84 as done in the Nature paper and later work.
-    Interface:
-        ``__init__``, ``observation``, ``new_shape``
+        The WarpFrameWrapper class is a gym observation wrapper that resizes
+        the frame of an environment observation to a specified size (default is 84x84).
+        This is often used in the preprocessing pipeline of observations in reinforcement learning,
+        especially for visual observations from Atari environments.
+    Interfaces:
+        __init__, observation
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-        - ``size=84``, ``obs_space``,  ``self.observation_space``
-
+        - size (:obj:`int`): the size to which the frames are to be resized.
+        - observation_space (:obj:`gym.Space`): the observation space of the wrapped environment.
     """
 
-    def __init__(self, env, size=84):
+    def __init__(self, env: gym.Env, size: int = 84):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+            Constructor for WarpFrameWrapper class, initializes the environment and the size.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
+            - size (:obj:`int`): the size to which the frames are to be resized. Default is 84.
         """
         super().__init__(env)
         self.size = size
@@ -166,14 +191,14 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         if len(self.observation_space) == 1:
             self.observation_space = self.observation_space[0]
 
-    def observation(self, frame):
+    def observation(self, frame: np.ndarray) -> np.ndarray:
         """
         Overview:
-            Returns the current observation from a frame
+            Resize the frame (observation) to the desired size.
         Arguments:
-            - frame (:obj:`Any`): the frame to get observation from
+            - frame (:obj:`np.ndarray`): the frame to be resized.
         Returns:
-            - observation (:obj:`Any`): Framed observation
+            - frame (:obj:`np.ndarray`): the resized frame.
         """
         try:
             import cv2
@@ -182,7 +207,7 @@ class WarpFrameWrapper(gym.ObservationWrapper):
             import sys
             logging.warning("Please install opencv-python first.")
             sys.exit(1)
-        # deal with channel_first case
+        # deal with the `channel_first` case
         if frame.shape[0] < 10:
             frame = frame.transpose(1, 2, 0)
             frame = cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
@@ -198,15 +223,15 @@ class WarpFrameWrapper(gym.ObservationWrapper):
 class ScaledFloatFrameWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Normalize observations to 0~1.
-    Interface:
-        ``__init__``, ``observation``, ``new_shape``
+        The ScaledFloatFrameWrapper normalizes observations to between 0 and 1.
+    Interfaces:
+        __init__, observation
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the ScaledFloatFrameWrapper, setting the scale and bias for normalization.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
         """
@@ -217,16 +242,15 @@ class ScaledFloatFrameWrapper(gym.ObservationWrapper):
         self.scale = high - low
         self.observation_space = gym.spaces.Box(low=0., high=1., shape=env.observation_space.shape, dtype=np.float32)
 
-    def observation(self, observation):
+    def observation(self, observation: np.ndarray) -> np.ndarray:
         """
         Overview:
-            Returns the scaled observation
+            Scale the observation to be within the range [0, 1].
         Arguments:
-            - observation(:obj:`Float`): The original observation
+            - observation (:obj:`np.ndarray`): the original observation.
         Returns:
-            - observation (:obj:`Float`): The Scaled Float observation
+            - scaled_observation (:obj:`np.ndarray`): the scaled observation.
         """
-
         return ((observation - self.bias) / self.scale).astype('float32')
 
 
@@ -234,33 +258,33 @@ class ScaledFloatFrameWrapper(gym.ObservationWrapper):
 class ClipRewardWrapper(gym.RewardWrapper):
     """
     Overview:
-        Clip the reward to {+1, 0, -1} by its sign.
-    Interface:
-        ``__init__``, ``reward``, ``new_shape``
+        The ClipRewardWrapper class is a gym reward wrapper that clips the reward to {-1, 0, +1} based on its sign.
+        This can be used to normalize the scale of the rewards in reinforcement learning algorithms.
+    Interfaces:
+        __init__, reward
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-        - ``reward_range``
-
+        - reward_range (:obj:`Tuple[int, int]`): the range of the reward values after clipping.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the ClipRewardWrapper class.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
         """
         super().__init__(env)
         self.reward_range = (-1, 1)
 
-    def reward(self, reward):
+    def reward(self, reward: float) -> float:
         """
         Overview:
-            Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0.
+            Clip the reward to {-1, 0, +1} based on its sign. Note: np.sign(0) == 0.
         Arguments:
-            - reward(:obj:`Float`): Raw Reward
+            - reward (:obj:`float`): the original reward.
         Returns:
-            - reward(:obj:`Float`): Clipped Reward
+            - reward (:obj:`float`): the clipped reward.
         """
         return np.sign(reward)
 
@@ -269,26 +293,49 @@ class ClipRewardWrapper(gym.RewardWrapper):
 class ActionRepeatWrapper(gym.Wrapper):
     """
     Overview:
-        Repeat the action to step with env.
-    Interface:
-        ``__init__``, ``step``
+        The ActionRepeatWrapper class is a gym wrapper that repeats the same action for a number of steps.
+        This wrapper is particularly useful in environments where the desired effect is achieved by maintaining
+        the same action across multiple time steps. For instance, some physical environments like motion control
+        tasks might require consistent force input to produce a significant state change.
+
+        Using this wrapper can reduce the temporal complexity of the problem, as it allows the agent to perform
+        multiple actions within a single time step. This can speed up learning, as the agent has fewer decisions
+        to make within a time step. However, it may also sacrifice some level of decision-making precision, as the
+        agent cannot change its action across successive time steps.
+
+        Note that the use of the ActionRepeatWrapper may not be suitable for all types of environments. Specifically,
+        it may not be the best choice for environments where new decisions must be made at each time step, or where
+        the time sequence of actions has a significant impact on the outcome.
+    Interfaces:
+        __init__, step
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-        - ``action_repeat``
-
+        - action_repeat (:obj:`int`): the number of times to repeat the action.
     """
 
-    def __init__(self, env, action_repeat=1):
+    def __init__(self, env: gym.Env, action_repeat: int = 1):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the ActionRepeatWrapper class.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
+            - action_repeat (:obj:`int`): the number of times to repeat the action. Default is 1.
         """
         super().__init__(env)
         self.action_repeat = action_repeat
 
-    def step(self, action):
+    def step(self, action: Union[int, np.ndarray]) -> tuple:
+        """
+        Overview:
+            Take the given action and repeat it for a specified number of steps. The rewards are summed up.
+        Arguments:
+            - action (:obj:`Union[int, np.ndarray]`): The action to repeat.
+        Returns:
+            - obs (:obj:`np.ndarray`): The observation after repeating the action.
+            - reward (:obj:`float`): The sum of rewards after repeating the action.
+            - done (:obj:`bool`): Whether the episode has ended.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information.
+        """
         reward = 0
         for _ in range(self.action_repeat):
             obs, rew, done, info = self.env.step(action)
@@ -302,31 +349,67 @@ class ActionRepeatWrapper(gym.Wrapper):
 class DelayRewardWrapper(gym.Wrapper):
     """
     Overview:
-        Return cumulative reward at intervals; At other time, return reward of 0.
-    Interface:
-        ``__init__``, ``reset``, ``step``, ``new_shape``
+        The DelayRewardWrapper class is a gym wrapper that delays the reward. It cumulates the reward over a
+        predefined number of steps and returns the cumulated reward only at the end of this interval.
+        At other times, it returns a reward of 0.
+
+        This wrapper is particularly useful in environments where the impact of an action is not immediately
+        observable, but rather delayed over several steps. For instance, in strategic games or planning tasks,
+        the effect of an action may not be directly noticeable, but it contributes to a sequence of actions that
+        leads to a reward. In these cases, delaying the reward to match the action-effect delay can make the
+        learning process more consistent with the problem's nature.
+
+        However, using this wrapper may increase the difficulty of learning, as the agent needs to associate its
+        actions with delayed outcomes. It also introduces a non-standard reward structure, which could limit the
+        applicability of certain reinforcement learning algorithms.
+
+        Note that the use of the DelayRewardWrapper may not be suitable for all types of environments. Specifically,
+        it may not be the best choice for environments where the effect of actions is immediately observable and the
+        reward should be assigned accordingly.
+    Interfaces:
+        __init__, reset, step
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-        - ``reward_range``
+        - delay_reward_step (:obj:`int`): the number of steps over which to delay and cumulate the reward.
     """
 
-    def __init__(self, env, delay_reward_step=0):
+    def __init__(self, env: gym.Env, delay_reward_step: int = 0):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the DelayRewardWrapper class.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
+            - delay_reward_step (:obj:`int`): the number of steps over which to delay and cumulate the reward.
         """
         super().__init__(env)
         self._delay_reward_step = delay_reward_step
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
+        """
+         Overview:
+             Resets the state of the environment and resets the delay reward duration and current delay reward.
+         Returns:
+             - obs (:obj:`np.ndarray`): the initial observation of the environment.
+         """
         self._delay_reward_duration = 0
         self._current_delay_reward = 0.
         obs = self.env.reset()
         return obs
 
-    def step(self, action):
+    def step(self, action: Union[int, np.ndarray]) -> tuple:
+        """
+        Overview:
+            Take the given action and repeat it for a specified number of steps. The rewards are summed up.
+            If the number of steps equals the delay reward step, return the cumulated reward and reset the
+            delay reward duration and current delay reward. Otherwise, return a reward of 0.
+        Arguments:
+            - action (:obj:`Union[int, np.ndarray]`): the action to take in the step.
+        Returns:
+            - obs (:obj:`np.ndarray`): The observation after the step.
+            - reward (:obj:`float`): The cumulated reward after the delay reward step or 0.
+            - done (:obj:`bool`): Whether the episode has ended.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information.
+        """
         obs, reward, done, info = self.env.step(action)
         self._current_delay_reward += reward
         self._delay_reward_duration += 1
@@ -340,30 +423,60 @@ class DelayRewardWrapper(gym.Wrapper):
 
 
 @ENV_WRAPPER_REGISTRY.register('eval_episode_return')
-class EvalEpisodeReturnEnv(gym.Wrapper):
+class EvalEpisodeReturnWrapper(gym.Wrapper):
     """
     Overview:
-        Accumulate rewards at every timestep, and return at the end of the episode in `info`.
-    Interface:
-        ``__init__``, ``reset``, ``step``, ``new_shape``
+        A wrapper for a gym environment that accumulates rewards at every timestep, and returns the total reward at the
+        end of the episode in `info`. This is used for evaluation purposes.
+    Interfaces:
+        __init__, reset, step
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the EvalEpisodeReturnWrapper. This involves setting up the environment to wrap.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
         """
         super().__init__(env)
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
+        """
+        Overview:
+            Reset the environment and initialize the accumulated reward to zero.
+        Returns:
+            - obs (:obj:`np.ndarray`): The initial observation from the environment.
+        """
         self._eval_episode_return = 0.
         return self.env.reset()
 
-    def step(self, action):
+    def step(self, action: Any) -> tuple:
+        """
+        Overview:
+            Step the environment with the provided action, accumulate the returned reward, and add the total reward to
+            `info` if the episode is done.
+        Arguments:
+            - action (:obj:`Any`): The action to take in the environment.
+        Returns:
+            - obs (:obj:`np.ndarray`): The next observation from the environment.
+            - reward (:obj:`float`): The reward from taking the action.
+            - done (:obj:`bool`): Whether the episode is done.
+            - info (:obj:`Dict[str, Any]`): A dictionary of extra information, which includes 'eval_episode_return' if
+                the episode is done.
+        Examples:
+            >>> env = gym.make("CartPole-v1")
+            >>> env = EvalEpisodeReturnWrapper(env)
+            >>> obs = env.reset()
+            >>> done = False
+            >>> while not done:
+            ...     action = env.action_space.sample()  # Replace with your own policy
+            ...     obs, reward, done, info = env.step(action)
+            ...     if done:
+            ...         print("Total episode reward:", info['eval_episode_return'])
+        """
         obs, reward, done, info = self.env.step(action)
         self._eval_episode_return += reward
         if done:
@@ -374,23 +487,27 @@ class EvalEpisodeReturnEnv(gym.Wrapper):
 @ENV_WRAPPER_REGISTRY.register('frame_stack')
 class FrameStackWrapper(gym.Wrapper):
     """
-    Overview:
-       Stack latest n frames(usually 4 in Atari) as one observation.
-    Interface:
-        ``__init__``, ``reset``, ``step``, ``_get_ob``, ``new_shape``
-    Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - n_frame (:obj:`int`): the number of frames to stack.
-        - ``observation_space``, ``frames``
-    """
+     Overview:
+        FrameStackWrapper is a gym environment wrapper that stacks the latest n frames (generally 4 in Atari)
+        as a single observation. It is commonly used in environments where the observation is an image,
+        and consecutive frames provide useful temporal information for the agent.
+     Interfaces:
+         __init__, reset, step, _get_ob
+     Properties:
+         - env (:obj:`gym.Env`): The environment to wrap.
+         - n_frames (:obj:`int`): The number of frames to stack.
+         - frames (:obj:`collections.deque`): A queue that holds the most recent frames.
+         - observation_space (:obj:`gym.Space`): The space of the stacked observations.
+     """
 
-    def __init__(self, env, n_frames=4):
+    def __init__(self, env: gym.Env, n_frames: int = 4) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the FrameStackWrapper. This process includes setting up the environment to wrap,
+            the number of frames to stack, and the observation space.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
-            - n_frame (:obj:`int`): the number of frames to stack.
+            - env (:obj:`gym.Env`): The environment to wrap.
+            - n_frame (:obj:`int`): The number of frames to stack.
         """
         super().__init__(env)
         self.n_frames = n_frames
@@ -409,42 +526,43 @@ class FrameStackWrapper(gym.Wrapper):
         if len(self.observation_space) == 1:
             self.observation_space = self.observation_space[0]
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
         Overview:
-            Resets the state of the environment and append new observation to frames
+            Reset the environment and initialize frames with the initial observation.
         Returns:
-            - ``self._get_ob()``: observation
+            - init_obs (:obj:`np.ndarray`): The stacked initial observations.
         """
         obs = self.env.reset()
         for _ in range(self.n_frames):
             self.frames.append(obs)
         return self._get_ob()
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[np.ndarray, float, bool, Dict[str, Any]]:
         """
         Overview:
-            Step the environment with the given action. Repeat action, sum reward,  \
-                and max over last observations, and append new observation to frames
+            Perform a step in the environment with the given action, append the returned observation
+            to frames, and return the stacked observations.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Any`): The action to perform a step with.
         Returns:
-            - ``self._get_ob()`` : observation
-            - reward (:obj:`Any`) : amount of reward returned after previous action
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further \
-                 step() calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful  \
-                for debugging, and sometimes learning)
+            - self._get_ob() (:obj:`np.ndarray`): The stacked observations.
+            - reward (:obj:`float`): The amount of reward returned after the previous action.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+              undefined results.
+            - info (:obj:`Dict[str, Any]`): Contains auxiliary diagnostic information (helpful for debugging,
+              and sometimes learning).
         """
-
         obs, reward, done, info = self.env.step(action)
         self.frames.append(obs)
         return self._get_ob(), reward, done, info
 
-    def _get_ob(self):
+    def _get_ob(self) -> np.ndarray:
         """
         Overview:
-            The original wrapper use `LazyFrames` but since we use np buffer, it has no effect
+            The original wrapper used `LazyFrames`, but since we use an np buffer, it has no effect.
+        Returns:
+            - stacked_frames (:obj:`np.ndarray`): The stacked frames.
         """
         return np.stack(self.frames, axis=0)
 
@@ -453,21 +571,23 @@ class FrameStackWrapper(gym.Wrapper):
 class ObsTransposeWrapper(gym.ObservationWrapper):
     """
     Overview:
-        Transpose observation to put channel to first dim.
-    Interface:
-        ``__init__``, ``observation``, ``new_shape``
+        The ObsTransposeWrapper class is a gym wrapper that transposes the observation to put the channel dimension
+        first. This can be helpful for certain types of neural networks that expect the channel dimension to be
+        the first dimension.
+    Interfaces:
+        __init__, observation
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - ``observation_space``
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - observation_space (:obj:`gym.spaces.Box`): The transformed observation space.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
-                setup the properties.
+            Initialize the ObsTransposeWrapper class and update the observation space according to the environment's
+            observation space.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
         """
         super().__init__(env)
         obs_space = env.observation_space
@@ -489,11 +609,12 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
     def observation(self, obs: Union[tuple, np.ndarray]) -> Union[tuple, np.ndarray]:
         """
         Overview:
-            Returns the transposed observation
+            Transpose the observation to put the channel dimension first. If the observation is a tuple, each element
+            in the tuple is transposed independently.
         Arguments:
-            - observation (:obj:`Union[tuple, np.ndarray]`): The original observation
+            - obs (:obj:`Union[tuple, np.ndarray]`): The original observation.
         Returns:
-            - observation (:obj:`Union[tuple, np.ndarray]`): The transposed observation
+            - obs (:obj:`Union[tuple, np.ndarray]`): The transposed observation.
         """
         if isinstance(obs, tuple):
             new_obs = []
@@ -508,35 +629,40 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
 class RunningMeanStd(object):
     """
     Overview:
-       Wrapper to update new variable, new mean, and new count
-    Interface:
-        ``__init__``, ``update``, ``reset``, ``new_shape``
+       The RunningMeanStd class is a utility that maintains a running mean and standard deviation calculation over
+        a stream of data.
+    Interfaces:
+        __init__, update, reset, mean, std
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``
+        - mean (:obj:`np.ndarray`): The running mean.
+        - std (:obj:`np.ndarray`): The running standard deviation.
+        - _epsilon (:obj:`float`): A small number to prevent division by zero when calculating standard deviation.
+        - _shape (:obj:`tuple`): The shape of the data stream.
+        - _mean (:obj:`np.ndarray`): The current mean of the data stream.
+        - _var (:obj:`np.ndarray`): The current variance of the data stream.
+        - _count (:obj:`float`): The number of data points processed.
     """
 
-    def __init__(self, epsilon=1e-4, shape=()):
+    def __init__(self, epsilon: float = 1e-4, shape: tuple = ()):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate  \
-                signature; setup the properties.
+            Initialize the RunningMeanStd object.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
-            - epsilon (:obj:`Float`): the epsilon used for self for the std output
-            - shape (:obj: `np.array`): the np array shape used for the expression  \
-                of this wrapper on attibutes of mean and variance
+            - epsilon (:obj:`float`, optional): A small number to prevent division by zero when calculating standard
+                deviation. Default is 1e-4.
+            - shape (:obj:`tuple`, optional): The shape of the data stream. Default is an empty tuple, which
+                corresponds to scalars.
         """
         self._epsilon = epsilon
         self._shape = shape
         self.reset()
 
-    def update(self, x):
+    def update(self, x: np.array):
         """
         Overview:
-            Update mean, variable, and count
+            Update the running statistics with a new batch of data.
         Arguments:
-            - ``x``: the batch
+            - x (:obj:`np.array`): A batch of data.
         """
         batch_mean = np.mean(x, axis=0)
         batch_var = np.var(x, axis=0)
@@ -568,7 +694,9 @@ class RunningMeanStd(object):
     def mean(self) -> np.ndarray:
         """
         Overview:
-            Property ``mean`` gotten  from ``self._mean``
+            Get the current running mean.
+        Returns:
+            The current running mean.
         """
         return self._mean
 
@@ -576,7 +704,9 @@ class RunningMeanStd(object):
     def std(self) -> np.ndarray:
         """
         Overview:
-            Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``
+            Get the current running standard deviation.
+        Returns:
+            The current running mean.
         """
         return np.sqrt(self._var) + self._epsilon
 
@@ -585,20 +715,21 @@ class RunningMeanStd(object):
 class ObsNormWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Normalize observations according to running mean and std.
-    Interface:
-        ``__init__``, ``step``, ``reset``, ``observation``, ``new_shape``
+        The ObsNormWrapper class is a gym observation wrapper that normalizes
+        observations according to running mean and standard deviation (std).
+    Interfaces:
+        __init__, step, reset, observation
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-
-        - ``data_count``, ``clip_range``, ``rms``
+        - data_count (:obj:`int`): the count of data points observed so far.
+        - clip_range (:obj:`Tuple[int, int]`): the range to clip the normalized observation.
+        - rms (:obj:`RunningMeanStd`): running mean and standard deviation of the observations.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
-                setup the properties according to running mean and std.
+            Initialize the ObsNormWrapper class.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
         """
@@ -607,38 +738,33 @@ class ObsNormWrapper(gym.ObservationWrapper):
         self.clip_range = (-3, 3)
         self.rms = RunningMeanStd(shape=env.observation_space.shape)
 
-    def step(self, action):
+    def step(self, action: Union[int, np.ndarray]):
         """
         Overview:
-            Step the environment with the given action. Repeat action, sum reward,  \
-                and update ``data_count``, and also update the ``self.rms`` property  \
-                    once after integrating with the input ``action``.
+            Take an action in the environment, update the running mean and std,
+            and return the normalized observation.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Union[int, np.ndarray]`): the action to take in the environment.
         Returns:
-            - ``self.observation(observation)`` : normalized observation after the  \
-                input action and updated ``self.rms``
-            - reward (:obj:`Any`) : amount of reward returned after previous action
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further  \
-                step() calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful  \
-                for debugging, and sometimes learning)
-
+            - obs (:obj:`np.ndarray`): the normalized observation after the action.
+            - reward (:obj:`float`): the reward after the action.
+            - done (:obj:`bool`): whether the episode has ended.
+            - info (:obj:`Dict`): contains auxiliary diagnostic information.
         """
         self.data_count += 1
         observation, reward, done, info = self.env.step(action)
         self.rms.update(observation)
         return self.observation(observation), reward, done, info
 
-    def observation(self, observation):
+    def observation(self, observation: np.ndarray) -> np.ndarray:
         """
         Overview:
-            Get obeservation
+            Normalize the observation using the current running mean and std.
+            If less than 30 data points have been observed, return the original observation.
         Arguments:
-            - observation (:obj:`Any`): Original observation
+            - observation (:obj:`np.ndarray`): the original observation.
         Returns:
-            - observation (:obj:`Any`): Normalized new observation
-
+            - observation (:obj:`np.ndarray`): the normalized observation.
         """
         if self.data_count > 30:
             return np.clip((observation - self.rms.mean) / self.rms.std, self.clip_range[0], self.clip_range[1])
@@ -648,12 +774,11 @@ class ObsNormWrapper(gym.ObservationWrapper):
     def reset(self, **kwargs):
         """
         Overview:
-            Resets the state of the environment and reset properties.
+            Reset the environment and the properties related to the running mean and std.
         Arguments:
-            - kwargs (:obj:`Dict`): Reset with this key argumets
+            - kwargs (:obj:`Dict`): keyword arguments to be passed to the environment's reset function.
         Returns:
-            - observation (:obj:`Any`): New observation after reset
-
+            - observation (:obj:`np.ndarray`): the initial observation of the environment.
         """
         self.data_count = 0
         self.rms.reset()
@@ -665,39 +790,40 @@ class ObsNormWrapper(gym.ObservationWrapper):
 class StaticObsNormWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Normalize observations according to the mean and std in the fixed dataset.
-    Interface:
-        ``__init__``, ``observation``
+        The StaticObsNormWrapper class is a gym observation wrapper that normalizes
+        observations according to a precomputed mean and standard deviation (std) from a fixed dataset.
+    Interfaces:
+        __init__, observation
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-
-        - ``mean``, ``std``, ``clip_range``
+        - mean (:obj:`numpy.ndarray`): the mean of the observations in the fixed dataset.
+        - std (:obj:`numpy.ndarray`): the standard deviation of the observations in the fixed dataset.
+        - clip_range (:obj:`Tuple[int, int]`): the range to clip the normalized observation.
     """
 
-    def __init__(self, env, mean, std):
+    def __init__(self, env: gym.Env, mean: np.ndarray, std: np.ndarray):
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
-                setup the properties according to dataset mean and std.
+            Initialize the StaticObsNormWrapper class.
         Arguments:
             - env (:obj:`gym.Env`): the environment to wrap.
-            - mean (:obj:`numpy.ndarray`): the mean of observation in the dataset.
-            - std (:obj:`numpy.ndarray`): the standard deviation of observation in the dataset.
+            - mean (:obj:`numpy.ndarray`): the mean of the observations in the fixed dataset.
+            - std (:obj:`numpy.ndarray`): the standard deviation of the observations in the fixed dataset.
         """
         super().__init__(env)
         self.mean = mean
         self.std = std
         self.clip_range = (-3, 3)
 
-    def observation(self, observation):
+    def observation(self, observation: np.ndarray) -> np.ndarray:
         """
         Overview:
-            Get obeservation
+            Normalize the given observation using the precomputed mean and std.
+            The normalized observation is then clipped within the specified range.
         Arguments:
-            - observation (:obj:`Any`): Original observation
+            - observation (:obj:`np.ndarray`): the original observation.
         Returns:
-            - observation (:obj:`Any`): Normalized new observation
-
+            - observation (:obj:`np.ndarray`): the normalized and clipped observation.
         """
         return np.clip((observation - self.mean) / self.std, self.clip_range[0], self.clip_range[1])
 
@@ -706,21 +832,24 @@ class StaticObsNormWrapper(gym.ObservationWrapper):
 class RewardNormWrapper(gym.RewardWrapper):
     """
     Overview:
-       Normalize reward according to running std.
-    Interface:
-        ``__init__``, ``step``, ``reward``, ``reset``, ``new_shape``
+        This wrapper class normalizes the reward according to running std. It extends the `gym.RewardWrapper`.
+    Interfaces:
+        __init__, step, reward, reset
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - ``cum_reward``, ``reward_discount``, ``data_count``, ``rms``
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - cum_reward (:obj:`numpy.ndarray`): The cumulated reward, initialized as zero and updated in `step` method.
+        - reward_discount (:obj:`float`): The discount factor for reward.
+        - data_count (:obj:`int`): A counter for data, incremented in each `step` call.
+        - rms (:obj:`RunningMeanStd`): An instance of RunningMeanStd to compute the running mean and std of reward.
     """
 
-    def __init__(self, env, reward_discount):
+    def __init__(self, env: gym.Env, reward_discount: float) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \
-                setup the properties according to running mean and std.
+            Initialize the RewardNormWrapper, setup the properties according to running mean and std.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
+            - reward_discount (:obj:`float`): The discount factor for reward.
         """
         super().__init__(env)
         self.cum_reward = np.zeros((1, ), 'float64')
@@ -728,23 +857,21 @@ class RewardNormWrapper(gym.RewardWrapper):
         self.data_count = 0
         self.rms = RunningMeanStd(shape=(1, ))
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[np.ndarray, float, bool, Dict]:
         """
         Overview:
-            Step the environment with the given action. Repeat action, sum reward,  \
-                and update ``data_count``, and also update the ``self.rms`` and ``self.cum_reward``  \
-                    properties once after integrating with the input ``action``.
+            Step the environment with the given action, update properties and return the new observation, reward,
+            done status and info.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Any`): The action to execute in the environment.
         Returns:
-            - observation : normalized observation after the input action and updated ``self.rms``
-            - ``self.reward(reward)`` : amount of reward returned after previous action \
-                 (normalized) and update ``self.cum_reward``
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further  \
-                step() calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful for \
-                debugging, and sometimes learning)
-
+            - observation (:obj:`np.ndarray`): Normalized observation after executing the action and updated `self.rms`.
+            - reward (:obj:`float`): Amount of reward returned after the action execution (normalized) and updated
+                `self.cum_reward`.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
         self.data_count += 1
         observation, reward, done, info = self.env.step(action)
@@ -753,14 +880,14 @@ class RewardNormWrapper(gym.RewardWrapper):
         self.rms.update(self.cum_reward)
         return observation, self.reward(reward), done, info
 
-    def reward(self, reward):
+    def reward(self, reward: float) -> float:
         """
         Overview:
-           Normalize reward if ``data_count`` is more than 30
+            Normalize reward if `data_count` is more than 30.
         Arguments:
-            - reward(:obj:`Float`): Raw Reward
+            - reward (:obj:`float`): The raw reward.
         Returns:
-            - reward(:obj:`Float`): Normalized Reward
+            - reward (:obj:`float`): Normalized reward.
         """
         if self.data_count > 30:
             return float(reward / self.rms.std)
@@ -785,21 +912,21 @@ class RewardNormWrapper(gym.RewardWrapper):
 class RamWrapper(gym.Wrapper):
     """
     Overview:
-       Wrap ram env into image-like env
-    Interface:
-        ``__init__``, ``reset``, ``step``, ``new_shape``
+        This wrapper class wraps a RAM environment into an image-like environment. It extends the `gym.Wrapper`.
+    Interfaces:
+        __init__, reset, step
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - n_frame (:obj:`int`): the number of frames to stack.
-        - ``observation_space``
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - observation_space (:obj:`gym.spaces.Box`): The observation space of the wrapped environment.
     """
 
-    def __init__(self, env, render=False):
+    def __init__(self, env: gym.Env, render: bool = False) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature;
+            Initialize the RamWrapper and set up the observation space to wrap the RAM environment.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
+            - render (:obj:`bool`): Whether to render the environment, default is False.
         """
         super().__init__(env)
         shape = env.observation_space.shape + (1, 1)
@@ -810,34 +937,30 @@ class RamWrapper(gym.Wrapper):
             dtype=np.float32
         )
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
         Overview:
-            Resets the state of the environment and reset properties.
-
+            Resets the state of the environment and returns a reshaped observation.
         Returns:
-            - observation (:obj:`Any`): New observation after reset and reshaped
-
+            - observation (:obj:`np.ndarray`): New observation after reset and reshaped.
         """
         obs = self.env.reset()
         return obs.reshape(128, 1, 1).astype(np.float32)
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[np.ndarray, Any, bool, Dict]:
         """
         Overview:
-            Step the environment with the given action. Repeat action, sum reward and \
-                reshape the observation.
+            Execute one step within the environment with the given action. Repeat action, sum reward and reshape the
+            observation.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Any`): The action to take in the environment.
         Returns:
-            - ``obs.reshape(128, 1, 1).astype(np.float32)`` : reshaped observation after \
-                step with type restriction.
-            - reward (:obj:`Any`) : amount of reward returned after previous action
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further \
-                step() calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful for \
-                debugging, and sometimes learning)
-
+            - observation (:obj:`np.ndarray`): Reshaped observation after step with type restriction.
+            - reward (:obj:`Any`): Amount of reward returned after previous action.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+              undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+              learning).
         """
         obs, reward, done, info = self.env.step(action)
         return obs.reshape(128, 1, 1).astype(np.float32), reward, done, info
@@ -847,45 +970,41 @@ class RamWrapper(gym.Wrapper):
 class EpisodicLifeWrapper(gym.Wrapper):
     """
     Overview:
-        Make end-of-life == end-of-episode, but only reset on true game over. It helps \
-            the value estimation.
-    Interface:
-        ``__init__``, ``step``, ``reset``, ``observation``, ``new_shape``
+        This wrapper makes end-of-life equivalent to end-of-episode, but only resets on
+        true game over. This helps in better value estimation.
+    Interfaces:
+        __init__, step, reset
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-
-        - ``lives``, ``was_real_done``
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - lives (:obj:`int`): The current number of lives.
+        - was_real_done (:obj:`bool`): Whether the last episode was ended due to game over.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; set \
-                lives to 0 at set done.
+            Initialize the EpisodicLifeWrapper, setting lives to 0 and was_real_done to True.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
         """
         super().__init__(env)
         self.lives = 0
         self.was_real_done = True
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[np.ndarray, float, bool, Dict]:
         """
         Overview:
-            Step the environment with the given action. Repeat action, sum reward; set \
-                ``self.was_real_done`` as done, and step according to lives i.e. check \
-                    current lives, make loss of life terminal, then update lives to \
-                        handle bonus lives.
+            Execute the given action in the environment, update properties based on the new
+            state and return the new observation, reward, done status and info.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Any`): The action to execute in the environment.
         Returns:
-            - obs (:obj:`Any`): normalized observation after the input action and updated ``self.rms``
-            - reward (:obj:`Any`) : amount of reward returned after previous action
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further step() \
-                calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful for debugging,\
-                 and sometimes learning)
-
+            - observation (:obj:`np.ndarray`): Normalized observation after the action execution and updated `self.rms`.
+            - reward (:obj:`float`): Amount of reward returned after the action execution.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and
+                sometimes learning).
         """
         obs, reward, done, info = self.env.step(action)
         self.was_real_done = done
@@ -900,16 +1019,15 @@ class EpisodicLifeWrapper(gym.Wrapper):
         self.lives = lives
         return obs, reward, done, info
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
         Overview:
-            Calls the Gym environment reset, only when lives are exhausted. This way all states are \
-                still reachable even though lives are episodic, and the learner need not know about \
-                    any of this behind-the-scenes.
+            Resets the state of the environment and updates the number of lives, only when
+            lives are exhausted. This way all states are still reachable even though lives
+            are episodic, and the learner need not know about any of this behind-the-scenes.
         Returns:
-            - obs (:obj:`Any`): New observation after reset with no-op step to advance from terminal/lost \
-                life state in case of not ``self.was_real_done``.
-
+            - observation (:obj:`np.ndarray`): New observation after reset with no-op step to advance from
+                terminal/lost life state.
         """
         if self.was_real_done:
             obs = self.env.reset()
@@ -924,29 +1042,32 @@ class EpisodicLifeWrapper(gym.Wrapper):
 class FireResetWrapper(gym.Wrapper):
     """
     Overview:
-        Take fire action at environment reset.
+        This wrapper takes a fire action at environment reset.
         Related discussion: https://github.com/openai/baselines/issues/240
-    Interface:
-        ``__init__``, ``reset``, ``new_shape``
+    Interfaces:
+        __init__, reset
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
+        - env (:obj:`gym.Env`): The environment to wrap.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+            Initialize the FireResetWrapper. Assume that the second action of the environment
+            is 'FIRE' and there are at least three actions.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
         """
         super().__init__(env)
         assert env.unwrapped.get_action_meanings()[1] == 'FIRE'
         assert len(env.unwrapped.get_action_meanings()) >= 3
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
         Overview:
-            Resets the state of the environment and reset properties i.e. reset with action 1
+            Resets the state of the environment and executes a fire action, i.e. reset with action 1.
+        Returns:
+            - observation (:obj:`np.ndarray`): New observation after reset and fire action.
         """
         self.env.reset()
         return self.env.step(1)[0]
@@ -956,20 +1077,20 @@ class FireResetWrapper(gym.Wrapper):
 class GymHybridDictActionWrapper(gym.ActionWrapper):
     """
     Overview:
-       Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.
-    Interface:
-        ``__init__``, ``action``
+        Transform Gym-Hybrid's original `gym.spaces.Tuple` action space to `gym.spaces.Dict`.
+    Interfaces:
+        __init__, action
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
-        - ``self.action_space``
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - action_space (:obj:`gym.spaces.Dict`): The new action space.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+            Initialize the GymHybridDictActionWrapper, setting up the new action space.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
         """
         super().__init__(env)
         self.action_space = gym.spaces.Dict(
@@ -986,7 +1107,22 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
             }
         )
 
-    def step(self, action):
+    def step(self, action: Dict) -> Tuple[Dict, float, bool, Dict]:
+        """
+        Overview:
+            Execute the given action in the environment, transform the action from Dict to Tuple,
+            and return the new observation, reward, done status and info.
+        Arguments:
+            - action (:obj:`Dict`): The action to execute in the environment, structured as a dictionary.
+        Returns:
+            - observation (:obj:`Dict`): The wrapped observation, which includes the current observation,
+                previous action and previous reward.
+            - reward (:obj:`float`): Amount of reward returned after the action execution.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and
+                sometimes learning).
+        """
         # # From Dict to Tuple
         # action_type = action[0]
         # if action_type == 0:
@@ -1003,40 +1139,27 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
         action_type, action_mask, action_args = action['type'], action['mask'], action['args']
         return self.env.step((action_type, action_args))
 
-    # @staticmethod
-    # def new_shape(obs_shape, act_shape, rew_shape, size=84):
-    #     """
-    #     Overview:
-    #         Get new shape of observation, acton, and reward; in this case only  \
-    #             observation space wrapped to (4, 84, 84); others unchanged.
-    #     Arguments:
-    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-    #     Returns:
-    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-    #     """
-    #     return (size, size), act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('obs_plus_prev_action_reward')
 class ObsPlusPrevActRewWrapper(gym.Wrapper):
     """
     Overview:
-       This wrapper is used in policy NGU.
-       Set a dict {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
-       as the new wrapped observation,
-       which including the current obs, previous action and previous reward.
-    Interface:
-        ``__init__``, ``reset``, ``step``
+        This wrapper is used in policy NGU. It sets a dict as the new wrapped observation,
+        which includes the current observation, previous action and previous reward.
+    Interfaces:
+        __init__, reset, step
     Properties:
-        - env (:obj:`gym.Env`): the environment to wrap.
+        - env (:obj:`gym.Env`): The environment to wrap.
+        - prev_action (:obj:`int`): The previous action.
+        - prev_reward_extrinsic (:obj:`float`): The previous reward.
     """
 
-    def __init__(self, env):
+    def __init__(self, env: gym.Env) -> None:
         """
         Overview:
-            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+            Initialize the ObsPlusPrevActRewWrapper, setting up the previous action and reward.
         Arguments:
-            - env (:obj:`gym.Env`): the environment to wrap.
+            - env (:obj:`gym.Env`): The environment to wrap.
         """
         super().__init__(env)
         self.observation_space = gym.spaces.Dict(
@@ -1051,35 +1174,35 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
         self.prev_action = -1  # null action
         self.prev_reward_extrinsic = 0  # null reward
 
-    def reset(self):
+    def reset(self) -> Dict:
         """
         Overview:
-            Resets the state of the environment.
+            Resets the state of the environment, and returns the wrapped observation.
         Returns:
-            -  obs (:obj:`Dict`) : the wrapped observation, which including the current obs, \
+            - observation (:obj:`Dict`): The wrapped observation, which includes the current observation,
                 previous action and previous reward.
         """
         obs = self.env.reset()
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
         return obs
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[Dict, float, bool, Dict]:
         """
         Overview:
-            Step the environment with the given action.
-            Save the previous action and reward to be used in next new obs
+            Execute the given action in the environment, save the previous action and reward
+            to be used in the next observation, and return the new observation, reward,
+            done status and info.
         Arguments:
-            - action (:obj:`Any`): the given action to step with.
+            - action (:obj:`Any`): The action to execute in the environment.
         Returns:
-            -  obs (:obj:`Dict`) : the wrapped observation, which including the current obs, \
+            - observation (:obj:`Dict`): The wrapped observation, which includes the current observation,
                 previous action and previous reward.
-            - reward (:obj:`Any`) : amount of reward returned after previous action
-            - done (:obj:`Bool`) : whether the episode has ended, in which case further \
-                 step() calls will return undefined results
-            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful  \
-                for debugging, and sometimes learning)
+            - reward (:obj:`float`): Amount of reward returned after the action execution.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
         """
-
         obs, reward, done, info = self.env.step(action)
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
         self.prev_action = action
@@ -1088,8 +1211,21 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
 
 
 class TransposeWrapper(gym.Wrapper):
+    """
+    Overview:
+        This class is used to transpose the observation space of the environment.
 
-    def __init__(self, env):
+    Interfaces:
+        __init__, _process_obs, step, reset
+    """
+
+    def __init__(self, env: gym.Env) -> None:
+        """
+        Overview:
+            Initialize the TransposeWrapper, setting up the new observation space.
+        Arguments:
+            - env (:obj:`gym.Env`): The environment to wrap.
+        """
         super().__init__(env)
         old_space = copy.deepcopy(env.observation_space)
         new_shape = (old_space.shape[-1], *old_space.shape[:-1])
@@ -1097,31 +1233,92 @@ class TransposeWrapper(gym.Wrapper):
             low=old_space.low.min(), high=old_space.high.max(), shape=new_shape, dtype=old_space.dtype
         )
 
-    def _process_obs(self, obs):
+    def _process_obs(self, obs: np.ndarray) -> np.ndarray:
+        """
+        Overview:
+            Transpose the observation into the format (channels, height, width).
+        Arguments:
+            - obs (:obj:`np.ndarray`): The observation to transform.
+        Returns:
+            - obs (:obj:`np.ndarray`): The transposed observation.
+        """
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
         return obs
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[np.ndarray, float, bool, Dict]:
+        """
+        Overview:
+            Execute the given action in the environment, process the observation and return
+            the new observation, reward, done status, and info.
+        Arguments:
+            - action (:obj:`Any`): The action to execute in the environment.
+        Returns:
+            - observation (:obj:`np.ndarray`): The processed observation after the action execution.
+            - reward (:obj:`float`): Amount of reward returned after the action execution.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
+        """
         obs, reward, done, info = self.env.step(action)
         return self._process_obs(obs), reward, done, info
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
+        """
+        Overview:
+            Resets the state of the environment and returns the processed observation.
+        Returns:
+            - observation (:obj:`np.ndarray`): The processed observation after reset.
+        """
         obs = self.env.reset()
         return self._process_obs(obs)
 
 
 class TimeLimitWrapper(gym.Wrapper):
+    """
+    Overview:
+        This class is used to enforce a time limit on the environment.
+    Interfaces:
+        __init__, reset, step
+    """
 
-    def __init__(self, env, max_limit):
+    def __init__(self, env: gym.Env, max_limit: int) -> None:
+        """
+        Overview:
+            Initialize the TimeLimitWrapper, setting up the maximum limit of time steps.
+        Arguments:
+            - env (:obj:`gym.Env`): The environment to wrap.
+            - max_limit (:obj:`int`): The maximum limit of time steps.
+        """
         super().__init__(env)
         self.max_limit = max_limit
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
+        """
+        Overview:
+            Resets the state of the environment and the time counter.
+        Returns:
+            - observation (:obj:`np.ndarray`): The new observation after reset.
+        """
         self.time_count = 0
         return self.env.reset()
 
-    def step(self, action):
+    def step(self, action: Any) -> Tuple[np.ndarray, float, bool, Dict]:
+        """
+        Overview:
+            Execute the given action in the environment, update the time counter, and
+            return the new observation, reward, done status and info.
+        Arguments:
+            - action (:obj:`Any`): The action to execute in the environment.
+        Returns:
+            - observation (:obj:`np.ndarray`): The new observation after the action execution.
+            - reward (:obj:`float`): Amount of reward returned after the action execution.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
+        """
         obs, reward, done, info = self.env.step(action)
         self.time_count += 1
         if self.time_count >= self.max_limit:
@@ -1135,10 +1332,21 @@ class TimeLimitWrapper(gym.Wrapper):
 
 class FlatObsWrapper(gym.Wrapper):
     """
-    Note: only suitable for these envs like minigrid.
+    Overview:
+        This class is used to flatten the observation space of the environment.
+        Note: only suitable for environments like minigrid.
+    Interfaces:
+        __init__, observation, reset, step
     """
 
-    def __init__(self, env, maxStrLen=96):
+    def __init__(self, env: gym.Env, maxStrLen: int = 96) -> None:
+        """
+        Overview:
+            Initialize the FlatObsWrapper, setup the new observation space.
+        Arguments:
+            - env (:obj:`gym.Env`): The environment to wrap.
+            - maxStrLen (:obj:`int`): The maximum length of mission string, default is 96.
+        """
         super().__init__(env)
 
         self.maxStrLen = maxStrLen
@@ -1156,7 +1364,16 @@ class FlatObsWrapper(gym.Wrapper):
 
         self.cachedStr: str = None
 
-    def observation(self, obs):
+    def observation(self, obs: Union[np.ndarray, Tuple]) -> np.ndarray:
+        """
+        Overview:
+            Process the observation, convert the mission into one-hot encoding and concatenate
+            it with the image data.
+        Arguments:
+            - obs (:obj:`Union[np.ndarray, Tuple]`): The raw observation to process.
+        Returns:
+            - obs (:obj:`np.ndarray`): The processed observation.
+        """
         if isinstance(obs, tuple):  # for compatibility of gymnasium
             obs = obs[0]
         image = obs["image"]
@@ -1188,41 +1405,153 @@ class FlatObsWrapper(gym.Wrapper):
 
         return obs
 
-    def reset(self, *args, **kwargs):
+    def reset(self, *args, **kwargs) -> np.ndarray:
+        """
+        Overview:
+            Resets the state of the environment and returns the processed observation.
+        Returns:
+            - observation (:obj:`np.ndarray`): The processed observation after reset.
+        """
         obs = self.env.reset(*args, **kwargs)
         return self.observation(obs)
 
-    def step(self, *args, **kwargs):
+    def step(self, *args, **kwargs) -> Tuple[np.ndarray, float, bool, Dict]:
+        """
+        Overview:
+            Execute the given action in the environment, and return the processed observation,
+            reward, done status, and info.
+        Returns:
+            - observation (:obj:`np.ndarray`): The processed observation after the action execution.
+            - reward (:obj:`float`): Amount of reward returned after the action execution.
+            - done (:obj:`bool`): Whether the episode has ended, in which case further step() calls will return
+                undefined results.
+            - info (:obj:`Dict`): Contains auxiliary diagnostic information (helpful for debugging, and sometimes
+                learning).
+        """
         o, r, d, i = self.env.step(*args, **kwargs)
         o = self.observation(o)
         return o, r, d, i
 
 
 class GymToGymnasiumWrapper(gym.Wrapper):
+    """
+    Overview:
+        This class is used to wrap a gymnasium environment to a gym environment.
+    Interfaces:
+        __init__, seed, reset
+    """
 
-    def __init__(self, env):
+    def __init__(self, env: gymnasium.Env) -> None:
+        """
+        Overview:
+            Initialize the GymToGymnasiumWrapper.
+        Arguments:
+            - env (:obj:`gymnasium.Env`): The gymnasium environment to wrap.
+        """
         assert isinstance(env, gymnasium.Env), type(env)
         super().__init__(env)
         self._seed = None
 
-    def seed(self, seed):
+    def seed(self, seed: int) -> None:
+        """
+        Overview:
+            Set the seed for the environment.
+        Arguments:
+            - seed (:obj:`int`): The seed to set.
+        """
         self._seed = seed
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
+        """
+        Overview:
+            Resets the state of the environment and returns the new observation. If a seed
+            was set, use it in the reset.
+        Returns:
+            - observation (:obj:`np.ndarray`): The new observation after reset.
+        """
         if self.seed is not None:
             return self.env.reset(seed=self._seed)
         else:
             return self.env.reset()
 
 
-def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
+@ENV_WRAPPER_REGISTRY.register('reward_in_obs')
+class AllinObsWrapper(gym.Wrapper):
     """
     Overview:
-        Get new shape of observation, acton, and reward given the wrapper.
+        This wrapper is used in policy ``Decision Transformer``, which is proposed in paper
+        https://arxiv.org/abs/2106.01345. It sets a dict {'obs': obs, 'reward': reward}
+        as the new wrapped observation, which includes the current observation and previous reward.
+    Interfaces:
+        __init__, reset, step, seed
+    Properties:
+        - env (:obj:`gym.Env`): The environment to wrap.
+    """
+
+    def __init__(self, env: gym.Env) -> None:
+        """
+        Overview:
+            Initialize the AllinObsWrapper.
+        Arguments:
+            - env (:obj:`gym.Env`): The environment to wrap.
+        """
+        super().__init__(env)
+
+    def reset(self) -> Dict:
+        """
+        Overview:
+            Resets the state of the environment and returns the new observation.
+        Returns:
+            - observation (:obj:`Dict`): The new observation after reset, includes the current observation and reward.
+        """
+        ret = {'obs': self.env.reset(), 'reward': np.array([0])}
+        self._observation_space = gym.spaces.Dict(
+            {
+                'obs': self.env.observation_space,
+                'reward': gym.spaces.Box(low=-np.inf, high=np.inf, dtype=np.float32, shape=(1, ))
+            }
+        )
+        return ret
+
+    def step(self, action: Any):
+        """
+        Overview:
+            Execute the given action in the environment, and return the new observation,
+            reward, done status, and info.
+        Arguments:
+            - action (:obj:`Any`): The action to execute in the environment.
+        Returns:
+            - timestep (:obj:`BaseEnvTimestep`): The timestep after the action execution.
+        """
+        obs, reward, done, info = self.env.step(action)
+        obs = {'obs': obs, 'reward': reward}
+        from ding.envs import BaseEnvTimestep
+        return BaseEnvTimestep(obs, reward, done, info)
+
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+        """
+        Overview:
+            Set the seed for the environment.
+        Arguments:
+            - seed (:obj:`int`): The seed to set.
+            - dynamic_seed (:obj:`bool`): Whether to use dynamic seed, default is True.
+        """
+        self.env.seed(seed, dynamic_seed)
+
+
+def update_shape(obs_shape: Any, act_shape: Any, rew_shape: Any, wrapper_names: List[str]) -> Tuple[Any, Any, Any]:
+    """
+    Overview:
+        Get new shapes of observation, action, and reward given the wrapper.
     Arguments:
-        obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`), wrapper_names (:obj:`Any`)
+        - obs_shape (:obj:`Any`): The original shape of observation.
+        - act_shape (:obj:`Any`): The original shape of action.
+        - rew_shape (:obj:`Any`): The original shape of reward.
+        - wrapper_names (:obj:`List[str]`): The names of the wrappers.
     Returns:
-        obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        - obs_shape (:obj:`Any`): The new shape of observation.
+        - act_shape (:obj:`Any`): The new shape of action.
+        - rew_shape (:obj:`Any`): The new shape of reward.
     """
     for wrapper_name in wrapper_names:
         if wrapper_name:
@@ -1233,32 +1562,18 @@ def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     return obs_shape, act_shape, rew_shape
 
 
-def create_env_wrapper(env: gym.Env, env_wrapper_cfg: dict) -> gym.Wrapper:
-    r"""
+def create_env_wrapper(env: gym.Env, env_wrapper_cfg: EasyDict) -> gym.Wrapper:
+    """
     Overview:
-        Create an env wrapper according to env_wrapper_cfg and env instance.
+        Create an environment wrapper according to the environment wrapper configuration and the environment instance.
     Arguments:
-        - env (:obj:`gym.Env`): An env instance to be wrapped.
-        - env_wrapper_cfg (:obj:`EasyDict`): Env wrapper config.
-    ArgumentsKeys:
-        - `env_wrapper_cfg`'s necessary: `type`
-        - `env_wrapper_cfg`'s optional: `import_names`, `kwargs`
+        - env (:obj:`gym.Env`): The environment instance to be wrapped.
+        - env_wrapper_cfg (:obj:`EasyDict`): The configuration for the environment wrapper.
+    Returns:
+        - env (:obj:`gym.Wrapper`): The wrapped environment instance.
     """
     env_wrapper_cfg = copy.deepcopy(env_wrapper_cfg)
     if 'import_names' in env_wrapper_cfg:
         import_module(env_wrapper_cfg.pop('import_names'))
     env_wrapper_type = env_wrapper_cfg.pop('type')
     return ENV_WRAPPER_REGISTRY.build(env_wrapper_type, env, **env_wrapper_cfg.get('kwargs', {}))
-
-
-def get_env_wrapper_cls(cfg: EasyDict) -> type:
-    r"""
-    Overview:
-        Get an env wrapper class according to cfg.
-    Arguments:
-        - cfg (:obj:`EasyDict`): Env wrapper config.
-    ArgumentsKeys:
-        - necessary: `type`
-    """
-    import_module(cfg.get('import_names', []))
-    return ENV_WRAPPER_REGISTRY.get(cfg.type)

@@ -38,7 +38,7 @@ These modules can be useful building blocks in more complex deep learning archit
 import enum
 import math
 from collections import OrderedDict
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 import numpy as np
 import torch
@@ -50,15 +50,22 @@ from torch import Tensor
 class BilinearGeneral(nn.Module):
     """
     Overview:
-        Bilinear implementation as in:
-        Multiplicative Interactions and Where to Find Them, ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH
-    Arguments:
-        - in1_features (:obj:`int`): size of each first input sample
-        - in2_features (:obj:`int`): size of each second input sample
-        - out_features (:obj:`int`): size of each output sample
+        Bilinear implementation as in: Multiplicative Interactions and Where to Find Them,
+        ICLR 2020, https://openreview.net/forum?id=rylnK6VtDH.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
-    def __init__(self, in1_features, in2_features, out_features):
+    def __init__(self, in1_features: int, in2_features: int, out_features: int):
+        """
+        Overview:
+            Initialize the Bilinear layer.
+        Arguments:
+            - in1_features (:obj:`int`): The size of each first input sample.
+            - in2_features (:obj:`int`): The size of each second input sample.
+            - out_features (:obj:`int`): The size of each output sample.
+        """
+
         super(BilinearGeneral, self).__init__()
         # Initialize the weight matrices W and U, and the bias vectors V and b
         self.W = nn.Parameter(torch.Tensor(out_features, in1_features, in2_features))
@@ -71,13 +78,26 @@ class BilinearGeneral(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Overview:
+            Initialize the parameters of the Bilinear layer.
+        """
+
         stdv = 1. / np.sqrt(self.in1_features)
         self.W.data.uniform_(-stdv, stdv)
         self.U.data.uniform_(-stdv, stdv)
         self.V.data.uniform_(-stdv, stdv)
         self.b.data.uniform_(-stdv, stdv)
 
-    def forward(self, x, z):
+    def forward(self, x: torch.Tensor, z: torch.Tensor):
+        """
+        Overview:
+            compute the bilinear function.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The first input tensor.
+            - z (:obj:`torch.Tensor`): The second input tensor.
+        """
+
         # Compute the bilinear function
         # x^TWz
         out_W = torch.einsum('bi,kij,bj->bk', x, self.W, z)
@@ -94,13 +114,20 @@ class TorchBilinearCustomized(nn.Module):
     """
     Overview:
         Customized Torch Bilinear implementation.
-    Arguments:
-        - in1_features (:obj:`int`): size of each first input sample
-        - in2_features (:obj:`int`): size of each second input sample
-        - out_features (:obj:`int`): size of each output sample
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
-    def __init__(self, in1_features, in2_features, out_features):
+    def __init__(self, in1_features: int, in2_features: int, out_features: int):
+        """
+        Overview:
+            Initialize the Bilinear layer.
+        Arguments:
+            - in1_features (:obj:`int`): The size of each first input sample.
+            - in2_features (:obj:`int`): The size of each second input sample.
+            - out_features (:obj:`int`): The size of each output sample.
+        """
+
         super(TorchBilinearCustomized, self).__init__()
         self.in1_features = in1_features
         self.in2_features = in2_features
@@ -110,11 +137,24 @@ class TorchBilinearCustomized(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        """
+        Overview:
+            Initialize the parameters of the Bilinear layer.
+        """
+
         bound = 1 / math.sqrt(self.in1_features)
         nn.init.uniform_(self.weight, -bound, bound)
         nn.init.uniform_(self.bias, -bound, bound)
 
     def forward(self, x, z):
+        """
+        Overview:
+            Compute the bilinear function.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The first input tensor.
+            - z (:obj:`torch.Tensor`): The second input tensor.
+        """
+
         # Using torch.einsum for the bilinear operation
         out = torch.einsum('bi,oij,bj->bo', x, self.weight, z) + self.bias
         return out.squeeze(-1)
@@ -125,9 +165,9 @@ Overview:
     Implementation of the Bilinear layer as in PyTorch:
     https://pytorch.org/docs/stable/generated/torch.nn.Bilinear.html#torch.nn.Bilinear
 Arguments:
-    - in1_features (:obj:`int`): size of each first input sample
-    - in2_features (:obj:`int`): size of each second input sample
-    - out_features (:obj:`int`): size of each output sample
+    - in1_features (:obj:`int`): The size of each first input sample.
+    - in2_features (:obj:`int`): The size of each second input sample.
+    - out_features (:obj:`int`): The size of each output sample.
     - bias (:obj:`bool`): If set to False, the layer will not learn an additive bias. Default: ``True``.
 """
 TorchBilinear = nn.Bilinear
@@ -138,27 +178,35 @@ class FiLM(nn.Module):
     Overview:
         Feature-wise Linear Modulation (FiLM) Layer.
         This layer applies feature-wise affine transformation based on context.
-    Arguments:
-        - feature_dim (:obj:`int`). The dimension of the input feature vector.
-        - context_dim (:obj:`int`). The dimension of the input context vector.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
-    def __init__(self, feature_dim, context_dim):
+    def __init__(self, feature_dim: int, context_dim: int):
+        """
+        Overview:
+            Initialize the FiLM layer.
+        Arguments:
+            - feature_dim (:obj:`int`). The dimension of the input feature vector.
+            - context_dim (:obj:`int`). The dimension of the input context vector.
+        """
+
         super(FiLM, self).__init__()
         # Define the fully connected layer for context
         # The output dimension is twice the feature dimension for gamma and beta
         self.context_layer = nn.Linear(context_dim, 2 * feature_dim)
 
-    def forward(self, feature, context):
+    def forward(self, feature: torch.Tensor, context: torch.Tensor):
         """
         Overview:
             Forward propagation.
         Arguments:
-            - feature (:obj:`torch.Tensor`). The input feature, shape (batch_size, feature_dim)
-            - context (:obj:`torch.Tensor`). The input context, shape (batch_size, context_dim)
+            - feature (:obj:`torch.Tensor`). The input feature, shape (batch_size, feature_dim).
+            - context (:obj:`torch.Tensor`). The input context, shape (batch_size, context_dim).
         Returns:
-            - conditioned_feature : torch.Tensor. The output feature after FiLM, shape (batch_size, feature_dim)
+            - conditioned_feature : torch.Tensor. The output feature after FiLM, shape (batch_size, feature_dim).
         """
+
         # Pass context through the fully connected layer
         out = self.context_layer(context)
         # Split the output into two parts: gamma and beta
@@ -170,9 +218,9 @@ class FiLM(nn.Module):
 
 
 class GatingType(enum.Enum):
-    r"""
+    """
     Overview:
-        Defines how the tensors are gated and aggregated in modules.
+        Enum class defining different types of tensor gating and aggregation in modules.
     """
     NONE = 'none'
     GLOBAL = 'global'
@@ -180,14 +228,23 @@ class GatingType(enum.Enum):
 
 
 class SumMerge(nn.Module):
-    r"""
+    """
     Overview:
-        Merge streams using a simple sum.
-        Streams must have the same size.
-        This module can merge any type of stream (vector, units or visual).
+        A PyTorch module that merges a list of tensors by computing their sum. All input tensors must have the same
+        size. This module can work with any type of tensor (vector, units or visual).
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
-    def forward(self, tensors: List[Tensor]):
+    def forward(self, tensors: List[Tensor]) -> Tensor:
+        """
+        Overview:
+            Forward pass of the SumMerge module, which sums the input tensors.
+        Arguments:
+            - tensors (:obj:`List[Tensor]`): List of input tensors to be summed. All tensors must have the same size.
+        Returns:
+            - summed (:obj:`Tensor`): Tensor resulting from the sum of all input tensors.
+        """
         # stack the tensors along the first dimension
         stacked = torch.stack(tensors, dim=0)
 
@@ -198,24 +255,15 @@ class SumMerge(nn.Module):
 
 
 class VectorMerge(nn.Module):
-    r"""
+    """
     Overview:
-        Merge vector streams.
+        Merges multiple vector streams. Streams are first transformed through layer normalization, relu, and linear
+        layers, then summed. They don't need to have the same size. Gating can also be used before the sum.
+    Interfaces:
+        ``__init__``, ``encode``, ``_compute_gate``, ``forward``
 
-        Streams are first transformed through layer normalization, relu and linear
-        layers, then summed, so they don't need to have the same size.
-        Gating can also be used before the sum.
-
-        If gating_type is not none, the sum is weighted using a softmax
-        of the intermediate activations labelled above.
-
-        Sepcifically,
-            GatingType.NONE:
-                Means simple addition of streams and the sum is not weighted based on gate features.
-            GatingType.GLOBAL:
-                Each data stream is weighted by a global gate value, and the sum of all global gate values is 1.
-            GatingType.POINTWISE:
-                Compared to GLOBAL, each value in the data stream feature tensor is weighted.
+    .. note::
+        For more details about the gating types, please refer to the GatingType enum class.
     """
 
     def __init__(
@@ -225,16 +273,16 @@ class VectorMerge(nn.Module):
         gating_type: GatingType = GatingType.NONE,
         use_layer_norm: bool = True,
     ):
-        r"""
+        """
         Overview:
-            Initializes VectorMerge module.
+            Initialize the `VectorMerge` module.
         Arguments:
-            - input_sizes: A dictionary mapping input names to their size (a single
-                integer for 1d inputs, or None for 0d inputs).
-                If an input size is None, we assume it's ().
-            - output_size: The size of the output vector.
-            - gating_type: The type of gating mechanism to use.
-            - use_layer_norm: Whether to use layer normalization.
+            - input_sizes (:obj:`Dict[str, int]`): A dictionary mapping input names to their sizes. \
+                The size is a single integer for 1D inputs, or `None` for 0D inputs. \
+                If an input size is `None`, we assume it's `()`.
+            - output_size (:obj:`int`): The size of the output vector.
+            - gating_type (:obj:`GatingType`): The type of gating mechanism to use. Default is `GatingType.NONE`.
+            - use_layer_norm (:obj:`bool`): Whether to use layer normalization. Default is `True`.
         """
         super().__init__()
         self._input_sizes = OrderedDict(input_sizes)
@@ -281,7 +329,16 @@ class VectorMerge(nn.Module):
                     torch.nn.init.constant_(gating_layer.bias, 0.0)
                     self._gating_linears[name] = gating_layer
 
-    def encode(self, inputs: Dict[str, Tensor]):
+    def encode(self, inputs: Dict[str, Tensor]) -> Tuple[List[Tensor], List[Tensor]]:
+        """
+        Overview:
+            Encode the input tensors using layer normalization, relu, and linear transformations.
+        Arguments:
+            - inputs (:obj:`Dict[str, Tensor]`): The input tensors.
+        Returns:
+            - gates (:obj:`List[Tensor]`): The gate tensors after transformations.
+            - outputs (:obj:`List[Tensor]`): The output tensors after transformations.
+        """
         gates, outputs = [], []
         for name, size in self._input_sizes.items():
             feature = inputs[name]
@@ -296,9 +353,17 @@ class VectorMerge(nn.Module):
         return gates, outputs
 
     def _compute_gate(
-        self,
-        init_gate: List[Tensor],
-    ):
+            self,
+            init_gate: List[Tensor],
+    ) -> List[Tensor]:
+        """
+        Overview:
+            Compute the gate values based on the initial gate values.
+        Arguments:
+            - init_gate (:obj:`List[Tensor]`): The initial gate values.
+        Returns:
+            - gate (:obj:`List[Tensor]`): The computed gate values.
+        """
         if len(self._input_sizes) == 2:
             gate = [self._gating_linears[name](y) for name, y in zip(self._input_sizes.keys(), init_gate)]
             gate = sum(gate)
@@ -314,6 +379,14 @@ class VectorMerge(nn.Module):
         return gate
 
     def forward(self, inputs: Dict[str, Tensor]) -> Tensor:
+        """
+        Overview:
+            Forward pass through the VectorMerge module.
+        Arguments:
+            - inputs (:obj:`Dict[str, Tensor]`): The input tensors.
+        Returns:
+            - output (:obj:`Tensor`): The output tensor after passing through the module.
+        """
         gates, outputs = self.encode(inputs)
         if len(outputs) == 1:
             # Special case of 1-D inputs that do not need any gating.

@@ -3,7 +3,9 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 nstep = 5
-montezuma_ppo_rnd_config = dict(
+max_env_step = int(10e6)
+
+montezuma_ngu_config = dict(
     exp_name='montezuma_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
@@ -107,9 +109,9 @@ montezuma_ppo_rnd_config = dict(
         ),
     ),
 )
-montezuma_ppo_rnd_config = EasyDict(montezuma_ppo_rnd_config)
-main_config = montezuma_ppo_rnd_config
-montezuma_ppo_rnd_create_config = dict(
+montezuma_ngu_config = EasyDict(montezuma_ngu_config)
+main_config = montezuma_ngu_config
+montezuma_ngu_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -119,9 +121,9 @@ montezuma_ppo_rnd_create_config = dict(
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
 )
-montezuma_ppo_rnd_create_config = EasyDict(montezuma_ppo_rnd_create_config)
-create_config = montezuma_ppo_rnd_create_config
+montezuma_ngu_create_config = EasyDict(montezuma_ngu_create_config)
+create_config = montezuma_ngu_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_reward_model_ngu
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0, max_env_step=max_env_step)

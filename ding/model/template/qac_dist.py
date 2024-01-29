@@ -8,7 +8,7 @@ from ..common import RegressionHead, ReparameterizationHead, DistributionHead
 
 @MODEL_REGISTRY.register('qac_dist')
 class QACDIST(nn.Module):
-    r"""
+    """
     Overview:
         The QAC model with distributional Q-value.
     Interfaces:
@@ -32,7 +32,7 @@ class QACDIST(nn.Module):
         v_max: Optional[float] = 10,
         n_atom: Optional[int] = 51,
     ) -> None:
-        r"""
+        """
         Overview:
             Init the QAC Distributional Model according to arguments.
         Arguments:
@@ -102,7 +102,7 @@ class QACDIST(nn.Module):
             )
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
             Use observation and action tensor to predict output.
             Parameter updates with QACDIST's MLPs forward setup.
@@ -166,7 +166,7 @@ class QACDIST(nn.Module):
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
             Use encoded embedding tensor to predict output.
             Execute parameter updates with ``'compute_actor'`` mode
@@ -210,7 +210,7 @@ class QACDIST(nn.Module):
             return {'logit': [x['mu'], x['sigma']]}
 
     def compute_critic(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
             Execute parameter updates with ``'compute_critic'`` mode
             Use encoded embedding tensor to predict output.

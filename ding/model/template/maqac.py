@@ -1,6 +1,5 @@
 from typing import Union, Dict, Optional
 from easydict import EasyDict
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -9,11 +8,14 @@ from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, Multi
     FCEncoder, ConvEncoder
 
 
-@MODEL_REGISTRY.register('maqac')
-class MAQAC(nn.Module):
-    r"""
+@MODEL_REGISTRY.register('discrete_maqac')
+class DiscreteMAQAC(nn.Module):
+    """
     Overview:
-        The MAQAC model.
+        The neural network and computation graph of algorithms related to discrete action Multi-Agent Q-value \
+        Actor-CritiC (MAQAC) model. The model is composed of actor and critic, where actor is a MLP network and \
+        critic is a MLP network. The actor network is used to predict the action probability distribution, and the \
+        critic network is used to predict the Q value of the state-action pair.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -32,9 +34,9 @@ class MAQAC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the MAQAC Model according to arguments.
+            Initialize the DiscreteMAQAC Model according to arguments.
         Arguments:
             - agent_obs_shape (:obj:`Union[int, SequenceType]`): Agent's observation's space.
             - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space.
@@ -42,18 +44,17 @@ class MAQAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for actor's nn.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
+                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``ding.torch_utils.fc_block`` \
+                for more details.
         """
-        super(MAQAC, self).__init__()
+        super(DiscreteMAQAC, self).__init__()
         agent_obs_shape: int = squeeze(agent_obs_shape)
         action_shape: int = squeeze(action_shape)
         self.actor = nn.Sequential(
@@ -92,93 +93,125 @@ class MAQAC(nn.Module):
             )
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
-            Use observation and action tensor to predict output.
-            Parameter updates with QAC's MLPs forward setup.
+            Use observation tensor to predict output, with ``compute_actor`` or ``compute_critic`` mode.
         Arguments:
-            Forward with ``'compute_actor'``:
-                - inputs (:obj:`torch.Tensor`):
-                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
-            Forward with ``'compute_critic'``, inputs (`Dict`) Necessary Keys:
-                - ``obs``, ``action`` encoded tensors.
-                - mode (:obj:`str`): Name of the forward mode.
+            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                    - ``agent_state`` (:obj:`torch.Tensor`): The agent's observation tensor data, \
+                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \
+                        N0 corresponds to ``agent_obs_shape``.
+                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \
+                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \
+                        N1 corresponds to ``global_obs_shape``.
+                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \
+                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \
+                        N2 corresponds to ``action_shape``.
+
+            - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.
         Returns:
-            - outputs (:obj:`Dict`): Outputs of network forward.
-                Forward with ``'compute_actor'``, Necessary Keys (either):
-                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
-                    - logit (:obj:`torch.Tensor`): Action's probabilities.
-                Forward with ``'compute_critic'``, Necessary Keys:
-                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Actor Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-        Critic Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``global_obs_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
+            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, \
+                whose key-values vary in different forward modes.
+        Examples:
+            >>> B = 32
+            >>> agent_obs_shape = 216
+            >>> global_obs_shape = 264
+            >>> agent_num = 8
+            >>> action_shape = 14
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(B, agent_num, agent_obs_shape),
+            >>>         'global_state': torch.randn(B, agent_num, global_obs_shape),
+            >>>         'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
+            >>>     }
+            >>> }
+            >>> model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=True)
+            >>> logit = model(data, mode='compute_actor')['logit']
+            >>> value = model(data, mode='compute_critic')['q_value']
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict output.
-            Execute parameter updates with ``'compute_actor'`` mode
-            Use encoded embedding tensor to predict output.
+            Use observation tensor to predict action logits.
         Arguments:
-            - inputs (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = actor_head_hidden_size``
-            - mode (:obj:`str`): Name of the forward mode.
+            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                    - ``agent_state`` (:obj:`torch.Tensor`): The agent's observation tensor data, \
+                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \
+                        N0 corresponds to ``agent_obs_shape``.
+                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \
+                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \
+                        N1 corresponds to ``global_obs_shape``.
+                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \
+                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \
+                        N2 corresponds to ``action_shape``.
         Returns:
-            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.
-        ReturnsKeys (either):
-            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.
-            - logit (:obj:`torch.Tensor`):
-                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
-        Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - logit (:obj:`list`): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
+            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, \
+                whose key-values vary in different forward modes.
+                - logit (:obj:`torch.Tensor`): Action's output logit (real value range), whose shape is \
+                    :math:`(B, A, N2)`, where N2 corresponds to ``action_shape``.
+                - action_mask (:obj:`torch.Tensor`): Action mask tensor with same size as ``action_shape``.
         Examples:
-            >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> actor_outputs['logit'][0].shape # mu
-            >>> torch.Size([4, 64])
-            >>> actor_outputs['logit'][1].shape # sigma
-            >>> torch.Size([4, 64])
+            >>> B = 32
+            >>> agent_obs_shape = 216
+            >>> global_obs_shape = 264
+            >>> agent_num = 8
+            >>> action_shape = 14
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(B, agent_num, agent_obs_shape),
+            >>>         'global_state': torch.randn(B, agent_num, global_obs_shape),
+            >>>         'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
+            >>>     }
+            >>> }
+            >>> model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=True)
+            >>> logit = model.compute_actor(data)['logit']
         """
         action_mask = inputs['obs']['action_mask']
         x = self.actor(inputs['obs']['agent_state'])
         return {'logit': x['logit'], 'action_mask': action_mask}
 
     def compute_critic(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
-            Use encoded embedding tensor to predict output.
+            use observation tensor to predict Q value.
         Arguments:
-            - ``obs``, ``action`` encoded tensors.
-            - mode (:obj:`str`): Name of the forward mode.
+            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                    - ``agent_state`` (:obj:`torch.Tensor`): The agent's observation tensor data, \
+                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \
+                        N0 corresponds to ``agent_obs_shape``.
+                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \
+                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \
+                        N1 corresponds to ``global_obs_shape``.
+                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \
+                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \
+                        N2 corresponds to ``action_shape``.
         Returns:
-            - outputs (:obj:`Dict`): Q-value output.
-        ReturnKeys:
-            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+            - output (:obj:`Dict[str, torch.Tensor]`): The output dict of DiscreteMAQAC forward computation graph, \
+                whose key-values vary in different values of ``twin_critic``.
+                - q_value (:obj:`list`): If ``twin_critic=True``, q_value should be 2 elements, each is the shape of \
+                    :math:`(B, A, N2)`, where B is batch size and A is agent num. N2 corresponds to ``action_shape``. \
+                    Otherwise, q_value should be ``torch.Tensor``.
+        Examples:
+            >>> B = 32
+            >>> agent_obs_shape = 216
+            >>> global_obs_shape = 264
+            >>> agent_num = 8
+            >>> action_shape = 14
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(B, agent_num, agent_obs_shape),
+            >>>         'global_state': torch.randn(B, agent_num, global_obs_shape),
+            >>>         'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
+            >>>     }
+            >>> }
+            >>> model = DiscreteMAQAC(agent_obs_shape, global_obs_shape, action_shape, twin_critic=True)
+            >>> value = model.compute_critic(data)['q_value']
         """
 
         if self.twin_critic:
@@ -188,11 +221,14 @@ class MAQAC(nn.Module):
         return {'q_value': x}
 
 
-@MODEL_REGISTRY.register('maqac_continuous')
+@MODEL_REGISTRY.register('continuous_maqac')
 class ContinuousMAQAC(nn.Module):
-    r"""
+    """
     Overview:
-        The Continuous MAQAC model.
+        The neural network and computation graph of algorithms related to continuous action Multi-Agent Q-value \
+        Actor-CritiC (MAQAC) model. The model is composed of actor and critic, where actor is a MLP network and \
+        critic is a MLP network. The actor network is used to predict the action probability distribution, and the \
+        critic network is used to predict the Q value of the state-action pair.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -212,25 +248,24 @@ class ContinuousMAQAC(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the QAC Model according to arguments.
+            Initialize the QAC Model according to arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's space, such as 4, (3, )
             - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
-            - actor_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for actor's nn.
+            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for actor's nn.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
-            - critic_head_layer_num (:obj:`int`):
-                The num of layers used in the network to compute Q value output for critic's nn.
-            - activation (:obj:`Optional[nn.Module]`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
+                for critic's nn.
+            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` the after \
+                ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`): The type of normalization to use, see ``ding.torch_utils.fc_block`` \
+                for more details.
         """
         super(ContinuousMAQAC, self).__init__()
         obs_shape: int = squeeze(agent_obs_shape)
@@ -238,7 +273,7 @@ class ContinuousMAQAC(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.action_space = action_space
-        assert self.action_space in ['regression', 'reparameterization']
+        assert self.action_space in ['regression', 'reparameterization'], self.action_space
         if self.action_space == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
@@ -295,101 +330,86 @@ class ContinuousMAQAC(nn.Module):
             )
 
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
-        r"""
+        """
         Overview:
-            Use observation and action tensor to predict output.
-            Parameter updates with QAC's MLPs forward setup.
+            Use observation and action tensor to predict output in ``compute_actor`` or ``compute_critic`` mode.
         Arguments:
-            Forward with ``'compute_actor'``:
-                - inputs (:obj:`torch.Tensor`):
-                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
+            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                    - ``agent_state`` (:obj:`torch.Tensor`): The agent's observation tensor data, \
+                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \
+                        N0 corresponds to ``agent_obs_shape``.
+                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \
+                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \
+                        N1 corresponds to ``global_obs_shape``.
+                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \
+                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \
+                        N2 corresponds to ``action_shape``.
 
-            Forward with ``'compute_critic'``, inputs (`Dict`) Necessary Keys:
-                - ``obs``, ``action`` encoded tensors.
-
+                - ``action`` (:obj:`torch.Tensor`): The action tensor data, \
+                    with shape :math:`(B, A, N3)`, where B is batch size and A is agent num. \
+                    N3 corresponds to ``action_shape``.
             - mode (:obj:`str`): Name of the forward mode.
         Returns:
-            - outputs (:obj:`Dict`): Outputs of network forward.
-
-                Forward with ``'compute_actor'``, Necessary Keys (either):
-                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
-                    - logit (:obj:`torch.Tensor`):
-                        Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
-
-                Forward with ``'compute_critic'``, Necessary Keys:
-                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Actor Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-
-        Critic Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``
-
-        Actor Examples:
-            >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> actor_outputs['logit'][0].shape # mu
-            >>> torch.Size([4, 64])
-            >>> actor_outputs['logit'][1].shape # sigma
-            >>> torch.Size([4, 64])
-
+            - outputs (:obj:`Dict`): Outputs of network forward, whose key-values will be different for different \
+                ``mode``, ``twin_critic``, ``action_space``.
+        Examples:
+            >>> B = 32
+            >>> agent_obs_shape = 216
+            >>> global_obs_shape = 264
+            >>> agent_num = 8
+            >>> action_shape = 14
+            >>> act_space = 'reparameterization'  # regression
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(B, agent_num, agent_obs_shape),
+            >>>         'global_state': torch.randn(B, agent_num, global_obs_shape),
+            >>>         'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
+            >>>     },
+            >>>     'action': torch.randn(B, agent_num, squeeze(action_shape))
+            >>> }
+            >>> model = ContinuousMAQAC(agent_obs_shape, global_obs_shape, action_shape, act_space, twin_critic=False)
+            >>> if action_space == 'regression':
+            >>>     action = model(data['obs'], mode='compute_actor')['action']
+            >>> elif action_space == 'reparameterization':
+            >>>     (mu, sigma) = model(data['obs'], mode='compute_actor')['logit']
+            >>> value = model(data, mode='compute_critic')['q_value']
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict output.
-            Execute parameter updates with ``'compute_actor'`` mode
-            Use encoded embedding tensor to predict output.
+            Use observation tensor to predict action logits.
         Arguments:
-            - inputs (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-                ``hidden_size = actor_head_hidden_size``
-            - mode (:obj:`str`): Name of the forward mode.
-        Returns:
-            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.
+            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                - ``agent_state`` (:obj:`torch.Tensor`): The agent's observation tensor data, \
+                    with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \
+                    N0 corresponds to ``agent_obs_shape``.
 
-        ReturnsKeys (either):
-            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.
-            - logit (:obj:`torch.Tensor`):
-                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
-            - logit + action_args
-        Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - logit (:obj:`Union[list, torch.Tensor]`):
-              - case1(continuous space, list): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.
-              - case2(hybrid space, torch.Tensor): :math:`(B, N1)`, where N1 is action_type_shape
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.
-            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape
-                (action_args are continuous real value)
+        Returns:
+            - outputs (:obj:`Dict`): Outputs of network forward.
+        ReturnKeys (``action_space == 'regression'``):
+            - action (:obj:`torch.Tensor`): Action tensor with same size as ``action_shape``.
+        ReturnKeys (``action_space == 'reparameterization'``):
+            - logit (:obj:`list`): 2 elements, each is the shape of :math:`(B, A, N3)`, where B is batch size and \
+                A is agent num. N3 corresponds to ``action_shape``.
         Examples:
-            >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> actor_outputs['logit'][0].shape # mu
-            >>> torch.Size([4, 64])
-            >>> actor_outputs['logit'][1].shape # sigma
-            >>> torch.Size([4, 64])
+            >>> B = 32
+            >>> agent_obs_shape = 216
+            >>> global_obs_shape = 264
+            >>> agent_num = 8
+            >>> action_shape = 14
+            >>> act_space = 'reparameterization'  # 'regression'
+            >>> data = {
+            >>>     'agent_state': torch.randn(B, agent_num, agent_obs_shape),
+            >>> }
+            >>> model = ContinuousMAQAC(agent_obs_shape, global_obs_shape, action_shape, act_space, twin_critic=False)
+            >>> if action_space == 'regression':
+            >>>     action = model.compute_actor(data)['action']
+            >>> elif action_space == 'reparameterization':
+            >>>     (mu, sigma) = model.compute_actor(data)['logit']
         """
         inputs = inputs['agent_state']
         if self.action_space == 'regression':
@@ -400,28 +420,50 @@ class ContinuousMAQAC(nn.Module):
             return {'logit': [x['mu'], x['sigma']]}
 
     def compute_critic(self, inputs: Dict) -> Dict:
-        r"""
+        """
         Overview:
-            Execute parameter updates with ``'compute_critic'`` mode
-            Use encoded embedding tensor to predict output.
+            Use observation tensor and action tensor to predict Q value.
         Arguments:
-            - inputs (:obj: `Dict`): ``obs``, ``action`` and ``logit` tensors.
-            - mode (:obj:`str`): Name of the forward mode.
-        Returns:
-            - outputs (:obj:`Dict`): Q-value output.
+            - inputs (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                - ``obs`` (:obj:`Dict[str, torch.Tensor]`): The input dict tensor data, has keys:
+                    - ``agent_state`` (:obj:`torch.Tensor`): The agent's observation tensor data, \
+                        with shape :math:`(B, A, N0)`, where B is batch size and A is agent num. \
+                        N0 corresponds to ``agent_obs_shape``.
+                    - ``global_state`` (:obj:`torch.Tensor`): The global observation tensor data, \
+                        with shape :math:`(B, A, N1)`, where B is batch size and A is agent num. \
+                        N1 corresponds to ``global_obs_shape``.
+                    - ``action_mask`` (:obj:`torch.Tensor`): The action mask tensor data, \
+                        with shape :math:`(B, A, N2)`, where B is batch size and A is agent num. \
+                        N2 corresponds to ``action_shape``.
 
-        ArgumentsKeys:
-            - necessary:
-              - obs: (:obj:`torch.Tensor`): 2-dim vector observation
-              - action (:obj:`Union[torch.Tensor, Dict]`): action from actor
-            - optional:
-              - logit (:obj:`torch.Tensor`): discrete action logit
-        ReturnKeys:
-            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
+                - ``action`` (:obj:`torch.Tensor`): The action tensor data, \
+                    with shape :math:`(B, A, N3)`, where B is batch size and A is agent num. \
+                    N3 corresponds to ``action_shape``.
+
+        Returns:
+            - outputs (:obj:`Dict`): Outputs of network forward.
+        ReturnKeys (``twin_critic=True``):
+            - q_value (:obj:`list`): 2 elements, each is the shape of :math:`(B, A)`, where B is batch size and \
+                A is agent num.
+        ReturnKeys (``twin_critic=False``):
+            - q_value (:obj:`torch.Tensor`): :math:`(B, A)`, where B is batch size and A is agent num.
+        Examples:
+            >>> B = 32
+            >>> agent_obs_shape = 216
+            >>> global_obs_shape = 264
+            >>> agent_num = 8
+            >>> action_shape = 14
+            >>> act_space = 'reparameterization'  # 'regression'
+            >>> data = {
+            >>>     'obs': {
+            >>>         'agent_state': torch.randn(B, agent_num, agent_obs_shape),
+            >>>         'global_state': torch.randn(B, agent_num, global_obs_shape),
+            >>>         'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
+            >>>     },
+            >>>     'action': torch.randn(B, agent_num, squeeze(action_shape))
+            >>> }
+            >>> model = ContinuousMAQAC(agent_obs_shape, global_obs_shape, action_shape, act_space, twin_critic=False)
+            >>> value = model.compute_critic(data)['q_value']
         """
 
         obs, action = inputs['obs']['global_state'], inputs['action']

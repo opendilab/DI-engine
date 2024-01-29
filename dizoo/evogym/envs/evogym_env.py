@@ -6,7 +6,7 @@ import numpy as np
 import gym
 from easydict import EasyDict
 
-from ding.envs import BaseEnv, BaseEnvTimestep, EvalEpisodeReturnEnv
+from ding.envs import BaseEnv, BaseEnvTimestep, EvalEpisodeReturnWrapper
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
@@ -111,7 +111,7 @@ class EvoGymEnv(BaseEnv):
         else:
             structure = self.read_robot_from_file(self._cfg.robot, self._cfg.robot_dir)
         env = gym.make(self._cfg.env_id, body=structure[0])
-        env = EvalEpisodeReturnEnv(env)
+        env = EvalEpisodeReturnWrapper(env)
         return env
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:

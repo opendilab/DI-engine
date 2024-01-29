@@ -42,7 +42,7 @@ def lists_to_dicts(
         data: Union[List[Union[dict, NamedTuple]], Tuple[Union[dict, NamedTuple]]],
         recursive: bool = False,
 ) -> Union[Mapping[object, object], NamedTuple]:
-    r"""
+    """
     Overview:
         Transform a list of dicts to a dict of lists.
     Arguments:
@@ -77,7 +77,7 @@ def lists_to_dicts(
 
 
 def dicts_to_lists(data: Mapping[object, List[object]]) -> List[Mapping[object, object]]:
-    r"""
+    """
     Overview:
         Transform a dict of lists to a list of dicts.
 
@@ -121,6 +121,8 @@ def squeeze(data: object) -> object:
     """
     Overview:
         Squeeze data from tuple, list or dict to single object
+    Arguments:
+        - data (:obj:`object`): data to be squeezed
     Example:
         >>> a = (4, )
         >>> a = squeeze(a)
@@ -148,7 +150,7 @@ def default_get(
         default_fn: Optional[Callable] = None,
         judge_fn: Optional[Callable] = None
 ) -> Any:
-    r"""
+    """
     Overview:
         Getting the value by input, checks generically on the inputs with \
         at least ``data`` and ``name``. If ``name`` exists in ``data``, \
@@ -180,7 +182,7 @@ def default_get(
 
 
 def list_split(data: list, step: int) -> List[list]:
-    r"""
+    """
     Overview:
         Split list of data by step.
     Arguments:
@@ -210,7 +212,7 @@ def list_split(data: list, step: int) -> List[list]:
 
 
 def error_wrapper(fn, default_ret, warning_msg=""):
-    r"""
+    """
     Overview:
         wrap the function, so that any Exception in the function will be catched and return the default_ret
     Arguments:
@@ -239,10 +241,10 @@ def error_wrapper(fn, default_ret, warning_msg=""):
 
 
 class LimitedSpaceContainer:
-    r"""
+    """
     Overview:
         A space simulator.
-    Interface:
+    Interfaces:
         ``__init__``, ``get_residual_space``, ``release_space``
     """
 
@@ -438,21 +440,49 @@ def set_pkg_seed(seed: int, use_cuda: bool = True) -> None:
 
 @lru_cache()
 def one_time_warning(warning_msg: str) -> None:
+    """
+    Overview:
+        Print warning message only once.
+    Arguments:
+        - warning_msg (:obj:`str`): Warning message.
+    """
+
     logging.warning(warning_msg)
 
 
 def split_fn(data, indices, start, end):
+    """
+    Overview:
+        Split data by indices
+    Arguments:
+        - data (:obj:`Union[List, Dict, torch.Tensor, ttorch.Tensor]`): data to be analysed
+        - indices (:obj:`np.ndarray`): indices to split
+        - start (:obj:`int`): start index
+        - end (:obj:`int`): end index
+    """
+
     if data is None:
         return None
     elif isinstance(data, list):
         return [split_fn(d, indices, start, end) for d in data]
     elif isinstance(data, dict):
         return {k1: split_fn(v1, indices, start, end) for k1, v1 in data.items()}
+    elif isinstance(data, str):
+        return data
     else:
         return data[indices[start:end]]
 
 
 def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
+    """
+    Overview:
+        Split data into batches
+    Arguments:
+        - data (:obj:`dict`): data to be analysed
+        - split_size (:obj:`int`): split size
+        - shuffle (:obj:`bool`): whether shuffle
+    """
+
     assert isinstance(data, dict), type(data)
     length = []
     for k, v in data.items():
@@ -461,7 +491,12 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
         elif k in ['prev_state', 'prev_actor_state', 'prev_critic_state']:
             length.append(len(v))
         elif isinstance(v, list) or isinstance(v, tuple):
-            length.append(get_shape0(v[0]))
+            if isinstance(v[0], str):
+                # some buffer data contains useless string infos, such as 'buffer_id',
+                # which should not be split, so we just skip it
+                continue
+            else:
+                length.append(get_shape0(v[0]))
         elif isinstance(v, dict):
             length.append(len(v[list(v.keys())[0]]))
         else:
@@ -470,7 +505,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
     # assert len(set(length)) == 1, "data values must have the same length: {}".format(length)
     # if continuous action, data['logit'] is list of length 2
     length = length[0]
-    assert split_size >= 1 and split_size <= length, f'{split_size}_{length}'
+    assert split_size >= 1
     if shuffle:
         indices = np.random.permutation(length)
     else:
@@ -486,7 +521,7 @@ class RunningMeanStd(object):
     """
     Overview:
        Wrapper to update new variable, new mean, and new count
-    Interface:
+    Interfaces:
         ``__init__``, ``update``, ``reset``, ``new_shape``
     Properties:
         - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``

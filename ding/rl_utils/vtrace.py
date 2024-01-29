@@ -15,7 +15,7 @@ def vtrace_nstep_return(clipped_rhos, clipped_cs, reward, bootstrap_values, gamm
     Shapes:
         - clipped_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
         - clipped_cs (:obj:`torch.FloatTensor`): :math:`(T, B)`
-        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - vtrace_return (:obj:`torch.FloatTensor`):  :math:`(T, B)`
     """
@@ -37,10 +37,10 @@ def vtrace_advantage(clipped_pg_rhos, reward, return_, bootstrap_values, gamma):
         - vtrace_advantage (:obj:`namedtuple`): the vtrace loss item, all of them are the differentiable 0-dim tensor
     Shapes:
         - clipped_pg_rhos (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep, B is batch size
-        - reward: (:obj:`torch.FloatTensor`): :math:`(T, B)`
-        - return_ (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
+        - return (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - bootstrap_values (:obj:`torch.FloatTensor`): :math:`(T, B)`
-        - vtrace_advantage (:obj:`torch.FloatTensor`):  :math:`(T, B)`
+        - vtrace_advantage (:obj:`torch.FloatTensor`): :math:`(T, B)`
     """
     return clipped_pg_rhos * (reward + gamma * return_ - bootstrap_values)
 
@@ -107,6 +107,15 @@ def vtrace_error_discrete_action(
         - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - reward (:obj:`torch.LongTensor`): :math:`(T, B)`
         - weight (:obj:`torch.LongTensor`): :math:`(T, B)`
+    Examples:
+        >>> T, B, N = 4, 8, 16
+        >>> value = torch.randn(T + 1, B).requires_grad_(True)
+        >>> reward = torch.rand(T, B)
+        >>> target_output = torch.randn(T, B, N).requires_grad_(True)
+        >>> behaviour_output = torch.randn(T, B, N)
+        >>> action = torch.randint(0, N, size=(T, B))
+        >>> data = vtrace_data(target_output, behaviour_output, action, value, reward, None)
+        >>> loss = vtrace_error_discrete_action(data, rho_clip_ratio=1.1)
     """
     target_output, behaviour_output, action, value, reward, weight = data
     with torch.no_grad():
@@ -168,6 +177,21 @@ def vtrace_error_continuous_action(
         - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`
         - reward (:obj:`torch.LongTensor`): :math:`(T, B)`
         - weight (:obj:`torch.LongTensor`): :math:`(T, B)`
+    Examples:
+        >>> T, B, N = 4, 8, 16
+        >>> value = torch.randn(T + 1, B).requires_grad_(True)
+        >>> reward = torch.rand(T, B)
+        >>> target_output = dict(
+        >>>     'mu': torch.randn(T, B, N).requires_grad_(True),
+        >>>     'sigma': torch.exp(torch.randn(T, B, N).requires_grad_(True)),
+        >>> )
+        >>> behaviour_output = dict(
+        >>>     'mu': torch.randn(T, B, N),
+        >>>     'sigma': torch.exp(torch.randn(T, B, N)),
+        >>> )
+        >>> action = torch.randn((T, B, N))
+        >>> data = vtrace_data(target_output, behaviour_output, action, value, reward, None)
+        >>> loss = vtrace_error_continuous_action(data, rho_clip_ratio=1.1)
     """
     target_output, behaviour_output, action, value, reward, weight = data
     with torch.no_grad():

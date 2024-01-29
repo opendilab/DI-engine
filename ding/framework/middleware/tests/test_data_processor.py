@@ -153,7 +153,9 @@ def test_offline_data_fetcher():
     ctx.train_epoch = 0
 
     data_tmp = []
-    for i, _ in enumerate(offline_data_fetcher(cfg, MyDataset())(ctx)):
+    fetch = offline_data_fetcher(cfg, MyDataset())
+    for i in range(num_batch):
+        fetch(ctx)
         assert i // num_batch == ctx.train_epoch
         data_tmp.extend(ctx.train_data)
 

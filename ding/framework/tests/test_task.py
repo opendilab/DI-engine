@@ -124,12 +124,12 @@ def parallel_main():
         assert sync_count > 0
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_parallel_pipeline():
     Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(parallel_main)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_emit():
     with task.start():
         greets = []
@@ -161,12 +161,12 @@ def emit_remote_main():
             assert len(greets) == 0
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_emit_remote():
     Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(emit_remote_main)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_wait_for():
     # Wait for will only work in async or parallel mode
     with task.start(async_mode=True, n_async_workers=2):
@@ -198,7 +198,7 @@ def test_wait_for():
             task.run(max_step=1)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_async_exception():
     with task.start(async_mode=True, n_async_workers=2):
 
@@ -227,12 +227,12 @@ def early_stop_main():
         assert task.ctx.total_step < 7
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_early_stop():
     Parallel.runner(n_parallel_workers=2, startup_interval=0.1)(early_stop_main)
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_parallel_in_sequencial():
     result = []
 
@@ -250,7 +250,7 @@ def test_parallel_in_sequencial():
         assert result == ["begin", "fast", "slow"]
 
 
-@pytest.mark.unittest
+@pytest.mark.tmp
 def test_serial_in_parallel():
     result = []
 

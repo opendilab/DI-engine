@@ -1,13 +1,21 @@
 from collections import namedtuple
 from typing import Optional, Tuple
 import torch
+import torch.nn as nn
 from torch.distributions import Independent, Normal
 from ding.hpc_rl import hpc_wrapper
 
 ppo_data = namedtuple(
     'ppo_data', ['logit_new', 'logit_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
 )
+ppo_data_continuous = namedtuple(
+    'ppo_data_continuous',
+    ['mu_sigma_new', 'mu_sigma_old', 'action', 'value_new', 'value_old', 'adv', 'return_', 'weight']
+)
 ppo_policy_data = namedtuple('ppo_policy_data', ['logit_new', 'logit_old', 'action', 'adv', 'weight'])
+ppo_policy_data_continuous = namedtuple(
+    'ppo_policy_data_continuous', ['mu_sigma_new', 'mu_sigma_old', 'action', 'adv', 'weight']
+)
 ppo_value_data = namedtuple('ppo_value_data', ['value_new', 'value_old', 'return_', 'weight'])
 ppo_loss = namedtuple('ppo_loss', ['policy_loss', 'value_loss', 'entropy_loss'])
 ppo_policy_loss = namedtuple('ppo_policy_loss', ['policy_loss', 'entropy_loss'])
@@ -63,6 +71,20 @@ def ppo_error(
         - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
+        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> action_dim = 4
+        >>> data = ppo_data(
+        >>>     logit_new=torch.randn(3, action_dim),
+        >>>     logit_old=torch.randn(3, action_dim),
+        >>>     action=torch.randint(0, action_dim, (3,)),
+        >>>     value_new=torch.randn(3),
+        >>>     value_old=torch.randn(3),
+        >>>     adv=torch.randn(3),
+        >>>     return_=torch.randn(3),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss, info = ppo_error(data)
 
     .. note::
 
@@ -85,6 +107,36 @@ def ppo_error(
 def ppo_policy_error(data: namedtuple,
                      clip_ratio: float = 0.2,
                      dual_clip: Optional[float] = None) -> Tuple[namedtuple, namedtuple]:
+    '''
+    Overview:
+        Get PPO policy loss
+    Arguments:
+        - data (:obj:`namedtuple`): ppo input data with fieids shown in ``ppo_policy_data``
+        - clip_ratio (:obj:`float`): clip value for ratio
+        - dual_clip (:obj:`float`): a parameter c mentioned in arXiv:1912.09729 Equ. 5, shoule be in [1, inf),\
+        defaults to 5.0, if you don't want to use it, set this parameter to None
+    Returns:
+        - ppo_policy_loss (:obj:`namedtuple`): the ppo policy loss item, all of them are the differentiable 0-dim tensor
+        - ppo_info (:obj:`namedtuple`): the ppo optim information for monitoring, all of them are Python scalar
+    Shapes:
+        - logit_new (:obj:`torch.FloatTensor`): :math:`(B, N)`, where B is batch size and N is action dim
+        - logit_old (:obj:`torch.FloatTensor`): :math:`(B, N)`
+        - action (:obj:`torch.LongTensor`): :math:`(B, )`
+        - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
+        - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> action_dim = 4
+        >>> data = ppo_policy_data(
+        >>>     logit_new=torch.randn(3, action_dim),
+        >>>     logit_old=torch.randn(3, action_dim),
+        >>>     action=torch.randint(0, action_dim, (3,)),
+        >>>     adv=torch.randn(3),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss, info = ppo_policy_error(data)
+    '''
     logit_new, logit_old, action, adv, weight = data
     if weight is None:
         weight = torch.ones_like(adv)
@@ -121,6 +173,32 @@ def ppo_value_error(
         clip_ratio: float = 0.2,
         use_value_clip: bool = True,
 ) -> torch.Tensor:
+    '''
+    Overview:
+        Get PPO value loss
+    Arguments:
+        - data (:obj:`namedtuple`): ppo input data with fieids shown in ``ppo_value_data``
+        - clip_ratio (:obj:`float`): clip value for ratio
+        - use_value_clip (:obj:`bool`): whether use value clip
+    Returns:
+        - value_loss (:obj:`torch.FloatTensor`): the ppo value loss item, \
+            all of them are the differentiable 0-dim tensor
+    Shapes:
+        - value_new (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size
+        - value_old (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - return (:obj:`torch.FloatTensor`): :math:`(B, )`
+        - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
+        - value_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+    Examples:
+        >>> action_dim = 4
+        >>> data = ppo_value_data(
+        >>>     value_new=torch.randn(3),
+        >>>     value_old=torch.randn(3),
+        >>>     return_=torch.randn(3),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss, info = ppo_value_error(data)
+    '''
     value_new, value_old, return_, weight = data
     if weight is None:
         weight = torch.ones_like(value_old)
@@ -164,6 +242,20 @@ def ppo_error_continuous(
         - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
         - value_loss (:obj:`torch.FloatTensor`): :math:`()`
+        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> action_dim = 4
+        >>> data = ppo_data_continuous(
+        >>>     mu_sigma_new= dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),
+        >>>     mu_sigma_old= dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),
+        >>>     action=torch.randn(3, action_dim),
+        >>>     value_new=torch.randn(3),
+        >>>     value_old=torch.randn(3),
+        >>>     adv=torch.randn(3),
+        >>>     return_=torch.randn(3),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss, info = ppo_error(data)
 
     .. note::
 
@@ -231,6 +323,17 @@ def ppo_policy_error_continuous(data: namedtuple,
         - adv (:obj:`torch.FloatTensor`): :math:`(B, )`
         - weight (:obj:`torch.FloatTensor` or :obj:`None`): :math:`(B, )`
         - policy_loss (:obj:`torch.FloatTensor`): :math:`()`, 0-dim tensor
+        - entropy_loss (:obj:`torch.FloatTensor`): :math:`()`
+    Examples:
+        >>> action_dim = 4
+        >>> data = ppo_policy_data_continuous(
+        >>>     mu_sigma_new=dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),
+        >>>     mu_sigma_old=dict(mu=torch.randn(3, action_dim), sigma=torch.randn(3, action_dim)**2),
+        >>>     action=torch.randn(3, action_dim),
+        >>>     adv=torch.randn(3),
+        >>>     weight=torch.ones(3),
+        >>> )
+        >>> loss, info = ppo_policy_error_continuous(data)
     """
     assert dual_clip is None or dual_clip > 1.0, "dual_clip value must be greater than 1.0, but get value: {}".format(
         dual_clip

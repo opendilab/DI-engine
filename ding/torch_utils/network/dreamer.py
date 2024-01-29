@@ -10,11 +10,32 @@ from ding.rl_utils import symlog, inv_symlog
 
 
 class Conv2dSame(torch.nn.Conv2d):
+    """
+    Overview:
+         Conv2dSame Network for dreamerv3.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def calc_same_pad(self, i, k, s, d):
+        """
+        Overview:
+            Calculate the same padding size.
+        Arguments:
+            - i (:obj:`int`): Input size.
+            - k (:obj:`int`): Kernel size.
+            - s (:obj:`int`): Stride size.
+            - d (:obj:`int`): Dilation size.
+        """
         return max((math.ceil(i / s) - 1) * s + (k - 1) * d + 1 - i, 0)
 
     def forward(self, x):
+        """
+        Overview:
+            compute the forward of Conv2dSame.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor.
+        """
         ih, iw = x.size()[-2:]
         pad_h = self.calc_same_pad(i=ih, k=self.kernel_size[0], s=self.stride[0], d=self.dilation[0])
         pad_w = self.calc_same_pad(i=iw, k=self.kernel_size[1], s=self.stride[1], d=self.dilation[1])
@@ -35,12 +56,33 @@ class Conv2dSame(torch.nn.Conv2d):
 
 
 class DreamerLayerNorm(nn.Module):
+    """
+    Overview:
+         DreamerLayerNorm Network for dreamerv3.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(self, ch, eps=1e-03):
+        """
+        Overview:
+            Init the DreamerLayerNorm class.
+        Arguments:
+            - ch (:obj:`int`): Input channel.
+            - eps (:obj:`float`): Epsilon.
+        """
+
         super(DreamerLayerNorm, self).__init__()
         self.norm = torch.nn.LayerNorm(ch, eps=eps)
 
     def forward(self, x):
+        """
+        Overview:
+            compute the forward of DreamerLayerNorm.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor.
+        """
+
         x = x.permute(0, 2, 3, 1)
         x = self.norm(x)
         x = x.permute(0, 3, 1, 2)
@@ -51,7 +93,7 @@ class DenseHead(nn.Module):
     """
     Overview:
        DenseHead Network for value head, reward head, and discount head of dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -68,6 +110,22 @@ class DenseHead(nn.Module):
         outscale=1.0,
         device='cpu',
     ):
+        """
+        Overview:
+            Init the DenseHead class.
+        Arguments:
+            - inp_dim (:obj:`int`): Input dimension.
+            - shape (:obj:`tuple`): Output shape.
+            - layer_num (:obj:`int`): Number of layers.
+            - units (:obj:`int`): Number of units.
+            - act (:obj:`str`): Activation function.
+            - norm (:obj:`str`): Normalization function.
+            - dist (:obj:`str`): Distribution function.
+            - std (:obj:`float`): Standard deviation.
+            - outscale (:obj:`float`): Output scale.
+            - device (:obj:`str`): Device.
+        """
+
         super(DenseHead, self).__init__()
         self._shape = (shape, ) if isinstance(shape, int) else shape
         if len(self._shape) == 0:
@@ -99,6 +157,13 @@ class DenseHead(nn.Module):
             self.std_layer.apply(uniform_weight_init(outscale))
 
     def forward(self, features):
+        """
+        Overview:
+            compute the forward of DenseHead.
+        Arguments:
+            - features (:obj:`torch.Tensor`): Input tensor.
+        """
+
         x = features
         out = self.mlp(x)  # (batch, time, _units=512)
         mean = self.mean_layer(out)  # (batch, time, 255)
@@ -121,7 +186,7 @@ class ActionHead(nn.Module):
     """
     Overview:
        ActionHead Network for action head of dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``forward``
     """
 
@@ -141,6 +206,24 @@ class ActionHead(nn.Module):
         outscale=1.0,
         unimix_ratio=0.01,
     ):
+        """
+        Overview:
+            Initialize the ActionHead class.
+        Arguments:
+            - inp_dim (:obj:`int`): Input dimension.
+            - size (:obj:`int`): Output size.
+            - layers (:obj:`int`): Number of layers.
+            - units (:obj:`int`): Number of units.
+            - act (:obj:`str`): Activation function.
+            - norm (:obj:`str`): Normalization function.
+            - dist (:obj:`str`): Distribution function.
+            - init_std (:obj:`float`): Initial standard deviation.
+            - min_std (:obj:`float`): Minimum standard deviation.
+            - max_std (:obj:`float`): Maximum standard deviation.
+            - temp (:obj:`float`): Temperature.
+            - outscale (:obj:`float`): Output scale.
+            - unimix_ratio (:obj:`float`): Unimix ratio.
+        """
         super(ActionHead, self).__init__()
         self._size = size
         self._layers = layers
@@ -173,6 +256,13 @@ class ActionHead(nn.Module):
             self._dist_layer.apply(uniform_weight_init(outscale))
 
     def forward(self, features):
+        """
+        Overview:
+            compute the forward of ActionHead.
+        Arguments:
+            - features (:obj:`torch.Tensor`): Input tensor.
+        """
+
         x = features
         x = self._pre_layers(x)
         if self._dist == "tanh_normal":
@@ -226,24 +316,47 @@ class SampleDist:
     """
     Overview:
        A kind of sample Dist for ActionHead of dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mean``, ``mode``, ``entropy``
     """
 
     def __init__(self, dist, samples=100):
+        """
+        Overview:
+            Initialize the SampleDist class.
+        Arguments:
+            - dist (:obj:`torch.Tensor`): Distribution.
+            - samples (:obj:`int`): Number of samples.
+        """
+
         self._dist = dist
         self._samples = samples
 
     def mean(self):
+        """
+        Overview:
+            Calculate the mean of the distribution.
+        """
+
         samples = self._dist.sample(self._samples)
         return torch.mean(samples, 0)
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         sample = self._dist.sample(self._samples)
         logprob = self._dist.log_prob(sample)
         return sample[torch.argmax(logprob)][0]
 
     def entropy(self):
+        """
+        Overview:
+            Calculate the entropy of the distribution.
+        """
+
         sample = self._dist.sample(self._samples)
         logprob = self.log_prob(sample)
         return -torch.mean(logprob, 0)
@@ -253,11 +366,20 @@ class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
     """
     Overview:
        A kind of onehot Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mode``, ``sample``
     """
 
     def __init__(self, logits=None, probs=None, unimix_ratio=0.0):
+        """
+        Overview:
+            Initialize the OneHotDist class.
+        Arguments:
+            - logits (:obj:`torch.Tensor`): Logits.
+            - probs (:obj:`torch.Tensor`): Probabilities.
+            - unimix_ratio (:obj:`float`): Unimix ratio.
+        """
+
         if logits is not None and unimix_ratio > 0.0:
             probs = F.softmax(logits, dim=-1)
             probs = probs * (1.0 - unimix_ratio) + unimix_ratio / probs.shape[-1]
@@ -267,10 +389,23 @@ class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
             super().__init__(logits=logits, probs=probs)
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         _mode = F.one_hot(torch.argmax(super().logits, axis=-1), super().logits.shape[-1])
         return _mode.detach() + super().logits - super().logits.detach()
 
     def sample(self, sample_shape=(), seed=None):
+        """
+        Overview:
+            Sample from the distribution.
+        Arguments:
+            - sample_shape (:obj:`tuple`): Sample shape.
+            - seed (:obj:`int`): Seed.
+        """
+
         if seed is not None:
             raise ValueError('need to check')
         sample = super().sample(sample_shape)
@@ -285,26 +420,53 @@ class TwoHotDistSymlog:
     """
     Overview:
        A kind of twohotsymlog Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mode``, ``mean``, ``log_prob``, ``log_prob_target``
     """
 
     def __init__(self, logits=None, low=-20.0, high=20.0, device='cpu'):
+        """
+        Overview:
+            Initialize the TwoHotDistSymlog class.
+        Arguments:
+            - logits (:obj:`torch.Tensor`): Logits.
+            - low (:obj:`float`): Low.
+            - high (:obj:`float`): High.
+            - device (:obj:`str`): Device.
+        """
+
         self.logits = logits
         self.probs = torch.softmax(logits, -1)
         self.buckets = torch.linspace(low, high, steps=255).to(device)
         self.width = (self.buckets[-1] - self.buckets[0]) / 255
 
     def mean(self):
+        """
+        Overview:
+            Calculate the mean of the distribution.
+        """
+
         _mean = self.probs * self.buckets
         return inv_symlog(torch.sum(_mean, dim=-1, keepdim=True))
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         _mode = self.probs * self.buckets
         return inv_symlog(torch.sum(_mode, dim=-1, keepdim=True))
 
     # Inside OneHotCategorical, log_prob is calculated using only max element in targets
     def log_prob(self, x):
+        """
+        Overview:
+            Calculate the log probability of the distribution.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor.
+        """
+
         x = symlog(x)
         # x(time, batch, 1)
         below = torch.sum((self.buckets <= x[..., None]).to(torch.int32), dim=-1) - 1
@@ -328,6 +490,13 @@ class TwoHotDistSymlog:
         return (target * log_pred).sum(-1)
 
     def log_prob_target(self, target):
+        """
+        Overview:
+            Calculate the log probability of the target.
+        Arguments:
+            - target (:obj:`torch.Tensor`): Target tensor.
+        """
+
         log_pred = super().logits - torch.logsumexp(super().logits, -1, keepdim=True)
         return (target * log_pred).sum(-1)
 
@@ -336,11 +505,21 @@ class SymlogDist:
     """
     Overview:
        A kind of Symlog Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``entropy``, ``mode``, ``mean``, ``log_prob``
     """
 
     def __init__(self, mode, dist='mse', aggregation='sum', tol=1e-8, dim_to_reduce=[-1, -2, -3]):
+        """
+        Overview:
+            Initialize the SymlogDist class.
+        Arguments:
+            - mode (:obj:`torch.Tensor`): Mode.
+            - dist (:obj:`str`): Distribution function.
+            - aggregation (:obj:`str`): Aggregation function.
+            - tol (:obj:`float`): Tolerance.
+            - dim_to_reduce (:obj:`list`): Dimension to reduce.
+        """
         self._mode = mode
         self._dist = dist
         self._aggregation = aggregation
@@ -348,12 +527,29 @@ class SymlogDist:
         self._dim_to_reduce = dim_to_reduce
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         return inv_symlog(self._mode)
 
     def mean(self):
+        """
+        Overview:
+            Calculate the mean of the distribution.
+        """
+
         return inv_symlog(self._mode)
 
     def log_prob(self, value):
+        """
+        Overview:
+            Calculate the log probability of the distribution.
+        Arguments:
+            - value (:obj:`torch.Tensor`): Input tensor.
+        """
+
         assert self._mode.shape == value.shape
         if self._dist == 'mse':
             distance = (self._mode - symlog(value)) ** 2.0
@@ -376,25 +572,56 @@ class ContDist:
     """
     Overview:
        A kind of ordinary Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``
     """
 
     def __init__(self, dist=None):
+        """
+        Overview:
+            Initialize the ContDist class.
+        Arguments:
+            - dist (:obj:`torch.Tensor`): Distribution.
+        """
+
         super().__init__()
         self._dist = dist
         self.mean = dist.mean
 
     def __getattr__(self, name):
+        """
+        Overview:
+            Get attribute.
+        Arguments:
+            - name (:obj:`str`): Attribute name.
+        """
+
         return getattr(self._dist, name)
 
     def entropy(self):
+        """
+        Overview:
+            Calculate the entropy of the distribution.
+        """
+
         return self._dist.entropy()
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         return self._dist.mean
 
     def sample(self, sample_shape=()):
+        """
+        Overview:
+            Sample from the distribution.
+        Arguments:
+            - sample_shape (:obj:`tuple`): Sample shape.
+        """
+
         return self._dist.rsample(sample_shape)
 
     def log_prob(self, x):
@@ -405,29 +632,66 @@ class Bernoulli:
     """
     Overview:
        A kind of Bernoulli Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``
     """
 
     def __init__(self, dist=None):
+        """
+        Overview:
+            Initialize the Bernoulli distribution.
+        Arguments:
+            - dist (:obj:`torch.Tensor`): Distribution.
+        """
+
         super().__init__()
         self._dist = dist
         self.mean = dist.mean
 
     def __getattr__(self, name):
+        """
+        Overview:
+            Get attribute.
+        Arguments:
+            - name (:obj:`str`): Attribute name.
+        """
+
         return getattr(self._dist, name)
 
     def entropy(self):
+        """
+        Overview:
+            Calculate the entropy of the distribution.
+        """
         return self._dist.entropy()
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         _mode = torch.round(self._dist.mean)
         return _mode.detach() + self._dist.mean - self._dist.mean.detach()
 
     def sample(self, sample_shape=()):
+        """
+        Overview:
+            Sample from the distribution.
+        Arguments:
+            - sample_shape (:obj:`tuple`): Sample shape.
+        """
+
         return self._dist.rsample(sample_shape)
 
     def log_prob(self, x):
+        """
+        Overview:
+            Calculate the log probability of the distribution.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor.
+        """
+
         _logits = self._dist.base_dist.logits
         log_probs0 = -F.softplus(_logits)
         log_probs1 = -F.softplus(-_logits)
@@ -439,18 +703,38 @@ class UnnormalizedHuber(torchd.normal.Normal):
     """
     Overview:
        A kind of UnnormalizedHuber Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``mode``, ``log_prob``
     """
 
     def __init__(self, loc, scale, threshold=1, **kwargs):
+        """
+        Overview:
+            Initialize the UnnormalizedHuber class.
+        Arguments:
+            - loc (:obj:`torch.Tensor`): Location.
+            - scale (:obj:`torch.Tensor`): Scale.
+            - threshold (:obj:`float`): Threshold.
+        """
         super().__init__(loc, scale, **kwargs)
         self._threshold = threshold
 
     def log_prob(self, event):
+        """
+        Overview:
+            Calculate the log probability of the distribution.
+        Arguments:
+            - event (:obj:`torch.Tensor`): Event.
+        """
+
         return -(torch.sqrt((event - self.mean) ** 2 + self._threshold ** 2) - self._threshold)
 
     def mode(self):
+        """
+        Overview:
+            Calculate the mode of the distribution.
+        """
+
         return self.mean
 
 
@@ -458,11 +742,23 @@ class SafeTruncatedNormal(torchd.normal.Normal):
     """
     Overview:
        A kind of SafeTruncatedNormal Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``sample``
     """
 
     def __init__(self, loc, scale, low, high, clip=1e-6, mult=1):
+        """
+        Overview:
+            Initialize the SafeTruncatedNormal class.
+        Arguments:
+            - loc (:obj:`torch.Tensor`): Location.
+            - scale (:obj:`torch.Tensor`): Scale.
+            - low (:obj:`float`): Low.
+            - high (:obj:`float`): High.
+            - clip (:obj:`float`): Clip.
+            - mult (:obj:`float`): Mult.
+        """
+
         super().__init__(loc, scale)
         self._low = low
         self._high = high
@@ -470,6 +766,13 @@ class SafeTruncatedNormal(torchd.normal.Normal):
         self._mult = mult
 
     def sample(self, sample_shape):
+        """
+        Overview:
+            Sample from the distribution.
+        Arguments:
+            - sample_shape (:obj:`tuple`): Sample shape.
+        """
+
         event = super().sample(sample_shape)
         if self._clip:
             clipped = torch.clip(event, self._low + self._clip, self._high - self._clip)
@@ -483,27 +786,65 @@ class TanhBijector(torchd.Transform):
     """
     Overview:
        A kind of TanhBijector Dist for dreamerv3.
-    Interface:
+    Interfaces:
         ``__init__``, ``_forward``, ``_inverse``, ``_forward_log_det_jacobian``
     """
 
     def __init__(self, validate_args=False, name='tanh'):
+        """
+        Overview:
+            Initialize the TanhBijector class.
+        Arguments:
+            - validate_args (:obj:`bool`): Validate arguments.
+            - name (:obj:`str`): Name.
+        """
+
         super().__init__()
 
     def _forward(self, x):
+        """
+        Overview:
+            Calculate the forward of the distribution.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor.
+        """
+
         return torch.tanh(x)
 
     def _inverse(self, y):
+        """
+        Overview:
+            Calculate the inverse of the distribution.
+        Arguments:
+            - y (:obj:`torch.Tensor`): Input tensor.
+        """
+
         y = torch.where((torch.abs(y) <= 1.), torch.clamp(y, -0.99999997, 0.99999997), y)
         y = torch.atanh(y)
         return y
 
     def _forward_log_det_jacobian(self, x):
+        """
+        Overview:
+            Calculate the forward log det jacobian of the distribution.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Input tensor.
+        """
+
         log2 = torch.math.log(2.0)
         return 2.0 * (log2 - x - torch.softplus(-2.0 * x))
 
 
 def static_scan(fn, inputs, start):
+    """
+    Overview:
+         Static scan function.
+    Arguments:
+        - fn (:obj:`function`): Function.
+        - inputs (:obj:`tuple`): Inputs.
+        - start (:obj:`torch.Tensor`): Start tensor.
+    """
+
     last = start  # {logit, stoch, deter:[batch_size, self._deter]}
     indices = range(inputs[0].shape[0])
     flag = True
@@ -541,7 +882,10 @@ def weight_init(m):
     """
     Overview:
        weight_init for Linear, Conv2d, ConvTranspose2d, and LayerNorm.
+    Arguments:
+        - m (:obj:`torch.nn`): Module.
     """
+
     if isinstance(m, nn.Linear):
         in_num = m.in_features
         out_num = m.out_features
@@ -571,6 +915,8 @@ def uniform_weight_init(given_scale):
     """
     Overview:
        weight_init for Linear and LayerNorm.
+    Arguments:
+        - given_scale (:obj:`float`): Given scale.
     """
 
     def f(m):

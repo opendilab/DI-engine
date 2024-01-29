@@ -13,8 +13,7 @@ cartpole_sac_config = dict(
         random_collect_size=0,
         multi_agent=False,
         model=dict(
-            agent_obs_shape=4,
-            global_obs_shape=4,
+            obs_shape=4,
             action_shape=2,
             twin_critic=True,
             actor_head_hidden_size=64,
@@ -62,7 +61,7 @@ cartpole_sac_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='sac_discrete'),
+    policy=dict(type='discrete_sac'),
 )
 cartpole_sac_create_config = EasyDict(cartpole_sac_create_config)
 create_config = cartpole_sac_create_config

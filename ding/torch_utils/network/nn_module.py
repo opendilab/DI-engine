@@ -10,13 +10,14 @@ from .normalization import build_normalization
 
 
 def weight_init_(weight: torch.Tensor, init_type: str = "xavier", activation: str = None) -> None:
-    r"""
+    """
     Overview:
-        Init weight according to the specified type.
+        Initialize weight according to the specified type.
     Arguments:
-        - weight (:obj:`torch.Tensor`): the weight that needed to init
-        - init_type (:obj:`str`): the type of init to implement, supports ["xavier", "kaiming", "orthogonal"]
-        - activation (:obj:`str`): the activation function name, recommend that use only with \
+        - weight (:obj:`torch.Tensor`): The weight that needs to be initialized.
+        - init_type (:obj:`str`, optional): The type of initialization to implement, \
+            supports ["xavier", "kaiming", "orthogonal"].
+        - activation (:obj:`str`, optional): The activation function name. Recommended to use only with \
             ['relu', 'leaky_relu'].
     """
 
@@ -42,16 +43,16 @@ def weight_init_(weight: torch.Tensor, init_type: str = "xavier", activation: st
         raise KeyError("Invalid Value in init type: {}".format(init_type))
 
 
-def sequential_pack(layers: list) -> nn.Sequential:
-    r"""
+def sequential_pack(layers: List[nn.Module]) -> nn.Sequential:
+    """
     Overview:
         Pack the layers in the input list to a `nn.Sequential` module.
         If there is a convolutional layer in module, an extra attribute `out_channels` will be added
         to the module and set to the out_channel of the conv layer.
     Arguments:
-        - layers (:obj:`list`): the input list
+        - layers (:obj:`List[nn.Module]`): The input list of layers.
     Returns:
-        - seq (:obj:`nn.Sequential`): packed sequential container
+        - seq (:obj:`nn.Sequential`): Packed sequential container.
     """
     assert isinstance(layers, list)
     seq = nn.Sequential(*layers)
@@ -76,24 +77,25 @@ def conv1d_block(
         activation: nn.Module = None,
         norm_type: str = None
 ) -> nn.Sequential:
-    r"""
+    """
     Overview:
-        Create a 1-dim convlution layer with activation and normalization.
+        Create a 1-dimensional convolution layer with activation and normalization.
     Arguments:
-        - in_channels (:obj:`int`): Number of channels in the input tensor
-        - out_channels (:obj:`int`): Number of channels in the output tensor
-        - kernel_size (:obj:`int`): Size of the convolving kernel
-        - stride (:obj:`int`): Stride of the convolution
-        - padding (:obj:`int`): Zero-padding added to both sides of the input
-        - dilation (:obj:`int`): Spacing between kernel elements
-        - groups (:obj:`int`): Number of blocked connections from input channels to output channels
-        - activation (:obj:`nn.Module`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - kernel_size (:obj:`int`): Size of the convolving kernel.
+        - stride (:obj:`int`, optional): Stride of the convolution. Default is 1.
+        - padding (:obj:`int`, optional): Zero-padding added to both sides of the input. Default is 0.
+        - dilation (:obj:`int`, optional): Spacing between kernel elements. Default is 1.
+        - groups (:obj:`int`, optional): Number of blocked connections from input channels to output channels. \
+            Default is 1.
+        - activation (:obj:`nn.Module`, optional): The optional activation function.
+        - norm_type (:obj:`str`, optional): Type of the normalization.
     Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convolution layer
+        - block (:obj:`nn.Sequential`): A sequential list containing the torch layers of the 1-dimensional \
+            convolution layer.
 
     .. note::
-
         Conv1d (https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d)
     """
     block = []
@@ -119,28 +121,30 @@ def conv2d_block(
         num_groups_for_gn: int = 1,
         bias: bool = True
 ) -> nn.Sequential:
-    r"""
+    """
     Overview:
-        Create a 2-dim convolution layer with activation and normalization.
+        Create a 2-dimensional convolution layer with activation and normalization.
     Arguments:
         - in_channels (:obj:`int`): Number of channels in the input tensor.
         - out_channels (:obj:`int`): Number of channels in the output tensor.
         - kernel_size (:obj:`int`): Size of the convolving kernel.
-        - stride (:obj:`int`): Stride of the convolution.
-        - padding (:obj:`int`): Zero-padding added to both sides of the input.
+        - stride (:obj:`int`, optional): Stride of the convolution. Default is 1.
+        - padding (:obj:`int`, optional): Zero-padding added to both sides of the input. Default is 0.
         - dilation (:obj:`int`): Spacing between kernel elements.
-        - groups (:obj:`int`): Number of blocked connections from input channels to output channels.
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate'], default: None.
+        - groups (:obj:`int`, optional): Number of blocked connections from input channels to output channels. \
+            Default is 1.
+        - pad_type (:obj:`str`, optional): The way to add padding, include ['zero', 'reflect', 'replicate']. \
+            Default is 'zero'.
         - activation (:obj:`nn.Module`): the optional activation function.
-        - norm_type (:obj:`str`): The type of the normalization, now support ['BN', 'LN', 'IN', 'GN', 'SyncBN'],
+        - norm_type (:obj:`str`): The type of the normalization, now support ['BN', 'LN', 'IN', 'GN', 'SyncBN'], \
             default set to None, which means no normalization.
         - num_groups_for_gn (:obj:`int`): Number of groups for GroupNorm.
-        - bias (:obj:`bool`): whether adds a learnable bias to the nn.Conv2d. Default set to True.
+        - bias (:obj:`bool`): whether to add a learnable bias to the nn.Conv2d. Default is True.
     Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
+        - block (:obj:`nn.Sequential`): A sequential list containing the torch layers of the 2-dimensional \
+            convolution layer.
 
     .. note::
-
         Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
     """
     block = []
@@ -195,28 +199,29 @@ def deconv2d_block(
         activation: int = None,
         norm_type: int = None
 ) -> nn.Sequential:
-    r"""
+    """
     Overview:
-        Create a 2-dim transpose convolution layer with activation and normalization
+        Create a 2-dimensional transpose convolution layer with activation and normalization.
     Arguments:
-        - in_channels (:obj:`int`): Number of channels in the input tensor
-        - out_channels (:obj:`int`): Number of channels in the output tensor
-        - kernel_size (:obj:`int`): Size of the convolving kernel
-        - stride (:obj:`int`): Stride of the convolution
-        - padding (:obj:`int`): Zero-padding added to both sides of the input
-        - pad_type (:obj:`str`): the way to add padding, include ['zero', 'reflect', 'replicate']
-        - activation (:obj:`nn.Module`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - kernel_size (:obj:`int`): Size of the convolving kernel.
+        - stride (:obj:`int`, optional): Stride of the convolution. Default is 1.
+        - padding (:obj:`int`, optional): Zero-padding added to both sides of the input. Default is 0.
+        - output_padding (:obj:`int`, optional): Additional size added to one side of the output shape. Default is 0.
+        - groups (:obj:`int`, optional): Number of blocked connections from input channels to output channels. \
+            Default is 1.
+        - activation (:obj:`int`, optional): The optional activation function.
+        - norm_type (:obj:`int`, optional): Type of the normalization.
     Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2-dim \
-            transpose convolution layer
+        - block (:obj:`nn.Sequential`): A sequential list containing the torch layers of the 2-dimensional \
+            transpose convolution layer.
 
     .. note::
 
         ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)
     """
-    block = []
-    block.append(
+    block = [
         nn.ConvTranspose2d(
             in_channels=in_channels,
             out_channels=out_channels,
@@ -226,7 +231,7 @@ def deconv2d_block(
             output_padding=output_padding,
             groups=groups
         )
-    )
+    ]
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=2)(out_channels))
     if activation is not None:
@@ -242,24 +247,25 @@ def fc_block(
         use_dropout: bool = False,
         dropout_probability: float = 0.5
 ) -> nn.Sequential:
-    r"""
+    """
     Overview:
-        Create a fully-connected block with activation, normalization and dropout.
-        Optional normalization can be done to the dim 1 (across the channels)
+        Create a fully-connected block with activation, normalization, and dropout.
+        Optional normalization can be done to the dim 1 (across the channels).
         x -> fc -> norm -> act -> dropout -> out
     Arguments:
-        - in_channels (:obj:`int`): Number of channels in the input tensor
-        - out_channels (:obj:`int`): Number of channels in the output tensor
-        - activation (:obj:`nn.Module`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization
-        - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
-        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - activation (:obj:`nn.Module`, optional): The optional activation function.
+        - norm_type (:obj:`str`, optional): Type of the normalization.
+        - use_dropout (:obj:`bool`, optional): Whether to use dropout in the fully-connected block. Default is False.
+        - dropout_probability (:obj:`float`, optional): Probability of an element to be zeroed in the dropout. \
+            Default is 0.5.
     Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+        - block (:obj:`nn.Sequential`): A sequential list containing the torch layers of the fully-connected block.
 
     .. note::
 
-        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
+        You can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html).
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
@@ -272,9 +278,26 @@ def fc_block(
     return sequential_pack(block)
 
 
-def normed_linear(in_features, out_features, bias: bool = True, device=None, dtype=None, scale=1.0):
+def normed_linear(
+        in_features: int,
+        out_features: int,
+        bias: bool = True,
+        device=None,
+        dtype=None,
+        scale: float = 1.0
+) -> nn.Linear:
     """
-    nn.Linear but with normalized fan-in init
+    Overview:
+        Create a nn.Linear module but with normalized fan-in init.
+    Arguments:
+        - in_features (:obj:`int`): Number of features in the input tensor.
+        - out_features (:obj:`int`): Number of features in the output tensor.
+        - bias (:obj:`bool`, optional): Whether to add a learnable bias to the nn.Linear. Default is True.
+        - device (:obj:`torch.device`, optional): The device to put the created module on. Default is None.
+        - dtype (:obj:`torch.dtype`, optional): The desired data type of created module. Default is None.
+        - scale (:obj:`float`, optional): The scale factor for initialization. Default is 1.0.
+    Returns:
+        - out (:obj:`nn.Linear`): A nn.Linear module with normalized fan-in init.
     """
 
     out = nn.Linear(in_features, out_features, bias)
@@ -286,22 +309,41 @@ def normed_linear(in_features, out_features, bias: bool = True, device=None, dty
 
 
 def normed_conv2d(
-    in_channels,
-    out_channels,
-    kernel_size,
-    stride=1,
-    padding=0,
-    dilation=1,
-    groups=1,
-    bias: bool = True,
-    padding_mode='zeros',
-    device=None,
-    dtype=None,
-    scale=1
-):
+        in_channels: int,
+        out_channels: int,
+        kernel_size: Union[int, Tuple[int, int]],
+        stride: Union[int, Tuple[int, int]] = 1,
+        padding: Union[int, Tuple[int, int]] = 0,
+        dilation: Union[int, Tuple[int, int]] = 1,
+        groups: int = 1,
+        bias: bool = True,
+        padding_mode: str = 'zeros',
+        device=None,
+        dtype=None,
+        scale: float = 1
+) -> nn.Conv2d:
     """
-    nn.Conv2d but with normalized fan-in init
+    Overview:
+        Create a nn.Conv2d module but with normalized fan-in init.
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - kernel_size (:obj:`Union[int, Tuple[int, int]]`): Size of the convolving kernel.
+        - stride (:obj:`Union[int, Tuple[int, int]]`, optional): Stride of the convolution. Default is 1.
+        - padding (:obj:`Union[int, Tuple[int, int]]`, optional): Zero-padding added to both sides of the input. \
+            Default is 0.
+        - dilation (:`Union[int, Tuple[int, int]]`, optional): Spacing between kernel elements. Default is 1.
+        - groups (:obj:`int`, optional): Number of blocked connections from input channels to output channels. \
+            Default is 1.
+        - bias (:obj:`bool`, optional): Whether to add a learnable bias to the nn.Conv2d. Default is True.
+        - padding_mode (:obj:`str`, optional): The type of padding algorithm to use. Default is 'zeros'.
+        - device (:obj:`torch.device`, optional): The device to put the created module on. Default is None.
+        - dtype (:obj:`torch.dtype`, optional): The desired data type of created module. Default is None.
+        - scale (:obj:`float`, optional): The scale factor for initialization. Default is 1.
+    Returns:
+        - out (:obj:`nn.Conv2d`): A nn.Conv2d module with normalized fan-in init.
     """
+
     out = nn.Conv2d(
         in_channels,
         out_channels,
@@ -333,9 +375,9 @@ def MLP(
     output_norm: bool = True,
     last_linear_layer_init_zero: bool = False
 ):
-    r"""
+    """
     Overview:
-        create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,
+        Create a multi-layer perceptron using fully-connected blocks with activation, normalization, and dropout,
         optional normalization can be done to the dim 1 (across the channels).
         x -> fc -> norm -> act -> dropout -> out
     Arguments:
@@ -343,23 +385,23 @@ def MLP(
         - hidden_channels (:obj:`int`): Number of channels in the hidden tensor.
         - out_channels (:obj:`int`): Number of channels in the output tensor.
         - layer_num (:obj:`int`): Number of layers.
-        - layer_fn (:obj:`Callable`): Layer function.
-        - activation (:obj:`nn.Module`): The optional activation function.
-        - norm_type (:obj:`str`): The type of the normalization.
-        - use_dropout (:obj:`bool`): Whether to use dropout in the fully-connected block.
-        - dropout_probability (:obj:`float`): The probability of an element to be zeroed in the dropout. Default: 0.5.
-        - output_activation (:obj:`bool`): Whether to use activation in the output layer. If True,
-            we use the same activation as front layers. Default: True.
-        - output_norm (:obj:`bool`): Whether to use normalization in the output layer. If True,
-            we use the same normalization as front layers. Default: True.
-        - last_linear_layer_init_zero (:obj:`bool`): Whether to use zero initializations for the last linear layer
-            (including w and b), which can provide stable zero outputs in the beginning,
+        - layer_fn (:obj:`Callable`, optional): Layer function.
+        - activation (:obj:`nn.Module`, optional): The optional activation function.
+        - norm_type (:obj:`str`, optional): The type of the normalization.
+        - use_dropout (:obj:`bool`, optional): Whether to use dropout in the fully-connected block. Default is False.
+        - dropout_probability (:obj:`float`, optional): Probability of an element to be zeroed in the dropout. \
+            Default is 0.5.
+        - output_activation (:obj:`bool`, optional): Whether to use activation in the output layer. If True, \
+            we use the same activation as front layers. Default is True.
+        - output_norm (:obj:`bool`, optional): Whether to use normalization in the output layer. If True, \
+            we use the same normalization as front layers. Default is True.
+        - last_linear_layer_init_zero (:obj:`bool`, optional): Whether to use zero initializations for the last \
+            linear layer (including w and b), which can provide stable zero outputs in the beginning, \
             usually used in the policy network in RL settings.
     Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block.
+        - block (:obj:`nn.Sequential`): A sequential list containing the torch layers of the multi-layer perceptron.
 
     .. note::
-
         you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html).
     """
     assert layer_num >= 0, layer_num
@@ -396,6 +438,8 @@ def MLP(
         # The last layer uses the same activation as front layers.
         if activation is not None:
             block.append(activation)
+        if use_dropout:
+            block.append(nn.Dropout(dropout_probability))
 
     if last_linear_layer_init_zero:
         # Locate the last linear layer and initialize its weights and biases to 0.
@@ -409,35 +453,32 @@ def MLP(
 
 
 class ChannelShuffle(nn.Module):
-    r"""
+    """
     Overview:
-        Apply channelShuffle to the input tensor
-    Interface:
-        forward
-
-    .. note::
-
-        You can see the original paper shuffle net in https://arxiv.org/abs/1707.01083
+        Apply channel shuffle to the input tensor. For more details about the channel shuffle,
+        please refer to the 'ShuffleNet' paper: https://arxiv.org/abs/1707.01083
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, group_num: int) -> None:
-        r"""
+        """
         Overview:
-            Init class ChannelShuffle
+            Initialize the ChannelShuffle class.
         Arguments:
-            - group_num (:obj:`int`): the number of groups to exchange
+            - group_num (:obj:`int`): The number of groups to exchange.
         """
         super().__init__()
         self.group_num = group_num
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            Return the upsampled input
+            Forward pass through the ChannelShuffle module.
         Arguments:
-            - x (:obj:`torch.Tensor`): the input tensor
+            - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
-            - x (:obj:`torch.Tensor`): the shuffled input tensor
+            - x (:obj:`torch.Tensor`): The shuffled input tensor.
         """
         b, c, h, w = x.shape
         g = self.group_num
@@ -447,17 +488,17 @@ class ChannelShuffle(nn.Module):
 
 
 def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.FloatTensor:
-    r"""
+    """
     Overview:
-        Convert a ``torch.LongTensor`` to one hot encoding.
-        This implementation can be slightly faster than ``torch.nn.functional.one_hot``
+        Convert a torch.LongTensor to one-hot encoding. This implementation can be slightly faster than
+        ``torch.nn.functional.one_hot``.
     Arguments:
-        - val (:obj:`torch.LongTensor`): each element contains the state to be encoded, the range should be [0, num-1]
-        - num (:obj:`int`): number of states of the one hot encoding
-        - num_first (:obj:`bool`): If ``num_first`` is False, the one hot encoding is added as the last; \
-            Otherwise as the first dimension.
+        - val (:obj:`torch.LongTensor`): Each element contains the state to be encoded, the range should be [0, num-1]
+        - num (:obj:`int`): Number of states of the one-hot encoding
+        - num_first (:obj:`bool`, optional): If False, the one-hot encoding is added as the last dimension; otherwise, \
+            it is added as the first dimension. Default is False.
     Returns:
-        - one_hot (:obj:`torch.FloatTensor`)
+        - one_hot (:obj:`torch.FloatTensor`): The one-hot encoded tensor.
     Example:
         >>> one_hot(2*torch.ones([2,2]).long(),3)
         tensor([[[0., 0., 1.],
@@ -499,75 +540,74 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
 
 
 class NearestUpsample(nn.Module):
-    r"""
+    """
     Overview:
-        Upsamples the input to the given member variable scale_factor using mode nearest
-    Interface:
-        forward
+        This module upsamples the input to the given scale_factor using the nearest mode.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, scale_factor: Union[float, List[float]]) -> None:
-        r"""
+        """
         Overview:
-            Init class NearestUpsample
+            Initialize the NearestUpsample class.
         Arguments:
-            - scale_factor (:obj:`Union[float, List[float]]`): multiplier for spatial size
+            - scale_factor (:obj:`Union[float, List[float]]`): The multiplier for the spatial size.
         """
         super(NearestUpsample, self).__init__()
         self.scale_factor = scale_factor
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
-        Overview:
-            Return the upsampled input
-        Arguments:
-            - x (:obj:`torch.Tensor`): the input tensor
-        Returns:
-            - upsample(:obj:`torch.Tensor`): the upsampled input tensor
         """
+         Overview:
+             Return the upsampled input tensor.
+         Arguments:
+             - x (:obj:`torch.Tensor`): The input tensor.
+         Returns:
+             - upsample(:obj:`torch.Tensor`): The upsampled input tensor.
+         """
         return F.interpolate(x, scale_factor=self.scale_factor, mode='nearest')
 
 
 class BilinearUpsample(nn.Module):
-    r"""
+    """
     Overview:
-        Upsamples the input to the given member variable scale_factor using mode bilinear
-    Interface:
-        forward
+        This module upsamples the input to the given scale_factor using the bilinear mode.
+    Interfaces:
+        ``__init__``, ``forward``
     """
 
     def __init__(self, scale_factor: Union[float, List[float]]) -> None:
-        r"""
+        """
         Overview:
-            Init class BilinearUpsample
-
+            Initialize the BilinearUpsample class.
         Arguments:
-            - scale_factor (:obj:`Union[float, List[float]]`): multiplier for spatial size
+            - scale_factor (:obj:`Union[float, List[float]]`): The multiplier for the spatial size.
         """
         super(BilinearUpsample, self).__init__()
         self.scale_factor = scale_factor
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
-            Return the upsampled input
+            Return the upsampled input tensor.
         Arguments:
-            - x (:obj:`torch.Tensor`): the input tensor
+            - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
-            - upsample(:obj:`torch.Tensor`): the upsampled input tensor
+            - upsample(:obj:`torch.Tensor`): The upsampled input tensor.
         """
         return F.interpolate(x, scale_factor=self.scale_factor, mode='bilinear', align_corners=False)
 
 
 def binary_encode(y: torch.Tensor, max_val: torch.Tensor) -> torch.Tensor:
-    r"""
+    """
     Overview:
-        Convert elements in a tensor to its binary representation
+        Convert elements in a tensor to its binary representation.
     Arguments:
-        - y (:obj:`torch.Tensor`): the tensor to be transferred into its binary representation
-        - max_val (:obj:`torch.Tensor`): the max value of the elements in tensor
+        - y (:obj:`torch.Tensor`): The tensor to be converted into its binary representation.
+        - max_val (:obj:`torch.Tensor`): The maximum value of the elements in the tensor.
     Returns:
-        - binary (:obj:`torch.Tensor`): the input tensor in its binary representation
+        - binary (:obj:`torch.Tensor`): The input tensor in its binary representation.
     Example:
         >>> binary_encode(torch.tensor([3,2]),torch.tensor(8))
         tensor([[0, 0, 1, 1],[0, 0, 1, 0]])
@@ -587,14 +627,23 @@ def binary_encode(y: torch.Tensor, max_val: torch.Tensor) -> torch.Tensor:
 
 
 class NoiseLinearLayer(nn.Module):
-    r"""
+    """
     Overview:
-        Linear layer with random noise.
-    Interface:
-        reset_noise, reset_parameters, forward
+        This is a linear layer with random noise.
+    Interfaces:
+        ``__init__``, ``reset_noise``, ``reset_parameters``, ``forward``
     """
 
     def __init__(self, in_channels: int, out_channels: int, sigma0: int = 0.4) -> None:
+        """
+        Overview:
+            Initialize the NoiseLinearLayer class.
+        Arguments:
+            - in_channels (:obj:`int`): Number of channels in the input tensor.
+            - out_channels (:obj:`int`): Number of channels in the output tensor.
+            - sigma0 (:obj:`int`, optional): Default noise volume when initializing NoiseLinearLayer. \
+                Default is 0.4.
+        """
         super(NoiseLinearLayer, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -609,15 +658,22 @@ class NoiseLinearLayer(nn.Module):
         self.reset_noise()
 
     def _scale_noise(self, size: Union[int, Tuple]):
+        """
+        Overview:
+            Scale the noise.
+        Arguments:
+            - size (:obj:`Union[int, Tuple]`): The size of the noise.
+        """
+
         x = torch.randn(size)
         x = x.sign().mul(x.abs().sqrt())
         return x
 
     def reset_noise(self):
-        r"""
-        Overview:
-            Reset noise settings in the layer.
         """
+         Overview:
+             Reset the noise settings in the layer.
+         """
         is_cuda = self.weight_mu.is_cuda
         in_noise = self._scale_noise(self.in_channels).to(torch.device("cuda" if is_cuda else "cpu"))
         out_noise = self._scale_noise(self.out_channels).to(torch.device("cuda" if is_cuda else "cpu"))
@@ -625,9 +681,9 @@ class NoiseLinearLayer(nn.Module):
         self.bias_eps = out_noise
 
     def reset_parameters(self):
-        r"""
+        """
         Overview:
-            Reset parameters in the layer.
+            Reset the parameters in the layer.
         """
         stdv = 1. / math.sqrt(self.in_channels)
         self.weight_mu.data.uniform_(-stdv, stdv)
@@ -639,13 +695,13 @@ class NoiseLinearLayer(nn.Module):
         self.bias_sigma.data.fill_(std_bias)
 
     def forward(self, x: torch.Tensor):
-        r"""
+        """
         Overview:
-            Layer forward with noise.
+            Perform the forward pass with noise.
         Arguments:
-            - x (:obj:`torch.Tensor`): the input tensor
+            - x (:obj:`torch.Tensor`): The input tensor.
         Returns:
-            - output (:obj:`torch.Tensor`): the output with noise
+            - output (:obj:`torch.Tensor`): The output tensor with noise.
         """
         if self.training:
             return F.linear(
@@ -666,28 +722,24 @@ def noise_block(
     dropout_probability: float = 0.5,
     sigma0: float = 0.4
 ):
-    r"""
-    Overview:
-        Create a fully-connected block with activation, normalization and dropout
-        Optional normalization can be done to the dim 1 (across the channels)
-        x -> fc -> norm -> act -> dropout -> out
-    Arguments:
-        - in_channels (:obj:`int`): Number of channels in the input tensor
-        - out_channels (:obj:`int`): Number of channels in the output tensor
-        - activation (:obj:`str`): the optional activation function
-        - norm_type (:obj:`str`): type of the normalization
-        - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
-        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
-        - simga0 (:obj:`float`): the sigma0 is the default noise volume when init NoiseLinearLayer
-    Returns:
-        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
-
-    .. note::
-
-        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
     """
-    block = []
-    block.append(NoiseLinearLayer(in_channels, out_channels, sigma0=sigma0))
+    Overview:
+        Create a fully-connected noise layer with activation, normalization, and dropout.
+        Optional normalization can be done to the dim 1 (across the channels).
+    Arguments:
+        - in_channels (:obj:`int`): Number of channels in the input tensor.
+        - out_channels (:obj:`int`): Number of channels in the output tensor.
+        - activation (:obj:`str`, optional): The optional activation function. Default is None.
+        - norm_type (:obj:`str`, optional): Type of normalization. Default is None.
+        - use_dropout (:obj:`bool`, optional): Whether to use dropout in the fully-connected block.
+        - dropout_probability (:obj:`float`, optional): Probability of an element to be zeroed in the dropout. \
+            Default is 0.5.
+        - sigma0 (:obj:`float`, optional): The sigma0 is the default noise volume when initializing NoiseLinearLayer. \
+            Default is 0.4.
+    Returns:
+        - block (:obj:`nn.Sequential`): A sequential list containing the torch layers of the fully-connected block.
+    """
+    block = [NoiseLinearLayer(in_channels, out_channels, sigma0=sigma0)]
     if norm_type is not None:
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
@@ -698,13 +750,34 @@ def noise_block(
 
 
 class NaiveFlatten(nn.Module):
+    """
+    Overview:
+        This module is a naive implementation of the flatten operation.
+    Interfaces:
+        ``__init__``, ``forward``
+    """
 
     def __init__(self, start_dim: int = 1, end_dim: int = -1) -> None:
+        """
+        Overview:
+            Initialize the NaiveFlatten class.
+        Arguments:
+            - start_dim (:obj:`int`, optional): The first dimension to flatten. Default is 1.
+            - end_dim (:obj:`int`, optional): The last dimension to flatten. Default is -1.
+        """
         super(NaiveFlatten, self).__init__()
         self.start_dim = start_dim
         self.end_dim = end_dim
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            Perform the flatten operation on the input tensor.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input tensor.
+        Returns:
+            - output (:obj:`torch.Tensor`): The flattened output tensor.
+        """
         if self.end_dim != -1:
             return x.view(*x.shape[:self.start_dim], -1, *x.shape[self.end_dim + 1:])
         else:

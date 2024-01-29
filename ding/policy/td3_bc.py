@@ -174,13 +174,12 @@ class TD3BCPolicy(DDPGPolicy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        return 'continuous_qac', ['ding.model.template.qac']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config.
+            Learn mode init method. Called by ``self.__init__``. Init actor and critic optimizers, algorithm config.
         """
         super(TD3BCPolicy, self)._init_learn()
         self._alpha = self._cfg.learn.alpha

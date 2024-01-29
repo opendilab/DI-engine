@@ -15,16 +15,16 @@ from ding.entry.application_entry_trex_collect_data import trex_collecting_data
 
 @pytest.mark.unittest
 def test_serial_pipeline_trex_onpolicy():
-    exp_name = 'test_serial_pipeline_trex_onpolicy_expert'
+    exp_name = 'trex_onpolicy_test_serial_pipeline_trex_onpolicy_expert'
     config = [deepcopy(cartpole_ppo_config), deepcopy(cartpole_ppo_create_config)]
     config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
     config[0].exp_name = exp_name
     expert_policy = serial_pipeline_onpolicy(config, seed=0)
 
-    exp_name = 'test_serial_pipeline_trex_onpolicy_collect'
+    exp_name = 'trex_onpolicy_test_serial_pipeline_trex_onpolicy_collect'
     config = [deepcopy(cartpole_trex_ppo_onpolicy_config), deepcopy(cartpole_trex_ppo_onpolicy_create_config)]
     config[0].exp_name = exp_name
-    config[0].reward_model.expert_model_path = 'test_serial_pipeline_trex_onpolicy_expert'
+    config[0].reward_model.expert_model_path = 'trex_onpolicy_test_serial_pipeline_trex_onpolicy_expert'
     config[0].reward_model.checkpoint_max = 100
     config[0].reward_model.checkpoint_step = 100
     config[0].reward_model.num_snippets = 100

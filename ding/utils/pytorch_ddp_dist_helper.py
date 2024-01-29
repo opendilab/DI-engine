@@ -12,7 +12,7 @@ from .default_helper import error_wrapper
 
 
 def get_rank() -> int:
-    r"""
+    """
     Overview:
         Get the rank of current process in total world_size
     """
@@ -21,7 +21,7 @@ def get_rank() -> int:
 
 
 def get_world_size() -> int:
-    r"""
+    """
     Overview:
         Get the world_size(total process number in data parallel training)
     """
@@ -35,16 +35,39 @@ broadcast_object_list = dist.broadcast_object_list
 
 
 def allreduce(x: torch.Tensor) -> None:
+    """
+    Overview:
+        All reduce the tensor ``x`` in the world
+    Arguments:
+        - x (:obj:`torch.Tensor`): the tensor to be reduced
+    """
+
     dist.all_reduce(x)
     x.div_(get_world_size())
 
 
 def allreduce_async(name: str, x: torch.Tensor) -> None:
+    """
+    Overview:
+        All reduce the tensor ``x`` in the world asynchronously
+    Arguments:
+        - name (:obj:`str`): the name of the tensor
+        - x (:obj:`torch.Tensor`): the tensor to be reduced
+    """
+
     x.div_(get_world_size())
     dist.all_reduce(x, async_op=True)
 
 
 def reduce_data(x: Union[int, float, torch.Tensor], dst: int) -> Union[int, float, torch.Tensor]:
+    """
+    Overview:
+        Reduce the tensor ``x`` to the destination process ``dst``
+    Arguments:
+        - x (:obj:`Union[int, float, torch.Tensor]`): the tensor to be reduced
+        - dst (:obj:`int`): the destination process
+    """
+
     if np.isscalar(x):
         x_tensor = torch.as_tensor([x]).cuda()
         dist.reduce(x_tensor, dst)
@@ -57,6 +80,14 @@ def reduce_data(x: Union[int, float, torch.Tensor], dst: int) -> Union[int, floa
 
 
 def allreduce_data(x: Union[int, float, torch.Tensor], op: str) -> Union[int, float, torch.Tensor]:
+    """
+    Overview:
+        All reduce the tensor ``x`` in the world
+    Arguments:
+        - x (:obj:`Union[int, float, torch.Tensor]`): the tensor to be reduced
+        - op (:obj:`str`): the operation to perform on data, support ``['sum', 'avg']``
+    """
+
     assert op in ['sum', 'avg'], op
     if np.isscalar(x):
         x_tensor = torch.as_tensor([x]).cuda()
@@ -77,7 +108,7 @@ synchronize = torch.cuda.synchronize
 
 
 def get_group(group_size: int) -> List:
-    r"""
+    """
     Overview:
         Get the group segmentation of ``group_size`` each group
     Arguments:
@@ -92,9 +123,11 @@ def get_group(group_size: int) -> List:
 
 
 def dist_mode(func: Callable) -> Callable:
-    r"""
+    """
     Overview:
         Wrap the function so that in can init and finalize automatically before each call
+    Arguments:
+        - func (:obj:`Callable`): the function to be wrapped
     """
 
     def wrapper(*args, **kwargs):
@@ -110,10 +143,17 @@ def dist_init(backend: str = 'nccl',
               port: str = None,
               rank: int = None,
               world_size: int = None) -> Tuple[int, int]:
-    r"""
-    Overview:
-        Init the distributed training setting
     """
+    Overview:
+        Initialize the distributed training setting
+    Arguments:
+        - backend (:obj:`str`): The backend of the distributed training, support ``['nccl', 'gloo']``
+        - addr (:obj:`str`): The address of the master node
+        - port (:obj:`str`): The port of the master node
+        - rank (:obj:`int`): The rank of current process
+        - world_size (:obj:`int`): The total number of processes
+    """
+
     assert backend in ['nccl', 'gloo'], backend
     os.environ['MASTER_ADDR'] = addr or os.environ.get('MASTER_ADDR', "localhost")
     os.environ['MASTER_PORT'] = port or os.environ.get('MASTER_PORT', "10314")  # hard-code
@@ -141,7 +181,7 @@ def dist_init(backend: str = 'nccl',
 
 
 def dist_finalize() -> None:
-    r"""
+    """
     Overview:
         Finalize distributed training resources
     """
@@ -151,21 +191,46 @@ def dist_finalize() -> None:
 
 
 class DDPContext:
+    """
+    Overview:
+        A context manager for ``linklink`` distribution
+    Interfaces:
+        ``__init__``, ``__enter__``, ``__exit__``
+    """
 
     def __init__(self) -> None:
+        """
+        Overview:
+            Initialize the ``DDPContext``
+        """
+
         pass
 
     def __enter__(self) -> None:
+        """
+        Overview:
+            Initialize ``linklink`` distribution
+        """
+
         dist_init()
 
     def __exit__(self, *args, **kwargs) -> Any:
+        """
+        Overview:
+            Finalize ``linklink`` distribution
+        """
+
         dist_finalize()
 
 
 def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
-    r"""
+    """
     Overview:
         Split the group according to ``worldsize``, ``rank`` and ``num_groups``
+    Arguments:
+        - world_size (:obj:`int`): The world size
+        - rank (:obj:`int`): The rank
+        - num_groups (:obj:`int`): The number of groups
 
     .. note::
         With faulty input, raise ``array split does not result in an equal division``
@@ -180,7 +245,20 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
 
 
 def to_ddp_config(cfg: EasyDict) -> EasyDict:
+    """
+    Overview:
+        Convert the config to ddp config
+    Arguments:
+        - cfg (:obj:`EasyDict`): The config to be converted
+    """
+
     w = get_world_size()
-    cfg.policy.learn.batch_size = int(np.ceil(cfg.policy.learn.batch_size / w))
-    cfg.policy.collect.n_sample = int(np.ceil(cfg.policy.collect.n_sample) / w)
+    if 'batch_size' in cfg.policy:
+        cfg.policy.batch_size = int(np.ceil(cfg.policy.batch_size / w))
+    if 'batch_size' in cfg.policy.learn:
+        cfg.policy.learn.batch_size = int(np.ceil(cfg.policy.learn.batch_size / w))
+    if 'n_sample' in cfg.policy.collect:
+        cfg.policy.collect.n_sample = int(np.ceil(cfg.policy.collect.n_sample / w))
+    if 'n_episode' in cfg.policy.collect:
+        cfg.policy.collect.n_episode = int(np.ceil(cfg.policy.collect.n_episode / w))
     return cfg

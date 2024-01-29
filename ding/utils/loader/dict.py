@@ -7,16 +7,43 @@ DICT_ERRORS = Mapping[str, Exception]
 
 
 class DictError(CompositeStructureError):
+    """
+    Overview:
+        Dict error.
+    Interfaces:
+        ``__init__``, ``errors``
+    Properties:
+        ``errors``
+    """
 
     def __init__(self, errors: DICT_ERRORS):
+        """
+        Overview:
+            Initialize the DictError.
+        Arguments:
+            - errors (:obj:`DICT_ERRORS`): The errors.
+        """
+
         self.__error = errors
 
     @property
     def errors(self) -> DICT_ERRORS:
+        """
+        Overview:
+            Get the errors.
+        """
+
         return self.__error
 
 
 def dict_(**kwargs) -> ILoaderClass:
+    """
+    Overview:
+        Create a dict loader.
+    Arguments:
+        - kwargs (:obj:`Mapping[str, ILoaderClass]`): The loaders.
+    """
+
     kwargs = [(k, Loader(v)) for k, v in kwargs.items()]
 
     def _load(value):

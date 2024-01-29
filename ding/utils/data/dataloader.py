@@ -13,11 +13,12 @@ from .collate_fn import default_collate
 
 
 class AsyncDataLoader(IDataLoader):
-    r"""
+    """
     Overview:
         An asynchronous dataloader.
-    Interface:
-        __init__, __iter__, __next__, close
+    Interfaces:
+        ``__init__``, ``__iter__``, ``__next__``, ``_get_data``, ``_async_loop``, ``_worker_loop``, ``_cuda_loop``, \
+            ``_get_data``, ``close``
     """
 
     def __init__(
@@ -186,6 +187,7 @@ class AsyncDataLoader(IDataLoader):
             - p (:obj:`tm.multiprocessing.connection`): Parent connection.
             - c (:obj:`tm.multiprocessing.connection`): Child connection.
         """
+        torch.set_num_threads(1)
         p.close()  # Close unused p, only use c
         while not self.end_flag:
             if self.num_workers > 1:
@@ -337,6 +339,10 @@ class AsyncDataLoader(IDataLoader):
             self.async_train_queue.join_thread()
 
     def __del__(self) -> None:
+        """
+        Overview:
+            Delete this dataloader.
+        """
         self.close()
 
     def close(self) -> None:

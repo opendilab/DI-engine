@@ -10,7 +10,7 @@ from ding.torch_utils import to_ndarray
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, BaseEnvManager
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnWrapper, BaseEnvManager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 from dizoo.procgen.config.coinrun_ppo_config import coinrun_ppo_config
@@ -60,10 +60,12 @@ def wrapped_procgen_env(cfg):
             num_levels=default_cfg.num_levels
         ) if default_cfg.control_level else
         gym.make('procgen:procgen-' + default_cfg.env_id + '-v0', start_level=0, num_levels=1),
-        cfg={'env_wrapper': [
-            lambda env: CoinrunWrapper(env, default_cfg),
-            lambda env: EvalEpisodeReturnEnv(env),
-        ]}
+        cfg={
+            'env_wrapper': [
+                lambda env: CoinrunWrapper(env, default_cfg),
+                lambda env: EvalEpisodeReturnWrapper(env),
+            ]
+        }
     )
 
 

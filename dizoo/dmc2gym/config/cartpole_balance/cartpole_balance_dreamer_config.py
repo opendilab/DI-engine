@@ -26,11 +26,11 @@ cartpole_balance_dreamer_config = dict(
     policy=dict(
         cuda=cuda,
         # it is better to put random_collect_size in policy.other
-        random_collect_size=2500, 
+        random_collect_size=2500,
         model=dict(
             obs_shape=(3, 64, 64),
             action_shape=1,
-            actor_dist = 'normal',
+            actor_dist='normal',
         ),
         learn=dict(
             lambda_=0.95,
@@ -48,7 +48,7 @@ cartpole_balance_dreamer_config = dict(
             collect_dyn_sample=True,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=5000, )), 
+        eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             # environment buffer
             replay_buffer=dict(replay_buffer_size=500000, periodic_thruput_seconds=60),
@@ -56,7 +56,7 @@ cartpole_balance_dreamer_config = dict(
     ),
     world_model=dict(
         pretrain=100,
-        train_freq=2, 
+        train_freq=2,
         cuda=cuda,
         model=dict(
             state_size=(3, 64, 64),  # has to be specified
@@ -88,4 +88,6 @@ cartpole_balance_create_config = dict(
 cartpole_balance_create_config = EasyDict(cartpole_balance_create_config)
 
 if __name__ == '__main__':
-    serial_pipeline_dreamer((cartpole_balance_dreamer_config, cartpole_balance_create_config), seed=0, max_env_step=500000)
+    serial_pipeline_dreamer(
+        (cartpole_balance_dreamer_config, cartpole_balance_create_config), seed=0, max_env_step=500000
+    )

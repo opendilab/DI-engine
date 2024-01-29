@@ -1,3 +1,54 @@
+2023.11.06(v0.5.0)
+- env: add tabmwp env (#667)
+- env: polish anytrading env issues (#731)
+- algo: add PromptPG algorithm (#667)
+- algo: add Plan Diffuser algorithm (#700)
+- algo: add new pipeline implementation of IMPALA algorithm (#713)
+- algo: add dropout layers to DQN-style algorithms (#712)
+- feature: add new pipeline agent for sac/ddpg/a2c/ppo and Hugging Face support (#637) (#730) (#737)
+- feature: add more unittest cases for model (#728)
+- feature: add collector logging in new pipeline (#735)
+- fix: logger middleware problems (#715)
+- fix: ppo parallel bug (#709)
+- fix: typo in optimizer_helper.py (#726)
+- fix: mlp dropout if condition bug
+- fix: drex collecting data unittest bugs
+- style: polish env manager/wrapper comments and API doc (#742)
+- style: polish model comments and API doc (#722) (#729) (#734) (#736) (#741)
+- style: polish policy comments and API doc (#732)
+- style: polish rl_utils comments and API doc (#724)
+- style: polish torch_utils comments and API doc (#738)
+- style: update README.md and Colab demo (#733)
+- style: update metaworld docker image
+
+2023.08.23(v0.4.9)
+- env: add cliffwalking env (#677)
+- env: add lunarlander ppo config and example
+- algo: add BCQ offline RL algorithm (#640)
+- algo: add Dreamerv3 model-based RL algorithm (#652)
+- algo: add tensor stream merge network tools (#673)
+- algo: add scatter connection model (#680)
+- algo: refactor Decision Transformer in new pipeline and support img input and discrete output (#693)
+- algo: add three variants of Bilinear classes and a FiLM class (#703)
+- feature: polish offpolicy RL multi-gpu DDP training (#679)
+- feature: add middleware for Ape-X distributed pipeline (#696)
+- feature: add example for evaluating trained DQN (#706)
+- fix: to_ndarray fails to assign dtype for scalars (#708)
+- fix: evaluator return episode_info compatibility bug
+- fix: cql example entry wrong config bug
+- fix: enable_save_figure env interface
+- fix: redundant env info bug in evaluator
+- fix: to_item unittest bug
+- style: polish and simplify requirements (#672)
+- style: add Hugging Face Model Zoo badge (#674)
+- style: add openxlab Model Zoo badge (#675)
+- style: fix py37 macos ci bug and update default pytorch from 1.7.1 to 1.12.1 (#678)
+- style: fix mujoco-py compatibility issue for cython<3 (#711)
+- style: fix type spell error (#704)
+- style: fix pypi release actions ubuntu 18.04 bug
+- style: update contact information (e.g. wechat)
+- style: polish algorithm doc tables
+
 2023.05.25(v0.4.8)
 - env: fix gym hybrid reward dtype bug (#664)
 - env: fix atari env id noframeskip bug (#655)

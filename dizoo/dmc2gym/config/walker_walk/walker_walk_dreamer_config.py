@@ -29,7 +29,7 @@ walker_walk_dreamer_config = dict(
         random_collect_size=2500,
         model=dict(
             action_shape=6,
-            actor_dist = 'normal',
+            actor_dist='normal',
         ),
         learn=dict(
             lambda_=0.95,
@@ -55,7 +55,7 @@ walker_walk_dreamer_config = dict(
     ),
     world_model=dict(
         pretrain=100,
-        train_freq=2, 
+        train_freq=2,
         cuda=cuda,
         model=dict(
             state_size=(3, 64, 64),  # has to be specified

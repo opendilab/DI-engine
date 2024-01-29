@@ -14,7 +14,7 @@ inf = math.inf
 
 
 def calculate_grad_norm(model: torch.nn.Module, norm_type=2) -> float:
-    r"""
+    """
     Overview:
         calculate grad norm of the parameters whose grad norms are not None in the model.
     Arguments:
@@ -38,7 +38,7 @@ def calculate_grad_norm(model: torch.nn.Module, norm_type=2) -> float:
 
 
 def calculate_grad_norm_without_bias_two_norm(model: torch.nn.Module) -> float:
-    r"""
+    """
     Overview:
         calculate grad norm of the parameters whose grad norms are not None in the model.
     Arguments:
@@ -54,6 +54,14 @@ def calculate_grad_norm_without_bias_two_norm(model: torch.nn.Module) -> float:
 
 
 def grad_ignore_norm(parameters, max_norm, norm_type=2):
+    """
+    Overview:
+        Clip the gradient norm of an iterable of parameters.
+    Arguments:
+        - parameters (:obj:`Iterable`): an iterable of torch.Tensor
+        - max_norm (:obj:`float`): the max norm of the gradients
+        - norm_type (:obj:`float`): 2.0 means use norm2 to clip
+    """
     if isinstance(parameters, torch.Tensor):
         parameters = [parameters]
     parameters = list(filter(lambda p: p.grad is not None, parameters))
@@ -75,6 +83,13 @@ def grad_ignore_norm(parameters, max_norm, norm_type=2):
 
 
 def grad_ignore_value(parameters, clip_value):
+    """
+    Overview:
+        Clip the gradient value of an iterable of parameters.
+    Arguments:
+        - parameters (:obj:`Iterable`): an iterable of torch.Tensor
+        - clip_value (:obj:`float`): the value to start clipping
+    """
     if isinstance(parameters, torch.Tensor):
         parameters = [parameters]
     clip_value = float(clip_value)
@@ -90,11 +105,11 @@ def grad_ignore_value(parameters, clip_value):
 
 
 class Adam(torch.optim.Adam):
-    r"""
+    """
     Overview:
         Rewrited Adam optimizer to support more features.
-    Interface:
-        __init__, step
+    Interfaces:
+        ``__init__``, ``step``, ``_state_init``, ``get_grad``
     """
 
     def __init__(
@@ -118,9 +133,9 @@ class Adam(torch.optim.Adam):
         ignore_norm_type: float = 2.0,
         ignore_momentum_timestep: int = 100,
     ):
-        r"""
+        """
         Overview:
-            init medthod of refactored Adam class
+            init method of refactored Adam class
         Arguments:
             - params (:obj:`iterable`):  – an iterable of torch.Tensor s or dict s. \
                 Specifies what Tensors should be optimized
@@ -189,6 +204,14 @@ class Adam(torch.optim.Adam):
             )
 
     def _state_init(self, p, amsgrad):
+        """
+        Overview:
+            Initialize the state of the optimizer
+        Arguments:
+            - p (:obj:`torch.Tensor`): the parameter to be optimized
+            - amsgrad (:obj:`bool`): whether to use the AMSGrad variant of this algorithm from the paper\
+                On the Convergence of Adam and Beyond <https://arxiv.org/abs/1904.09237>
+        """
         state = self.state[p]
         state['thre_exp_avg_sq'] = torch.zeros_like(p.data, device=p.data.device)
         # others
@@ -208,7 +231,7 @@ class Adam(torch.optim.Adam):
             state['max_exp_avg_sq'] = torch.zeros_like(p.data)
 
     def step(self, closure: Union[Callable, None] = None):
-        r"""
+        """
         Overview:
             Performs a single optimization step
         Arguments:
@@ -373,8 +396,8 @@ class RMSprop(torch.optim.RMSprop):
     r"""
     Overview:
         Rewrited RMSprop optimizer to support more features.
-    Interface:
-        __init__, step
+    Interfaces:
+        ``__init__``, ``step``, ``_state_init``, ``get_grad``
     """
 
     def __init__(
@@ -398,9 +421,9 @@ class RMSprop(torch.optim.RMSprop):
         ignore_norm_type: float = 2.0,
         ignore_momentum_timestep: int = 100,
     ):
-        r"""
+        """
         Overview:
-            init medthod of refactored Adam class
+            init method of refactored Adam class
         Arguments:
             - params (:obj:`iterable`):  – an iterable of torch.Tensor s or dict s. \
                 Specifies what Tensors should be optimized
@@ -455,6 +478,16 @@ class RMSprop(torch.optim.RMSprop):
         )
 
     def _state_init(self, p, momentum, centered):
+        """
+        Overview:
+            Initialize the state of the optimizer
+        Arguments:
+            - p (:obj:`torch.Tensor`): the parameter to be optimized
+            - momentum (:obj:`float`): the momentum coefficient
+            - centered (:obj:`bool`): if True, compute the centered RMSprop, \
+                the gradient is normalized by an estimation of its variance
+        """
+
         state = self.state[p]
         state['step'] = 0
         state['thre_square_avg'] = torch.zeros_like(p.data, device=p.data.device)
@@ -465,7 +498,7 @@ class RMSprop(torch.optim.RMSprop):
             state['grad_avg'] = torch.zeros_like(p.data, device=p.data.device)
 
     def step(self, closure: Union[Callable, None] = None):
-        r"""
+        """
         Overview:
             Performs a single optimization step
         Arguments:
@@ -595,6 +628,11 @@ class RMSprop(torch.optim.RMSprop):
         return super().step(closure=closure)
 
     def get_grad(self) -> float:
+        """
+        Overview:
+            calculate grad norm of the parameters whose grad norms are not None in the model.
+        """
+
         total_norm = 0.
         params = [t for group in self.param_groups for t in group['params'] if t.requires_grad and t.grad is not None]
         for p in params:
@@ -608,35 +646,55 @@ class PCGrad():
     Overview:
         PCGrad optimizer to support multi-task.
         you can view the paper in the following link https://arxiv.org/pdf/2001.06782.pdf
+    Interfaces:
+        ``__init__``, ``zero_grad``, ``step``, ``pc_backward``
+    Properties:
+        - optimizer (:obj:`torch.optim`): the optimizer to be used
     """
 
     def __init__(self, optimizer, reduction='mean'):
+        """
+        Overview:
+            Initialization of PCGrad optimizer
+        Arguments:
+            - optimizer (:obj:`torch.optim`): the optimizer to be used
+            - reduction (:obj:`str`): the reduction method, support ['mean', 'sum']
+        """
+
         self._optim, self._reduction = optimizer, reduction
 
     @property
     def optimizer(self):
+        """
+        Overview:
+            get the optimizer
+        """
+
         return self._optim
 
     def zero_grad(self):
-        '''
-        clear the gradient of the parameters
-        '''
+        """
+        Overview:
+            clear the gradient of the parameters
+        """
 
         return self._optim.zero_grad(set_to_none=True)
 
     def step(self):
-        '''
-        update the parameters with the gradient
-        '''
+        """
+        Overview:
+            update the parameters with the gradient
+        """
 
         return self._optim.step()
 
     def pc_backward(self, objectives):
-        '''
-        calculate the gradient of the parameters
+        """
+        Overview:
+            calculate the gradient of the parameters
         Arguments:
             - objectives: a list of objectives
-        '''
+        """
 
         grads, shapes, has_grads = self._pack_grad(objectives)
         pc_grad = self._project_conflicting(grads, has_grads)
@@ -645,6 +703,15 @@ class PCGrad():
         return
 
     def _project_conflicting(self, grads, has_grads, shapes=None):
+        """
+        Overview:
+            project the conflicting gradient to the orthogonal space
+        Arguments:
+            - grads (:obj:`list`): a list of the gradient of the parameters
+            - has_grads (:obj:`list`): a list of mask represent whether the parameter has gradient
+            - shapes (:obj:`list`): a list of the shape of the parameters
+        """
+
         shared = torch.stack(has_grads).prod(0).bool()
         pc_grad, num_task = copy.deepcopy(grads), len(grads)
         for g_i in pc_grad:
@@ -665,9 +732,12 @@ class PCGrad():
         return merged_grad
 
     def _set_grad(self, grads):
-        '''
-        set the modified gradients to the network
-        '''
+        """
+        Overview:
+            set the modified gradients to the network
+        Arguments:
+            - grads (:obj:`list`): a list of the gradient of the parameters
+        """
 
         idx = 0
         for group in self._optim.param_groups:
@@ -678,13 +748,16 @@ class PCGrad():
         return
 
     def _pack_grad(self, objectives):
-        '''
-        pack the gradient of the parameters of the network for each objective
+        """
+        Overview:
+            pack the gradient of the parameters of the network for each objective
+        Arguments:
+            - objectives: a list of objectives
         Returns:
             - grad: a list of the gradient of the parameters
             - shape: a list of the shape of the parameters
             - has_grad: a list of mask represent whether the parameter has gradient
-        '''
+        """
 
         grads, shapes, has_grads = [], [], []
         for obj in objectives:
@@ -697,6 +770,14 @@ class PCGrad():
         return grads, shapes, has_grads
 
     def _unflatten_grad(self, grads, shapes):
+        """
+        Overview:
+            unflatten the gradient of the parameters of the network
+        Arguments:
+            - grads (:obj:`list`): a list of the gradient of the parameters
+            - shapes (:obj:`list`): a list of the shape of the parameters
+        """
+
         unflatten_grad, idx = [], 0
         for shape in shapes:
             length = np.prod(shape)
@@ -705,17 +786,26 @@ class PCGrad():
         return unflatten_grad
 
     def _flatten_grad(self, grads, shapes):
+        """
+        Overview:
+            flatten the gradient of the parameters of the network
+        Arguments:
+            - grads (:obj:`list`): a list of the gradient of the parameters
+            - shapes (:obj:`list`): a list of the shape of the parameters
+        """
+
         flatten_grad = torch.cat([g.flatten() for g in grads])
         return flatten_grad
 
     def _retrieve_grad(self):
-        '''
-        get the gradient of the parameters of the network with specific objective
+        """
+        Overview:
+            get the gradient of the parameters of the network with specific objective
         Returns:
             - grad: a list of the gradient of the parameters
             - shape: a list of the shape of the parameters
             - has_grad: a list of mask represent whether the parameter has gradient
-        '''
+        """
 
         grad, shape, has_grad = [], [], []
         for group in self._optim.param_groups:
@@ -734,7 +824,7 @@ class PCGrad():
 
 
 def configure_weight_decay(model: nn.Module, weight_decay: float) -> List:
-    r"""
+    """
     Overview:
         Separating out all parameters of the model into two buckets: those that will experience
     weight decay for regularization and those that won't (biases, and layer-norm or embedding weights).

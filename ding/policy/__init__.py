@@ -1,5 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
-from .common_utils import single_env_forward_wrapper, single_env_forward_wrapper_ttorch
+from .common_utils import single_env_forward_wrapper, single_env_forward_wrapper_ttorch, default_preprocess_learn
 from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .mdqn import MDQNPolicy
 from .iqn import IQNPolicy
@@ -12,12 +12,13 @@ from .d4pg import D4PGPolicy
 from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
+from .dt import DTPolicy
 
 from .pg import PGPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
-from .sac import SACPolicy, SACDiscretePolicy, SQILSACPolicy
-from .cql import CQLPolicy, CQLDiscretePolicy
+from .sac import SACPolicy, DiscreteSACPolicy, SQILSACPolicy
+from .cql import CQLPolicy, DiscreteCQLPolicy
 from .edac import EDACPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
@@ -53,3 +54,5 @@ from .bcq import BCQPolicy
 
 # new-type policy
 from .ppof import PPOFPolicy
+from .prompt_pg import PromptPGPolicy
+from .happo import HAPPOPolicy

@@ -30,12 +30,10 @@ def main():
         tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'seed' + str(seed_i)))
         with task.start(async_mode=False, ctx=OnlineRLContext()):
             collector_env = BaseEnvManagerV2(
-                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.collector_env_num)],
-                cfg=cfg.env.manager
+                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
             )
             evaluator_env = BaseEnvManagerV2(
-                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)],
-                cfg=cfg.env.manager
+                env_fn=[lambda: RocketEnv(cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
             )
 
             # evaluator_env.enable_save_replay()

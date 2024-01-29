@@ -20,14 +20,15 @@ DEFAULT_K8S_AGGREGATOR_MASTER_PORT = 22273
 
 
 def get_operator_server_kwargs(cfg: EasyDict) -> dict:
-    r'''
+    """
     Overview:
         Get kwarg dict from config file
     Arguments:
         - cfg (:obj:`EasyDict`) System config
     Returns:
         - result (:obj:`dict`) Containing ``api_version``,  ``namespace``, ``name``, ``port``, ``host``.
-    '''
+    """
+
     namespace = os.environ.get('KUBERNETES_POD_NAMESPACE', DEFAULT_NAMESPACE)
     name = os.environ.get('KUBERNETES_POD_NAME', DEFAULT_POD_NAME)
     url = cfg.get('system_addr', None) or os.environ.get('KUBERNETES_SERVER_URL', None)
@@ -49,10 +50,24 @@ def get_operator_server_kwargs(cfg: EasyDict) -> dict:
 
 
 def exist_operator_server() -> bool:
+    """
+    Overview:
+        Check if the 'KUBERNETES_SERVER_URL' environment variable exists.
+    """
+
     return 'KUBERNETES_SERVER_URL' in os.environ
 
 
 def pod_exec_command(kubeconfig: str, name: str, namespace: str, cmd: str) -> Tuple[int, str]:
+    """
+    Overview:
+        Execute command in pod
+    Arguments:
+        - kubeconfig (:obj:`str`) The path of kubeconfig file
+        - name (:obj:`str`) The name of pod
+        - namespace (:obj:`str`) The namespace of pod
+    """
+
     try:
         from kubernetes import config
         from kubernetes.client import CoreV1Api
@@ -102,10 +117,20 @@ class K8sType(Enum):
 
 class K8sLauncher(object):
     """
-    Overview: object to manage the K8s cluster
+    Overview:
+        object to manage the K8s cluster
+    Interfaces:
+        ``__init__``, ``_load``, ``create_cluster``, ``_check_k3d_tools``, ``delete_cluster``, ``preload_images``
     """
 
     def __init__(self, config_path: str) -> None:
+        """
+        Overview:
+            Initialize the K8sLauncher object.
+        Arguments:
+            - config_path (:obj:`str`): The path of the config file.
+        """
+
         self.name = None
         self.servers = 1
         self.agents = 0
@@ -116,6 +141,13 @@ class K8sLauncher(object):
         self._check_k3d_tools()
 
     def _load(self, config_path: str) -> None:
+        """
+        Overview:
+            Load the config file.
+        Arguments:
+            - config_path (:obj:`str`): The path of the config file.
+        """
+
         with open(config_path, 'r') as f:
             data = yaml.safe_load(f)
             self.name = data.get('name') if data.get('name') else self.name
@@ -140,6 +172,11 @@ class K8sLauncher(object):
                 self._images = data.get('preload_images')
 
     def _check_k3d_tools(self) -> None:
+        """
+        Overview:
+            Check if the k3d tools exist.
+        """
+
         if self.type != K8sType.K3s:
             return
         args = ['which', 'k3d']
@@ -151,6 +188,11 @@ class K8sLauncher(object):
             )
 
     def create_cluster(self) -> None:
+        """
+        Overview:
+            Create the k8s cluster.
+        """
+
         print('Creating k8s cluster...')
         if self.type != K8sType.K3s:
             return
@@ -168,6 +210,11 @@ class K8sLauncher(object):
         self.preload_images(self._images)
 
     def delete_cluster(self) -> None:
+        """
+        Overview:
+            Delete the k8s cluster.
+        """
+
         print('Deleting k8s cluster...')
         if self.type != K8sType.K3s:
             return
@@ -180,6 +227,11 @@ class K8sLauncher(object):
             raise RuntimeError(f'Failed to delete cluster {self.name}: {err_str}')
 
     def preload_images(self, images: list) -> None:
+        """
+        Overview:
+            Preload images.
+        """
+
         if self.type != K8sType.K3s or len(images) == 0:
             return
         args = ['k3d', 'image', 'import', f'--cluster={self.name}']

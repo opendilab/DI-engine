@@ -2,7 +2,7 @@ import gym
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator
 from ding.model import VAC
 from ding.policy import PPOPolicy
-from ding.envs import DingEnvWrapper, EvalEpisodeReturnEnv, BaseEnvManager
+from ding.envs import DingEnvWrapper, EvalEpisodeReturnWrapper, BaseEnvManager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 
@@ -43,7 +43,7 @@ def wrapped_minigrid_env():
             'env_wrapper': [
                 lambda env: FlatObsWrapper(env),
                 lambda env: MinigridWrapper(env),
-                lambda env: EvalEpisodeReturnEnv(env),
+                lambda env: EvalEpisodeReturnWrapper(env),
             ]
         }
     )

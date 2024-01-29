@@ -14,9 +14,12 @@ import numpy as np
 
 @POLICY_REGISTRY.register('d4pg')
 class D4PGPolicy(DDPGPolicy):
-    r"""
+    """
     Overview:
-        Policy class of D4PG algorithm.
+        Policy class of D4PG algorithm. D4PG is a variant of DDPG, which uses distributional critic. \
+        The distributional critic is implemented by using quantile regression. \
+        Paper link: https://arxiv.org/abs/1804.08617.
+
     Property:
         learn_mode, collect_mode, eval_mode
     Config:
@@ -149,13 +152,38 @@ class D4PGPolicy(DDPGPolicy):
     )
 
     def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return the default neural network model class for D4PGPolicy. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
         return 'qac_dist', ['ding.model.template.qac_dist']
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init actor and critic optimizers, algorithm config, main and target models.
+            Initialize the D4PG policy's learning mode, which involves setting up key components \
+            specific to the D4PG algorithm. This includes creating separate optimizers for the actor \
+            and critic networks, a distinctive trait of D4PG's actor-critic approach, and configuring \
+            algorithm-specific parameters such as v_min, v_max, and n_atom for the distributional aspect \
+            of the critic. Additionally, the method sets up the target model with momentum-based updates, \
+            crucial for stabilizing learning, and optionally integrates noise into the target model for \
+            effective exploration. This method is invoked during the '__init__' if 'learn' is specified \
+            in 'enable_field'.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -203,14 +231,36 @@ class D4PGPolicy(DDPGPolicy):
 
         self._forward_learn_cnt = 0  # count iterations
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
+    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
         Overview:
-            Forward and backward function of learn mode.
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as different loss, actor and critic lr.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
+            - data (:obj:`dict`): Input data used for policy forward, including the \
+                collected training samples from replay buffer. For each element in dict, the key of the \
+                dict is the name of data items and the value is the corresponding data. Usually, the value is \
+                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \
+                often need to first be stacked in the batch dimension by some utility functions such as \
+                ``default_preprocess_learn``. \
+                For D4PG, each element in list is a dict containing at least the following keys: ``obs``, \
+                ``action``, ``reward``, ``next_obs``. Sometimes, it also contains other keys such as ``weight``.
+
         Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
+            - info_dict (:obj:`Dict[str, Any]`): The output result dict of forward learn, containing at \
+                least the "cur_lr_actor", "cur_lr_critic", "different losses", "q_value", "action", "priority", \
+                keys. Additionally, loss_dict also contains other keys, which are mainly used for monitoring and \
+                debugging. "q_value_dict" is used to record the q_value statistics.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for D4PGPolicy: ``ding.policy.tests.test_d4pg``.
         """
         loss_dict = {}
         data = default_preprocess_learn(
@@ -291,23 +341,36 @@ class D4PGPolicy(DDPGPolicy):
         }
 
     def _get_train_sample(self, traj: list) -> Union[None, List[Any]]:
-        r"""
-            Overview:
-                Get the trajectory and the n step return data, then sample from the n_step return data
-            Arguments:
-                - traj (:obj:`list`): The trajectory's buffer list
-            Returns:
-                - samples (:obj:`dict`): The training samples generated
+        """
+        Overview:
+            Process the data of a given trajectory (transitions, a list of transition) into a list of sample that \
+            can be used for training directly. The sample is generated by the following steps: \
+            1. Calculate the nstep return data. \
+            2. Sample the data from the nstep return data. \
+            3. Stack the data in the batch dimension. \
+            4. Return the sample data. \
+            For D4PG, the nstep return data is generated by ``get_nstep_return_data`` and the sample data is \
+            generated by ``get_train_sample``.
+
+        Arguments:
+            - traj (:obj:`list`): The trajectory data (a list of transition), each element is \
+            the same format as the return value of ``self._process_transition`` method.
+
+        Returns:
+            - samples (:obj:`dict`): The training samples generated, including at least the following keys: \
+            ``'obs'``, ``'next_obs'``, ``'action'``, ``'reward'``, ``'done'``, ``'weight'``, ``'value_gamma'``. \
+            For more information, please refer to the ``get_train_sample`` method.
         """
         data = get_nstep_return_data(traj, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
 
     def _monitor_vars_learn(self) -> List[str]:
-        r"""
+        """
         Overview:
-            Return variables' name if variables are to used in monitor.
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
         Returns:
-            - vars (:obj:`List[str]`): Variables' name list.
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
         """
         ret = ['cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'action']
         return ret

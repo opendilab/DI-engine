@@ -7,7 +7,7 @@ from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager
 from ding.policy import DDPGPolicy
-from ding.model import QAC
+from ding.model import ContinuousQAC
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.gym_hybrid.envs.gym_hybrid_env import GymHybridEnv
@@ -43,7 +43,7 @@ def main(cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = QAC(**cfg.policy.model)
+    model = ContinuousQAC(**cfg.policy.model)
     policy = DDPGPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
