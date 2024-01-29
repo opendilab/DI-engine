@@ -307,7 +307,7 @@
 <span class="n">inf</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
 
 
-<span class="k">def</span> <span class="nf">calculate_grad_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="calculate_grad_norm"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.calculate_grad_norm">[docs]</a><span class="k">def</span> <span class="nf">calculate_grad_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        calculate grad norm of the parameters whose grad norms are not None in the model.</span>
@@ -328,10 +328,10 @@
             <span class="n">param_norm</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">norm_type</span><span class="p">)</span>
             <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="n">norm_type</span>
         <span class="n">total_norm</span> <span class="o">=</span> <span class="n">total_norm</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">norm_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_norm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">total_norm</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">calculate_grad_norm_without_bias_two_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="calculate_grad_norm_without_bias_two_norm"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.calculate_grad_norm_without_bias_two_norm">[docs]</a><span class="k">def</span> <span class="nf">calculate_grad_norm_without_bias_two_norm</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        calculate grad norm of the parameters whose grad norms are not None in the model.</span>
@@ -344,10 +344,10 @@
             <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="mi">0</span>
             <span class="n">_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">_list</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">_list</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span></div>
 
 
-<span class="k">def</span> <span class="nf">grad_ignore_norm</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">max_norm</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<div class="viewcode-block" id="grad_ignore_norm"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.grad_ignore_norm">[docs]</a><span class="k">def</span> <span class="nf">grad_ignore_norm</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">max_norm</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Clip the gradient norm of an iterable of parameters.</span>
@@ -373,10 +373,10 @@
     <span class="k">if</span> <span class="n">clip_coef</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
             <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">total_norm</span>
+    <span class="k">return</span> <span class="n">total_norm</span></div>
 
 
-<span class="k">def</span> <span class="nf">grad_ignore_value</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">clip_value</span><span class="p">):</span>
+<div class="viewcode-block" id="grad_ignore_value"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.grad_ignore_value">[docs]</a><span class="k">def</span> <span class="nf">grad_ignore_value</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">clip_value</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Clip the gradient value of an iterable of parameters.</span>
@@ -395,10 +395,10 @@
             <span class="k">break</span>
     <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
-            <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="Adam"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.Adam">[docs]</a><span class="k">class</span> <span class="nc">Adam</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">):</span>
+<div class="viewcode-block" id="Adam"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.Adam">[docs]</a><span class="k">class</span> <span class="nc">Adam</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Rewrited Adam optimizer to support more features.</span>
@@ -406,7 +406,7 @@
 <span class="sd">        ``__init__``, ``step``, ``_state_init``, ``get_grad``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="Adam.__init__"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.Adam.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
         <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span>
@@ -495,9 +495,9 @@
                 <span class="s2">&quot;optimizer type </span><span class="si">{}</span><span class="s2"> is not implemented, support type is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_optim_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_support_type</span><span class="p">[</span><span class="s1">&#39;optim&#39;</span><span class="p">]</span>
                 <span class="p">)</span>
-            <span class="p">)</span>
+            <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">amsgrad</span><span class="p">):</span>
+<div class="viewcode-block" id="Adam._state_init"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.Adam._state_init">[docs]</a>    <span class="k">def</span> <span class="nf">_state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">amsgrad</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the state of the optimizer</span>
@@ -522,9 +522,9 @@
         <span class="n">state</span><span class="p">[</span><span class="s1">&#39;exp_avg_sq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">amsgrad</span><span class="p">:</span>
             <span class="c1"># Maintains max of all exp. moving avg. of sq. grad. values</span>
-            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;max_exp_avg_sq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;max_exp_avg_sq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Adam.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.Adam.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Adam.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.Adam.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Performs a single optimization step</span>
@@ -677,16 +677,16 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim_type</span> <span class="o">==</span> <span class="s1">&#39;adam&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Adam.get_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.Adam.get_grad">[docs]</a>    <span class="k">def</span> <span class="nf">get_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="n">total_norm</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_groups</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">requires_grad</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
             <span class="n">param_norm</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span><span class="p">)</span>
             <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span>
-        <span class="k">return</span> <span class="n">total_norm</span></div>
+        <span class="k">return</span> <span class="n">total_norm</span></div></div>
 
 
-<div class="viewcode-block" id="RMSprop"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.RMSprop">[docs]</a><span class="k">class</span> <span class="nc">RMSprop</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RMSprop</span><span class="p">):</span>
+<div class="viewcode-block" id="RMSprop"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.RMSprop">[docs]</a><span class="k">class</span> <span class="nc">RMSprop</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">RMSprop</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Rewrited RMSprop optimizer to support more features.</span>
@@ -694,7 +694,7 @@
 <span class="sd">        ``__init__``, ``step``, ``_state_init``, ``get_grad``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="RMSprop.__init__"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.RMSprop.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">params</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span>
         <span class="n">lr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="p">,</span>
@@ -769,9 +769,9 @@
 
         <span class="nb">super</span><span class="p">(</span><span class="n">RMSprop</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">params</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="n">weight_decay</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="n">momentum</span><span class="p">,</span> <span class="n">centered</span><span class="o">=</span><span class="n">centered</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">momentum</span><span class="p">,</span> <span class="n">centered</span><span class="p">):</span>
+<div class="viewcode-block" id="RMSprop._state_init"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.RMSprop._state_init">[docs]</a>    <span class="k">def</span> <span class="nf">_state_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">momentum</span><span class="p">,</span> <span class="n">centered</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the state of the optimizer</span>
@@ -789,9 +789,9 @@
         <span class="k">if</span> <span class="n">momentum</span><span class="p">:</span>
             <span class="n">state</span><span class="p">[</span><span class="s1">&#39;momentum_buffer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">centered</span><span class="p">:</span>
-            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;grad_avg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">state</span><span class="p">[</span><span class="s1">&#39;grad_avg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="RMSprop.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.RMSprop.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RMSprop.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.RMSprop.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">closure</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Performs a single optimization step</span>
@@ -921,7 +921,7 @@
 
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="RMSprop.get_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.RMSprop.get_grad">[docs]</a>    <span class="k">def</span> <span class="nf">get_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            calculate grad norm of the parameters whose grad norms are not None in the model.</span>
@@ -932,10 +932,10 @@
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
             <span class="n">param_norm</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span><span class="p">)</span>
             <span class="n">total_norm</span> <span class="o">+=</span> <span class="n">param_norm</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_norm_type</span>
-        <span class="k">return</span> <span class="n">total_norm</span></div>
+        <span class="k">return</span> <span class="n">total_norm</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">PCGrad</span><span class="p">():</span>
+<div class="viewcode-block" id="PCGrad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad">[docs]</a><span class="k">class</span> <span class="nc">PCGrad</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        PCGrad optimizer to support multi-task.</span>
@@ -946,7 +946,7 @@
 <span class="sd">        - optimizer (:obj:`torch.optim`): the optimizer to be used</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad.__init__"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialization of PCGrad optimizer</span>
@@ -955,7 +955,7 @@
 <span class="sd">            - reduction (:obj:`str`): the reduction method, support [&#39;mean&#39;, &#39;sum&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduction</span> <span class="o">=</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">reduction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reduction</span> <span class="o">=</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">reduction</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">optimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -966,23 +966,23 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span>
 
-    <span class="k">def</span> <span class="nf">zero_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad.zero_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad.zero_grad">[docs]</a>    <span class="k">def</span> <span class="nf">zero_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            clear the gradient of the parameters</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad.step"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            update the parameters with the gradient</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optim</span><span class="o">.</span><span class="n">step</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">pc_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectives</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad.pc_backward"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad.pc_backward">[docs]</a>    <span class="k">def</span> <span class="nf">pc_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectives</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            calculate the gradient of the parameters</span>
@@ -994,9 +994,9 @@
         <span class="n">pc_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_conflicting</span><span class="p">(</span><span class="n">grads</span><span class="p">,</span> <span class="n">has_grads</span><span class="p">)</span>
         <span class="n">pc_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unflatten_grad</span><span class="p">(</span><span class="n">pc_grad</span><span class="p">,</span> <span class="n">shapes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_grad</span><span class="p">(</span><span class="n">pc_grad</span><span class="p">)</span>
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
-    <span class="k">def</span> <span class="nf">_project_conflicting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">has_grads</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad._project_conflicting"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad._project_conflicting">[docs]</a>    <span class="k">def</span> <span class="nf">_project_conflicting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">has_grads</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            project the conflicting gradient to the orthogonal space</span>
@@ -1023,9 +1023,9 @@
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid reduction method&quot;</span><span class="p">)</span>
 
         <span class="n">merged_grad</span><span class="p">[</span><span class="o">~</span><span class="n">shared</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">g</span><span class="p">[</span><span class="o">~</span><span class="n">shared</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">pc_grad</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">merged_grad</span>
+        <span class="k">return</span> <span class="n">merged_grad</span></div>
 
-    <span class="k">def</span> <span class="nf">_set_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad._set_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad._set_grad">[docs]</a>    <span class="k">def</span> <span class="nf">_set_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            set the modified gradients to the network</span>
@@ -1039,9 +1039,9 @@
                 <span class="c1"># if p.grad is None: continue</span>
                 <span class="n">p</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="n">grads</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
                 <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span>
+        <span class="k">return</span></div>
 
-    <span class="k">def</span> <span class="nf">_pack_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectives</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad._pack_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad._pack_grad">[docs]</a>    <span class="k">def</span> <span class="nf">_pack_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectives</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            pack the gradient of the parameters of the network for each objective</span>
@@ -1061,9 +1061,9 @@
             <span class="n">grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flatten_grad</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">shape</span><span class="p">))</span>
             <span class="n">has_grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flatten_grad</span><span class="p">(</span><span class="n">has_grad</span><span class="p">,</span> <span class="n">shape</span><span class="p">))</span>
             <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">,</span> <span class="n">has_grads</span>
+        <span class="k">return</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">,</span> <span class="n">has_grads</span></div>
 
-    <span class="k">def</span> <span class="nf">_unflatten_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad._unflatten_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad._unflatten_grad">[docs]</a>    <span class="k">def</span> <span class="nf">_unflatten_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            unflatten the gradient of the parameters of the network</span>
@@ -1077,9 +1077,9 @@
             <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
             <span class="n">unflatten_grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grads</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="n">length</span><span class="p">]</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
             <span class="n">idx</span> <span class="o">+=</span> <span class="n">length</span>
-        <span class="k">return</span> <span class="n">unflatten_grad</span>
+        <span class="k">return</span> <span class="n">unflatten_grad</span></div>
 
-    <span class="k">def</span> <span class="nf">_flatten_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad._flatten_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad._flatten_grad">[docs]</a>    <span class="k">def</span> <span class="nf">_flatten_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            flatten the gradient of the parameters of the network</span>
@@ -1089,9 +1089,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">flatten_grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">g</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grads</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">flatten_grad</span>
+        <span class="k">return</span> <span class="n">flatten_grad</span></div>
 
-    <span class="k">def</span> <span class="nf">_retrieve_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PCGrad._retrieve_grad"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.PCGrad._retrieve_grad">[docs]</a>    <span class="k">def</span> <span class="nf">_retrieve_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            get the gradient of the parameters of the network with specific objective</span>
@@ -1114,10 +1114,10 @@
                 <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                 <span class="n">grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
                 <span class="n">has_grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">grad</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">has_grad</span>
+        <span class="k">return</span> <span class="n">grad</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">has_grad</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">configure_weight_decay</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">weight_decay</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+<div class="viewcode-block" id="configure_weight_decay"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.optimizer_helper.configure_weight_decay">[docs]</a><span class="k">def</span> <span class="nf">configure_weight_decay</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">weight_decay</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Separating out all parameters of the model into two buckets: those that will experience</span>
@@ -1169,7 +1169,7 @@
         <span class="p">},</span>
     <span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">optim_groups</span>
+    <span class="k">return</span> <span class="n">optim_groups</span></div>
 </pre></div>
 
               </article>

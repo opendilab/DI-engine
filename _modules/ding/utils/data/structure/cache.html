@@ -300,7 +300,7 @@
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">LockContextType</span>
 
 
-<div class="viewcode-block" id="Cache"><a class="viewcode-back" href="../../../../../05_api_doc/utils/data/structure.html#ding.utils.data.structure.cache.Cache">[docs]</a><span class="k">class</span> <span class="nc">Cache</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache">[docs]</a><span class="k">class</span> <span class="nc">Cache</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Data cache for reducing concurrent pressure, with timeout and full queue eject mechanism</span>
@@ -310,7 +310,7 @@
 <span class="sd">        remain_data_count</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Cache.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/utils/data/structure.html#ding.utils.data.structure.cache.Cache.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxlen</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">monitor_interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">_debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache.__init__"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxlen</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">monitor_interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">_debug</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the cache object.</span>
@@ -333,7 +333,7 @@
         <span class="c1"># the bool flag for gracefully shutting down the timeout monitor thread</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_thread_flag</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Cache.push_data"><a class="viewcode-back" href="../../../../../05_api_doc/utils/data/structure.html#ding.utils.data.structure.cache.Cache.push_data">[docs]</a>    <span class="k">def</span> <span class="nf">push_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache.push_data"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache.push_data">[docs]</a>    <span class="k">def</span> <span class="nf">push_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Push data into receive queue, if the receive queue is full(after push), then push all the data</span>
@@ -353,7 +353,7 @@
                     <span class="c1"># Only send raw data to send queue</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receive_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Cache.get_cached_data_iter"><a class="viewcode-back" href="../../../../../05_api_doc/utils/data/structure.html#ding.utils.data.structure.cache.Cache.get_cached_data_iter">[docs]</a>    <span class="k">def</span> <span class="nf">get_cached_data_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;callable_iterator&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<div class="viewcode-block" id="Cache.get_cached_data_iter"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache.get_cached_data_iter">[docs]</a>    <span class="k">def</span> <span class="nf">get_cached_data_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;callable_iterator&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the iterator of the send queue. Once a data is pushed into send queue, it can be accessed by</span>
@@ -363,7 +363,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="s1">&#39;STOP&#39;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_timeout_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache._timeout_monitor"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache._timeout_monitor">[docs]</a>    <span class="k">def</span> <span class="nf">_timeout_monitor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The workflow of the timeout monitor thread.</span>
@@ -379,9 +379,9 @@
                     <span class="c1"># Check the time of the data remains in the receive_queue, if excesses the timeout then returns True</span>
                     <span class="n">is_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_warn_if_timeout</span><span class="p">()</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_timeout</span><span class="p">:</span>
-                        <span class="k">break</span>
+                        <span class="k">break</span></div>
 
-    <span class="k">def</span> <span class="nf">_warn_if_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache._warn_if_timeout"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache._warn_if_timeout">[docs]</a>    <span class="k">def</span> <span class="nf">_warn_if_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return whether is timeout.</span>
@@ -398,16 +398,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receive_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="Cache.run"><a class="viewcode-back" href="../../../../../05_api_doc/utils/data/structure.html#ding.utils.data.structure.cache.Cache.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache.run"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Launch the cache internal thread, e.g. timeout monitor thread.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Cache.close"><a class="viewcode-back" href="../../../../../05_api_doc/utils/data/structure.html#ding.utils.data.structure.cache.Cache.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache.close"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Shut down the cache internal thread and send the end flag to send queue&#39;s iterator.</span>
@@ -415,7 +415,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_timeout_thread_flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;STOP&#39;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">dprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Cache.dprint"><a class="viewcode-back" href="../../../../../05_api_doc/utils.html#ding.utils.data.structure.Cache.dprint">[docs]</a>    <span class="k">def</span> <span class="nf">dprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            In debug mode, print debug str.</span>
@@ -423,7 +423,7 @@
 <span class="sd">            - s (:obj:`str`): Debug info to be printed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[CACHE] &#39;</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[CACHE] &#39;</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">remain_data_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

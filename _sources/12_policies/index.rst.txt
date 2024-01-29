@@ -68,6 +68,7 @@ All pages relative to our algorithms are grouped by category and follow the stru
     td3_bc
     edac
     dt
+    qgpo
     diffuser
 
 .. toctree::

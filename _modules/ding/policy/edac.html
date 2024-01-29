@@ -314,7 +314,7 @@
 <span class="k">class</span> <span class="nc">EDACPolicy</span><span class="p">(</span><span class="n">SACPolicy</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">       Overview:</span>
-<span class="sd">           Policy class of EDAC algorithm. https://arxiv.org/pdf/2110.01548.pdf</span>
+<span class="sd">           Policy class of EDAC algorithm. Paper link: https://arxiv.org/pdf/2110.01548.pdf</span>
 
 <span class="sd">       Config:</span>
 <span class="sd">           == ====================  ========    =============  ================================= =======================</span>
@@ -443,10 +443,23 @@
         <span class="k">return</span> <span class="s1">&#39;edac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.edac&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Learn mode init method. Called by ``self.__init__``.</span>
-<span class="sd">            Init q, value and policy&#39;s optimizers, algorithm config, main and target models.</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For EDAC, in addition \</span>
+<span class="sd">            to the things that need to be initialized in SAC, it is also necessary to additionally define \</span>
+<span class="sd">            eta/with_q_entropy/forward_learn_cnt. \</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_init_learn</span><span class="p">()</span>
         <span class="c1"># EDAC special implementation</span>
@@ -454,7 +467,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_with_q_entropy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">with_q_entropy</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, action, priority.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
+<span class="sd">                training samples. For each element in list, the key of the dict is the name of data items and the \</span>
+<span class="sd">                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \</span>
+<span class="sd">                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \</span>
+<span class="sd">                dimension by some utility functions such as ``default_preprocess_learn``. \</span>
+<span class="sd">                For EDAC, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \</span>
+<span class="sd">                ``logit``, ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys like ``weight``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \</span>
+<span class="sd">                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \</span>
+<span class="sd">                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for EDACPolicy: \</span>
+<span class="sd">            ``ding.policy.tests.test_edac``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">loss_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span>

@@ -306,7 +306,7 @@
 <span class="kn">from</span> <span class="nn">.collate_fn</span> <span class="kn">import</span> <span class="n">default_collate</span>
 
 
-<div class="viewcode-block" id="AsyncDataLoader"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader">[docs]</a><span class="k">class</span> <span class="nc">AsyncDataLoader</span><span class="p">(</span><span class="n">IDataLoader</span><span class="p">):</span>
+<div class="viewcode-block" id="AsyncDataLoader"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader">[docs]</a><span class="k">class</span> <span class="nc">AsyncDataLoader</span><span class="p">(</span><span class="n">IDataLoader</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        An asynchronous dataloader.</span>
@@ -315,7 +315,7 @@
 <span class="sd">            ``_get_data``, ``close``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="AsyncDataLoader.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="AsyncDataLoader.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">data_source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
             <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -428,16 +428,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">cuda_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cuda_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="AsyncDataLoader.__iter__"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader.__iter__">[docs]</a>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the iterable self as an iterator.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - self (:obj:`Iterable`): Self as an iterator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AsyncDataLoader._get_data"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader._get_data">[docs]</a>    <span class="k">def</span> <span class="nf">_get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init dataloader with input parameters. Will run as a thread through ``self.get_data_thread``.</span>
@@ -468,9 +468,9 @@
                     <span class="n">p</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;pass&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">p</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">p</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_async_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AsyncDataLoader._async_loop"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader._async_loop">[docs]</a>    <span class="k">def</span> <span class="nf">_async_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">tm</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Main worker process. Run through ``self.async_process``.</span>
@@ -514,9 +514,9 @@
                     <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">fn</span><span class="p">()</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>  <span class="c1"># Implement functions in list ``data``.</span>
                     <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_worker_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AsyncDataLoader._worker_loop"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader._worker_loop">[docs]</a>    <span class="k">def</span> <span class="nf">_worker_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Worker process. Run through each element in list ``self.worker``.</span>
@@ -574,9 +574,9 @@
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">break</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_cuda_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AsyncDataLoader._cuda_loop"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader._cuda_loop">[docs]</a>    <span class="k">def</span> <span class="nf">_cuda_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Only when using cuda, would this be run as a thread through ``self.cuda_thread``.</span>
@@ -595,9 +595,9 @@
         <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
             <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="AsyncDataLoader.__next__"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader.__next__">[docs]</a>    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return next data in the iterator. If use cuda, get from ``self.cuda_queue``;</span>
@@ -630,7 +630,7 @@
             <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
                 <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">async_train_queue</span><span class="o">.</span><span class="n">join_thread</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -639,7 +639,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<div class="viewcode-block" id="AsyncDataLoader.close"><a class="viewcode-back" href="../../../../05_api_doc/utils/data/dataloader.html#ding.utils.data.dataloader.AsyncDataLoader.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="AsyncDataLoader.close"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.data.dataloader.AsyncDataLoader.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Delete this dataloader. First set ``end_flag`` to True, which means different processes/threads</span>

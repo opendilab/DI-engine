@@ -301,7 +301,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
 
-<span class="k">def</span> <span class="nf">get_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="get_ip"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.get_ip">[docs]</a><span class="k">def</span> <span class="nf">get_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the ``ip(host)`` of socket</span>
@@ -312,26 +312,26 @@
     <span class="n">myname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">())</span>
     <span class="n">myaddr</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostbyname</span><span class="p">(</span><span class="n">myname</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">myaddr</span>
+    <span class="k">return</span> <span class="n">myaddr</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_pid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="get_pid"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.get_pid">[docs]</a><span class="k">def</span> <span class="nf">get_pid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        ``os.getpid``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_task_uid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="get_task_uid"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.get_task_uid">[docs]</a><span class="k">def</span> <span class="nf">get_task_uid</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get the slurm ``job_id``, ``pid`` and ``uid``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())[</span><span class="o">-</span><span class="mi">6</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()),</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())[</span><span class="o">-</span><span class="mi">6</span><span class="p">:])</span></div>
 
 
-<div class="viewcode-block" id="PropagatingThread"><a class="viewcode-back" href="../../../05_api_doc/utils/system_helper.html#ding.utils.system_helper.PropagatingThread">[docs]</a><span class="k">class</span> <span class="nc">PropagatingThread</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
+<div class="viewcode-block" id="PropagatingThread"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.PropagatingThread">[docs]</a><span class="k">class</span> <span class="nc">PropagatingThread</span><span class="p">(</span><span class="n">Thread</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Subclass of Thread that propagates execution exception in the thread to the caller</span>
@@ -345,7 +345,7 @@
 <span class="sd">        &gt;&gt;&gt; t.join()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="PropagatingThread.run"><a class="viewcode-back" href="../../../05_api_doc/utils/system_helper.html#ding.utils.system_helper.PropagatingThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="PropagatingThread.run"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.PropagatingThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Run the thread</span>
@@ -357,7 +357,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">exc</span> <span class="o">=</span> <span class="n">e</span></div>
 
-<div class="viewcode-block" id="PropagatingThread.join"><a class="viewcode-back" href="../../../05_api_doc/utils/system_helper.html#ding.utils.system_helper.PropagatingThread.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="PropagatingThread.join"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.PropagatingThread.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Join the thread</span>
@@ -369,7 +369,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ret</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">find_free_port</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="find_free_port"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.system_helper.find_free_port">[docs]</a><span class="k">def</span> <span class="nf">find_free_port</span><span class="p">(</span><span class="n">host</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Look up the free port list and return one</span>
@@ -378,7 +378,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">))</span> <span class="k">as</span> <span class="n">s</span><span class="p">:</span>
         <span class="n">s</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span></div>
 </pre></div>
 
               </article>

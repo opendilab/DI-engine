@@ -1,0 +1,620 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>QGPO &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="MBPO" href="mbpo_zh.html" />
+  <link rel="prev" title="DT (DecisionTransformer)" href="dt_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>QGPO</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/qgpo_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="qgpo">
+<h1>QGPO<a class="headerlink" href="#qgpo" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Q函数引导的策略优化算法，即 Q-Guided Policy Optimization(QGPO)，是由路橙、陈华玉等等，于2023年在论文 <a class="reference external" href="https://arxiv.org/abs/2304.12824">《Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning》</a> 中提出，
+它是一种基于能量式条件扩散模型的 actor-critic 离线强化学习算法。</p>
+<p>QGPO 算法由三个关键部分组成： <strong>无条件扩散模型的行为策略</strong> 、 <strong>动作状态价值模型</strong> ，以及 <strong>扩散中间态的能量模型</strong> ，它用于引导最优策略的条件扩散模型的生成。</p>
+<p>这三个模型的训练需要通过两个串行的步骤： 首先通过使用离线数据集训练 <strong>无条件扩散模型的行为策略</strong> 直到收敛，随后交替训练 <strong>动作状态价值模型</strong> 与 <strong>扩散中间态的能量模型</strong> 直到收敛。</p>
+<p>训练 <strong>动作状态价值模型</strong> 需要使用基于贝尔曼方程的训练目标。而为了训练 <strong>扩散中间态的能量模型</strong> ，论文提出了能量条件扩散模型的新的训练目标，称之为对比能量预测 (CEP)。CEP 是一种对比学习目标，其关注的是在相同的状态行为搭配之间，最大化能量函数和能量引导的互信息。</p>
+</section>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>QGPO 是一种 <strong>离线</strong> 强化学习算法。</p></li>
+<li><p>QGPO 是一种 <strong>Actor-Critic</strong> 强化学习算法。</p></li>
+<li><p>QGPO 的 <strong>Actor</strong> 是基于无条件扩散模型与中间能量引导方程的能量式条件扩散模型。</p></li>
+<li><p>QGPO 的 <strong>Critic</strong> 是基于能量函数的动作状态值函数。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>使用 Kullback-Leibler 散度作为约束条件，对离线强化学习中的策略进行优化，可得最优策略 <span class="math notranslate nohighlight">\(\pi^*\)</span> 满足：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\pi^*(a|s) \propto \mu(a|s)e^{\beta Q_{\psi}(s,a)}
+\end{aligned}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\mu(a|s)\)</span> 是行为策略， <span class="math notranslate nohighlight">\(Q_{\psi}(s,a)\)</span> 是动作-状态价值函数，<span class="math notranslate nohighlight">\(\beta\)</span> 是温度系数的倒数。</p>
+<p>它可被视为以 <span class="math notranslate nohighlight">\(-Q_{\psi}(s,a)\)</span> 为能量函数， <span class="math notranslate nohighlight">\(\beta\)</span> 为温度系数，关于动作 <span class="math notranslate nohighlight">\(a\)</span> 的 Boltzmann 分布。</p>
+<p>如果以 <span class="math notranslate nohighlight">\(x0\)</span> 代替 <span class="math notranslate nohighlight">\(a\)</span> 写成一般形式，则目标分布为：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+p_0(x_0) \propto q_0(x_0)e^{-\beta \mathcal{E}(x_0)}
+\end{aligned}\]</div>
+<p>该分布可以由基于能量的条件扩散模型建模：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+p_t(x_t) \propto q_t(x_t)e^{-\beta \mathcal{E}_t(x_t)}
+\end{aligned}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(q_t(x_t)\)</span> 是无条件扩散模型， <span class="math notranslate nohighlight">\(\mathcal{E}_t(x_t)\)</span> 是扩散过程中的中间能量。</p>
+<p>如果对扩散模型进行推断，该基于能量的条件扩散模型的得分函数可以计算为：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\nabla_{x_t} \log p_t(x_t) = \nabla_{x_t} \log q_t(x_t) - \beta \nabla_{x_t} \mathcal{E}_t(x_t)
+\end{aligned}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\nabla_{x_t} \log q_t(x_t)\)</span> 是无条件扩散模型的得分函数， <span class="math notranslate nohighlight">\(\nabla_{x_t} \mathcal{E}_t(x_t)\)</span> 是被命名为能量指导的中间能量的得分函数。</p>
+<figure class="align-center">
+<img alt="../_images/qgpo_paper_figure1.png" src="../_images/qgpo_paper_figure1.png" />
+</figure>
+<p>作为基于能量的条件扩散模型的策略，QGPO 包含三个组成部分：无条件扩散模型的行为策略，基于能量函数的动作状态价值函数和中间能量引导函数。</p>
+<p>因此，QGPO 的训练有三个步骤：训练无条件扩散模型，训练能量函数并训练能量引导函数。</p>
+<p>首先，无条件扩散模型通过最小化无条件扩散模型的负对数似然，在离线数据集上进行训练，这转变为最小化无条件扩散模型的得分函数的加权 MSE 损失：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\mathcal{L}_{\theta} = \mathbb{E}_{t,x_0,\epsilon} \left[ \left( \epsilon_{\theta}(x_t,t) - \epsilon \right)^2 \right]
+\end{aligned}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\theta\)</span> 是无条件扩散模型的系数。</p>
+<p>在 QGPO 算法中，关于动作 <span class="math notranslate nohighlight">\(a\)</span> 的无条件扩散模型以状态 <span class="math notranslate nohighlight">\(s\)</span> 作为额外条件，它可以被写为：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\mathcal{L}_{\theta} = \mathbb{E}_{t,s,a,\epsilon} \left[ \left( \epsilon_{\theta}(a_t,s,t) - \epsilon \right)^2 \right]
+\end{aligned}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(x_0\)</span> 是最初状态，<span class="math notranslate nohighlight">\(x_t\)</span> 是扩散过程经过时间 <span class="math notranslate nohighlight">\(t\)</span> 长度后的状态值。</p>
+<p>其次，状态动作值函数可以通过 in-support softmax Q-Learning 方法计算：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+\mathcal{T}Q_{\psi}(s,a) &amp;= r(s,a) + \gamma \mathbb{E}_{s' \sim p(s'|s,a), a' \sim \pi(a'|s')} \left[ Q_{\psi}(s',a') \right] \\
+&amp;\approx r(s,a) + \gamma \frac{\sum_{\hat{a}}{e^{\beta_Q Q_{\psi}(s',\hat{a})}Q_{\psi}(s',\hat{a})}}{\sum_{\hat{a}}{e^{\beta_Q Q_{\psi}(s',\hat{a})}}}
+\end{aligned}\end{split}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\psi\)</span> 是动作状态值函数的参数， <span class="math notranslate nohighlight">\(\hat{a}\)</span> 是从无条件扩散模型采样的动作。</p>
+<p>第三步，能量指导函数通过最小化对比能量预测(CEP)损失进行训练：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\mathcal{L}_{\phi} = \mathbb{E}_{t,s,\epsilon^{1:K},a^{1:K}\sim \mu(a|s)}\left[-\sum_{i=1}^{K}\frac{\exp(\beta Q_{\psi}(a^i,s))}{\sum_{j=1}^{K}\exp(\beta Q_{\psi}(a^j,s))}\log{\frac{\exp(f_{\phi}(a_t^i,s,t))}{\sum_{j=1}^{K}\exp(f_{\phi}(a_t^j,s,t))}}\right]
+\end{aligned}\]</div>
+<p>其中 <span class="math notranslate nohighlight">\(\phi\)</span> 是能量指导函数的参数。</p>
+<p>训练完毕后，QGPO 策略的动作生成是一个以当前状态为条件的扩散模型采样过程，可以通过联合使用无条件扩散模型建模的行为策略，和扩散中间态的能量模型的梯度作为能量引导函数来计算其得分函数：</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\nabla_{a_t} \log p_t(a_t|s) = \nabla_{a_t} \log q_t(a_t|s) - \beta \nabla_{a_t} \mathcal{E}_t(a_t,s)
+\end{aligned}\]</div>
+<p>随后使用 <strong>DPM-Solver</strong> 求解和采样该得分函数建模的扩散模型，得到最优动作：</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+a_0 &amp;= \mathrm{DPMSolver}(\nabla_{a_t} \log p_t(a_t|s), a_1) \\
+a_1 &amp;\sim \mathcal{N}(0, I)
+\end{aligned}\end{split}\]</div>
+</section>
+<section id="id4">
+<h2>实现<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>该策略的默认配置如下：</p>
+<section id="id5">
+<h3>模型<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>支持 <cite>QGPO</cite> 算法的模型具有以下接口格式：</p>
+</section>
+</section>
+<section id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default" id="id11">
+<caption><span class="caption-text">QGPO 算法基线实验与对比</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 30%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>环境</p></th>
+<th class="head"><p>最优平均回报</p></th>
+<th class="head"><p>评估结果</p></th>
+<th class="head"><p>配置链接</p></th>
+<th class="head"><p>对比</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Halfcheetah</div>
+<div class="line">(Medium Expert)</div>
+</div>
+</td>
+<td><p>11226</p></td>
+<td><img alt="../_images/halfcheetah_qgpo.png" src="../_images/halfcheetah_qgpo.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_qgpo_medium_expert_config.py">config_link</a></p></td>
+<td><div class="line-block">
+<div class="line">d3rlpy(12124)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">Walker2d</div>
+<div class="line">(Medium Expert)</div>
+</div>
+</td>
+<td><p>5044</p></td>
+<td><img alt="../_images/walker2d_qgpo.png" src="../_images/walker2d_qgpo.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_qgpo_medium_expert_config.py">config_link</a></p></td>
+<td><div class="line-block">
+<div class="line">d3rlpy(5108)</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">Hopper</div>
+<div class="line">(Medium Expert)</div>
+</div>
+</td>
+<td><p>3823</p></td>
+<td><img alt="../_images/hopper_qgpo.png" src="../_images/hopper_qgpo.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_qgpo_config.py">config_link</a></p></td>
+<td><div class="line-block">
+<div class="line">d3rlpy(3690)</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: D4RL 环境基线实验可以在 <a class="reference external" href="https://github.com/rail-berkeley/d4rl">这里</a> 找到。</p>
+</section>
+<section id="id9">
+<h2>引用<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Lu, Cheng, et al. “Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning.”, 2023; [<a class="reference external" href="https://arxiv.org/abs/2304.12824">https://arxiv.org/abs/2304.12824</a>].</p></li>
+</ul>
+</section>
+<section id="id10">
+<h2>其他开源实现<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/ChenDRAG/CEP-energy-guided-diffusion">Official implementation</a></p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="mbpo_zh.html" class="btn btn-neutral float-right" title="MBPO" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="dt_zh.html" class="btn btn-neutral" title="DT (DecisionTransformer)" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">QGPO</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">核心要点</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
+<li><a class="reference internal" href="#id4">实现</a><ul>
+<li><a class="reference internal" href="#id5">模型</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li><a class="reference internal" href="#id9">引用</a></li>
+<li><a class="reference internal" href="#id10">其他开源实现</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

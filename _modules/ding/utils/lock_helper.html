@@ -305,14 +305,14 @@
     <span class="n">fcntl</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<span class="nd">@unique</span>
+<div class="viewcode-block" id="LockContextType"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContextType">[docs]</a><span class="nd">@unique</span>
 <span class="k">class</span> <span class="nc">LockContextType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Enum to express the type of the lock.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">THREAD_LOCK</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">PROCESS_LOCK</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">PROCESS_LOCK</span> <span class="o">=</span> <span class="mi">2</span></div>
 
 
 <span class="n">_LOCK_TYPE_MAPPING</span> <span class="o">=</span> <span class="p">{</span>
@@ -321,7 +321,7 @@
 <span class="p">}</span>
 
 
-<div class="viewcode-block" id="LockContext"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext">[docs]</a><span class="k">class</span> <span class="nc">LockContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LockContext"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext">[docs]</a><span class="k">class</span> <span class="nc">LockContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Generate a LockContext in order to make sure the thread safety.</span>
@@ -334,7 +334,7 @@
 <span class="sd">        &gt;&gt;&gt;     print(&quot;Do something here.&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LockContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">LockContextType</span> <span class="o">=</span> <span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">):</span>
+<div class="viewcode-block" id="LockContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">LockContextType</span> <span class="o">=</span> <span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the lock according to the given type.</span>
@@ -344,28 +344,28 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">_LOCK_TYPE_MAPPING</span><span class="p">[</span><span class="n">type_</span><span class="p">]()</span></div>
 
-    <span class="k">def</span> <span class="nf">acquire</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="LockContext.acquire"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext.acquire">[docs]</a>    <span class="k">def</span> <span class="nf">acquire</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Acquires the lock.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="LockContext.release"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext.release">[docs]</a>    <span class="k">def</span> <span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Releases the lock.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="LockContext.__enter__"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext.__enter__">[docs]</a>    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Enters the context and acquires the lock.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
 
-<div class="viewcode-block" id="LockContext.__exit__"><a class="viewcode-back" href="../../../05_api_doc/utils/lock_helper.html#ding.utils.lock_helper.LockContext.__exit__">[docs]</a>    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Exits the context and releases the lock.</span>
@@ -373,13 +373,13 @@
 <span class="sd">            - args (:obj:`Tuple`): The arguments passed to the ``__exit__`` function.</span>
 <span class="sd">            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span></div>
 
 
 <span class="n">rw_lock_mapping</span> <span class="o">=</span> <span class="p">{}</span>
 
 
-<span class="k">def</span> <span class="nf">get_rw_file_lock</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="get_rw_file_lock"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.get_rw_file_lock">[docs]</a><span class="k">def</span> <span class="nf">get_rw_file_lock</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get generated file lock with name and operator</span>
@@ -403,10 +403,10 @@
     <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;read&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">lock</span><span class="o">.</span><span class="n">gen_rlock</span><span class="p">()</span>
     <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;write&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">lock</span><span class="o">.</span><span class="n">gen_wlock</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">lock</span><span class="o">.</span><span class="n">gen_wlock</span><span class="p">()</span></div>
 
 
-<span class="k">class</span> <span class="nc">FcntlContext</span><span class="p">:</span>
+<div class="viewcode-block" id="FcntlContext"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.FcntlContext">[docs]</a><span class="k">class</span> <span class="nc">FcntlContext</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A context manager that acquires an exclusive lock on a file using fcntl. \</span>
@@ -422,7 +422,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lock_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="FcntlContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.FcntlContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lock_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the LockHelper object.</span>
@@ -431,7 +431,7 @@
 <span class="sd">            - lock_path (:obj:`str`): The path to the lock file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lock_path</span> <span class="o">=</span> <span class="n">lock_path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="kc">None</span></div>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -452,10 +452,10 @@
 <span class="sd">            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_file_lock</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FcntlContext</span><span class="p">:</span>
+<div class="viewcode-block" id="get_file_lock"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.get_file_lock">[docs]</a><span class="k">def</span> <span class="nf">get_file_lock</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">op</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FcntlContext</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Acquires a file lock for the specified file. \</span>
@@ -473,7 +473,7 @@
                 <span class="n">Path</span><span class="p">(</span><span class="n">lock_name</span><span class="p">)</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">FcntlContext</span><span class="p">(</span><span class="n">lock_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">FcntlContext</span><span class="p">(</span><span class="n">lock_name</span><span class="p">)</span></div>
 </pre></div>
 
               </article>

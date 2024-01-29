@@ -303,7 +303,7 @@
 <span class="kn">from</span> <span class="nn">.normalization</span> <span class="kn">import</span> <span class="n">build_normalization</span>
 
 
-<span class="k">def</span> <span class="nf">weight_init_</span><span class="p">(</span><span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">init_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;xavier&quot;</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="weight_init_"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.weight_init_">[docs]</a><span class="k">def</span> <span class="nf">weight_init_</span><span class="p">(</span><span class="n">weight</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">init_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;xavier&quot;</span><span class="p">,</span> <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Initialize weight according to the specified type.</span>
@@ -334,10 +334,10 @@
     <span class="k">if</span> <span class="n">init_type</span> <span class="ow">in</span> <span class="n">init_type_dict</span><span class="p">:</span>
         <span class="n">init_type_dict</span><span class="p">[</span><span class="n">init_type</span><span class="p">](</span><span class="n">weight</span><span class="p">,</span> <span class="n">activation</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Invalid Value in init type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">init_type</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Invalid Value in init type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">init_type</span><span class="p">))</span></div>
 
 
-<span class="k">def</span> <span class="nf">sequential_pack</span><span class="p">(</span><span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
+<div class="viewcode-block" id="sequential_pack"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.sequential_pack">[docs]</a><span class="k">def</span> <span class="nf">sequential_pack</span><span class="p">(</span><span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Pack the layers in the input list to a `nn.Sequential` module.</span>
@@ -357,10 +357,10 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv1d</span><span class="p">):</span>
             <span class="n">seq</span><span class="o">.</span><span class="n">out_channels</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">out_channels</span>
             <span class="k">break</span>
-    <span class="k">return</span> <span class="n">seq</span>
+    <span class="k">return</span> <span class="n">seq</span></div>
 
 
-<span class="k">def</span> <span class="nf">conv1d_block</span><span class="p">(</span>
+<div class="viewcode-block" id="conv1d_block"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.conv1d_block">[docs]</a><span class="k">def</span> <span class="nf">conv1d_block</span><span class="p">(</span>
         <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -398,10 +398,10 @@
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">conv2d_block</span><span class="p">(</span>
+<div class="viewcode-block" id="conv2d_block"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.conv2d_block">[docs]</a><span class="k">def</span> <span class="nf">conv2d_block</span><span class="p">(</span>
         <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -479,10 +479,10 @@
 
     <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">deconv2d_block</span><span class="p">(</span>
+<div class="viewcode-block" id="deconv2d_block"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.deconv2d_block">[docs]</a><span class="k">def</span> <span class="nf">deconv2d_block</span><span class="p">(</span>
         <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -530,10 +530,10 @@
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">build_normalization</span><span class="p">(</span><span class="n">norm_type</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)(</span><span class="n">out_channels</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">activation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">fc_block</span><span class="p">(</span>
+<div class="viewcode-block" id="fc_block"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.fc_block">[docs]</a><span class="k">def</span> <span class="nf">fc_block</span><span class="p">(</span>
         <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -569,10 +569,10 @@
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">use_dropout</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_probability</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">normed_linear</span><span class="p">(</span>
+<div class="viewcode-block" id="normed_linear"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.normed_linear">[docs]</a><span class="k">def</span> <span class="nf">normed_linear</span><span class="p">(</span>
         <span class="n">in_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">out_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -599,10 +599,10 @@
     <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">bias</span><span class="p">:</span>
         <span class="n">out</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">out</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 
-<span class="k">def</span> <span class="nf">normed_conv2d</span><span class="p">(</span>
+<div class="viewcode-block" id="normed_conv2d"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.normed_conv2d">[docs]</a><span class="k">def</span> <span class="nf">normed_conv2d</span><span class="p">(</span>
         <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kernel_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
@@ -652,10 +652,10 @@
     <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span> <span class="o">*=</span> <span class="n">scale</span> <span class="o">/</span> <span class="n">out</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">bias</span><span class="p">:</span>
         <span class="n">out</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">out</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 
-<span class="k">def</span> <span class="nf">MLP</span><span class="p">(</span>
+<div class="viewcode-block" id="MLP"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.MLP">[docs]</a><span class="k">def</span> <span class="nf">MLP</span><span class="p">(</span>
     <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">hidden_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -743,10 +743,10 @@
                 <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
                 <span class="k">break</span>
 
-    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ChannelShuffle"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.ChannelShuffle">[docs]</a><span class="k">class</span> <span class="nc">ChannelShuffle</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="ChannelShuffle"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.ChannelShuffle">[docs]</a><span class="k">class</span> <span class="nc">ChannelShuffle</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Apply channel shuffle to the input tensor. For more details about the channel shuffle,</span>
@@ -755,7 +755,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ChannelShuffle.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.ChannelShuffle.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the ChannelShuffle class.</span>
@@ -763,9 +763,9 @@
 <span class="sd">            - group_num (:obj:`int`): The number of groups to exchange.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">group_num</span> <span class="o">=</span> <span class="n">group_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_num</span> <span class="o">=</span> <span class="n">group_num</span></div>
 
-<div class="viewcode-block" id="ChannelShuffle.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.ChannelShuffle.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="ChannelShuffle.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.ChannelShuffle.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward pass through the ChannelShuffle module.</span>
@@ -781,7 +781,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">one_hot</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
+<div class="viewcode-block" id="one_hot"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.one_hot">[docs]</a><span class="k">def</span> <span class="nf">one_hot</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert a torch.LongTensor to one-hot encoding. This implementation can be slightly faster than</span>
@@ -830,10 +830,10 @@
     <span class="k">if</span> <span class="n">num_first</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ret</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="o">*</span><span class="n">old_shape</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">ret</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">old_shape</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">old_shape</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="NearestUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NearestUpsample">[docs]</a><span class="k">class</span> <span class="nc">NearestUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="NearestUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NearestUpsample">[docs]</a><span class="k">class</span> <span class="nc">NearestUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        This module upsamples the input to the given scale_factor using the nearest mode.</span>
@@ -841,7 +841,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="NearestUpsample.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NearestUpsample.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the NearestUpsample class.</span>
@@ -849,9 +849,9 @@
 <span class="sd">            - scale_factor (:obj:`Union[float, List[float]]`): The multiplier for the spatial size.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NearestUpsample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span></div>
 
-<div class="viewcode-block" id="NearestUpsample.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NearestUpsample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="NearestUpsample.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NearestUpsample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">         Overview:</span>
 <span class="sd">             Return the upsampled input tensor.</span>
@@ -863,7 +863,7 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="BilinearUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.BilinearUpsample">[docs]</a><span class="k">class</span> <span class="nc">BilinearUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="BilinearUpsample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.BilinearUpsample">[docs]</a><span class="k">class</span> <span class="nc">BilinearUpsample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        This module upsamples the input to the given scale_factor using the bilinear mode.</span>
@@ -871,7 +871,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BilinearUpsample.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.BilinearUpsample.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_factor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the BilinearUpsample class.</span>
@@ -879,9 +879,9 @@
 <span class="sd">            - scale_factor (:obj:`Union[float, List[float]]`): The multiplier for the spatial size.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BilinearUpsample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span></div>
 
-<div class="viewcode-block" id="BilinearUpsample.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.BilinearUpsample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="BilinearUpsample.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.BilinearUpsample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Return the upsampled input tensor.</span>
@@ -893,7 +893,7 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">binary_encode</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="binary_encode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.binary_encode">[docs]</a><span class="k">def</span> <span class="nf">binary_encode</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Convert elements in a tensor to its binary representation.</span>
@@ -917,10 +917,10 @@
         <span class="n">bit</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">num</span><span class="p">,</span> <span class="n">one</span><span class="p">,</span> <span class="n">zero</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">-=</span> <span class="n">bit</span> <span class="o">*</span> <span class="n">num</span>
         <span class="n">binary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bit</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="NoiseLinearLayer"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer">[docs]</a><span class="k">class</span> <span class="nc">NoiseLinearLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="NoiseLinearLayer"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NoiseLinearLayer">[docs]</a><span class="k">class</span> <span class="nc">NoiseLinearLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        This is a linear layer with random noise.</span>
@@ -928,7 +928,7 @@
 <span class="sd">        ``__init__``, ``reset_noise``, ``reset_parameters``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sigma0</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="NoiseLinearLayer.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sigma0</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the NoiseLinearLayer class.</span>
@@ -949,9 +949,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s2">&quot;bias_eps&quot;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">out_channels</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sigma0</span> <span class="o">=</span> <span class="n">sigma0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset_parameters</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reset_noise</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_noise</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_scale_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">]):</span>
+<div class="viewcode-block" id="NoiseLinearLayer._scale_noise"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NoiseLinearLayer._scale_noise">[docs]</a>    <span class="k">def</span> <span class="nf">_scale_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Scale the noise.</span>
@@ -961,9 +961,9 @@
 
         <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">sign</span><span class="p">()</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">sqrt</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="n">x</span></div>
 
-<div class="viewcode-block" id="NoiseLinearLayer.reset_noise"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise">[docs]</a>    <span class="k">def</span> <span class="nf">reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NoiseLinearLayer.reset_noise"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise">[docs]</a>    <span class="k">def</span> <span class="nf">reset_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">         Overview:</span>
 <span class="sd">             Reset the noise settings in the layer.</span>
@@ -974,7 +974,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">weight_eps</span> <span class="o">=</span> <span class="n">out_noise</span><span class="o">.</span><span class="n">ger</span><span class="p">(</span><span class="n">in_noise</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bias_eps</span> <span class="o">=</span> <span class="n">out_noise</span></div>
 
-<div class="viewcode-block" id="NoiseLinearLayer.reset_parameters"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">reset_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NoiseLinearLayer.reset_parameters"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">reset_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Reset the parameters in the layer.</span>
@@ -988,7 +988,7 @@
         <span class="n">std_bias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_channels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bias_sigma</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="n">std_bias</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NoiseLinearLayer.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<div class="viewcode-block" id="NoiseLinearLayer.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NoiseLinearLayer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Perform the forward pass with noise.</span>
@@ -1007,7 +1007,7 @@
             <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_mu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias_mu</span><span class="p">)</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">noise_block</span><span class="p">(</span>
+<div class="viewcode-block" id="noise_block"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.noise_block">[docs]</a><span class="k">def</span> <span class="nf">noise_block</span><span class="p">(</span>
     <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">activation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1040,10 +1040,10 @@
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">use_dropout</span><span class="p">:</span>
         <span class="n">block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_probability</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sequential_pack</span><span class="p">(</span><span class="n">block</span><span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">NaiveFlatten</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<div class="viewcode-block" id="NaiveFlatten"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NaiveFlatten">[docs]</a><span class="k">class</span> <span class="nc">NaiveFlatten</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        This module is a naive implementation of the flatten operation.</span>
@@ -1051,7 +1051,7 @@
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">end_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="NaiveFlatten.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NaiveFlatten.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">end_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize the NaiveFlatten class.</span>
@@ -1061,9 +1061,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NaiveFlatten</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">start_dim</span> <span class="o">=</span> <span class="n">start_dim</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">end_dim</span> <span class="o">=</span> <span class="n">end_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_dim</span> <span class="o">=</span> <span class="n">end_dim</span></div>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<div class="viewcode-block" id="NaiveFlatten.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.nn_module.NaiveFlatten.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Perform the flatten operation on the input tensor.</span>
@@ -1075,7 +1075,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_dim</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">start_dim</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">end_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">start_dim</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">start_dim</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="n">torch_ge_131</span><span class="p">():</span>

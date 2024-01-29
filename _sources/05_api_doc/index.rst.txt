@@ -10,12 +10,12 @@ API Doc
     model
     policy
     rl_utils
-    torch_utils/index
+    torch_utils
+    utils
 
     framework/index
     data/index
     
-    utils/index
     
     worker/learner/index
     worker/collector/index

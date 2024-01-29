@@ -304,7 +304,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;default_logger&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">build_checkpoint_helper</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
+<div class="viewcode-block" id="build_checkpoint_helper"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.build_checkpoint_helper">[docs]</a><span class="k">def</span> <span class="nf">build_checkpoint_helper</span><span class="p">(</span><span class="n">cfg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Use config to build checkpoint helper.</span>
@@ -313,10 +313,10 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        - (:obj:`CheckpointHelper`): checkpoint_helper created by this function</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">CheckpointHelper</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">CheckpointHelper</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="CheckpointHelper"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CheckpointHelper">[docs]</a><span class="k">class</span> <span class="nc">CheckpointHelper</span><span class="p">:</span>
+<div class="viewcode-block" id="CheckpointHelper"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper">[docs]</a><span class="k">class</span> <span class="nc">CheckpointHelper</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Help to save or load checkpoint by give args.</span>
@@ -324,10 +324,10 @@
 <span class="sd">        ``__init__``, ``save``, ``load``, ``_remove_prefix``, ``_add_prefix``, ``_load_matched_model_state_dict``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
+<div class="viewcode-block" id="CheckpointHelper.__init__"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="nf">_remove_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;module.&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="CheckpointHelper._remove_prefix"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper._remove_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">_remove_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;module.&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Remove prefix in state_dict</span>
@@ -344,9 +344,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">new_k</span> <span class="o">=</span> <span class="n">k</span>
             <span class="n">new_state_dict</span><span class="p">[</span><span class="n">new_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-        <span class="k">return</span> <span class="n">new_state_dict</span>
+        <span class="k">return</span> <span class="n">new_state_dict</span></div>
 
-    <span class="k">def</span> <span class="nf">_add_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;module.&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="CheckpointHelper._add_prefix"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper._add_prefix">[docs]</a>    <span class="k">def</span> <span class="nf">_add_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;module.&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Add prefix in state_dict</span>
@@ -356,9 +356,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - (:obj:`dict`): new state_dict after adding prefix</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
-<div class="viewcode-block" id="CheckpointHelper.save"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CheckpointHelper.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span>
+<div class="viewcode-block" id="CheckpointHelper.save"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
             <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -412,7 +412,7 @@
         <span class="n">save_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;save checkpoint in </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">_load_matched_model_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ckpt_state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CheckpointHelper._load_matched_model_state_dict"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper._load_matched_model_state_dict">[docs]</a>    <span class="k">def</span> <span class="nf">_load_matched_model_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ckpt_state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load matched model state_dict, and show mismatch keys between model&#39;s state_dict and checkpoint&#39;s state_dict</span>
@@ -444,9 +444,9 @@
 
         <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="n">diff</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="CheckpointHelper.load"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CheckpointHelper.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span>
+<div class="viewcode-block" id="CheckpointHelper.load"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CheckpointHelper.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">load_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -547,7 +547,7 @@
             <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
-<div class="viewcode-block" id="CountVar"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CountVar">[docs]</a><span class="k">class</span> <span class="nc">CountVar</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="CountVar"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CountVar">[docs]</a><span class="k">class</span> <span class="nc">CountVar</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Number counter</span>
@@ -557,7 +557,7 @@
 <span class="sd">        - val (:obj:`int`): the value of the counter</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CountVar.__init__"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CountVar.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the var counter</span>
@@ -565,7 +565,7 @@
 <span class="sd">            - init_val (:obj:`int`): the init value of the counter</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">init_val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">init_val</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">val</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -576,7 +576,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span>
 
-<div class="viewcode-block" id="CountVar.update"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CountVar.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CountVar.update"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CountVar.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update the var counter</span>
@@ -585,7 +585,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">val</span></div>
 
-<div class="viewcode-block" id="CountVar.add"><a class="viewcode-back" href="../../../05_api_doc/torch_utils/checkpoint_helper.html#ding.torch_utils.checkpoint_helper.CountVar.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="CountVar.add"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.CountVar.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Add the number to counter</span>
@@ -595,7 +595,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">+=</span> <span class="n">add_num</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">auto_checkpoint</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="auto_checkpoint"><a class="viewcode-back" href="../../../05_api_doc/torch_utils.html#ding.torch_utils.checkpoint_helper.auto_checkpoint">[docs]</a><span class="k">def</span> <span class="nf">auto_checkpoint</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a wrapper to wrap function, and the wrapper will call the save_checkpoint method</span>
@@ -637,7 +637,7 @@
             <span class="n">handle</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span><span class="s1">&#39;ckpt_exception.pth.tar&#39;</span><span class="p">)</span>
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">wrapper</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
 </pre></div>
 
               </article>

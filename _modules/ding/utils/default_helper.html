@@ -302,7 +302,7 @@
 <span class="kn">import</span> <span class="nn">treetensor.torch</span> <span class="k">as</span> <span class="nn">ttorch</span>
 
 
-<span class="k">def</span> <span class="nf">get_shape0</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="get_shape0"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.get_shape0">[docs]</a><span class="k">def</span> <span class="nf">get_shape0</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">ttorch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Get shape[0] of data&#39;s torch tensor or treetensor</span>
@@ -329,10 +329,10 @@
 
         <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Error in getting shape0, not support type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Error in getting shape0, not support type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 
-<span class="k">def</span> <span class="nf">lists_to_dicts</span><span class="p">(</span>
+<div class="viewcode-block" id="lists_to_dicts"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.lists_to_dicts">[docs]</a><span class="k">def</span> <span class="nf">lists_to_dicts</span><span class="p">(</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">]],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">NamedTuple</span><span class="p">]]],</span>
         <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">],</span> <span class="n">NamedTuple</span><span class="p">]:</span>
@@ -367,10 +367,10 @@
         <span class="n">new_data</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data</span><span class="p">)))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;not support element type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
-    <span class="k">return</span> <span class="n">new_data</span>
+    <span class="k">return</span> <span class="n">new_data</span></div>
 
 
-<span class="k">def</span> <span class="nf">dicts_to_lists</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
+<div class="viewcode-block" id="dicts_to_lists"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.dicts_to_lists">[docs]</a><span class="k">def</span> <span class="nf">dicts_to_lists</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">object</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transform a dict of lists to a list of dicts.</span>
@@ -388,10 +388,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">new_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
     <span class="n">new_data</span> <span class="o">=</span> <span class="p">[{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">t</span><span class="p">)}</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">new_data</span><span class="p">))]</span>
-    <span class="k">return</span> <span class="n">new_data</span>
+    <span class="k">return</span> <span class="n">new_data</span></div>
 
 
-<span class="k">def</span> <span class="nf">override</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span>
+<div class="viewcode-block" id="override"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.override">[docs]</a><span class="k">def</span> <span class="nf">override</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span>
         <span class="n">Callable</span><span class="p">,</span>
 <span class="p">],</span> <span class="n">Callable</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -408,10 +408,10 @@
             <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not override any method of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="bp">cls</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">method</span>
 
-    <span class="k">return</span> <span class="n">check_override</span>
+    <span class="k">return</span> <span class="n">check_override</span></div>
 
 
-<span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<div class="viewcode-block" id="squeeze"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.squeeze">[docs]</a><span class="k">def</span> <span class="nf">squeeze</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Squeeze data from tuple, list or dict to single object</span>
@@ -431,13 +431,13 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">data</span>
+    <span class="k">return</span> <span class="n">data</span></div>
 
 
 <span class="n">default_get_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">default_get</span><span class="p">(</span>
+<div class="viewcode-block" id="default_get"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.default_get">[docs]</a><span class="k">def</span> <span class="nf">default_get</span><span class="p">(</span>
         <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">default_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -472,10 +472,10 @@
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_get_set</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> use default value </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
             <span class="n">default_get_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">value</span></div>
 
 
-<span class="k">def</span> <span class="nf">list_split</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
+<div class="viewcode-block" id="list_split"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.list_split">[docs]</a><span class="k">def</span> <span class="nf">list_split</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">list</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Split list of data by step.</span>
@@ -502,10 +502,10 @@
         <span class="n">residual</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">divide_num</span> <span class="o">*</span> <span class="n">step</span><span class="p">:]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">residual</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">ret</span><span class="p">,</span> <span class="n">residual</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">,</span> <span class="n">residual</span></div>
 
 
-<span class="k">def</span> <span class="nf">error_wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">default_ret</span><span class="p">,</span> <span class="n">warning_msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="error_wrapper"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.error_wrapper">[docs]</a><span class="k">def</span> <span class="nf">error_wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">default_ret</span><span class="p">,</span> <span class="n">warning_msg</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        wrap the function, so that any Exception in the function will be catched and return the default_ret</span>
@@ -531,10 +531,10 @@
                 <span class="n">one_time_warning</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">default_ret = </span><span class="si">{}</span><span class="se">\t</span><span class="s2">error = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">default_ret</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">ret</span>
 
-    <span class="k">return</span> <span class="n">wrapper</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
-<div class="viewcode-block" id="LimitedSpaceContainer"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer">[docs]</a><span class="k">class</span> <span class="nc">LimitedSpaceContainer</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer">[docs]</a><span class="k">class</span> <span class="nc">LimitedSpaceContainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A space simulator.</span>
@@ -542,7 +542,7 @@
 <span class="sd">        ``__init__``, ``get_residual_space``, ``release_space``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LimitedSpaceContainer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Set ``min_val`` and ``max_val`` of the container, also set ``cur`` to ``min_val`` for initialization.</span>
@@ -555,7 +555,7 @@
         <span class="k">assert</span> <span class="p">(</span><span class="n">max_val</span> <span class="o">&gt;=</span> <span class="n">min_val</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span></div>
 
-<div class="viewcode-block" id="LimitedSpaceContainer.get_residual_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.get_residual_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_residual_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer.get_residual_space"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer.get_residual_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_residual_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get all residual pieces of space. Set ``cur`` to ``max_val``</span>
@@ -566,7 +566,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="LimitedSpaceContainer.acquire_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.acquire_space">[docs]</a>    <span class="k">def</span> <span class="nf">acquire_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer.acquire_space"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer.acquire_space">[docs]</a>    <span class="k">def</span> <span class="nf">acquire_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Try to get one pice of space. If there is one, return True; Otherwise return False.</span>
@@ -579,21 +579,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="LimitedSpaceContainer.release_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.release_space">[docs]</a>    <span class="k">def</span> <span class="nf">release_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer.release_space"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer.release_space">[docs]</a>    <span class="k">def</span> <span class="nf">release_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Release only one piece of space. Decrement ``cur``, but ensure it won&#39;t be negative.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="LimitedSpaceContainer.increase_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.increase_space">[docs]</a>    <span class="k">def</span> <span class="nf">increase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer.increase_space"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer.increase_space">[docs]</a>    <span class="k">def</span> <span class="nf">increase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Increase one piece in space. Increment ``max_val``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
-<div class="viewcode-block" id="LimitedSpaceContainer.decrease_space"><a class="viewcode-back" href="../../../05_api_doc/utils/default_helper.html#ding.utils.default_helper.LimitedSpaceContainer.decrease_space">[docs]</a>    <span class="k">def</span> <span class="nf">decrease_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="LimitedSpaceContainer.decrease_space"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.LimitedSpaceContainer.decrease_space">[docs]</a>    <span class="k">def</span> <span class="nf">decrease_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Decrease one piece in space. Decrement ``max_val``.</span>
@@ -601,7 +601,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">max_val</span> <span class="o">-=</span> <span class="mi">1</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">deep_merge_dicts</span><span class="p">(</span><span class="n">original</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="deep_merge_dicts"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.deep_merge_dicts">[docs]</a><span class="k">def</span> <span class="nf">deep_merge_dicts</span><span class="p">(</span><span class="n">original</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Merge two dicts by calling ``deep_update``</span>
@@ -616,10 +616,10 @@
     <span class="n">merged</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">original</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">new_dict</span><span class="p">:</span>  <span class="c1"># if new_dict is neither empty dict nor None</span>
         <span class="n">deep_update</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">[])</span>
-    <span class="k">return</span> <span class="n">merged</span>
+    <span class="k">return</span> <span class="n">merged</span></div>
 
 
-<span class="k">def</span> <span class="nf">deep_update</span><span class="p">(</span>
+<div class="viewcode-block" id="deep_update"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.deep_update">[docs]</a><span class="k">def</span> <span class="nf">deep_update</span><span class="p">(</span>
     <span class="n">original</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="n">new_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="n">new_keys_allowed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -672,10 +672,10 @@
         <span class="c1"># Override entire value.</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">original</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="k">return</span> <span class="n">original</span>
+    <span class="k">return</span> <span class="n">original</span></div>
 
 
-<span class="k">def</span> <span class="nf">flatten_dict</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="flatten_dict"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.flatten_dict">[docs]</a><span class="k">def</span> <span class="nf">flatten_dict</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">delimiter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Flatten the dict, see example</span>
@@ -702,10 +702,10 @@
         <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">add</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">remove</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">data</span>
+    <span class="k">return</span> <span class="n">data</span></div>
 
 
-<span class="k">def</span> <span class="nf">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_cuda</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="set_pkg_seed"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.set_pkg_seed">[docs]</a><span class="k">def</span> <span class="nf">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_cuda</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Side effect function to set seed for ``random``, ``numpy random``, and ``torch&#39;s manual seed``.\</span>
@@ -729,10 +729,10 @@
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">use_cuda</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span></div>
 
 
-<span class="nd">@lru_cache</span><span class="p">()</span>
+<div class="viewcode-block" id="one_time_warning"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.one_time_warning">[docs]</a><span class="nd">@lru_cache</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">one_time_warning</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -741,10 +741,10 @@
 <span class="sd">        - warning_msg (:obj:`str`): Warning message.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">split_fn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+<div class="viewcode-block" id="split_fn"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.split_fn">[docs]</a><span class="k">def</span> <span class="nf">split_fn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Split data by indices</span>
@@ -764,10 +764,10 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">data</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]]</span></div>
 
 
-<span class="k">def</span> <span class="nf">split_data_generator</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">split_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<div class="viewcode-block" id="split_data_generator"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.split_data_generator">[docs]</a><span class="k">def</span> <span class="nf">split_data_generator</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">split_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Split data into batches</span>
@@ -808,10 +808,10 @@
         <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="n">split_size</span> <span class="o">&gt;</span> <span class="n">length</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="n">length</span> <span class="o">-</span> <span class="n">split_size</span>
         <span class="n">batch</span> <span class="o">=</span> <span class="n">split_fn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">split_size</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">batch</span>
+        <span class="k">yield</span> <span class="n">batch</span></div>
 
 
-<span class="k">class</span> <span class="nc">RunningMeanStd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="RunningMeanStd"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.RunningMeanStd">[docs]</a><span class="k">class</span> <span class="nc">RunningMeanStd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Wrapper to update new variable, new mean, and new count</span>
@@ -821,7 +821,7 @@
 <span class="sd">        - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">device</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">)):</span>
+<div class="viewcode-block" id="RunningMeanStd.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.RunningMeanStd.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">device</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cpu&#39;</span><span class="p">)):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate  \</span>
@@ -835,9 +835,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="n">shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="n">device</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="RunningMeanStd.update"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.RunningMeanStd.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Update mean, variable, and count</span>
@@ -858,9 +858,9 @@
         <span class="n">new_var</span> <span class="o">=</span> <span class="n">m2</span> <span class="o">/</span> <span class="n">new_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="n">new_mean</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">new_var</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="n">new_count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="n">new_count</span></div>
 
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RunningMeanStd.reset"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.RunningMeanStd.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties: ``_mean``, ``_var``, ``_count``</span>
@@ -870,7 +870,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="s1">&#39;float32&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_var</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -895,7 +895,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">std</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
 
-    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="RunningMeanStd.new_shape"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.RunningMeanStd.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -905,10 +905,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
+        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
 
 
-<span class="k">def</span> <span class="nf">make_key_as_identifier</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="make_key_as_identifier"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.make_key_as_identifier">[docs]</a><span class="k">def</span> <span class="nf">make_key_as_identifier</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Make the key of dict into legal python identifier string so that it is</span>
@@ -928,10 +928,10 @@
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
         <span class="n">new_k</span> <span class="o">=</span> <span class="n">legalization</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
         <span class="n">new_data</span><span class="p">[</span><span class="n">new_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">new_data</span>
+    <span class="k">return</span> <span class="n">new_data</span></div>
 
 
-<span class="k">def</span> <span class="nf">remove_illegal_item</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="remove_illegal_item"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.default_helper.remove_illegal_item">[docs]</a><span class="k">def</span> <span class="nf">remove_illegal_item</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Remove illegal item in dict info, like str, which is not compatible with Tensor.</span>
@@ -945,7 +945,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">new_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">new_data</span>
+    <span class="k">return</span> <span class="n">new_data</span></div>
 </pre></div>
 
               </article>
