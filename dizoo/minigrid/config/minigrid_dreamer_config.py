@@ -33,7 +33,7 @@ minigrid_dreamer_config = dict(
             # encoder_hidden_size_list=[256, 128, 64, 64],
             # critic_head_hidden_size=64,
             # actor_head_hidden_size=64,
-            actor_dist = 'onehot',
+            actor_dist='onehot',
         ),
         learn=dict(
             lambda_=0.95,
@@ -59,7 +59,7 @@ minigrid_dreamer_config = dict(
     ),
     world_model=dict(
         pretrain=100,
-        train_freq=2, 
+        train_freq=2,
         cuda=cuda,
         model=dict(
             state_size=1344,
@@ -69,12 +69,6 @@ minigrid_dreamer_config = dict(
             reward_size=1,
             batch_size=16,
         ),
-        # model=dict(
-        #     state_size=(3, 64, 64),  # has to be specified
-        #     action_size=6,  # has to be specified
-        #     reward_size=1,
-        #     batch_size=16,
-        # ),
     ),
 )
 

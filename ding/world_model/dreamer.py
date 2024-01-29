@@ -119,7 +119,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             feat_size = self._cfg.dyn_stoch * self._cfg.dyn_discrete + self._cfg.dyn_deter
         else:
             feat_size = self._cfg.dyn_stoch + self._cfg.dyn_deter
-        
+
         if type(self.state_size) == int or len(self.state_size) == 1:
             self.heads['image'] = DenseHead(
                 feat_size,
@@ -201,6 +201,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         if self.action_type == 'continuous':
             data['action'] *= (1.0 / torch.clip(torch.abs(data['action']), min=1.0))
         else:
+
             def make_one_hot(x, num_classes):
                 """Convert class index tensor to one hot encoding tensor.
                 Args:
@@ -215,6 +216,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
                 res = torch.zeros(shape).to(x)
                 res = res.scatter_(-1, x, 1)
                 return res.float()
+
             data['action'] = make_one_hot(data['action'], self.action_size)
         data = to_device(data, self._cfg.device)
         if len(data['reward'].shape) == 2:

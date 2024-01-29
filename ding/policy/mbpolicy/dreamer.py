@@ -249,7 +249,7 @@ class DREAMERPolicy(Policy):
 
         state = (latent, action)
         if world_model.action_type == 'discrete':
-            action = torch.where(action==1)[1]
+            action = torch.where(action == 1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
 
         if self._cuda:
@@ -278,7 +278,7 @@ class DREAMERPolicy(Policy):
             # TODO(zp) random_collect just have action
             #'logprob': model_output['logprob'],
             'reward': timestep.reward,
-            'discount': 1. - timestep.done, # timestep.info['discount'],
+            'discount': 1. - timestep.done,  # timestep.info['discount'],
             'done': timestep.done,
         }
         return transition
@@ -329,7 +329,7 @@ class DREAMERPolicy(Policy):
 
         state = (latent, action)
         if world_model.action_type == 'discrete':
-            action = torch.where(action==1)[1]
+            action = torch.where(action == 1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
 
         if self._cuda:

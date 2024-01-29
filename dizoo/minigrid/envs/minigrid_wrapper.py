@@ -6,6 +6,7 @@ import operator
 from functools import reduce
 from minigrid.core.constants import COLOR_TO_IDX, OBJECT_TO_IDX, STATE_TO_IDX
 
+
 class ViewSizeWrapper(ObservationWrapper):
     """
     Wrapper to customize the agent field of view size.
@@ -35,6 +36,7 @@ class ViewSizeWrapper(ObservationWrapper):
         # print('vis_mask:' + vis_mask)
         image = grid.encode(vis_mask)
         return {**obs, "image": image}
+
 
 class MoveBonus(Wrapper):
     """
@@ -71,15 +73,19 @@ class MoveBonus(Wrapper):
         super().__init__(env)
         self.goal_pos = (self.width - 2, self.height - 2)
         self.scale = np.sqrt(self.width ** 2 + self.height ** 2)
-        
+
     def step(self, action):
         """Steps through the environment with `action`."""
 
-        cur_dis = np.sqrt((self.goal_pos[0] - self.env.agent_pos[0])**2 + (self.goal_pos[1] - self.env.agent_pos[1])**2)
+        cur_dis = np.sqrt(
+            (self.goal_pos[0] - self.env.agent_pos[0]) ** 2 + (self.goal_pos[1] - self.env.agent_pos[1]) ** 2
+        )
         obs, reward, terminated, truncated, info = self.env.step(action)
-        tmp_dis = np.sqrt((self.goal_pos[0] - self.env.agent_pos[0])**2 + (self.goal_pos[1] - self.env.agent_pos[1])**2)
-        
-        move_bonus = (cur_dis - tmp_dis)/self.scale
+        tmp_dis = np.sqrt(
+            (self.goal_pos[0] - self.env.agent_pos[0]) ** 2 + (self.goal_pos[1] - self.env.agent_pos[1]) ** 2
+        )
+
+        move_bonus = (cur_dis - tmp_dis) / self.scale
         reward += move_bonus
 
         return obs, reward, terminated, truncated, info
@@ -129,12 +135,8 @@ class OneHotObsWrapper(ObservationWrapper):
         # Number of bits per cell
         num_bits = len(OBJECT_TO_IDX) + len(COLOR_TO_IDX) + len(STATE_TO_IDX) + 1
 
-        new_image_space = spaces.Box(
-            low=0, high=1, shape=(obs_shape[0], obs_shape[1], num_bits), dtype="float32"
-        )
-        self.observation_space = spaces.Dict(
-            {**self.observation_space.spaces, "image": new_image_space}
-        )
+        new_image_space = spaces.Box(low=0, high=1, shape=(obs_shape[0], obs_shape[1], num_bits), dtype="float32")
+        self.observation_space = spaces.Dict({**self.observation_space.spaces, "image": new_image_space})
 
     def observation(self, obs):
         img = obs["image"]
@@ -151,7 +153,8 @@ class OneHotObsWrapper(ObservationWrapper):
                 out[i, j, len(OBJECT_TO_IDX) + len(COLOR_TO_IDX) + state] = 1
 
         return {**obs, "image": out}
-    
+
+
 class FlatObsWrapper(ObservationWrapper):
     """
     Encode mission strings using a one-hot scheme,
@@ -179,7 +182,7 @@ class FlatObsWrapper(ObservationWrapper):
         self.observation_space = spaces.Box(
             low=0,
             high=255,
-            shape=(imgSize,),
+            shape=(imgSize, ),
             dtype="float32",
         )
 

@@ -283,10 +283,9 @@ class RSSM(nn.Module):
             dist(sg(lhs)) if self._discrete else dist(sg(lhs))._dist,
             dist(rhs) if self._discrete else dist(rhs)._dist,
         )
+        # free bits
         loss_lhs = torch.mean(torch.clip(value_lhs, min=free))
         loss_rhs = torch.mean(torch.clip(value_rhs, min=free))
-        # loss_lhs = torch.clip(torch.mean(value_lhs), min=free)
-        # loss_rhs = torch.clip(torch.mean(value_rhs), min=free)
         loss = lscale * loss_lhs + rscale * loss_rhs
 
         return loss, value, loss_lhs, loss_rhs
