@@ -96,7 +96,7 @@ class PGPolicy(Policy):
         self._grad_norm = self._cfg.learn.grad_norm
         self._learn_model = self._model  # for compatibility
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[int, Any]]) -> Dict[str, Any]:
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \
@@ -176,7 +176,30 @@ class PGPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.collect.discount_factor
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: Dict[int, Any]) -> dict:
+        """
+        Overview:
+            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+            data, such as the action to interact with the envs.
+        Arguments:
+            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                key of the dict is environment id and the value is the corresponding data of the env.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                other necessary data (action logit) for learn mode defined in ``self._process_transition`` \
+                method. The key of the dict is the same as the input data, i.e. environment id.
+
+        .. tip::
+            If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \
+            related data as extra keyword arguments of this method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+        """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -190,7 +213,7 @@ class PGPolicy(Policy):
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: Dict[str, torch.Tensor], timestep: namedtuple) -> dict:
         """
         Overview:
             Process and pack one timestep transition data into a dict, which can be directly used for training and \
@@ -212,7 +235,7 @@ class PGPolicy(Policy):
             'done': timestep.done,
         }
 
-    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> Union[None, List[Any]]:
         """
         Overview:
             For a given entire episode data (a list of transition), process it into a list of sample that \
@@ -253,7 +276,7 @@ class PGPolicy(Policy):
     def _init_eval(self) -> None:
         pass
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: Dict[int, Any]) -> dict:
         """
         Overview:
             Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \

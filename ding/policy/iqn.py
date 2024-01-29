@@ -15,7 +15,11 @@ from .common_utils import default_preprocess_learn
 class IQNPolicy(DQNPolicy):
     """
     Overview:
-        Policy class of IQN algorithm. Paper link: https://arxiv.org/pdf/1806.06923.pdf.
+        Policy class of IQN algorithm. Paper link: https://arxiv.org/pdf/1806.06923.pdf. \
+        Distrbutional RL is a new direction of RL, which is more stable than the traditional RL algorithm. \
+        The core idea of distributional RL is to estimate the distribution of action value instead of the \
+        expectation. The difference between IQN and DQN is that IQN uses quantile regression to estimate the \
+        quantile value of the action distribution, while DQN uses the expectation of the action distribution. \
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -150,15 +154,7 @@ class IQNPolicy(DQNPolicy):
         self._learn_model.reset()
         self._target_model.reset()
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
-        Overview:
-            Forward and backward function of learn mode.
-        Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs', 'action', 'reward', 'next_obs']
-        Returns:
-            - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
-        """
+    def _forward_learn(self, data: List[Dict[int, Any]]) -> Dict[str, Any]:
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \

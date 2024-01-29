@@ -163,7 +163,7 @@ class EDACPolicy(SACPolicy):
         self._with_q_entropy = self._cfg.learn.with_q_entropy
         self._forward_learn_cnt = 0
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[int, Any]]) -> Dict[str, Any]:
         """
         Overview:
             Policy forward function of learn mode (training policy and updating parameters). Forward means \
@@ -189,7 +189,7 @@ class EDACPolicy(SACPolicy):
             issue in GitHub repo and we will continue to follow up.
 
         .. note::
-            For more detailed examples, please refer to our unittest for DiscreteEDACPolicy: \
+            For more detailed examples, please refer to our unittest for EDACPolicy: \
             ``ding.policy.tests.test_edac``.
         """
         loss_dict = {}
