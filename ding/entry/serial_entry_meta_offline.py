@@ -105,9 +105,11 @@ def serial_pipeline_meta_offline(
         if evaluator.should_eval(learner.train_iter):
             if hasattr(policy, 'warm_train'):
                 # if algorithm need warm train
-                stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, policy_warm_func=policy.warm_train)
+                stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, 
+                                              policy_warm_func=policy.warm_train, need_reward=cfg.policy.need_reward)
             else:
-                stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
+                stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, 
+                                              need_reward=cfg.policy.need_reward)
 
         if stop or learner.train_iter >= max_train_iter:
             stop = True

@@ -143,7 +143,7 @@ class MDPolicy(Policy):
             update_target_freq=10,
             # update weight of target net
             target_weight=0.995,
-            value_step=200e3,
+            value_step=2e3,
 
             # dataset weight include returns
             include_returns=True,
@@ -232,31 +232,32 @@ class MDPolicy(Policy):
         pre_traj = torch.cat([acts, obs, rewards, next_obs], dim=-1).to(self._device)
         target = torch.cat([next_obs, rewards], dim=-1).to(self._device)
         traj = torch.cat([acts, obs], dim=-1).to(self._device)
-        pre_traj = pre_traj[:, :self.encoder_len]
-        target = pre_traj[:, :self.encoder_len]
-
+        
         batch_size = len(traj)
         t = torch.randint(0, self.n_timesteps, (batch_size, ), device=traj.device).long()
-        state_loss, reward_loss, reward_log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
-        loss_dict = {'dynamic_loss': state_loss, 'reward_loss': reward_loss}
-        total_loss = (state_loss + reward_loss) / self.gradient_accumulate_every
-        total_loss.backward()
-        
-        if self.gradient_steps >= self.gradient_accumulate_every:
-            self._pre_train_optimizer.step()
-            self._pre_train_optimizer.zero_grad()
+        if self._forward_learn_cnt < self.value_step:
+            state_loss, reward_loss, reward_log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
+            loss_dict = {'dynamic_loss': state_loss, 'reward_loss': reward_loss}
+            loss_dict.update(reward_log)
+            total_loss = (state_loss + reward_loss) / self.gradient_accumulate_every
+            total_loss.backward()
 
-        task_id = self._learn_model.get_task_id(pre_traj)
+        task_id = self._learn_model.get_task_id(pre_traj[:, :self.encoder_len])
 
         diffuser_loss, a0_loss = self._learn_model.diffuser_loss(traj, conds, t, task_id)
         loss_dict['diffuser_loss'] = diffuser_loss
         loss_dict['a0_loss'] = a0_loss
         diffuser_loss = diffuser_loss / self.gradient_accumulate_every
         diffuser_loss.backward()
-        
+        loss_dict['max_return'] = reward.max().item()
+        loss_dict['min_return'] = reward.min().item()
+        loss_dict['mean_return'] = reward.mean().item()
         if self.gradient_steps >= self.gradient_accumulate_every:
             self._plan_optimizer.step()
             self._plan_optimizer.zero_grad()
+            if self._forward_learn_cnt < self.value_step:
+                self._pre_train_optimizer.step()
+                self._pre_train_optimizer.zero_grad()
             self.gradient_steps = 1
         else:
             self.gradient_steps += 1
@@ -289,6 +290,13 @@ class MDPolicy(Policy):
             'reward_loss',
             'dynamic_loss',
             'a0_loss',
+            'max_return',
+            'min_return',
+            'mean_return',
+            'mean_pred',
+            'max_pred',
+            'min_pred',
+            'r0_loss',
         ]
     
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -373,8 +381,6 @@ class MDPolicy(Policy):
         target = torch.cat([next_obs, rewards], dim=-1)
         batch_size = len(pre_traj)
         conds = {cond_ids: cond_vals}
-        pre_traj = pre_traj[:, :self.encoder_len]
-        target = pre_traj[:, :self.encoder_len]
 
         t = torch.randint(0, self.n_timesteps, (batch_size, ), device=pre_traj.device).long()
         state_loss, reward_loss, log = self._learn_model.pre_train_loss(pre_traj, target, t, conds)
@@ -384,7 +390,7 @@ class MDPolicy(Policy):
         self._pre_train_optimizer.step()
         self.update_model_average(self._target_model, self._learn_model)
 
-        self.test_task_id = [self._target_model.get_task_id(pre_traj)[0]] * self.eval_batch_size
+        self.test_task_id = [self._target_model.get_task_id(pre_traj[:, :self.encoder_len])[0]] * self.eval_batch_size
         
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         if self.have_train:

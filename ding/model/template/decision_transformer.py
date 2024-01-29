@@ -209,6 +209,7 @@ class DecisionTransformer(nn.Module):
         self.embed_timestep = nn.Embedding(max_timestep, h_dim)
         if use_prompt:
             self.prompt_embed_timestep = nn.Embedding(max_timestep, h_dim)
+            input_seq_len *= 2
         self.drop = nn.Dropout(drop_p)
 
         self.pos_emb = nn.Parameter(torch.zeros(1, input_seq_len + 1, self.h_dim))
@@ -310,7 +311,7 @@ class DecisionTransformer(nn.Module):
             t_p = torch.stack((returns_embeddings, state_embeddings, action_embeddings),
                               dim=1).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
             h = self.embed_ln(t_p)
-
+            
             if prompt is not None:
                 prompt_states, prompt_actions, prompt_returns_to_go,\
                     prompt_timesteps, prompt_attention_mask = prompt
@@ -329,20 +330,15 @@ class DecisionTransformer(nn.Module):
                 prompt_stacked_inputs = torch.stack(
                     (prompt_returns_embeddings, prompt_state_embeddings, prompt_action_embeddings), dim=1
                 ).permute(0, 2, 1, 3).reshape(prompt_states.shape[0], 3 * prompt_seq_length, self.h_dim)
+                
                 # prompt_stacked_attention_mask = torch.stack(
                 #     (prompt_attention_mask, prompt_attention_mask, prompt_attention_mask), dim=1
-                # ).permute(0, 2, 1).reshape(prompt_states.shape[0], 3 * prompt_seq_length)
-
-                if prompt_stacked_inputs.shape[1] == 3 * T: # if only smaple one prompt
-                    prompt_stacked_inputs = prompt_stacked_inputs.reshape(1, -1, self.h_dim)
-                    #prompt_stacked_attention_mask = prompt_stacked_attention_mask.reshape(1, -1)
-                    h = torch.cat((prompt_stacked_inputs.repeat(B, 1, 1), h), dim=1)
-                    # stacked_attention_mask = torch.cat((prompt_stacked_attention_mask.repeat(B, 1), stacked_attention_mask), dim=1)
-                else: # if sample one prompt for each traj in batch
-                    h = torch.cat((prompt_stacked_inputs, h), dim=1)
-                    # stacked_attention_mask = torch.cat((prompt_stacked_attention_mask, stacked_attention_mask), dim=1)
+                # ).permute(0, 2, 1).reshape(prompt_states.shape[0], 3 * prompt_seq_length
+                h = torch.cat((prompt_stacked_inputs, h), dim=1)
+                # stacked_attention_mask = torch.cat((prompt_stacked_attention_mask, stacked_attention_mask), dim=1)
 
             # transformer and prediction
+           
             h = self.transformer(h)
             # get h reshaped such that its size = (B x 3 x T x h_dim) and
             # h[:, 0, t] is conditioned on the input sequence r_0, s_0, a_0 ... r_t
@@ -351,11 +347,15 @@ class DecisionTransformer(nn.Module):
             # that is, for each timestep (t) we have 3 output embeddings from the transformer,
             # each conditioned on all previous timesteps plus
             # the 3 input variables at that timestep (r_t, s_t, a_t) in sequence.
-            h = h.reshape(B, T, 3, self.h_dim).permute(0, 2, 1, 3)
+            if prompt is None:
+                h = h.reshape(B, T, 3, self.h_dim).permute(0, 2, 1, 3)
+            else:
+                h = h.reshape(B, -1, 3, self.h_dim).permute(0, 2, 1, 3)
 
-            return_preds = self.predict_rtg(h[:, 2])  # predict next rtg given r, s, a
-            state_preds = self.predict_state(h[:, 2])  # predict next state given r, s, a
-            action_preds = self.predict_action(h[:, 1])  # predict action given r, s
+            return_preds = self.predict_rtg(h[:, 2])[:, -T:, :]  # predict next rtg given r, s, a
+            state_preds = self.predict_state(h[:, 2])[:, -T:, :]  # predict next state given r, s, a
+            action_preds = self.predict_action(h[:, 1])[:, -T:, :]  # predict action given r, s
+
         else:
             state_embeddings = self.state_encoder(
                 states.reshape(-1, *self.state_dim).type(torch.float32).contiguous()

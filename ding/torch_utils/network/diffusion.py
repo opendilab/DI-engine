@@ -139,7 +139,6 @@ class LayerNorm(nn.Module):
         self.b = nn.Parameter(torch.zeros(1, dim, 1))
 
     def forward(self, x):
-        print('x.shape:', x.shape)
         var = torch.var(x, dim=1, unbiased=False, keepdim=True)
         mean = torch.mean(x, dim=1, keepdim=True)
         return (x - mean) / (var + self.eps).sqrt() * self.g + self.b
@@ -233,6 +232,7 @@ class DiffusionUNet1d(nn.Module):
             self,
             transition_dim: int,
             dim: int = 32,
+            returns_dim: int = 1,
             dim_mults: SequenceType = [1, 2, 4, 8],
             returns_condition: bool = False,
             condition_dropout: float = 0.1,
@@ -265,7 +265,7 @@ class DiffusionUNet1d(nn.Module):
             act = Mish()#nn.Mish()
 
         self.time_dim = dim
-        self.returns_dim = dim
+        self.returns_dim = returns_dim
 
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
@@ -329,7 +329,7 @@ class DiffusionUNet1d(nn.Module):
             nn.Conv1d(dim, transition_dim, 1),
         )
 
-    def forward(self, x, cond, time, returns=None, use_dropout: bool = True, force_dropout: bool = False):
+    def forward(self, x, cond, time, returns = None, use_dropout: bool = True, force_dropout: bool = False):
         """
         Arguments:
             x (:obj:'tensor'): noise trajectory
@@ -388,7 +388,7 @@ class DiffusionUNet1d(nn.Module):
         else:
             return x
 
-    def get_pred(self, x, cond, time, returns: bool = None, use_dropout: bool = True, force_dropout: bool = False):
+    def get_pred(self, x, cond, time, returns = None, use_dropout: bool = True, force_dropout: bool = False):
         # [batch, horizon, transition ] -> [batch, transition , horizon]
         x = x.transpose(1, 2)
         t = self.time_mlp(time)

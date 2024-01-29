@@ -62,6 +62,7 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
             force_render: bool = False,
             policy_kwargs: Optional[Dict] = {},
             policy_warm_func: namedtuple = None,
+            need_reward: bool = False,
     ) -> Tuple[bool, Dict[str, List]]:
         infos = defaultdict(list)
         for i in range(self.test_env_num):
@@ -70,7 +71,7 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
             if policy_warm_func is not None:
                 policy_warm_func(i)
             info = self.sub_eval(save_ckpt_fn, train_iter, envstep, n_episode, \
-                                                  force_render, policy_kwargs, i)
+                                                  force_render, policy_kwargs, i, need_reward)
             for key, val in info.items():
                 if i == 0:
                     info[key] = []
@@ -118,6 +119,7 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
             force_render: bool = False,
             policy_kwargs: Optional[Dict] = {},
             task_id: int = 0,
+            need_reward: bool = False,
     ) -> Tuple[bool, Dict[str, List]]:
         '''
         Overview:
@@ -146,10 +148,21 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
             # force_render overwrite frequency constraint
             render = force_render or self._should_render(envstep, train_iter)
 
+            rewards = None
+
             with self._timer:
                 while not eval_monitor.is_finished():
                     obs = self._env.ready_obs
                     obs = to_tensor(obs, dtype=torch.float32)
+
+                    if need_reward:
+                        for id,val in obs.items():
+                            if rewards is None:
+                                reward = torch.zeros((1))
+                            else:
+                                reward = torch.tensor(rewards[id], dtype=torch.float32)
+                            obs[id] = {'obs':val, 'reward':reward}
+
 
                     # update videos
                     if render:
@@ -167,7 +180,9 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
                     actions = to_ndarray(actions)
                     timesteps = self._env.step(actions)
                     timesteps = to_tensor(timesteps, dtype=torch.float32)
+                    rewards = []
                     for env_id, t in timesteps.items():
+                        rewards.append(t.reward)
                         if t.info.get('abnormal', False):
                             # If there is an abnormal timestep, reset all the related variables(including this env).
                             self._policy.reset([env_id])
