@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple, Union, Callable, Optional
+from typing import List, Dict, Any, Callable, Optional
 from collections import namedtuple
 from easydict import EasyDict
 import copy
@@ -7,10 +7,13 @@ import numpy as np
 import torch
 import treetensor.torch as ttorch
 from torch.optim import AdamW
+from torch.cuda.amp import GradScaler
+from torch import autocast
 
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, gae, gae_data, ppo_error_continuous, \
     get_gae, ppo_policy_error_continuous, ArgmaxSampler, MultinomialSampler, ReparameterizationSampler, MuSampler, \
     HybridStochasticSampler, HybridDeterminsticSampler, value_transform, value_inv_transform, symlog, inv_symlog
+from ding.rl_utils.gae import episodic_gae_data, episodic_gae
 from ding.utils import POLICY_REGISTRY, RunningMeanStd
 
 
@@ -37,6 +40,7 @@ class PPOFPolicy:
         value_norm='baseline',
         ppo_param_init=True,
         grad_norm=0.5,
+        chat_data=True,
         # collect
         n_sample=128,
         unroll_len=1,
@@ -58,8 +62,15 @@ class PPOFPolicy:
         from .model import PPOFModel
         return PPOFModel
 
-    def __init__(self, cfg: "EasyDict", model: torch.nn.Module, enable_mode: List[str] = None) -> None:
+    def __init__(
+            self,
+            cfg: "EasyDict",
+            model: torch.nn.Module,
+            enable_mode: List[str] = None,
+            orig_model: torch.nn.Module = None
+    ) -> None:
         self._cfg = cfg
+        self._orig_model = orig_model
         if model is None:
             self._model = self.default_model()
         else:
@@ -151,69 +162,90 @@ class PPOFPolicy:
     def forward(self, data: ttorch.Tensor) -> Dict[str, Any]:
         return_infos = []
         self._model.train()
-        bs = self._cfg.batch_size
-        data = data[:self._cfg.n_sample // bs * bs]  # rounding
+        if not self._cfg.chat_data:
+            bs = self._cfg.batch_size
+            data = data[:self._cfg.n_sample // bs * bs]  # rounding
 
         # outer training loop
         for epoch in range(self._cfg.epoch_per_collect):
             # recompute adv
             with torch.no_grad():
-                # get the value dictionary
-                # In popart, the dictionary has two keys: 'pred' and 'unnormalized_pred'
-                value = self._model.compute_critic(data.obs)
-                next_value = self._model.compute_critic(data.next_obs)
-                reward = data.reward
+                if self._cfg.chat_data:
+                    # [B, T]
+                    value = self._model.compute_critic(data.obs)['value']
+                    self._model.cpu()
+                    self._orig_model.cuda()
+                    data.orig_logit = self._orig_model.compute_actor(data.obs)['logit']
+                    self._orig_model.cpu()
+                    self._model.cuda()
+                    data.value = value
+                    reward = data.reward
 
-                assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog', 'baseline'],\
-                    'Not supported value normalization! Value normalization supported: \
-                        popart, value rescale, symlog, baseline'
+                    traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
+                    done = data.get('done', None)
+                    adv_data = episodic_gae_data(value, data.mask, reward, done, traj_flag)
+                    data.adv = episodic_gae(adv_data, self._cfg.discount_factor, self._cfg.gae_lambda)
 
-                if self._cfg.value_norm == 'popart':
-                    unnormalized_value = value['unnormalized_pred']
-                    unnormalized_next_value = value['unnormalized_pred']
+                    unnormalized_returns = data.value + data.adv
+                    data.return_ = unnormalized_returns
+                else:
+                    # get the value dictionary
+                    # In popart, the dictionary has two keys: 'pred' and 'unnormalized_pred'
+                    value = self._model.compute_critic(data.obs)
+                    next_value = self._model.compute_critic(data.next_obs)
+                    reward = data.reward
 
-                    mu = self._model.critic_head.popart.mu
-                    sigma = self._model.critic_head.popart.sigma
-                    reward = (reward - mu) / sigma
+                    assert self._cfg.value_norm in ['popart', 'value_rescale', 'symlog', 'baseline'], \
+                        'Not supported value normalization! Value normalization supported: \
+                            popart, value rescale, symlog, baseline'
 
-                    value = value['pred']
-                    next_value = next_value['pred']
-                elif self._cfg.value_norm == 'value_rescale':
-                    value = value_inv_transform(value['pred'])
-                    next_value = value_inv_transform(next_value['pred'])
-                elif self._cfg.value_norm == 'symlog':
-                    value = inv_symlog(value['pred'])
-                    next_value = inv_symlog(next_value['pred'])
-                elif self._cfg.value_norm == 'baseline':
-                    value = value['pred'] * self._running_mean_std.std
-                    next_value = next_value['pred'] * self._running_mean_std.std
+                    if self._cfg.value_norm == 'popart':
+                        unnormalized_value = value['unnormalized_pred']
+                        unnormalized_next_value = value['unnormalized_pred']
 
-                traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
-                adv_data = gae_data(value, next_value, reward, data.done, traj_flag)
-                data.adv = gae(adv_data, self._cfg.discount_factor, self._cfg.gae_lambda)
+                        mu = self._model.critic_head.popart.mu
+                        sigma = self._model.critic_head.popart.sigma
+                        reward = (reward - mu) / sigma
 
-                unnormalized_returns = value + data.adv  # In popart, this return is normalized
+                        value = value['pred']
+                        next_value = next_value['pred']
+                    elif self._cfg.value_norm == 'value_rescale':
+                        value = value_inv_transform(value['pred'])
+                        next_value = value_inv_transform(next_value['pred'])
+                    elif self._cfg.value_norm == 'symlog':
+                        value = inv_symlog(value['pred'])
+                        next_value = inv_symlog(next_value['pred'])
+                    elif self._cfg.value_norm == 'baseline':
+                        value = value['pred'] * self._running_mean_std.std
+                        next_value = next_value['pred'] * self._running_mean_std.std
 
-                if self._cfg.value_norm == 'popart':
-                    self._model.critic_head.popart.update_parameters((data.reward).unsqueeze(1))
-                elif self._cfg.value_norm == 'value_rescale':
-                    value = value_transform(value)
-                    unnormalized_returns = value_transform(unnormalized_returns)
-                elif self._cfg.value_norm == 'symlog':
-                    value = symlog(value)
-                    unnormalized_returns = symlog(unnormalized_returns)
-                elif self._cfg.value_norm == 'baseline':
-                    value /= self._running_mean_std.std
-                    unnormalized_returns /= self._running_mean_std.std
-                    self._running_mean_std.update(unnormalized_returns.cpu().numpy())
-                data.value = value
-                data.return_ = unnormalized_returns
+                    traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
+                    adv_data = gae_data(value, next_value, reward, data.done, traj_flag)
+                    data.adv = gae(adv_data, self._cfg.discount_factor, self._cfg.gae_lambda)
+
+                    unnormalized_returns = value + data.adv  # In popart, this return is normalized
+
+                    if self._cfg.value_norm == 'popart':
+                        self._model.critic_head.popart.update_parameters((data.reward).unsqueeze(1))
+                    elif self._cfg.value_norm == 'value_rescale':
+                        value = value_transform(value)
+                        unnormalized_returns = value_transform(unnormalized_returns)
+                    elif self._cfg.value_norm == 'symlog':
+                        value = symlog(value)
+                        unnormalized_returns = symlog(unnormalized_returns)
+                    elif self._cfg.value_norm == 'baseline':
+                        value /= self._running_mean_std.std
+                        unnormalized_returns /= self._running_mean_std.std
+                        self._running_mean_std.update(unnormalized_returns.cpu().numpy())
+                    data.value = value
+                    data.return_ = unnormalized_returns
 
             # inner training loop
             split_data = ttorch.split(data, self._cfg.batch_size)
             random.shuffle(list(split_data))
             for batch in split_data:
-                output = self._model.compute_actor_critic(batch.obs)
+                if not self._cfg.chat_data:
+                    output = self._model.compute_actor_critic(batch.obs)
                 adv = batch.adv
                 if self._cfg.adv_norm:
                     # Normalize advantage in a train_batch
@@ -226,10 +258,27 @@ class PPOFPolicy:
                     )
                     ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._cfg.clip_ratio)
                 elif self._action_space == 'discrete':
-                    ppo_batch = ppo_data(
-                        output.logit, batch.logit, batch.action, output.value, batch.value, adv, batch.return_, None
-                    )
-                    ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
+                    if not self._cfg.chat_data:
+                        ppo_batch = ppo_data(
+                            output.logit, batch.logit, batch.action, output.value, batch.value, adv, batch.return_, mask
+                        )
+                        ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
+                    else:
+                        with autocast(device_type='cuda', dtype=torch.float16):
+                            output = self._model.compute_actor_critic(batch.obs)
+                            mask = batch.mask
+                            ppo_batch = ppo_data(
+                                output['logit'], batch.orig_logit, batch.obs, output['value'], batch.value, adv,
+                                batch.return_, None
+                            )
+                            ppo_loss, ppo_info = ppo_error(ppo_batch, self._cfg.clip_ratio)
+                            kl_loss = (
+                                torch.nn.functional.kl_div(
+                                    torch.softmax(output["logit"], dim=-1),
+                                    torch.softmax(batch.orig_logit, dim=-1),
+                                    reduction='none'
+                                ) * mask.unsqueeze(-1)
+                            ).mean()
                 elif self._action_space == 'hybrid':
                     # discrete part (discrete policy loss and entropy loss)
                     ppo_discrete_batch = ppo_policy_data(
@@ -253,13 +302,20 @@ class PPOFPolicy:
                         max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
                         max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
                     )
-                wv, we = self._cfg.value_weight, self._cfg.entropy_weight
-                total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
-
-                self._optimizer.zero_grad()
-                total_loss.backward()
-                torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.grad_norm)
-                self._optimizer.step()
+                if not self._cfg.chat_data:
+                    wv, we = self._cfg.value_weight, self._cfg.entropy_weight
+                    total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
+                    self._optimizer.zero_grad()
+                    total_loss.backward()
+                    torch.nn.utils.clip_grad_norm_(self._model.parameters(), self._cfg.grad_norm)
+                    self._optimizer.step()
+                else:
+                    wv, we, wk = self._cfg.value_weight, self._cfg.entropy_weight, self._cfg.kl_penalty_weight
+                    total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss + wk * kl_loss
+                    output = ttorch.as_tensor(output)
+                    self._optimizer.zero_grad()
+                    total_loss.backward()
+                    self._optimizer.step()
 
                 return_info = {
                     'cur_lr': self._optimizer.defaults['lr'],
@@ -267,6 +323,7 @@ class PPOFPolicy:
                     'policy_loss': ppo_loss.policy_loss.item(),
                     'value_loss': ppo_loss.value_loss.item(),
                     'entropy_loss': ppo_loss.entropy_loss.item(),
+                    'kl_loss': kl_loss.item(),
                     'adv_max': adv.max().item(),
                     'adv_mean': adv.mean().item(),
                     'value_mean': output.value.mean().item(),

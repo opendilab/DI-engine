@@ -1,3 +1,4 @@
+import copy
 from typing import TYPE_CHECKING
 from easydict import EasyDict
 import treetensor.torch as ttorch
@@ -188,6 +189,66 @@ class EpisodeCollector:
                 ctx.episodes = self._transitions.to_episodes()
                 self._transitions.clear()
                 break
+
+
+class ChatCollector:
+    """
+    Overview:
+        The class of the collector running by steps, including model inference and transition \
+        process. Use the `__call__` method to execute the whole collection process.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not task.has_role(task.role.COLLECTOR):
+            return task.void()
+        return super(ChatCollector, cls).__new__(cls)
+
+    def __init__(self, seed: int, policy, env: BaseEnvManager, n_sample: int, unroll_len: int = 1) -> None:
+        """
+        Arguments:
+            - seed (:obj:`int`): Random seed.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+        """
+        self.env = env
+        self.env.seed(seed)
+        self.env.launch()
+        self.env = self.env._envs[0]
+        self.policy = policy
+        self.n_sample = n_sample
+        self.unroll_len = unroll_len
+
+    def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Overview:
+            An encapsulation of inference and rollout middleware. Stop when completing \
+                the target number of steps.
+        Input of ctx:
+            - env_step (:obj:`int`): The env steps which will increase during collection.
+        """
+        device = self.policy._device
+
+        obs = ttorch.as_tensor(self.env.last_batch['text_vec'])
+        batch_size = obs.shape[0]
+        obs = obs.to(device)
+
+        total_action = [[] for _ in range(batch_size)]  # [B, answers_per_question, T]
+        for _ in range(self.policy._cfg.answers_per_question):
+            _, inference_output = self.policy._model.actor.generate(obs, **ctx.collect_kwargs)
+            for i in range(batch_size):
+                total_action[i].append(copy.deepcopy(inference_output[i]))
+
+        mask, resp, rew = self.env.step(total_action)
+        ctx.env_step += 1
+        ctx.env_episode += 1
+
+        train_data = {}
+        train_data['obs'] = resp  # [B x answer-per-question, T]
+        train_data['reward'] = rew  # [B x answer-per-question, ]
+        train_data['mask'] = mask  # [B x answer-per-question, T]
+
+        ctx.train_data = ttorch.as_tensor(train_data)
 
 
 # TODO battle collector

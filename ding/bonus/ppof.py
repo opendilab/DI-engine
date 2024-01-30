@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Union, List
 from ditk import logging
 from easydict import EasyDict
@@ -9,7 +10,7 @@ import numpy as np
 import torch
 from ding.framework import task, OnlineRLContext
 from ding.framework.middleware import interaction_evaluator_ttorch, PPOFStepCollector, multistep_trainer, CkptSaver, \
-    wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator
+    wandb_online_logger, offline_data_saver, termination_checker, ppof_adv_estimator, ChatCollector
 from ding.envs import BaseEnv, BaseEnvManagerV2, SubprocessEnvManagerV2
 from ding.policy import PPOFPolicy, single_env_forward_wrapper_ttorch
 from ding.utils import set_pkg_seed
@@ -62,6 +63,8 @@ class PPOF:
         'Hopper-v3',
         'HalfCheetah-v3',
         'Walker2d-v3',
+        # rlhf
+        'chat'
     ]
     """
     Overview:
@@ -170,6 +173,8 @@ class PPOF:
             action_shape = int(action_space.n)
         elif isinstance(action_space, (gym.spaces.Tuple, gymnasium.spaces.Tuple)):
             action_shape = get_hybrid_shape(action_space)
+        elif action_space is None:
+            pass
         else:
             action_shape = action_space.shape
 
@@ -191,7 +196,11 @@ class PPOF:
                     popart_head=True,
                     **self.cfg.model
                 )
-        self.policy = PPOFPolicy(self.cfg, model=model)
+        if self.cfg.chat_data:
+            orig_model = copy.deepcopy(model)
+        else:
+            orig_model = None
+        self.policy = PPOFPolicy(self.cfg, model=model, orig_model=orig_model)
         if policy_state_dict is not None:
             self.policy.load_state_dict(policy_state_dict)
         self.checkpoint_save_dir = os.path.join(self.exp_name, "ckpt")
@@ -246,10 +255,14 @@ class PPOF:
             pass
 
         with task.start(ctx=OnlineRLContext()):
-            task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
-            task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
-            task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
-            task.use(ppof_adv_estimator(self.policy))
+            if self.policy._cfg.chat_data:
+                # task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
+                # task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
+                task.use(ChatCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
+            else:
+                task.use(interaction_evaluator_ttorch(self.seed, self.policy, evaluator_env))
+                task.use(CkptSaver(self.policy, save_dir=self.checkpoint_save_dir, train_freq=n_iter_save_ckpt))
+                task.use(PPOFStepCollector(self.seed, self.policy, collector_env, self.cfg.n_sample))
             task.use(multistep_trainer(self.policy, log_freq=n_iter_log_show))
             task.use(
                 wandb_online_logger(

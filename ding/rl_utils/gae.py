@@ -3,6 +3,7 @@ import torch
 from ding.hpc_rl import hpc_wrapper
 
 gae_data = namedtuple('gae_data', ['value', 'next_value', 'reward', 'done', 'traj_flag'])
+episodic_gae_data = namedtuple('episodic_gae_data', ['value', 'mask', 'reward', 'done', 'traj_flag'])
 
 
 def shape_fn_gae(args, kwargs):
@@ -68,3 +69,24 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
         gae_item = delta[t] + factor[t] * gae_item
         adv[t] = gae_item
     return adv
+
+
+def episodic_gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97):
+    value, mask, reward, done, traj_flag = data
+    if done is None:
+        done = torch.zeros_like(value)
+    if traj_flag is None:
+        traj_flag = done
+    advs = []
+    bsz = value.shape[0]
+    for i in range(bsz):
+        val, mas, rew, don, traj = value[i], mask[i], reward[i], done[i], traj_flag[i]
+        next_val = torch.zeros_like(val)
+        next_val[:-1] = val[1:]
+        reward = torch.zeros_like(val)
+        reward[-1] = rew
+        gd = gae_data(
+            val.unsqueeze(-1), next_val.unsqueeze(-1), reward.unsqueeze(-1), don.unsqueeze(-1), traj.unsqueeze(-1)
+        )
+        advs.append(gae(gd, gamma, lambda_).squeeze(-1))
+    return torch.stack(advs, dim=0)
