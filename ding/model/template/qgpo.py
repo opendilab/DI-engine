@@ -209,7 +209,7 @@ class ScoreNet(nn.Module):
     Overview:
         Score-based generative model for QGPO.
     Interfaces:
-        ``__init__``, ``forward``, ``score_model_loss_fn``
+        ``__init__``, ``forward``
     """
 
     def __init__(self, device, input_dim, output_dim, embed_dim=32):
