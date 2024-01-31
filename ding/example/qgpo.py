@@ -70,10 +70,9 @@ class QGPOD4RLDataset(torch.utils.data.Dataset):
             - index (:obj:`int`): Index of data
         Returns:
             - data (:obj:`dict`): Data dict
-        
+
         .. note::
             The data dict contains the following keys:
-            
             - s (:obj:`torch.Tensor`): State
             - a (:obj:`torch.Tensor`): Action
             - r (:obj:`torch.Tensor`): Reward
