@@ -358,7 +358,7 @@
         <span class="c1"># Point to the tail position where next data can be inserted, i.e. latest inserted data&#39;s next position.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tail</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1"># Lock to guarantee thread safe</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">type_</span><span class="o">=</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">lock_type</span><span class="o">=</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">enable_track_used_data</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_track_used_data</span><span class="p">:</span>

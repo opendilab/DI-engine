@@ -414,7 +414,7 @@
         <span class="c1"># Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_next_unique_id</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1"># Lock to guarantee thread safe</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">type_</span><span class="o">=</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">lock_type</span><span class="o">=</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
         <span class="c1"># Point to the head of the circular queue. The true data is the stalest(oldest) data in this queue.</span>
         <span class="c1"># Because buffer would remove data due to staleness or use count, and at the beginning when queue is not</span>
         <span class="c1"># filled with data head would always be 0, so ``head`` may be not equal to ``tail``;</span>
