@@ -3,14 +3,12 @@ from easydict import EasyDict
 collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
+max_env_step = int(10e6)
 
-pitfall_ppo_rnd_config = dict(
+pitfall_ngu_config = dict(
     # Note:
     # 1. at least 1e10 timesteps, i.e., 10000 million, the reward may increase, please be patient.
     # 2. the larger unroll_lenth and replay buffer size may have better results, but also require more memory.
-    # exp_name='debug_pitfall_ngu_ul298_er01_n32_rlbs2e4',
-    # exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4',
-    # exp_name='debug_pitfall_ngu_ul40_er01_n32_rlbs2e4',
     exp_name='pitfall_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
@@ -114,9 +112,9 @@ pitfall_ppo_rnd_config = dict(
         ),
     ),
 )
-pitfall_ppo_rnd_config = EasyDict(pitfall_ppo_rnd_config)
-main_config = pitfall_ppo_rnd_config
-pitfall_ppo_rnd_create_config = dict(
+pitfall_ngu_config = EasyDict(pitfall_ngu_config)
+main_config = pitfall_ngu_config
+pitfall_ngu_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -126,9 +124,9 @@ pitfall_ppo_rnd_create_config = dict(
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
 )
-pitfall_ppo_rnd_create_config = EasyDict(pitfall_ppo_rnd_create_config)
-create_config = pitfall_ppo_rnd_create_config
+pitfall_ngu_create_config = EasyDict(pitfall_ngu_create_config)
+create_config = pitfall_ngu_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_reward_model_ngu
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0, max_env_step=max_env_step)

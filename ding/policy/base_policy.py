@@ -196,14 +196,14 @@ class Policy(ABC):
     def _create_model(self, cfg: EasyDict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         """
         Overview:
-            Create or validate the neural network model according to input configures and model. If the input model is \
-            None, then the model will be created according to ``default_model`` method and ``cfg.model`` field. \
-            Otherwise, the model will be verified as an instance of ``torch.nn.Module`` and set to the ``model`` \
-            instance created by outside caller.
+            Create or validate the neural network model according to the input configuration and model. \
+            If the input model is None, then the model will be created according to ``default_model`` \
+            method and ``cfg.model`` field. Otherwise, the model will be verified as an instance of \
+            ``torch.nn.Module`` and set to the ``model`` instance created by outside caller.
         Arguments:
             - cfg (:obj:`EasyDict`): The final merged config used to initialize policy.
             - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. User can refer to \
-                the default model defined in corresponding policy to customize its own model.
+                the default model defined in the corresponding policy to customize its own model.
         Returns:
             - model (:obj:`torch.nn.Module`): The created neural network model. The different modes of policy will \
                 add distinct wrappers and plugins to the model, which is used to train, collect and evaluate.
@@ -272,7 +272,7 @@ class Policy(ABC):
         Overview:
             Initialize the eval mode of policy, including related attributes and modules. This method will be \
             called in ``__init__`` method if ``eval`` field is in ``enable_field``. Almost different policies have \
-            its own eval mode, so this method must be overrided in subclass.
+            its own eval mode, so this method must be override in subclass.
 
         .. note::
             For the member variables that need to be saved and loaded, please refer to the ``_state_dict_eval`` \
@@ -289,7 +289,7 @@ class Policy(ABC):
         """
         Overview:
             Return the interfaces of learn mode of policy, which is used to train the model. Here we use namedtuple \
-            to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \
+            to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived \
             subclass can override the interfaces to customize its own learn mode.
         Returns:
             - interfaces (:obj:`Policy.learn_function`): The interfaces of learn mode of policy, it is a namedtuple \
@@ -316,7 +316,7 @@ class Policy(ABC):
         """
         Overview:
             Return the interfaces of collect mode of policy, which is used to train the model. Here we use namedtuple \
-            to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \
+            to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived \
             subclass can override the interfaces to customize its own collect mode.
         Returns:
             - interfaces (:obj:`Policy.collect_function`): The interfaces of collect mode of policy, it is a \
@@ -370,7 +370,7 @@ class Policy(ABC):
         Overview:
             In order to control the access of the policy attributes, we expose different modes to outside rather than \
             directly use the policy instance. And we also provide a method to set the attribute of the policy in \
-            different modes. And the new attribute will named as ``_{name}``.
+            different modes. And the new attribute will name as ``_{name}``.
         Arguments:
             - name (:obj:`str`): The name of the attribute.
             - value (:obj:`Any`): The value of the attribute.
@@ -416,7 +416,7 @@ class Policy(ABC):
             - model (:obj:`torch.nn.Module`): The model to synchronize gradients.
 
         .. note::
-            This method is only used in multi-gpu training, and it shoule be called after ``backward`` method and \
+            This method is only used in multi-gpu training, and it should be called after ``backward`` method and \
             before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \
             gradients allreduce and optimizer updates.
         """

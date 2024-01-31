@@ -20,7 +20,7 @@ from .common_utils import default_preprocess_learn
 class EDACPolicy(SACPolicy):
     """
        Overview:
-           Policy class of EDAC algorithm. https://arxiv.org/pdf/2110.01548.pdf
+           Policy class of EDAC algorithm. Paper link: https://arxiv.org/pdf/2110.01548.pdf
 
        Config:
            == ====================  ========    =============  ================================= =======================
@@ -138,11 +138,34 @@ class EDACPolicy(SACPolicy):
         ),
     )
 
-    def _init_learn(self) -> None:
-        r"""
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
         Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target models.
+            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
+            automatically call this method to get the default model setting and create model.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
+        """
+        return 'edac', ['ding.model.template.edac']
+
+    def _init_learn(self) -> None:
+        """
+        Overview:
+            Initialize the learn mode of policy, including related attributes and modules. For EDAC, in addition \
+            to the things that need to be initialized in SAC, it is also necessary to additionally define \
+            eta/with_q_entropy/forward_learn_cnt. \
+            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
+
+        .. note::
+            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
+            and ``_load_state_dict_learn`` methods.
+
+        .. note::
+            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
+            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
         """
         super()._init_learn()
         # EDAC special implementation
@@ -150,7 +173,35 @@ class EDACPolicy(SACPolicy):
         self._with_q_entropy = self._cfg.learn.with_q_entropy
         self._forward_learn_cnt = 0
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: List[Dict[int, Any]]) -> Dict[str, Any]:
+        """
+        Overview:
+            Policy forward function of learn mode (training policy and updating parameters). Forward means \
+            that the policy inputs some training batch data from the replay buffer and then returns the output \
+            result, including various training information such as loss, action, priority.
+        Arguments:
+            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
+                training samples. For each element in list, the key of the dict is the name of data items and the \
+                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
+                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
+                dimension by some utility functions such as ``default_preprocess_learn``. \
+                For EDAC, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                ``logit``, ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys like ``weight``.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
+                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
+                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
+
+        .. note::
+            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+            For the data type that not supported, the main reason is that the corresponding model does not support it. \
+            You can implement you own model rather than use the default model. For more information, please raise an \
+            issue in GitHub repo and we will continue to follow up.
+
+        .. note::
+            For more detailed examples, please refer to our unittest for EDACPolicy: \
+            ``ding.policy.tests.test_edac``.
+        """
         loss_dict = {}
         data = default_preprocess_learn(
             data,

@@ -12,7 +12,7 @@ class ContrastiveLoss(nn.Module):
         The class for contrastive learning losses. Only InfoNCE loss is supported currently. \
         Code Reference: https://github.com/rdevon/DIM. Paper Reference: https://arxiv.org/abs/1808.06670.
     Interfaces:
-        __init__, forward.
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -45,26 +45,43 @@ class ContrastiveLoss(nn.Module):
         self._type = loss_type.lower()
         self._encode_shape = encode_shape
         self._heads = heads
-        self._x_encoder = self._get_encoder(x_size, heads[0])
-        self._y_encoder = self._get_encoder(y_size, heads[1])
+        self._x_encoder = self._create_encoder(x_size, heads[0])
+        self._y_encoder = self._create_encoder(y_size, heads[1])
         self._temperature = temperature
 
-    def _get_encoder(self, obs: Union[int, SequenceType], heads: int) -> nn.Module:
+    def _create_encoder(self, obs_size: Union[int, SequenceType], heads: int) -> nn.Module:
+        """
+        Overview:
+            Create the encoder for the input obs.
+        Arguments:
+            - obs_size (:obj:`Union[int, SequenceType]`): input shape for x, both the obs shape and the encoding shape \
+                are supported. If the obs_size is an int, it means the obs is a 1D vector. If the obs_size is a list \
+                such as [1, 16, 16], it means the obs is a 3D image with shape [1, 16, 16].
+            - heads (:obj:`int`): The number of heads.
+        Returns:
+            - encoder (:obj:`nn.Module`): The encoder module.
+        Examples:
+            >>> obs_size = 16
+            or
+            >>> obs_size = [1, 16, 16]
+            >>> heads = 1
+            >>> encoder = self._create_encoder(obs_size, heads)
+        """
         from ding.model import ConvEncoder, FCEncoder
 
-        if isinstance(obs, int):
-            obs = [obs]
-        assert len(obs) in [1, 3]
+        if isinstance(obs_size, int):
+            obs_size = [obs_size]
+        assert len(obs_size) in [1, 3]
 
-        if len(obs) == 1:
+        if len(obs_size) == 1:
             hidden_size_list = [128, 128, self._encode_shape * heads]
-            encoder = FCEncoder(obs[0], hidden_size_list)
+            encoder = FCEncoder(obs_size[0], hidden_size_list)
         else:
             hidden_size_list = [32, 64, 64, self._encode_shape * heads]
-            if obs[-1] >= 36:
-                encoder = ConvEncoder(obs, hidden_size_list)
+            if obs_size[-1] >= 36:
+                encoder = ConvEncoder(obs_size, hidden_size_list)
             else:
-                encoder = ConvEncoder(obs, hidden_size_list, kernel_size=[4, 3, 2], stride=[2, 1, 1])
+                encoder = ConvEncoder(obs_size, hidden_size_list, kernel_size=[4, 3, 2], stride=[2, 1, 1])
         return encoder
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:

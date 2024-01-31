@@ -46,7 +46,7 @@ class LockContext(object):
             Init the lock according to the given type.
 
         Arguments:
-            type_ (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.
+           - type_ (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.
         """
         self.lock = _LOCK_TYPE_MAPPING[type_]()
 
@@ -75,6 +75,9 @@ class LockContext(object):
         """
         Overview:
             Exits the context and releases the lock.
+        Arguments:
+            - args (:obj:`Tuple`): The arguments passed to the ``__exit__`` function.
+            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.
         """
         self.lock.release()
 
@@ -120,7 +123,7 @@ class FcntlContext:
 
     Example:
         >>> lock_path = "/path/to/lock/file"
-        >>>with FcntlContext(lock_path) as lock:
+        >>> with FcntlContext(lock_path) as lock:
         >>>    # Perform operations while the lock is held
 
     """
@@ -150,6 +153,9 @@ class FcntlContext:
         """
         Overview:
             Closes the file and releases any resources used by the lock_helper object.
+        Arguments:
+            - args (:obj:`Tuple`): The arguments passed to the ``__exit__`` function.
+            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__exit__`` function.
         """
         self.f.close()
         self.f = None

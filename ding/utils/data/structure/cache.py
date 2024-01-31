@@ -7,17 +7,17 @@ from ding.utils import LockContext, LockContextType
 
 
 class Cache:
-    r"""
+    """
     Overview:
         Data cache for reducing concurrent pressure, with timeout and full queue eject mechanism
-    Interface:
-        __init__, push_data, get_cached_data_iter, run, close
+    Interfaces:
+        ``__init__``, ``push_data``, ``get_cached_data_iter``, ``run``, ``close``
     Property:
         remain_data_count
     """
 
     def __init__(self, maxlen: int, timeout: float, monitor_interval: float = 1.0, _debug: bool = False) -> None:
-        r"""
+        """
         Overview:
             Initialize the cache object.
         Arguments:
@@ -40,7 +40,7 @@ class Cache:
         self._timeout_thread_flag = True
 
     def push_data(self, data: Any) -> None:
-        r"""
+        """
         Overview:
             Push data into receive queue, if the receive queue is full(after push), then push all the data
             in receive queue into send queue.
@@ -60,7 +60,7 @@ class Cache:
                     self.send_queue.put(self.receive_queue.get()[0])
 
     def get_cached_data_iter(self) -> 'callable_iterator':  # noqa
-        r"""
+        """
         Overview:
             Get the iterator of the send queue. Once a data is pushed into send queue, it can be accessed by
             this iterator. 'STOP' is the end flag of this iterator.
@@ -70,7 +70,7 @@ class Cache:
         return iter(self.send_queue.get, 'STOP')
 
     def _timeout_monitor(self) -> None:
-        r"""
+        """
         Overview:
             The workflow of the timeout monitor thread.
         """
@@ -88,7 +88,7 @@ class Cache:
                         break
 
     def _warn_if_timeout(self) -> bool:
-        r"""
+        """
         Overview:
             Return whether is timeout.
         Returns
@@ -107,14 +107,14 @@ class Cache:
             return False
 
     def run(self) -> None:
-        r"""
+        """
         Overview:
             Launch the cache internal thread, e.g. timeout monitor thread.
         """
         self._timeout_thread.start()
 
     def close(self) -> None:
-        r"""
+        """
         Overview:
             Shut down the cache internal thread and send the end flag to send queue's iterator.
         """
@@ -122,7 +122,7 @@ class Cache:
         self.send_queue.put('STOP')
 
     def dprint(self, s: str) -> None:
-        r"""
+        """
         Overview:
             In debug mode, print debug str.
         Arguments:
@@ -133,7 +133,7 @@ class Cache:
 
     @property
     def remain_data_count(self) -> int:
-        r"""
+        """
         Overview:
             Return receive queue's remain data count
         Returns:

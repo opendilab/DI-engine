@@ -9,7 +9,7 @@ class NonegativeParameter(nn.Module):
     Overview:
         This module will output a non-negative parameter during the forward process.
     Interfaces:
-        __init__, forward, set_data.
+        ``__init__``, ``forward``, ``set_data``.
     """
 
     def __init__(self, data: Optional[torch.Tensor] = None, requires_grad: bool = True, delta: float = 1e-8):
@@ -29,7 +29,7 @@ class NonegativeParameter(nn.Module):
 
     def forward(self) -> torch.Tensor:
         """
-        Overview：
+        Overview:
             Output the non-negative parameter during the forward process.
         Returns:
             parameter (:obj:`torch.Tensor`): The generated parameter.
@@ -51,7 +51,7 @@ class TanhParameter(nn.Module):
     Overview:
         This module will output a tanh parameter during the forward process.
     Interfaces:
-        __init__, forward, set_data.
+        ``__init__``, ``forward``, ``set_data``.
     """
 
     def __init__(self, data: Optional[torch.Tensor] = None, requires_grad: bool = True):
@@ -72,7 +72,7 @@ class TanhParameter(nn.Module):
 
     def forward(self) -> torch.Tensor:
         """
-        Overview：
+        Overview:
             Output the tanh parameter during the forward process.
         Returns:
             parameter (:obj:`torch.Tensor`): The generated parameter.
@@ -81,7 +81,7 @@ class TanhParameter(nn.Module):
 
     def set_data(self, data: torch.Tensor) -> None:
         """
-        Overview：
+        Overview:
             Set the value of the tanh parameter.
         Arguments:
             data (:obj:`torch.Tensor`): The new value of the tanh parameter.

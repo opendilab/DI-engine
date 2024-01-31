@@ -9,6 +9,13 @@ STRING_PROCESSOR = Callable[[str], str]
 
 
 def enum(*items, case_sensitive: bool = True) -> ILoaderClass:
+    """
+    Overview:
+        Create an enum loader.
+    Arguments:
+        - items (:obj:`Iterable[str]`): The items.
+        - case_sensitive (:obj:`bool`): Whether case sensitive.
+    """
 
     def _case_sensitive(func: STRING_PROCESSOR) -> STRING_PROCESSOR:
         if case_sensitive:
@@ -38,6 +45,13 @@ def enum(*items, case_sensitive: bool = True) -> ILoaderClass:
 
 
 def _to_regexp(regexp) -> Pattern:
+    """
+    Overview:
+        Convert regexp to re.Pattern.
+    Arguments:
+        - regexp (:obj:`Union[str, re.Pattern]`): The regexp.
+    """
+
     if isinstance(regexp, Pattern):
         return regexp
     elif isinstance(regexp, str):
@@ -49,6 +63,13 @@ def _to_regexp(regexp) -> Pattern:
 
 
 def rematch(regexp: Union[str, Pattern]) -> ILoaderClass:
+    """
+    Overview:
+        Create a rematch loader.
+    Arguments:
+        - regexp (:obj:`Union[str, re.Pattern]`): The regexp.
+    """
+
     regexp = _to_regexp(regexp)
 
     def _load(value: str):
@@ -66,6 +87,14 @@ def rematch(regexp: Union[str, Pattern]) -> ILoaderClass:
 
 
 def regrep(regexp: Union[str, Pattern], group: int = 0) -> ILoaderClass:
+    """
+    Overview:
+        Create a regrep loader.
+    Arguments:
+        - regexp (:obj:`Union[str, re.Pattern]`): The regexp.
+        - group (:obj:`int`): The group.
+    """
+
     regexp = _to_regexp(regexp)
 
     def _load(value: str):

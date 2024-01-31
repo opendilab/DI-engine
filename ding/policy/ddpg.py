@@ -68,7 +68,7 @@ class DDPGPolicy(Policy):
         on_policy=False,
         # (bool) Whether to enable priority experience sample.
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
@@ -411,7 +411,7 @@ class DDPGPolicy(Policy):
         Returns:
             - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
                 other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
-                dict is the same as the input data, i.e. environment id.
+                dict is the same as the input data, i.e., environment id.
 
         .. note::
             The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \

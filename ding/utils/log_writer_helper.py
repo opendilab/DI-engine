@@ -16,10 +16,22 @@ class DistributedWriter(SummaryWriter):
         A simple subclass of SummaryWriter that supports writing to one process in multi-process mode.
         The best way is to use it in conjunction with the ``router`` to take advantage of the message \
             and event components of the router (see ``writer.plugin``).
+    Interfaces:
+        ``get_instance``, ``plugin``, ``initialize``, ``__del__``
     """
     root = None
 
     def __init__(self, *args, **kwargs):
+        """
+        Overview:
+            Initialize the DistributedWriter object.
+        Arguments:
+            - args (:obj:`Tuple`): The arguments passed to the ``__init__`` function of the parent class, \
+                SummaryWriter.
+            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__init__`` function of the parent class, \
+                SummaryWriter.
+        """
+
         self._default_writer_to_disk = kwargs.get("write_to_disk") if "write_to_disk" in kwargs else True
         # We need to write data to files lazily, so we should not use file writer in __init__,
         # On the contrary, we will initialize the file writer when the user calls the
@@ -37,6 +49,11 @@ class DistributedWriter(SummaryWriter):
         Overview:
             Get instance and set the root level instance on the first called. If args and kwargs is none,
             this method will return root instance.
+        Arguments:
+            - args (:obj:`Tuple`): The arguments passed to the ``__init__`` function of the parent class, \
+                SummaryWriter.
+            - kwargs (:obj:`Dict`): The keyword arguments passed to the ``__init__`` function of the parent class, \
+                SummaryWriter.
         """
         if args or kwargs:
             ins = cls(*args, **kwargs)
@@ -52,6 +69,9 @@ class DistributedWriter(SummaryWriter):
             Plugin ``router``, so when using this writer with active router, it will automatically send requests\
                 to the main writer instead of writing it to the disk. So we can collect data from multiple processes\
                 and write them into one file.
+        Arguments:
+            - router (:obj:`Parallel`): The router to be plugged in.
+            - is_writer (:obj:`bool`): Whether this writer is the main writer.
         Examples:
             >>> DistributedWriter().plugin(router, is_writer=True)
         """
@@ -66,20 +86,44 @@ class DistributedWriter(SummaryWriter):
         return self
 
     def _on_distributed_writer(self, fn_name: str, *args, **kwargs):
+        """
+        Overview:
+            This method is called when the router receives a request to write data.
+        Arguments:
+            - fn_name (:obj:`str`): The name of the function to be called.
+            - args (:obj:`Tuple`): The arguments passed to the function to be called.
+            - kwargs (:obj:`Dict`): The keyword arguments passed to the function to be called.
+        """
+
         if self._is_writer:
             getattr(self, fn_name)(*args, **kwargs)
 
     def initialize(self):
+        """
+        Overview:
+            Initialize the file writer.
+        """
         self.close()
         self._write_to_disk = self._default_writer_to_disk
         self._get_file_writer()
         self._lazy_initialized = True
 
     def __del__(self):
+        """
+        Overview:
+            Close the file writer.
+        """
         self.close()
 
 
 def enable_parallel(fn_name, fn):
+    """
+    Overview:
+        Decorator to enable parallel writing.
+    Arguments:
+        - fn_name (:obj:`str`): The name of the function to be called.
+        - fn (:obj:`Callable`): The function to be called.
+    """
 
     def _parallel_fn(self: DistributedWriter, *args, **kwargs):
         if not self._lazy_initialized:

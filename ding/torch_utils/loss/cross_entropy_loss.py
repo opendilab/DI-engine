@@ -9,7 +9,7 @@ class LabelSmoothCELoss(nn.Module):
     Overview:
         Label smooth cross entropy loss.
     Interfaces:
-        __init__, forward.
+        ``__init__``, ``forward``.
     """
 
     def __init__(self, ratio: float) -> None:
@@ -46,7 +46,7 @@ class SoftFocalLoss(nn.Module):
     Overview:
         Soft focal loss.
     Interfaces:
-        __init__, forward.
+        ``__init__``, ``forward``.
     """
 
     def __init__(
@@ -72,7 +72,7 @@ class SoftFocalLoss(nn.Module):
         self.nll_loss = torch.nn.NLLLoss2d(weight, size_average, reduce=reduce)
 
     def forward(self, inputs: torch.Tensor, targets: torch.LongTensor) -> torch.Tensor:
-        r"""
+        """
         Overview:
             Calculate soft focal loss.
         Arguments:
@@ -89,7 +89,10 @@ def build_ce_criterion(cfg: dict) -> nn.Module:
     Overview:
         Get a cross entropy loss instance according to given config.
     Arguments:
-        - cfg (:obj:`dict`)
+        - cfg (:obj:`dict`) : Config dict. It contains:
+            - type (:obj:`str`): Type of loss function, now supports ['cross_entropy', 'label_smooth_ce', \
+                'soft_focal_loss'].
+            - kwargs (:obj:`dict`): Arguments for the corresponding loss function.
     Returns:
         - loss (:obj:`nn.Module`): loss function instance
     """

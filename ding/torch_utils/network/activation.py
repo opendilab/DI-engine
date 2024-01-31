@@ -9,6 +9,8 @@ class Lambda(nn.Module):
     """
     Overview:
         A custom lambda module for constructing custom layers.
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(self, f: Callable):
@@ -21,7 +23,13 @@ class Lambda(nn.Module):
         super(Lambda, self).__init__()
         self.f = f
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            Compute the function of the input tensor.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The input tensor.
+        """
         return self.f(x)
 
 
@@ -31,7 +39,7 @@ class GLU(nn.Module):
         Gating Linear Unit (GLU), a specific type of activation function, which is first proposed in
         [Language Modeling with Gated Convolutional Networks](https://arxiv.org/pdf/1612.08083.pdf).
     Interfaces:
-        ``forward``.
+        ``__init__``, ``forward``.
     """
 
     def __init__(self, input_dim: int, output_dim: int, context_dim: int, input_type: str = 'fc') -> None:
@@ -75,6 +83,8 @@ class Swish(nn.Module):
     Overview:
         Swish activation function, which is a smooth, non-monotonic activation function. For more details, please refer
         to [Searching for Activation Functions](https://arxiv.org/pdf/1710.05941.pdf).
+    Interfaces:
+        ``__init__``, ``forward``.
     """
 
     def __init__(self):
@@ -102,10 +112,14 @@ class GELU(nn.Module):
         Gaussian Error Linear Units (GELU) activation function, which is widely used in NLP models like GPT, BERT.
         For more details, please refer to the original paper: https://arxiv.org/pdf/1606.08415.pdf.
     Interfaces:
-        ``forward``
+        ``__init__``, ``forward``.
     """
 
     def __init__(self):
+        """
+        Overview:
+            Initialize the GELU module.
+        """
         super(GELU, self).__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

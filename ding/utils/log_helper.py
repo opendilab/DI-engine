@@ -19,7 +19,7 @@ def build_logger(
     need_text: bool = True,
     text_level: Union[int, str] = logging.INFO
 ) -> Tuple[Optional[logging.Logger], Optional['SummaryWriter']]:  # noqa
-    r"""
+    """
     Overview:
         Build text logger and tensorboard logger.
     Arguments:
@@ -41,6 +41,15 @@ def build_logger(
 
 
 class TBLoggerFactory(object):
+    """
+    Overview:
+        TBLoggerFactory is a factory class for ``SummaryWriter``.
+    Interfaces:
+        ``create_logger``
+    Properties:
+        - ``tb_loggers`` (:obj:`Dict[str, SummaryWriter]`): A dict that stores ``SummaryWriter`` instances.
+    """
+
     tb_loggers = {}
 
     @classmethod
@@ -53,10 +62,16 @@ class TBLoggerFactory(object):
 
 
 class LoggerFactory(object):
+    """
+    Overview:
+        LoggerFactory is a factory class for ``logging.Logger``.
+    Interfaces:
+        ``create_logger``, ``get_tabulate_vars``, ``get_tabulate_vars_hor``
+    """
 
     @classmethod
     def create_logger(cls, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> logging.Logger:
-        r"""
+        """
         Overview:
             Create logger using logging
         Arguments:
@@ -80,7 +95,7 @@ class LoggerFactory(object):
 
     @staticmethod
     def get_tabulate_vars(variables: Dict[str, Any]) -> str:
-        r"""
+        """
         Overview:
             Get the text description in tabular form of all vars
         Arguments:
@@ -97,6 +112,13 @@ class LoggerFactory(object):
 
     @staticmethod
     def get_tabulate_vars_hor(variables: Dict[str, Any]) -> str:
+        """
+        Overview:
+            Get the text description in tabular form of all vars
+        Arguments:
+            - variables (:obj:`List[str]`): Names of the vars to query.
+        """
+
         column_to_divide = 5  # which includes the header "Name & Value"
 
         datak = []
@@ -131,7 +153,7 @@ class LoggerFactory(object):
 
 
 def pretty_print(result: dict, direct_print: bool = True) -> str:
-    r"""
+    """
     Overview:
         Print a dict ``result`` in a pretty way
     Arguments:

@@ -9,6 +9,11 @@ from .default_helper import one_time_warning
 
 @lru_cache()
 def njit():
+    """
+    Overview:
+        Decorator to compile a function using numba.
+    """
+
     try:
         if ding.enable_numba:
             import numba
@@ -34,7 +39,7 @@ class SegmentTree:
     Overview:
         Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,
         non-leaf nodes are to do some operations on its left and right child.
-    Interface:
+    Interfaces:
         ``__init__``, ``reduce``, ``__setitem__``, ``__getitem__``
     """
 
@@ -111,6 +116,11 @@ class SegmentTree:
         return self.value[idx + self.capacity]
 
     def _compile(self) -> None:
+        """
+        Overview:
+            Compile the functions using numba.
+        """
+
         f64 = np.array([0, 1], dtype=np.float64)
         f32 = np.array([0, 1], dtype=np.float32)
         i64 = np.array([0, 1], dtype=np.int64)
@@ -121,11 +131,19 @@ class SegmentTree:
 
 
 class SumSegmentTree(SegmentTree):
+    """
+    Overview:
+        Sum segment tree, which is inherited from ``SegmentTree``. Init by passing ``operation='sum'``.
+    Interfaces:
+        ``__init__``, ``find_prefixsum_idx``
+    """
 
     def __init__(self, capacity: int) -> None:
         """
         Overview:
             Init sum segment tree by passing ``operation='sum'``
+        Arguments:
+            - capacity (:obj:`int`): Capacity of the tree (the number of the leaf nodes).
         """
         super(SumSegmentTree, self).__init__(capacity, operation='sum')
 
@@ -148,17 +166,35 @@ class SumSegmentTree(SegmentTree):
 
 
 class MinSegmentTree(SegmentTree):
+    """
+    Overview:
+        Min segment tree, which is inherited from ``SegmentTree``. Init by passing ``operation='min'``.
+    Interfaces:
+        ``__init__``
+    """
 
     def __init__(self, capacity: int) -> None:
         """
         Overview:
-            Init sum segment tree by passing ``operation='min'``
+            Initialize sum segment tree by passing ``operation='min'``
+        Arguments:
+            - capacity (:obj:`int`): Capacity of the tree (the number of the leaf nodes).
         """
         super(MinSegmentTree, self).__init__(capacity, operation='min')
 
 
 @njit()
 def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
+    """
+    Overview:
+        Set ``tree[idx] = val``; Then update the related nodes.
+    Arguments:
+        - tree (:obj:`np.ndarray`): The tree array.
+        - idx (:obj:`int`): The index of the leaf node.
+        - val (:obj:`float`): The value that will be assigned to ``leaf[idx]``.
+        - operation (:obj:`str`): The operation function to construct the tree, e.g. sum, max, min, etc.
+    """
+
     tree[idx] = val
     # Update from specified node to the root node
     while idx > 1:
@@ -172,6 +208,18 @@ def _setitem(tree: np.ndarray, idx: int, val: float, operation: str) -> None:
 
 @njit()
 def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, operation: str) -> float:
+    """
+    Overview:
+        Reduce the tree in range ``[start, end)``
+    Arguments:
+        - tree (:obj:`np.ndarray`): The tree array.
+        - start (:obj:`int`): Start index(relative index, the first leaf node is 0).
+        - end (:obj:`int`): End index(relative index).
+        - neutral_element (:obj:`float`): The value of the neutral element, which is used to init \
+            all nodes value in the tree.
+        - operation (:obj:`str`): The operation function to construct the tree, e.g. sum, max, min, etc.
+    """
+
     # Nodes in 【start, end) will be aggregated
     result = neutral_element
     while start < end:
@@ -197,6 +245,18 @@ def _reduce(tree: np.ndarray, start: int, end: int, neutral_element: float, oper
 
 @njit()
 def _find_prefixsum_idx(tree: np.ndarray, capacity: int, prefixsum: float, neutral_element: float) -> int:
+    """
+    Overview:
+        Find the highest non-zero index i, sum_{j}leaf[j] <= ``prefixsum`` (where 0 <= j < i)
+        and sum_{j}leaf[j] > ``prefixsum`` (where 0 <= j < i+1)
+    Arguments:
+        - tree (:obj:`np.ndarray`): The tree array.
+        - capacity (:obj:`int`): Capacity of the tree (the number of the leaf nodes).
+        - prefixsum (:obj:`float`): The target prefixsum.
+        - neutral_element (:obj:`float`): The value of the neutral element, which is used to init \
+            all nodes value in the tree.
+    """
+
     # The function is to find a non-leaf node's index which satisfies:
     # self.value[idx] > input prefixsum and self.value[idx + 1] <= input prefixsum
     # In other words, we can assume that there are intervals: [num_0, num_1), [num_1, num_2), ... [num_k, num_k+1),

@@ -24,7 +24,7 @@ class ResBlock(nn.Module):
         For more details, please refer to `Deep Residual Learning for Image Recognition
         <https://arxiv.org/abs/1512.03385>`_.
     Interfaces:
-        ``forward``
+        ``__init__``, ``forward``
     """
 
     def __init__(
@@ -110,7 +110,7 @@ class ResFCBlock(nn.Module):
         \_____________________________________/+
 
     Interfaces:
-        ``forward``
+        ``__init__``, ``forward``
     """
 
     def __init__(
