@@ -226,8 +226,8 @@ class ThruputController:
         window_seconds = cfg.window_seconds
         self._decay_factor = 0.01 ** (1 / window_seconds)
 
-        self._push_lock = LockContext(type_=LockContextType.THREAD_LOCK)
-        self._sample_lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        self._push_lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
+        self._sample_lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
         self._history_push_count = 0
         self._history_sample_count = 0
 
