@@ -40,15 +40,15 @@ class LockContext(object):
         >>>     print("Do something here.")
     """
 
-    def __init__(self, type_: LockContextType = LockContextType.THREAD_LOCK):
+    def __init__(self, lock_type: LockContextType = LockContextType.THREAD_LOCK):
         """
         Overview:
             Init the lock according to the given type.
 
         Arguments:
-           - type_ (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.
+           - lock_type (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.
         """
-        self.lock = _LOCK_TYPE_MAPPING[type_]()
+        self.lock = _LOCK_TYPE_MAPPING[lock_type]()
 
     def acquire(self):
         """

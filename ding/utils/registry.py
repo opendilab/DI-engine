@@ -15,22 +15,21 @@ class Registry(dict):
         and provides a register functions.
     Interfaces:
         ``__init__``, ``register``, ``get``, ``build``, ``query``, ``query_details``
-    Examples:
-        creeting a registry:
+    Examples (creating):
         >>> some_registry = Registry({"default": default_module})
 
-        There're two ways of registering new modules:
-        1): normal way is just calling register function:
+    Examples (registering: normal way):
         >>> def foo():
         >>>     ...
-            some_registry.register("foo_module", foo)
-        2): used as decorator when declaring the module:
+        >>> some_registry.register("foo_module", foo)
+
+    Examples (registering: decorator way):
         >>> @some_registry.register("foo_module")
         >>> @some_registry.register("foo_modeul_nickname")
         >>> def foo():
         >>>     ...
 
-        Access of module is just like using a dictionary, eg:
+    Examples (accessing):
         >>> f = some_registry["foo_module"]
     """
 

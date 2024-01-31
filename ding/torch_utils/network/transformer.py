@@ -147,6 +147,7 @@ class Transformer(nn.Module):
 
     .. note::
         For more details, refer to "Attention is All You Need": http://arxiv.org/abs/1706.03762.
+
     Interfaces:
         ``__init__``, ``forward``
     """

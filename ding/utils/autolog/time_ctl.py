@@ -134,7 +134,7 @@ class TimeProxy(BaseTime):
         This object is thread-safe, and also freeze and unfreeze operation is strictly ordered.
     Interfaces:
         ``__init__``, ``freeze``, ``unfreeze``, ``time``, ``current_time``
-    Example:
+    Examples:
         >>> from ding.utils.autolog.time_ctl import TickTime, TimeProxy
         >>> tick_time_ = TickTime()
         >>> time_ = TimeProxy(tick_time_)
