@@ -77,7 +77,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         self.reward_size = self._cfg.reward_size
         self.hidden_size = self._cfg.hidden_size
         self.batch_size = self._cfg.batch_size
-        if type(self.state_size) == int or len(self.state_size) == 1:
+        if isinstance(self.state_size, int):
             self.encoder = FCEncoder(self.state_size, self._cfg.encoder_hidden_size_list, activation=torch.nn.SiLU())
             self.embed_size = self._cfg.encoder_hidden_size_list[-1]
         elif len(self.state_size) == 3:
@@ -120,7 +120,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         else:
             feat_size = self._cfg.dyn_stoch + self._cfg.dyn_deter
 
-        if type(self.state_size) == int or len(self.state_size) == 1:
+        if isinstance(self.state_size, int):
             self.heads['image'] = DenseHead(
                 feat_size,
                 (self.state_size, ),
@@ -192,7 +192,6 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         data = {k: torch.stack(data[k], dim=1) for k in data}  # -> {dict_key: Tensor([B, T, any_dims])}
 
         data['discount'] = data.get('discount', 1.0 - data['done'].float())
-        # data['discount'] *= 0.997
         data['weight'] = data.get('weight', None)
         if type(self.state_size) != int and len(self.state_size) == 3:
             data['image'] = data['obs'] - 0.5

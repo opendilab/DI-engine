@@ -50,7 +50,6 @@ minigrid_dreamer_config = dict(
             action_size=7,  # has to be specified
             collect_dyn_sample=True,
         ),
-        command=dict(),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             # environment buffer

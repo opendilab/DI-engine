@@ -234,8 +234,8 @@ class DREAMERPolicy(Policy):
                         latent[key][i] *= mask[i]
                 for i in range(len(action)):
                     action[i] *= mask[i]
-
-        if type(world_model.state_size) != int and len(world_model.state_size) == 3:
+        # normalize RGB image input
+        if not isinstance(world_model.state_size, int) and len(world_model.state_size) == 3:
             data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
@@ -248,6 +248,7 @@ class DREAMERPolicy(Policy):
         action = action.detach()
 
         state = (latent, action)
+        assert isinstance(world_model.action_type, str), "please specify the action type"
         if world_model.action_type == 'discrete':
             action = torch.where(action == 1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
