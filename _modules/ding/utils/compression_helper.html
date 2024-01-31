@@ -362,7 +362,6 @@
 <span class="sd">        - output (:obj:`bytes`): The compressed byte-like result.</span>
 <span class="sd">    Examples:</span>
 <span class="sd">        &gt;&gt;&gt; zlib_data_compressor(&quot;Hello&quot;)</span>
-<span class="sd">        b&#39;x\x9ck`\x99\xca\xc9\x00\x01=\xac\x1e\xa999\xf9S\xf4\x00%L\x04j&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 

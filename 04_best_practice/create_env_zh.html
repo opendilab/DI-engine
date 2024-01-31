@@ -531,6 +531,51 @@
 最终将所有并行运行的环境得到的数据整合在一起用于训练。</p>
 <p>因此，DI-engine 中设计并集成了环境管理器（Env Manager）模块，管理多个相同类型不同配置的环境。
 Env Manager 可以实现多个环境并行运行并返回相应信息，保持与原有环境相似的接口，从而在显著加速运行效率的同时保持与单个环境相似的使用接口，一个简单的对比示例如下：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 单个环境</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;CartPole-v0&#39;</span><span class="p">)</span>
+<span class="n">vectorized_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">n_steps</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="n">collected_steps</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">random_action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    <span class="n">obs</span><span class="p">,</span> <span class="n">rew</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">random_action</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+    <span class="n">collected_steps</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">collected_steps</span> <span class="o">&gt;</span> <span class="n">n_steps</span><span class="p">:</span>
+        <span class="k">break</span>
+
+
+<span class="c1"># 多个向量化环境</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">SyncSubprocessEnvManager</span>
+
+<span class="k">def</span> <span class="nf">env_fn</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">DingEnvWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;CartPole-v0&#39;</span><span class="p">))</span>
+
+<span class="n">vectorized_env_num</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">n_steps</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">env_manager</span> <span class="o">=</span> <span class="n">SyncSubprocessEnvManager</span><span class="p">([</span><span class="n">env_fn</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vectorized_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">SyncSubprocessEnvManager</span><span class="o">.</span><span class="n">default_config</span><span class="p">())</span>
+
+<span class="n">collected_steps</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">env_manager</span><span class="o">.</span><span class="n">launch</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">ready_obs</span>
+    <span class="n">random_action</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
+    <span class="n">timesteps</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">random_action</span><span class="p">)</span>  <span class="c1"># There are batch_size timestamps in total, each timestamp consists of obs, rew, done, info</span>
+    <span class="n">collected_steps</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">collected_steps</span> <span class="o">&gt;</span> <span class="n">n_steps</span><span class="p">:</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
 <p>不过，虽然这种向量化环境的设计思想很明确，但在实际使用中也遇到了一些新的挑战。
 例如在算法层面，像 AlphaZero/MuZero 这类决策算法就包含一些更复杂的数据收集流程，简单的向量化环境方案离效率提升的上限还有很大的优化空间。
 而对于不同类型的环境，每个环境实例的运行时间，episode 长度，数据包大小都可能不一致，强制让所有实例向量化运行并一起返回很容易因为“木桶效应”而造成大量的冗余等待，因此也就衍生出了一些分组向量化的解决方案。

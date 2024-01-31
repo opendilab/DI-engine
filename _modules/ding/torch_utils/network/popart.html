@@ -352,7 +352,7 @@
 <div class="viewcode-block" id="PopArt.reset_parameters"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.popart.PopArt.reset_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">reset_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Reset the parameters including weights and bias using kaiming_uniform_ and uniform_ initialization.</span>
+<span class="sd">            Reset the parameters including weights and bias using ``kaiming_uniform_`` and ``uniform_`` initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_uniform_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

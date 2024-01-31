@@ -82,7 +82,7 @@ HAPPO 也可以选择在模型中加入 `RNN <https://di-engine-docs.readthedocs
 HAPPO 使用的网络接口定义如下，其中包含了 n_agent 个的 model：
 
     .. autoclass:: ding.model.template.havac.HAVAC
-        :members: forward, compute_actor, compute_critic, compute_actor_critic
+        :members: forward
         :noindex:
 
 而单个智能体的 model 与 PPO 的类似：
@@ -96,14 +96,14 @@ Benchmark
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 | environment         |best mean reward | evaluation results                                  | config link              | comparison           |
 +=====================+=================+=====================================================+==========================+======================+
-|                     |                 |                                                     |`config_link_ha <https:// |                      |
+|                     |                 |                                                     |`config_link_h1 <https:// |                      |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Halfcheetah          |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
 |                     |  5356           |.. image:: images/benchmark/happo_halfcheetah.png    |multiagent_mujoco/config/ |                      |
 |(Halfcheetah-v2)     |                 |                                                     |halfcheetah_happo_config  |                      |
 |                     |                 |                                                     |.py>`_                    |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_ha <https:// |                      |
+|                     |                 |                                                     |`config_link_h2 <https:// |                      |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Simple-spread        |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
 |                     |  -136.8         |.. image:: images/benchmark/happo_ptz.png            |petting_zoo/config/       |                      |

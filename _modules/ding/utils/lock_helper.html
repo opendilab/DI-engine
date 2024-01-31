@@ -334,15 +334,15 @@
 <span class="sd">        &gt;&gt;&gt;     print(&quot;Do something here.&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LockContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">LockContextType</span> <span class="o">=</span> <span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">):</span>
+<div class="viewcode-block" id="LockContext.__init__"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lock_type</span><span class="p">:</span> <span class="n">LockContextType</span> <span class="o">=</span> <span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the lock according to the given type.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">           - type_ (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.</span>
+<span class="sd">           - lock_type (:obj:`LockContextType`): The type of lock to be used. Defaults to LockContextType.THREAD_LOCK.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">_LOCK_TYPE_MAPPING</span><span class="p">[</span><span class="n">type_</span><span class="p">]()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">_LOCK_TYPE_MAPPING</span><span class="p">[</span><span class="n">lock_type</span><span class="p">]()</span></div>
 
 <div class="viewcode-block" id="LockContext.acquire"><a class="viewcode-back" href="../../../05_api_doc/utils.html#ding.utils.lock_helper.LockContext.acquire">[docs]</a>    <span class="k">def</span> <span class="nf">acquire</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

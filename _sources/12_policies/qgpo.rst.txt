@@ -155,19 +155,19 @@ Benchmark
        | (Medium Expert)
      - 11226
      - .. image:: images/benchmark/halfcheetah_qgpo.png
-     - `config_link <https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_qgpo_medium_expert_config.py>`_
+     - `config_link_1 <https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_qgpo_medium_expert_config.py>`_
      - | d3rlpy(12124)
    * - | Walker2d
        | (Medium Expert)
      - 5044
      - .. image:: images/benchmark/walker2d_qgpo.png
-     - `config_link <https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_qgpo_medium_expert_config.py>`_
+     - `config_link_2 <https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_qgpo_medium_expert_config.py>`_
      - | d3rlpy(5108)
    * - | Hopper
        | (Medium Expert)
      - 3823
      - .. image:: images/benchmark/hopper_qgpo.png
-     - `config_link <https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_qgpo_config.py>`_
+     - `config_link_3 <https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_qgpo_config.py>`_
      - | d3rlpy(3690)
 
 

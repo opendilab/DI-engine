@@ -789,7 +789,7 @@
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>criterion (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Criterion type, supports [‘cross_entropy’, ‘label_smooth_ce’].</p></li>
-<li><p>smooth_ratio (<a href="#id1"><span class="problematic" id="id2">:obs:`float`</span></a>): Smoothing ratio for label smoothing.</p></li>
+<li><p>smooth_ratio (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Smoothing ratio for label smoothing.</p></li>
 </ul>
 </dd>
 </dl>
@@ -6604,7 +6604,7 @@ normalized output of the layer.</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.popart.PopArt.reset_parameters">
 <span class="sig-name descname"><span class="pre">reset_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/popart.html#PopArt.reset_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.popart.PopArt.reset_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Reset the parameters including weights and bias using <a href="#id6"><span class="problematic" id="id7">kaiming_uniform_</span></a> and <a href="#id8"><span class="problematic" id="id9">uniform_</span></a> initialization.</p>
+<dt>Overview:</dt><dd><p>Reset the parameters including weights and bias using <code class="docutils literal notranslate"><span class="pre">kaiming_uniform_</span></code> and <code class="docutils literal notranslate"><span class="pre">uniform_</span></code> initialization.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -6644,7 +6644,7 @@ standard deviation after the update.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResBlock">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.res_block.</span></span><span class="sig-name descname"><span class="pre">ResBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'basic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/res_block.html#ResBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResBlock" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
+<dd><dl class="simple">
 <dt>Overview:</dt><dd><dl class="simple">
 <dt>Residual Block with 2D convolution layers, including 3 types:</dt><dd><dl class="simple">
 <dt>basic block:</dt><dd><p>input channel: C
@@ -6661,8 +6661,13 @@ __________________ 3*3*C ____________________/+</p>
 </dl>
 </dd>
 </dl>
-<p>For more details, please refer to <a class="reference external" href="https://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a>.</p>
 </dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can refer to <a class="reference external" href="https://arxiv.org/abs/1512.03385">Deep Residual Learning for Image Recognition</a> for more         details.</p>
+</div>
+<dl class="simple">
 <dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code></p>
 </dd>
 </dl>
@@ -7089,51 +7094,6 @@ _____________________________________/+</p>
 <span class="sig-name descname"><span class="pre">stride</span></span><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.torch_utils.network.resnet.AvgPool2dSame.stride" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-</section>
-<section id="create-pool">
-<h3>_create_pool<a class="headerlink" href="#create-pool" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.torch_utils.network.resnet._create_pool">
-<span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.resnet.</span></span><span class="sig-name descname"><span class="pre">_create_pool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_features</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'avg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_conv</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/torch_utils/network/resnet.html#_create_pool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.resnet._create_pool" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Create a global pooling layer based on the given arguments.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>num_features (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of input features.</p></li>
-<li><p>num_classes (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of output classes.</p></li>
-<li><p>pool_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Type of the pooling operation. Defaults to ‘avg’.</p></li>
-<li><p>use_conv (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use convolutional layer after pooling. Defaults to False.</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[nn.Module,</span> <span class="pre">int]</span></code>): The created global pooling layer and the number of pooled features.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="create-fc">
-<h3>_create_fc<a class="headerlink" href="#create-fc" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.torch_utils.network.resnet._create_fc">
-<span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.resnet.</span></span><span class="sig-name descname"><span class="pre">_create_fc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_features</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_conv</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.nn.modules.module.Module</span></span></span><a class="reference internal" href="../_modules/ding/torch_utils/network/resnet.html#_create_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.resnet._create_fc" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Create a fully connected layer based on the given arguments.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>num_features (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of input features.</p></li>
-<li><p>num_classes (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of output classes.</p></li>
-<li><p>use_conv (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use convolutional layer. Defaults to False.</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): The created fully connected layer.</p></li>
-</ul>
-</dd>
-</dl>
 </dd></dl>
 
 </section>
@@ -7754,7 +7714,6 @@ feature info list that contains information about the output of each block.</p>
 <li><p>avg_down (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>, optional): Whether to use average pooling for downsampling, defaults to False.</p></li>
 <li><p>drop_block_rate (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, optional): The drop block rate, defaults to 0.</p></li>
 <li><p>drop_path_rate (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>, optional): The drop path rate, defaults to 0.</p></li>
-<li><p><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Additional keyword arguments.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -7770,12 +7729,10 @@ feature info list that contains information about the output of each block.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.resnet.ResNet">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.resnet.</span></span><span class="sig-name descname"><span class="pre">ResNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">block:</span> <span class="pre">torch.nn.modules.module.Module,</span> <span class="pre">layers:</span> <span class="pre">List[int],</span> <span class="pre">num_classes:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1000,</span> <span class="pre">in_chans:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">3,</span> <span class="pre">cardinality:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1,</span> <span class="pre">base_width:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">64,</span> <span class="pre">stem_width:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">64,</span> <span class="pre">stem_type:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'',</span> <span class="pre">replace_stem_pool:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">output_stride:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">32,</span> <span class="pre">block_reduce_first:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1,</span> <span class="pre">down_kernel_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1,</span> <span class="pre">avg_down:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">act_layer:</span> <span class="pre">torch.nn.modules.module.Module</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'torch.nn.modules.activation.ReLU'&gt;,</span> <span class="pre">norm_layer:</span> <span class="pre">torch.nn.modules.module.Module</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'torch.nn.modules.batchnorm.BatchNorm2d'&gt;,</span> <span class="pre">aa_layer:</span> <span class="pre">Optional[torch.nn.modules.module.Module]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">drop_rate:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.0,</span> <span class="pre">drop_path_rate:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.0,</span> <span class="pre">drop_block_rate:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.0,</span> <span class="pre">global_pool:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'avg',</span> <span class="pre">zero_init_last_bn:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">block_args:</span> <span class="pre">Optional[dict]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/resnet.html#ResNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.resnet.ResNet" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
+<dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Implements ResNet, ResNeXt, SE-ResNeXt, and SENet models. This implementation supports various modifications
-based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details</p>
-<blockquote>
-<div><p>about the variants and options, please refer to the ‘Bag of Tricks’ paper: <a class="reference external" href="https://arxiv.org/pdf/1812.01187">https://arxiv.org/pdf/1812.01187</a>.</p>
-</div></blockquote>
+based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details
+about the variants and options, please refer to the ‘Bag of Tricks’ paper: <a class="reference external" href="https://arxiv.org/pdf/1812.01187">https://arxiv.org/pdf/1812.01187</a>.</p>
 </dd>
 <dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">zero_init_last_bn</span></code>, <code class="docutils literal notranslate"><span class="pre">get_classifier</span></code></p>
 </dd>
@@ -10203,8 +10160,8 @@ whenever an exception happens.</p>
 <section id="dataparallel">
 <h2>dataparallel<a class="headerlink" href="#dataparallel" title="Permalink to this headline">¶</a></h2>
 <p>Please refer to <code class="docutils literal notranslate"><span class="pre">ding/torch_utils/dataparallel</span></code> for more details.</p>
-<section id="id5">
-<h3>DataParallel<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<section id="id1">
+<h3>DataParallel<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.dataparallel.DataParallel">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.dataparallel.</span></span><span class="sig-name descname"><span class="pre">DataParallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/dataparallel.html#DataParallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.dataparallel.DataParallel" title="Permalink to this definition">¶</a></dt>
@@ -11299,20 +11256,16 @@ you can view the paper in the following link <a class="reference external" href=
 <dt class="sig sig-object py" id="ding.torch_utils.optimizer_helper.configure_weight_decay">
 <span class="sig-prename descclassname"><span class="pre">ding.torch_utils.optimizer_helper.</span></span><span class="sig-name descname"><span class="pre">configure_weight_decay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span></span></span><a class="reference internal" href="../_modules/ding/torch_utils/optimizer_helper.html#configure_weight_decay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.optimizer_helper.configure_weight_decay" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Separating out all parameters of the model into two buckets: those that will experience</p>
+<dt>Overview:</dt><dd><p>Separating out all parameters of the model into two buckets: those that will experience
+weight decay for regularization and those that won’t (biases, and layer-norm or embedding weights).</p>
 </dd>
-</dl>
-<p>weight decay for regularization and those that won’t (biases, and layer-norm or embedding weights).
-Arguments:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the given PyTorch model.</p></li>
-<li><p>weight_decay (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): weight decay value for optimizer.</p></li>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): The given PyTorch model.</p></li>
+<li><p>weight_decay (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Weight decay value for optimizer.</p></li>
 </ul>
-</div></blockquote>
-<dl class="simple">
+</dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>optim groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): the parameter groups to be set in the latter optimizer.</p></li>
+<li><p>optim groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): The parameter groups to be set in the latter optimizer.</p></li>
 </ul>
 </dd>
 </dl>
@@ -11851,8 +11804,6 @@ Arguments:</p>
 <li><a class="reference internal" href="#pad-same">pad_same</a></li>
 <li><a class="reference internal" href="#avg-pool2d-same">avg_pool2d_same</a></li>
 <li><a class="reference internal" href="#avgpool2dsame">AvgPool2dSame</a></li>
-<li><a class="reference internal" href="#create-pool">_create_pool</a></li>
-<li><a class="reference internal" href="#create-fc">_create_fc</a></li>
 <li><a class="reference internal" href="#create-classifier">create_classifier</a></li>
 <li><a class="reference internal" href="#classifierhead">ClassifierHead</a></li>
 <li><a class="reference internal" href="#create-attn">create_attn</a></li>
@@ -11924,7 +11875,7 @@ Arguments:</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#dataparallel">dataparallel</a><ul>
-<li><a class="reference internal" href="#id5">DataParallel</a></li>
+<li><a class="reference internal" href="#id1">DataParallel</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#distribution">distribution</a><ul>

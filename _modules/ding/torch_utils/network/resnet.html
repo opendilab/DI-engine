@@ -426,7 +426,7 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">avg_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ceil_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_include_pad</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="_create_pool"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet._create_pool">[docs]</a><span class="k">def</span> <span class="nf">_create_pool</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">_create_pool</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">pool_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span><span class="p">,</span>
                  <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
@@ -449,10 +449,10 @@
     <span class="k">assert</span> <span class="n">flatten_in_pool</span>
     <span class="n">global_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">num_pooled_features</span> <span class="o">=</span> <span class="n">num_features</span> <span class="o">*</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="n">global_pool</span><span class="p">,</span> <span class="n">num_pooled_features</span></div>
+    <span class="k">return</span> <span class="n">global_pool</span><span class="p">,</span> <span class="n">num_pooled_features</span>
 
 
-<div class="viewcode-block" id="_create_fc"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet._create_fc">[docs]</a><span class="k">def</span> <span class="nf">_create_fc</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_create_fc</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Create a fully connected layer based on the given arguments.</span>
@@ -470,7 +470,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># use nn.Linear for simplification</span>
         <span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">num_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">fc</span></div>
+    <span class="k">return</span> <span class="n">fc</span>
 
 
 <div class="viewcode-block" id="create_classifier"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.create_classifier">[docs]</a><span class="k">def</span> <span class="nf">create_classifier</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -963,7 +963,6 @@
 <span class="sd">        - avg_down (:obj:`bool`, optional): Whether to use average pooling for downsampling, defaults to False.</span>
 <span class="sd">        - drop_block_rate (:obj:`float`, optional): The drop block rate, defaults to 0.</span>
 <span class="sd">        - drop_path_rate (:obj:`float`, optional): The drop path rate, defaults to 0.</span>
-<span class="sd">        - **kwargs: Additional keyword arguments.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - Tuple[List[Tuple[str, nn.Module]], List[Dict[str, Union[int, str]]]]: \</span>
 <span class="sd">            A tuple that includes a list of blocks for the network and a feature info list.</span>
@@ -1022,7 +1021,7 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        Implements ResNet, ResNeXt, SE-ResNeXt, and SENet models. This implementation supports various modifications</span>
 <span class="sd">        based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details</span>
-<span class="sd">         about the variants and options, please refer to the &#39;Bag of Tricks&#39; paper: https://arxiv.org/pdf/1812.01187.</span>
+<span class="sd">        about the variants and options, please refer to the &#39;Bag of Tricks&#39; paper: https://arxiv.org/pdf/1812.01187.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``zero_init_last_bn``, ``get_classifier``</span>
 <span class="sd">    &quot;&quot;&quot;</span>

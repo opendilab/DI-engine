@@ -302,23 +302,25 @@
 <h1>Diffuser (Plan Diffuser)<a class="headerlink" href="#diffuser-plan-diffuser" title="Permalink to this headline">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>In the field of reinforcement learning, if we have a dataset <span class="math notranslate nohighlight">\(T\)</span> that contains a variety of trajectories, the goal of reinforcement learning is to mine and construct a high-performance agent from <span class="math notranslate nohighlight">\(T\)</span>, hoping that it can be directly deployed to the environment and achieve good returns. From the perspective of model-free Offline RL, the core of the work focuses on how to more accurately estimate the <span class="math notranslate nohighlight">\(Q\)</span>
+<p>In the field of reinforcement learning, if we have a dataset <span class="math notranslate nohighlight">\(T\)</span> that contains a variety of trajectories, the goal of reinforcement learning is to mine and construct a high-performance agent from <span class="math notranslate nohighlight">\(T\)</span>, hoping that it can be directly deployed to the environment and achieve good returns. From the perspective of model-free Offline RL, the core of the work focuses on how to more accurately estimate the <span class="math notranslate nohighlight">\(Q\)</span>
 value of each possible state-action pair, especially those that may query out-of-distribution state-action pairs. From the perspective of model-based Offline RL, the goal often becomes how to better fit the dynamic model of the real environment with this batch of data, and then implement the Online RL algorithm on this converged environmental model. After these two types of algorithms are finished, we usually get an explicit or implicit policy that can return an action that interacts with the environment given any environmental state.</p>
 <p>The above methods often do not take advantage of the continuity of trajectories in <span class="math notranslate nohighlight">\(T\)</span>, but instead divide each trajectory into several state transition segments and treat each such segment as an independent sample point for subsequent training. However, we can look at this dataset
 <span class="math notranslate nohighlight">\(T\)</span> from a completely new perspective, treating the entire trajectory as a sample point, thereby changing our goal to modeling the distribution of the entire trajectory. In the end, we can sample trajectories from the distribution with trajectory optimality as a conditional variable.</p>
 <p>In recent years, diffusion models have shined in the generation field. Compared with other generative models, such as VAE and GAN, diffusion models have stronger capabilities to model complex distributions. Therefore, researchers have thought about trying to use diffusion models to model the trajectory distribution in
 <span class="math notranslate nohighlight">\(T\)</span>. Diffusion, as proposed in the study <a class="reference external" href="https://arxiv.org/pdf/2205.09991.pdf">Planning with Diffusion for Flexible Behavior Synthesis</a>, represents a research approach that generates trajectories using a diffusion model.</p>
-<p>Quick Facts</p>
-</div></blockquote>
+</section>
+<section id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Diffusion views offline decisions as a sequence model problem.</p></li>
+<li><p>Diffusion use diffusion model generating trajectory</p></li>
+</ol>
 </section>
 <section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>In diffusion, trajectories are concatenated as follows in the array:
-.. math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>\<span class="n">begin</span><span class="p">{</span><span class="n">align</span><span class="p">}</span> \<span class="n">tau</span> <span class="o">=</span> \<span class="n">begin</span><span class="p">{</span><span class="n">bmatrix</span><span class="p">}</span><span class="n">s_0</span> <span class="n">s_1</span> <span class="o">...</span> <span class="n">s_T</span>\\<span class="n">a_0</span> <span class="n">a_1</span> <span class="o">...</span> <span class="n">a_T</span> \<span class="n">end</span><span class="p">{</span><span class="n">bmatrix</span><span class="p">}</span> \<span class="n">nonumber</span>\<span class="n">end</span><span class="p">{</span><span class="n">align</span><span class="p">}</span>
-</pre></div>
-</div>
+<p>In diffusion, trajectories are concatenated as follows in the array:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align} \tau = \begin{bmatrix}s_0 s_1 ... s_T\\a_0 a_1 ... a_T \end{bmatrix} \nonumber\end{align}\end{split}\]</div>
 <p>Regarding the time dependency between each transition in the trajectory, Diffusion does not emphasize autoregression or Markovian properties, but makes a more relaxed assumption about temporal locality. Diffusion samples trajectories in the plan by iteratively denoising state-action pairs with variable quantities.
 In a single denoising step, a smaller receptive field constrains the model to infer the denoising result based on adjacent frames in the trajectory.</p>
 <img alt="../_images/diffuser_sample.png" src="../_images/diffuser_sample.png" />
@@ -327,11 +329,9 @@ The loss function of this model is:</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{L}(\theta) = \mathbb{E}_{i, \epsilon, \tau^0}[||\epsilon - \epsilon_\theta(\tau^i, i)||^2]\nonumber\]</div>
 <p>The algorithm transforms the RL problem into a conditional sampling problem. It utilizes a guiding function to evaluate the value of each sample trajectory at every timestep t.
-Ultimately, the algorithm selects the best trajectory as its output. The best trajectory is as follows:
-.. math:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="p">(</span>\<span class="n">mathcal</span><span class="p">{</span><span class="n">O</span><span class="p">}</span><span class="n">_t</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">r</span><span class="p">(</span><span class="n">s_t</span><span class="p">,</span> <span class="n">a_t</span><span class="p">))</span>
-</pre></div>
-</div>
+Ultimately, the algorithm selects the best trajectory as its output. The best trajectory is as follows:</p>
+<div class="math notranslate nohighlight">
+\[p(\mathcal{O}_t = 1) = exp(r(s_t, a_t))\]</div>
 <div class="math notranslate nohighlight">
 \[\begin{align} p(\tau| \mathcal{O}_{1:T} = 1) \propto p(\tau)p(\mathcal{O}_{1:T} = 1|\tau) \nonumber \end{align}\]</div>
 </section>
@@ -351,11 +351,50 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 
 </div></blockquote>
 <p>The network interface diffusion used is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.diffusion.</span></span><span class="sig-name descname"><span class="pre">GaussianDiffusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_timesteps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_epsilon</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_discount</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_denoised</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_weight</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weights</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/diffusion.html#GaussianDiffusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Gaussian diffusion model</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of model</p></li>
+<li><p>model_cfg (:obj:’dict’) config of model</p></li>
+<li><p>horizon (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): horizon of trajectory</p></li>
+<li><p>obs_dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Dim of the ovservation</p></li>
+<li><p>action_dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Dim of the ation</p></li>
+<li><p>n_timesteps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of timesteps</p></li>
+<li><p>predict_epsilon (:obj:’bool’): Whether predict epsilon</p></li>
+<li><p>loss_discount (:obj:’float’): discount of loss</p></li>
+<li><p>clip_denoised (:obj:’bool’): Whether use clip_denoised</p></li>
+<li><p>action_weight (:obj:’float’): weight of action</p></li>
+<li><p>loss_weights (:obj:’dict’): weight of loss</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cond</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/diffusion.html#GaussianDiffusion.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Define the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
 </section>
 <section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id6">
-<caption><span class="caption-text">Benchmark and comparison of DT algorithm</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Benchmark and comparison of DT algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 15%" />
@@ -380,7 +419,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 <td><p>44.9</p></td>
 <td><img alt="../_images/pd_half_m_benchmark.png" src="../_images/pd_half_m_benchmark.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_pd_config.py">config_link_p</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_pd_config.py">config_link_1</a></p></td>
 <td><p>42.8</p></td>
 </tr>
 <tr class="row-odd"><td><div class="line-block">
@@ -391,7 +430,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 <td><p>86.6</p></td>
 <td><img alt="../_images/pd_half_m_e_benchmark.png" src="../_images/pd_half_m_e_benchmark.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_expert_pd_config.py">config_link_p</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_medium_expert_pd_config.py">config_link_2</a></p></td>
 <td><p>88.9</p></td>
 </tr>
 <tr class="row-even"><td><div class="line-block">
@@ -402,7 +441,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 <td><p>71</p></td>
 <td><img alt="../_images/pd_walker_m_benchmark.png" src="../_images/pd_walker_m_benchmark.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_pd_config.py">config_link_p</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_pd_config.py">config_link_3</a></p></td>
 <td><p>79.6</p></td>
 </tr>
 <tr class="row-odd"><td><div class="line-block">
@@ -413,7 +452,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 <td><p>108.5</p></td>
 <td><img alt="../_images/pd_walker_m_e_benchmark.png" src="../_images/pd_walker_m_e_benchmark.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_expert_pd_config.py">config_link_p</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_medium_expert_pd_config.py">config_link_4</a></p></td>
 <td><p>106.9</p></td>
 </tr>
 <tr class="row-even"><td><div class="line-block">
@@ -424,7 +463,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 <td><p>58.1</p></td>
 <td><img alt="../_images/pd_hopper_m_benchmark.png" src="../_images/pd_hopper_m_benchmark.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_pd_config.py">config_link_p</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_pd_config.py">config_link_5</a></p></td>
 <td><p>74.3</p></td>
 </tr>
 <tr class="row-odd"><td><div class="line-block">
@@ -435,7 +474,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 <td><p>97.2</p></td>
 <td><img alt="../_images/pd_hopper_m_e_benchmark.png" src="../_images/pd_hopper_m_e_benchmark.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_pd_config.py">config_link_p</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_expert_pd_config.py">config_link_6</a></p></td>
 <td><p>103.3</p></td>
 </tr>
 </tbody>
@@ -497,6 +536,7 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
               <ul>
 <li><a class="reference internal" href="#">Diffuser (Plan Diffuser)</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
 <li><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
 <li><a class="reference internal" href="#implementations">Implementations</a></li>
 <li><a class="reference internal" href="#benchmark">Benchmark</a></li>

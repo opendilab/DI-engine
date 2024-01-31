@@ -1121,12 +1121,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Separating out all parameters of the model into two buckets: those that will experience</span>
-<span class="sd">    weight decay for regularization and those that won&#39;t (biases, and layer-norm or embedding weights).</span>
+<span class="sd">        weight decay for regularization and those that won&#39;t (biases, and layer-norm or embedding weights).</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - model (:obj:`nn.Module`): the given PyTorch model.</span>
-<span class="sd">        - weight_decay (:obj:`float`): weight decay value for optimizer.</span>
+<span class="sd">        - model (:obj:`nn.Module`): The given PyTorch model.</span>
+<span class="sd">        - weight_decay (:obj:`float`): Weight decay value for optimizer.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - optim groups (:obj:`List`): the parameter groups to be set in the latter optimizer.</span>
+<span class="sd">        - optim groups (:obj:`List`): The parameter groups to be set in the latter optimizer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">decay</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">no_decay</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>

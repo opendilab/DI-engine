@@ -309,22 +309,21 @@
 <span class="sd">        and provides a register functions.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``register``, ``get``, ``build``, ``query``, ``query_details``</span>
-<span class="sd">    Examples:</span>
-<span class="sd">        creeting a registry:</span>
+<span class="sd">    Examples (creating):</span>
 <span class="sd">        &gt;&gt;&gt; some_registry = Registry({&quot;default&quot;: default_module})</span>
 
-<span class="sd">        There&#39;re two ways of registering new modules:</span>
-<span class="sd">        1): normal way is just calling register function:</span>
+<span class="sd">    Examples (registering: normal way):</span>
 <span class="sd">        &gt;&gt;&gt; def foo():</span>
 <span class="sd">        &gt;&gt;&gt;     ...</span>
-<span class="sd">            some_registry.register(&quot;foo_module&quot;, foo)</span>
-<span class="sd">        2): used as decorator when declaring the module:</span>
+<span class="sd">        &gt;&gt;&gt; some_registry.register(&quot;foo_module&quot;, foo)</span>
+
+<span class="sd">    Examples (registering: decorator way):</span>
 <span class="sd">        &gt;&gt;&gt; @some_registry.register(&quot;foo_module&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; @some_registry.register(&quot;foo_modeul_nickname&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; def foo():</span>
 <span class="sd">        &gt;&gt;&gt;     ...</span>
 
-<span class="sd">        Access of module is just like using a dictionary, eg:</span>
+<span class="sd">    Examples (accessing):</span>
 <span class="sd">        &gt;&gt;&gt; f = some_registry[&quot;foo_module&quot;]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
