@@ -195,7 +195,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
 
         data['discount'] = data.get('discount', 1.0 - data['done'].float())
         data['weight'] = data.get('weight', None)
-        if type(self.state_size) != int and len(self.state_size) == 3:
+        if self.obs_type == 'RGB':
             data['image'] = data['obs'] - 0.5
         else:
             data['image'] = data['obs']
