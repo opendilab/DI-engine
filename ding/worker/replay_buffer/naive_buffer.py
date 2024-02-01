@@ -64,7 +64,7 @@ class NaiveReplayBuffer(IBuffer):
         # Point to the tail position where next data can be inserted, i.e. latest inserted data's next position.
         self._tail = 0
         # Lock to guarantee thread safe
-        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        self._lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
         self._end_flag = False
         self._enable_track_used_data = self._cfg.enable_track_used_data
         if self._enable_track_used_data:

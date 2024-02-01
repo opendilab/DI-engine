@@ -205,6 +205,7 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
         - world_size (:obj:`int`): The world size
         - rank (:obj:`int`): The rank
         - num_groups (:obj:`int`): The number of groups
+
     .. note::
         With faulty input, raise ``array split does not result in an equal division``
     """

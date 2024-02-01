@@ -120,7 +120,7 @@ class AdvancedReplayBuffer(IBuffer):
         # Is used to generate a unique id for each data: If a new data is inserted, its unique id will be this.
         self._next_unique_id = 0
         # Lock to guarantee thread safe
-        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        self._lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
         # Point to the head of the circular queue. The true data is the stalest(oldest) data in this queue.
         # Because buffer would remove data due to staleness or use count, and at the beginning when queue is not
         # filled with data head would always be 0, so ``head`` may be not equal to ``tail``;

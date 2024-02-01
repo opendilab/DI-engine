@@ -68,7 +68,6 @@ def zlib_data_compressor(data: Any) -> bytes:
         - output (:obj:`bytes`): The compressed byte-like result.
     Examples:
         >>> zlib_data_compressor("Hello")
-        b'x\x9ck`\x99\xca\xc9\x00\x01=\xac\x1e\xa999\xf9S\xf4\x00%L\x04j'
     """
     return zlib.compress(pickle.dumps(data))
 

@@ -75,7 +75,7 @@ class BattleSharedPayoff:
         # ``_min_win_rate_games``` is used in ``self._win_rate`` method for calculating win rate between two players.
         self._min_win_rate_games = cfg.get('min_win_rate_games', 8)
         # Thread lock.
-        self._lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        self._lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
 
     def __repr__(self) -> str:
         headers = ["Home Player", "Away Player", "Wins", "Draws", "Losses", "Naive Win Rate"]

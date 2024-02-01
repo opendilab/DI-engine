@@ -21,8 +21,11 @@ class ResBlock(nn.Module):
                 input channel: C
                 x -> 3*3*C -> norm -> act -> 3*3*C -> norm -> act -> out
                 \__________________ 3*3*C ____________________/+
-        For more details, please refer to `Deep Residual Learning for Image Recognition
-        <https://arxiv.org/abs/1512.03385>`_.
+
+    .. note::
+        You can refer to `Deep Residual Learning for Image Recognition <https://arxiv.org/abs/1512.03385>`_ for more \
+        details.
+
     Interfaces:
         ``__init__``, ``forward``
     """

@@ -669,7 +669,6 @@ def make_blocks(
         - avg_down (:obj:`bool`, optional): Whether to use average pooling for downsampling, defaults to False.
         - drop_block_rate (:obj:`float`, optional): The drop block rate, defaults to 0.
         - drop_path_rate (:obj:`float`, optional): The drop path rate, defaults to 0.
-        - **kwargs: Additional keyword arguments.
     Returns:
         - Tuple[List[Tuple[str, nn.Module]], List[Dict[str, Union[int, str]]]]: \
             A tuple that includes a list of blocks for the network and a feature info list.
@@ -728,7 +727,7 @@ class ResNet(nn.Module):
     Overview:
         Implements ResNet, ResNeXt, SE-ResNeXt, and SENet models. This implementation supports various modifications
         based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details
-         about the variants and options, please refer to the 'Bag of Tricks' paper: https://arxiv.org/pdf/1812.01187.
+        about the variants and options, please refer to the 'Bag of Tricks' paper: https://arxiv.org/pdf/1812.01187.
     Interfaces:
         ``__init__``, ``forward``, ``zero_init_last_bn``, ``get_classifier``
     """
