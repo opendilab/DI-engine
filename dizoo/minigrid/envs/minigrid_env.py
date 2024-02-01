@@ -9,8 +9,8 @@ import gymnasium as gym
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
-from .minigrid_wrapper import ViewSizeWrapper
+from minigrid.wrappers import FullyObsWrapper
+from .minigrid_wrapper import ViewSizeWrapper, MoveBonus, OneHotObsWrapper, FlatObsWrapper
 from ding.envs import ObsPlusPrevActRewWrapper
 
 from ding.envs import BaseEnv, BaseEnvTimestep
@@ -36,6 +36,9 @@ class MiniGridEnv(BaseEnv):
         self._init_flag = False
         self._env_id = cfg.env_id
         self._flat_obs = cfg.flat_obs
+        self._full_obs = cfg.full_obs
+        self._onehot_obs = cfg.onehot_obs
+        self._move_bonus = cfg.move_bonus
         self._save_replay = False
         self._max_step = cfg.max_step
 
@@ -52,6 +55,12 @@ class MiniGridEnv(BaseEnv):
                 self._env = ViewSizeWrapper(self._env, agent_view_size=5)
             if self._env_id == 'MiniGrid-AKTDT-7x7-1-v0':
                 self._env = ViewSizeWrapper(self._env, agent_view_size=3)
+            if self._full_obs:
+                self._env = FullyObsWrapper(self._env)
+            if self._onehot_obs:
+                self._env = OneHotObsWrapper(self._env)
+            if self._move_bonus:
+                self._env = MoveBonus(self._env)
             if self._flat_obs:
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
@@ -60,7 +69,7 @@ class MiniGridEnv(BaseEnv):
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if self._flat_obs:
-            self._observation_space = gym.spaces.Box(0, 1, shape=(2835, ), dtype=np.float32)
+            self._observation_space = gym.spaces.Box(0, 1, shape=self._env.observation_space.shape, dtype=np.float32)
         else:
             self._observation_space = self._env.observation_space
             # to be compatiable with subprocess env manager

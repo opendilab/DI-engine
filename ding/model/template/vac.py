@@ -366,7 +366,6 @@ class DREAMERVAC(nn.Module):
 
     def __init__(
             self,
-            obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType, EasyDict],
             dyn_stoch=32,
             dyn_deter=512,
@@ -391,9 +390,8 @@ class DREAMERVAC(nn.Module):
             - action_shape (:obj:`Union[int, SequenceType]`): Action space shape, such as 6 or [2, 3, 3].
         """
         super(DREAMERVAC, self).__init__()
-        obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
-        self.obs_shape, self.action_shape = obs_shape, action_shape
+        self.action_shape = action_shape
 
         if dyn_discrete:
             feat_size = dyn_stoch * dyn_discrete + dyn_deter
