@@ -18,6 +18,7 @@ class RSSM(nn.Module):
         stoch=30,
         deter=200,
         hidden=200,
+        action_type=None,
         layers_input=1,
         layers_output=1,
         rec_depth=1,
@@ -39,6 +40,7 @@ class RSSM(nn.Module):
         self._stoch = stoch
         self._deter = deter
         self._hidden = hidden
+        self._action_type = action_type
         self._min_std = min_std
         self._layers_input = layers_input
         self._layers_output = layers_output
@@ -180,7 +182,8 @@ class RSSM(nn.Module):
     def obs_step(self, prev_state, prev_action, embed, sample=True):
         # if shared is True, prior and post both use same networks(inp_layers, _img_out_layers, _ims_stat_layer)
         # otherwise, post use different network(_obs_out_layers) with prior[deter] and embed as inputs
-        # prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
+        if self._action_type == 'continuous':
+            prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
         prior = self.img_step(prev_state, prev_action, None, sample)
         if self._shared:
             post = self.img_step(prev_state, prev_action, embed, sample)
@@ -203,7 +206,8 @@ class RSSM(nn.Module):
     # this is used for making future image
     def img_step(self, prev_state, prev_action, embed=None, sample=True):
         # (batch, stoch, discrete_num)
-        # prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
+        if self._action_type == 'continuous':
+            prev_action *= (1.0 / torch.clip(torch.abs(prev_action), min=1.0)).detach()
         prev_stoch = prev_state["stoch"]
         if self._discrete:
             shape = list(prev_stoch.shape[:-2]) + [self._stoch * self._discrete]

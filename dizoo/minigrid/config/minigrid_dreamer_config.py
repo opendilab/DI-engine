@@ -62,6 +62,7 @@ minigrid_dreamer_config = dict(
         cuda=cuda,
         model=dict(
             state_size=1344,
+            obs_type = 'vector',
             action_size=7,
             action_type='discrete',
             encoder_hidden_size_list=[256, 128, 64, 64],

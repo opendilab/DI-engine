@@ -59,6 +59,7 @@ walker_walk_dreamer_config = dict(
         cuda=cuda,
         model=dict(
             state_size=(3, 64, 64),  # has to be specified
+            obs_type='RGB',
             action_size=6,  # has to be specified
             action_type='continuous',
             reward_size=1,

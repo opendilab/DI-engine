@@ -8,7 +8,7 @@ from ding.utils.data import default_collate
 from ding.model import ConvEncoder, FCEncoder
 from ding.world_model.base_world_model import WorldModel
 from ding.world_model.model.networks import RSSM, ConvDecoder
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, one_hot
 from ding.torch_utils.network.dreamer import DenseHead
 
 
@@ -72,15 +72,16 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         self._cfg.act = nn.modules.activation.SiLU  # nn.SiLU
         self._cfg.norm = nn.modules.normalization.LayerNorm  # nn.LayerNorm
         self.state_size = self._cfg.state_size
+        self.obs_type = self._cfg.obs_type
         self.action_size = self._cfg.action_size
         self.action_type = self._cfg.action_type
         self.reward_size = self._cfg.reward_size
         self.hidden_size = self._cfg.hidden_size
         self.batch_size = self._cfg.batch_size
-        if isinstance(self.state_size, int):
+        if self.obs_type == 'vector':
             self.encoder = FCEncoder(self.state_size, self._cfg.encoder_hidden_size_list, activation=torch.nn.SiLU())
             self.embed_size = self._cfg.encoder_hidden_size_list[-1]
-        elif len(self.state_size) == 3:
+        elif self.obs_type == 'RGB':
             self.encoder = ConvEncoder(
                 self.state_size,
                 hidden_size_list=[32, 64, 128, 256, 4096],  # to last layer 128?
@@ -97,6 +98,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             self._cfg.dyn_stoch,
             self._cfg.dyn_deter,
             self._cfg.dyn_hidden,
+            self._cfg.action_type,
             self._cfg.dyn_input_layers,
             self._cfg.dyn_output_layers,
             self._cfg.dyn_rec_depth,
@@ -200,23 +202,7 @@ class DREAMERWorldModel(WorldModel, nn.Module):
         if self.action_type == 'continuous':
             data['action'] *= (1.0 / torch.clip(torch.abs(data['action']), min=1.0))
         else:
-
-            def make_one_hot(x, num_classes):
-                """Convert class index tensor to one hot encoding tensor.
-                Args:
-                    input: A tensor of shape [bs, 1, *]
-                    num_classes: An int of number of class
-                Returns:
-                    A tensor of shape [bs, num_classes, *]
-                """
-                x = x.to(torch.int64)
-                shape = (*tuple(x.shape), num_classes)
-                x = x.unsqueeze(-1)
-                res = torch.zeros(shape).to(x)
-                res = res.scatter_(-1, x, 1)
-                return res.float()
-
-            data['action'] = make_one_hot(data['action'], self.action_size)
+            data['action'] = one_hot(data['action'], self.action_size)
         data = to_device(data, self._cfg.device)
         if len(data['reward'].shape) == 2:
             data['reward'] = data['reward'].unsqueeze(-1)
