@@ -86,7 +86,7 @@ class BaseLeague:
         self.payoff = create_payoff(self.cfg.payoff)
         metric_cfg = self.cfg.metric
         self.metric_env = LeagueMetricEnv(metric_cfg.mu, metric_cfg.sigma, metric_cfg.tau, metric_cfg.draw_probability)
-        self._active_players_lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        self._active_players_lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
         self._init_players()
 
     def _init_players(self) -> None:

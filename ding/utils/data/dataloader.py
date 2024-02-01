@@ -101,7 +101,7 @@ class AsyncDataLoader(IDataLoader):
             if self.batch_size != self.chunk_size:
                 # job_result {batch_id: result_list} is used to store processed result in temporal.
                 self.job_result = self.manager.dict()
-                self.job_result_lock = LockContext(type_=LockContextType.PROCESS_LOCK)
+                self.job_result_lock = LockContext(lock_type=LockContextType.PROCESS_LOCK)
             self.job_queue = self.mp_context.Queue(maxsize=queue_maxsize)
             self.worker = [
                 self.mp_context.Process(

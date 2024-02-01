@@ -913,17 +913,16 @@ class FixedReplayBuffer(object):
         ``__init__``, ``get_transition_elements``, ``sample_transition_batch``
     """
 
-    def __init__(self, data_dir, replay_suffix, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
+    def __init__(self, data_dir: str, replay_suffix: int, *args, **kwargs):
         """
         Overview:
             Initialize the FixedReplayBuffer class.
         Arguments:
-            - data_dir (:obj:`str`): log Directory from which to load the replay buffer.
+            - data_dir (:obj:`str`): Log directory from which to load the replay buffer.
             - replay_suffix (:obj:`int`): If not None, then only load the replay buffer \
                 corresponding to the specific suffix in data directory.
             - args (:obj:`list`): Arbitrary extra arguments.
             - kwargs (:obj:`dict`): Arbitrary keyword arguments.
-
         """
 
         self._args = args

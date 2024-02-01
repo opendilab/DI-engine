@@ -34,7 +34,7 @@ class Cache:
         # two separate receive and send queue for reducing interaction frequency and interference
         self.receive_queue = Queue(maxlen)
         self.send_queue = Queue(maxlen)
-        self.receive_lock = LockContext(type_=LockContextType.THREAD_LOCK)
+        self.receive_lock = LockContext(lock_type=LockContextType.THREAD_LOCK)
         self._timeout_thread = Thread(target=self._timeout_monitor)
         # the bool flag for gracefully shutting down the timeout monitor thread
         self._timeout_thread_flag = True

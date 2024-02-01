@@ -58,7 +58,7 @@ class PopArt(nn.Module):
     def reset_parameters(self):
         """
         Overview:
-            Reset the parameters including weights and bias using kaiming_uniform_ and uniform_ initialization.
+            Reset the parameters including weights and bias using ``kaiming_uniform_`` and ``uniform_`` initialization.
         """
         nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
         if self.bias is not None:
