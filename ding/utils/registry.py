@@ -135,10 +135,9 @@ class Registry(dict):
             global _innest_error
             if _innest_error:
                 argspec = inspect.getfullargspec(build_fn)
-                message = 'for {}(alias={})'.format(build_fn, obj_type)
-                message += '\nExpected args are:{}'.format(argspec)
-                message += '\nGiven args are:{}/{}'.format(argspec, obj_kwargs.keys())
-                message += '\nGiven args details are:{}/{}'.format(argspec, obj_kwargs)
+                message = 'Hint: for {}(alias={})'.format(build_fn, obj_type)
+                message += '\n\nExpected args are:\n {}\nGiven arguments keys are:\n{}\n'.format(argspec, obj_kwargs.keys())
+                print(message)
                 _innest_error = False
             raise e
 
