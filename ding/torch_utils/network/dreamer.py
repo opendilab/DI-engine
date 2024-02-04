@@ -178,7 +178,7 @@ class DenseHead(nn.Module):
         elif self._dist == "binary":
             return Bernoulli(torchd.independent.Independent(torchd.bernoulli.Bernoulli(logits=mean), len(self._shape)))
         elif self._dist == "twohot_symlog":
-            return TwoHotDistSymlog(logits=mean, device=self._device)
+            return TwoHotDistSymlog(logits=mean, low=-1., high=1., device=self._device)
         raise NotImplementedError(self._dist)
 
 
@@ -475,8 +475,8 @@ class TwoHotDistSymlog:
         above = torch.clip(above, 0, len(self.buckets) - 1)
         equal = (below == above)
 
-        dist_to_below = torch.where(equal, 1, torch.abs(self.buckets[below] - x))
-        dist_to_above = torch.where(equal, 1, torch.abs(self.buckets[above] - x))
+        dist_to_below = torch.where(equal, torch.tensor(1).to(x), torch.abs(self.buckets[below] - x))
+        dist_to_above = torch.where(equal, torch.tensor(1).to(x), torch.abs(self.buckets[above] - x))
         total = dist_to_below + dist_to_above
         weight_below = dist_to_above / total
         weight_above = dist_to_below / total

@@ -234,8 +234,11 @@ class DREAMERPolicy(Policy):
                         latent[key][i] *= mask[i]
                 for i in range(len(action)):
                     action[i] *= mask[i]
-
-        data = data - 0.5
+        assert world_model.obs_type == 'vector' or world_model.obs_type == 'RGB', \
+            "action type must be vector or RGB"
+        # normalize RGB image input
+        if world_model.obs_type == 'RGB':
+            data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
         feat = world_model.dynamics.get_feat(latent)
@@ -247,11 +250,18 @@ class DREAMERPolicy(Policy):
         action = action.detach()
 
         state = (latent, action)
+        assert world_model.action_type == 'discrete' or world_model.action_type == 'continuous', \
+            "action type must be continuous or discrete"
+        if world_model.action_type == 'discrete':
+            action = torch.where(action == 1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
 
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
+        if world_model.action_type == 'discrete':
+            for l in range(len(output)):
+                output[l]['action'] = output[l]['action'].squeeze(0)
         return {i: d for i, d in zip(data_id, output)}
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
@@ -272,7 +282,7 @@ class DREAMERPolicy(Policy):
             # TODO(zp) random_collect just have action
             #'logprob': model_output['logprob'],
             'reward': timestep.reward,
-            'discount': timestep.info['discount'],
+            'discount': 1. - timestep.done,  # timestep.info['discount'],
             'done': timestep.done,
         }
         return transition
@@ -309,7 +319,9 @@ class DREAMERPolicy(Policy):
                 for i in range(len(action)):
                     action[i] *= mask[i]
 
-        data = data - 0.5
+        # normalize RGB image input
+        if world_model.obs_type == 'RGB':
+            data = data - 0.5
         embed = world_model.encoder(data)
         latent, _ = world_model.dynamics.obs_step(latent, action, embed, self._cfg.collect.collect_dyn_sample)
         feat = world_model.dynamics.get_feat(latent)
@@ -321,11 +333,16 @@ class DREAMERPolicy(Policy):
         action = action.detach()
 
         state = (latent, action)
+        if world_model.action_type == 'discrete':
+            action = torch.where(action == 1)[1]
         output = {"action": action, "logprob": logprob, "state": state}
 
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
+        if world_model.action_type == 'discrete':
+            for l in range(len(output)):
+                output[l]['action'] = output[l]['action'].squeeze(0)
         return {i: d for i, d in zip(data_id, output)}
 
     def _monitor_vars_learn(self) -> List[str]:
