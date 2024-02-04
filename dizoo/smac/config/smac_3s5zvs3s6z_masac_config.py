@@ -81,7 +81,7 @@ smac_3s5zvs3s6z_masac_default_create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='sac_discrete', ),
+    policy=dict(type='discrete_sac', ),
 )
 smac_3s5zvs3s6z_masac_default_create_config = EasyDict(smac_3s5zvs3s6z_masac_default_create_config)
 create_config = smac_3s5zvs3s6z_masac_default_create_config

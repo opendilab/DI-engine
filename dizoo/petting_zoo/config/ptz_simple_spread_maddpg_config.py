@@ -5,7 +5,7 @@ n_landmark = n_agent
 collector_env_num = 8
 evaluator_env_num = 8
 main_config = dict(
-    exp_name='ptz_simple_spread_masac_seed0',
+    exp_name='ptz_simple_spread_maddpg_seed0',
     env=dict(
         env_family='mpe',
         env_id='simple_spread_v2',
@@ -14,7 +14,8 @@ main_config = dict(
         max_cycles=25,
         agent_obs_only=False,
         agent_specific_global_state=True,
-        continuous_actions=False,
+        continuous_actions=True,  # ddpg only support continuous action space
+        act_scale=True,  # necessary for continuous action space
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
@@ -22,7 +23,6 @@ main_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         multi_agent=True,
         random_collect_size=5000,
         model=dict(
@@ -30,7 +30,8 @@ main_config = dict(
             global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) +
             n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
-            twin_critic=True,
+            action_space='regression',
+            twin_critic=False,
         ),
         learn=dict(
             update_per_collect=50,
@@ -38,12 +39,8 @@ main_config = dict(
             # learning_rates
             learning_rate_q=5e-4,
             learning_rate_policy=5e-4,
-            learning_rate_alpha=5e-5,
             target_theta=0.005,
             discount_factor=0.99,
-            alpha=0.2,
-            auto_alpha=True,
-            target_entropy=-2,
         ),
         collect=dict(
             n_sample=1600,
@@ -51,7 +48,7 @@ main_config = dict(
         ),
         eval=dict(
             env_num=evaluator_env_num,
-            evaluator=dict(eval_freq=50, ),
+            evaluator=dict(eval_freq=500, ),
         ),
         other=dict(
             eps=dict(
@@ -72,13 +69,13 @@ create_config = dict(
         type='petting_zoo',
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='discrete_sac'),
+    policy=dict(type='ddpg'),
 )
 create_config = EasyDict(create_config)
-ptz_simple_spread_masac_config = main_config
-ptz_simple_spread_masac_create_config = create_config
+ptz_simple_spread_maddpg_config = main_config
+ptz_simple_spread_maddpg_create_config = create_config
 
 if __name__ == '__main__':
-    # or you can enter `ding -m serial_entry -c ptz_simple_spread_masac_config.py -s 0`
+    # or you can enter `ding -m serial_entry -c ptz_simple_spread_maddpg_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e6))

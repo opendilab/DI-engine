@@ -74,7 +74,7 @@ gfootball_keeper_masac_default_create_config = dict(
         import_names=['dizoo.gfootball.envs.gfootball_academy_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='sac_discrete', ),
+    policy=dict(type='discrete_sac'),
 )
 gfootball_keeper_masac_default_create_config = EasyDict(gfootball_keeper_masac_default_create_config)
 create_config = gfootball_keeper_masac_default_create_config
