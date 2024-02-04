@@ -58,6 +58,9 @@ class DREAMERWorldModel(WorldModel, nn.Module):
             dyn_cell='gru_layer_norm',
             unimix_ratio=0.01,
             device='cuda' if torch.cuda.is_available() else 'cpu',
+            obs_type='RGB',
+            action_type='continuous',
+            encoder_hidden_size_list=[64, 128, 128],
         ),
     )
 
