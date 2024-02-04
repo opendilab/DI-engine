@@ -296,7 +296,9 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">tqdm</span>
 <span class="kn">from</span> <span class="nn">ding.data</span> <span class="kn">import</span> <span class="n">Buffer</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span><span class="p">,</span> <span class="n">offline_data_save_type</span>
 <span class="kn">from</span> <span class="nn">ding.data.buffer.middleware</span> <span class="kn">import</span> <span class="n">PriorityExperienceReplay</span>
 <span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
@@ -523,7 +525,7 @@
     <span class="k">return</span> <span class="n">_fetch</span>
 
 
-<div class="viewcode-block" id="offline_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<div class="viewcode-block" id="offline_data_fetcher"><a class="viewcode-back" href="../../../../../05_api_doc/framework/middleware/functional/data_processor.html#ding.framework.middleware.functional.data_processor.offline_data_fetcher">[docs]</a><span class="k">def</span> <span class="nf">offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The outer function transforms a Pytorch `Dataset` to `DataLoader`. \</span>
@@ -535,7 +537,7 @@
 <span class="sd">        - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># collate_fn is executed in policy now</span>
-    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate_fn</span><span class="p">)</span>
     <span class="n">dataloader</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
@@ -555,7 +557,7 @@
             <span class="n">ctx</span><span class="o">.</span><span class="n">train_epoch</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">del</span> <span class="n">dataloader</span>
             <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
-                <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+                <span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate_fn</span>
             <span class="p">)</span>
             <span class="n">dataloader</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
@@ -613,6 +615,128 @@
         <span class="n">ctx</span><span class="o">.</span><span class="n">trajectories</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">_pusher</span></div>
+
+
+<span class="k">def</span> <span class="nf">qgpo_support_data_generator</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">policy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+
+    <span class="n">behavior_policy_stop_training_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">behavior_policy_stop_training_iter</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="p">,</span> <span class="s1">&#39;behavior_policy_stop_training_iter&#39;</span>
+    <span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">energy_guided_policy_begin_training_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">energy_guided_policy_begin_training_iter</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="p">,</span> <span class="s1">&#39;energy_guided_policy_begin_training_iter&#39;</span>
+    <span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">actions_generated</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">generate_fake_actions</span><span class="p">():</span>
+        <span class="n">allstates</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">states</span><span class="p">[:]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">actions_sampled</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">states</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">allstates</span><span class="p">,</span> <span class="n">allstates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">4096</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+            <span class="n">actions_sampled</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">policy</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+                    <span class="n">states</span><span class="p">,</span>
+                    <span class="n">sample_per_state</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">M</span><span class="p">,</span>
+                    <span class="n">diffusion_steps</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">diffusion_steps</span><span class="p">,</span>
+                    <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">actions_sampled</span><span class="p">)</span>
+
+        <span class="n">allnextstates</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">next_states</span><span class="p">[:]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">actions_next_states_sampled</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">next_states</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">allnextstates</span><span class="p">,</span> <span class="n">allnextstates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">4096</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+            <span class="n">actions_next_states_sampled</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">policy</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+                    <span class="n">next_states</span><span class="p">,</span>
+                    <span class="n">sample_per_state</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">M</span><span class="p">,</span>
+                    <span class="n">diffusion_steps</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">diffusion_steps</span><span class="p">,</span>
+                    <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">actions_next_states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">actions_next_states_sampled</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">actions</span><span class="p">,</span> <span class="n">actions_next_states</span>
+
+    <span class="k">def</span> <span class="nf">_data_generator</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">actions_generated</span>
+
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;=</span> <span class="n">energy_guided_policy_begin_training_iter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;</span> <span class="n">behavior_policy_stop_training_iter</span><span class="p">:</span>
+                <span class="c1"># no need to generate fake actions if fake actions are already generated</span>
+                <span class="k">if</span> <span class="n">actions_generated</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">actions</span><span class="p">,</span> <span class="n">actions_next_states</span> <span class="o">=</span> <span class="n">generate_fake_actions</span><span class="p">()</span>
+                    <span class="n">dataset</span><span class="o">.</span><span class="n">fake_actions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">dataset</span><span class="o">.</span><span class="n">fake_next_actions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">actions_next_states</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                                                             <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">actions_generated</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># generate fake actions</span>
+                <span class="n">actions</span><span class="p">,</span> <span class="n">actions_next_states</span> <span class="o">=</span> <span class="n">generate_fake_actions</span><span class="p">()</span>
+                <span class="n">dataset</span><span class="o">.</span><span class="n">fake_actions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">dataset</span><span class="o">.</span><span class="n">fake_next_actions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">actions_next_states</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+                                                         <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">actions_generated</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># no need to generate fake actions</span>
+            <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">_data_generator</span>
+
+
+<span class="k">def</span> <span class="nf">qgpo_offline_data_fetcher</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The outer function transforms a Pytorch `Dataset` to `DataLoader`. \</span>
+<span class="sd">        The return function is a generator which each time fetches a batch of data from the previous `DataLoader`.\</span>
+<span class="sd">        Please refer to the link https://pytorch.org/tutorials/beginner/basics/data_tutorial.html \</span>
+<span class="sd">        and https://pytorch.org/docs/stable/data.html for more details.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.</span>
+<span class="sd">        - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># collate_fn is executed in policy now</span>
+    <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate_fn</span><span class="p">)</span>
+    <span class="n">dataloader_q</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size_q</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="n">collate_fn</span><span class="p">)</span>
+
+    <span class="n">behavior_policy_stop_training_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">behavior_policy_stop_training_iter</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="p">,</span> <span class="s1">&#39;behavior_policy_stop_training_iter&#39;</span>
+    <span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">energy_guided_policy_begin_training_iter</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">energy_guided_policy_begin_training_iter</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="p">,</span> <span class="s1">&#39;energy_guided_policy_begin_training_iter&#39;</span>
+    <span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">get_behavior_policy_training_data</span><span class="p">():</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="n">dataloader</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">get_behavior_policy_training_data</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">get_q_training_data</span><span class="p">():</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="n">dataloader_q</span>
+
+    <span class="n">data_q</span> <span class="o">=</span> <span class="n">get_q_training_data</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_fetch</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="s2">&quot;OfflineRLContext&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Every time this generator is iterated, the fetched data will be assigned to ctx.train_data. \</span>
+<span class="sd">            After the dataloader is empty, the attribute `ctx.train_epoch` will be incremented by 1.</span>
+<span class="sd">        Input of ctx:</span>
+<span class="sd">            - train_epoch (:obj:`int`): Number of `train_epoch`.</span>
+<span class="sd">        Output of ctx:</span>
+<span class="sd">            - train_data (:obj:`List[Tensor]`): The fetched data batch.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">&gt;=</span> <span class="n">energy_guided_policy_begin_training_iter</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">data_q</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># TODO apply data update (e.g. priority) in offline setting when necessary</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">trained_env_step</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">train_data</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_fetch</span>
 </pre></div>
 
               </article>
