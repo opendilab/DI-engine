@@ -159,6 +159,7 @@ def build_activation(activation: str, inplace: bool = None) -> nn.Module:
         "sigmoid": nn.Sigmoid(),
         "softplus": nn.Softplus(),
         "elu": nn.ELU(),
+        "silu": torch.nn.SiLU(inplace=inplace),
         "square": Lambda(lambda x: x ** 2),
         "identity": Lambda(lambda x: x),
     }

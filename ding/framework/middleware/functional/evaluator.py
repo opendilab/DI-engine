@@ -210,7 +210,9 @@ class VectorEvalMonitor(object):
         return output
 
 
-def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False) -> Callable:
+def interaction_evaluator(
+        cfg: EasyDict, policy: Policy, env: BaseEnvManager, render: bool = False, **kwargs
+) -> Callable:
     """
     Overview:
         The middleware that executes the evaluation.
@@ -219,6 +221,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         - policy (:obj:`Policy`): The policy to be evaluated.
         - env (:obj:`BaseEnvManager`): The env for the evaluation.
         - render (:obj:`bool`): Whether to render env images and policy logits.
+        - kwargs: (:obj:`Any`): Other arguments for specific evaluation.
     """
     if task.router.is_active and not task.has_role(task.role.EVALUATOR):
         return task.void()
@@ -239,8 +242,13 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
 
         # evaluation will be executed if the task begins or enough train_iter after last evaluation
         if ctx.last_eval_iter != -1 and \
-           (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
-            return
+                (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
+            if ctx.train_iter != ctx.last_eval_iter:
+                return
+        if len(kwargs) > 0:
+            kwargs_str = '/'.join([f'{k}({v})' for k, v in kwargs.items()])
+        else:
+            kwargs_str = ''
 
         if env.closed:
             env.launch()
@@ -252,7 +260,10 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         while not eval_monitor.is_finished():
             obs = ttorch.as_tensor(env.ready_obs).to(dtype=ttorch.float32)
             obs = {i: obs[i] for i in range(get_shape0(obs))}  # TBD
-            inference_output = policy.forward(obs)
+            if len(kwargs) > 0:
+                inference_output = policy.forward(obs, **kwargs)
+            else:
+                inference_output = policy.forward(obs)
             if render:
                 eval_monitor.update_video(env.ready_imgs)
                 eval_monitor.update_output(inference_output)
@@ -275,12 +286,14 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
         stop_flag = episode_return >= cfg.env.stop_value and ctx.train_iter > 0
         if isinstance(ctx, OnlineRLContext):
             logging.info(
-                'Evaluation: Train Iter({})\tEnv Step({})\tEpisode Return({:.3f})'.format(
-                    ctx.train_iter, ctx.env_step, episode_return
+                'Evaluation: Train Iter({}) Env Step({}) Episode Return({:.3f}) {}'.format(
+                    ctx.train_iter, ctx.env_step, episode_return, kwargs_str
                 )
             )
         elif isinstance(ctx, OfflineRLContext):
-            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, episode_return))
+            logging.info(
+                'Evaluation: Train Iter({}) Eval Return({:.3f}) {}'.format(ctx.train_iter, episode_return, kwargs_str)
+            )
         else:
             raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
@@ -298,6 +311,16 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager, re
             ctx.eval_output['output'] = eval_monitor.get_episode_output()
         else:
             ctx.eval_output['output'] = output  # for compatibility
+
+        if len(kwargs) > 0:
+            ctx.info_for_logging.update(
+                {
+                    f'{kwargs_str}/eval_episode_return': episode_return,
+                    f'{kwargs_str}/eval_episode_return_min': episode_return_min,
+                    f'{kwargs_str}/eval_episode_return_max': episode_return_max,
+                    f'{kwargs_str}/eval_episode_return_std': episode_return_std,
+                }
+            )
 
         if stop_flag:
             task.finish = True

@@ -611,6 +611,15 @@ def wandb_offline_logger(
             )
 
         if ctx.eval_value != -np.inf:
+            if hasattr(ctx, "info_for_logging"):
+                """
+                .. note::
+                    The info_for_logging is a dict that contains the information to be logged.
+                    Users can add their own information to the dict.
+                    All the information in the dict will be logged to wandb.
+                """
+                info_for_logging.update(ctx.info_for_logging)
+
             if hasattr(ctx, "eval_value_min"):
                 info_for_logging.update({
                     "episode return min": ctx.eval_value_min,
