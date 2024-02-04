@@ -35,7 +35,7 @@
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-yellow)](https://huggingface.co/OpenDILabCommunity)
 [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/header/openxlab_models.svg)](https://openxlab.org.cn/models?search=opendilab)
 
-Updated on 2023.12.05 DI-engine-v0.5.0
+Updated on 2024.02.04 DI-engine-v0.5.1
 
 
 ## Introduction to DI-engine
@@ -51,7 +51,7 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
 - Offline RL algorithms: BCQ, CQL, TD3BC, Decision Transformer, EDAC, Diffuser, Decision Diffuser, SO2
 - Model-based RL algorithms: SVG, STEVE, MBPO, DDPPO, DreamerV3, MuZero
 - Exploration algorithms: HER, RND, ICM, NGU
-- LLM + RL Algorithms: PPO-max, DPO, MPDPO
+- LLM + RL Algorithms: PPO-max, DPO, MODPO，PromptPG
 - Other algorithms: such as PER, PLR, PCGrad
 
 **DI-engine** aims to **standardize different Decision Intelligence environments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:

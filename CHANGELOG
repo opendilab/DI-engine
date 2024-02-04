@@ -1,3 +1,23 @@
+2024.02.04(v0.5.1)
+- env: add MADDPG pettingzoo example (#774)
+- env: polish NGU Atari configs (#767)
+- env: fix bug in cliffwalking env (#759)
+- env: add PettingZoo replay video demo
+- env: change default max retry in env manager from 5 to 1
+- algo: add QGPO diffusion-model related algorithm (#757)
+- algo: add HAPPO multi-agent algorithm (#717)
+- algo: add DreamerV3 + MiniGrid adaption (#725)
+- algo: fix hppo entropy_weight to avoid nan error in log_prob (#761)
+- algo: fix structured action bug (#760)
+- algo: polish Decision Transformer entry (#754)
+- algo: fix EDAC policy/model bug
+- fix: env typos
+- fix: pynng requirements bug
+- fix: communication module unittest bug
+- style: polish policy API doc (#762) (#764) (#768)
+- style: add agent API doc (#758)
+- style: polish torch_utils/utils API doc (#745) (#747) (#752) (#755) (#763)
+
 2023.11.06(v0.5.0)
 - env: add tabmwp env (#667)
 - env: polish anytrading env issues (#731)
