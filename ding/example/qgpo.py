@@ -10,7 +10,7 @@ from ding.config import compile_config
 from ding.framework import task, ding_init
 from ding.framework.context import OfflineRLContext
 from ding.framework.middleware import trainer, CkptSaver, offline_logger, wandb_offline_logger, termination_checker
-from ding.framework.middleware.functional.evaluator import qgpo_interaction_evaluator
+from ding.framework.middleware.functional.evaluator import interaction_evaluator
 from ding.framework.middleware.functional.data_processor import qgpo_support_data_generator, qgpo_offline_data_fetcher
 from ding.utils import set_pkg_seed
 
@@ -131,19 +131,18 @@ def main():
             policy_state_dict = torch.load(cfg.policy.load_path, map_location=torch.device("cpu"))
             policy.learn_mode.load_state_dict(policy_state_dict)
 
-        evaluator_env = BaseEnvManagerV2(
-            env_fn=[
-                lambda: DingEnvWrapper(env=gym.make(cfg.env.env_id), cfg=cfg.env, caller="evaluator")
-                for _ in range(cfg.env.evaluator_env_num)
-            ],
-            cfg=cfg.env.manager
-        )
-
         task.use(qgpo_support_data_generator(cfg, dataset, policy))
         task.use(qgpo_offline_data_fetcher(cfg, dataset, collate_fn=None))
         task.use(trainer(cfg, policy.learn_mode))
         for guidance_scale in cfg.policy.eval.guidance_scale:
-            task.use(qgpo_interaction_evaluator(cfg, guidance_scale, policy.eval_mode, evaluator_env))
+            evaluator_env = BaseEnvManagerV2(
+                env_fn=[
+                    lambda: DingEnvWrapper(env=gym.make(cfg.env.env_id), cfg=cfg.env, caller="evaluator")
+                    for _ in range(cfg.env.evaluator_env_num)
+                ],
+                cfg=cfg.env.manager
+            )
+            task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env, guidance_scale=guidance_scale))
         task.use(
             wandb_offline_logger(
                 cfg=EasyDict(

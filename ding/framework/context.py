@@ -68,6 +68,7 @@ class OnlineRLContext(Context):
     last_eval_value: int = -np.inf
     eval_output: List = dataclasses.field(default_factory=dict)
     # wandb
+    info_for_logging: Dict = dataclasses.field(default_factory=dict)
     wandb_url: str = ""
 
     def __post_init__(self):
@@ -93,6 +94,7 @@ class OfflineRLContext(Context):
     last_eval_value: int = -np.inf
     eval_output: List = dataclasses.field(default_factory=dict)
     # wandb
+    info_for_logging: Dict = dataclasses.field(default_factory=dict)
     wandb_url: str = ""
 
     def __post_init__(self):

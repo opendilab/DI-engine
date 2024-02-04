@@ -133,7 +133,7 @@ class GuidanceQt(nn.Module):
         return self.qt(ats)
 
 
-class QGPO_Critic(nn.Module):
+class QGPOCritic(nn.Module):
     """
     Overview:
         QGPO critic network.
@@ -303,7 +303,7 @@ class QGPO(nn.Module):
             output_dim=self.action_dim,
         )
 
-        self.q = QGPO_Critic(self.device, cfg.qgpo_critic, action_dim=self.action_dim, state_dim=self.obs_dim)
+        self.q = QGPOCritic(self.device, cfg.qgpo_critic, action_dim=self.action_dim, state_dim=self.obs_dim)
 
     def calculateQ(self, s, a):
         """

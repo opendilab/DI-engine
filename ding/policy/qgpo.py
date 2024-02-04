@@ -200,21 +200,20 @@ class QGPOPolicy(Policy):
 
         self.diffusion_steps = self._cfg.eval.diffusion_steps
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: dict, guidance_scale: float) -> dict:
         """
         Overview:
             Forward function for eval mode. The eval process is based on the energy-guided policy, \
             which is modeled as a diffusion model by parameterizing the score function.
         Arguments:
             - data (:obj:`dict`): Dict type data.
+            - guidance_scale (:obj:`float`): The scale of the energy guidance.
         Returns:
             - output (:obj:`dict`): Dict type data of algorithm output.
         """
-        guidance_scale = data['guidance_scale']
-        states = data['s']
 
-        data_id = list(states.keys())
-        states = default_collate(list(states.values()))
+        data_id = list(data.keys())
+        states = default_collate(list(data.values()))
         actions = self._model.select_actions(
             states, diffusion_steps=self.diffusion_steps, guidance_scale=guidance_scale
         )
@@ -226,6 +225,10 @@ class QGPOPolicy(Policy):
         """
         Overview:
             Get the train sample from the replay buffer, currently not supported for QGPO.
+        Arguments:
+            - transitions (:obj:`List[Dict[str, Any]]`): The data from replay buffer.
+        Returns:
+            - samples (:obj:`List[Dict[str, Any]]`): The data for training.
         """
         pass
 
@@ -252,6 +255,8 @@ class QGPOPolicy(Policy):
         """
         Overview:
             Load the state dict.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): Dict type data of state dict.
         """
         self._model.load_state_dict(state_dict['model'])
         self.behavior_model_optimizer.load_state_dict(state_dict['behavior_model_optimizer'])
