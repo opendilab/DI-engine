@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from ding.utils import list_split, MODEL_REGISTRY, squeeze, SequenceType
 from ding.torch_utils.network.diffusion import extract, cosine_beta_schedule, apply_conditioning, \
-    DiffusionUNet1d, TemporalValue, Mish
+    DiffusionUNet1d, TemporalValue
 
 Sample = namedtuple('Sample', 'trajectories values chains')
 
@@ -56,6 +56,15 @@ def n_step_guided_p_sample(
     n_guide_steps=1,
     scale_grad_by_std=True,
 ):
+    """
+    Overview:
+        Guidance fn for Diffusion
+    Arguments:
+        - model (obj: 'class') diffusion model
+        - x (obj: 'tensor') input for guidance
+        - cond (obj: 'tensor') cond of input
+        - guide (obj: 'class') guide function
+    """
     model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
     model_std = torch.exp(0.5 * model_log_variance)
     model_var = torch.exp(model_log_variance)
@@ -94,6 +103,18 @@ def free_guidance_sample(
     scale_grad_by_std=True,
     
 ):
+    """
+    Overview:
+        Guidance fn for MetaDiffusion
+    Arguments:
+        - model (obj: 'class') diffusion model
+        - x (obj: 'tensor') input for guidance
+        - cond (obj: 'tensor') cond of input
+        - guide1 (obj: 'class') guide function. In MetaDiffusion is reward function
+        - guide2 (obj: 'class') guide function. In MetaDiffusion is dynamic function
+        - returns (obj: 'tensor') for MetaDiffusion, it is id for task.
+
+    """
     weight = extract(model.sqrt_one_minus_alphas_cumprod, t, x.shape)
     model_log_variance = extract(model.posterior_log_variance_clipped, t, x.shape)
     model_std = torch.exp(0.5 * model_log_variance)
@@ -706,6 +727,24 @@ class GaussianInvDynDiffusion(nn.Module):
         return self.conditional_sample(cond=cond, *args, **kwargs)
 
 class GuidenceFreeDifffuser(GaussianDiffusion):
+    """
+    Overview:
+            Gaussian diffusion model with guidence
+    Arguments:
+            - model (:obj:`str`): type of model
+            - model_cfg (:obj:'dict') config of model
+            - horizon (:obj:`int`): horizon of trajectory
+            - obs_dim (:obj:`int`): Dim of the ovservation
+            - action_dim (:obj:`int`): Dim of the ation
+            - n_timesteps (:obj:`int`): Number of timesteps
+            - predict_epsilon (:obj:'bool'): Whether predict epsilon
+            - loss_discount (:obj:'float'): discount of loss
+            - clip_denoised (:obj:'bool'): Whether use clip_denoised
+            - action_weight (:obj:'float'): weight of action
+            - loss_weights (:obj:'dict'): weight of loss
+            - returns_condition (:obj:'bool') whether use additional condition
+            - condition_guidance_w (:obj:'float') guidance weight
+    """
 
     def __init__(
             self,
@@ -727,20 +766,6 @@ class GuidenceFreeDifffuser(GaussianDiffusion):
                        loss_discount, clip_denoised, action_weight, loss_weights,)
         self.returns_condition = returns_condition
         self.condition_guidance_w = condition_guidance_w
-
-    # def get_loss_weights(self, discount: int):
-    #     self.action_weight = 1
-    #     dim_weights = torch.ones(self.transition_dim, dtype=torch.float32)
-
-    #     # decay loss with trajectory timestep: discount**t
-    #     discounts = discount ** torch.arange(self.horizon, dtype=torch.float)
-    #     discounts = discounts / discounts.mean()
-    #     loss_weights = torch.einsum('h,t->ht', discounts, dim_weights)
-    #     # Cause things are conditioned on t=0
-    #     if self.predict_epsilon:
-    #         loss_weights[0, :] = 0
-
-    #     return loss_weights
 
     def p_mean_variance(self, x, cond, t, epsilon):
         x_recon = self.predict_start_from_noise(x, t=t, noise=epsilon)
@@ -808,7 +833,19 @@ class GuidenceFreeDifffuser(GaussianDiffusion):
 
 @MODEL_REGISTRY.register('metadiffuser')
 class MetaDiffuser(nn.Module):
-
+    """
+    Overview:
+            MetaDiffusion model
+    Arguments:
+            - dim (:obj:`int`): dim of emb and dynamic model
+            - obs_dim (:obj:`int`): Dim of the ovservation
+            - action_dim (:obj:`int`): Dim of the ation
+            - reward_cfg (:obj:'dict') config of reward model
+            - diffuser_model_cfg (:obj:'dict') config of diffuser_model
+            - horizon (:obj:`int`): horizon of trajectory
+            - encoder_horizon (:obj:`int`): horizon of emb model
+            - sample_kwargs : config of sample function
+    """
     def __init__(
             self,
             dim: int,
@@ -830,11 +867,11 @@ class MetaDiffuser(nn.Module):
 
         self.embed = nn.Sequential(
             nn.Linear((obs_dim * 2 + action_dim + 1) * encoder_horizon, dim * 4),
-            Mish(),#nn.Mish(),
+            nn.Mish(),
             nn.Linear(dim * 4, dim * 4),
-            Mish(),#nn.Mish(),
+            nn.Mish(),
             nn.Linear(dim * 4, dim * 4),
-            Mish(),#nn.Mish(),
+            nn.Mish(),
             nn.Linear(dim * 4, dim)
         )
 
@@ -851,6 +888,12 @@ class MetaDiffuser(nn.Module):
         self.diffuser = GuidenceFreeDifffuser(**diffuser_model_cfg)
 
     def get_task_id(self, traj):
+        """
+        Overview:
+            get task id for trajectory
+        Arguments:
+            - traj (:obj:'tensor') trajectory of env
+        """
         input_emb = traj.reshape(traj.shape[0], -1)
         task_idx = self.embed(input_emb)
         return task_idx
@@ -859,6 +902,15 @@ class MetaDiffuser(nn.Module):
         return self.diffuser.p_losses(x_start, cond, t, returns)
     
     def pre_train_loss(self, traj, target, t, cond):
+        """
+        Overview:
+            train dynamic, reward and embed model.
+        Arguments:
+            - traj (:obj:'tensor') traj for dataset, include: obs, next_obs, action, reward
+            - target (:obj:'tensor') target obs and rerward
+            - t (:obj:'int') step
+            - cond (:obj:'tensor') condition of input
+        """
         encoder_traj = traj[:, :self.encoder_horizon]
         input_emb = encoder_traj.reshape(target.shape[0], -1)
         task_idx = self.embed(input_emb)
@@ -884,6 +936,13 @@ class MetaDiffuser(nn.Module):
         return state_loss, reward_loss, reward_log
 
     def get_eval(self, cond, id = None, batch_size = 1):
+        """
+        Overview:
+            get action
+        Arguments:
+            - cond (:obj:'tensor') condition for sample
+            - id (:obj:'tensor') id for task.
+        """
         id = torch.stack(id, dim=0)
         if batch_size > 1:
             cond = self.repeat_cond(cond, batch_size)

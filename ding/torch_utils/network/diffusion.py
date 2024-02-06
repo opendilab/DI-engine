@@ -44,14 +44,6 @@ def apply_conditioning(x, conditions, action_dim, mask = None):
         x[:, t, action_dim:] = val.clone()
     return x
 
-class Mish(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self,x):
-        x = x * (torch.tanh(F.softplus(x)))
-        return x
-
 class DiffusionConv1d(nn.Module):
 
     def __init__(
@@ -203,7 +195,7 @@ class ResidualTemporalBlock(nn.Module):
     ) -> None:
         super().__init__()
         if mish:
-            act = Mish()#nn.Mish()
+            act = nn.Mish()
         else:
             act = nn.SiLU()
         self.blocks = nn.ModuleList(
@@ -262,7 +254,7 @@ class DiffusionUNet1d(nn.Module):
             act = nn.SiLU()
         else:
             mish = True
-            act = Mish()#nn.Mish()
+            act = nn.Mish()
 
         self.time_dim = dim
         self.returns_dim = returns_dim
@@ -460,8 +452,7 @@ class TemporalValue(nn.Module):
         self.time_mlp = nn.Sequential(
             SinusoidalPosEmb(dim),
             nn.Linear(dim, dim * 4),
-            #nn.Mish(),
-            Mish(),
+            nn.Mish(),
             nn.Linear(dim * 4, dim),
         )
         if returns_condition:
@@ -470,15 +461,13 @@ class TemporalValue(nn.Module):
                 self.returns_mlp = nn.Sequential(
                     SinusoidalPosEmb(dim),
                     nn.Linear(dim, dim * 4),
-                    #nn.Mish(),
-                    Mish(),
+                    nn.Mish(),
                     nn.Linear(dim * 4, dim),
                 )
             else:
                 self.returns_mlp = nn.Sequential(
                     nn.Linear(dim, dim * 4),
-                    #nn.Mish(),
-                    Mish(),
+                    nn.Mish(),
                     nn.Linear(dim * 4, dim),
                 )
         self.blocks = nn.ModuleList([])
@@ -511,8 +500,7 @@ class TemporalValue(nn.Module):
         fc_dim = mid_dim_3 * max(horizon, 1)
         self.final_block = nn.Sequential(
             nn.Linear(fc_dim + time_dim, fc_dim // 2),
-            #nn.Mish(),
-            Mish(),
+            nn.Mish(),
             nn.Linear(fc_dim // 2, out_dim),
         )
 

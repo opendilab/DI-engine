@@ -23,7 +23,8 @@ def serial_pipeline_meta_offline(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry.
+        Serial pipeline entry. In meta pipeline, policy is trained using multiple tasks \
+        and evaluates multiple tasks specified. Evaluation value is mean of every tasks. 
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -59,7 +60,6 @@ def serial_pipeline_meta_offline(
         # use the original batch size per gpu and increase learning rate
         # correspondingly.
         cfg.policy.learn.batch_size // get_world_size(),
-        # cfg.policy.learn.batch_size
         shuffle=shuffle,
         sampler=sampler,
         collate_fn=lambda x: x,
@@ -96,6 +96,7 @@ def serial_pipeline_meta_offline(
     for epoch in range(cfg.policy.learn.train_epoch):
         if get_world_size() > 1:
             dataloader.sampler.set_epoch(epoch)
+        # for every train task, train policy with its dataset
         for i in range(cfg.policy.train_num):
             dataset.set_task_id(i)
             for train_data in dataloader:

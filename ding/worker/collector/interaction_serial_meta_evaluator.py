@@ -19,7 +19,7 @@ class InteractionSerialMetaEvaluator(InteractionSerialEvaluator):
         Interaction serial evaluator class, policy interacts with env. This class evaluator algorithm
         with test environment list.
     Interfaces:
-        __init__, reset, reset_policy, reset_env, close, should_eval, eval
+        ``__init__``, reset, reset_policy, reset_env, close, should_eval, eval
     Property:
         env, policy
     """

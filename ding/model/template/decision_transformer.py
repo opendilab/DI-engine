@@ -331,11 +331,7 @@ class DecisionTransformer(nn.Module):
                     (prompt_returns_embeddings, prompt_state_embeddings, prompt_action_embeddings), dim=1
                 ).permute(0, 2, 1, 3).reshape(prompt_states.shape[0], 3 * prompt_seq_length, self.h_dim)
                 
-                # prompt_stacked_attention_mask = torch.stack(
-                #     (prompt_attention_mask, prompt_attention_mask, prompt_attention_mask), dim=1
-                # ).permute(0, 2, 1).reshape(prompt_states.shape[0], 3 * prompt_seq_length
                 h = torch.cat((prompt_stacked_inputs, h), dim=1)
-                # stacked_attention_mask = torch.cat((prompt_stacked_attention_mask, stacked_attention_mask), dim=1)
 
             # transformer and prediction
            
