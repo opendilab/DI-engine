@@ -1104,6 +1104,28 @@ class SequenceDataset(torch.utils.data.Dataset):
     
 @DATASET_REGISTRY.register('meta_traj')
 class MetaTraj(Dataset):
+    """
+    Overview:
+        Dataset for Meta policy
+    Arguments:
+        - cfg (:obj:'dict'): cfg of policy
+    Key:
+        - dataset.data_dir_prefix (:obj:'str'): dataset path
+        - dataset.env_param_path (:obj:'str'): environment params path
+        - dataset.rtg_scale (:obj:'float'): return to go scale
+        - dataset.context_len (:obj:'int'): context len
+        - no_state_normalize (:obj:'bool'): whether normalize state
+        - no_action_normalize (:obj:'bool'): whether normalize action
+        - task_num (:obj:'int'): nums of meta tasks
+        - policy.max_len (:obj:'int'): max len of trajectory
+        - dataset.stochastic_prompt (:obj:'bool'): select max return prompt or random prompt
+        - dataset.need_prompt (:obj:'bool'): whether need prompt
+        - dataset.need_prompt (:obj:'list'): id of test evnironment
+        - dataset.need_next_obs (:obj:'bool'): whether need next_obs, if need, traj len = max_len + 1
+        - dataset.cond (:obj:'bool'): whether add condition
+    Returns:
+        return trajectory dataset for Meta Policy.
+    """
     def __init__(self, cfg):
         dataset_path = cfg.dataset.data_dir_prefix
         env_param_path = cfg.dataset.env_param_path
@@ -1160,8 +1182,6 @@ class MetaTraj(Dataset):
 
         id = 0     
         for file_path in file_paths:
-            if self.need_prompt:
-                returns = []
             with h5py.File(file_path, 'r') as hf:
                 N = hf['rewards'].shape[0]
                 path = []
@@ -1169,32 +1189,51 @@ class MetaTraj(Dataset):
                     for k in ['obs', 'actions', 'rewards', 'terminals', 'mask']:
                         data_[k].append(hf[k][i])
                     path.append(data_)
-                    if self.need_prompt:
-                        returns.append(hf['returns'][0][i])
                     data_ = collections.defaultdict(list)
+                
+                if self.need_prompt:
+                    returns = np.sum(np.array(hf['rewards']), axis=1)
 
                 state_mean, state_std = hf['state_mean'][:], hf['state_std'][:]
                 if not self.no_action_normalize:
                     action_mean, action_std = hf['action_mean'][:], hf['action_std'][:]
                 
-                if id not in self.test_id:
-                    self.traj.append(path)
-                    self.state_means.append(state_mean)
-                    self.state_stds.append(state_std)
-                    if not self.no_action_normalize:
-                        self.action_means.append(action_mean)
-                        self.action_stds.append(action_std)
-                    if self.need_prompt:
-                        self.returns.append(returns)
-                else:
-                    self.test_traj.append(path)
-                    self.test_state_means.append(state_mean)
-                    self.test_state_stds.append(state_std)
-                    if not self.no_action_normalize:
-                        self.test_action_means.append(action_mean)
-                        self.test_action_stds.append(action_std)
-                    if self.need_prompt:
-                        self.test_returns.append(returns)
+                # if id not in self.test_id:
+                #     self.traj.append(path)
+                #     self.state_means.append(state_mean)
+                #     self.state_stds.append(state_std)
+                #     if not self.no_action_normalize:
+                #         self.action_means.append(action_mean)
+                #         self.action_stds.append(action_std)
+                #     if self.need_prompt:
+                #         self.returns.append(returns)
+                # else:
+                #     self.test_traj.append(path)
+                #     self.test_state_means.append(state_mean)
+                #     self.test_state_stds.append(state_std)
+                #     if not self.no_action_normalize:
+                #         self.test_action_means.append(action_mean)
+                #         self.test_action_stds.append(action_std)
+                #     if self.need_prompt:
+                #         self.test_returns.append(returns)
+
+                self.traj.append(path)
+                self.state_means.append(state_mean)
+                self.state_stds.append(state_std)
+                if not self.no_action_normalize:
+                    self.action_means.append(action_mean)
+                    self.action_stds.append(action_std)
+                if self.need_prompt:
+                    self.returns.append(returns)
+
+                self.test_traj.append(path)
+                self.test_state_means.append(state_mean)
+                self.test_state_stds.append(state_std)
+                if not self.no_action_normalize:
+                    self.test_action_means.append(action_mean)
+                    self.test_action_stds.append(action_std)
+                if self.need_prompt:
+                    self.test_returns.append(returns)
                 id += 1
 
         self.params = []
@@ -1205,17 +1244,15 @@ class MetaTraj(Dataset):
         if self.need_prompt:
             self.prompt_trajectories = []
             for i in range(len(self.traj)):
-                idx = np.argsort(self.returns) # lowest to highest
+                idx = np.argsort(self.returns[i]) # lowest to highest
                 # set 10% highest traj as prompt
                 idx = idx[-(len(self.traj[i]) // 20) : ]
-                
                 self.prompt_trajectories.append(np.array(self.traj[i])[idx])
 
             self.test_prompt_trajectories = []
             for i in range(len(self.test_traj)):
-                idx = np.argsort(self.test_returns) 
+                idx = np.argsort(self.test_returns[i]) 
                 idx = idx[-(len(self.test_traj[i]) // 20) : ]
-                
                 self.test_prompt_trajectories.append(np.array(self.test_traj[i])[idx])
             
         self.set_task_id(0)
@@ -1226,7 +1263,7 @@ class MetaTraj(Dataset):
     def get_prompt(self, sample_size=1, is_test=False, id=0):
         if not is_test:
             batch_inds = np.random.choice(
-                np.arange(len(self.prompt_trajectories[self.task_id])),
+                np.arange(len(self.prompt_trajectories[id])),
                 size=sample_size,
                 replace=True,
                 # p=p_sample,  # reweights so we sample according to timesteps
@@ -1242,13 +1279,13 @@ class MetaTraj(Dataset):
             )
             prompt_trajectories = self.test_prompt_trajectories[id]
             sorted_inds = np.argsort(self.test_returns[id])
-
+        
         if self.stochastic_prompt:
-            traj = prompt_trajectories[batch_inds[sample_size]][0] # random select traj
+            traj = prompt_trajectories[batch_inds[sample_size]][0,0] # random select traj
         else:
-            traj = prompt_trajectories[sorted_inds[-sample_size]][0] # select the best traj with highest rewards
+            traj = prompt_trajectories[sorted_inds[-sample_size]][0,0] # select the best traj with highest rewards
             # traj = prompt_trajectories[i]
-        si = max(0, traj['rewards'][0].shape[1] - self.max_len -1) # select the last traj with length max_len
+        si = max(0, len(traj['rewards'][0]) - self.max_len -1) # select the last traj with length max_len
 
         # get sequences from dataset
         
@@ -1299,7 +1336,6 @@ class MetaTraj(Dataset):
     # get warm start data
     def get_pretrain_data(self, task_id: int, batch_size: int):
         # get warm data
-        print('task_id:',task_id)
         trajs = self.test_traj[task_id]
         batch_idx = np.random.choice(
             np.arange(len(trajs)),
@@ -1383,7 +1419,7 @@ class MetaTraj(Dataset):
         mask = torch.from_numpy(mask).to(dtype=torch.long)
 
         if self.need_prompt:
-            prompt = self.get_prompt(self.task_id)
+            prompt = self.get_prompt(id=self.task_id)
             return prompt, timesteps, s, a, r, rtg, mask
         elif self.cond:
             cond_id = 0
