@@ -180,7 +180,7 @@ def read_config_directly(path: str) -> dict:
 def read_config(path: str) -> Tuple[dict, dict]:
     """
     Overview:
-        Read configuration from a file path(now only suport python file). And select some proper parts.
+        Read configuration from a file path(now only support python file). And select some proper parts.
     Arguments:
         - path (:obj:`str`): Path of configuration file
     Returns:
@@ -200,7 +200,7 @@ def read_config(path: str) -> Tuple[dict, dict]:
 def read_config_with_system(path: str) -> Tuple[dict, dict, dict]:
     """
     Overview:
-        Read configuration from a file path(now only suport python file). And select some proper parts
+        Read configuration from a file path(now only support python file). And select some proper parts
     Arguments:
         - path (:obj:`str`): Path of configuration file
     Returns:
