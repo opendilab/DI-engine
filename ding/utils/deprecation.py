@@ -3,7 +3,7 @@ import textwrap
 import warnings
 
 
-def deprecated(since, removed_in, up_to):
+def deprecated(since, removed_in, up_to=None):
     """Decorate a function to signify its deprecation.
 
     Args:
