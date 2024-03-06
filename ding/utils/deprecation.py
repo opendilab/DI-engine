@@ -19,7 +19,6 @@ def deprecated(since: str, removed_in: str, up_to: Optional[str] = None):
         >>> @deprecated('0.4.1', '0.5.1')
         >>> def hello():
         >>>     print('hello')
-
     """
 
     def decorator(func):
