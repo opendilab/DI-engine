@@ -10,7 +10,7 @@ frozen_lake_dqn_config = dict(
         env_id = 'FrozenLake-v1',
         desc = None,
         map_name = "4x4",
-        is_slippery = True,
+        is_slippery = False,
         save_replay_gif = True,
         save_replay_path='frozen_lake_seed0/video',
 

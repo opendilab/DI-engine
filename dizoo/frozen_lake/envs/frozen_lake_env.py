@@ -55,7 +55,7 @@ class FrozenLakeEnv(BaseEnv):
             obs,info = self._env.reset(seed=self._env_seed)
         else:
             obs,info = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = self.onehot_encode(obs)
         return obs
 
     def close(self) -> None:
@@ -72,7 +72,7 @@ class FrozenLakeEnv(BaseEnv):
         obs, rew, terminated, truncated,info = self._env.step(action[0])
         self._eval_episode_return += rew
         print("action",action[0],"obs",obs)
-        obs = np.array([obs])
+        obs = self.onehot_encode(obs)
         rew = to_ndarray([rew])
         # if self._save_replay:
         #     picture=self._env.render()
@@ -154,3 +154,7 @@ class FrozenLakeEnv(BaseEnv):
             os.remove(temp_image_file)
 
         print(f"GIF已保存为 {gif_path}")
+
+    def onehot_encode(self, x):
+        onehot = np.eye(16, dtype=np.float32)[x - 1]
+        return onehot

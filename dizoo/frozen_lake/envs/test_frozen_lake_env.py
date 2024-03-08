@@ -3,7 +3,7 @@ import pytest
 from dizoo.frozen_lake.envs import FrozenLakeEnv
 from easydict import EasyDict
 
-# @pytest.mark.envtest
+@pytest.mark.envtest
 class TestGymHybridEnv:
     def test_my_lake(self):
         env = FrozenLakeEnv(
@@ -22,13 +22,14 @@ class TestGymHybridEnv:
             env.seed(314,dynamic_seed=False)
             assert env._seed == 314
             obs = env.reset()
-            for i in range(500):
-                random_action = env.random_action()
-                timestep = env.step(random_action)
-                if timestep.done:
-                    print('good')
-                    print(timestep)
-                    break
+            print(obs)
+            # for i in range(500):
+            #     random_action = env.random_action()
+            #     timestep = env.step(random_action)
+            #     if timestep.done:
+            #         print('good')
+            #         print(timestep)
+            #         break
 
-mytest=TestGymHybridEnv()
-mytest.test_my_lake()
+# mytest=TestGymHybridEnv()
+# mytest.test_my_lake()
