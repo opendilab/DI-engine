@@ -24,7 +24,6 @@ class FrozenLakeEnv(BaseEnv):
         assert self._cfg.env_id == "FrozenLake-v1", "yout name is not FrozernLake_v1"
         self._init_flag = False
         
-        self._replay_path = self._cfg.save_replay_path
         self._save_replay_gif = self._cfg.save_replay_gif
 
         self._save_replay_count = 0
@@ -70,36 +69,36 @@ class FrozenLakeEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def step(self, action: Dict) -> BaseEnvTimestep:
-        action=action['action_args']
-        obs, rew, terminated, truncated,info = self._env.step(action)
+        obs, rew, terminated, truncated,info = self._env.step(action[0])
         self._eval_episode_return += rew
+        print("action",action[0],"obs",obs)
         obs = np.array([obs])
         rew = to_ndarray([rew])
-        if self._save_replay:
-            picture=self._env.render()
-            self._frames.append(picture)
+        # if self._save_replay:
+        #     picture=self._env.render()
+        #     self._frames.append(picture)
         if terminated or truncated:
             done = True
         else :
             done = False
         if done:
             info['eval_episode_return'] = self._eval_episode_return
-            if self._save_replay:
-                assert self._replay_path is not None
-                if not os.path.exists(self._replay_path):
-                    os.makedirs(self._replay_path)
-                path = os.path.join(
-                self._replay_path, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
-            )
-                self.frames_to_gif(self,self._frames,path)
-                self._frames = []
-                self._save_replay_count += 1
+            # if self._save_replay:
+            #     assert self._replay_path is not None
+            #     if not os.path.exists(self._replay_path):
+            #         os.makedirs(self._replay_path)
+            #     path = os.path.join(
+            #     self._replay_path, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
+            # )
+            #     self.frames_to_gif(self,self._frames,path)
+            #     self._frames = []
+            #     self._save_replay_count += 1
         return BaseEnvTimestep(obs, rew, done, info)
     
     def random_action(self) -> Dict:
         raw_action = self._env.action_space.sample()
         my_type = type(self._env.action_space)
-        return {'action_type': my_type, 'action_args': raw_action}
+        return [raw_action]
 
     def __repr__(self) -> str:
         return "DI-engine Frozen Lake Env"
