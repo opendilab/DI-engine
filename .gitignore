@@ -125,6 +125,7 @@ local.properties
 
 # Graphics Interchange Format
 *.gif
+!dizoo/frozen_lake/FrozenLake.gif
 *.mp4
 *.mpg
 
