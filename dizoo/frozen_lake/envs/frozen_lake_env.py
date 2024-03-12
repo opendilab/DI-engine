@@ -117,40 +117,37 @@ class FrozenLakeEnv(BaseEnv):
         self._save_replay_count = 0
         self._frames = []
 
-    import imageio
-import os
-from typing import List
 
-@staticmethod
-def frames_to_gif(frames: List[imageio.core.util.Array], gif_path: str, duration: float = 0.1) -> None:
-    """
-    Convert a list of frames into a GIF.
-    Args:
-    - frames (List[imageio.core.util.Array]): A list of frames, each frame is an image.
-    - gif_path (str): The path to save the GIF file.
-    - duration (float): Duration between each frame in the GIF (seconds).
+    @staticmethod
+    def frames_to_gif(frames: List[imageio.core.util.Array], gif_path: str, duration: float = 0.1) -> None:
+        """
+        Convert a list of frames into a GIF.
+        Args:
+        - frames (List[imageio.core.util.Array]): A list of frames, each frame is an image.
+        - gif_path (str): The path to save the GIF file.
+        - duration (float): Duration between each frame in the GIF (seconds).
 
-    Returns:
-    None, the GIF file is saved directly to the specified path.
-    """
-    # Save all frames as temporary image files
-    temp_image_files = []
-    for i, frame in enumerate(frames):
-        temp_image_file = f"frame_{i}.png"  # Temporary file name
-        imageio.imwrite(temp_image_file, frame)  # Save the frame as a PNG file
-        temp_image_files.append(temp_image_file)
+        Returns:
+        None, the GIF file is saved directly to the specified path.
+        """
+        # Save all frames as temporary image files
+        temp_image_files = []
+        for i, frame in enumerate(frames):
+            temp_image_file = f"frame_{i}.png"  # Temporary file name
+            imageio.imwrite(temp_image_file, frame)  # Save the frame as a PNG file
+            temp_image_files.append(temp_image_file)
 
-    # Use imageio to convert temporary image files to GIF
-    with imageio.get_writer(gif_path, mode='I', duration=duration) as writer:
+        # Use imageio to convert temporary image files to GIF
+        with imageio.get_writer(gif_path, mode='I', duration=duration) as writer:
+            for temp_image_file in temp_image_files:
+                image = imageio.imread(temp_image_file)
+                writer.append_data(image)
+
+        # Clean up temporary image files
         for temp_image_file in temp_image_files:
-            image = imageio.imread(temp_image_file)
-            writer.append_data(image)
+            os.remove(temp_image_file)
 
-    # Clean up temporary image files
-    for temp_image_file in temp_image_files:
-        os.remove(temp_image_file)
-
-    print(f"GIF saved as {gif_path}")
+        print(f"GIF saved as {gif_path}")
 
     def onehot_encode(self, x):
         onehot = np.eye(16, dtype=np.float32)[x - 1]
