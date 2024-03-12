@@ -2,11 +2,7 @@ from typing import Any, Dict,List, Optional
 import imageio
 import os
 import gymnasium as gymn
-import copy
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import animation
-from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY

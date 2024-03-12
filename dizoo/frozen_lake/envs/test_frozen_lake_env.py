@@ -1,9 +1,9 @@
 import numpy as np
-# import pytest
+import pytest
 from dizoo.frozen_lake.envs import FrozenLakeEnv
 from easydict import EasyDict
 
-# @pytest.mark.envtest
+@pytest.mark.envtest
 class TestGymHybridEnv:
     def test_my_lake(self):
         env = FrozenLakeEnv(
@@ -39,6 +39,3 @@ class TestGymHybridEnv:
 
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
-
-myclass=TestGymHybridEnv()
-myclass.test_my_lake()
