@@ -18,7 +18,7 @@ frozen_lake_dqn_config = dict(
 
     policy = dict(
         cuda=True,
-        load_path='cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar',
+        load_path='frozen_lake_seed0/ckpt/ckpt_best.pth.tar',
         model = dict(
             obs_shape=16,
             action_shape=1,
@@ -41,7 +41,7 @@ frozen_lake_dqn_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(replay_buffer_size=128, ),
+            replay_buffer=dict(replay_buffer_size=20000, ),
         ),
     ),
 )
