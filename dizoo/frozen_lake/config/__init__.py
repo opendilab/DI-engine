@@ -1,1 +1,1 @@
-from .frozen_lake_dqn_config import frozen_lake_dqn_config, frozen_lake_dqn_config
+from .frozen_lake_dqn_config import main_config, create_config
