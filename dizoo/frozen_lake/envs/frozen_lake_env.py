@@ -17,12 +17,11 @@ class FrozenLakeEnv(BaseEnv):
         self._cfg=cfg
         assert self._cfg.env_id == "FrozenLake-v1", "yout name is not FrozernLake_v1"
         self._init_flag = False
-        
-        self._save_replay_gif = self._cfg.save_replay_gif
-
+        self._save_replay_bool = False
         self._save_replay_count = 0
         self._init_flag = False
         self._frames = []
+        self._replay_path = False
 
     def reset(self)-> np.ndarray:
         if not self._init_flag:
@@ -44,7 +43,6 @@ class FrozenLakeEnv(BaseEnv):
             self._env_seed=self._seed + np_seed
         elif hasattr(self, '_seed'):
             self._env_seed=self._seed
-
         if hasattr(self, '_seed'):
             obs,info = self._env.reset(seed=self._env_seed)
         else:
@@ -65,28 +63,26 @@ class FrozenLakeEnv(BaseEnv):
     def step(self, action: Dict) -> BaseEnvTimestep:
         obs, rew, terminated, truncated,info = self._env.step(action[0])
         self._eval_episode_return += rew
-        # print("action",action[0],"obs",obs)
         obs = self.onehot_encode(obs)
         rew = to_ndarray([rew])
-        # if self._save_replay:
-        #     picture=self._env.render()
-        #     self._frames.append(picture)
+        if self._save_replay_bool:
+            picture=self._env.render()
+            self._frames.append(picture)
         if terminated or truncated:
             done = True
         else :
             done = False
         if done:
             info['eval_episode_return'] = self._eval_episode_return
-            # if self._save_replay:
-            #     assert self._replay_path is not None
-            #     if not os.path.exists(self._replay_path):
-            #         os.makedirs(self._replay_path)
-            #     path = os.path.join(
-            #     self._replay_path, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
-            # )
-            #     self.frames_to_gif(self,self._frames,path)
-            #     self._frames = []
-            #     self._save_replay_count += 1
+            if self._save_replay_bool:
+                assert self._replay_path is not None,"your should have a path"
+                path = os.path.join(
+                self._replay_path, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
+            )
+                self.frames_to_gif(self._frames,path)
+                self._frames = []
+                self._save_replay_count += 1
+        rew = rew.astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
     
     def random_action(self) -> Dict:
@@ -113,7 +109,7 @@ class FrozenLakeEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        self._save_replay = True
+        self._save_replay_bool = True
         self._save_replay_count = 0
         self._frames = []
 
