@@ -65,7 +65,7 @@ class FrozenLakeEnv(BaseEnv):
     def step(self, action: Dict) -> BaseEnvTimestep:
         obs, rew, terminated, truncated,info = self._env.step(action[0])
         self._eval_episode_return += rew
-        print("action",action[0],"obs",obs)
+        # print("action",action[0],"obs",obs)
         obs = self.onehot_encode(obs)
         rew = to_ndarray([rew])
         # if self._save_replay:
