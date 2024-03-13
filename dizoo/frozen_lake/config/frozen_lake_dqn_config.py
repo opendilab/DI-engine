@@ -6,30 +6,29 @@ frozen_lake_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=10,
-        env_id = 'FrozenLake-v1',
-        desc = None,
-        map_name = "4x4",
-        is_slippery = False,
-        save_replay_gif = False,
+        env_id='FrozenLake-v1',
+        desc=None,
+        map_name="4x4",
+        is_slippery=False,
+        save_replay_gif=False,
     ),
-
-    policy = dict(
+    policy=dict(
         cuda=True,
         load_path='frozen_lake_seed0/ckpt/ckpt_best.pth.tar',
-        model = dict(
+        model=dict(
             obs_shape=16,
             action_shape=4,
             encoder_hidden_size_list=[128, 128, 64],
             dueling=True,
         ),
-        nstep = 3,
+        nstep=3,
         discount_factor=0.97,
         learn=dict(
             update_per_collect=5,
             batch_size=256,
             learning_rate=0.001,
         ),
-        collect = dict(n_sample=10),
+        collect=dict(n_sample=10),
         eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(
             eps=dict(
@@ -62,4 +61,4 @@ create_config = frozen_lake_dqn_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c frozen_lake_dqn_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), max_env_step=5000,seed=0)
+    serial_pipeline((main_config, create_config), max_env_step=5000, seed=0)

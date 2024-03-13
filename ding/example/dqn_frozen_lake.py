@@ -12,19 +12,17 @@ from ding.utils import set_pkg_seed
 from dizoo.frozen_lake.config.frozen_lake_dqn_config import main_config, create_config
 from dizoo.frozen_lake.envs import FrozenLakeEnv
 
+
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    main_config.exp_name = 'cartpole_dqn_nstep'
     main_config.policy.nstep = 5
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = BaseEnvManagerV2(
-            env_fn=[lambda: FrozenLakeEnv(cfg=cfg.env) for _ in range(cfg.env.collector_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: FrozenLakeEnv(cfg=cfg.env) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
         )
         evaluator_env = BaseEnvManagerV2(
-            env_fn=[lambda: FrozenLakeEnv(cfg=cfg.env) for _ in range(cfg.env.evaluator_env_num)],
-            cfg=cfg.env.manager
+            env_fn=[lambda: FrozenLakeEnv(cfg=cfg.env) for _ in range(cfg.env.evaluator_env_num)], cfg=cfg.env.manager
         )
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
