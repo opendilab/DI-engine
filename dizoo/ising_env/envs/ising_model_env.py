@@ -28,6 +28,20 @@ class IsingModelEnv(BaseEnv):
         self._observation_space = gym.spaces.MultiBinary(4 * cfg.agent_view_sight)
         self._reward_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
 
+    def calculate_action_prob(self, actions):
+        num_action = self._action_space.n
+        N = actions.shape[0]
+        # Convert actions to one_hot encoding
+        one_hot_actions = np.eye(num_action)[actions.flatten()]
+        action_prob = np.zeros((N, num_action))
+
+        for i in range(N):
+            # Exclude agent i's actions and calculate the one_hot average of all other agent actions
+            exclude_current = np.delete(one_hot_actions, i, axis=0)
+            action_prob[i] = exclude_current.mean(axis=0)
+
+        return action_prob
+
     def reset(self) -> np.ndarray:
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -47,6 +61,9 @@ class IsingModelEnv(BaseEnv):
             self._init_flag = True
         obs = self._env._reset()
         obs = np.stack(obs)
+        self.pre_action = np.zeros(self._cfg.num_agents, dtype=np.int32)
+        pre_action_prob = np.zeros((self._cfg.num_agents, self._action_space.n))
+        obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
         self._eval_episode_return = np.zeros((self._cfg.num_agents, 1), dtype=np.float32)
         return obs
@@ -63,13 +80,20 @@ class IsingModelEnv(BaseEnv):
 
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
+        if (len(action.shape) == 1):
+            action = np.expand_dims(action, axis=1)
         obs, rew, done, order_param, ups, downs = self._env._step(action)
-        info = {"order_param": order_param, "ups": ups, "downs": downs}
+        info = {"order_param": order_param, "ups": ups, "downs": downs, 'pre_action': self.pre_action}
+        pre_action_prob = self.calculate_action_prob(self.pre_action)
+        self.pre_action = action
         obs = np.stack(obs)
+        obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
         rew = np.stack(rew)
         rew = to_ndarray(rew).astype(np.float32)
         self._eval_episode_return += rew
+
+        done = done[0]  # dones are the same for all agents
         if done:
             info['eval_episode_return'] = self._eval_episode_return
         return BaseEnvTimestep(obs, rew, done, info)

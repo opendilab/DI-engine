@@ -9,12 +9,12 @@ num_agents = 100
 @pytest.mark.envtest
 class TestIsingModelEnv:
 
-    def test_ising(self):
+    def test_ising():
         env = IsingModelEnv(EasyDict({'num_agents': num_agents, 'dim_spin': 2, 'agent_view_sight': 1}))
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314
         obs = env.reset()
-        assert obs.shape == (100, 4)
+        assert obs.shape == (100, 4 + 2)
         for _ in range(5):
             env.reset()
             np.random.seed(314)
@@ -31,7 +31,7 @@ class TestIsingModelEnv:
                 print('timestep', timestep, '\n')
                 assert isinstance(timestep.obs, np.ndarray)
                 assert isinstance(timestep.done[0], bool)
-                assert timestep.obs.shape == (100, 4)
+                assert timestep.obs.shape == (100, 4 + 2)
                 assert timestep.reward.shape == (100, 1)
                 assert timestep.reward[0] >= env.reward_space.low
                 assert timestep.reward[0] <= env.reward_space.high
