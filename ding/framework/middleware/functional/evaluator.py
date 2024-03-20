@@ -15,6 +15,8 @@ from ding.framework import task
 from ding.torch_utils import to_ndarray, get_shape0
 from ding.utils import lists_to_dicts
 
+import time
+
 
 class IMetric(ABC):
 
@@ -240,6 +242,8 @@ def interaction_evaluator(
             - eval_value (:obj:`float`): The average reward in the current evaluation.
         """
 
+        start_time = time.time()
+
         # evaluation will be executed if the task begins or enough train_iter after last evaluation
         if ctx.last_eval_iter != -1 and \
                 (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
@@ -274,8 +278,8 @@ def interaction_evaluator(
                 env_id = timestep.env_id.item()
                 if timestep.done:
                     policy.reset([env_id])
-                    reward = timestep.info.eval_episode_return
-                    eval_monitor.update_reward(env_id, reward)
+                    return_ = timestep.info.eval_episode_return
+                    eval_monitor.update_reward(env_id, return_)
                     if 'episode_info' in timestep.info:
                         eval_monitor.update_info(env_id, timestep.info.episode_info)
         episode_return = eval_monitor.get_episode_return()
@@ -324,6 +328,8 @@ def interaction_evaluator(
 
         if stop_flag:
             task.finish = True
+
+        ctx.evaluator_time += time.time() - start_time
 
     return _evaluate
 

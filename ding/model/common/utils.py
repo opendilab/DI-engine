@@ -1,5 +1,6 @@
 import copy
 import torch
+import torch.nn as nn
 from easydict import EasyDict
 from ding.utils import import_module, MODEL_REGISTRY
 

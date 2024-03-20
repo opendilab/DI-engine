@@ -5,10 +5,13 @@ import treetensor.torch as ttorch
 from ding.policy import get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
-from .functional import inferencer, rolloutor, TransitionList
+from .functional import inferencer, inferencer_async, rolloutor, rolloutor_async, TransitionList
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
+
+from ding.worker.collector.base_serial_collector import CachePool
+import time
 
 
 class StepCollector:
@@ -66,6 +69,76 @@ class StepCollector:
                 ctx.trajectories, ctx.trajectory_end_idx = self._transitions.to_trajectories()
                 self._transitions.clear()
                 break
+
+
+class StepCollectorAsync:
+    """
+    Overview:
+        The class of the collector running by steps, including model inference and transition \
+            process. Use the `__call__` method to execute the whole collection process.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        if task.router.is_active and not task.has_role(task.role.COLLECTOR):
+            return task.void()
+        return super(StepCollectorAsync, cls).__new__(cls)
+
+    def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+            - random_collect_size (:obj:`int`): The count of samples that will be collected randomly, \
+                typically used in initial runs.
+        """
+        self.cfg = cfg
+        self.env = env
+        self.policy = policy
+        self.random_collect_size = random_collect_size
+        self._transitions = TransitionList(self.env.env_num)
+
+        self._obs_pool = CachePool('obs', self.env.env_num, deepcopy=True)
+        self._policy_output_pool = CachePool('policy_output', self.env.env_num)
+
+        self._inferencer = task.wrap(inferencer_async(cfg.seed, policy, env, self._obs_pool, self._policy_output_pool))
+        self._rolloutor = task.wrap(
+            rolloutor_async(policy, env, self._transitions, self._obs_pool, self._policy_output_pool)
+        )
+
+    def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Overview:
+            An encapsulation of inference and rollout middleware. Stop when completing \
+                the target number of steps.
+        Input of ctx:
+            - env_step (:obj:`int`): The env steps which will increase during collection.
+        """
+
+        start_time = time.time()
+
+        old = ctx.env_step
+        if self.random_collect_size > 0 and old < self.random_collect_size:
+            target_size = self.random_collect_size - old
+            random_policy = get_random_policy(self.cfg, self.policy, self.env)
+            current_inferencer = task.wrap(
+                inferencer_async(self.cfg.seed, random_policy, self.env, self._obs_pool, self._policy_output_pool)
+            )
+        else:
+            # compatible with old config, a train sample = unroll_len step
+            target_size = self.cfg.policy.collect.n_sample * self.cfg.policy.collect.unroll_len
+            current_inferencer = self._inferencer
+
+        while True:
+            current_inferencer(ctx)
+            self._rolloutor(ctx)
+            if ctx.env_step - old >= target_size:
+                ctx.trajectories, ctx.trajectory_end_idx = self._transitions.to_trajectories()
+                self._transitions.clear()
+                break
+
+        ctx.collector_time += time.time() - start_time
 
 
 class PPOFStepCollector:
