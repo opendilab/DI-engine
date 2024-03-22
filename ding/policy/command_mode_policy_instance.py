@@ -43,6 +43,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, DiscreteCQLPolicy
+from .qtransformer import  QtransformerPolicy 
 from .dt import DTPolicy
 from .pdqn import PDQNPolicy
 from .madqn import MADQNPolicy
@@ -165,6 +166,7 @@ class R2D2GTrXLCommandModePolicy(R2D2GTrXLPolicy, EpsCommandModePolicy):
 @POLICY_REGISTRY.register('r2d2_collect_traj_command')
 class R2D2CollectTrajCommandModePolicy(R2D2CollectTrajPolicy, DummyCommandModePolicy):
     pass
+
 
 
 @POLICY_REGISTRY.register('r2d3_command')
@@ -325,6 +327,9 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
 class DiscreteCQLCommandModePolicy(DiscreteCQLPolicy, EpsCommandModePolicy):
     pass
 
+@POLICY_REGISTRY.register('qtransformer_command')
+class QtransformerCommandModePolicy(QtransformerPolicy):
+    pass
 
 @POLICY_REGISTRY.register('dt_command')
 class DTCommandModePolicy(DTPolicy, DummyCommandModePolicy):
