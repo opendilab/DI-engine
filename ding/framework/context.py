@@ -75,7 +75,7 @@ class OnlineRLContext(Context):
         # This method is called just after __init__ method. Here, concretely speaking,
         # this method is called just after the object initialize its fields.
         # We use this method here to keep the fields needed for each iteration.
-        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter', 'last_eval_value', 'wandb_url')
+        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter', 'last_eval_value', 'wandb_url', 'collect_kwargs')
 
 
 @dataclasses.dataclass
