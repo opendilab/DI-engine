@@ -8,6 +8,7 @@ from ding.data import Buffer
 from ding.rl_utils import gae, gae_data, get_train_sample
 from ding.framework import task
 from ding.utils.data import ttorch_collate
+from ding.utils.dict_helper import convert_easy_dict_to_dict
 from ding.torch_utils import to_device
 
 if TYPE_CHECKING:
@@ -33,9 +34,11 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
     # Unify the shape of obs and action
     obs_shape = cfg['policy']['model']['obs_shape']
     obs_shape = torch.Size(torch.tensor(obs_shape)) if isinstance(obs_shape, list) \
+        else ttorch.size.Size(convert_easy_dict_to_dict(obs_shape)) if isinstance(obs_shape, dict) \
         else torch.Size(torch.tensor(obs_shape).unsqueeze(0))
     action_shape = cfg['policy']['model']['action_shape']
     action_shape = torch.Size(torch.tensor(action_shape)) if isinstance(action_shape, list) \
+        else ttorch.size.Size(action_shape) if isinstance(action_shape, dict) \
         else torch.Size(torch.tensor(action_shape).unsqueeze(0))
 
     def _gae(ctx: "OnlineRLContext"):

@@ -5,6 +5,7 @@ from .default_helper import override, dicts_to_lists, lists_to_dicts, squeeze, d
     LimitedSpaceContainer, deep_merge_dicts, set_pkg_seed, flatten_dict, one_time_warning, split_data_generator, \
     RunningMeanStd, make_key_as_identifier, remove_illegal_item
 from .design_helper import SingletonMetaclass
+from .dict_helper import convert_easy_dict_to_dict
 from .file_helper import read_file, save_file, remove_file
 from .import_helper import try_import_ceph, try_import_mc, try_import_link, import_module, try_import_redis, \
     try_import_rediscluster
