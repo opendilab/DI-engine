@@ -33,7 +33,7 @@ ising_mfq_config = dict(
             target_update_freq=500,
         ),
         collect=dict(n_sample=96, ),
-        eval=dict(evaluator=dict(eval_freq=4000, )),
+        eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(
             eps=dict(
                 type='exp',
@@ -61,4 +61,4 @@ create_config = ising_mfq_create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ising_mfq_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, max_env_step=1e5)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=5e4)

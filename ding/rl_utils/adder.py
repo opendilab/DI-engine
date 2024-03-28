@@ -145,10 +145,10 @@ class Adder(object):
                      for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))],
                     dim = -1
                 )
-            try:
-                assert len(data[i]['reward']) == 300
-            except:
-                print(len(data[i]['reward']))
+            # try:
+            #     assert len(data[i]['reward']) == 300
+            # except:
+            #     print(len(data[i]['reward']))
             data[i]['done'] = data[-1]['done']
             if correct_terminate_gamma:
                 data[i]['value_gamma'] = gamma ** (len(data) - i - 1)

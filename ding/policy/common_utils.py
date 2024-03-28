@@ -63,8 +63,10 @@ def default_preprocess_learn(
             reward = reward.unsqueeze(1)
         # reward: (batch_size, nstep) -> (nstep, batch_size)
         # reversed_shape = [i for i in range(len(reward.shape))][::-1]
-        # data['reward'] = reward.permute(reversed_shape).contiguous()
-        data['reward'] = reward.transpose(0, -1).contiguous()
+        temp_shape = [i for i in range(len(reward.shape))]
+        temp_shape = [temp_shape[-1]] + temp_shape[:-1]
+        data['reward'] = reward.permute(temp_shape).contiguous()
+        # data['reward'] = reward.transpose(0, -1).contiguous()
     else:
         if data['reward'].dim() == 2 and data['reward'].shape[1] == 1:
             data['reward'] = data['reward'].squeeze(-1)
