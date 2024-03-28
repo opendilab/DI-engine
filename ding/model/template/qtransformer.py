@@ -33,7 +33,6 @@ class state_encode(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 512)
         )
-
     def forward(self, x):
         x = self.layers(x)
         x = x.unsqueeze(1)
