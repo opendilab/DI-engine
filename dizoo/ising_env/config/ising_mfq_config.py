@@ -12,7 +12,6 @@ ising_mfq_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=20,
         num_agents=num_agents,
         dim_spin=dim_spin,
         agent_view_sight=agent_view_sight,
@@ -62,4 +61,4 @@ create_config = ising_mfq_create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ising_mfq_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=1e5)

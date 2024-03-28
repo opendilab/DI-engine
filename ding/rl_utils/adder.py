@@ -121,7 +121,7 @@ class Adder(object):
         """
         if nstep == 1:
             return data
-        fake_reward = torch.zeros(1)
+        fake_reward = torch.zeros_like(data[0]['reward'])
         next_obs_flag = 'next_obs' in data[0]
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
@@ -130,7 +130,7 @@ class Adder(object):
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
             else:
-                data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
+                data[i]['reward'] = torch.stack([data[i + j]['reward'] for j in range(nstep)], dim = -1)
             data[i]['done'] = data[i + nstep - 1]['done']
             if correct_terminate_gamma:
                 data[i]['value_gamma'] = gamma ** nstep
@@ -140,10 +140,15 @@ class Adder(object):
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(len(data) - i)])
             else:
-                data[i]['reward'] = torch.cat(
+                data[i]['reward'] = torch.stack(
                     [data[i + j]['reward']
-                     for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+                     for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))],
+                    dim = -1
                 )
+            try:
+                assert len(data[i]['reward']) == 300
+            except:
+                print(len(data[i]['reward']))
             data[i]['done'] = data[-1]['done']
             if correct_terminate_gamma:
                 data[i]['value_gamma'] = gamma ** (len(data) - i - 1)

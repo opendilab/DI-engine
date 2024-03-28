@@ -30,15 +30,20 @@ class IsingModelEnv(BaseEnv):
 
     def calculate_action_prob(self, actions):
         num_action = self._action_space.n
-        N = actions.shape[0]
+        N = actions.shape[0]    # agent_num
         # Convert actions to one_hot encoding
         one_hot_actions = np.eye(num_action)[actions.flatten()]
         action_prob = np.zeros((N, num_action))
 
         for i in range(N):
-            # Exclude agent i's actions and calculate the one_hot average of all other agent actions
-            exclude_current = np.delete(one_hot_actions, i, axis=0)
-            action_prob[i] = exclude_current.mean(axis=0)
+            # Select only the one_hot actions of agents visible to agent i
+            visible_actions = one_hot_actions[self._env.agents[i].spin_mask == 1]
+            if visible_actions.size > 0:
+                # Calculate the average of the one_hot encoding for visible agents only
+                action_prob[i] = visible_actions.mean(axis=0)
+            else:
+                # If no visible agents, action_prob remains zero for agent i
+                action_prob[i] = np.zeros(num_action)
 
         return action_prob
 
@@ -62,10 +67,11 @@ class IsingModelEnv(BaseEnv):
         obs = self._env._reset()
         obs = np.stack(obs)
         self.pre_action = np.zeros(self._cfg.num_agents, dtype=np.int32)
-        pre_action_prob = np.zeros((self._cfg.num_agents, self._action_space.n))
+        # consider the last global state as pre action prob
+        pre_action_prob = self.calculate_action_prob(self._env.world.global_state.flatten().astype(int))
         obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
-        self._eval_episode_return = np.zeros((self._cfg.num_agents, 1), dtype=np.float32)
+        self._eval_episode_return = 0
         return obs
 
     def close(self) -> None:
@@ -90,8 +96,9 @@ class IsingModelEnv(BaseEnv):
         obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
         rew = np.stack(rew)
-        rew = to_ndarray(rew).astype(np.float32)
-        self._eval_episode_return += rew
+        rew = np.squeeze(to_ndarray(rew).astype(np.float32), axis=1)
+        # rew = to_ndarray(rew).astype(np.float32)
+        self._eval_episode_return += np.sum(rew)
 
         done = done[0]  # dones are the same for all agents
         if done:

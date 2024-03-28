@@ -61,6 +61,7 @@ class DiscreteHead(nn.Module):
                 norm_type=norm_type
             ), block(hidden_size, output_size)
         )
+        nn.init.normal_(self.Q[1].weight, 0, 0.2)
 
     def forward(self, x: torch.Tensor) -> Dict:
         """
