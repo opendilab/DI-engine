@@ -31,11 +31,7 @@ class state_encode(nn.Module):
         self.layers = nn.Sequential(
             nn.Linear(input_dim, 256),
             nn.ReLU(),
-            nn.Linear(256, 512),
-            nn.ReLU(),
-            nn.Linear(512, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 512)
+            nn.Linear(256, 512)
         )
 
     def forward(self, x):
@@ -505,12 +501,11 @@ class QHeadMultipleActions(Module):
         prob_random_action: float = 0.5,
         **kwargs
     ):
-        assert 0. <= prob_random_action <= 1.
         batch = encoded_state.shape[0]
 
         if prob_random_action == 1:
             return self.get_random_actions(batch)
-
+        prob_random_action = -1
         sos_token = encoded_state
         tokens = self.maybe_append_actions(sos_token, actions = actions)
 

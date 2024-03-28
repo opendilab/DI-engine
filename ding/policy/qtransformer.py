@@ -268,16 +268,17 @@ class QtransformerPolicy(SACPolicy):
             )
             self._auto_alpha = False
         
-        self._ema_model = EMA(
-            self._model,
-            include_online_model = False,
-            **self._cfg.ema
+        self._target_model = copy.deepcopy(self._model)
+        self._target_model = model_wrap(
+            self._target_model,
+            wrapper_name='target',
+            update_type='momentum',
+            update_kwargs={'theta': self._cfg.learn.target_theta}
         )
         self._low = np.array(self._cfg.other["low"])
         self._high = np.array(self._cfg.other["high"])
         self._action_values = np.array([np.linspace(min_val, max_val, 256) for min_val, max_val in zip(self._low, self._high)])
         # Main and target models
-        self._target_model = model_wrap(self._ema_model, wrapper_name='base')
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
         self._target_model.reset()
@@ -339,18 +340,18 @@ class QtransformerPolicy(SACPolicy):
         dones = F.pad(dones, (1, -1), value = False)
         not_terminal = (~dones).float()
         reward = reward * not_terminal
-        gamma = self._cfg.learn["discount_factor_gamma"]
-        q_pred_all_actions = self._model(states, actions = actions)
+        gamma = self._cfg.self._learn_model.forward["discount_factor_gamma"]
+        q_pred_all_actions = self._learn_model.forward(states, actions = actions)
         q_pred = self._batch_select_indices(q_pred_all_actions, actions)
         q_pred = q_pred.unsqueeze(1)
 
-        # get q_next
-        q_next = self._ema_model(next_obs)
+        with torch.no_grad():
+            # get q_next
+            q_next = self._target_model.forward(next_obs)        
+            # get target Q
+            q_target_all_actions = self._target_model.forward(states, actions = actions)
         q_next = q_next.max(dim = -1).values
-        q_next.clamp_(min = -100)
-
-        # get target Q
-        q_target_all_actions = self._ema_model(states, actions = actions)
+        q_next.clamp_(min = -100)   
         q_target = q_target_all_actions.max(dim = -1).values
         q_target.clamp_(min = -100)
         q_target=q_target.unsqueeze(1)
@@ -364,6 +365,8 @@ class QtransformerPolicy(SACPolicy):
             reward = reward.unsqueeze(-1)
         q_target_last_action = reward + gamma* q_target_last_action
         losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action, reduction = 'none')
+        
+        
         # flatten and average
         losses, _ = pack([losses_all_actions_but_last, losses_last_action], '*')
         td_loss=losses.mean()
@@ -415,7 +418,7 @@ class QtransformerPolicy(SACPolicy):
     def _get_actions(self, obs):
         # evaluate to get action 
         action = self._eval_model.get_optimal_actions(obs)
-        action = action/256.0-1
+        action = 2*action/256.0-1
         return action
 
     def _monitor_vars_learn(self) -> List[str]:
