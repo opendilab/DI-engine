@@ -17,47 +17,13 @@ from functools import wraps
 from packaging import version
 
 from torch import nn, einsum
+import torch.nn.functional as F
 
 from einops import rearrange, reduce
 # from q_transformer.attend import Attend
 
-class DynamicMultiActionEmbedding(nn.Module):
-    def __init__(self,dim=512,actionbin=256):
-        super(DynamicMultiActionEmbedding, self).__init__()
-        self.outdim=dim
-        self.linear_layers = nn.ModuleList([nn.Linear(actionbin, dim) for _ in range(3)])
-    
-    def forward(self, x):
-        x = x.to(dtype=torch.float)
-        b, n, _ = x.shape
-        slices = torch.unbind(x, dim=1)
-        layer_outputs = torch.empty(b, n, self.outdim,device=x.device)
-        for i, layer in enumerate(self.linear_layers[:n]): 
-            slice_output = layer(slices[i])
-            layer_outputs[:, i, :] = slice_output
-        return layer_outputs
 
-    
-# from transformer get q_value for action_bins
-class Getvalue(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super(Getvalue, self).__init__()
-        self.output_dim = output_dim
-        self.linear_1 = nn.Linear(input_dim, output_dim)
-        self.sigmoid = nn.Sigmoid()
-        self.relu = nn.ReLU()
-        self.linear_2 = nn.Linear(output_dim, output_dim)
-        
-    def forward(self, x):
-        b, seq_len, input_dim = x.shape
-        x = x.reshape(b * seq_len, input_dim)  
-        x = self.linear_1(x)
-        x = self.relu(x)
-        x = self.linear_2(x)
-        x = x.view(b, seq_len, self.output_dim)
-        x = self.sigmoid(x)
-        return x
-     
+#myself code of xue 
 class state_encode(nn.Module):
     def __init__(self, input_dim):
         super(state_encode, self).__init__()
@@ -385,6 +351,58 @@ class DuelingHead(Module):
         return q_values.sigmoid()
 
 
+class QHeadSingleAction(Module):
+    def __init__(
+        self,
+        dim,
+        *,
+        num_learned_tokens = 8,
+        action_bins = 256,
+        dueling = False
+    ):
+        super().__init__()
+        self.action_bins = action_bins
+
+        if dueling:
+            self.to_q_values = nn.Sequential(
+                Reduce('b (f n) d -> b d', 'mean', n = num_learned_tokens),
+                DuelingHead(
+                    dim,
+                    action_bins = action_bins
+                )
+            )
+        else:
+            self.to_q_values = nn.Sequential(
+                Reduce('b (f n) d -> b d', 'mean', n = num_learned_tokens),
+                RMSNorm(dim),
+                nn.Linear(dim, action_bins),
+                nn.Sigmoid()
+            )
+
+    def get_random_actions(self, batch_size):
+        return torch.randint(0, self.action_bins, (batch_size,), device = self.device)
+
+    def get_optimal_actions(
+        self,
+        encoded_state,
+        return_q_values = False,
+        actions = None,
+        **kwargs
+    ):
+        assert not exists(actions), 'single actions will never receive previous actions'
+
+        q_values = self.forward(encoded_state)
+
+        max_q, action_indices = q_values.max(dim = -1)
+
+        if not return_q_values:
+            return action_indices
+
+        return action_indices, max_q
+
+    def forward(self, encoded_state):
+        return self.to_q_values(encoded_state)
+
 class QHeadMultipleActions(Module):
     def __init__(
         self,
@@ -405,42 +423,74 @@ class QHeadMultipleActions(Module):
         self.action_bin_embeddings = nn.Parameter(torch.zeros(num_actions, action_bins, dim))
         nn.init.normal_(self.action_bin_embeddings, std = 0.02)
 
+        self.to_q_values = None
+        if not weight_tie_action_bin_embed:
+            self.to_q_values = nn.Linear(dim, action_bins)
+
         self.transformer = Transformer(
             dim = dim,
             depth = attn_depth,
             dim_head = attn_dim_head,
             heads = attn_heads,
-            cross_attend =  False,
+            cross_attend = True,
             adaptive_ln = False,
             causal = True,
-            final_norm = False
+            final_norm = True
         )
 
         self.final_norm = RMSNorm(dim)
 
-        self.get_q_value_fuction = Getvalue(
-                input_dim=dim,
-                output_dim=action_bins,
-            )
-        
-        self.DynamicMultiActionEmbedding =DynamicMultiActionEmbedding(
-            dim=dim,
-            actionbin=action_bins,
-        )
-
-
+        self.dueling = dueling
+        if dueling:
+            self.to_values = nn.Parameter(torch.zeros(num_actions, dim))
 
     @property
     def device(self):
         return self.action_bin_embeddings.device
 
-    def state_append_actions(self,state,actions:Optional[Tensor] = None):
+    def maybe_append_actions(self, sos_tokens, actions: Optional[Tensor] = None):
         if not exists(actions):
-            return torch.cat((state, state), dim=1)    
+            return sos_tokens
+
+        batch, num_actions = actions.shape
+        action_embeddings = self.action_bin_embeddings[:num_actions]
+
+        action_embeddings = repeat(action_embeddings, 'n a d -> b n a d', b = batch)
+        past_action_bins = repeat(actions, 'b n -> b n 1 d', d = action_embeddings.shape[-1])
+
+        bin_embeddings = action_embeddings.gather(-2, past_action_bins)
+        bin_embeddings = rearrange(bin_embeddings, 'b n 1 d -> b n d')
+
+        tokens, _ = pack((sos_tokens, bin_embeddings), 'b * d')
+        tokens = tokens[:, :self.num_actions] # last action bin not needed for the proposed q-learning
+        return tokens
+
+    def get_q_values(self, embed):
+        num_actions = embed.shape[-2]
+
+        if exists(self.to_q_values):
+            logits = self.to_q_values(embed)
         else:
-            actions = torch.nn.functional.one_hot(actions, num_classes=256)
-            actions = self.DynamicMultiActionEmbedding(actions)
-            return torch.cat((state, actions), dim=1)
+            # each token predicts next action bin
+            action_bin_embeddings = self.action_bin_embeddings[:num_actions]
+            action_bin_embeddings = torch.roll(action_bin_embeddings, shifts = -1, dims = 1)
+            logits = einsum('b n d, n a d -> b n a', embed, action_bin_embeddings)
+
+        if self.dueling:
+            advantages = logits
+            values = einsum('b n d, n d -> b n', embed, self.to_values[:num_actions])
+            values = rearrange(values, 'b n -> b n 1')
+
+            q_values = values + (advantages - reduce(advantages, '... a -> ... 1', 'mean'))
+        else:
+            q_values = logits
+
+        return q_values.sigmoid()
+
+    def get_random_actions(self, batch_size, num_actions = None):
+        num_actions = default(num_actions, self.num_actions)
+        return torch.randint(0, self.action_bins, (batch_size, num_actions), device = self.device)
+
 
     @torch.no_grad()
     def get_optimal_actions(
@@ -517,11 +567,11 @@ class QHeadMultipleActions(Module):
         """
 
         # this is the scheme many hierarchical transformer papers do
-        tokens= self.state_append_actions(encoded_state,actions = actions)
-        embed = self.transformer(tokens, context = None)
-        action_dim_values = embed[:, 1:, :]
-        q_values = self.get_q_value_fuction(action_dim_values)
-        return q_values
+        tokens = encoded_state
+        sos_token = encoded_state
+        tokens = self.maybe_append_actions(sos_token, actions = actions)
+        embed = self.transformer(tokens, context = encoded_state)
+        return self.get_q_values(embed)
 
 # Robotic Transformer
 class QTransformer(Module):
@@ -552,10 +602,10 @@ class QTransformer(Module):
     ):
         super().__init__()
         attend_dim = 512
-
         # q-transformer related action embeddings
         assert num_actions >= 1
         self.num_actions = num_actions
+        self.is_single_action = num_actions == 1
         self.action_bins = action_bins
         self.obs_dim = obs_dim
 
@@ -563,16 +613,21 @@ class QTransformer(Module):
         self.state_encode =state_encode(self.obs_dim)
 
         # Q head
-        self.q_head = QHeadMultipleActions(
+        if self.is_single_action:
+            self.q_head = QHeadSingleAction(
+                attend_dim,
+                num_learned_tokens = self.num_learned_tokens,
+                action_bins = action_bins,
+                dueling = dueling
+            )
+        else:
+            self.q_head = QHeadMultipleActions(
                 attend_dim,
                 action_bins = action_bins,
                 dueling = dueling,
                 weight_tie_action_bin_embed = weight_tie_action_bin_embed,
                 **q_head_attn_kwargs
             )
-        
-
-
     @property
     def device(self):
         return next(self.parameters()).device
@@ -618,7 +673,11 @@ class QTransformer(Module):
         if exists(actions):
             actions = actions.to(self.device)
         encoded_state = self.state_encode(state)
-        q_values = self.q_head(encoded_state, actions = actions)
+        if self.is_single_action:
+            assert not exists(actions), 'actions should not be passed in for single action robotic transformer'
+            q_values = self.q_head(encoded_state)
+        else:
+            q_values = self.q_head(encoded_state, actions = actions)
         return q_values
 
 

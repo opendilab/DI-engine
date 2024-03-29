@@ -340,7 +340,7 @@ class QtransformerPolicy(SACPolicy):
         dones = F.pad(dones, (1, -1), value = False)
         not_terminal = (~dones).float()
         reward = reward * not_terminal
-        gamma = self._cfg.self._learn_model.forward["discount_factor_gamma"]
+        gamma = self._cfg.learn["discount_factor_gamma"]
         q_pred_all_actions = self._learn_model.forward(states, actions = actions)
         q_pred = self._batch_select_indices(q_pred_all_actions, actions)
         q_pred = q_pred.unsqueeze(1)
@@ -390,8 +390,9 @@ class QtransformerPolicy(SACPolicy):
         self._optimizer_q.zero_grad()
         loss_dict['loss'].backward()
         self._optimizer_q.step()
-        self._ema_model.update()
+
         self._forward_learn_cnt += 1
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'td_loss':td_loss,
