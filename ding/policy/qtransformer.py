@@ -398,6 +398,7 @@ class QtransformerPolicy(SACPolicy):
             'td_loss':td_loss,
             'conser_loss':conservative_reg_loss, 
             'all_loss':loss_dict["loss"],
+            'target_q':q_pred_all_actions.detach.mean().item(),
         }
     
     def _batch_select_indices(self,t, indices):
@@ -414,7 +415,7 @@ class QtransformerPolicy(SACPolicy):
     
     def _get_actions(self, obs):
         # evaluate to get action 
-        action = self._target_model.get_actions(obs)
+        action = self._eval_model.get_actions(obs)
         action = 2*action/256.0-1
         return action
 
@@ -432,6 +433,7 @@ class QtransformerPolicy(SACPolicy):
             'conser_loss',
             'critic_loss',
             'all_loss',
+            'target_q'
         ] 
     
     def _state_dict_learn(self) -> Dict[str, Any]:
