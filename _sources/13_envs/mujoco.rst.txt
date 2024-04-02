@@ -16,7 +16,12 @@ Install
 Installation Method
 --------------------
 
-install the gym, mujoco and mujoco-py libraries, which can be installed by one-click pip or combined with DI-engine.
+First, install a MuJoCo library of a specific version in your operation system.
+Then, install three Python libraries, gym, mujoco and mujoco-py , which can be installed by one-click pip or combined with DI-engine.
+
+.. code:: shell
+
+    pip install DI-engine[common_env,video]
 
 Note:
 
@@ -210,7 +215,9 @@ After the environment is created, but before reset, call the\ ``enable_save_repl
 
    from easydict import EasyDict
    from dizoo.mujoco.envs import MujocoEnv
-   env = MujocoEnv(EasyDict({'env_id': 'Hoopper-v3' }))
+   config = MujocoEnv.default_config()
+   config.env_id="Hopper-v3"
+   env = MujocoEnv(config)
    env.enable_save_replay(replay_path='./video')
    obs = env.reset()
    while True:

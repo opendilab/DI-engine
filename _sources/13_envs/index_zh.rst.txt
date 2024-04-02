@@ -27,6 +27,7 @@
    pendulum_zh
    acrobot_zh
    bitflip_zh
+   frozen_lake_zh
    
    lunarlander_zh
    bipedalwalker_zh

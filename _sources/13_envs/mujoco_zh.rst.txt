@@ -17,7 +17,11 @@ Mujoco 是旨在促进机器人、生物力学、图形和动画等需要快速�
 安装方法
 --------
 
-安装 gym, mujoco 与 mujoco-py 即可，可以通过 pip 一键安装或结合 DI-engine 安装
+首先根据所需版本安装 MuJoCo 。然后安装 gym, mujoco 与 mujoco-py 三个 Python 库即可，可以通过 pip 一键安装或结合 DI-engine 安装：
+
+.. code:: shell
+
+    pip install DI-engine[common_env,video]
 
 注：
 
@@ -220,11 +224,11 @@ hub <https://hub.docker.com/r/opendilab/ding>`_  获取更多镜像
 
    from easydict import EasyDict
    from dizoo.mujoco.envs import MujocoEnv
-
-   env = MujocoEnv(EasyDict({'env_id': 'Hoopper-v3' }))
+   config = MujocoEnv.default_config()
+   config.env_id="Hopper-v3"
+   env = MujocoEnv(config)
    env.enable_save_replay(replay_path='./video')
    obs = env.reset()
-
    while True:
        action = env.random_action()
        timestep = env.step(action)

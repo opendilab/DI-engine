@@ -309,7 +309,11 @@
 <h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
 <section id="installation-method">
 <h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
-<p>install the gym, mujoco and mujoco-py libraries, which can be installed by one-click pip or combined with DI-engine.</p>
+<p>First, install a MuJoCo library of a specific version in your operation system.
+Then, install three Python libraries, gym, mujoco and mujoco-py , which can be installed by one-click pip or combined with DI-engine.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>common_env,video<span class="o">]</span>
+</pre></div>
+</div>
 <p>Note:</p>
 <ol class="arabic simple">
 <li><p>The mujoco library is open-source and free to public, and thus no longer requires an activation license. You can use Deepmind’s latest mujoco library, or use OpenAI’s mujoco-py.</p></li>
@@ -487,7 +491,9 @@ hub</a> Get more images</p>
 <p>After the environment is created, but before reset, call the<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>implementation), the code shown below will run an environment episode, and save the result of this episode in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
-<span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Hoopper-v3&#39;</span> <span class="p">}))</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+<span class="n">config</span><span class="o">.</span><span class="n">env_id</span><span class="o">=</span><span class="s2">&quot;Hopper-v3&quot;</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>

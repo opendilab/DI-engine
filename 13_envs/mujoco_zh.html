@@ -309,7 +309,10 @@
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>安装 gym, mujoco 与 mujoco-py 即可，可以通过 pip 一键安装或结合 DI-engine 安装</p>
+<p>首先根据所需版本安装 MuJoCo 。然后安装 gym, mujoco 与 mujoco-py 三个 Python 库即可，可以通过 pip 一键安装或结合 DI-engine 安装：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>common_env,video<span class="o">]</span>
+</pre></div>
+</div>
 <p>注：</p>
 <ol class="arabic simple">
 <li><p>mujoco 最新版目前已经开源免费，不再需要激活许可。你可以使用 Deepmind 最新的 mujoco 库，或使用 OpenAI 的 mujoco-py 。</p></li>
@@ -490,11 +493,11 @@ hub</a>  获取更多镜像</p>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
-
-<span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;Hoopper-v3&#39;</span> <span class="p">}))</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+<span class="n">config</span><span class="o">.</span><span class="n">env_id</span><span class="o">=</span><span class="s2">&quot;Hopper-v3&quot;</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">MujocoEnv</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
 <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-
 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
     <span class="n">action</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">random_action</span><span class="p">()</span>
     <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
