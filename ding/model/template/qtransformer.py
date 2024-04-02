@@ -446,62 +446,30 @@ class QHeadMultipleActions(Module):
     def get_optimal_actions(
         self,
         encoded_state,
-        return_q_values = False,
         actions: Optional[Tensor] = None,
-        prob_random_action: float = 0.5,
-        **kwargs
     ):
-        batch = encoded_state.shape[0]
-
-        if prob_random_action == 1:
-            return self.get_random_actions(batch)
-        prob_random_action = -1
-        sos_token = encoded_state
-        tokens = self.maybe_append_actions(sos_token, actions = actions)
-
-        action_bins = []
+        batch_size = encoded_state.shape[0]
+        action_bins = torch.empty(batch_size, self.num_actions, device=encoded_state.device,dtype=torch.long)
         cache = None
+        tokens = self.state_append_actions(encoded_state, actions = actions)
 
         for action_idx in range(self.num_actions):
-
             embed, cache = self.transformer(
                 tokens,
-                context = encoded_state,
+                context = None,
                 cache = cache,
                 return_cache = True
             )
-
-            last_embed = embed[:, action_idx]
-            bin_embeddings = self.action_bin_embeddings[action_idx]
-
-            q_values = einsum('b d, a d -> b a', last_embed, bin_embeddings)
-
-            selected_action_bins = q_values.argmax(dim = -1)
-
-            if prob_random_action > 0.:
-                random_mask = torch.zeros_like(selected_action_bins).float().uniform_(0., 1.) < prob_random_action
-                random_actions = self.get_random_actions(batch, 1)
-                random_actions = rearrange(random_actions, '... 1 -> ...')
-
-                selected_action_bins = torch.where(
-                    random_mask,
-                    random_actions,
-                    selected_action_bins
-                )
-
-            next_action_embed = bin_embeddings[selected_action_bins]
-
-            tokens, _ = pack((tokens, next_action_embed), 'b * d')
-
-            action_bins.append(selected_action_bins)
-
-        action_bins = torch.stack(action_bins, dim = -1)
-
-        if not return_q_values:
-            return action_bins
-
-        all_q_values = self.get_q_values(embed)
-        return action_bins, all_q_values
+            q_values = self.get_q_value_fuction(embed[:, 1:, :])
+            if action_idx ==0 :
+                special_idx=action_idx
+            else :
+                special_idx=action_idx-1
+            _, selected_action_indices = q_values[:,special_idx,:].max(dim=-1)
+            action_bins[:, action_idx] = selected_action_indices
+            now_actions=action_bins[:,0:action_idx+1]
+            tokens = self.state_append_actions(encoded_state, actions = now_actions)
+        return action_bins
 
     def forward(
         self,
@@ -585,28 +553,14 @@ class QTransformer(Module):
         return self.conditioner.embed_texts(texts)
 
     @torch.no_grad()
-    def get_optimal_actions(
-        self,
-        state,
-        return_q_values = False,
-        actions: Optional[Tensor] = None,
-        **kwargs
-    ):
-        encoded_state = self.state_encode(state)
-        return self.q_head.get_optimal_actions(encoded_state, return_q_values = return_q_values, actions = actions)
-
     def get_actions(
         self,
         state,
-        prob_random_action = 0.,  # otherwise known as epsilon in RL
-        **kwargs,
+        actions: Optional[Tensor] = None,
     ):
-        batch_size = state.shape[0]
-        assert 0. <= prob_random_action <= 1.
+        encoded_state = self.state_encode(state)
+        return self.q_head.get_optimal_actions(encoded_state)
 
-        if random() < prob_random_action:
-            return self.get_random_actions(batch_size = batch_size)
-        return self.get_optimal_actions(state, **kwargs)
     
     def forward(
             self,

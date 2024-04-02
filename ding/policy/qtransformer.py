@@ -414,7 +414,7 @@ class QtransformerPolicy(SACPolicy):
     
     def _get_actions(self, obs):
         # evaluate to get action 
-        action = self._eval_model.get_optimal_actions(obs)
+        action = self._target_model.get_actions(obs)
         action = 2*action/256.0-1
         return action
 
@@ -442,8 +442,8 @@ class QtransformerPolicy(SACPolicy):
             - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
         """
         ret = {
-            'model': self._model.state_dict(),
-            'ema_model': self._ema_model.state_dict(),
+            'model': self._learn_model.state_dict(),
+            'ema_model': self._target_model.state_dict(),
             'optimizer_q': self._optimizer_q.state_dict(),
         }
         if self._auto_alpha:
