@@ -1,5 +1,6 @@
 from easydict import EasyDict
 
+
 def convert_easy_dict_to_dict(easy_dict: EasyDict) -> dict:
     """
     Overview:
