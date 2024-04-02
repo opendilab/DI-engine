@@ -32,6 +32,8 @@
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-yellow)](https://huggingface.co/OpenDILabCommunity)
 [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/header/openxlab_models.svg)](https://openxlab.org.cn/models?search=opendilab)
+[![discord badge](https://dcbadge.vercel.app/api/server/TC2pAtnw?style=flat)](https://discord.gg/TC2pAtnw)
+[![slack badge](https://img.shields.io/badge/Slack-join-blueviolet?logo=slack&amp)](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
 
 Updated on 2024.02.04 DI-engine-v0.5.1
 
@@ -447,6 +449,7 @@ DI-engine utilizes [TreeTensor](https://github.com/opendilab/DI-treetensor) as t
 
 - [File an issue](https://github.com/opendilab/DI-engine/issues/new/choose) on Github
 - Open or participate in our [forum](https://github.com/opendilab/DI-engine/discussions)
+- Discuss on DI-engine [discord server](https://discord.gg/TC2pAtnw)
 - Discuss on DI-engine [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
 - Discuss on DI-engine's WeChat group (i.e. add us on WeChat: ding314assist)
 
