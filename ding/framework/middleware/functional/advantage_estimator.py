@@ -36,10 +36,6 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
     obs_shape = torch.Size(torch.tensor(obs_shape)) if isinstance(obs_shape, list) \
         else ttorch.size.Size(convert_easy_dict_to_dict(obs_shape)) if isinstance(obs_shape, dict) \
         else torch.Size(torch.tensor(obs_shape).unsqueeze(0))
-    action_shape = cfg['policy']['model']['action_shape']
-    action_shape = torch.Size(torch.tensor(action_shape)) if isinstance(action_shape, list) \
-        else ttorch.size.Size(action_shape) if isinstance(action_shape, dict) \
-        else torch.Size(torch.tensor(action_shape).unsqueeze(0))
 
     def _gae(ctx: "OnlineRLContext"):
         """
