@@ -60,5 +60,10 @@ jobs:
           python -m pip install .
           python -m pip install ".[test,k8s]"
           python -m pip install transformers
+          if python --version | grep -q "Python 3.7"; then
+              python -m pip install wandb==0.16.4
+          else
+              echo "Python version is not 3.7, skipping wandb installation"
+          fi
           ./ding/scripts/install-k8s-tools.sh
           make benchmark
