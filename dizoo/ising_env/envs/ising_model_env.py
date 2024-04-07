@@ -72,6 +72,7 @@ class IsingModelEnv(BaseEnv):
         obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
         self._eval_episode_return = 0
+        self.cur_step = 0
         return obs
 
     def close(self) -> None:
@@ -97,10 +98,11 @@ class IsingModelEnv(BaseEnv):
         obs = to_ndarray(obs).astype(np.float32)
         rew = np.concatenate(rew)
         self._eval_episode_return += np.sum(rew)
+        self.cur_step += 1
 
         done = done[0]  # dones are the same for all agents
         if done:
-            info['eval_episode_return'] = self._eval_episode_return
+            info['eval_episode_return'] = self._eval_episode_return / self.cur_step
         return BaseEnvTimestep(obs, rew, done, info)
 
     def random_action(self) -> np.ndarray:
