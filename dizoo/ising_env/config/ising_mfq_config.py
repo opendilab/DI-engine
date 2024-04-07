@@ -1,4 +1,5 @@
 from easydict import EasyDict
+from ding.utils import set_pkg_seed
 
 obs_shape = 4
 action_shape = 2
@@ -7,7 +8,7 @@ dim_spin = 2
 agent_view_sight = 1
 
 ising_mfq_config = dict(
-    exp_name='ising_mfq_seed0',
+    exp_name='ising_mfq_seed0_debug',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -61,4 +62,10 @@ create_config = ising_mfq_create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ising_mfq_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, max_env_step=5e4)
+    from ding.model import DQN
+    seed = 1
+    set_pkg_seed(seed)
+    model = DQN(**ising_mfq_config.policy.model)
+    model.head.A[-1][0].bias.data.fill_(0)  # zero last layer bias
+    # print("init model successful")
+    serial_pipeline((main_config, create_config), seed=seed, model=model, max_env_step=5e4)

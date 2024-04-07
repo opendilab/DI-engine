@@ -30,7 +30,7 @@ class IsingModelEnv(BaseEnv):
 
     def calculate_action_prob(self, actions):
         num_action = self._action_space.n
-        N = actions.shape[0]    # agent_num
+        N = actions.shape[0]  # agent_num
         # Convert actions to one_hot encoding
         one_hot_actions = np.eye(num_action)[actions.flatten()]
         action_prob = np.zeros((N, num_action))
@@ -84,9 +84,9 @@ class IsingModelEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
+    def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = to_ndarray(action)
-        if (len(action.shape) == 1):
+        if len(action.shape) == 1:
             action = np.expand_dims(action, axis=1)
         obs, rew, done, order_param, ups, downs = self._env._step(action)
         info = {"order_param": order_param, "ups": ups, "downs": downs, 'pre_action': self.pre_action}
@@ -95,9 +95,7 @@ class IsingModelEnv(BaseEnv):
         obs = np.stack(obs)
         obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
-        rew = np.stack(rew)
-        rew = np.squeeze(to_ndarray(rew).astype(np.float32), axis=1)
-        # rew = to_ndarray(rew).astype(np.float32)
+        rew = np.concatenate(rew)
         self._eval_episode_return += np.sum(rew)
 
         done = done[0]  # dones are the same for all agents
