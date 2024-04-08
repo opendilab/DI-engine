@@ -13,19 +13,27 @@ except ImportError:
     logging.error("Please install pyecharts first, you can install it by running 'pip install pyecharts'")
     sys.exit(1)
 
-mb = 1024 * 1024
+MegaByte = 1024 * 1024
 
 
 class SimpleMemState:
     """
-    A class to represent the memory state of a model layer.
-
-    Args:
-        layer_name (str): The name of the layer.
-        layer_mem (int): The memory usage of the layer in bytes.
+    Overview:
+        A class to represent the memory state of a model layer.
+    Properties:
+        ``layer_mem``, ``total_mem``
+    Interfaces:
+        ``add``, ``delete``, ``update_total_memory``, ``find_layer_state``, ``dump``, ``to_json``
     """
 
     def __init__(self, layer_name: str, layer_mem: int = 0) -> None:
+        """
+        Overview:
+            Initialize the memory state of a model/tensors with the specific name.
+        Arguments:
+            - layer_name (:obj:`str`): The name of the layer.
+            - layer_mem (:obj:`int`, optional): The memory usage of the layer in bytes. Defaults to 0.
+        """
         self.layer_name = layer_name
 
         # Memory status of the current model layer.
@@ -38,20 +46,21 @@ class SimpleMemState:
     @property
     def layer_mem(self) -> int:
         """
-        Get the memory usage of the layer.
+        Overview:
+            Get the memory usage of the layer.
 
         Returns:
-            int: The memory usage of the layer in bytes.
+            - layer_mem (:obj:`int`): The memory usage of the layer in bytes.
         """
         return self._layer_mem
 
     @layer_mem.setter
     def layer_mem(self, new_layer_mem: int) -> None:
         """
-        Set the memory usage of the layer.
-
-        Args:
-            new_layer_mem (int): The new memory usage of the layer in bytes.
+        Overview:
+            Set the memory usage of the layer and update the total memory.
+        Arguments:
+            - new_layer_mem (:obj:`int`): The new memory usage of the layer in bytes.
         """
         diff = new_layer_mem - self._layer_mem
         self._layer_mem = new_layer_mem
@@ -60,21 +69,22 @@ class SimpleMemState:
     @property
     def total_mem(self) -> int:
         """
-        Get the total memory usage of the model and sub-models.
+        Overview:
+            Get the total memory usage of the model and sub-models.
 
         Returns:
-            int: The total memory usage in bytes.
+            - total_mem (:obj:`int`): The total memory usage of the model and sub-models in bytes.
         """
         return self._total_mem
 
     def add(self, layer_name: str, layer_mem: int = 0, flush: bool = True) -> None:
         """
-        Add a layer to the memory state.
-
-        Args:
-            layer_name (str): The name of the layer.
-            layer_mem (int, optional): The memory usage of the layer in bytes. Defaults to 0.
-            flush (bool, optional): Whether to update the total memory usage. Defaults to True.
+        Overview:
+            Add a layer to the memory state.
+        Arguments:
+            - layer_name (:obj:`str`): The name of the layer.
+            - layer_mem (:obj:`int`, optional): The memory usage of the layer in bytes. Defaults to 0.
+            - flush (:obj:`Optional[bool]`): Whether to update the total memory usage. Defaults to True.
         """
         path = layer_name.split(".")
 
@@ -86,11 +96,11 @@ class SimpleMemState:
 
     def delete(self, layer_name: str, flush: bool = True) -> None:
         """
-        Delete a layer from the memory state.
-
-        Args:
-            layer_name (str): The name of the layer.
-            flush (bool, optional): Whether to update the total memory usage. Defaults to True.
+        Overview:
+            Delete a layer from the memory state.
+        Arguments:
+            - layer_name (:obj:`str`): The name of the layer.
+            - flush (:obj:`Optional[bool]`): Whether to update the total memory usage. Defaults to True.
         """
         path = layer_name.split(".")
         assert len(path) >= 2, f"Only support deleting non-root layers, layer_name: {layer_name}"
@@ -107,7 +117,8 @@ class SimpleMemState:
 
     def update_total_memory(self) -> None:
         """
-        Update the total memory usage of the model and sub-models.
+        Overview:
+            Update the total memory usage of the model and sub-models.
         """
         self._total_mem = self._layer_mem
 
@@ -119,14 +130,13 @@ class SimpleMemState:
 
     def find_layer_state(self, path: Tuple[str], create: bool = False) -> "SimpleMemState":
         """
-        Find the memory state of a layer.
-
-        Args:
-            path (Tuple[str]): The path to the layer.
-            create (bool, optional): Whether to create the layer if it doesn't exist. Defaults to False.
-
+        Overview:
+            Find the memory state of a layer.
+        Arguments:
+            - path (:obj:`Tuple[str]`): The path to the layer.
+            - create (:obj:`Optional[bool]`): Whether to create the layer if it doesn't exist. Defaults to False.
         Returns:
-            SimpleMemState: The memory state of the layer.
+            - state (:obj:`SimpleMemState`): The memory state of the layer.
         """
         current_node = self
 
@@ -143,16 +153,15 @@ class SimpleMemState:
 
     def dump(self, prefix: str = "") -> str:
         """
-        Dump the memory state of the model and sub-models.
-
-        Args:
-            prefix (str, optional): The prefix to add to the layer names. Defaults to "".
-
+        Overview:
+            Dump the memory state of the model and sub-models.
+        Arguments:
+            - prefix (:obj:`Optional[str]`): The prefix to add to the layer names. Defaults to "".
         Returns:
-            str: The memory state information.
+            - result (:obj:`str`): The memory state information.
         """
         cur_prefix = prefix + "." + self.layer_name if prefix != "" else self.layer_name
-        res = f"layer: {cur_prefix}, layer_mem: {self.layer_mem / mb:.2f} MB, total_mem: {self.total_mem / mb:.2f} MB\n"
+        res = f"layer: {cur_prefix}, layer_mem: {self.layer_mem / MegaByte:.2f} MB, total_mem: {self.total_mem / MegaByte:.2f} MB\n"
 
         for sub_layer in self.sub_model_stats.values():
             res += sub_layer.dump(cur_prefix)
@@ -161,10 +170,13 @@ class SimpleMemState:
 
     def to_json(self, base: int = 1024 * 1024) -> dict:
         """
-        Convert the memory state to a JSON structure.
-
+        Overview:
+            Convert the memory state to a JSON structure.
+        Arguments:
+            - base (:obj:`Optional[int]`): The base value to convert the memory usage to. Defaults to 1024 * 1024, \
+                which converts the memory usage to MB.
         Returns:
-            dict: The JSON structure of the memory state.
+            - result (:obj:`dict`): The JSON structure of the memory state.
         """
         children = [child.to_json() for child in self.sub_model_stats.values()]
         if len(children) == 0:
@@ -175,10 +187,21 @@ class SimpleMemState:
 
 class ActivationMemState:
     """
-    Activation Memory State
+    Overview:
+        A class to represent the memory state of activation tensors.
+    Properties:
+        ``total_mem``
+    Interfaces:
+        ``add``, ``dump``, ``to_json``
     """
 
     def __init__(self, num_chunks: int) -> None:
+        """
+        Overview:
+            Initialize the memory state of activation tensors.
+        Arguments:
+            - num_chunks (:obj:`int`): The number of chunks, multiple chunks are used in some large-scale models.
+        """
         self._num_chunks = num_chunks
 
         self.inited: List[bool] = [False for _ in range(num_chunks)]
@@ -186,12 +209,35 @@ class ActivationMemState:
 
     @property
     def total_mem(self) -> int:
+        """
+        Overview:
+            Get the total memory usage of the activation tensors.
+        Returns:
+            - total_mem (:obj:`int`): The total memory usage of the activation tensors in bytes.
+        """
         return sum(state.total_mem for state in self.states)
 
     def dump(self, prefix: str = "") -> str:
+        """
+        Overview:
+            Dump the memory state of the activation tensors.
+        Arguments:
+            - prefix (:obj:`Optional[str]`): The prefix to add to the layer names. Defaults to "".
+        Returns:
+            - result (:obj:`str`): The memory state information.
+        """
         return reduce(lambda x, y: x + y, [state.dump(prefix) for state in self.states])
 
-    def to_json(self, base: int = 1024 * 1024) -> List:
+    def to_json(self, base: int = 1024 * 1024) -> List[dict]:
+        """
+        Overview:
+            Convert the memory state to a JSON structure.
+        Arguments:
+            - base (:obj:`Optional[int]`): The base value to convert the memory usage to. Defaults to 1024 * 1024, \
+                which converts the memory usage to MB.
+        Returns:
+            - result (:obj:`List[dict]`): The JSON structure of the memory state.
+        """
         return [state.to_json(base) for state in self.states]
 
 
@@ -203,13 +249,10 @@ def _unpack_naive_wrapper(model: torch.nn.Module) -> Tuple[torch.nn.Module, int]
 
 class SimpleMemoryProfiler:
     """
-    A memory profiler for a llm model.
-
-    Args:
-        model (torch.nn.Module): The model to profile.
-        optimizer (torch.optim.Optimizer): The optimizer used for training the model.
-        log_file (str): The file to write the memory state information to.
-        total_steps: number of steps to trace.
+    Overview:
+        A memory profiler for a PyTorch neural network model.
+    Interfaces:
+        ``point``, ``step``
     """
 
     def __init__(
@@ -219,6 +262,15 @@ class SimpleMemoryProfiler:
         log_folder: str,
         total_steps: int = 5,
     ):
+        """
+        Overview:
+            Initialize the memory profiler.
+        Arguments:
+            - model (:obj:`torch.nn.Module`): The model to profile.
+            - optimizer (:obj:`torch.optim.Optimizer`): The optimizer used for training the model.
+            - log_folder (:obj:`str`): The folder to write the memory state information to.
+            - total_steps (:obj:`Optional[int]`): The number of steps to trace. Defaults to 5.
+        """
         self._model, self._num_model_chunks = _unpack_naive_wrapper(model)
         self._optimizer = optimizer
         self._log_folder = log_folder
@@ -259,14 +311,11 @@ class SimpleMemoryProfiler:
 
     def point(self, with_options: str = "", create: bool = False) -> None:
         """
-        Record the memory state.
-
-        Args:
-            with_options (str, optional): The options to include in the memory state. Defaults to "".
-            create (bool, optional): Whether to create a new memory record file. Defaults to False.
-
-        Returns:
-            None
+        Overview:
+            Record the memory state of the model and optimizer at current point.
+        Arguments:
+            - with_options (:obj:`Optional[str]`): The options to include in the memory state. Defaults to "".
+            - create (:obj:`Optional[bool]`): Whether to create a new memory record. Defaults to False.
         """
         now = time.time()
         file = f"{self._log_folder}/memory.log"
@@ -279,16 +328,16 @@ class SimpleMemoryProfiler:
         total_mem = (
             self._param_mem_state.total_mem + self._grad_mem_state.total_mem + self._os_params_mem_state.total_mem +
             self._os_state_mem_state.total_mem + self._activation_mem
-        ) / mb
+        ) / MegaByte
 
         # Generate summary information for memory state
         summary_info = (
             f"total_memory: {total_mem:.2f} MB" + "\n" +
-            f"params_memory: {self._param_mem_state.total_mem / mb:.2f} MB, " +
-            f"grads_memory: {self._grad_mem_state.total_mem / mb:.2f} MB, " +
-            f"os_params_memory: {self._os_params_mem_state.total_mem / mb:.2f} MB, " +
-            f"os_state_memory: {self._os_state_mem_state.total_mem / mb:.2f} MB, " +
-            f"activation_memory: {self._activation_mem / mb:.2f} MB"
+            f"params_memory: {self._param_mem_state.total_mem / MegaByte:.2f} MB, " +
+            f"grads_memory: {self._grad_mem_state.total_mem / MegaByte:.2f} MB, " +
+            f"os_params_memory: {self._os_params_mem_state.total_mem / MegaByte:.2f} MB, " +
+            f"os_state_memory: {self._os_state_mem_state.total_mem / MegaByte:.2f} MB, " +
+            f"activation_memory: {self._activation_mem / MegaByte:.2f} MB"
         )
 
         # Generate layout information based on selected options
@@ -316,10 +365,8 @@ class SimpleMemoryProfiler:
 
     def step(self) -> None:
         """
-        Update the memory state of the optimizer state.
-
-        Returns:
-            None
+        Overview:
+            Update the memory state of the optimizer state (e.g., momentum, learning rate) and record the memory state.
         """
         if self._stoped:
             return
@@ -351,29 +398,36 @@ class SimpleMemoryProfiler:
             summary_sunburst_data = [
                 {
                     "name": "params",
-                    "value": self._param_mem_state.total_mem // mb
+                    "value": self._param_mem_state.total_mem // MegaByte
                 },
                 {
                     "name": "grads",
-                    "value": self._grad_mem_state.total_mem // mb
+                    "value": self._grad_mem_state.total_mem // MegaByte
                 },
                 {
                     "name": "os_params",
-                    "value": self._os_params_mem_state.total_mem // mb
+                    "value": self._os_params_mem_state.total_mem // MegaByte
                 },
                 {
                     "name": "os_state",
-                    "value": self._os_state_mem_state.total_mem // mb
+                    "value": self._os_state_mem_state.total_mem // MegaByte
                 },
                 {
                     "name": "activation",
-                    "value": self._activation_mem_max // mb
+                    "value": self._activation_mem_max // MegaByte
                 },
             ]
 
             self._render_sunburst_chart(summary_sunburst_data, "summary_sunburst")
 
     def _render_sunburst_chart(self, data: Any, name: str) -> None:
+        """
+        Overview:
+            Render a sunburst chart for the memory state with pyecharts.
+        Arguments:
+            - data (:obj:`Any`): The data to render.
+            - name (:obj:`str`): The name of the chart.
+        """
         pyecharts.charts.Sunburst(init_opts=pyecharts.options.InitOpts(width="1000px", height="1000px")).add(
             name,
             data_pair=data,
@@ -445,16 +499,18 @@ class SimpleMemoryProfiler:
             output: torch.Tensor,
     ) -> None:
         """
-        Hook function to trace the activation memory usage for a inner layer.
+        Overview:
+            Hook function to trace the activation memory usage for a inner layer.
 
-        Args:
-            layer_name (str): The name of the layer.
-            model (Any): The model.
-            inputs (Any): The inputs to the layer.
-            output (torch.Tensor): The output tensor.
+        .. note::
+            For more details about hook mechanism, please refer to the PyTorch documentation.
 
-        Returns:
-            None
+        Arguments:
+            - chunk_id (:obj:`int`): The model chunk id.
+            - layer_name (:obj:`str`): The name of the layer.
+            - model (:obj:`Any`): The model to trace.
+            - inputs (:obj:`Any`): The inputs to the layer.
+            - output (:obj:`torch.Tensor`): The output tensor.
         """
         del model, inputs
         assert isinstance(output, torch.Tensor), f"Invalid output type: {type(output)}"
@@ -467,23 +523,19 @@ class SimpleMemoryProfiler:
             layer_name, output.element_size() * output.nelement(), flush=False
         )
 
-    def _activation_trace_hook_forward(
-            self,
-            chunk_id: int,
-            model: Any,
-            inputs: Any,
-            output: Any  # pylint: disable=W0613
-    ) -> None:
+    def _activation_trace_hook_forward(self, chunk_id: int, model: Any, inputs: Any, output: Any) -> None:
         """
-        Hook function to trace the activation memory usage for a forward pass.
+        Overview:
+            Hook function to trace the activation memory usage for a forward pass.
 
-        Args:
-            model (Any): The model.
-            inputs (Any): The inputs to the model.
-            output (torch.Tensor): The output tensor.
+        .. note::
+            For more details about hook mechanism, please refer to the PyTorch documentation.
 
-        Returns:
-            None
+        Arguments:
+            - chunk_id (:obj:`int`): The model chunk id.
+            - model (:obj:`Any`): The model to trace.
+            - inputs (:obj:`Any`): The inputs to the model.
+            - output (:obj:`Any`): The output of the model.
         """
         del model, inputs
 
@@ -510,15 +562,17 @@ class SimpleMemoryProfiler:
 
     def _activation_tarce_hook_backward(self, chunk_id: int, model: Any, inputs: Any, grad_outputs: Any) -> None:
         """
-        Hook function to trace the activation memory usage for a backward pass.
+        Overview:
+            Hook function to trace the activation memory usage for a backward pass.
 
-        Args:
-            model (Any): The model.
-            inputs (Any): The inputs to the model.
-            grad_outputs (Any): The gradients of the outputs.
+        .. note::
+            For more details about hook mechanism, please refer to the PyTorch documentation.
 
-        Returns:
-            None
+        Arguments:
+            - chunk_id (:obj:`int`): The model chunk id.
+            - model (:obj:`Any`): The model to trace.
+            - inputs (:obj:`Any`): The inputs to the model.
+            - grad_outputs (:obj:`Any`): The gradients of the outputs.
         """
         del model, inputs, grad_outputs
 
@@ -533,7 +587,11 @@ class SimpleMemoryProfiler:
 
     def _register_activation_trace_hooks(self, chunk_id: int, model_chunk: torch.nn.Module) -> None:
         """
-        Register activation trace hooks for the model and each submodule in the model.
+        Overview:
+            Register activation trace hooks for the model and each submodule in the model.
+        Arguments:
+            - chunk_id (:obj:`int`): The model chunk id.
+            - model_chunk (:obj:`torch.nn.Module`): The model chunk to trace.
         """
 
         # Register inner activation trace hooks for each submodule in the model
@@ -556,15 +614,12 @@ class SimpleMemoryProfiler:
             require_grad: bool = False
     ) -> None:
         """
-        Calculate the memory usage of tensors and update the memory state.
-
-        Args:
-            root_stat (SimpleMemState): The root memory state.
-            named_tensors (Dict[str, torch.Tensor]): A dictionary containing the named tensors.
-            require_grad (bool, optional): Whether to consider tensors with gradients. Defaults to False.
-
-        Returns:
-            None
+        Overview:
+            Core function to calculate the memory usage of tensors and update the memory state.
+        Arguments:
+            - root_stat (:obj:`SimpleMemState`): The root memory state.
+            - named_tensors (:obj:`Dict[str, torch.Tensor]`): A dictionary containing the named tensors.
+            - require_grad (:obj:`Optional[bool]`): Whether to consider tensors with gradients. Defaults to False.
         """
         for name, tensor in named_tensors:
             if require_grad and not tensor.requires_grad:
@@ -578,26 +633,14 @@ class SimpleMemoryProfiler:
 
     def _calc_tensor_group_memory(self, root_stat: SimpleMemState, tensor_groups: List[Tuple[int, torch.Tensor]]):
         """
-        Calculate the memory usage of a group of tensors.
-
-        Args:
-            root_stat (SimpleMemState): The root memory state.
-            tensor_groups (List[Tuple[int, torch.Tensor]]): A list of tuples containing the tensor groups.
-
-        Returns:
-            None
+        Overview:
+            Core function to calculate the memory usage of a group of tensors and update the memory state.
+        Arguments:
+            - root_stat (:obj:`SimpleMemState`): The root memory state.
+            - tensor_groups (:obj:`List[Tuple[int, torch.Tensor]]`): A list of tuples containing the tensor groups.
         """
 
         def _normalize_helper(named_tensors: Dict[str, Any]) -> List[Tuple[str, Any]]:
-            """
-            Normalize the named tensors.
-
-            Args:
-                named_tensors (Dict[str, Any]): The named tensors to normalize.
-
-            Returns:
-                List[Tuple[str, Any]]: The normalized named tensors.
-            """
             res = {}
 
             for name, tensors in named_tensors.items():
@@ -615,15 +658,6 @@ class SimpleMemoryProfiler:
             return list(res.items())
 
         def _value_check(tensor_or_tensors):
-            """
-            Check if the input is a tensor or a collection of tensors.
-
-            Args:
-                tensor_or_tensors (Any): The input to check.
-
-            Returns:
-                bool: True if the input is a tensor or a collection of tensors, False otherwise.
-            """
             if torch.is_tensor(tensor_or_tensors):
                 return True
             elif isinstance(tensor_or_tensors, (list, tuple)) and all(torch.is_tensor(x) for x in tensor_or_tensors):
@@ -644,15 +678,20 @@ class SimpleMemoryProfiler:
 
 def get_current_device() -> torch.device:
     """
-    Get the current device.
+    Overview:
+        Get the current PyTorch tensor device.
 
     Returns:
-        torch.device: The current device.
+        - device (:obj:`torch.device`): The current device.
     """
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def multi_chunk_test():
+    """
+    Overview:
+        A test function to demonstrate the memory profiler for a model with multiple chunks.
+    """
 
     class SimpleModel(torch.nn.Module):
 
