@@ -32,6 +32,7 @@ from .render_helper import render, fps, get_env_fps, render_env
 from .fast_copy import fastcopy
 from .bfs_helper import get_vi_sequence
 from .normalizer_helper import DatasetNormalizer
+from .memory_helper import SimpleMemoryProfiler
 
 if ding.enable_linklink:  # False as default
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
