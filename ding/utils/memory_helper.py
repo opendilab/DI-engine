@@ -161,7 +161,7 @@ class SimpleMemState:
             - result (:obj:`str`): The memory state information.
         """
         cur_prefix = prefix + "." + self.layer_name if prefix != "" else self.layer_name
-        res = f"layer: {cur_prefix}, layer_mem: {self.layer_mem / MegaByte:.2f} MB, total_mem: {self.total_mem / MegaByte:.2f} MB\n"
+        res = f"layer: {cur_prefix}, layer_mem: {self.layer_mem / MegaByte:.2f} MB, total_mem: {self.total_mem / MegaByte:.2f} MB\n"  # noqa
 
         for sub_layer in self.sub_model_stats.values():
             res += sub_layer.dump(cur_prefix)
