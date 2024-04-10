@@ -267,7 +267,7 @@ class QtransformerPolicy(SACPolicy):
                 [self._cfg.learn.alpha], requires_grad=False, device=self._device, dtype=torch.float32
             )
             self._auto_alpha = False
-        
+
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -277,7 +277,13 @@ class QtransformerPolicy(SACPolicy):
         )
         self._low = np.array(self._cfg.other["low"])
         self._high = np.array(self._cfg.other["high"])
-        self._action_values = np.array([np.linspace(min_val, max_val, 256) for min_val, max_val in zip(self._low, self._high)])
+        self._action_bin = self._cfg.model.action_bins
+        self._action_values = np.array(
+            [
+                np.linspace(min_val, max_val, self._action_bin)
+                for min_val, max_val in zip(self._low, self._high)
+            ]
+        )
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
@@ -322,7 +328,7 @@ class QtransformerPolicy(SACPolicy):
             data['action'] = data['action'].reshape(-1, 1)
         self._action_values=torch.tensor(self._action_values)
         data['action']=self._discretize_action(data["action"])
-        
+
         if self._cuda:
             data = to_device(data, self._device)
 
@@ -334,7 +340,7 @@ class QtransformerPolicy(SACPolicy):
         dones = data['done']
         actions = data['action']
 
-        #get q
+        # get q
         num_timesteps, device = states.shape[1], states.device   
         dones = dones.cumsum(dim = -1) > 0
         dones = F.pad(dones, (1, -1), value = False)
@@ -350,7 +356,7 @@ class QtransformerPolicy(SACPolicy):
             q_next = self._target_model.forward(next_obs)        
             # get target Q
             q_target_all_actions = self._target_model.forward(states, actions = actions)
-        
+
         q_next = q_next.max(dim = -1).values
         q_next.clamp_(min = -100)   
         q_target = q_target_all_actions.max(dim = -1).values
@@ -359,22 +365,21 @@ class QtransformerPolicy(SACPolicy):
         q_pred_rest_actions, q_pred_last_action      = q_pred[..., :-1], q_pred[..., -1]
         q_target_first_action, q_target_rest_actions = q_target[..., 0], q_target[..., 1:]
         losses_all_actions_but_last = F.mse_loss(q_pred_rest_actions, q_target_rest_actions, reduction = 'none')
-        
+
         # next take care of the very last action, which incorporates the rewards
         q_target_last_action, _ = pack([q_target_first_action[..., 1:], q_next], 'b *')
         if reward.dim() == 1:
             reward = reward.unsqueeze(-1)
         q_target_last_action = reward + gamma* q_target_last_action
         losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action, reduction = 'none')
-        
-        
+
         # flatten and average
         losses, _ = pack([losses_all_actions_but_last, losses_last_action], '*')
         td_loss=losses.mean()
         q_intermediates = QIntermediates(q_pred_all_actions, q_pred, q_next, q_target)
         num_timesteps = actions.shape[1]
         batch = actions.shape[0]
-        
+
         q_preds = q_intermediates.q_pred_all_actions
         q_preds = rearrange(q_preds, '... a -> (...) a')
         num_action_bins = q_preds.shape[-1]
@@ -394,13 +399,13 @@ class QtransformerPolicy(SACPolicy):
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
         return {
-            'cur_lr_q': self._optimizer_q.defaults['lr'],
-            'td_loss':td_loss,
-            'conser_loss':conservative_reg_loss, 
-            'all_loss':loss_dict["loss"],
-            'target_q':q_pred_all_actions.detach.mean().item(),
+            "cur_lr_q": self._optimizer_q.defaults["lr"],
+            "td_loss": td_loss,
+            "conser_loss": conservative_reg_loss,
+            "all_loss": loss_dict["loss"],
+            "target_q": q_pred_all_actions.detach().mean().item(),
         }
-    
+
     def _batch_select_indices(self,t, indices):
         indices = rearrange(indices, '... -> ... 1')
         selected = t.gather(-1, indices)
@@ -412,11 +417,11 @@ class QtransformerPolicy(SACPolicy):
             diff = (actions[:, i].unsqueeze(-1) - self._action_values[i, :])**2
             indices[:, i] = diff.argmin(dim=-1)
         return indices
-    
+
     def _get_actions(self, obs):
-        # evaluate to get action 
+        # evaluate to get action
         action = self._eval_model.get_actions(obs)
-        action = 2*action/256.0-1
+        action = 2.0 * action / (1.0 * self._action_bin) - 1.0
         return action
 
     def _monitor_vars_learn(self) -> List[str]:
@@ -435,7 +440,7 @@ class QtransformerPolicy(SACPolicy):
             'all_loss',
             'target_q'
         ] 
-    
+
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
         Overview:

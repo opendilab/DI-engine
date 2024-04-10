@@ -15,21 +15,15 @@ main_config = dict(
 
     policy=dict(
         cuda=True,
+        
         model=dict(
             num_actions = 3,
-            action_bins = 256,
+            action_bins = 16,
             obs_dim = 11,
-            # depth = 1,
-            heads = 8,
-            dim_head = 64,
-            cond_drop_prob = 0.2,
             dueling = False,
+            attend_dim = 512,
         ),
-        ema = dict(
-            beta = 0.99,
-            update_after_step = 10,
-            update_every = 5
-        ),
+        
         learn=dict(
             data_path=None,
             train_epoch=3000,

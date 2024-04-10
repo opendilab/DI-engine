@@ -1,12 +1,14 @@
 from random import random
 from functools import partial, cache
 
+from sympy import numer
 import torch
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch.cuda.amp import autocast
 from torch import nn, einsum, Tensor
 from torch.nn import Module, ModuleList
+import torch.nn.init as init
 
 from beartype import beartype
 from beartype.typing import Union, List, Optional, Callable, Tuple, Dict, Any
@@ -22,11 +24,15 @@ from einops import rearrange, reduce
 # from q_transformer.attend import Attend
 
 class DynamicMultiActionEmbedding(nn.Module):
-    def __init__(self,dim=512,actionbin=256):
-        super(DynamicMultiActionEmbedding, self).__init__()
+
+    def __init__(self, dim, actionbin, numactions):
+        super().__init__()
         self.outdim=dim
-        self.linear_layers = nn.ModuleList([nn.Linear(actionbin, dim) for _ in range(3)])
-    
+        self.actionbin = actionbin
+        self.linear_layers = nn.ModuleList(
+            [nn.Linear(self.actionbin, dim) for _ in range(numactions)]
+        )
+
     def forward(self, x):
         x = x.to(dtype=torch.float)
         b, n, _ = x.shape
@@ -37,17 +43,27 @@ class DynamicMultiActionEmbedding(nn.Module):
             layer_outputs[:, i, :] = slice_output
         return layer_outputs
 
-    
+
 # from transformer get q_value for action_bins
 class Getvalue(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(Getvalue, self).__init__()
         self.output_dim = output_dim
         self.linear_1 = nn.Linear(input_dim, output_dim)
-        self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.linear_2 = nn.Linear(output_dim, output_dim)
-        
+        self.init_weights()
+
+    def init_weights(self):
+        init.kaiming_normal_(self.linear_1.weight)
+        init.kaiming_normal_(self.linear_2.weight)
+
+        desired_bias = 0.5
+        with torch.no_grad():
+            bias_adjustment = desired_bias
+            self.linear_1.bias.add_(bias_adjustment)
+            self.linear_2.bias.add_(bias_adjustment)
+
     def forward(self, x):
         b, seq_len, input_dim = x.shape
         x = x.reshape(b * seq_len, input_dim)  
@@ -55,9 +71,8 @@ class Getvalue(nn.Module):
         x = self.relu(x)
         x = self.linear_2(x)
         x = x.view(b, seq_len, self.output_dim)
-        x = self.sigmoid(x)
         return x
-     
+
 class state_encode(nn.Module):
     def __init__(self, input_dim):
         super(state_encode, self).__init__()
@@ -116,7 +131,6 @@ class ChanRMSNorm(Module):
 
     def forward(self, x):
         return l2norm(x, dim = 1) * self.gamma * self.scale
-
 
 
 class FeedForward(Module):
@@ -263,19 +277,20 @@ class TransformerAttention(Module):
         return out, new_kv_cache
 
 class Transformer(Module):
+
     def __init__(
         self,
         dim,
-        dim_head = 64,
-        heads = 8,
-        depth = 6,
-        attn_dropout = 0.,
-        ff_dropout = 0.,
-        adaptive_ln = False,
-        flash_attn = True,
-        cross_attend = False,
-        causal = False,
-        final_norm = True
+        dim_head=64,
+        heads=8,
+        depth=6,
+        attn_dropout=0.0,
+        ff_dropout=0.0,
+        adaptive_ln=False,
+        flash_attn=True,
+        cross_attend=False,
+        causal=False,
+        final_norm=False,
     ):
         super().__init__()
         self.layers = ModuleList([])
@@ -296,6 +311,21 @@ class Transformer(Module):
             ]))
 
         self.norm = RMSNorm(dim) if final_norm else nn.Identity()
+
+        # self.init_weights()
+
+    def init_weights(self):
+        # 遍历每一层的注意力层和前馈神经网络层，对权重和偏置进行初始化
+        for layer in self.layers:
+            attn, maybe_cross_attn, ff = layer
+            if attn is not None:
+                init.xavier_uniform_(attn.to_q.weight)
+                init.xavier_uniform_(attn.to_kv.weight)
+                if attn.mem_kv is not None:
+                    init.xavier_uniform_(attn.mem_kv)
+            if maybe_cross_attn is not None:
+                init.xavier_uniform_(maybe_cross_attn.to_q.weight)
+                init.xavier_uniform_(maybe_cross_attn.to_kv.weight)
 
     @beartype
     def forward(
@@ -347,7 +377,6 @@ class Transformer(Module):
             return out
 
         return out, new_caches
-    
 
 
 class DuelingHead(Module):
@@ -386,24 +415,22 @@ class DuelingHead(Module):
 
 
 class QHeadMultipleActions(Module):
+
     def __init__(
         self,
         dim,
         *,
-        num_actions = 3,
-        action_bins = 256,
-        attn_depth = 2,
-        attn_dim_head = 32,
-        attn_heads = 8,
-        dueling = False,
-        weight_tie_action_bin_embed = False,
+        num_actions,
+        action_bins,
+        attn_depth=2,
+        attn_dim_head=32,
+        attn_heads=8,
+        dueling=False,
+        weight_tie_action_bin_embed=False,
     ):
         super().__init__()
         self.num_actions = num_actions
         self.action_bins = action_bins
-
-        self.action_bin_embeddings = nn.Parameter(torch.zeros(num_actions, action_bins, dim))
-        nn.init.normal_(self.action_bin_embeddings, std = 0.02)
 
         self.transformer = Transformer(
             dim = dim,
@@ -419,16 +446,14 @@ class QHeadMultipleActions(Module):
         self.final_norm = RMSNorm(dim)
 
         self.get_q_value_fuction = Getvalue(
-                input_dim=dim,
-                output_dim=action_bins,
-            )
-        
-        self.DynamicMultiActionEmbedding =DynamicMultiActionEmbedding(
+            input_dim=dim,
+            output_dim=action_bins,
+        )
+        self.DynamicMultiActionEmbedding = DynamicMultiActionEmbedding(
             dim=dim,
             actionbin=action_bins,
+            numactions=num_actions,
         )
-
-
 
     @property
     def device(self):
@@ -438,7 +463,7 @@ class QHeadMultipleActions(Module):
         if not exists(actions):
             return torch.cat((state, state), dim=1)    
         else:
-            actions = torch.nn.functional.one_hot(actions, num_classes=256)
+            actions = torch.nn.functional.one_hot(actions, num_classes=self.action_bins)
             actions = self.DynamicMultiActionEmbedding(actions)
             return torch.cat((state, actions), dim=1)
 
@@ -455,10 +480,7 @@ class QHeadMultipleActions(Module):
 
         for action_idx in range(self.num_actions):
             embed, cache = self.transformer(
-                tokens,
-                context = None,
-                cache = cache,
-                return_cache = True
+                tokens, context=encoded_state, cache=cache, return_cache=True
             )
             q_values = self.get_q_value_fuction(embed[:, 1:, :])
             if action_idx ==0 :
@@ -486,7 +508,7 @@ class QHeadMultipleActions(Module):
 
         # this is the scheme many hierarchical transformer papers do
         tokens= self.state_append_actions(encoded_state,actions = actions)
-        embed = self.transformer(tokens, context = None)
+        embed = self.transformer(x=tokens, context=encoded_state)
         action_dim_values = embed[:, 1:, :]
         q_values = self.get_q_value_fuction(action_dim_values)
         return q_values
@@ -496,30 +518,26 @@ class QTransformer(Module):
     @beartype
     def __init__(
         self,
-        num_actions = 3,
-        action_bins = 256,
-        depth = 6,
-        heads = 8,
-        dim_head = 64,
-        obs_dim = 11,
-        token_learner_ff_mult = 2,
-        token_learner_num_layers = 2,
-        token_learner_num_output_tokens = 8,
-        cond_drop_prob = 0.2,
-        use_attn_conditioner = False,
+        num_actions,
+        action_bins,
+        attend_dim,
+        depth=6,
+        heads=8,
+        dim_head=64,
+        obs_dim=11,
+        token_learner_ff_mult=2,
+        token_learner_num_layers=2,
+        token_learner_num_output_tokens=8,
+        cond_drop_prob=0.2,
+        use_attn_conditioner=False,
         conditioner_kwargs: dict = dict(),
-        dueling = False,                       
-        flash_attn = True,
-        condition_on_text = True,
-        q_head_attn_kwargs: dict = dict(
-            attn_heads = 8,
-            attn_dim_head = 64,
-            attn_depth = 2
-        ),
-        weight_tie_action_bin_embed = True     
+        dueling=False,
+        flash_attn=True,
+        condition_on_text=True,
+        q_head_attn_kwargs: dict = dict(attn_heads=8, attn_dim_head=64, attn_depth=2),
+        weight_tie_action_bin_embed=True,
     ):
         super().__init__()
-        attend_dim = 512
 
         # q-transformer related action embeddings
         assert num_actions >= 1
@@ -527,19 +545,18 @@ class QTransformer(Module):
         self.action_bins = action_bins
         self.obs_dim = obs_dim
 
-        #encode state
+        # encode state
         self.state_encode =state_encode(self.obs_dim)
 
         # Q head
         self.q_head = QHeadMultipleActions(
-                attend_dim,
-                action_bins = action_bins,
-                dueling = dueling,
-                weight_tie_action_bin_embed = weight_tie_action_bin_embed,
-                **q_head_attn_kwargs
-            )
-        
-
+            dim=attend_dim,
+            num_actions=num_actions,
+            action_bins=action_bins,
+            dueling=dueling,
+            weight_tie_action_bin_embed=weight_tie_action_bin_embed,
+            **q_head_attn_kwargs,
+        )
 
     @property
     def device(self):
@@ -561,7 +578,6 @@ class QTransformer(Module):
         encoded_state = self.state_encode(state)
         return self.q_head.get_optimal_actions(encoded_state)
 
-    
     def forward(
             self,
             state: Tensor,
@@ -574,9 +590,6 @@ class QTransformer(Module):
         encoded_state = self.state_encode(state)
         q_values = self.q_head(encoded_state, actions = actions)
         return q_values
-
-
-
 
 
 def once(fn):
@@ -612,7 +625,6 @@ def maybe_reduce_mask_and(*maybe_masks):
         mask = mask & rest_mask
 
     return mask
-
 
 
 # main class
@@ -748,6 +760,3 @@ class Attend(nn.Module):
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
-    
-    
