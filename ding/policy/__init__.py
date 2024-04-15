@@ -19,7 +19,7 @@ from .a2c import A2CPolicy
 from .ppo import PPOPolicy, PPOPGPolicy, PPOOffPolicy
 from .sac import SACPolicy, DiscreteSACPolicy, SQILSACPolicy
 from .cql import CQLPolicy, DiscreteCQLPolicy
-from .qtransformer import QtransformerPolicy 
+from .qtransformer import QTransformerPolicy 
 from .edac import EDACPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
