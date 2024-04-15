@@ -23,7 +23,8 @@ class Adder(object):
         Overview:
             Get GAE advantage for stacked transitions(T timestep, 1 batch). Call ``gae`` for calculation.
         Arguments:
-            - data (:obj:`list`): Transitions list, each element is a transition dict with at least ['value', 'reward']
+            - data (:obj:`list`): Transitions list, each element is a transition dict with at least \
+                ``['value', 'reward']``.
             - last_value (:obj:`torch.Tensor`): The last value(i.e.: the T+1 timestep)
             - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.
             - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, \
@@ -63,7 +64,7 @@ class Adder(object):
         Overview:
             Like ``get_gae`` above to get GAE advantage for stacked transitions. However, this function is designed in
             case ``last_value`` is not passed. If transition is not done yet, it wouold assign last value in ``data``
-            as ``last_value``, discard the last element in ``data``(i.e. len(data) would decrease by 1), and then call
+            as ``last_value``, discard the last element in ``data`` (i.e. len(data) would decrease by 1), and then call
             ``get_gae``. Otherwise it would make ``last_value`` equal to 0.
         Arguments:
             - data (:obj:`deque`): Transitions list, each element is a transition dict with \
@@ -103,7 +104,7 @@ class Adder(object):
     ) -> deque:
         """
         Overview:
-            Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
+            Process raw traj data by updating keys ``['next_obs', 'reward', 'done']`` in data's dict element.
         Arguments:
             - data (:obj:`deque`): Transitions list, each element is a transition dict
             - nstep (:obj:`int`): Number of steps. If equals to 1, return ``data`` directly; \
@@ -159,7 +160,7 @@ class Adder(object):
     ) -> List[Dict[str, Any]]:
         """
         Overview:
-            Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
+            Process raw traj data by updating keys ``['next_obs', 'reward', 'done']`` in data's dict element.
             If ``unroll_len`` equals to 1, which means no process is needed, can directly return ``data``.
             Otherwise, ``data`` will be splitted according to ``unroll_len``, process residual part according to
             ``last_fn_type`` and call ``lists_to_dicts`` to form sampled training data.

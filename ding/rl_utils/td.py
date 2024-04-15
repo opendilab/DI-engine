@@ -578,7 +578,7 @@ def v_nstep_td_error(
         nstep: int = 1,
         criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # noqa
 ) -> torch.Tensor:
-    r"""
+    """
     Overview:
         Multistep (n step) td_error for distributed value based algorithm
     Arguments:
@@ -588,14 +588,14 @@ def v_nstep_td_error(
     Returns:
         - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor
     Shapes:
-        - data (:obj:`dist_nstep_td_data`): The v_nstep_td_data containing\
+        - data (:obj:`dist_nstep_td_data`): The v_nstep_td_data containing \
             ['v', 'next_n_v', 'reward', 'done', 'weight', 'value_gamma']
         - v (:obj:`torch.FloatTensor`): :math:`(B, )` i.e. [batch_size, ]
         - next_v (:obj:`torch.FloatTensor`): :math:`(B, )`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)
         - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep
         - weight (:obj:`torch.FloatTensor` or None): :math:`(B, )`, the training sample weight
-        - value_gamma (:obj:`torch.Tensor`): If the remaining data in the buffer is less than n_step\
+        - value_gamma (:obj:`torch.Tensor`): If the remaining data in the buffer is less than n_step \
             we use value_gamma as the gamma discount value for next_v rather than gamma**n_step
     Examples:
         >>> v = torch.randn(5).requires_grad_(True)
@@ -1098,7 +1098,7 @@ def qrdqn_nstep_td_error(
     Overview:
         Multistep (1 step or n step) td_error with in QRDQN
     Arguments:
-        - data (:obj:`iqn_nstep_td_data`): The input data, iqn_nstep_td_data to calculate loss
+        - data (:obj:`qrdqn_nstep_td_data`): The input data, qrdqn_nstep_td_data to calculate loss
         - gamma (:obj:`float`): Discount factor
         - nstep (:obj:`int`): nstep num, default set to 1
     Returns:
@@ -1605,18 +1605,16 @@ def multistep_forward_view(
         lambda_: float,
         done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
-    r"""
+    """
     Overview:
-        Same as trfl.sequence_ops.multistep_forward_view
-        Implementing (12.18) in Sutton & Barto
+        Same as trfl.sequence_ops.multistep_forward_view, which implements (12.18) in Sutton & Barto.
+        Assuming the first dim of input tensors correspond to the index in batch.
 
-        ```
+    .. note::
         result[T-1] = rewards[T-1] + gammas[T-1] * bootstrap_values[T]
         for t in 0...T-2 :
         result[t] = rewards[t] + gammas[t]*(lambdas[t]*result[t+1] + (1-lambdas[t])*bootstrap_values[t+1])
-        ```
 
-        Assuming the first dim of input tensors correspond to the index in batch
     Arguments:
         - bootstrap_values (:obj:`torch.Tensor`): Estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): The returns from 0 to T-1, of size [T_traj, batchsize]

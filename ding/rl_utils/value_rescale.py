@@ -2,7 +2,7 @@ import torch
 
 
 def value_transform(x: torch.Tensor, eps: float = 1e-2) -> torch.Tensor:
-    r"""
+    """
     Overview:
         A function to reduce the scale of the action-value function.
         :math: `h(x) = sign(x)(\sqrt{(abs(x)+1)} - 1) + \eps * x` .
@@ -14,14 +14,13 @@ def value_transform(x: torch.Tensor, eps: float = 1e-2) -> torch.Tensor:
         - (:obj:`torch.Tensor`) Normalized tensor.
 
     .. note::
-        Observe and Look Further: Achieving Consistent Performance on Atari
-         (https://arxiv.org/abs/1805.11593)
+        Observe and Look Further: Achieving Consistent Performance on Atari (https://arxiv.org/abs/1805.11593).
     """
     return torch.sign(x) * (torch.sqrt(torch.abs(x) + 1) - 1) + eps * x
 
 
 def value_inv_transform(x: torch.Tensor, eps: float = 1e-2) -> torch.Tensor:
-    r"""
+    """
     Overview:
         The inverse form of value rescale.
         :math: `h^{-1}(x) = sign(x)({(\frac{\sqrt{1+4\eps(|x|+1+\eps)}-1}{2\eps})}^2-1)` .
@@ -36,7 +35,7 @@ def value_inv_transform(x: torch.Tensor, eps: float = 1e-2) -> torch.Tensor:
 
 
 def symlog(x: torch.Tensor) -> torch.Tensor:
-    r"""
+    """
     Overview:
         A function to normalize the targets.
         :math: `symlog(x) = sign(x)(\ln{|x|+1})` .
@@ -46,14 +45,13 @@ def symlog(x: torch.Tensor) -> torch.Tensor:
         - (:obj:`torch.Tensor`) Normalized tensor.
 
     .. note::
-        Mastering Diverse Domains through World Models
-         (https://arxiv.org/abs/2301.04104)
+        Mastering Diverse Domains through World Models (https://arxiv.org/abs/2301.04104)
     """
     return torch.sign(x) * (torch.log(torch.abs(x) + 1))
 
 
 def inv_symlog(x: torch.Tensor) -> torch.Tensor:
-    r"""
+    """
     Overview:
         The inverse form of symlog.
         :math: `symexp(x) = sign(x)(\exp{|x|}-1)` .

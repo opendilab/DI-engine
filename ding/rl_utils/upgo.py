@@ -44,7 +44,7 @@ def tb_cross_entropy(logit, label, mask=None):
 
 
 def upgo_returns(rewards: torch.Tensor, bootstrap_values: torch.Tensor) -> torch.Tensor:
-    r"""
+    """
     Overview:
         Computing UPGO return targets. Also notice there is no special handling for the terminal state.
     Arguments:
@@ -82,7 +82,7 @@ def upgo_loss(
         bootstrap_values: torch.Tensor,
         mask=None
 ) -> torch.Tensor:
-    r"""
+    """
     Overview:
         Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
         if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.
