@@ -101,11 +101,7 @@ GaussianNoise
 OUNoise
 ~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.exploration.OUNoise
-   :members:
-
-noise_mapping
-~~~~~~~~~~~~~
-.. autoattribute:: ding.rl_utils.exploration.noise_mapping
+   :members: __init__, __call__, reset
 
 create_noise_generator
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -221,32 +217,32 @@ Please refer to ``ding/rl_utils/sampler`` for more details.
 ArgmaxSampler
 ~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.sampler.ArgmaxSampler
-    :members:
+    :members: __call__
 
 MultinomialSampler
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.sampler.MultinomialSampler
-    :members:
+    :members: __call__
 
 MuSampler
 ~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.sampler.MuSampler
-    :members:
+    :members: __call__
 
 ReparameterizationSampler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.sampler.ReparameterizationSampler
-    :members:
+    :members: __call__
 
 HybridStochasticSampler
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.sampler.HybridStochasticSampler
-    :members:
+    :members: __call__
 
 HybridDeterminsticSampler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.rl_utils.sampler.HybridDeterminsticSampler
-    :members:
+    :members: __call__
 
 td
 ========
@@ -373,7 +369,7 @@ iqn_nstep_td_data
 .. autoclass:: ding.rl_utils.td.iqn_nstep_td_data
 
 iqn_nstep_td_error
-~~~~~~~~~~~~~~~~~~~``
+~~~~~~~~~~~~~~~~~~~
 .. autofunction:: ding.rl_utils.td.iqn_nstep_td_error
 
 fqf_nstep_td_data
