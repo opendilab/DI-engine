@@ -1,37 +1,35 @@
 from random import random
+
 try:
     from functools import cache  # only in Python >= 3.9
 except ImportError:
     from functools import lru_cache
+
     cache = lru_cache(maxsize=None)
 
-from sympy import numer
-import torch
-import torch.nn.functional as F
-import torch.distributed as dist
-from torch.cuda.amp import autocast
-from torch import nn, einsum, Tensor
-from torch.nn import Module, ModuleList
-import torch.nn.init as init
-
-from beartype import beartype
-from beartype.typing import Union, List, Optional, Callable, Tuple, Dict, Any
-
-from einops import pack, unpack, repeat, reduce, rearrange
-from einops.layers.torch import Rearrange, Reduce
 from functools import wraps
+from typing import Callable, List, Optional, Tuple, Union
+
+import torch
+import torch.distributed as dist
+import torch.nn.functional as F
+import torch.nn.init as init
+from einops import pack, rearrange, reduce, repeat, unpack
+from einops.layers.torch import Rearrange, Reduce
 from packaging import version
+from sympy import numer
+from torch import Tensor, einsum, nn
+from torch.cuda.amp import autocast
+from torch.nn import Module, ModuleList
 
-from torch import nn, einsum
-
-from einops import rearrange, reduce
 # from q_transformer.attend import Attend
+
 
 class DynamicMultiActionEmbedding(nn.Module):
 
     def __init__(self, dim, actionbin, numactions):
         super().__init__()
-        self.outdim=dim
+        self.outdim = dim
         self.actionbin = actionbin
         self.linear_layers = nn.ModuleList(
             [nn.Linear(self.actionbin, dim) for _ in range(numactions)]
@@ -41,8 +39,8 @@ class DynamicMultiActionEmbedding(nn.Module):
         x = x.to(dtype=torch.float)
         b, n, _ = x.shape
         slices = torch.unbind(x, dim=1)
-        layer_outputs = torch.empty(b, n, self.outdim,device=x.device)
-        for i, layer in enumerate(self.linear_layers[:n]): 
+        layer_outputs = torch.empty(b, n, self.outdim, device=x.device)
+        for i, layer in enumerate(self.linear_layers[:n]):
             slice_output = layer(slices[i])
             layer_outputs[:, i, :] = slice_output
         return layer_outputs
@@ -70,100 +68,98 @@ class Getvalue(nn.Module):
 
     def forward(self, x):
         b, seq_len, input_dim = x.shape
-        x = x.reshape(b * seq_len, input_dim)  
+        x = x.reshape(b * seq_len, input_dim)
         x = self.linear_1(x)
         x = self.relu(x)
         x = self.linear_2(x)
         x = x.view(b, seq_len, self.output_dim)
         return x
 
+
 class state_encode(nn.Module):
     def __init__(self, input_dim):
         super(state_encode, self).__init__()
 
         self.layers = nn.Sequential(
-            nn.Linear(input_dim, 256),
-            nn.ReLU(),
-            nn.Linear(256, 512)
+            nn.Linear(input_dim, 256), nn.ReLU(), nn.Linear(256, 512)
         )
+
     def forward(self, x):
         x = self.layers(x)
         x = x.unsqueeze(1)
         return x
 
+
 def exists(val):
     return val is not None
 
+
 def xnor(x, y):
-    """ (True, True) or (False, False) -> True """
+    """(True, True) or (False, False) -> True"""
     return not (x ^ y)
+
 
 def divisible_by(num, den):
     return (num % den) == 0
 
+
 def default(val, d):
     return val if exists(val) else d
 
-def cast_tuple(val, length = 1):
+
+def cast_tuple(val, length=1):
     return val if isinstance(val, tuple) else ((val,) * length)
 
 
-def l2norm(t, dim = -1):
-    return F.normalize(t, dim = dim)
+def l2norm(t, dim=-1):
+    return F.normalize(t, dim=dim)
+
 
 def pack_one(x, pattern):
     return pack([x], pattern)
+
 
 def unpack_one(x, ps, pattern):
     return unpack(x, ps, pattern)[0]
 
 
 class RMSNorm(Module):
-    def __init__(self, dim, affine = True):
+    def __init__(self, dim, affine=True):
         super().__init__()
-        self.scale = dim ** 0.5
-        self.gamma = nn.Parameter(torch.ones(dim)) if affine else 1.
+        self.scale = dim**0.5
+        self.gamma = nn.Parameter(torch.ones(dim)) if affine else 1.0
 
     def forward(self, x):
         return l2norm(x) * self.gamma * self.scale
 
+
 class ChanRMSNorm(Module):
-    def __init__(self, dim, affine = True):
+    def __init__(self, dim, affine=True):
         super().__init__()
-        self.scale = dim ** 0.5
-        self.gamma = nn.Parameter(torch.ones(dim, 1, 1)) if affine else 1.
+        self.scale = dim**0.5
+        self.gamma = nn.Parameter(torch.ones(dim, 1, 1)) if affine else 1.0
 
     def forward(self, x):
-        return l2norm(x, dim = 1) * self.gamma * self.scale
+        return l2norm(x, dim=1) * self.gamma * self.scale
 
 
 class FeedForward(Module):
-    def __init__(
-        self,
-        dim,
-        mult = 4,
-        dropout = 0.,
-        adaptive_ln = False
-    ):
+    def __init__(self, dim, mult=4, dropout=0.0, adaptive_ln=False):
         super().__init__()
         self.adaptive_ln = adaptive_ln
 
         inner_dim = int(dim * mult)
-        self.norm = RMSNorm(dim, affine = not adaptive_ln)
+        self.norm = RMSNorm(dim, affine=not adaptive_ln)
 
         self.net = nn.Sequential(
             nn.Linear(dim, inner_dim),
             nn.GELU(),
             nn.Dropout(dropout),
             nn.Linear(inner_dim, dim),
-            nn.Dropout(dropout)
+            nn.Dropout(dropout),
         )
 
-    def forward(
-        self,
-        x,
-        cond_fn: Optional[Callable] = None
-    ):
+    def forward(self, x, cond_fn: Optional[Callable] = None):
         x = self.norm(x)
 
         assert xnor(self.adaptive_ln, exists(cond_fn))
@@ -179,15 +175,15 @@ class TransformerAttention(Module):
     def __init__(
         self,
         dim,
-        dim_head = 64,
-        dim_context = None,
-        heads = 8,
-        num_mem_kv = 4,
-        norm_context = False,
-        adaptive_ln = False,
-        dropout = 0.1,
-        flash = True,
-        causal = False
+        dim_head=64,
+        dim_context=None,
+        heads=8,
+        num_mem_kv=4,
+        norm_context=False,
+        adaptive_ln=False,
+        dropout=0.1,
+        flash=True,
+        causal=False,
     ):
         super().__init__()
         self.heads = heads
@@ -196,40 +192,35 @@ class TransformerAttention(Module):
         dim_context = default(dim_context, dim)
 
         self.adaptive_ln = adaptive_ln
-        self.norm = RMSNorm(dim, affine = not adaptive_ln)
+        self.norm = RMSNorm(dim, affine=not adaptive_ln)
 
         self.context_norm = RMSNorm(dim_context) if norm_context else None
 
         self.attn_dropout = nn.Dropout(dropout)
 
-        self.to_q = nn.Linear(dim, inner_dim, bias = False)
-        self.to_kv = nn.Linear(dim_context, inner_dim * 2, bias = False)
+        self.to_q = nn.Linear(dim, inner_dim, bias=False)
+        self.to_kv = nn.Linear(dim_context, inner_dim * 2, bias=False)
 
         self.num_mem_kv = num_mem_kv
         self.mem_kv = None
         if num_mem_kv > 0:
             self.mem_kv = nn.Parameter(torch.randn(2, heads, num_mem_kv, dim_head))
 
-        self.attend = Attend(
-            dropout = dropout,
-            flash = flash,
-            causal = causal
-        )
+        self.attend = Attend(dropout=dropout, flash=flash, causal=causal)
 
         self.to_out = nn.Sequential(
-            nn.Linear(inner_dim, dim, bias = False),
-            nn.Dropout(dropout)
+            nn.Linear(inner_dim, dim, bias=False), nn.Dropout(dropout)
         )
 
     def forward(
         self,
         x,
-        context = None,
-        mask = None,
-        attn_mask = None,
+        context=None,
+        mask=None,
+        attn_mask=None,
         cond_fn: Optional[Callable] = None,
         cache: Optional[Tensor] = None,
-        return_cache = False
+        return_cache=False,
     ):
         b = x.shape[0]
 
@@ -247,38 +238,41 @@ class TransformerAttention(Module):
         if exists(cond_fn):
             x = cond_fn(x)
 
-        q, k, v = self.to_q(x), *self.to_kv(kv_input).chunk(2, dim = -1)
+        q, k, v = self.to_q(x), *self.to_kv(kv_input).chunk(2, dim=-1)
 
-        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), (q, k, v))
+        q, k, v = map(
+            lambda t: rearrange(t, "b n (h d) -> b h n d", h=self.heads), (q, k, v)
+        )
 
         if exists(cache):
             ck, cv = cache
-            k = torch.cat((ck, k), dim = -2)
-            v = torch.cat((cv, v), dim = -2)
+            k = torch.cat((ck, k), dim=-2)
+            v = torch.cat((cv, v), dim=-2)
 
         new_kv_cache = torch.stack((k, v))
 
         if exists(self.mem_kv):
-            mk, mv = map(lambda t: repeat(t, '... -> b ...', b = b), self.mem_kv)
+            mk, mv = map(lambda t: repeat(t, "... -> b ...", b=b), self.mem_kv)
 
-            k = torch.cat((mk, k), dim = -2)
-            v = torch.cat((mv, v), dim = -2)
+            k = torch.cat((mk, k), dim=-2)
+            v = torch.cat((mv, v), dim=-2)
 
             if exists(mask):
-                mask = F.pad(mask, (self.num_mem_kv, 0), value = True)
+                mask = F.pad(mask, (self.num_mem_kv, 0), value=True)
 
             if exists(attn_mask):
-                attn_mask = F.pad(attn_mask, (self.num_mem_kv, 0), value = True)
+                attn_mask = F.pad(attn_mask, (self.num_mem_kv, 0), value=True)
 
-        out = self.attend(q, k, v, mask = mask, attn_mask = attn_mask)
+        out = self.attend(q, k, v, mask=mask, attn_mask=attn_mask)
 
-        out = rearrange(out, 'b h n d -> b n (h d)')
+        out = rearrange(out, "b h n d -> b n (h d)")
         out = self.to_out(out)
 
         if not return_cache:
             return out
 
         return out, new_kv_cache
+
 
 class Transformer(Module):
 
@@ -300,19 +294,34 @@ class Transformer(Module):
         self.layers = ModuleList([])
 
         attn_kwargs = dict(
-            dim = dim,
-            heads = heads,
-            dim_head = dim_head,
-            dropout = attn_dropout,
-            flash = flash_attn
+            dim=dim,
+            heads=heads,
+            dim_head=dim_head,
+            dropout=attn_dropout,
+            flash=flash_attn,
         )
 
         for _ in range(depth):
-            self.layers.append(ModuleList([
-                TransformerAttention(**attn_kwargs, causal = causal, adaptive_ln = adaptive_ln, norm_context = False),
-                TransformerAttention(**attn_kwargs, norm_context = True) if cross_attend else None,
-                FeedForward(dim = dim, dropout = ff_dropout, adaptive_ln = adaptive_ln)
-            ]))
+            self.layers.append(
+                ModuleList(
+                    [
+                        TransformerAttention(
+                            **attn_kwargs,
+                            causal=causal,
+                            adaptive_ln=adaptive_ln,
+                            norm_context=False,
+                        ),
+                        (
+                            TransformerAttention(**attn_kwargs, norm_context=True)
+                            if cross_attend
+                            else None
+                        ),
+                        FeedForward(
+                            dim=dim, dropout=ff_dropout, adaptive_ln=adaptive_ln
+                        ),
+                    ]
+                )
+            )
 
         self.norm = RMSNorm(dim) if final_norm else nn.Identity()
 
@@ -335,10 +344,10 @@ class Transformer(Module):
         self,
         x,
         cond_fns: Optional[Tuple[Callable, ...]] = None,
-        attn_mask = None,
+        attn_mask=None,
         context: Optional[Tensor] = None,
         cache: Optional[Tensor] = None,
-        return_cache = False
+        return_cache=False,
     ):
         has_cache = exists(cache)
 
@@ -353,10 +362,10 @@ class Transformer(Module):
         for attn, maybe_cross_attn, ff in self.layers:
             attn_out, new_cache = attn(
                 x,
-                attn_mask = attn_mask,
-                cond_fn = next(cond_fns, None),
-                return_cache = True,
-                cache = next(cache, None)
+                attn_mask=attn_mask,
+                cond_fn=next(cond_fns, None),
+                return_cache=True,
+                cache=next(cache, None),
             )
 
             new_caches.append(new_cache)
@@ -365,14 +374,14 @@ class Transformer(Module):
 
             if exists(maybe_cross_attn):
                 assert exists(context)
-                x = maybe_cross_attn(x, context = context) + x
+                x = maybe_cross_attn(x, context=context) + x
 
-            x = ff(x, cond_fn = next(cond_fns, None)) + x
+            x = ff(x, cond_fn=next(cond_fns, None)) + x
 
         new_caches = torch.stack(new_caches)
 
         if has_cache:
-            x = torch.cat((x_prev, x), dim = -2)
+            x = torch.cat((x_prev, x), dim=-2)
 
         out = self.norm(x)
 
@@ -383,33 +392,21 @@ class Transformer(Module):
 
 
 class DuelingHead(Module):
-    def __init__(
-        self,
-        dim,
-        expansion_factor = 2,
-        action_bins = 256
-    ):
+    def __init__(self, dim, expansion_factor=2, action_bins=256):
         super().__init__()
         dim_hidden = dim * expansion_factor
 
-        self.stem = nn.Sequential(
-            nn.Linear(dim, dim_hidden),
-            nn.SiLU()
-        )
+        self.stem = nn.Sequential(nn.Linear(dim, dim_hidden), nn.SiLU())
 
-        self.to_values = nn.Sequential(
-            nn.Linear(dim_hidden, 1)
-        )
+        self.to_values = nn.Sequential(nn.Linear(dim_hidden, 1))
 
-        self.to_advantages = nn.Sequential(
-            nn.Linear(dim_hidden, action_bins)
-        )
+        self.to_advantages = nn.Sequential(nn.Linear(dim_hidden, action_bins))
 
     def forward(self, x):
         x = self.stem(x)
 
         advantages = self.to_advantages(x)
-        advantages = advantages - reduce(advantages, '... a -> ... 1', 'mean')
+        advantages = advantages - reduce(advantages, "... a -> ... 1", "mean")
 
         values = self.to_values(x)
 
@@ -436,14 +433,14 @@ class QHeadMultipleActions(Module):
         self.action_bins = action_bins
 
         self.transformer = Transformer(
-            dim = dim,
-            depth = attn_depth,
-            dim_head = attn_dim_head,
-            heads = attn_heads,
-            cross_attend =  False,
-            adaptive_ln = False,
-            causal = True,
-            final_norm = False
+            dim=dim,
+            depth=attn_depth,
+            dim_head=attn_dim_head,
+            heads=attn_heads,
+            cross_attend=False,
+            adaptive_ln=False,
+            causal=True,
+            final_norm=False,
         )
 
         self.final_norm = RMSNorm(dim)
@@ -462,9 +459,9 @@ class QHeadMultipleActions(Module):
     def device(self):
         return self.action_bin_embeddings.device
 
-    def state_append_actions(self,state,actions:Optional[Tensor] = None):
+    def state_append_actions(self, state, actions: Optional[Tensor] = None):
         if not exists(actions):
-            return torch.cat((state, state), dim=1)    
+            return torch.cat((state, state), dim=1)
         else:
             actions = torch.nn.functional.one_hot(actions, num_classes=self.action_bins)
             actions = self.DynamicMultiActionEmbedding(actions)
@@ -477,30 +474,28 @@ class QHeadMultipleActions(Module):
         actions: Optional[Tensor] = None,
     ):
         batch_size = encoded_state.shape[0]
-        action_bins = torch.empty(batch_size, self.num_actions, device=encoded_state.device,dtype=torch.long)
+        action_bins = torch.empty(
+            batch_size, self.num_actions, device=encoded_state.device, dtype=torch.long
+        )
         cache = None
-        tokens = self.state_append_actions(encoded_state, actions = actions)
+        tokens = self.state_append_actions(encoded_state, actions=actions)
 
         for action_idx in range(self.num_actions):
             embed, cache = self.transformer(
                 tokens, context=encoded_state, cache=cache, return_cache=True
             )
             q_values = self.get_q_value_fuction(embed[:, 1:, :])
-            if action_idx ==0 :
-                special_idx=action_idx
-            else :
-                special_idx=action_idx-1
-            _, selected_action_indices = q_values[:,special_idx,:].max(dim=-1)
+            if action_idx == 0:
+                special_idx = action_idx
+            else:
+                special_idx = action_idx - 1
+            _, selected_action_indices = q_values[:, special_idx, :].max(dim=-1)
             action_bins[:, action_idx] = selected_action_indices
-            now_actions=action_bins[:,0:action_idx+1]
-            tokens = self.state_append_actions(encoded_state, actions = now_actions)
+            now_actions = action_bins[:, 0 : action_idx + 1]
+            tokens = self.state_append_actions(encoded_state, actions=now_actions)
         return action_bins
 
-    def forward(
-        self,
-        encoded_state: Tensor,
-        actions: Optional[Tensor] = None
-    ):
+    def forward(self, encoded_state: Tensor, actions: Optional[Tensor] = None):
         """
         einops
         b - batch
@@ -510,11 +505,12 @@ class QHeadMultipleActions(Module):
         """
 
         # this is the scheme many hierarchical transformer papers do
-        tokens= self.state_append_actions(encoded_state,actions = actions)
+        tokens = self.state_append_actions(encoded_state, actions=actions)
         embed = self.transformer(x=tokens, context=encoded_state)
         action_dim_values = embed[:, 1:, :]
         q_values = self.get_q_value_fuction(action_dim_values)
         return q_values
+
 
 # Robotic Transformer
 class QTransformer(Module):
@@ -548,7 +544,7 @@ class QTransformer(Module):
         self.obs_dim = obs_dim
 
         # encode state
-        self.state_encode =state_encode(self.obs_dim)
+        self.state_encode = state_encode(self.obs_dim)
 
         # Q head
         self.q_head = QHeadMultipleActions(
@@ -564,7 +560,7 @@ class QTransformer(Module):
     def device(self):
         return next(self.parameters()).device
 
-    def get_random_actions(self, batch_size = 1):
+    def get_random_actions(self, batch_size=1):
         return self.q_head.get_random_actions(batch_size)
 
     def embed_texts(self, texts: List[str]):
@@ -580,21 +576,22 @@ class QTransformer(Module):
         return self.q_head.get_optimal_actions(encoded_state)
 
     def forward(
-            self,
-            state: Tensor,
-            actions: Optional[Tensor] = None,
-            cond_drop_prob = 0.,
+        self,
+        state: Tensor,
+        actions: Optional[Tensor] = None,
+        cond_drop_prob=0.0,
     ):
-        state=state.to(self.device)
+        state = state.to(self.device)
         if exists(actions):
             actions = actions.to(self.device)
         encoded_state = self.state_encode(state)
-        q_values = self.q_head(encoded_state, actions = actions)
+        q_values = self.q_head(encoded_state, actions=actions)
         return q_values
 
 
 def once(fn):
     called = False
+
     @wraps(fn)
     def inner(x):
         nonlocal called
@@ -602,17 +599,22 @@ def once(fn):
             return
         called = True
         return fn(x)
+
     return inner
+
 
 print_once = once(print)
 
 # helpers
 
+
 def exists(val):
     return val is not None
 
+
 def default(val, d):
     return val if exists(val) else d
+
 
 def maybe_reduce_mask_and(*maybe_masks):
     maybe_masks = [*filter(exists, maybe_masks)]
@@ -630,17 +632,16 @@ def maybe_reduce_mask_and(*maybe_masks):
 
 # main class
 
+
 class Attend(nn.Module):
     def __init__(
         self,
-        dropout = 0.,
-        flash = False,
-        causal = False,
+        dropout=0.0,
+        flash=False,
+        causal=False,
         flash_config: dict = dict(
-            enable_flash = True,
-            enable_math = True,
-            enable_mem_efficient = True
-        )
+            enable_flash=True, enable_math=True, enable_mem_efficient=True
+        ),
     ):
         super().__init__()
         self.dropout = dropout
@@ -648,15 +649,22 @@ class Attend(nn.Module):
 
         self.causal = causal
         self.flash = flash
-        assert not (flash and version.parse(torch.__version__) < version.parse('2.0.0')), 'in order to use flash attention, you must be using pytorch 2.0 or above'
+        assert not (
+            flash and version.parse(torch.__version__) < version.parse("2.0.0")
+        ), "in order to use flash attention, you must be using pytorch 2.0 or above"
 
         if flash:
-            print_once('using memory efficient attention')
+            print_once("using memory efficient attention")
 
         self.flash_config = flash_config
 
-    def flash_attn(self, q, k, v, mask = None, attn_mask = None):
-        _, heads, q_len, dim_head, k_len, is_cuda, device = *q.shape, k.shape[-2], q.is_cuda, q.device
+    def flash_attn(self, q, k, v, mask=None, attn_mask=None):
+        _, heads, q_len, dim_head, k_len, is_cuda, device = (
+            *q.shape,
+            k.shape[-2],
+            q.is_cuda,
+            q.device,
+        )
 
         # Check if mask exists and expand to compatible shape
         # The mask is B L, so it would have to be expanded to B H N L
@@ -670,15 +678,17 @@ class Attend(nn.Module):
 
         with torch.backends.cuda.sdp_kernel(**self.flash_config):
             out = F.scaled_dot_product_attention(
-                q, k, v,
-                attn_mask = mask,
-                is_causal = self.causal,
-                dropout_p = self.dropout if self.training else 0.
+                q,
+                k,
+                v,
+                attn_mask=mask,
+                is_causal=self.causal,
+                dropout_p=self.dropout if self.training else 0.0,
             )
 
         return out
 
-    def forward(self, q, k, v, mask = None, attn_mask = None):
+    def forward(self, q, k, v, mask=None, attn_mask=None):
         """
         einstein notation
         b - batch
@@ -692,10 +702,10 @@ class Attend(nn.Module):
         scale = q.shape[-1] ** -0.5
 
         if exists(mask) and mask.ndim != 4:
-            mask = rearrange(mask, 'b j -> b 1 1 j')
+            mask = rearrange(mask, "b j -> b 1 1 j")
 
         if self.flash:
-            return self.flash_attn(q, k, v, mask = mask, attn_mask = attn_mask)
+            return self.flash_attn(q, k, v, mask=mask, attn_mask=attn_mask)
 
         # similarity
 
@@ -705,7 +715,9 @@ class Attend(nn.Module):
 
         if self.causal:
             i, j = sim.shape[-2:]
-            causal_mask = torch.ones((i, j), dtype = torch.bool, device = sim.device).triu(j - i + 1)
+            causal_mask = torch.ones((i, j), dtype=torch.bool, device=sim.device).triu(
+                j - i + 1
+            )
             sim = sim.masked_fill(causal_mask, -torch.finfo(sim.dtype).max)
 
         # key padding mask
@@ -728,14 +740,14 @@ class Attend(nn.Module):
         out = einsum(f"b h i j, b h j d -> b h i d", attn, v)
 
         return out
-    
+
     def _init_eval(self) -> None:
         r"""
         Overview:
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._eval_model = model_wrap(self._model, wrapper_name="argmax_sample")
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -758,6 +770,6 @@ class Attend(nn.Module):
         with torch.no_grad():
             output = self._eval_model.forward(data)
         if self._cuda:
-            output = to_device(output, 'cpu')
+            output = to_device(output, "cpu")
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}

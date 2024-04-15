@@ -1,7 +1,10 @@
-from ding.entry import serial_pipeline_offline
-from ding.config import read_config
 from pathlib import Path
+
+from ding.config import read_config
+from ding.entry import serial_pipeline_offline
 from ding.model.template.qtransformer import QTransformer
+
+
 def train(args):
     # launch from anywhere
     config = Path(__file__).absolute().parent.parent / 'config' / args.config
