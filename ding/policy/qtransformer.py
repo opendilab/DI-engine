@@ -1,32 +1,18 @@
 import copy
 from collections import namedtuple
-from contextlib import nullcontext
-from functools import partial
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List
 
 import numpy as np
 import torch
-import torch.distributed as dist
 import torch.nn.functional as F
-from einops import pack, rearrange, repeat, unpack
-from einops.layers.torch import Rearrange
-from torch import Tensor, einsum, nn
-from torch.distributions import Independent, Normal
-from torch.nn import Module, ModuleList
-from torch.utils.data import DataLoader, Dataset
-from torchtyping import TensorType
+from einops import pack, rearrange
 
 from ding.model import model_wrap
-from ding.rl_utils import (get_nstep_return_data, get_train_sample,
-                           qrdqn_nstep_td_data, qrdqn_nstep_td_error,
-                           v_1step_td_data, v_1step_td_error)
 from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 
 from .common_utils import default_preprocess_learn
-from .qrdqn import QRDQNPolicy
 from .sac import SACPolicy
 
 QIntermediates = namedtuple(
