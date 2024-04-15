@@ -32,7 +32,7 @@
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-yellow)](https://huggingface.co/OpenDILabCommunity)
 [![Open in OpenXLab](https://cdn-static.openxlab.org.cn/header/openxlab_models.svg)](https://openxlab.org.cn/models?search=opendilab)
-[![discord badge](https://dcbadge.vercel.app/api/server/TC2pAtnw?style=flat)](https://discord.gg/TC2pAtnw)
+[![discord badge](https://dcbadge.vercel.app/api/server/gXkjrFCJ?style=flat)](https://discord.gg/gXkjrFCJ)
 [![slack badge](https://img.shields.io/badge/Slack-join-blueviolet?logo=slack&amp)](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
 
 Updated on 2024.02.04 DI-engine-v0.5.1
