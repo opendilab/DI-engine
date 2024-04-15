@@ -216,21 +216,6 @@ class QTransformerPolicy(SACPolicy):
             )
 
         self._with_q_entropy = self._cfg.learn.with_q_entropy
-
-        # # Weight Init
-        # init_w = self._cfg.learn.init_w
-        # self._model.actor_head[-1].mu.weight.data.uniform_(-init_w, init_w)
-        # self._model.actor_head[-1].mu.bias.data.uniform_(-init_w, init_w)
-        # self._model.actor_head[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        # self._model.actor_head[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
-        # if self._twin_critic:
-        #     self._model.critic_head[0][-1].last.weight.data.uniform_(-init_w, init_w)
-        #     self._model.critic_head[0][-1].last.bias.data.uniform_(-init_w, init_w)
-        #     self._model.critic_head[1][-1].last.weight.data.uniform_(-init_w, init_w)
-        #     self._model.critic_head[1][-1].last.bias.data.uniform_(-init_w, init_w)
-        # else:
-        #     self._model.critic_head[2].last.weight.data.uniform_(-init_w, init_w)
-        #     self._model.critic_head[-1].last.bias.data.uniform_(-init_w, init_w)
         # Optimizers
         self._optimizer_q = Adam(
             self._model.parameters(),
@@ -288,8 +273,8 @@ class QTransformerPolicy(SACPolicy):
             update_type="momentum",
             update_kwargs={"theta": self._cfg.learn.target_theta},
         )
-        self._low = np.array(self._cfg.other["low"])
-        self._high = np.array(self._cfg.other["high"])
+        self._low = np.array([-1, -1, -1])
+        self._high = np.array([1, 1, 1])
         self._action_bin = self._cfg.model.action_bins
         self._action_values = np.array(
             [
