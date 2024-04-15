@@ -1,5 +1,9 @@
 from random import random
-from functools import partial, cache
+try:
+    from functools import cache  # only in Python >= 3.9
+except ImportError:
+    from functools import lru_cache
+    cache = lru_cache(maxsize=None)
 
 from sympy import numer
 import torch
@@ -327,7 +331,6 @@ class Transformer(Module):
                 init.xavier_uniform_(maybe_cross_attn.to_q.weight)
                 init.xavier_uniform_(maybe_cross_attn.to_kv.weight)
 
-    @beartype
     def forward(
         self,
         x,
@@ -515,7 +518,6 @@ class QHeadMultipleActions(Module):
 
 # Robotic Transformer
 class QTransformer(Module):
-    @beartype
     def __init__(
         self,
         num_actions,
@@ -565,7 +567,6 @@ class QTransformer(Module):
     def get_random_actions(self, batch_size = 1):
         return self.q_head.get_random_actions(batch_size)
 
-    @beartype
     def embed_texts(self, texts: List[str]):
         return self.conditioner.embed_texts(texts)
 

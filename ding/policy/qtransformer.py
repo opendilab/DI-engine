@@ -4,11 +4,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.distributions import Normal, Independent
-from ema_pytorch import EMA
-
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
-    qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data
+from ding.rl_utils import (
+    v_1step_td_data,
+    v_1step_td_error,
+    get_train_sample,
+    qrdqn_nstep_td_data,
+    qrdqn_nstep_td_error,
+    get_nstep_return_data,
+)
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -21,34 +25,26 @@ from pathlib import Path
 from functools import partial
 from contextlib import nullcontext
 from collections import namedtuple
-
 import torch
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch import nn, einsum, Tensor
 from torch.nn import Module, ModuleList
 from torch.utils.data import Dataset, DataLoader
-
 from torchtyping import TensorType
-
 from einops import rearrange, repeat, pack, unpack
 from einops.layers.torch import Rearrange
 
-from beartype import beartype
 from beartype.typing import Optional, Union, List, Tuple
 
 
-from ema_pytorch import EMA
+QIntermediates = namedtuple(
+    "QIntermediates", ["q_pred_all_actions", "q_pred", "q_next", "q_target"]
+)
 
-QIntermediates = namedtuple('QIntermediates', [
-    'q_pred_all_actions',
-    'q_pred',
-    'q_next',
-    'q_target'
-    ])
 
-@POLICY_REGISTRY.register('qtransformer')
-class QtransformerPolicy(SACPolicy):
+@POLICY_REGISTRY.register("qtransformer")
+class QTransformerPolicy(SACPolicy):
     """
     Overview:
         Policy class of CQL algorithm for continuous control. Paper link: https://arxiv.org/abs/2006.04779.
@@ -101,7 +97,7 @@ class QtransformerPolicy(SACPolicy):
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='qtransformer',
+        type="qtransformer",
         # (bool) Whether to use cuda for policy.
         cuda=True,
         # (bool) on_policy: Determine whether on-policy or off-policy.
@@ -113,14 +109,13 @@ class QtransformerPolicy(SACPolicy):
         priority_IS_weight=False,
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         random_collect_size=10000,
-        
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
             # Default to True.
             twin_critic=True,
             # (str type) action_space: Use reparameterization trick for continous action
-            action_space='reparameterization',
+            action_space="reparameterization",
             # (int) Hidden size for actor network head.
             actor_head_hidden_size=256,
             # (int) Hidden size for critic network head.
@@ -208,11 +203,13 @@ class QtransformerPolicy(SACPolicy):
 
         self._min_q_version = 3
         self._min_q_weight = self._cfg.learn.min_q_weight
-        self._with_lagrange = self._cfg.learn.with_lagrange and (self._lagrange_thresh > 0)
+        self._with_lagrange = self._cfg.learn.with_lagrange and (
+            self._lagrange_thresh > 0
+        )
         self._lagrange_thresh = self._cfg.learn.lagrange_thresh
         if self._with_lagrange:
             self.target_action_gap = self._lagrange_thresh
-            self.log_alpha_prime = torch.tensor(0.).to(self._device).requires_grad_()
+            self.log_alpha_prime = torch.tensor(0.0).to(self._device).requires_grad_()
             self.alpha_prime_optimizer = Adam(
                 [self.log_alpha_prime],
                 lr=self._cfg.learn.learning_rate_q,
@@ -245,35 +242,51 @@ class QtransformerPolicy(SACPolicy):
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
             if self._cfg.learn.target_entropy is None:
-                assert 'action_shape' in self._cfg.model, "CQL need network model with action_shape variable"
+                assert (
+                    "action_shape" in self._cfg.model
+                ), "CQL need network model with action_shape variable"
                 self._target_entropy = -np.prod(self._cfg.model.action_shape)
             else:
                 self._target_entropy = self._cfg.learn.target_entropy
             if self._cfg.learn.log_space:
                 self._log_alpha = torch.log(torch.FloatTensor([self._cfg.learn.alpha]))
                 self._log_alpha = self._log_alpha.to(self._device).requires_grad_()
-                self._alpha_optim = torch.optim.Adam([self._log_alpha], lr=self._cfg.learn.learning_rate_alpha)
-                assert self._log_alpha.shape == torch.Size([1]) and self._log_alpha.requires_grad
+                self._alpha_optim = torch.optim.Adam(
+                    [self._log_alpha], lr=self._cfg.learn.learning_rate_alpha
+                )
+                assert (
+                    self._log_alpha.shape == torch.Size([1])
+                    and self._log_alpha.requires_grad
+                )
                 self._alpha = self._log_alpha.detach().exp()
                 self._auto_alpha = True
                 self._log_space = True
             else:
-                self._alpha = torch.FloatTensor([self._cfg.learn.alpha]).to(self._device).requires_grad_()
-                self._alpha_optim = torch.optim.Adam([self._alpha], lr=self._cfg.learn.learning_rate_alpha)
+                self._alpha = (
+                    torch.FloatTensor([self._cfg.learn.alpha])
+                    .to(self._device)
+                    .requires_grad_()
+                )
+                self._alpha_optim = torch.optim.Adam(
+                    [self._alpha], lr=self._cfg.learn.learning_rate_alpha
+                )
                 self._auto_alpha = True
                 self._log_space = False
         else:
             self._alpha = torch.tensor(
-                [self._cfg.learn.alpha], requires_grad=False, device=self._device, dtype=torch.float32
+                [self._cfg.learn.alpha],
+                requires_grad=False,
+                device=self._device,
+                dtype=torch.float32,
             )
             self._auto_alpha = False
 
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
-            wrapper_name='target',
-            update_type='momentum',
-            update_kwargs={'theta': self._cfg.learn.target_theta}
+            wrapper_name="target",
+            update_type="momentum",
+            update_kwargs={"theta": self._cfg.learn.target_theta},
         )
         self._low = np.array(self._cfg.other["low"])
         self._high = np.array(self._cfg.other["high"])
@@ -285,7 +298,7 @@ class QtransformerPolicy(SACPolicy):
             ]
         )
         # Main and target models
-        self._learn_model = model_wrap(self._model, wrapper_name='base')
+        self._learn_model = model_wrap(self._model, wrapper_name="base")
         self._learn_model.reset()
         self._target_model.reset()
 
@@ -322,78 +335,96 @@ class QtransformerPolicy(SACPolicy):
             use_priority=self._priority,
             use_priority_IS_weight=self._cfg.priority_IS_weight,
             ignore_done=self._cfg.learn.ignore_done,
-            use_nstep=False
+            use_nstep=False,
         )
-        if len(data.get('action').shape) == 1:
-            data['action'] = data['action'].reshape(-1, 1)
-        self._action_values=torch.tensor(self._action_values)
-        data['action']=self._discretize_action(data["action"])
-
+        if len(data.get("action").shape) == 1:
+            data["action"] = data["action"].reshape(-1, 1)
+        self._action_values = torch.tensor(self._action_values)
+        indices = torch.zeros_like(
+            data["action"], dtype=torch.long, device=data["action"].device
+        )
+        for i in range(data["action"].shape[1]):
+            diff = (data["action"][:, i].unsqueeze(-1) - self._action_values[i, :]) ** 2
+            indices[:, i] = diff.argmin(dim=-1)
+        data["action"] = indices
         if self._cuda:
             data = to_device(data, self._device)
 
         self._learn_model.train()
         self._target_model.train()
-        states = data['obs']
-        next_obs = data['next_obs']
-        reward = data['reward']
-        dones = data['done']
-        actions = data['action']
+        states = data["obs"]
+        next_obs = data["next_obs"]
+        reward = data["reward"]
+        dones = data["done"]
+        actions = data["action"]
 
         # get q
-        num_timesteps, device = states.shape[1], states.device   
-        dones = dones.cumsum(dim = -1) > 0
-        dones = F.pad(dones, (1, -1), value = False)
+        num_timesteps = states.shape[1]
+        dones = dones.cumsum(dim=-1) > 0
+        dones = F.pad(dones, (1, -1), value=False)
         not_terminal = (~dones).float()
         reward = reward * not_terminal
         gamma = self._cfg.learn["discount_factor_gamma"]
-        q_pred_all_actions = self._learn_model.forward(states, actions = actions)
+        q_pred_all_actions = self._learn_model.forward(states, actions=actions)
         q_pred = self._batch_select_indices(q_pred_all_actions, actions)
         q_pred = q_pred.unsqueeze(1)
 
         with torch.no_grad():
             # get q_next
-            q_next = self._target_model.forward(next_obs)        
+            q_next = self._target_model.forward(next_obs)
             # get target Q
-            q_target_all_actions = self._target_model.forward(states, actions = actions)
+            q_target_all_actions = self._target_model.forward(states, actions=actions)
 
-        q_next = q_next.max(dim = -1).values
-        q_next.clamp_(min = -100)   
-        q_target = q_target_all_actions.max(dim = -1).values
-        q_target.clamp_(min = -100)
-        q_target=q_target.unsqueeze(1)
-        q_pred_rest_actions, q_pred_last_action      = q_pred[..., :-1], q_pred[..., -1]
-        q_target_first_action, q_target_rest_actions = q_target[..., 0], q_target[..., 1:]
-        losses_all_actions_but_last = F.mse_loss(q_pred_rest_actions, q_target_rest_actions, reduction = 'none')
+        q_next = q_next.max(dim=-1).values
+        q_next.clamp_(min=-100)
+        q_target = q_target_all_actions.max(dim=-1).values
+        q_target.clamp_(min=-100)
+        q_target = q_target.unsqueeze(1)
+        q_pred_rest_actions, q_pred_last_action = q_pred[..., :-1], q_pred[..., -1]
+        q_target_first_action, q_target_rest_actions = (
+            q_target[..., 0],
+            q_target[..., 1:],
+        )
+        losses_all_actions_but_last = F.mse_loss(
+            q_pred_rest_actions, q_target_rest_actions, reduction="none"
+        )
 
         # next take care of the very last action, which incorporates the rewards
-        q_target_last_action, _ = pack([q_target_first_action[..., 1:], q_next], 'b *')
+        q_target_last_action, _ = pack([q_target_first_action[..., 1:], q_next], "b *")
         if reward.dim() == 1:
             reward = reward.unsqueeze(-1)
-        q_target_last_action = reward + gamma* q_target_last_action
-        losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action, reduction = 'none')
+        q_target_last_action = reward + gamma * q_target_last_action
+        losses_last_action = F.mse_loss(
+            q_pred_last_action, q_target_last_action, reduction="none"
+        )
 
         # flatten and average
-        losses, _ = pack([losses_all_actions_but_last, losses_last_action], '*')
-        td_loss=losses.mean()
+        losses, _ = pack([losses_all_actions_but_last, losses_last_action], "*")
+        td_loss = losses.mean()
         q_intermediates = QIntermediates(q_pred_all_actions, q_pred, q_next, q_target)
         num_timesteps = actions.shape[1]
         batch = actions.shape[0]
 
         q_preds = q_intermediates.q_pred_all_actions
-        q_preds = rearrange(q_preds, '... a -> (...) a')
+        q_preds = rearrange(q_preds, "... a -> (...) a")
         num_action_bins = q_preds.shape[-1]
         num_non_dataset_actions = num_action_bins - 1
-        actions = rearrange(actions, '... -> (...) 1')
-        dataset_action_mask = torch.zeros_like(q_preds).scatter_(-1, actions, torch.ones_like(q_preds))
+        actions = rearrange(actions, "... -> (...) 1")
+        dataset_action_mask = torch.zeros_like(q_preds).scatter_(
+            -1, actions, torch.ones_like(q_preds)
+        )
         q_actions_not_taken = q_preds[~dataset_action_mask.bool()]
-        q_actions_not_taken = rearrange(q_actions_not_taken, '(b t a) -> b t a', b = batch, a = num_non_dataset_actions)
-        conservative_reg_loss = ((q_actions_not_taken - (self._cfg.learn["min_reward"] * num_timesteps)) ** 2).sum() / num_non_dataset_actions
+        q_actions_not_taken = rearrange(
+            q_actions_not_taken, "(b t a) -> b t a", b=batch, a=num_non_dataset_actions
+        )
+        conservative_reg_loss = (
+            (q_actions_not_taken - (self._cfg.learn["min_reward"] * num_timesteps)) ** 2
+        ).sum() / num_non_dataset_actions
         # total loss
-        loss_dict['loss']=0.5 * td_loss + 0.5 * conservative_reg_loss 
+        loss_dict["loss"] = 0.5 * td_loss + 0.5 * conservative_reg_loss
 
         self._optimizer_q.zero_grad()
-        loss_dict['loss'].backward()
+        loss_dict["loss"].backward()
         self._optimizer_q.step()
 
         self._forward_learn_cnt += 1
@@ -406,17 +437,10 @@ class QtransformerPolicy(SACPolicy):
             "target_q": q_pred_all_actions.detach().mean().item(),
         }
 
-    def _batch_select_indices(self,t, indices):
-        indices = rearrange(indices, '... -> ... 1')
+    def _batch_select_indices(self, t, indices):
+        indices = rearrange(indices, "... -> ... 1")
         selected = t.gather(-1, indices)
-        return rearrange(selected, '... 1 -> ...')
-
-    def _discretize_action(self, actions):
-        indices = torch.zeros_like(actions, dtype=torch.long)
-        for i in range(actions.shape[1]):
-            diff = (actions[:, i].unsqueeze(-1) - self._action_values[i, :])**2
-            indices[:, i] = diff.argmin(dim=-1)
-        return indices
+        return rearrange(selected, "... 1 -> ...")
 
     def _get_actions(self, obs):
         # evaluate to get action
@@ -433,13 +457,13 @@ class QtransformerPolicy(SACPolicy):
             - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
         """
         return [
-            'cur_lr_q',
-            'td_loss',
-            'conser_loss',
-            'critic_loss',
-            'all_loss',
-            'target_q'
-        ] 
+            "cur_lr_q",
+            "td_loss",
+            "conser_loss",
+            "critic_loss",
+            "all_loss",
+            "target_q",
+        ]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
@@ -449,12 +473,12 @@ class QtransformerPolicy(SACPolicy):
             - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.
         """
         ret = {
-            'model': self._learn_model.state_dict(),
-            'ema_model': self._target_model.state_dict(),
-            'optimizer_q': self._optimizer_q.state_dict(),
+            "model": self._learn_model.state_dict(),
+            "target_model": self._target_model.state_dict(),
+            "optimizer_q": self._optimizer_q.state_dict(),
         }
         if self._auto_alpha:
-            ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
+            ret.update({"optimizer_alpha": self._alpha_optim.state_dict()})
         return ret
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -469,14 +493,14 @@ class QtransformerPolicy(SACPolicy):
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
-        self._learn_model.load_state_dict(state_dict['model'])
-        self._target_model.load_state_dict(state_dict['ema_model'])
-        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        self._learn_model.load_state_dict(state_dict["model"])
+        self._target_model.load_state_dict(state_dict["ema_model"])
+        self._optimizer_q.load_state_dict(state_dict["optimizer_q"])
         if self._auto_alpha:
-            self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
+            self._alpha_optim.load_state_dict(state_dict["optimizer_alpha"])
 
     def _init_eval(self) -> None:
-        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model = model_wrap(self._model, wrapper_name="base")
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -499,7 +523,7 @@ class QtransformerPolicy(SACPolicy):
         with torch.no_grad():
             output = self._get_actions(data)
         if self._cuda:
-            output = to_device(output, 'cpu')
+            output = to_device(output, "cpu")
         output = default_decollate(output)
-        output = [{'action': o} for o in output]
+        output = [{"action": o} for o in output]
         return {i: d for i, d in zip(data_id, output)}

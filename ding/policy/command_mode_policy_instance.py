@@ -43,7 +43,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, DiscreteCQLPolicy
-from .qtransformer import  QtransformerPolicy 
+from .qtransformer import  QTransformerPolicy 
 from .dt import DTPolicy
 from .pdqn import PDQNPolicy
 from .madqn import MADQNPolicy
@@ -328,7 +328,7 @@ class DiscreteCQLCommandModePolicy(DiscreteCQLPolicy, EpsCommandModePolicy):
     pass
 
 @POLICY_REGISTRY.register('qtransformer_command')
-class QtransformerCommandModePolicy(QtransformerPolicy):
+class QtransformerCommandModePolicy(QTransformerPolicy):
     pass
 
 @POLICY_REGISTRY.register('dt_command')
