@@ -273,9 +273,9 @@ class QTransformerPolicy(SACPolicy):
             update_type="momentum",
             update_kwargs={"theta": self._cfg.learn.target_theta},
         )
-        self._low = np.array([-1, -1, -1])
-        self._high = np.array([1, 1, 1])
         self._action_bin = self._cfg.model.action_bins
+        self._low = np.full(self._cfg.model.num_actions, -1)
+        self._high = np.full(self._cfg.model.num_actions, 1)
         self._action_values = np.array(
             [
                 np.linspace(min_val, max_val, self._action_bin)
