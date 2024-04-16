@@ -26,7 +26,7 @@ SMAC_10m11m_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
+        multi_agent=True,
         random_collect_size=0,
         model=dict(
             agent_obs_shape=132,
@@ -52,7 +52,6 @@ SMAC_10m11m_masac_default_config = dict(
         collect=dict(
             env_num=collector_env_num,
             n_sample=1600,
-            unroll_len=1,
         ),
         command=dict(),
         eval=dict(
@@ -88,4 +87,4 @@ create_config = SMAC_10m11m_masac_default_create_config
 if __name__ == '__main__':
 
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=int(1e7))
