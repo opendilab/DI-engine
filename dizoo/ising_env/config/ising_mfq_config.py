@@ -8,7 +8,7 @@ dim_spin = 2
 agent_view_sight = 1
 
 ising_mfq_config = dict(
-    exp_name='ising_mfq_seed0_debug',
+    exp_name='ising_mfq_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -24,6 +24,7 @@ ising_mfq_config = dict(
             obs_shape=obs_shape + action_shape,  # for we will concat the pre_action_prob into obs
             action_shape=action_shape,
             encoder_hidden_size_list=[128, 128, 512],
+            init_bias=0,
         ),
         nstep=3,
         discount_factor=0.99,
@@ -53,7 +54,7 @@ ising_mfq_create_config = dict(
         type='ising_model',
         import_names=['dizoo.ising_env.envs.ising_model_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
 ising_mfq_create_config = EasyDict(ising_mfq_create_config)
@@ -65,7 +66,4 @@ if __name__ == '__main__':
     from ding.model import DQN
     seed = 1
     set_pkg_seed(seed)
-    model = DQN(**ising_mfq_config.policy.model)
-    model.head.A[-1][0].bias.data.fill_(0)  # zero last layer bias
-    # print("init model successful")
-    serial_pipeline((main_config, create_config), seed=seed, model=model, max_env_step=5e4)
+    serial_pipeline((main_config, create_config), seed=seed, max_env_step=5e4)

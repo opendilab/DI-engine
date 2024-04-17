@@ -8,18 +8,25 @@ import gym
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
-
-# ising_model_dir = os.path.join(os.path.dirname(__file__), 'ising_model')
-# if ising_model_dir not in sys.path:
-#     sys.path.append(ising_model_dir)
-# from ising_model.multiagent.environment import IsingMultiAgentEnv
-# import ising_model
 from dizoo.ising_env.envs.ising_model.multiagent.environment import IsingMultiAgentEnv
 import dizoo.ising_env.envs.ising_model as ising_model_
 
 
 @ENV_REGISTRY.register('ising_model')
 class IsingModelEnv(BaseEnv):
+    """
+    Overview:
+        Ising Model Environment for Multi-Agent Reinforcement Learning according to the paper: \
+        [Mean Field Multi-Agent Reinforcement Learning](https://arxiv.org/abs/1802.05438). \
+        The environment is a grid of agents, each of which can be in one of two states: \
+        spin up or spin down. The agents interact with their neighbors according to the Ising model, \
+        and the goal is to maximize the global order parameter, which is the average spin of all agents. \
+        Details of the environment can be found in the \
+        [DI-engine-Doc](https://di-engine-docs.readthedocs.io/zh-cn/latest/13_envs/index.html).
+    Interface:
+        `__init__`, `reset`, `close`, `seed`, `step`, `random_action`, `num_agents`, \
+        `observation_space`, `action_space`, `reward_space`.
+    """
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg

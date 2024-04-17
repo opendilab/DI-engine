@@ -26,16 +26,17 @@ class DQN(nn.Module):
     """
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            dueling: bool = True,
-            head_hidden_size: Optional[int] = None,
-            head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            dropout: Optional[float] = None
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        dueling: bool = True,
+        head_hidden_size: Optional[int] = None,
+        head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        dropout: Optional[float] = None,
+        init_bias: Optional[float] = None,
     ) -> None:
         """
         Overview:
@@ -99,6 +100,9 @@ class DQN(nn.Module):
                 norm_type=norm_type,
                 dropout=dropout
             )
+            if init_bias is not None and head_cls == DuelingHead:
+                # Zero the last layer bias of advantage head
+                self.head.A[-1][0].bias.data.fill_(init_bias)
 
     def forward(self, x: torch.Tensor) -> Dict:
         """
