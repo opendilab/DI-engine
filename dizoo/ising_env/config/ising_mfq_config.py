@@ -16,6 +16,7 @@ ising_mfq_config = dict(
         num_agents=num_agents,
         dim_spin=dim_spin,
         agent_view_sight=agent_view_sight,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -63,7 +64,6 @@ create_config = ising_mfq_create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ising_mfq_config.py -s 0`
     from ding.entry import serial_pipeline
-    from ding.model import DQN
     seed = 1
     set_pkg_seed(seed)
     serial_pipeline((main_config, create_config), seed=seed, max_env_step=5e4)
