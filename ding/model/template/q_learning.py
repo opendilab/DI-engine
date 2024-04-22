@@ -56,6 +56,7 @@ class DQN(nn.Module):
                 ``ding.torch_utils.fc_block`` for more details. you can choose one of ['BN', 'IN', 'SyncBN', 'LN']
             - dropout (:obj:`Optional[float]`): The dropout rate of the dropout layer. \
                 if ``None`` then default disable dropout layer.
+            - init_bias (:obj:`Optional[float]`): The initial value of the last layer bias in the head network. \
         """
         super(DQN, self).__init__()
         # Squeeze data from tuple, list or dict to single object. For example, from (4, ) to 4
