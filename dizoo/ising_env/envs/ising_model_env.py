@@ -103,7 +103,7 @@ class IsingModelEnv(BaseEnv):
         obs = np.stack(obs)
         obs = np.concatenate([obs, pre_action_prob], axis=1)
         obs = to_ndarray(obs).astype(np.float32)
-        rew = np.concatenate(rew)
+        rew = np.stack(rew)
         self._eval_episode_return += np.sum(rew)
         self.cur_step += 1
 

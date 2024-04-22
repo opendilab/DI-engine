@@ -130,7 +130,10 @@ class Adder(object):
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
             else:
-                data[i]['reward'] = torch.stack([data[i + j]['reward'] for j in range(nstep)], dim=-1)
+                # data[i]['reward'].shape = (1) or (agent_num, 1)
+                # single agent env: shape (1) -> (n_step)
+                # multi-agent env: shape (agent_num, 1) -> (agent_num, n_step)
+                data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)], dim=-1)
             data[i]['done'] = data[i + nstep - 1]['done']
             if correct_terminate_gamma:
                 data[i]['value_gamma'] = gamma ** nstep
@@ -140,7 +143,7 @@ class Adder(object):
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(len(data) - i)])
             else:
-                data[i]['reward'] = torch.stack(
+                data[i]['reward'] = torch.cat(
                     [data[i + j]['reward']
                      for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))],
                     dim=-1
