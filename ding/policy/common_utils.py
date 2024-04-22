@@ -69,7 +69,7 @@ def default_preprocess_learn(
             data['reward'] = reward.transpose(0, 1).contiguous()
         elif reward.ndim == 3:
             # For a 3D tensor, move the last dimension to the front to get (nstep, batch_size, agent_dim)
-            data['reward'] = reward.permute(1, 2, 0).contiguous()
+            data['reward'] = reward.permute(2, 0, 1).contiguous()
         else:
             raise ValueError("The 'reward' tensor must be either 2D or 3D. Got shape: {}".format(reward.shape))
     else:

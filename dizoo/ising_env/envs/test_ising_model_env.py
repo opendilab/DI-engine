@@ -32,7 +32,7 @@ class TestIsingModelEnv:
                 assert isinstance(timestep.obs, np.ndarray)
                 assert isinstance(timestep.done, bool)
                 assert timestep.obs.shape == (num_agents, 4 + 2)
-                assert timestep.reward.shape == (num_agents, )
+                assert timestep.reward.shape == (num_agents, 1)
                 assert timestep.reward[0] >= env.reward_space.low
                 assert timestep.reward[0] <= env.reward_space.high
         print(env.observation_space, env.action_space, env.reward_space)

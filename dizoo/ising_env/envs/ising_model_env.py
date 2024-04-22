@@ -1,10 +1,12 @@
-from typing import Any, Union, List
+from typing import Any, Optional
 import copy
 import os
 import sys
 import numpy as np
 from numpy import dtype
 import gym
+import matplotlib.pyplot as plt
+import imageio
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
@@ -34,6 +36,7 @@ class IsingModelEnv(BaseEnv):
         self._action_space = gym.spaces.Discrete(cfg.dim_spin)  # default 2
         self._observation_space = gym.spaces.MultiBinary(4 * cfg.agent_view_sight)
         self._reward_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
+        self._replay_path = None
 
     def calculate_action_prob(self, actions):
         num_action = self._action_space.n
@@ -80,6 +83,8 @@ class IsingModelEnv(BaseEnv):
         obs = to_ndarray(obs).astype(np.float32)
         self._eval_episode_return = 0
         self.cur_step = 0
+        if self._replay_path is not None:
+            self._frames = []
         return obs
 
     def close(self) -> None:
@@ -107,15 +112,47 @@ class IsingModelEnv(BaseEnv):
         self._eval_episode_return += np.sum(rew)
         self.cur_step += 1
 
+        if self._replay_path is not None:
+            # transform the action to a 2D grid. e.g. (100,) -> (10, 10)
+            action_matrix = action.reshape((int(np.sqrt(self._cfg.num_agents)), -1))
+            self._frames.append(self.render(action_matrix, info))
+
         done = done[0]  # dones are the same for all agents
         if done:
             info['eval_episode_return'] = self._eval_episode_return / self.cur_step
+            if self._replay_path is not None:
+                path = os.path.join(self._replay_path, '{}_episode.gif'.format(self._save_replay_count))
+                self.display_frames_as_gif(self._frames, path)
+                self._save_replay_count += 1
         return BaseEnvTimestep(obs, rew, done, info)
 
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
         random_action = to_ndarray([random_action], dtype=np.int64)
         return random_action
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
+        if not os.path.exists(replay_path):
+            os.makedirs(replay_path)
+        self._save_replay_count = 0
+
+    def render(self, action_matrix, info) -> None:
+        fig, ax = plt.subplots(figsize=(5, 5))
+        ax.imshow(action_matrix, cmap='gray', vmin=0, vmax=1, interpolation='none')
+        ax.set_title(f"Step {self.cur_step}: Order={info['order_param']}, Up={info['ups']}, Down={info['downs']}")
+        # save the figure to buffer
+        fig.canvas.draw()
+        image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
+        image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close(fig)
+        return image
+
+    @staticmethod
+    def display_frames_as_gif(frames: list, output_path: str) -> None:
+        imageio.mimsave(output_path, frames, duration=50)
 
     @property
     def num_agents(self) -> Any:
