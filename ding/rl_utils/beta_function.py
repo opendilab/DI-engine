@@ -14,6 +14,15 @@ beta_function_map['uniform'] = lambda x: x
 # For CPW, eta = 0.71 most closely match human subjects
 # this function is locally concave for small values of τ and becomes locally convex for larger values of τ
 def cpw(x: Union[torch.Tensor, float], eta: float = 0.71) -> Union[torch.Tensor, float]:
+    """
+    Overview:
+        The implementation of CPW function.
+    Arguments:
+        - x (:obj:`Union[torch.Tensor, float]`): The input value.
+        - eta (:obj:`float`): The hyperparameter of CPW function.
+    Returns:
+        - output (:obj:`Union[torch.Tensor, float]`): The output value.
+    """
     return (x ** eta) / ((x ** eta + (1 - x) ** eta) ** (1 / eta))
 
 
@@ -22,6 +31,15 @@ beta_function_map['CPW'] = cpw
 
 # CVaR is risk-averse
 def CVaR(x: Union[torch.Tensor, float], eta: float = 0.71) -> Union[torch.Tensor, float]:
+    """
+    Overview:
+        The implementation of CVaR function, which is a risk-averse function.
+    Arguments:
+        - x (:obj:`Union[torch.Tensor, float]`): The input value.
+        - eta (:obj:`float`): The hyperparameter of CVaR function.
+    Returns:
+        - output (:obj:`Union[torch.Tensor, float]`): The output value.
+    """
     assert eta <= 1.0
     return x * eta
 
@@ -31,6 +49,15 @@ beta_function_map['CVaR'] = CVaR
 
 # risk-averse (eta < 0) or risk-seeking (eta > 0)
 def Pow(x: Union[torch.Tensor, float], eta: float = 0.0) -> Union[torch.Tensor, float]:
+    """
+    Overview:
+        The implementation of Pow function, which is risk-averse when eta < 0 and risk-seeking when eta > 0.
+    Arguments:
+        - x (:obj:`Union[torch.Tensor, float]`): The input value.
+        - eta (:obj:`float`): The hyperparameter of Pow function.
+    Returns:
+        - output (:obj:`Union[torch.Tensor, float]`): The output value.
+    """
     if eta >= 0:
         return x ** (1 / (1 + eta))
     else:

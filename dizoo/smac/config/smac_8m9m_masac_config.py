@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 agent_num = 8
 collector_env_num = 8
@@ -27,7 +26,7 @@ SMAC_8m9m_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
+        multi_agent=True,
         random_collect_size=0,
         model=dict(
             agent_obs_shape=108,

@@ -30,7 +30,12 @@ my_env_ppo_config = dict(
         cuda=True,
         action_space='discrete',
         model=dict(
-            obs_shape=None,
+            obs_shape=dict(
+                key_0=dict(k1=(), k2=()),
+                key_1=(5, 10),
+                key_2=(10, 10, 3),
+                key_3=(2, ),
+            ),
             action_shape=2,
             action_space='discrete',
             critic_head_hidden_size=138,
