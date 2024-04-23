@@ -266,6 +266,8 @@ def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_
         if value_gamma is None:
             return_ = return_tmp + (gamma ** nstep) * next_value * (1 - done)
         else:
+            value_gamma = view_similar(value_gamma, next_value)
+            done = view_similar(done, next_value)
             return_ = return_tmp + value_gamma * next_value * (1 - done)
 
     elif isinstance(gamma, list):
@@ -688,7 +690,10 @@ def q_nstep_td_error(
     if weight is None:
         weight = torch.ones_like(reward)
 
-    if len(action.shape) == 1:  # single agent case
+    if len(action.shape) == 1 or len(action.shape) < len(q.shape):
+        # we need to unsqueeze action and q to make them have the same shape
+        # e.g. single agent case: action is [B, ] and q is [B, ]
+        # e.g. multi agent case: action is [B, agent_num] and q is [B, agent_num, action_shape]
         action = action.unsqueeze(-1)
     elif len(action.shape) > 1:  # MARL case
         reward = reward.unsqueeze(-1)
