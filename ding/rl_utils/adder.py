@@ -23,7 +23,8 @@ class Adder(object):
         Overview:
             Get GAE advantage for stacked transitions(T timestep, 1 batch). Call ``gae`` for calculation.
         Arguments:
-            - data (:obj:`list`): Transitions list, each element is a transition dict with at least ['value', 'reward']
+            - data (:obj:`list`): Transitions list, each element is a transition dict with at least \
+                ``['value', 'reward']``.
             - last_value (:obj:`torch.Tensor`): The last value(i.e.: the T+1 timestep)
             - gamma (:obj:`float`): The future discount factor, should be in [0, 1], defaults to 0.99.
             - gae_lambda (:obj:`float`): GAE lambda parameter, should be in [0, 1], defaults to 0.97, \
@@ -63,7 +64,7 @@ class Adder(object):
         Overview:
             Like ``get_gae`` above to get GAE advantage for stacked transitions. However, this function is designed in
             case ``last_value`` is not passed. If transition is not done yet, it wouold assign last value in ``data``
-            as ``last_value``, discard the last element in ``data``(i.e. len(data) would decrease by 1), and then call
+            as ``last_value``, discard the last element in ``data`` (i.e. len(data) would decrease by 1), and then call
             ``get_gae``. Otherwise it would make ``last_value`` equal to 0.
         Arguments:
             - data (:obj:`deque`): Transitions list, each element is a transition dict with \
@@ -103,7 +104,7 @@ class Adder(object):
     ) -> deque:
         """
         Overview:
-            Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
+            Process raw traj data by updating keys ``['next_obs', 'reward', 'done']`` in data's dict element.
         Arguments:
             - data (:obj:`deque`): Transitions list, each element is a transition dict
             - nstep (:obj:`int`): Number of steps. If equals to 1, return ``data`` directly; \
@@ -121,7 +122,7 @@ class Adder(object):
         """
         if nstep == 1:
             return data
-        fake_reward = torch.zeros(1)
+        fake_reward = torch.zeros_like(data[0]['reward'])
         next_obs_flag = 'next_obs' in data[0]
         for i in range(len(data) - nstep):
             # update keys ['next_obs', 'reward', 'done'] with their n-step value
@@ -130,7 +131,10 @@ class Adder(object):
             if cum_reward:
                 data[i]['reward'] = sum([data[i + j]['reward'] * (gamma ** j) for j in range(nstep)])
             else:
-                data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)])
+                # data[i]['reward'].shape = (1) or (agent_num, 1)
+                # single agent env: shape (1) -> (n_step)
+                # multi-agent env: shape (agent_num, 1) -> (agent_num, n_step)
+                data[i]['reward'] = torch.cat([data[i + j]['reward'] for j in range(nstep)], dim=-1)
             data[i]['done'] = data[i + nstep - 1]['done']
             if correct_terminate_gamma:
                 data[i]['value_gamma'] = gamma ** nstep
@@ -142,7 +146,8 @@ class Adder(object):
             else:
                 data[i]['reward'] = torch.cat(
                     [data[i + j]['reward']
-                     for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))]
+                     for j in range(len(data) - i)] + [fake_reward for _ in range(nstep - (len(data) - i))],
+                    dim=-1
                 )
             data[i]['done'] = data[-1]['done']
             if correct_terminate_gamma:
@@ -159,7 +164,7 @@ class Adder(object):
     ) -> List[Dict[str, Any]]:
         """
         Overview:
-            Process raw traj data by updating keys ['next_obs', 'reward', 'done'] in data's dict element.
+            Process raw traj data by updating keys ``['next_obs', 'reward', 'done']`` in data's dict element.
             If ``unroll_len`` equals to 1, which means no process is needed, can directly return ``data``.
             Otherwise, ``data`` will be splitted according to ``unroll_len``, process residual part according to
             ``last_fn_type`` and call ``lists_to_dicts`` to form sampled training data.

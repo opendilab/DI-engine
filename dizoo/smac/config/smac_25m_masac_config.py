@@ -26,7 +26,7 @@ SMAC_25m_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
+        multi_agent=True,
         random_collect_size=0,
         model=dict(
             agent_obs_shape=306,

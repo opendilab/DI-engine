@@ -61,8 +61,17 @@ def default_preprocess_learn(
         reward = data['reward']
         if len(reward.shape) == 1:
             reward = reward.unsqueeze(1)
-        # reward: (batch_size, nstep) -> (nstep, batch_size)
-        data['reward'] = reward.permute(1, 0).contiguous()
+        # single agent reward: (batch_size, nstep) -> (nstep, batch_size)
+        # multi-agent reward: (batch_size, agent_dim, nstep) -> (nstep, batch_size, agent_dim)
+        # Assuming 'reward' is a PyTorch tensor with shape (batch_size, nstep) or (batch_size, agent_dim, nstep)
+        if reward.ndim == 2:
+            # For a 2D tensor, simply transpose it to get (nstep, batch_size)
+            data['reward'] = reward.transpose(0, 1).contiguous()
+        elif reward.ndim == 3:
+            # For a 3D tensor, move the last dimension to the front to get (nstep, batch_size, agent_dim)
+            data['reward'] = reward.permute(2, 0, 1).contiguous()
+        else:
+            raise ValueError("The 'reward' tensor must be either 2D or 3D. Got shape: {}".format(reward.shape))
     else:
         if data['reward'].dim() == 2 and data['reward'].shape[1] == 1:
             data['reward'] = data['reward'].squeeze(-1)

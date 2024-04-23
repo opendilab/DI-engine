@@ -26,6 +26,7 @@ SMAC_3m_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
+        multi_agent=True,
         random_collect_size=0,
         model=dict(
             agent_obs_shape=42,
@@ -41,7 +42,6 @@ SMAC_3m_masac_default_config = dict(
             learning_rate_q=5e-4,
             learning_rate_policy=5e-4,
             learning_rate_alpha=5e-4,
-            ignore_done=False,
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
@@ -63,7 +63,7 @@ SMAC_3m_masac_default_config = dict(
                 start=1,
                 end=0.05,
                 decay=100000,
-            ),  # TODO(pu)
+            ),
             replay_buffer=dict(replay_buffer_size=1000000, ),
         ),
     ),

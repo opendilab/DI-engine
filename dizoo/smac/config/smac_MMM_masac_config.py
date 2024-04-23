@@ -26,6 +26,7 @@ MMM_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
+        multi_agent=True,
         random_collect_size=0,
         model=dict(
             agent_obs_shape=186,
