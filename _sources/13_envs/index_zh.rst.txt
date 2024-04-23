@@ -53,3 +53,4 @@
    sokoban_zh
    evogym_zh.rst
    metadrive_zh
+   ising_model_zh
