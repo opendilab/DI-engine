@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="google-research-football-gfootball">
-<h1>Google Research Football (Gfootball)<a class="headerlink" href="#google-research-football-gfootball" title="Permalink to this headline">¶</a></h1>
+<h1>Google Research Football (Gfootball)<a class="headerlink" href="#google-research-football-gfootball" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Google Research Football (hereinafter referred to as Gfootball) is a football environment suitable for reinforcement learning research created by the Google team on the basis of the open source football game GamePlay Football.
 Compatible with OpenAI Gym API, it can not only be used for agent training, but also allows players to play games with built-in AI or trained agents with keyboard or gamepad input. The image below shows the rendered Gfootball game environment.</p>
 <figure class="align-center">
@@ -309,7 +309,7 @@ Compatible with OpenAI Gym API, it can not only be used for agent training, but 
 </figure>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Dependency package</p></li>
 </ol>
@@ -357,7 +357,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 <p>For more installation environment related issues, please refer to <a class="reference external" href="https://github.com/google-research/football">Gfootball official website github</a>. In addition, the official also provides a docker image for deploying the environment in the docker environment, you can refer to the <a class="reference external" href="https://github.com/google-research/football/blob/master/gfootball/doc/docker.md">docker deployment document</a>  .</p>
 </section>
 <section id="environment-creation-api">
-<h2>Environment Creation API<a class="headerlink" href="#environment-creation-api" title="Permalink to this headline">¶</a></h2>
+<h2>Environment Creation API<a class="headerlink" href="#environment-creation-api" title="Permalink to this heading">¶</a></h2>
 <p>After importing and creating the environment successfully, you can interact with the environment through the same code as openAI gym:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gfootball.env</span> <span class="k">as</span> <span class="nn">football_env</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">football_env</span><span class="o">.</span><span class="n">create_environment</span><span class="p">(</span>
@@ -403,7 +403,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </div>
 </section>
 <section id="state-space">
-<h2>State Space<a class="headerlink" href="#state-space" title="Permalink to this headline">¶</a></h2>
+<h2>State Space<a class="headerlink" href="#state-space" title="Permalink to this heading">¶</a></h2>
 <p><strong>Generally use raw input information</strong></p>
 <ul class="simple">
 <li><p>Ball Information：</p>
@@ -545,7 +545,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </ul>
 </section>
 <section id="action-space">
-<h2>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h2>
+<h2>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h2>
 <p>Gfootball’s action space is a 19-dimensional discrete action:</p>
 <ul class="simple">
 <li><p>stateless actions</p>
@@ -586,7 +586,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </ul>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>See <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gfootball/entry">DI-zoo
 gfootball</a> for the complete training entry. The configuration file for self-play training with ppo-lstm is as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -699,7 +699,7 @@ gfootball</a> for the complete training entry. The configuration file for self-p
 </div>
 </section>
 <section id="training-example">
-<h2>Training Example<a class="headerlink" href="#training-example" title="Permalink to this headline">¶</a></h2>
+<h2>Training Example<a class="headerlink" href="#training-example" title="Permalink to this heading">¶</a></h2>
 <p>In the state space of DI-engine, after reward design and action space constraints, the winning rate curve of built-in hard AI in self play training is shown in the following figure:</p>
 <a class="reference internal image-reference" href="../_images/gfootball_train.png"><img alt="../_images/gfootball_train.png" class="align-center" src="../_images/gfootball_train.png" style="width: 572.0px; height: 373.6px;" /></a>
 </section>
@@ -775,9 +775,8 @@ gfootball</a> for the complete training entry. The configuration file for self-p
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,12 +299,12 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="how-to-migrate-your-own-environment-to-di-engine">
-<h1>How to migrate your own environment to DI-engine<a class="headerlink" href="#how-to-migrate-your-own-environment-to-di-engine" title="Permalink to this headline">¶</a></h1>
+<h1>How to migrate your own environment to DI-engine<a class="headerlink" href="#how-to-migrate-your-own-environment-to-di-engine" title="Permalink to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> provides users with a large number of commonly used environments for reinforcement learning（ <a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">supported environments</a> ），but in many research and engineering scenarios, users still need to implement an environment by themselves, and expect to quickly migrate it to <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> to meet the relevant specifications of <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code>. Therefore, in this section, we will introduce how to perform the above migration step by step to meet the specification of the environment base class  <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>  of  <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> , so that it can be easily applied in the training pipeline.</p>
 <p>The following introduction will start with <strong>Basic</strong> and <strong>Advanced</strong> . <strong>Basic</strong> describes the functions that must be implemented, and the details that you should pay attention to ; <strong>Advanced</strong> describes some extended functions.</p>
 <p>Then <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> will be introduced , it is a “tool” that can quickly convert simple environments such as ClassicControl, Box2d, Atari, Mujoco, GymHybrid, etc. into environments that conform to <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>. And there is a Q &amp; A at the end.</p>
 <section id="basic">
-<h2>Basic<a class="headerlink" href="#basic" title="Permalink to this headline">¶</a></h2>
+<h2>Basic<a class="headerlink" href="#basic" title="Permalink to this heading">¶</a></h2>
 <p>This section describes the specification constraints that users <strong>MUST</strong> meet, and the features that must be implemented when migrating environments.</p>
 <p>If you want to use the environment in the DI-engine, you need to implement a subclass environment that inherits from  <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>, such as  <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code>. The relationship between  <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code>  and your own environment is a <a class="reference external" href="https://en.wikipedia.org/wiki/Object_composition">composition</a> relationship, that is, within a  <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> instance, there will be an instance of an environment that is native to the user (eg, a gym-type environment).</p>
 <p>Reinforcement learning environments have some common major interfaces that are implemented by most environments, such as <code class="docutils literal notranslate"><span class="pre">reset()</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code>, <code class="docutils literal notranslate"><span class="pre">seed()</span></code>, etc. In DI-engine, <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> will further encapsulate these interfaces. In most cases, Atari will be used as an example to illustrate. For specific code, please refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_env.py">Atari Env</a>  and  <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_wrappers.py">Atari Env Wrapper</a></p>
@@ -408,7 +408,7 @@
 </ol>
 </section>
 <section id="advanced">
-<h2>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h2>
+<h2>Advanced<a class="headerlink" href="#advanced" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic">
 <li><p>Environment preprocessing wrapper</p>
 <p>If many environments are to be used in reinforcement learning training, some preprocessing is required to achieve the purpose of increasing randomness, data normalization, and ease of training. These preprocessing are implemented in the form of wrappers (for the introduction of wrappers, please refer to <a class="reference external" href="./env_wrapper_zh.html">here</a> ）.</p>
@@ -595,12 +595,12 @@ For the usage of the check tool, please refer to <code class="docutils literal n
 </ol>
 </section>
 <section id="dingenvwrapper">
-<h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this headline">¶</a></h2>
+<h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> can quickly convert simple environments such as ClassicControl, Box2d, Atari, Mujoco, GymHybrid, etc., to <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> compliant environments.</p>
 <p>Note: The specific implementation of <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> can be found in <code class="docutils literal notranslate"><span class="pre">ding/envs/env/ding_env_wrapper.py</span></code>, in addition, you can see <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py">Example</a> for more info.</p>
 </section>
 <section id="q-a">
-<h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+<h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic">
 <li><p>How should the MARL environment be migrated?</p>
 <p>You can refer to <a class="reference external" href="../13_envs/competitive_rl_zh.html">Competitive RL</a></p>
@@ -687,9 +687,8 @@ For the usage of the check tool, please refer to <code class="docutils literal n
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

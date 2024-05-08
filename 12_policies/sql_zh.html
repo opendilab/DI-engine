@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sql">
-<h1>SQL<a class="headerlink" href="#sql" title="Permalink to this headline">¶</a></h1>
+<h1>SQL<a class="headerlink" href="#sql" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Soft Q Learning（SQL）是一种异策略（off-policy）的 maximum entropy Q learning 算法，首次在 <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> 中被提出。
 SQL 使用基于能量的模型，在其中通过最大化累积奖励的期望值加上熵项来学习通过玻尔兹曼分布表示的最优策略。
 这样，最终得到的策略具有一种优势，即尝试学习执行任务的所有可能方式，而不仅仅是像其他传统强化学习算法那样只学习执行任务的最佳方式。
@@ -309,7 +309,7 @@ Stein variational gradient descent (SVGD) 被用于学习一个随机采样网�
 该算法的特点包括通过最大熵公式改善探索能力，并具有可以在任务之间传递技能的组合性。</p>
 </section>
 <section id="id2">
-<h2>要点摘要<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>要点摘要<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQL 是一种 <strong>无模型（model-free）</strong> 和 <strong>基于值（value-based）</strong> 的强化学习算法。</p></li>
 <li><p>SQL 是一种 <strong>异策略（off-policy）</strong> 算法。</p></li>
@@ -318,7 +318,7 @@ Stein variational gradient descent (SVGD) 被用于学习一个随机采样网�
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键图表<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键图表<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>SQL是一种最大熵策略的一种，这种策略（最大化熵策略）会选择一个使当前状态下概率最大的动作，同时最大化当前状态的不确定性或信息熵。
 这有助于智能体平衡探索与利用，通过选择使得当前状态的不确定性最大的动作，来探索环境中未知的部分，并在已知部分利用已有的经验。
 SQL考虑了一个更通用的最大熵策略，使得最优策略在每个访问的状态下都旨在最大化其熵值：</p>
@@ -355,13 +355,13 @@ SQL考虑了一个更通用的最大熵策略，使得最优策略在每个访�
 <img alt="../_images/SQL_sto_pi14.png" src="../_images/SQL_sto_pi14.png" />
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>伪代码如下所示：</p>
 <img alt="../_images/SQL.png" src="../_images/SQL.png" />
 <p>其中，方程10、11、13和14可以从上述部分中参考。</p>
 </section>
 <section id="id5">
-<h2>扩展<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>扩展<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>SQL 可以与以下内容结合使用：</p>
 <blockquote>
 <div><ul class="simple">
@@ -373,20 +373,13 @@ Soft Q-Learning</a> 。</p></li>
 </div></blockquote>
 </section>
 <section id="id6">
-<h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>默认配置被定义如下：</p>
 </section>
 <section id="id7">
-<h2>基准<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>基准<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <p>下表显示了DQN、SQL（在离散动作空间中）和SQIL在Lunarlander和Pong环境中的性能基准测试结果。</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 26%" />
-<col style="width: 28%" />
-<col style="width: 29%" />
-<col style="width: 6%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>env / method</p></th>
 <th class="head"><p>DQN</p></th>
@@ -421,7 +414,7 @@ Soft Q-Learning</a> 。</p></li>
 </div>
 </section>
 <section id="id8">
-<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Haarnoja, Tuomas, et al. “Reinforcement learning with deep energy-based policies.” International Conference on Machine Learning. PMLR, 2017.</p></li>
 <li><p>Uhlenbeck, G. E. and Ornstein, L. S. On the theory of the brownian motion. Physical review, 36(5):823, 1930.</p></li>
@@ -437,7 +430,7 @@ the principle of maximum causal entropy. PhD thesis,
 </ul>
 </section>
 <section id="id9">
-<h2>其他开源的实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<h2>其他开源的实现<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/rail-berkeley/softlearning">SQL release repo</a></p></li>
 </ul>
@@ -516,9 +509,8 @@ the principle of maximum causal entropy. PhD thesis,
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

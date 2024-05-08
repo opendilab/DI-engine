@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="diayn">
-<h1>DIAYN<a class="headerlink" href="#diayn" title="Permalink to this headline">¶</a></h1>
+<h1>DIAYN<a class="headerlink" href="#diayn" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>DIAYN (Diversity is All You Need) 首次在论文
 <a class="reference external" href="https://arxiv.org/abs/1802.06070">Diversity is All You Need: Learning Skills without a Reward Function</a> 中提出,
 该算法可以使智能体在不提供奖励信号的环境中，主动学习出一个奖励函数, 并且自动探索出一些有用的技能（skills）。这些学到的技能为很多 RL 任务提供了基石，例如，要找到一个能在任务中获得高回报的策略，通常只需选择具有最大回报的技能就足够了。
@@ -315,7 +315,7 @@
 最后，我们为了鼓励探索，并让学到的技能更加多元，对于每一个技能对应的策略，尽可能地让其动作更加随机。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>DIAYN 是无监督学习的算法</p></li>
 <li><p>训练策略的奖励是由判别器生成，而不是环境给出的奖励</p></li>
@@ -323,7 +323,7 @@
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>DIAYN的算法的整体训练与计算流程如下：</p>
 <figure class="align-center">
 <a class="reference internal image-reference" href="../_images/diayn_process.png"><img alt="" src="../_images/diayn_process.png" style="width: 210.4px; height: 138.4px;" /></a>
@@ -344,7 +344,7 @@
 </figure>
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>以下为DIAYN的伪代码：</p>
 <figure class="align-center">
 <a class="reference internal image-reference" href="../_images/diayn_algorithm.png"><img alt="" src="../_images/diayn_algorithm.png" style="width: 247.60000000000002px; height: 136.8px;" /></a>
@@ -352,10 +352,10 @@
 <p>注意：我们在实现时采用了 off-policy SAC，通过从 buffer 中均匀随机采样 mini-batch 的样本来训练。其中 discriminator 建模为一个神经网络，其输入是观测到的状态，输出是对 skill 的预测分布。</p>
 </section>
 <section id="id5">
-<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>TBD</p>
 <section id="id6">
-<h3>判别器网络<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>判别器网络<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <dl>
 <dt>我们编写的判别器网络是由 <code class="docutils literal notranslate"><span class="pre">linear</span> <span class="pre">encoder</span></code> + <code class="docutils literal notranslate"><span class="pre">regression</span> <span class="pre">head</span></code> 构成</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">discriminator</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">discriminator_head_hidden_size</span><span class="p">),</span>
@@ -437,7 +437,7 @@
 </dl>
 </section>
 <section id="id7">
-<h3>数据收集<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>数据收集<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>在收集数据时，我们会在每个 episode 开始前，通过均匀分布，随机采样出一个技能：</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">collected_sample</span> <span class="o">=</span> <span class="mi">0</span>
@@ -467,7 +467,7 @@
 </section>
 </section>
 <section id="id8">
-<h2>基准算法性能<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>Hopper</p>
 <a class="reference internal image-reference" href="../_images/ezgif.com-gif-maker4.gif"><img alt="../_images/ezgif.com-gif-maker4.gif" src="../_images/ezgif.com-gif-maker4.gif" style="width: 200px; height: 100px;" /></a>
@@ -487,7 +487,7 @@
 </ul>
 </section>
 <section id="id9">
-<h2>参考资料<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<h2>参考资料<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Benjamin Eysenbach, Abhishek Gupta, Julian Ibarz, Sergey Levine. Diversity is All You Need: Learning Skills without a Reward Function. arXiv:1802.06070.</p></li>
 </ol>
@@ -568,9 +568,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,23 +299,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="pendulum">
-<h1>Pendulum<a class="headerlink" href="#pendulum" title="Permalink to this headline">¶</a></h1>
+<h1>Pendulum<a class="headerlink" href="#pendulum" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>The inverted pendulum problem is a classic control problem in reinforcement learning. Pendulum is a continuous control task in the inverted pendulum problem. The pendulum starts at a random position and the goal is to swing up to stay upright. As shown below.</p>
 <img alt="../_images/pendulum.gif" class="align-center" src="../_images/pendulum.gif" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>The Pendulum environment is built into the gym, and you can install the gym directly. Its environment id is <code class="docutils literal notranslate"><span class="pre">Pendulum-v1</span></code> .</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gym
 </pre></div>
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>Run the following Python program, if no error is reported, the installation is successful.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>gym
 <span class="nv">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>gym.make<span class="o">(</span><span class="s1">&#39;Pendulum-v1&#39;</span><span class="o">)</span>
@@ -326,9 +326,9 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </section>
 </section>
 <section id="environment-introduction">
-<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this heading">¶</a></h2>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <p>The action space of Pendulum belongs to the continuous action space.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Control</span> <span class="pre">torque</span></code> : The size range is <code class="docutils literal notranslate"><span class="pre">[-2,</span> <span class="pre">2]</span></code> .</p></li>
@@ -339,7 +339,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </div>
 </section>
 <section id="state-space">
-<h3>State Space<a class="headerlink" href="#state-space" title="Permalink to this headline">¶</a></h3>
+<h3>State Space<a class="headerlink" href="#state-space" title="Permalink to this heading">¶</a></h3>
 <p>The state space of Pendulum has 3 elements that describe the angle and angular velocity of the pendulum. They are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sin</span></code> : The sin value of the angle the pendulum deviates from the vertical direction, the range is <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> .</p></li>
@@ -348,7 +348,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <p>First calculate <code class="docutils literal notranslate"><span class="pre">cost</span></code> , including three terms:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">angle_normalize(th)**2</span></code> : Penalty for the angle difference between the current pendulum and the target position</p></li>
@@ -358,7 +358,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <p>Add the three terms to get <code class="docutils literal notranslate"><span class="pre">cost</span></code> . Finally, the inverse of <code class="docutils literal notranslate"><span class="pre">cost</span></code> , which is <code class="docutils literal notranslate"><span class="pre">-cost</span></code> , is returned as the reward value.</p>
 </section>
 <section id="termination-condition">
-<h3>Termination Condition<a class="headerlink" href="#termination-condition" title="Permalink to this headline">¶</a></h3>
+<h3>Termination Condition<a class="headerlink" href="#termination-condition" title="Permalink to this heading">¶</a></h3>
 <p>The termination condition for each episode of the Pendulum environment is any of the following:</p>
 <ul class="simple">
 <li><p>Reach the maximum step of the episode.</p></li>
@@ -366,14 +366,14 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </section>
 </section>
 <section id="other">
-<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h2>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>Some environments have their own rendering plugins. DI-engine does not support the rendering plug-in that comes with the environment, but generates video recordings by saving the logs during training. For details, please refer to the Visualization &amp; Logging section under the DI-engine <a class="reference external" href="https://opendilab.github.io/DI-engine/quick_start/index.html">official documentation</a> Quick start chapter.</p>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The following provides a complete Pendulum environment config, using the DDPG algorithm as the policy. Please run the <code class="docutils literal notranslate"><span class="pre">pendulum_ddpg_main.py</span></code> file in the <code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/classic_control/pendulum/entry</span></code> directory, as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">gym</span>
@@ -444,12 +444,12 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </div>
 </section>
 <section id="experimental-results">
-<h2>Experimental Results<a class="headerlink" href="#experimental-results" title="Permalink to this headline">¶</a></h2>
+<h2>Experimental Results<a class="headerlink" href="#experimental-results" title="Permalink to this heading">¶</a></h2>
 <p>The experimental results using the DDPG algorithm are as follows. The abscissa is <code class="docutils literal notranslate"><span class="pre">episode</span></code> , and the ordinate is <code class="docutils literal notranslate"><span class="pre">reward_mean</span></code> .</p>
 <a class="reference internal image-reference" href="../_images/pendulum_ddpg.png"><img alt="../_images/pendulum_ddpg.png" class="align-center" src="../_images/pendulum_ddpg.png" style="width: 431.20000000000005px; height: 295.6px;" /></a>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Pendulum <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/envs/classic_control/pendulum.py">source code</a></p></li>
 </ul>
@@ -539,9 +539,8 @@ print<span class="o">(</span>obs<span class="o">)</span>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

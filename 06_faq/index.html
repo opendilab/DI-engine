@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -297,10 +297,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="faq">
-<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this heading">¶</a></h1>
 <section id="frequently-asked-questions">
-<h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h2>
-<div class="contents local topic" id="contents">
+<h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this heading">¶</a></h2>
+<nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#q1-import-packages-warning" id="id2">Q1: Import packages warning</a></p></li>
 <li><p><a class="reference internal" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" id="id3">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></p></li>
@@ -313,15 +313,15 @@
 <li><p><a class="reference internal" href="#q9-what-does-episode-refer-to-in-di-engine" id="id10">Q9: What does “episode” refer to in DI-engine?</a></p></li>
 <li><p><a class="reference internal" href="#q10-does-di-engine-support-the-self-play-mechanism" id="id11">Q10: Does DI-engine support the self-play mechanism?</a></p></li>
 </ul>
-</div>
+</nav>
 <hr class="docutils" />
 <section id="q1-import-packages-warning">
-<h3>Q1: Import packages warning<a class="headerlink" href="#q1-import-packages-warning" title="Permalink to this headline">¶</a></h3>
+<h3>Q1: Import packages warning<a class="headerlink" href="#q1-import-packages-warning" title="Permalink to this heading">¶</a></h3>
 <p><strong>A1:</strong></p>
 <p>Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running DI-engine, generally users can ignore it, and DI-engine will automatically search for corresponding alternative libraries or code implementations during import.</p>
 </section>
 <section id="q2-cannot-use-di-engine-command-line-tool-cli-after-installation">
-<h3>Q2: Cannot use DI-engine command line tool (CLI) after installation<a class="headerlink" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Q2: Cannot use DI-engine command line tool (CLI) after installation<a class="headerlink" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" title="Permalink to this heading">¶</a></h3>
 <p><strong>A2:</strong></p>
 <ul class="simple">
 <li><p>pip with <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag might sometimes make CLI not available. Generally, non-developers do not need to install with <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag, removing the flag and reinstall is sufficient.</p></li>
@@ -329,7 +329,7 @@
 </ul>
 </section>
 <section id="q3-no-permission-error-occurred-during-installation">
-<h3>Q3: “No permission” error occurred during installation<a class="headerlink" href="#q3-no-permission-error-occurred-during-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Q3: “No permission” error occurred during installation<a class="headerlink" href="#q3-no-permission-error-occurred-during-installation" title="Permalink to this heading">¶</a></h3>
 <p><strong>A3:</strong></p>
 <dl class="simple">
 <dt>Due to the lack of corresponding permissions in some operating environments, “Permission denied” may appear during pip installation. The specific reasons and solutions are as follows:</dt><dd><ul class="simple">
@@ -340,7 +340,7 @@
 </dl>
 </section>
 <section id="q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">
-<h3>Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code><a class="headerlink" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager" title="Permalink to this headline">¶</a></h3>
+<h3>Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code><a class="headerlink" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager" title="Permalink to this heading">¶</a></h3>
 <p><strong>A4:</strong></p>
 <p>Add <code class="docutils literal notranslate"><span class="pre">manager</span></code> field to the <code class="docutils literal notranslate"><span class="pre">env</span></code> field in cfg file, you can specify whether to use <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> as well as the context of multiprocessing launch. The following code provides a simple example. For detailed parameter information, please refer to <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code>.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -352,9 +352,9 @@
 </div>
 </section>
 <section id="q5-how-to-adjust-the-learning-rate">
-<h3>Q5: How to adjust the learning rate<a class="headerlink" href="#q5-how-to-adjust-the-learning-rate" title="Permalink to this headline">¶</a></h3>
+<h3>Q5: How to adjust the learning rate<a class="headerlink" href="#q5-how-to-adjust-the-learning-rate" title="Permalink to this heading">¶</a></h3>
 <dl class="field-list simple">
-<dt class="field-odd">A5</dt>
+<dt class="field-odd">A5<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
 <p>Add <code class="docutils literal notranslate"><span class="pre">lr_scheduler</span></code> module in the entry file.
@@ -385,7 +385,7 @@ The following code provides a simple example. For more detail, see demo: <a clas
 <a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
 </section>
 <section id="q6-how-to-understand-the-printed-evaluator-information">
-<h3>Q6: How to understand the printed [EVALUATOR] information<a class="headerlink" href="#q6-how-to-understand-the-printed-evaluator-information" title="Permalink to this headline">¶</a></h3>
+<h3>Q6: How to understand the printed [EVALUATOR] information<a class="headerlink" href="#q6-how-to-understand-the-printed-evaluator-information" title="Permalink to this heading">¶</a></h3>
 <p><strong>A6:</strong></p>
 <p>We print out the evaluation information of <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253">interaction_serial_evaluator.py</a> ,
 including <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">final</span> <span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">episode</span></code>, which represent the <code class="docutils literal notranslate"><span class="pre">eval_env</span></code> index (<code class="docutils literal notranslate"><span class="pre">env_id</span></code>) corresponding to the current completed episode (in which <code class="docutils literal notranslate"><span class="pre">timestep.done=True</span></code>),
@@ -408,7 +408,7 @@ Thus there may be a case where the corresponding log information of an <code cla
 do not adversely affect the evaluation results, so the users don’t need to be worried about these repeated logs.</p>
 </section>
 <section id="q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination">
-<h3>Q7: Is there any documentation for the config file in DI-engine? How can I set the fields in the config file to control training termination?<a class="headerlink" href="#q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination" title="Permalink to this headline">¶</a></h3>
+<h3>Q7: Is there any documentation for the config file in DI-engine? How can I set the fields in the config file to control training termination?<a class="headerlink" href="#q7-is-there-any-documentation-for-the-config-file-in-di-engine-how-can-i-set-the-fields-in-the-config-file-to-control-training-termination" title="Permalink to this heading">¶</a></h3>
 <p><strong>A7:</strong></p>
 <p>For a detailed introduction to the <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/config_zh.html">configuration file system in DI-engine, please refer to the Configuration File System Documentation</a>. In DI-engine, there are generally three types of termination settings:</p>
 <ul class="simple">
@@ -434,7 +434,7 @@ do not adversely affect the evaluation results, so the users don’t need to be 
 <p>Reinforcement learning-related configuration files can be complex. If there are any details you don’t understand, please feel free to ask!</p>
 </section>
 <section id="q8-di-engine-installation-related-questions">
-<h3>Q8: DI-engine installation-related questions.<a class="headerlink" href="#q8-di-engine-installation-related-questions" title="Permalink to this headline">¶</a></h3>
+<h3>Q8: DI-engine installation-related questions.<a class="headerlink" href="#q8-di-engine-installation-related-questions" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p><strong>Q8-1</strong> Can DI-engine be installed using pip?</p>
 <p><strong>A8-1:</strong></p>
@@ -460,12 +460,12 @@ do not adversely affect the evaluation results, so the users don’t need to be 
 </ul>
 </section>
 <section id="q9-what-does-episode-refer-to-in-di-engine">
-<h3>Q9: What does “episode” refer to in DI-engine?<a class="headerlink" href="#q9-what-does-episode-refer-to-in-di-engine" title="Permalink to this headline">¶</a></h3>
+<h3>Q9: What does “episode” refer to in DI-engine?<a class="headerlink" href="#q9-what-does-episode-refer-to-in-di-engine" title="Permalink to this heading">¶</a></h3>
 <p><strong>A9:</strong></p>
 <p>It is not an original concept in reinforcement learning but originates from gaming. It is similar to the concept of a “level” and refers to the process where an agent starts playing a game until it reaches a game over or successfully completes the game. In essence, it represents a complete cycle of interaction with the environment, such as a game session or a game of Go.</p>
 </section>
 <section id="q10-does-di-engine-support-the-self-play-mechanism">
-<h3>Q10: Does DI-engine support the self-play mechanism?<a class="headerlink" href="#q10-does-di-engine-support-the-self-play-mechanism" title="Permalink to this headline">¶</a></h3>
+<h3>Q10: Does DI-engine support the self-play mechanism?<a class="headerlink" href="#q10-does-di-engine-support-the-self-play-mechanism" title="Permalink to this heading">¶</a></h3>
 <p><strong>A10:</strong></p>
 <p>Yes, it is supported. The simplest examples can be found in the <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/league_demo">league demo</a> and <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley">slime volleyball</a> in the <code class="docutils literal notranslate"><span class="pre">dizoo</span></code> directory.</p>
 </section>
@@ -548,9 +548,8 @@ do not adversely affect the evaluation results, so the users don’t need to be 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

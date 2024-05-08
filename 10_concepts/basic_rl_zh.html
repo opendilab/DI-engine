@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>基本概念<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>基本概念<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <p>强化学习 (reinforcement learning，RL)
 主要专注于智能体（agent）如何选择最优动作以最大化环境（environment）给出的累计折扣奖励/回报（cumulated
 discounted reward/return）。首先简单描述智能体与环境交互 (interaction)
@@ -324,7 +324,7 @@ discounted reward/return）。首先简单描述智能体与环境交互 (intera
 </ul>
 <p>最后还回答了一些强化学习领域中常见的概念性问题，以供参考。</p>
 <section id="mdp">
-<h2>马尔可夫决策过程/MDP<a class="headerlink" href="#mdp" title="Permalink to this headline">¶</a></h2>
+<h2>马尔可夫决策过程/MDP<a class="headerlink" href="#mdp" title="Permalink to this heading">¶</a></h2>
 <p>在强化学习领域，我们通过将智能体与环境交互的过程建模为一个<strong>马尔可夫决策过程
 (Markov Decision Processes， MDP)</strong>
 ，可以说马尔可夫决策过程是强化学习的基本框架。</p>
@@ -349,7 +349,7 @@ property）是指一个随机过程在给定当前时刻状态及所有过去时
 </ul>
 </section>
 <section id="state-spaces">
-<h2>状态空间/State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this headline">¶</a></h2>
+<h2>状态空间/State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this heading">¶</a></h2>
 <p>状态 state，一般用<span class="math notranslate nohighlight">\(s\)</span>表示，是对环境的全局性描述，观测 observation 一般用<span class="math notranslate nohighlight">\(o\)</span>表示，是对环境的局部性描述。一般环境会使用实值向量、矩阵或高阶张量来表示状态和观察的结果。例如，Atari 游戏中使用 RGB 图片来表示游戏环境的信息，MuJoCo 控制任务中使用向量来表示智能体的状态。</p>
 <p>当智能体能够接收到环境全部的状态信息<span class="math notranslate nohighlight">\(s\)</span>
 时，我们称环境为完全可观测的 (fully
@@ -360,14 +360,14 @@ Observable Markov Decision Processes，POMDP)，
 <span class="math notranslate nohighlight">\((S, \Omega, O, A, P, R, \gamma)\)</span>，其中O为观测空间，<span class="math notranslate nohighlight">\(\Omega(o|s,a)\)</span>为观测概率函数，其他与 MDP 的定义类似。</p>
 </section>
 <section id="action-spaces">
-<h2>动作空间/Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this headline">¶</a></h2>
+<h2>动作空间/Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this heading">¶</a></h2>
 <p>不同的环境对应的动作空间一般是不同的。一般将环境中所有有效动作<span class="math notranslate nohighlight">\(a\)</span>
 的集合称之为动作空间 (Action Space)。其中，动作空间又分为离散 (discrete)
 动作空间与连续 (continuous) 动作空间。</p>
 <p>例如在 Atari 游戏与 SMAC 星际游戏中为离散的动作空间，只可以从有限数量的动作中进行选择，而 MuJoCo 等一些机器人连续控制任务中为连续动作空间，动作空间一般为实值向量区间。</p>
 </section>
 <section id="reward-and-return">
-<h2>奖励与回报/Reward and Return<a class="headerlink" href="#reward-and-return" title="Permalink to this headline">¶</a></h2>
+<h2>奖励与回报/Reward and Return<a class="headerlink" href="#reward-and-return" title="Permalink to this heading">¶</a></h2>
 <p><strong>奖励 (reward)</strong> 是智能体所处的环境给强化学习方法的一个学习信号
 (signal)，当环境发生变化时，奖励函数也会发生变化。奖励函数由当前的状态与智能体的动作决定，表示为<span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span>。</p>
 <p><strong>回报 (Return)</strong>,
@@ -375,7 +375,7 @@ Observable Markov Decision Processes，POMDP)，
 表示折扣因子（衰减因子）体现的是未来的奖励在当前时刻的相对重要性，如果接近0，则表明趋向于只评估当前时刻的奖励，接近于1时表明同时考虑长期的奖励。一般情况下，<span class="math notranslate nohighlight">\(\gamma \in [0,1)\)</span>。在很多现实任务对应环境中的奖励函数可能是稀疏的，即并不是每一个状态下环境都会给予奖励，只有在一段轨迹过后才会给出一个奖励。因此在强化学习中，对奖励函数的设计与学习也是一个重要的方向，对强化学习方法的效果有很大的影响。</p>
 </section>
 <section id="policy">
-<h2>策略/Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
+<h2>策略/Policy<a class="headerlink" href="#policy" title="Permalink to this heading">¶</a></h2>
 <p><strong>策略 (policy)</strong>
 决定了智能体面对不同的环境状态时采取的动作，是智能体的动作模型。它本质上是一个函数，用于把输入的状态变成动作。策略可分为两种：随机性策略和确定性策略。当策略为确定的
 (deterministic)，一般用 <span class="math notranslate nohighlight">\(a_t = \mu(s_t)\)</span> 来表示，当策略为随机的
@@ -386,7 +386,7 @@ Observable Markov Decision Processes，POMDP)，
 表示神经网络的参数。但基于价值函数的方法则不一定需要显式地学习策略函数，而是通过学习得到的最优动作值函数中推导出策略，即<span class="math notranslate nohighlight">\(a^{*}=\pi^*(a|s)={\arg \max }_a Q^*(s,a)\)</span>。</p>
 </section>
 <section id="value-functions">
-<h2>价值函数/Value Functions<a class="headerlink" href="#value-functions" title="Permalink to this headline">¶</a></h2>
+<h2>价值函数/Value Functions<a class="headerlink" href="#value-functions" title="Permalink to this heading">¶</a></h2>
 <p><strong>状态价值函数 (state value function)</strong> 是指智能体在状态
 <span class="math notranslate nohighlight">\(s_t\)</span>以及以后的所有时刻都采用策略<span class="math notranslate nohighlight">\(\pi\)</span>
 得到的累计折扣奖励(回报)的期望值：</p>
@@ -455,7 +455,7 @@ return）<span class="math notranslate nohighlight">\(r_t + \gamma V (s_{t+1})\)
 <p>关于基于值函数(又称为 value-based)的强化学习算法的细节，请参考 DQN, Rainbow 等具体算法文档。</p>
 </section>
 <section id="policy-gradients">
-<h2>策略梯度/Policy Gradients<a class="headerlink" href="#policy-gradients" title="Permalink to this headline">¶</a></h2>
+<h2>策略梯度/Policy Gradients<a class="headerlink" href="#policy-gradients" title="Permalink to this heading">¶</a></h2>
 <p>在基于值函数的方法中，我们希望迭代计算得到最优值函数，然后根据最优值函数得到最优动作；RL 方法中还有另外一大类基于策略梯度的方法，直接学习参数化的最优策略。</p>
 <p>下面首先阐述策略梯度定理：</p>
 <p>令 <span class="math notranslate nohighlight">\(\tau\)</span> 表示一条轨迹，初始状态分布为
@@ -487,7 +487,7 @@ return）<span class="math notranslate nohighlight">\(r_t + \gamma V (s_{t+1})\)
 <p>关于基于策略梯度（又称为 policy-based）的强化学习算法的细节，请参考PPO等具体算法文档。</p>
 </section>
 <section id="actor-critic">
-<h2>演员-评论家/Actor Critic<a class="headerlink" href="#actor-critic" title="Permalink to this headline">¶</a></h2>
+<h2>演员-评论家/Actor Critic<a class="headerlink" href="#actor-critic" title="Permalink to this heading">¶</a></h2>
 <p><strong>Critic</strong>，参数化动作值函数，进行策略的价值评估。</p>
 <p><strong>Actor</strong>，参数化的策略函数，按照 Critic 部分得到的价值，利用策略梯度指导策略函数参数的更新。</p>
 <p>总结来说，Actor
@@ -497,7 +497,7 @@ Critic是一种既学习价值函数也学习策略函数的方法，结合了�
 DDPG, TD3, SAC 等具体算法文档。</p>
 </section>
 <section id="model-based-rl">
-<h2>基于模型/Model-based RL<a class="headerlink" href="#model-based-rl" title="Permalink to this headline">¶</a></h2>
+<h2>基于模型/Model-based RL<a class="headerlink" href="#model-based-rl" title="Permalink to this heading">¶</a></h2>
 <p>在 model-free 的 RL 方法中，value-based方法先学习值函数（利用 MC 或 TD 方法），再从最优值函数中提取最优策略，policy-based 方法直接优化策略。</p>
 <p>而 model-based 方法的重点在于如何学习环境模型 (environment
 model) 和如何利用学习好的模型来学习值函数或策略。通过学习环境模型，可以帮助我们提高强化学习方法的样本效率
@@ -508,7 +508,7 @@ model) 和如何利用学习好的模型来学习值函数或策略。通过学�
 <p>在学习好环境模型后，主要有两种使用方法，一种是通过学到的模型生成一些仿真轨迹，在这些仿真轨迹上学习最优值函数进而得到最优策略；另一种是在学到的模型上直接优化策略。</p>
 </section>
 <section id="q-a">
-<h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+<h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>强化学习 (Reinforcement Learning) 与监督学习 (Supervised Learning)
 的本质区别在于？</p></li>
@@ -588,7 +588,7 @@ efficiency)。</p></li>
 </ul>
 </section>
 <section id="id2">
-<h2>参考文献<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/datawhalechina/easy-rl">https://github.com/datawhalechina/easy-rl</a></p></li>
 <li><p><a class="reference external" href="https://rltheorybook.github.io/">https://rltheorybook.github.io/</a></p></li>
@@ -670,9 +670,8 @@ efficiency)。</p></li>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

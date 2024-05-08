@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,15 +299,15 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="ising-model">
-<h1>Ising Model<a class="headerlink" href="#ising-model" title="Permalink to this headline">¶</a></h1>
+<h1>Ising Model<a class="headerlink" href="#ising-model" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>伊辛模型 (Ising Model) 是一种经典的物理模型，用于描述铁磁性材料的微观磁态。在本环境中，该模型被扩展为一个多智能体系统，每个智能体通过局部交互影响整体系统的磁态。智能体的目标是通过改变自身的自旋状态来优化整个系统的有序性。</p>
 </section>
 <section id="id2">
-<h2>环境介绍<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>环境介绍<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>动作空间<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>在 Ising Model 环境中，每个智能体的动作空间是离散的，并且由两种可能的动作组成：</p>
 <ul class="simple">
 <li><p>保持自旋状态不变（通常表示为0）。</p></li>
@@ -321,12 +321,12 @@
 </div>
 </section>
 <section id="id4">
-<h3>状态空间<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>状态空间<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>状态空间由每个智能体的自旋状态和其观察到的邻居智能体的自旋状态组成。每个智能体的自旋状态可以是+1（向上）或-1（向下）。智能体的观察由 <cite>view_sight</cite> 属性定义，该属性决定了智能体可以观察到的邻居范围。</p>
 <p>状态空间可以表示为一个二维数组，其中每个元素对应一个智能体的自旋状态。智能体的局部状态由其 <cite>IsingAgentState</cite> 对象表示，而全局状态由 <cite>IsingWorld</cite> 对象的 <cite>global_state</cite> 属性给出。</p>
 </section>
 <section id="id5">
-<h3>奖励空间<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>在本环境中，奖励是基于智能体自旋状态与邻居自旋状态的一致性。具体来说，奖励计算如下：</p>
 <ul class="simple">
 <li><p>对于每个智能体 i，计算其邻居的自旋状态的平均值。</p></li>
@@ -339,7 +339,7 @@
 </div>
 </section>
 <section id="id6">
-<h3>终止条件<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>终止条件<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>遇到以下任何一种情况，则环境会该认为当前 episode 终止：</p>
 <ul>
 <li><p>达到 episode 的最大上限步数（默认设置为200）</p></li>
@@ -355,13 +355,13 @@
 </section>
 </section>
 <section id="mean-field-marl">
-<h2>Mean field MARL<a class="headerlink" href="#mean-field-marl" title="Permalink to this headline">¶</a></h2>
+<h2>Mean field MARL<a class="headerlink" href="#mean-field-marl" title="Permalink to this heading">¶</a></h2>
 <section id="mean-field">
-<h3>Mean Field 近似<a class="headerlink" href="#mean-field" title="Permalink to this headline">¶</a></h3>
+<h3>Mean Field 近似<a class="headerlink" href="#mean-field" title="Permalink to this heading">¶</a></h3>
 <p>Mean field 近似（见 <a class="reference external" href="https://academic.oup.com/book/8876">Phase Transitions and Critical Phenomena</a> ）是一种数学和统计物理中的方法，用于近似描述大量相互作用粒子的系统。在这种近似中，每个粒子被假设只受到其他所有粒子的平均效应的影响，而不是受到每个单独粒子的影响。这种方法可以简化复杂系统的计算，使得分析和优化变得更加可行。</p>
 </section>
 <section id="id7">
-<h3>Mean Field MARL 算法<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>Mean Field MARL 算法<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>Mean field MARL （见论文 <a class="reference external" href="https://arxiv.org/pdf/1802.05438.pdf">Mean Field Multi-Agent Reinforcement Learning</a> ）算法将 Mean Field 近似的思想应用到多智能体强化学习中。在这种算法中，每个智能体在做出决策时，不再考虑其他所有智能体的个体行为，而是假设其他智能体的行为可以用一个平均场（Mean Field）来表示。这个平均场代表了环境中所有其他智能体的行为分布。</p>
 <p>Mean field MARL 算法主要解决的是集中式多智能体强化学习中，联合动作  <span class="math notranslate nohighlight">\(a\)</span> 的维度随智能体数量n的增多极速扩大的情况。因为每个智能体是同时根据联合策略估计自身的值函数，因此当联合动作空间很大时，学习效率及学习效果非常差。为了解决这个问题，算法将值函数  <span class="math notranslate nohighlight">\(Q_\pi^j(s,a)\)</span> 转化为只包含邻居之间相互作用的形式：</p>
 <div class="math notranslate nohighlight">
@@ -383,7 +383,7 @@
 \[Q_{j,t+1}(s,a_j,\overline a_j)=(1-\alpha)Q_{j,t}(s,a_j,\overline a_j)+\alpha[r_j+\gamma v_{j,t}(s')]\qquad (5)\]</div>
 </section>
 <section id="mean-field-marl-ising-model">
-<h3>Mean Field MARL 算法在 Ising Model 环境中的简单实现<a class="headerlink" href="#mean-field-marl-ising-model" title="Permalink to this headline">¶</a></h3>
+<h3>Mean Field MARL 算法在 Ising Model 环境中的简单实现<a class="headerlink" href="#mean-field-marl-ising-model" title="Permalink to this heading">¶</a></h3>
 <p>我们利用了 DQN 的算法流程和网络结构，只在环境返回的 obs 上做出了改动，即将 agent 周围的邻居的上一步动作的 one-hot 编码平均作为 obs 的一部分和原有 obs 拼接作为新的 obs。</p>
 <p>具体来说，我们在 <cite>IsingModelEnv`</cite> 的 <cite>calculate_action_prob`</cite> 方法中计算了每个智能体的邻居的平均动作，并将其与原始观察值拼接在一起。这样，我们就可以将原始观察值和邻居的动作信息一起输入到神经网络中，以估计每个智能体的 Q 值。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">IsingModelEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
@@ -419,7 +419,7 @@
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/ising_env/config">github
 link</a>
 内，对于具体的配置文件，例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/ising_env/config/ising_mfq_config.py">gym_hybrid_ddpg_config.py</a> ，使用如下命令即可运行：</p>
@@ -428,7 +428,7 @@ link</a>
 </div>
 </section>
 <section id="id8">
-<h2>基准算法性能<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>IsingModelEnv（50k env step 后停止，平均奖励等于 200 说明所有智能体选择了相同的方向，order_param 达到最大）</p>
 <ul class="simple">
@@ -519,9 +519,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -297,13 +297,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="learn-from-di-zoo">
-<h1>Learn From DI-zoo<a class="headerlink" href="#learn-from-di-zoo" title="Permalink to this headline">¶</a></h1>
+<h1>Learn From DI-zoo<a class="headerlink" href="#learn-from-di-zoo" title="Permalink to this heading">¶</a></h1>
 <section id="what-is-di-zoo">
-<h2>What is DI-zoo<a class="headerlink" href="#what-is-di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>What is DI-zoo<a class="headerlink" href="#what-is-di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>DI-zoo is a collection of reinforcement learning environments wrapped with DI-engine. It covers the vast majority of reinforcement learning environments, including basic environments like <a class="reference external" href="https://gym.openai.com/">OpenAI Gym</a>, as well as more complex environments such as <a class="reference external" href="https://github.com/oxwhirl/smac">SMAC</a>. Besides, for each environment, DI-zoo provides the entries of different algorithms with their optimal configurations.</p>
 </section>
 <section id="the-structure-of-di-zoo">
-<h2>The structure of DI-zoo<a class="headerlink" href="#the-structure-of-di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>The structure of DI-zoo<a class="headerlink" href="#the-structure-of-di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>For a certain environment/policy pair, in order to run RL experiment in DI-engine, DI-zoo mainly provides two files: the <code class="docutils literal notranslate"><span class="pre">config.py</span></code> file, including the key configuration required as well as the entry point to run the RL experiment; the <code class="docutils literal notranslate"><span class="pre">env.py</span></code> file, containing the encapsulation of the environment to run in DI-engine.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -320,7 +320,7 @@
 </div>
 </section>
 <section id="how-to-use-di-zoo">
-<h2>How to use DI-zoo<a class="headerlink" href="#how-to-use-di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>How to use DI-zoo<a class="headerlink" href="#how-to-use-di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>You can directly execute the <code class="docutils literal notranslate"><span class="pre">config.py</span></code> file provided by DI-zoo to train a certain environment/policy pair. For CartPole/DQN, you can easily perform the RL experiment with the following code:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dizoo/classic_control/cartpole/config/cartpole_dqn_config.py
 </pre></div>
@@ -337,7 +337,7 @@
 <p>where <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">serial</span></code> means that the training pipeline you call is <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code>. <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">cartpole_dqn_config.py</span></code> means that the <code class="docutils literal notranslate"><span class="pre">config</span></code> file you use is <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code>. <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">0</span></code> means <code class="docutils literal notranslate"><span class="pre">seed</span></code> is 0.</p>
 </section>
 <section id="customization-of-di-zoo">
-<h2>Customization of DI-zoo<a class="headerlink" href="#customization-of-di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>Customization of DI-zoo<a class="headerlink" href="#customization-of-di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>You can customize your training process or tune the performance of your RL experiment by changing the configuration in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>.</p>
 <p>Here we use <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code> as an example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -416,7 +416,7 @@
 </div>
 </section>
 <section id="list-of-algorithms-and-environments-supported-by-di-zoo">
-<h2>List of algorithms and environments supported by DI-zoo<a class="headerlink" href="#list-of-algorithms-and-environments-supported-by-di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>List of algorithms and environments supported by DI-zoo<a class="headerlink" href="#list-of-algorithms-and-environments-supported-by-di-zoo" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference external" href="../12_policies/index.html">The algorithm documentation of DI-engine</a></p>
 <p><a class="reference external" href="../13_envs/index.html">The environment documentation of DI-engine</a></p>
 <p><a class="reference external" href="https://github.com/opendilab/DI-engine#algorithm-versatility">List of supported algorithms</a></p>
@@ -492,9 +492,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

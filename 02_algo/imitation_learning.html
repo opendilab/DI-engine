@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,32 +299,32 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="imitation-learning">
-<h1>Imitation Learning<a class="headerlink" href="#imitation-learning" title="Permalink to this headline">¶</a></h1>
+<h1>Imitation Learning<a class="headerlink" href="#imitation-learning" title="Permalink to this heading">¶</a></h1>
 <section id="problem-definition-and-research-motivation">
-<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
+<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this heading">¶</a></h2>
 <p>Imitation Learning (IL) generally refers to a large class of learning methods in which an agent extracts knowledge from expert data and then imitates the behavior contained in these expert data. Due to the inherent characteristics of IL. It has two main characteristics: it usually requires a large amount of training data, and generally requires that the quality of the training data is good enough. In general, IL can be divided into three directions: IRL (inverse reinforcement learning), BC (behavioral cloning), Adversarial Structured IL, Below we briefly analyze each research direction in this field.</p>
 </section>
 <section id="research-direction">
-<h2>Research Direction<a class="headerlink" href="#research-direction" title="Permalink to this headline">¶</a></h2>
+<h2>Research Direction<a class="headerlink" href="#research-direction" title="Permalink to this heading">¶</a></h2>
 <section id="behavioral-cloning-bc">
-<h3>Behavioral Cloning (BC)<a class="headerlink" href="#behavioral-cloning-bc" title="Permalink to this headline">¶</a></h3>
-<p>BC was first proposed in <a class="footnote-reference brackets" href="#id13" id="id1">1</a>, which proposes a supervised learning method, which directly establishes the state-action mapping relationship by fitting expert data.</p>
-<p>The biggest advantage of BC is that it is simple and efficient, but once the agent encounters some never-before-seen state, it may make fatal mistakes - a problem called “state distribution drift”. To solve this problem, DAgger <a class="footnote-reference brackets" href="#id14" id="id2">2</a> proposed a method to dynamically update the dataset: collect the real state-action pairs encountered with the policy currently being trained, and add these new expert data to the dataset for subsequent policy update. In a recent study, IBC <a class="footnote-reference brackets" href="#id15" id="id3">3</a> proposed implicit action cloning, the key of which is that the neural network accepts both observations and actions, and outputs a energy value that is low for expert actions and high for non-expert actions, thereby turning behavioral cloning into an energy-based modeling problem.</p>
+<h3>Behavioral Cloning (BC)<a class="headerlink" href="#behavioral-cloning-bc" title="Permalink to this heading">¶</a></h3>
+<p>BC was first proposed in <a class="footnote-reference brackets" href="#id13" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, which proposes a supervised learning method, which directly establishes the state-action mapping relationship by fitting expert data.</p>
+<p>The biggest advantage of BC is that it is simple and efficient, but once the agent encounters some never-before-seen state, it may make fatal mistakes - a problem called “state distribution drift”. To solve this problem, DAgger <a class="footnote-reference brackets" href="#id14" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> proposed a method to dynamically update the dataset: collect the real state-action pairs encountered with the policy currently being trained, and add these new expert data to the dataset for subsequent policy update. In a recent study, IBC <a class="footnote-reference brackets" href="#id15" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> proposed implicit action cloning, the key of which is that the neural network accepts both observations and actions, and outputs a energy value that is low for expert actions and high for non-expert actions, thereby turning behavioral cloning into an energy-based modeling problem.</p>
 <p>The current research hotspots of BC algorithms mainly focus on two aspects: meta-learning and behavior cloning using VR devices.</p>
 </section>
 <section id="inverse-reinforcement-learning-irl">
-<h3>Inverse Reinforcement Learning (IRL)<a class="headerlink" href="#inverse-reinforcement-learning-irl" title="Permalink to this headline">¶</a></h3>
+<h3>Inverse Reinforcement Learning (IRL)<a class="headerlink" href="#inverse-reinforcement-learning-irl" title="Permalink to this heading">¶</a></h3>
 <p>Inverse reinforcement learning (IRL) is the problem of inferring the reward function of an agent, given its policy or observed behavior. Specifically, IRL first learns a reward function from expert data, and then uses this reward function for subsequent RL training. IRL can theoretically outperform expert data.</p>
-<p>From the specific work above, Ziebart et al. <a class="footnote-reference brackets" href="#id16" id="id4">4</a> first proposed maximum entropy IRL, which utilizes the maximum entropy distribution to better characterize multimodal behavior for more efficient optimization. In 2016, Finn et al. <a class="footnote-reference brackets" href="#id17" id="id5">5</a> proposed a model-based approach to IRL called guided cost learning, capable of learning arbitrary nonlinear cost functions, such as neural networks, without meticulous feature engineering, and formulate an efficient sample-based approximation for MaxEnt IOC. Subsequently, Hester et al. proposed DQfD <a class="footnote-reference brackets" href="#id18" id="id6">6</a>, which requires only a small amount of expert data, and significantly accelerates the training process through pre-training and a specially designed loss function. T-REX <a class="footnote-reference brackets" href="#id19" id="id7">7</a> propose a novel reward-learning-from-observation algorithm, that extrapolates beyond a set of (approximately) ranked demonstrations in order to infer high-quality reward functions from a set of potentially poor demonstrations.</p>
+<p>From the specific work above, Ziebart et al. <a class="footnote-reference brackets" href="#id16" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> first proposed maximum entropy IRL, which utilizes the maximum entropy distribution to better characterize multimodal behavior for more efficient optimization. In 2016, Finn et al. <a class="footnote-reference brackets" href="#id17" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> proposed a model-based approach to IRL called guided cost learning, capable of learning arbitrary nonlinear cost functions, such as neural networks, without meticulous feature engineering, and formulate an efficient sample-based approximation for MaxEnt IOC. Subsequently, Hester et al. proposed DQfD <a class="footnote-reference brackets" href="#id18" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>, which requires only a small amount of expert data, and significantly accelerates the training process through pre-training and a specially designed loss function. T-REX <a class="footnote-reference brackets" href="#id19" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> propose a novel reward-learning-from-observation algorithm, that extrapolates beyond a set of (approximately) ranked demonstrations in order to infer high-quality reward functions from a set of potentially poor demonstrations.</p>
 </section>
 <section id="adversarial-structured-il">
-<h3>Adversarial Structured IL<a class="headerlink" href="#adversarial-structured-il" title="Permalink to this headline">¶</a></h3>
-<p>The main goal of the Adversarial Structured IL approach is to improve the efficiency of IRL. Even if the IRL algorithm learns a very good reward function, in order to get the final near-optimal policy, it still needs to perform a reinforcement learning step. If the policy can be learned directly from the expert data, the efficiency can be greatly improved. Based on this idea, GAIL <a class="footnote-reference brackets" href="#id20" id="id8">8</a> combines generative network (GAN) and maximum entropy IRL to learn approximate optimal policies without human annotated expert data.</p>
-<p>On this basis, many works have made related improvements to GAIL. For example, InfoGail <a class="footnote-reference brackets" href="#id21" id="id9">9</a> replaced GAN with WGAN and achieved better performance. There are also some recent works such as GoalGAIL <a class="footnote-reference brackets" href="#id22" id="id10">10</a>, TRGAIL <a class="footnote-reference brackets" href="#id23" id="id11">11</a> and DGAIL <a class="footnote-reference brackets" href="#id24" id="id12">12</a> which combine other methods such as post-hoc relabeling and DDPG to achieve faster convergence and better final performance.</p>
+<h3>Adversarial Structured IL<a class="headerlink" href="#adversarial-structured-il" title="Permalink to this heading">¶</a></h3>
+<p>The main goal of the Adversarial Structured IL approach is to improve the efficiency of IRL. Even if the IRL algorithm learns a very good reward function, in order to get the final near-optimal policy, it still needs to perform a reinforcement learning step. If the policy can be learned directly from the expert data, the efficiency can be greatly improved. Based on this idea, GAIL <a class="footnote-reference brackets" href="#id20" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> combines generative network (GAN) and maximum entropy IRL to learn approximate optimal policies without human annotated expert data.</p>
+<p>On this basis, many works have made related improvements to GAIL. For example, InfoGail <a class="footnote-reference brackets" href="#id21" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> replaced GAN with WGAN and achieved better performance. There are also some recent works such as GoalGAIL <a class="footnote-reference brackets" href="#id22" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a>, TRGAIL <a class="footnote-reference brackets" href="#id23" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> and DGAIL <a class="footnote-reference brackets" href="#id24" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a> which combine other methods such as post-hoc relabeling and DDPG to achieve faster convergence and better final performance.</p>
 </section>
 </section>
 <section id="future-study">
-<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this headline">¶</a></h2>
+<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this heading">¶</a></h2>
 <p>There are still many challenges in imitation learning, mainly including the following:</p>
 <ul class="simple">
 <li><p>Generally speaking, it is for a specific task, and there is a lack of imitation learning methods that can be applied to multiple tasks;</p></li>
@@ -334,45 +334,57 @@
 </ul>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
-<dl class="footnote brackets">
-<dt class="label" id="id13"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>Michael Bain and Claude Sammut. 1999. A framework for behavioural cloning. In <em>Machine Intelligence 15</em>. Oxford University Press, 103-129.</p>
-</dd>
-<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p>Stéphane Ross, Geoffffrey Gordon, and Drew Bagnell. 2011. A reduction of imitation learning and structured prediction to no-regret online learning. In <em>Proceedings of the fourteenth international conference on artifificial intelligence and</em> <em>statistics</em>. JMLR Workshop and Conference Proceedings, 627-635.</p>
-</dd>
-<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
-<dd><p>Florence, P. , Lynch, C. , Zeng, A. , Ramirez, O. , Wahid, A. , &amp; Downs, L. , et al. (2021). Implicit behavioral cloning.</p>
-</dd>
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
-<dd><p>Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, and Anind K Dey. 2008. Maximum entropy inverse reinforcement learning.. In <em>Aaai</em>, Vol. 8. Chicago, IL, USA, 1433-1438.</p>
-</dd>
-<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
-<dd><p>Chelsea Finn, Sergey Levine, and Pieter Abbeel. 2016. Guided cost learning: Deep inverse optimal control via policy optimization. In <em>International conference on machine learning</em>. PMLR, 49-58.</p>
-</dd>
-<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
-<dd><p>Todd Hester, Matej Vecerik, Olivier Pietquin, Marc Lanctot, Tom Schaul, Bilal Piot, Dan Horgan, John Quan, Andrew Sendonaris, Gabriel Dulac-Arnold, Ian Osband, John Agapiou, Joel Z. Leibo, and Audrunas Gruslys. 2017. Deep Q learning from Demonstrations. <em>arXiv:1704.03732 [cs]</em> (Nov. 2017). <a class="reference external" href="http://arxiv.org/abs/1704.03732">http://arxiv.org/abs/1704.03732</a> arXiv: 1704.03732.</p>
-</dd>
-<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id7">7</a></span></dt>
-<dd><p>Daniel Brown, Wonjoon Goo, Prabhat Nagarajan, and Scott Niekum. 2019. Extrapolating beyond suboptimal demonstrations via inverse reinforcement learning from observations. In <em>International Conference on Machine Learning</em>. PMLR, 783-792.</p>
-</dd>
-<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id8">8</a></span></dt>
-<dd><p>Jonathan Ho and Stefano Ermon. 2016. Generative Adversarial Imitation Learning. In <em>Advances in Neural Information</em> <em>Processing Systems 29</em>, D. D. Lee, M. Sugiyama, U. V. Luxburg, I. Guyon, and R. Garnett (Eds.). Curran Associates, Inc., 4565-4573. <a class="reference external" href="http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf">http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf</a></p>
-</dd>
-<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id9">9</a></span></dt>
-<dd><p>Yunzhu Li, Jiaming Song, and Stefano Ermon. 2017. InfoGAIL: Interpretable Imitation Learning from Visual Demonstrations. In <em>Advances in Neural Information Processing Systems 30</em>, I. Guyon, U. V. Luxburg, S. Bengio, H. Wallach, R. Fergus, S. Vishwanathan, and R. Garnett (Eds.). Curran Associates, Inc., 3812-3822. <a class="reference external" href="http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf">http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf</a></p>
-</dd>
-<dt class="label" id="id22"><span class="brackets"><a class="fn-backref" href="#id10">10</a></span></dt>
-<dd><p>Yiming Ding, Carlos Florensa, Mariano Phielipp, and Pieter Abbeel. 2019. Goal-conditioned imitation learning. <em>arXiv</em> <em>preprint arXiv:1906.05838</em> (2019).</p>
-</dd>
-<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id11">11</a></span></dt>
-<dd><p>Akira Kinose and Tadahiro Taniguchi. 2020. Integration of imitation learning using GAIL and reinforcement learning using task-achievement rewards via probabilistic graphical model. <em>Advanced Robotics</em> (June 2020), 1-13. <a class="reference external" href="https://doi.org/10.1080/01691864.2020.1778521">https://doi.org/10.1080/01691864.2020.1778521</a></p>
-</dd>
-<dt class="label" id="id24"><span class="brackets"><a class="fn-backref" href="#id12">12</a></span></dt>
-<dd><p>Guoyu Zuo, Kexin Chen, Jiahao Lu, and Xiangsheng Huang. 2020. Deterministic generative adversarial imitation learning. <em>Neurocomputing</em> 388 (May 2020), 60-69. <a class="reference external" href="https://doi.org/10.1016/j.neucom.2020.01.016">https://doi.org/10.1016/j.neucom.2020.01.016</a></p>
-</dd>
-</dl>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id13" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Michael Bain and Claude Sammut. 1999. A framework for behavioural cloning. In <em>Machine Intelligence 15</em>. Oxford University Press, 103-129.</p>
+</aside>
+<aside class="footnote brackets" id="id14" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>Stéphane Ross, Geoffffrey Gordon, and Drew Bagnell. 2011. A reduction of imitation learning and structured prediction to no-regret online learning. In <em>Proceedings of the fourteenth international conference on artifificial intelligence and</em> <em>statistics</em>. JMLR Workshop and Conference Proceedings, 627-635.</p>
+</aside>
+<aside class="footnote brackets" id="id15" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p>Florence, P. , Lynch, C. , Zeng, A. , Ramirez, O. , Wahid, A. , &amp; Downs, L. , et al. (2021). Implicit behavioral cloning.</p>
+</aside>
+<aside class="footnote brackets" id="id16" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<p>Brian D Ziebart, Andrew L Maas, J Andrew Bagnell, and Anind K Dey. 2008. Maximum entropy inverse reinforcement learning.. In <em>Aaai</em>, Vol. 8. Chicago, IL, USA, 1433-1438.</p>
+</aside>
+<aside class="footnote brackets" id="id17" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">5</a><span class="fn-bracket">]</span></span>
+<p>Chelsea Finn, Sergey Levine, and Pieter Abbeel. 2016. Guided cost learning: Deep inverse optimal control via policy optimization. In <em>International conference on machine learning</em>. PMLR, 49-58.</p>
+</aside>
+<aside class="footnote brackets" id="id18" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">6</a><span class="fn-bracket">]</span></span>
+<p>Todd Hester, Matej Vecerik, Olivier Pietquin, Marc Lanctot, Tom Schaul, Bilal Piot, Dan Horgan, John Quan, Andrew Sendonaris, Gabriel Dulac-Arnold, Ian Osband, John Agapiou, Joel Z. Leibo, and Audrunas Gruslys. 2017. Deep Q learning from Demonstrations. <em>arXiv:1704.03732 [cs]</em> (Nov. 2017). <a class="reference external" href="http://arxiv.org/abs/1704.03732">http://arxiv.org/abs/1704.03732</a> arXiv: 1704.03732.</p>
+</aside>
+<aside class="footnote brackets" id="id19" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">7</a><span class="fn-bracket">]</span></span>
+<p>Daniel Brown, Wonjoon Goo, Prabhat Nagarajan, and Scott Niekum. 2019. Extrapolating beyond suboptimal demonstrations via inverse reinforcement learning from observations. In <em>International Conference on Machine Learning</em>. PMLR, 783-792.</p>
+</aside>
+<aside class="footnote brackets" id="id20" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">8</a><span class="fn-bracket">]</span></span>
+<p>Jonathan Ho and Stefano Ermon. 2016. Generative Adversarial Imitation Learning. In <em>Advances in Neural Information</em> <em>Processing Systems 29</em>, D. D. Lee, M. Sugiyama, U. V. Luxburg, I. Guyon, and R. Garnett (Eds.). Curran Associates, Inc., 4565-4573. <a class="reference external" href="http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf">http://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf</a></p>
+</aside>
+<aside class="footnote brackets" id="id21" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">9</a><span class="fn-bracket">]</span></span>
+<p>Yunzhu Li, Jiaming Song, and Stefano Ermon. 2017. InfoGAIL: Interpretable Imitation Learning from Visual Demonstrations. In <em>Advances in Neural Information Processing Systems 30</em>, I. Guyon, U. V. Luxburg, S. Bengio, H. Wallach, R. Fergus, S. Vishwanathan, and R. Garnett (Eds.). Curran Associates, Inc., 3812-3822. <a class="reference external" href="http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf">http://papers.nips.cc/paper/6971-infogail-interpretable-imitation-learning-from-visual-demonstrations.pdf</a></p>
+</aside>
+<aside class="footnote brackets" id="id22" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">10</a><span class="fn-bracket">]</span></span>
+<p>Yiming Ding, Carlos Florensa, Mariano Phielipp, and Pieter Abbeel. 2019. Goal-conditioned imitation learning. <em>arXiv</em> <em>preprint arXiv:1906.05838</em> (2019).</p>
+</aside>
+<aside class="footnote brackets" id="id23" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">11</a><span class="fn-bracket">]</span></span>
+<p>Akira Kinose and Tadahiro Taniguchi. 2020. Integration of imitation learning using GAIL and reinforcement learning using task-achievement rewards via probabilistic graphical model. <em>Advanced Robotics</em> (June 2020), 1-13. <a class="reference external" href="https://doi.org/10.1080/01691864.2020.1778521">https://doi.org/10.1080/01691864.2020.1778521</a></p>
+</aside>
+<aside class="footnote brackets" id="id24" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">12</a><span class="fn-bracket">]</span></span>
+<p>Guoyu Zuo, Kexin Chen, Jiahao Lu, and Xiangsheng Huang. 2020. Deterministic generative adversarial imitation learning. <em>Neurocomputing</em> 388 (May 2020), 60-69. <a class="reference external" href="https://doi.org/10.1016/j.neucom.2020.01.016">https://doi.org/10.1016/j.neucom.2020.01.016</a></p>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -448,9 +460,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="qgpo">
-<h1>QGPO<a class="headerlink" href="#qgpo" title="Permalink to this headline">¶</a></h1>
+<h1>QGPO<a class="headerlink" href="#qgpo" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Q-Guided Policy Optimization(QGPO), proposed in the 2023 paper <a class="reference external" href="https://arxiv.org/abs/2304.12824">Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning</a>, is an actor-critic offline RL algorithm based on energy-based conditional diffusion model.</p>
 <p>Three key components form the basis of the QGPO algorithm: an  <strong>unconditional diffusion model-based behavior policy</strong>, an <strong>action-state value function</strong> driven by an energy function, and an <strong>intermediate energy guidance function</strong>.</p>
 <p>Three key components form the basis of the QGPO algorithm: an  <strong>unconditional diffusion model-based behavior policy</strong>, an <strong>action-state value function</strong> driven by an energy function, and an <strong>intermediate energy guidance function</strong>.</p>
@@ -309,7 +309,7 @@
 <p>Training the <strong>action-state value function</strong> requires the use of a training objective based on the Bellman equation. In order to train the <strong>intermediate energy guidance function</strong>, a method called Contrastive Energy Prediction (CEP) is proposed, which is a contrastive learning objective that focuses on maximizing the mutual information between the energy function and energy guidance across identical state-action pairs.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>QGPO deploys as an <strong>offline</strong> RL algorithm.</p></li>
 <li><p>QGPO works as an <strong>Actor-Critic</strong> RL algorithm.</p></li>
@@ -318,7 +318,7 @@
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>Using Kullback-Leibler divergence as a constraint to optimize the strategy in reinforcement learning, the optimal strategy <span class="math notranslate nohighlight">\(\pi^*\)</span> satisfies:</p>
 <div class="math notranslate nohighlight">
 \[\begin{aligned}
@@ -387,23 +387,23 @@ a_1 &amp;\sim \mathcal{N}(0, I)
 \end{aligned}\end{split}\]</div>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <section id="model">
-<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+<h3>Model<a class="headerlink" href="#model" title="Permalink to this heading">¶</a></h3>
 <p>Here we provide examples of <cite>QGPO</cite> model as default model for <cite>QGPO</cite>.</p>
 </section>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id1">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of QGPO algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -461,13 +461,13 @@ a_1 &amp;\sim \mathcal{N}(0, I)
 <p><strong>Note</strong>: the D4RL environment used in this benchmark can be found <a class="reference external" href="https://github.com/rail-berkeley/d4rl">here</a>.</p>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Lu, Cheng, et al. “Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning.”, 2023; [<a class="reference external" href="https://arxiv.org/abs/2304.12824">https://arxiv.org/abs/2304.12824</a>].</p></li>
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/ChenDRAG/CEP-energy-guided-diffusion">Official implementation</a></p></li>
 </ul>
@@ -547,9 +547,8 @@ a_1 &amp;\sim \mathcal{N}(0, I)
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

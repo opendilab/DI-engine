@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="qmix">
-<h1>QMIX<a class="headerlink" href="#qmix" title="Permalink to this headline">¶</a></h1>
+<h1>QMIX<a class="headerlink" href="#qmix" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>QMIX 是由 <a class="reference external" href="https://arxiv.org/abs/1803.11485">Rashid et al.(2018)</a> 提出的，用于在多智能体集中式训练中学习基于全局状态信息的联合动作价值函数，并从集中式端到端框架中提取分布式执行策略。
 QMIX 使用集中式神经网络来估计联合动作值，作为基于局部观察的每个智能体动作值的复杂非线性组合，这为集中式动作价值函数提供了一种新的表示，并保证了集中式和分散式策略之间的一致性。</p>
 <p>QMIX 是 <a class="reference external" href="https://arxiv.org/abs/1706.05296">VDN(Sunehag et al. 2017)</a> 的非线性扩展。
@@ -309,7 +309,7 @@ QMIX 使用集中式神经网络来估计联合动作值，作为基于局部观
 ) 相比，QMIX 在训练过程中可以通过超网络(hyper-network)输入的全局信息表示更多的额外状态信息（智能体观测范围外），并且可以表示更丰富的动作价值函数类。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>QMIX 使用 <strong>集中式训练与分散式执行(centralized training with decentralized execution)</strong> 的范式。</p></li>
 <li><p>QMIX 是一种 <strong>无模型(model-free)、基于价值(value-based)、异策略(off-policy)、多智能体(multi-agent)</strong> 的强化学习方法。</p></li>
@@ -320,7 +320,7 @@ QMIX 使用集中式神经网络来估计联合动作值，作为基于局部观
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键图形<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键图形<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>VDN 和 QMIX 是使用将联合动作价值函数 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 分解为用于分散执行的个体函数 <span class="math notranslate nohighlight">\(Q_a\)</span> 的思想的代表性方法。</p>
 <p>为了实现集中式训练与分散式执行 (centralized training with decentralized execution CTDE)，我们需要确保在 <span class="math notranslate nohighlight">\(Q_{tot}\)</span> 上执行的全局 <span class="math notranslate nohighlight">\(argmax\)</span> 与在每个 <span class="math notranslate nohighlight">\(Q_a\)</span> 上执行的一组单独的 <span class="math notranslate nohighlight">\(argmax\)</span> 操作产生相同的结果：</p>
 <div class="math notranslate nohighlight">
@@ -342,20 +342,20 @@ QMIX 使用集中式神经网络来估计联合动作值，作为基于局部观
 QTRAN (QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning) 保证了比 VDN 或 QMIX 更一般的分解。</p>
 </section>
 <section id="id5">
-<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>算法的默认设置如下：</p>
 <p>QMIX 使用的网络接口定义如下：</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id8">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id8">
 <caption><span class="caption-text">Benchmark and comparison of qmix algorithm</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -446,7 +446,7 @@ QTRAN (QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Ag
 有关 SMAC 的更多详细信息，请参阅 SMAC Env 教程 <a class="reference external" href="../13_envs/smac_zh.html">SMAC Env Tutorial</a> 。</p>
 </section>
 <section id="id6">
-<h2>引用<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>引用<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p></li>
 <li><p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p></li>
@@ -455,7 +455,7 @@ QTRAN (QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Ag
 </ul>
 </section>
 <section id="id7">
-<h2>其他开源实现<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>其他开源实现<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl/blob/master/src/config/algs/qmix.yaml">pymarl</a></p></li>
 </ul>
@@ -532,9 +532,8 @@ QTRAN (QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Ag
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="bipedalwalker">
-<h1>BipedalWalker<a class="headerlink" href="#bipedalwalker" title="Permalink to this headline">¶</a></h1>
+<h1>BipedalWalker<a class="headerlink" href="#bipedalwalker" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>In the BipedalWalker environment, the agent needs to output 4-dimensional continuous actions to control the 2D biped robot to move forward on rough terrain. Applying motor torque at each step will get a negative reward, and each step forward will get a positive reward. If you successfully move to the farthest point, you can get more than 300 points reward. If the robot falls on the way, it will get -100 points and the game will end. The state of the agent is a 24-dimensional continuous vector, including hull angle speed, angular velocity, horizontal velocity, vertical velocity, joint position and joint angular velocity, marks that the leg touches the ground, and 10 lidar rangefinder measurements . Note that the state vector does not contain the coordinates of the robot.</p>
 <img alt="../_images/bipedal_walker.gif" class="align-center" src="../_images/bipedal_walker.gif" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>Just install the gym and box2d libraries, which can be installed by pip or combined with DI-engine</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>gym
@@ -320,7 +320,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;BipedalWalker-v3&#39;</span><span class="p">)</span>
@@ -330,40 +330,40 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </div>
 </section>
 <section id="image">
-<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this heading">¶</a></h3>
 <p>The image of DI-engine includes its own framework and Atari environment, which can be obtained through <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code>. Get more information? Visit <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a></p>
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The state of the agent is a 24-dimensional continuous vector, including hull angle speed, angular velocity, horizontal velocity, vertical velocity, joint position and joint angular velocity, marks that the leg touches the ground, and 10 lidar rangefinder measurements value. Note that the state vector does not contain the coordinates of the robot.</p></li>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The environment action space is a 4-dimensional continuous vector, and each dimension has a value between [-1, 1].</p></li>
 <li><p>These four-dimensional continuous vectors control the torques of the robot’s four leg joints, respectively. The robot has a total of 2 legs, each leg has two joints (waist joint and knee joint), a total of 4 joints need to be controlled.</p></li>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The robot will get a negative reward for applying motor torque at each step, and a positive reward for each step forward. If it successfully moves to the farthest point, it will get a reward of more than 300 points. If the robot falls on the way, it will get -100 points and the game will end. The reward is a floatnumeric value in the range [-400, 300].</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 </section>
 <section id="other">
-<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h2>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to notice the specific implementation details</p></li>
@@ -372,7 +372,7 @@ hub</a></p>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the  <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>implementation), the code shown below will run an environment episode and save the results of this episode in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.box2d.bipedalwalker.envs</span> <span class="kn">import</span> <span class="n">BipedalWalkerEnv</span>
@@ -392,7 +392,7 @@ hub</a></p>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker/config">github
 link</a>
 For specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">bipedalwalker_td3_config.py</span></code>, use the following demo to run:</p>
@@ -464,7 +464,7 @@ For specific configuration files, such as <code class="docutils literal notransl
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>Average reward more than or equal to 300 is considered as a better agent</p>
 <blockquote>
@@ -562,9 +562,8 @@ For specific configuration files, such as <code class="docutils literal notransl
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

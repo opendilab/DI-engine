@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,17 +299,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="dmc2gym">
-<h1>dmc2gym<a class="headerlink" href="#dmc2gym" title="Permalink to this headline">¶</a></h1>
+<h1>dmc2gym<a class="headerlink" href="#dmc2gym" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>dmc2gym is a light wrapper for <a class="reference external" href="https://github.com/deepmind/dm_control">DeepMind Control Suite</a> , providing standard OpenAI Gym interface.
 DeepMind Control Suite is a set of continuous control tasks with standardized structures and interpretable rewards intended as a performance benchmark for reinforcement learning agents.</p>
 <img alt="../_images/dmc2gym.png" class="align-center" src="../_images/dmc2gym.png" />
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="method">
-<h3>Method<a class="headerlink" href="#method" title="Permalink to this headline">¶</a></h3>
+<h3>Method<a class="headerlink" href="#method" title="Permalink to this heading">¶</a></h3>
 <p>\ <code class="docutils literal notranslate"><span class="pre">gym</span></code>\ , \ <code class="docutils literal notranslate"><span class="pre">dm_control</span></code> \ and \ <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> \ are required to be installed, and users could install from PyPI with the following command: (Please kindly notice <code class="docutils literal notranslate"><span class="pre">dm_control</span></code> should you have further problems, please refer to the official <a class="reference external" href="https://github.com/deepmind/dm_control">related instructions</a>)</p>
 <p>Note: If you need to install the corresponding package to the user directory (If the user does not own root authority,then the corresponding package needs to be installed to the user directory),please add <code class="docutils literal notranslate"><span class="pre">--user</span></code> after the install command.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
@@ -320,7 +320,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dmc2gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">dmc2gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">domain_name</span><span class="o">=</span><span class="s1">&#39;point_mass&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="s1">&#39;easy&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -330,14 +330,14 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </div>
 </section>
 <section id="image">
-<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine image comes with the framwork and the dmc2gym environment, which is available via <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-dmc2gym</span></code>, or by visiting<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>to get more images.</p>
 </section>
 </section>
 <section id="environment-introduction">
-<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this heading">¶</a></h2>
 <section id="select-task">
-<h3>select task<a class="headerlink" href="#select-task" title="Permalink to this headline">¶</a></h3>
+<h3>select task<a class="headerlink" href="#select-task" title="Permalink to this heading">¶</a></h3>
 <p>dm_control contains multiple domains (physical models), and different domains have different tasks (instances of models with specific MDP structures). We have temporarily implemented the following domain and task here:</p>
 <ul>
 <li><p>Ball in cup</p>
@@ -410,13 +410,6 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 <li><p>The corresponding state space, action space, observation space<code class="docutils literal notranslate"><span class="pre">(dim(S),</span> <span class="pre">dim(A),</span> <span class="pre">dim(O))</span></code>are shown in the following table:</p></li>
 </ul>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 21%" />
-<col style="width: 18%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-<col style="width: 19%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Domain</p></th>
 <th class="head"><p>Task</p></th>
@@ -481,9 +474,9 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </div>
 </section>
 <section id="obervation-space">
-<h3>Obervation Space<a class="headerlink" href="#obervation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Obervation Space<a class="headerlink" href="#obervation-space" title="Permalink to this heading">¶</a></h3>
 <section id="based-on-image-observation">
-<h4>Based on Image Observation<a class="headerlink" href="#based-on-image-observation" title="Permalink to this headline">¶</a></h4>
+<h4>Based on Image Observation<a class="headerlink" href="#based-on-image-observation" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>When setting <code class="docutils literal notranslate"><span class="pre">from_pixels=True</span></code>, the observation space is a three-channel game image with height and width respectively.</p></li>
 <li><p>The size of the observed image can be adjusted by setting the <code class="docutils literal notranslate"><span class="pre">height,</span> <span class="pre">width</span></code>parameters.</p></li>
@@ -497,7 +490,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </ul>
 </section>
 <section id="non-image-based-observation">
-<h4>Non-Image Based Observation<a class="headerlink" href="#non-image-based-observation" title="Permalink to this headline">¶</a></h4>
+<h4>Non-Image Based Observation<a class="headerlink" href="#non-image-based-observation" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>When <code class="docutils literal notranslate"><span class="pre">from_pixels=False</span></code>is set, the observation space dimension follows <code class="docutils literal notranslate"><span class="pre">dim(O)</span></code>in the above table</p></li>
 <li><p>The default range is <code class="docutils literal notranslate"><span class="pre">[-inf,</span> <span class="pre">inf]</span></code></p></li>
@@ -505,16 +498,16 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </section>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Action space dimensions follow <code class="docutils literal notranslate"><span class="pre">dim(A)</span></code>in the above table</p></li>
 <li><p>dmc2gym normalizes the action space, the range of each dimension is <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>, the type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>.</p></li>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <section id="image-based-observation">
-<h4>Image Based Observation<a class="headerlink" href="#image-based-observation" title="Permalink to this headline">¶</a></h4>
+<h4>Image Based Observation<a class="headerlink" href="#image-based-observation" title="Permalink to this heading">¶</a></h4>
 <ul>
 <li><p>It is related to the <code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>parameter, which means that each step is based on the image of <code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>frame , and the dimension is <code class="docutils literal notranslate"><span class="pre">(1,)</span></code></p></li>
 <li><p>The range is <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">frame_skip]</span></code>, the type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>, default <code class="docutils literal notranslate"><span class="pre">frame_skip</span> <span class="pre">=</span> <span class="pre">1</span></code></p>
@@ -527,7 +520,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </ul>
 </section>
 <section id="id1">
-<h4>Non-Image Based Observation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<h4>Non-Image Based Observation<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>The dimension is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>, the range is  <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>, the type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>.</p></li>
 </ul>
@@ -535,24 +528,24 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </section>
 </section>
 <section id="other">
-<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h2>
 <section id="abort-condition">
-<h3>Abort Condition<a class="headerlink" href="#abort-condition" title="Permalink to this headline">¶</a></h3>
+<h3>Abort Condition<a class="headerlink" href="#abort-condition" title="Permalink to this heading">¶</a></h3>
 <p>Control tasks are divided into finite-horizon, firstexit and infinite-horizon. DeepMind Control Suite belongs to infinite-horizon, so there is no aborted state or time limit for tasks.</p>
 </section>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to facilitate parallel operations such as environment vectorization, environment instances generally implement lazy initialization , which means <code class="docutils literal notranslate"><span class="pre">__init__</span></code>method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method is used.</p>
 </section>
 <section id="random-seeds">
-<h3>Random Seeds<a class="headerlink" href="#random-seeds" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seeds<a class="headerlink" href="#random-seeds" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations(such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set two seeds through the<code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details.</p></li>
 </ul>
 </section>
 <section id="concrete-implementation-inside-the-environment">
-<h3>Concrete implementation inside the environment<a class="headerlink" href="#concrete-implementation-inside-the-environment" title="Permalink to this headline">¶</a></h3>
+<h3>Concrete implementation inside the environment<a class="headerlink" href="#concrete-implementation-inside-the-environment" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>For the seed of the original environment, set in the <code class="docutils literal notranslate"><span class="pre">reset</span></code>methods of the environment calling function , before the concrete environment implementation  <code class="docutils literal notranslate"><span class="pre">reset</span></code></p></li>
 <li><p>For random library seeds, set the value directly in the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment ; for the seed of the original environment, inside the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method of the calling environment, the specific original environment <code class="docutils literal notranslate"><span class="pre">reset</span></code>was previously set to seed + np_seed, where seed is the value of the aforementioned random library seed,
@@ -560,7 +553,7 @@ np_seed = 100 * np.random.randint(1, 1000).</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method，to specify the path to save the game recording. The environment will automatically save the local video files after each episode ends. (The default implementation of calling <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>），the code shown below will run an environment episode and save the results of this episode in <code class="docutils literal notranslate"><span class="pre">./video/</span></code>：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.dmc2gym.envs</span> <span class="kn">import</span> <span class="n">DMC2GymEnv</span>
@@ -586,7 +579,7 @@ np_seed = 100 * np.random.randint(1, 1000).</p></li>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The complete example file is at  <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/dmc2gym/entry/dmc2gym_save_replay_example.py">github
 link</a></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -754,9 +747,8 @@ link</a></p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

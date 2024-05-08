@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>分布式<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>分布式<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <section id="id2">
-<h2>使用事件系统<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>使用事件系统<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>在开始分布式运行之前，我们先介绍一下 DI-engine 的事件系统，所有远程调用都将使用事件系统。</p>
 <p>事件系统是一种异步编程范式，好处是可以将不同逻辑的代码解耦，增加可读性，由于异步执行，资源利用率也会有一定提升。
 事件系统也有一些缺点，由于异步调用，会给 debug 增加一些困难，我们会在之后的 <a class="reference external" href="../20_spec/index_zh.html">代码规范</a> 中介绍一些避免这类缺陷的方法。</p>
@@ -339,7 +339,7 @@
 <p>这段代码将在一个进程内发送和接收十次 greeting 事件，下面我们来看看怎样在不同的进程使用它们。</p>
 </section>
 <section id="id4">
-<h2>并行化<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>并行化<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Parallel</span></code> 模块是 DI-engine 中的并行模块，它将使您的 main 函数在多个进程中运行。
 它在内部集成了一个消息中间件，配合 task 的事件系统，您可以无感知的在进程间传递信息。</p>
 <a class="reference internal image-reference" href="../_images/event_system.png"><img alt="../_images/event_system.png" class="align-center" src="../_images/event_system.png" style="width: 600px;" /></a>
@@ -368,7 +368,7 @@
 </div>
 </section>
 <section id="kubernetes">
-<h2>在 Kubernetes 上部署<a class="headerlink" href="#kubernetes" title="Permalink to this headline">¶</a></h2>
+<h2>在 Kubernetes 上部署<a class="headerlink" href="#kubernetes" title="Permalink to this heading">¶</a></h2>
 <p>我们等价看待分布式运行和多进程运行，所以在代码上不需要做任何修改，即可从单机扩展到多机环境。
 但是我们更推荐使用 kubernetes 来部署 DI-engine，以便更好的利用任务管理和资源隔离技术。</p>
 <p>为了能在 kubernetes 上一键运行，我们推荐使用 DI-engine 提供的命令行工具 <code class="docutils literal notranslate"><span class="pre">ditask</span></code> 来代替直接通过 python 脚本启动程序。
@@ -415,7 +415,7 @@
 </div>
 </section>
 <section id="worker-job-pod-task-node">
-<h2>Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …<a class="headerlink" href="#worker-job-pod-task-node" title="Permalink to this headline">¶</a></h2>
+<h2>Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …<a class="headerlink" href="#worker-job-pod-task-node" title="Permalink to this heading">¶</a></h2>
 <p>由于 DI-engine 支持单机，k8s 和 slurm 多种方式部署，而 k8s，slurm 本身也有类似 node 和 task 之类的概念，为了避免混淆，在此处做出一些说明。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
@@ -518,9 +518,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

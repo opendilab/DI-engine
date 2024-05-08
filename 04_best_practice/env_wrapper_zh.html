@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,14 +299,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="env-wrapper">
-<h1>如何使用 Env Wrapper 快速构建决策环境<a class="headerlink" href="#env-wrapper" title="Permalink to this headline">¶</a></h1>
+<h1>如何使用 Env Wrapper 快速构建决策环境<a class="headerlink" href="#env-wrapper" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>为什么需要 Env Wrapper<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>为什么需要 Env Wrapper<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>环境模块是强化学习领域中最重要的模块之一。 我们在这些环境中训练我们的智能体，让他们在这些环境中探索和学习。强化学习中除了一些基准环境，例如 atari，mujoco 外，还可能包括各种各样自定义的环境。总的来说 Env Wrapper (包裹器) 的本质就是向我们自定义的环境中添加某些通用的附加功能。
 比如说：在训练智能体时，我们经常需要改变环境的定义以追求更好的训练效果， 而这些处理技巧也具备一定的普适性。如对于一些环境，归一化观测状态是非常常见的预处理方式。这样处理会让训练更快并且更加稳定。 如果我们将这个共同的部分提取出来，并将这个预处理放在环境包裹器（Env Wrapper）中，这样就避免了重复的开发。即如果我们以后想修改观测状态归一化的方式，我们只需要在这个环境包裹器进行更改即可。</p>
 <p>因此，如果原始的环境不能完美地适配我们的需求，我们就需要往其中添加相应的功能模块，来对原始环境的功能进行扩充，使得用户能够方便地对环境的输入和输出进行操作或适配。而 Env Wrapper 正是添加功能的一种简明实现方案。</p>
 <section id="id2">
-<h3>我们提供的 Env Wrapper<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>我们提供的 Env Wrapper<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine 提供了大量已经定义好的、通用的 Env Wrapper，用户可以根据自己的需求直接包裹在需要使用的环境之上。在实现时，我们借鉴了 <a class="reference external" href="https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py">OpenAI Baselines</a> ，并且依然遵循 gym.Wrapper 的格式 <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">Gym.Wrapper</a> ，总共包括以下几种:</p>
 <ul class="simple">
 <li><p>NoopResetEnv：为环境添加重置方法。在一些无操作（no-operations）后重置环境.</p></li>
@@ -330,7 +330,7 @@
 </section>
 </section>
 <section id="id4">
-<h2>如何使用 Env Wrapper<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>如何使用 Env Wrapper<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>下一个问题是我们如何给环境包裹上 Env Wrapper。最简单的一种方法就是手动地显式对环境进行包裹：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>  <span class="c1"># &#39;PongNoFrameskip-v4&#39;</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
@@ -354,7 +354,7 @@
 <p>特别需要说明的是，列表里的 Env Wrapper 是按照顺序包裹在环境外的。如在上面这个例子中，环境先是包裹了一层 MaxAndSkipWrapper ，再包裹了一层 ScaledFloatFrameWrapper。同时 Env Wrapper 的作用是添加功能，但不改变原有的功能。</p>
 </section>
 <section id="id5">
-<h2>如何自定义 Env Wrapper<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>如何自定义 Env Wrapper<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>以 ObsNormEnv wrapper 为例。为了归一化观测状态，我们只需要改变原始环境类中的两个方法：step方法和 reset方法，其余方法保持不变。
 注意有些时候, 由于观测状态经过归一化后的界限改变了，info 也需要做相应的修改。 另请注意，ObsNormEnv wrapper 的本质是向原始环境添加附加功能，这正是包装器的含义. </p>
 <p>另外，由于采样得到数据的分布与策略高度相关，即不同的策略，样本的分布会有很大不同，所以我们使用运行均值和标准差来归一化观测状态，而不是固定均值和标准差 。</p>
@@ -463,9 +463,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

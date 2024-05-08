@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="gail">
-<h1>GAIL<a class="headerlink" href="#gail" title="Permalink to this headline">¶</a></h1>
+<h1>GAIL<a class="headerlink" href="#gail" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>GAIL (Generative Adversarial Imitation Learning) was first proposed in
 <a class="reference external" href="https://arxiv.org/abs/1606.03476">Generative Adversarial Imitation
 Learning</a>, is a general framework
@@ -317,7 +317,7 @@ exposed to “the curse of dimensionality”, which makes the scalability
 much valuable in high-dimension-space problems.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>GAIL consists of a generator and a discriminator, trained in an
 adversarial manner.</p></li>
@@ -329,7 +329,7 @@ methods, like Adam, to distinguish expert and generated data.</p></li>
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>The objective function in GAIL’s adversarial training is as below:</p>
 <figure class="align-center">
 <img alt="../_images/gail_loss.png" src="../_images/gail_loss.png" />
@@ -342,13 +342,13 @@ maximize the objective, while pi has to counter D by minimizing the
 objective.</p>
 </section>
 <section id="pseudo-code">
-<h2>Pseudo-Code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudo-Code<a class="headerlink" href="#pseudo-code" title="Permalink to this heading">¶</a></h2>
 <figure class="align-default">
 <img alt="" src="../_images/GAIL.png" />
 </figure>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>MAGAIL (Multi-Agent Generative Adversarial Imitation Learning)</p>
 <p>Multi-agent systems tend to be much more complicated, due to the
@@ -376,19 +376,12 @@ estimation.</p>
 </ul>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -429,7 +422,7 @@ estimation.</p>
 </table>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Ho, Jonathan, and Stefano Ermon. Making efficient use of demonstrations to solve hard exploration problems. [<a class="reference external" href="https://arxiv.org/abs/1606.03476">https://arxiv.org/abs/1606.03476</a> arXiv:1606.03476], 2019.</p></li>
 <li><p>Song, Jiaming, et al. Multi-agent generative adversarial imitation learning. [<a class="reference external" href="https://arxiv.org/abs/1807.09936">https://arxiv.org/abs/1807.09936</a> arXiv:1807.09936], 2018.</p></li>
@@ -437,7 +430,7 @@ estimation.</p>
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://stable-baselines.readthedocs.io/en/master/modules/gail.html">Baselines</a></p></li>
 <li><p><a class="reference external" href="https://github.com/Khrylx/PyTorch-RL">PyTorch-RL</a></p></li>
@@ -517,9 +510,8 @@ estimation.</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

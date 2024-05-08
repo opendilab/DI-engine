@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="random-seed">
-<h1>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h1>
+<h1>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h1>
 <p>In reinforcement learning, different random numbers as seeds will affect the results of the algorithm. In order to reproduce or fairly compare experimental results of other algorithms, we need to use the same random seeds.</p>
 <p>First, in each entry function, we have a global random “seed” parameter. For example, in <code class="docutils literal notranslate"><span class="pre">ding/entry/serial_entry.py</span></code> ,</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">serial_pipeline</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
@@ -427,9 +427,8 @@ we solved this problem by resetting the relevant seeds in each environment.</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

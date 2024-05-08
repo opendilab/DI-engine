@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="competitive-rl">
-<h1>Competitive RL<a class="headerlink" href="#competitive-rl" title="Permalink to this headline">¶</a></h1>
+<h1>Competitive RL<a class="headerlink" href="#competitive-rl" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Competitive RL 是由香港中文大学（CUHK）开发的一个对抗性游戏环境，环境中允许两个玩家分别控制双方进行对抗。游戏中双方玩家均可以观测到完整的环境信息（例如相同的球局、相同的赛车跑道），并以战胜对方、取得游戏胜利为最终目标。链接为 <a class="reference external" href="https://github.com/cuhkrlcourse/competitive-rl">github repo</a></p>
 <p>Competitive RL 目前提供两种游戏环境：</p>
 <blockquote>
@@ -327,16 +327,16 @@
 </div></blockquote>
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>可以通过 pip 一键安装。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/cuhkrlcourse/competitive-rl.git
 </pre></div>
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">competitive_rl</span>
@@ -360,16 +360,16 @@
 </section>
 </section>
 <section id="id5">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>若为 single agent env，则为实际的游戏画面，RGB 三通道图片，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(210,</span> <span class="pre">160,</span> <span class="pre">3)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>，取值范围为 <code class="docutils literal notranslate"><span class="pre">[0.0,</span>&#160; <span class="pre">255.0]</span></code></p></li>
 <li><p>若为 double agent env，则为一个元组<code class="docutils literal notranslate"><span class="pre">Tuple(Box(210,</span> <span class="pre">160,</span> <span class="pre">3),</span> <span class="pre">Box(210,</span> <span class="pre">160,</span> <span class="pre">3))</span></code>，并将右侧玩家的原始游戏画面沿纵轴对称，使其看起来是左侧玩家的视角。数据类型和取值范围不变。</p></li>
 </ul>
 </section>
 <section id="id7">
-<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>若为 single agent env，则为游戏操作按键空间，即大小为 3 的离散动作空间<code class="docutils literal notranslate"><span class="pre">Discrete(3)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入 python 数值（或是 0 维 np 数组，例如动作 3 为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）。动作的具体的含义是：（与 Atari Pong 略有不同）
 -  0：NOOP
@@ -379,21 +379,21 @@
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>奖励代表游戏得分，是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值，范围是<code class="docutils literal notranslate"><span class="pre">(-inf,</span> <span class="pre">inf)</span></code>。</p></li>
 <li><p>虽然对战有双方，但是由于双方的奖励之和必定为 0 ，故只返回 <strong>左侧玩家</strong> 的奖励。</p></li>
 </ul>
 </section>
 <section id="id9">
-<h3>其他<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏结束即为当前环境episode结束</p></li>
 </ul>
 </section>
 </section>
 <section id="id10">
-<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>若为 double agent env，则会对右侧玩家的观察进行翻转，使得看来两个玩家的视角相同，都是同一边的，因此只需要学习一种策略。</p></li>
 <li><p>类似 Atari Pong。一，由于单帧图像蕴含的信息不足（比如运动方向），需要堆叠多帧图像来解决。二，动作空间为离散。</p></li>
@@ -401,36 +401,36 @@
 </ol>
 </section>
 <section id="rl">
-<h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this heading">¶</a></h2>
 <section id="id11">
-<h3>观察空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：将左右两侧玩家的观察堆叠合并，然后类似Atari Pong操作（灰度图，空间尺寸缩放，最大最小值归一化，堆叠相邻 4 个游戏帧）</p></li>
 <li><p>变换结果：四维np数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(2，</span> <span class="pre">4,</span> <span class="pre">84,</span> <span class="pre">84)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code></p></li>
 </ul>
 </section>
 <section id="id12">
-<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，但允许传回的双方动作为堆叠的 <code class="docutils literal notranslate"><span class="pre">np.ndarry</span></code> 或 <code class="docutils literal notranslate"><span class="pre">list</span></code></p></li>
 <li><p>任一方的动作依然是大小为3的离散动作空间，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
 </ul>
 </section>
 <section id="id13">
-<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>无变换</p></li>
 </ul>
 </section>
 <section id="id14">
-<h3>训练环境与测试环境不同<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<h3>训练环境与测试环境不同<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>训练时允许同时控制左右两侧的两个玩家，所以需要启动 <strong>double</strong> agent env，上述内容都是针对此类环境的。</p></li>
 <li><p>测试时在只允许控制一个玩家（一般为左侧玩家），另一边由内置AI作出动作，所以需要启动 <strong>single</strong> agent env，它的观察空间和动作空间都为 double agent env 的一半，和 Atari Pong 十分类似（除了动作空间）。</p></li>
 </ul>
 </section>
 <section id="id15">
-<h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>如果一个 episode 结束，环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，即整个 episode 的奖励累加和</p></li>
 <li><p>和奖励空间相同，只需要传左侧玩家的<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code></p></li>
@@ -438,13 +438,13 @@
 </section>
 </section>
 <section id="id16">
-<h2>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h2>
 <section id="id17">
-<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this heading">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
 </section>
 <section id="id18">
-<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
 <li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
@@ -453,19 +453,19 @@
 </ul>
 </section>
 <section id="id19">
-<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>训练采用 double agent 环境，测试采用 single agent 环境。</p></li>
 <li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
 </section>
 <section id="id20">
-<h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/competitive_rl/config/cpong_dqn_config.py">github
 link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">pong_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
@@ -479,7 +479,7 @@ link</a>
 </div>
 </section>
 <section id="id21">
-<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this heading">¶</a></h2>
 <p>TBD</p>
 </section>
 </section>
@@ -578,9 +578,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

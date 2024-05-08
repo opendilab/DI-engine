@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,17 +299,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="smac">
-<h1>SMAC<a class="headerlink" href="#smac" title="Permalink to this headline">¶</a></h1>
+<h1>SMAC<a class="headerlink" href="#smac" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>SMAC is an environment for multi-agent collaborative reinforcement learning (MARL) on Blizzard StarCraft II. SMAC uses Blizzard StarCraft 2’s machine learning API and DeepMind’s PySC2 to provide a friendly interface for the interaction between agents and StarCraft 2, which is convenient for developers to observe and execute actions.
 Compared to PySC2, SMAC focuses on a decentralized micro-operation scheme, where each agent of the game is controlled by a separate RL agent.</p>
 <img alt="../_images/smac1.gif" class="align-center" src="../_images/smac1.gif" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>StarCraft 2 game and PySC2 library is needed , the installation method can refer to <a class="reference external" href="https://github.com/opendilab/DI-star">DI-star installation</a></p>
 <p>The installation mainly consists of two parts:</p>
 <p>1. Download the StarCraft 2 game
@@ -325,25 +325,25 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can confirm that the environment variable is set successfully by <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$SC2PATH</span></code> after the installation is successful</p>
 </section>
 <section id="image">
-<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine’s mirror is equipped with the framework itself and the Smac environment, which can be obtained by <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-smac</span></code>, or by accessing <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a>for more mirror</p>
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>You can obtain fragmentary information such as whether each agent is alive, the remaining HP of each agent, allies or enemies within the vision range of each agent.</p></li>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>The game operation button space, generally a discrete action space of size N (N varies with the specific sub-environment), the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, you need to pass in python values ​​(or 0-dimensional np arrays, such as actions 3 is<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code></p></li>
 <li><p>For each map, the action space N is generally equal to 6 + the number of enemies, such as 14 in the 3s5z map and 70 in the 2c_vs_64zg map. The specific meaning is:</p>
@@ -362,20 +362,20 @@ hub</a>for more mirror</p>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game wins or loses, the victory is 1, and the defeat is 0, which is generally an <code class="docutils literal notranslate"><span class="pre">int</span></code>value.</p></li>
 </ul>
 </section>
 <section id="other">
-<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The end of the game is the end of the current environment episode</p></li>
 </ul>
 </section>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>The input is information after combining discrete information</p></li>
 <li><p>Discrete action space</p></li>
@@ -383,29 +383,29 @@ hub</a>for more mirror</p>
 </ol>
 </section>
 <section id="transformed-space-rl-environment">
-<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
-<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transformation content: splicing various discrete information seen by each agent, and using the spliced ​​information as the agent_state seen by each agent and the global global_state</p></li>
 <li><p>Transformation result: a dict type data, which includes agent_state, global_state and action_mask, all of which are a one-dimensional Tensor type array</p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation, still a discrete action space of size N</p></li>
 </ul>
 </section>
 <section id="id3">
-<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transformation content: Set fake_reward, so that the agent can get rewards after making some actions. We set the fake_reward of each step to ‘killed enemy’s blood - lost one’s blood’, and destroying an enemy will reward 20 points, Get 200 points for a global victory</p></li>
 <li><p>Transformation result: a one-dimensional Tensor that contains only one float32 type of data</p></li>
 </ul>
 </section>
 <section id="id4">
-<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Turn on <code class="docutils literal notranslate"><span class="pre">special_global_state</span></code>and the returned global_state is the information spliced ​​into each global information + each agent’s special information. If it is not turned on, only the global information will be returned</p></li>
 <li><p>Turn on <code class="docutils literal notranslate"><span class="pre">special_global_state</span></code>and turn on <code class="docutils literal notranslate"><span class="pre">death_mask</span></code>, if an agent dies, the returned global_state only contains its own ID information, and all other information is masked</p></li>
@@ -415,13 +415,13 @@ hub</a>for more mirror</p>
 </section>
 </section>
 <section id="id5">
-<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to facilitate parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method is used.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details</p></li>
@@ -430,13 +430,13 @@ hub</a>for more mirror</p>
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the<code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method.</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>Use the method provided by `&lt;<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/utils/eval.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/utils/eval.py</a>&gt;`_ to store the video and play the store in the StarCraft 2 game ‘s video.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
@@ -499,7 +499,7 @@ hub</a>for more mirror</p>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config">github
 link</a>
 Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">smac_3s5z_mappo_config.py</span></code>, use the following demo to run:</p>
@@ -603,7 +603,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 <p>Note: For On policy algorithm, use serial_pipeline_onpolicy to enter, for Off policy algorithm, use serial_pipeline to enter</p>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>MMM (1 win rate under 2M env step is considered better performance)</p>
 <blockquote>
@@ -735,9 +735,8 @@ Inside, for specific configuration files, such as <code class="docutils literal 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

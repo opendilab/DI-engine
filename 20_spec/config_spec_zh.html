@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,26 +299,26 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="di-engine-config">
-<h1>DI-engine Config规范<a class="headerlink" href="#di-engine-config" title="Permalink to this headline">¶</a></h1>
+<h1>DI-engine Config规范<a class="headerlink" href="#di-engine-config" title="Permalink to this heading">¶</a></h1>
 <p>开发者提交的 config 需要遵守以下规范，以保证 config 的易用性，可读性，与可扩展性。</p>
 <p>DI-engine 的 config 包括 main_config 和 create_config 两部分。</p>
 <section id="id1">
-<h2>示例链接<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>示例链接<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>普通算法 (DQN) 的示例：</p>
 <p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py</a></p>
 <p>包含模型或数据的算法 (SQIL) 的示例:</p>
 <p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_sqil_config.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_sqil_config.py</a></p>
 </section>
 <section id="id2">
-<h2>规范内容<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>规范内容<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>语法规范<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>语法规范<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>config 需要满足 flake8 python 语法检查, 以及进行 yapf 格式化。</p></li>
 </ul>
 </section>
 <section id="id4">
-<h3>命名规范<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>命名规范<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>config.py 文件名，main_config 和 create_config 相关变量名</p>
 <ul>
@@ -359,7 +359,7 @@ ICM 算法这种，总的算法是论文提出的模块再结合某个基线算�
 </div>
 </section>
 <section id="id5">
-<h3>主要规范<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>主要规范<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>对于 create_config 中的 env_manager 字段，除了简单环境
 cartpole, pendulum, bitflip
@@ -516,9 +516,8 @@ xxx.</p></li>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

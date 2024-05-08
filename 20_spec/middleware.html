@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="middleware-specification">
-<h1>Middleware specification<a class="headerlink" href="#middleware-specification" title="Permalink to this headline">¶</a></h1>
+<h1>Middleware specification<a class="headerlink" href="#middleware-specification" title="Permalink to this heading">¶</a></h1>
 <section id="file-structure-and-naming">
-<h2>File Structure and Naming<a class="headerlink" href="#file-structure-and-naming" title="Permalink to this headline">¶</a></h2>
+<h2>File Structure and Naming<a class="headerlink" href="#file-structure-and-naming" title="Permalink to this heading">¶</a></h2>
 <p>The middleware in DI-engine can be divided into two categories, one we call <code class="docutils literal notranslate"><span class="pre">function</span></code>, which is an atomic operation method,
 focusing on doing one thing with a few lines of code, such as <code class="docutils literal notranslate"><span class="pre">train</span></code> middleware Execute the training of the model;
 The other, which we call <code class="docutils literal notranslate"><span class="pre">module</span></code>, may combine multiple <code class="docutils literal notranslate"><span class="pre">functions</span></code> to perform more complex logic.
@@ -319,12 +319,12 @@ This classification refers to <a class="reference external" href="https://pytorc
 </div>
 </section>
 <section id="class-function-parameter">
-<h2>Class, Function, Parameter<a class="headerlink" href="#class-function-parameter" title="Permalink to this headline">¶</a></h2>
+<h2>Class, Function, Parameter<a class="headerlink" href="#class-function-parameter" title="Permalink to this heading">¶</a></h2>
 <p>When writing <code class="docutils literal notranslate"><span class="pre">function</span></code>, functional-style code is recommended due to the brevity of the code; when writing <code class="docutils literal notranslate"><span class="pre">module</span></code>, classes are recommended. E.g:</p>
 <p>Passing explicitly named arguments is recommended for all functions, passing dict as arguments is deprecated. For too many parameters, we recommend using <a class="reference external" href="https://github.com/opendilab/DI-treetensor">TreeTensor</a>.</p>
 </section>
 <section id="construction-function">
-<h2>Construction Function<a class="headerlink" href="#construction-function" title="Permalink to this headline">¶</a></h2>
+<h2>Construction Function<a class="headerlink" href="#construction-function" title="Permalink to this heading">¶</a></h2>
 <p>Most middleware has two layers of methods, such as the outer function of <code class="docutils literal notranslate"><span class="pre">function</span></code> and the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function of <code class="docutils literal notranslate"><span class="pre">module</span></code>,
 which are used to pass parameters and objects necessary for the middleware to run.</p>
 <p>The return function of <code class="docutils literal notranslate"><span class="pre">function</span></code> and the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method of <code class="docutils literal notranslate"><span class="pre">module</span></code> are the processes that are called cyclically at runtime,
@@ -332,7 +332,7 @@ and only support <code class="docutils literal notranslate"><span class="pre">ct
 <p>It is recommended to instantiate the object externally to pass to the middleware, rather than inside the middleware, to ensure stateless and procedural middleware:</p>
 </section>
 <section id="runtime-function">
-<h2>Runtime Function<a class="headerlink" href="#runtime-function" title="Permalink to this headline">¶</a></h2>
+<h2>Runtime Function<a class="headerlink" href="#runtime-function" title="Permalink to this heading">¶</a></h2>
 <p>When writing the return function of <code class="docutils literal notranslate"><span class="pre">function</span></code> or the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method of <code class="docutils literal notranslate"><span class="pre">module</span></code>, there are a few things to keep in mind:</p>
 <ol class="arabic simple">
 <li><p>If there is an infinite loop in the method, make sure to check the <code class="docutils literal notranslate"><span class="pre">task.finish</span></code> condition to exit:</p></li>
@@ -352,7 +352,7 @@ using the parallel capabilities of DI-engine to execute:</p></li>
 </section>
 </section>
 <section id="event-naming-convention">
-<h1>Event Naming Convention<a class="headerlink" href="#event-naming-convention" title="Permalink to this headline">¶</a></h1>
+<h1>Event Naming Convention<a class="headerlink" href="#event-naming-convention" title="Permalink to this heading">¶</a></h1>
 <p>When using the event mechanism in DI-engine, we agree that events are named according to the following specifications:</p>
 <ol class="arabic simple">
 <li><p>Events with the purpose of broadcasting data are named using <code class="docutils literal notranslate"><span class="pre">(emitting</span> <span class="pre">position)_(data</span> <span class="pre">name)[_(parameter</span> <span class="pre">name)_(parameter</span> <span class="pre">value)]</span></code>, for example: <code class="docutils literal notranslate"><span class="pre">league_job_actor_0</span></code> (broadcast data from league to actor, passing job)</p></li>
@@ -428,9 +428,8 @@ using the parallel capabilities of DI-engine to execute:</p></li>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

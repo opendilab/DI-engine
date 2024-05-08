@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sokoban">
-<h1>Sokoban<a class="headerlink" href="#sokoban" title="Permalink to this headline">¶</a></h1>
+<h1>Sokoban<a class="headerlink" href="#sokoban" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Sokoban is a discrete action space environment. In this game, the agent needs to choose an action from a set of discrete actions, and the goal is to push all the boxes in the room to a specified position.The Sokoban environment here implements the random generation of rooms to avoid deep neural networks training overfitting for predefined rooms.</p>
 <a class="reference internal image-reference" href="../_images/sokoban.gif"><img alt="../_images/sokoban.gif" class="align-center" src="../_images/sokoban.gif" style="width: 112.0px; height: 112.0px;" /></a>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="method">
-<h3>Method<a class="headerlink" href="#method" title="Permalink to this headline">¶</a></h3>
+<h3>Method<a class="headerlink" href="#method" title="Permalink to this heading">¶</a></h3>
 <p>Users could choose to install via pip or pip local installation after git clone the repository.</p>
 <p>Note: If the user does not own root authority, please add <code class="docutils literal notranslate"><span class="pre">--user</span></code> after the install command.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
@@ -321,7 +321,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, run the following Python program, if no error is reported, then the installation is successful.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">gym_sokoban</span>
@@ -333,16 +333,16 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space before transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space before transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observasion-space">
-<h3>Observasion Space<a class="headerlink" href="#observasion-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observasion Space<a class="headerlink" href="#observasion-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The actual game screen, RGB three-channel image, the specific size is <code class="docutils literal notranslate"><span class="pre">(160,</span> <span class="pre">160,</span> <span class="pre">3)</span></code> (take Sokoban-v0 as an example), the data type is <code class="docutils literal notranslate"><span class="pre">uint8</span></code> </p></li>
 <li><p>Each room contains five main elements: wall, floor, box, target point and players, identified in different colors in this game. The color also changes when the box and the player coincide with the target point.</p></li>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game provides 9 kinds of environmental interaction actions, forming a discrete action space of size 9, the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code> , and needs to import python values ​​(or a 0-dimensional np array, for example, action 3 is <code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code> ). Action takes value in 0-8, the specific meaning is:</p>
 <ul>
@@ -362,7 +362,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game score is generally a <code class="docutils literal notranslate"><span class="pre">float</span></code> value, the specific values are as follows:</p>
 <ul>
@@ -375,13 +375,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </section>
 <section id="termination-condition">
-<h3>Termination Condition<a class="headerlink" href="#termination-condition" title="Permalink to this headline">¶</a></h3>
+<h3>Termination Condition<a class="headerlink" href="#termination-condition" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>All boxes are pushed to the target point, or the number of action steps reaches the maximum number max_step , the current environment episode ends. The default max_step is 120 steps, which can be adjusted in config.</p></li>
 </ul>
 </section>
 <section id="buit-in-environment">
-<h3>Buit-in Environment<a class="headerlink" href="#buit-in-environment" title="Permalink to this headline">¶</a></h3>
+<h3>Buit-in Environment<a class="headerlink" href="#buit-in-environment" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Sokoban includes 9 environments, <code class="docutils literal notranslate"><span class="pre">Sokoban-v0</span></code> ,<code class="docutils literal notranslate"><span class="pre">Sokoban-v1</span></code> , <code class="docutils literal notranslate"><span class="pre">Sokoban-v2</span></code> , <code class="docutils literal notranslate"><span class="pre">Sokoban-small-v0</span></code> , <code class="docutils literal notranslate"><span class="pre">Sokoban-small-v1</span></code> ,<code class="docutils literal notranslate"><span class="pre">Sokoban-large-v0</span></code> ,<code class="docutils literal notranslate"><span class="pre">Sokoban-large-v1</span></code> ,<code class="docutils literal notranslate"><span class="pre">Sokoban-large-v2</span></code> ,<code class="docutils literal notranslate"><span class="pre">Sokoban-huge-v0</span></code> .The environments only differs in the size of the room and the number of boxes, and the internal environment of the room is randomly generated.</p></li>
 <li><p>For example, <code class="docutils literal notranslate"><span class="pre">Sokoban-v0</span></code> means the room size is 10*10 and there are 3 boxes in the room. After each reset, the environment will be randomly generated based on the room size and the number of boxes.</p></li>
@@ -390,34 +390,34 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Sparse reward environment, positive reward is only obtained when the box is pushed to the target point. The reward value range is small, the maximum value is 10+N, where N is the number of boxes. The minimum value is -max_step .</p></li>
 <li><p>Discrete action space</p></li>
 </ol>
 </section>
 <section id="other">
-<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to facilitate parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method does not initialize the real original environment case, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method is used.</p>
 </section>
 <section id="random-seeds">
-<h3>Random Seeds<a class="headerlink" href="#random-seeds" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seeds<a class="headerlink" href="#random-seeds" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code> , <code class="docutils literal notranslate"><span class="pre">np.random</span></code> )</p></li>
 <li><p>For the environment caller, just set these two seeds through the ``seed``method of the environment, and do not need to care about the specific implementation details</p></li>
 </ul>
 </section>
 <section id="concrete-implementation-inside-the-environment">
-<h3>Concrete implementation inside the environment<a class="headerlink" href="#concrete-implementation-inside-the-environment" title="Permalink to this headline">¶</a></h3>
+<h3>Concrete implementation inside the environment<a class="headerlink" href="#concrete-implementation-inside-the-environment" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>For the seed of the original environment, set in the <code class="docutils literal notranslate"><span class="pre">reset</span></code> methods of the environment calling function , before the concrete environment implementation  <code class="docutils literal notranslate"><span class="pre">reset</span></code> </p></li>
 <li><p>For the random library seeds, set the value directly in the <code class="docutils literal notranslate"><span class="pre">seed</span></code> methods of the environment</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method，to specify the path to save the game recording. The environment will automatically save the local video files after each episode ends. (The default implementation is to call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> ）, the code shown below will run an environment episode and save the results of this episode in <code class="docutils literal notranslate"><span class="pre">./video/</span></code> ：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.sokoban.envs.sokoban_env</span> <span class="kn">import</span> <span class="n">SokobanEnv</span>
@@ -523,9 +523,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

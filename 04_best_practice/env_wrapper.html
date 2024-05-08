@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,14 +299,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="how-to-construct-environments-easily-with-env-wrapper">
-<h1>How to construct environments easily with Env Wrapper<a class="headerlink" href="#how-to-construct-environments-easily-with-env-wrapper" title="Permalink to this headline">¶</a></h1>
+<h1>How to construct environments easily with Env Wrapper<a class="headerlink" href="#how-to-construct-environments-easily-with-env-wrapper" title="Permalink to this heading">¶</a></h1>
 <section id="why-do-we-need-env-wrapper">
-<h2>Why do we need Env Wrapper<a class="headerlink" href="#why-do-we-need-env-wrapper" title="Permalink to this headline">¶</a></h2>
+<h2>Why do we need Env Wrapper<a class="headerlink" href="#why-do-we-need-env-wrapper" title="Permalink to this heading">¶</a></h2>
 <p>Environment module is one of the most vital modules in reinforcement learning。 We train our agents in these environmnets and we allow them to explore and learn in these envirnments. In addition to a number of benchmark environments (such as atari or mujoco) reinforcement learning may also include a variety of custom environments.Overall，The essence of the Env Wrapper is to add certain generic additional features to our custom environment.
 For instance：When we are training agents, we usually need to change the definition of the environment in order to achieve better training results, and these processing techniques are somewhat universal.For some environments, normalising the observed state is a very common pre-processing method. This processing makes training faster and more stable. If we extract this common part and put this preprocessing in an Env Wrapper, we avoid duplicate development. That is, if we want to change the way we normalise the observation state in the future, we can simply change it in this Env Wrapper.</p>
 <p>Therefore, if the original environment is not perfectly adapted to our needs, we need to add functional modules to it to extend the functionality of the original environment and make it easy for the user to manipulate or adapt the environment’s inputs and outputs. Env Wrapper is a simple solution for adding functionality.</p>
 <section id="env-wrapper-offered-by-di-engine">
-<h3>Env Wrapper offered by DI-engine<a class="headerlink" href="#env-wrapper-offered-by-di-engine" title="Permalink to this headline">¶</a></h3>
+<h3>Env Wrapper offered by DI-engine<a class="headerlink" href="#env-wrapper-offered-by-di-engine" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine provides a large number of pre-defined and generic Env Wrapper. The user can wrap it directly on top of the environment they need to use according to their needs.In the process of implementation，we refered  <a class="reference external" href="https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py">OpenAI Baselines</a> ，and follow the form of gym.Wrapper，which is <a class="reference external" href="https://www.gymlibrary.dev/api/wrappers/">Gym.Wrapper</a> ，In total, these include the following:</p>
 <ul class="simple">
 <li><p>NoopResetEnv：add a reset method to the environment. Reset the environment after some no-operations..</p></li>
@@ -330,7 +330,7 @@ For instance：When we are training agents, we usually need to change the defini
 </section>
 </section>
 <section id="how-to-use-env-wrapper">
-<h2>How to use Env Wrapper<a class="headerlink" href="#how-to-use-env-wrapper" title="Permalink to this headline">¶</a></h2>
+<h2>How to use Env Wrapper<a class="headerlink" href="#how-to-use-env-wrapper" title="Permalink to this heading">¶</a></h2>
 <p>The next question is how to wrap the environment with Env Wrapper. One solution is to wrap the environment manually and explicitly：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>  <span class="c1"># &#39;PongNoFrameskip-v4&#39;</span>
 <span class="n">env</span><span class="o">.</span><span class="n">NoopResetEnv</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span> <span class="o">=</span> <span class="mi">30</span><span class="p">)</span>
@@ -353,7 +353,7 @@ For instance：When we are training agents, we usually need to change the defini
 <p>In particular, the Env Wrappers in the list are wrapped outside the environment in order. In the example above, the Env Wrapper wraps a layer of MaxAndSkipWrapper and then a layer of ScaledFloatFrameWrapper, while the Env Wrapper serves to add functionality but does not change the original functionality.</p>
 </section>
 <section id="how-to-customise-an-env-wrapper-example">
-<h2>How to customise an Env Wrapper (Example)<a class="headerlink" href="#how-to-customise-an-env-wrapper-example" title="Permalink to this headline">¶</a></h2>
+<h2>How to customise an Env Wrapper (Example)<a class="headerlink" href="#how-to-customise-an-env-wrapper-example" title="Permalink to this heading">¶</a></h2>
 <p>Taking ObsNormEnv wrapper as an example. In order to normalise the observed state，we only need to change two methods in the original environment class:step method and reset method, The rest of the method remains the same.
 Note that in some cases, as the normalised bounds of the observed state change, info is needed to be modified accordingly.Please also note that the essence of the ObsNormEnv wrapper is to add additional functionality to the original environment, which is what the wrapper is all about. </p>
 <p>In addition, since the distribution of the sampled data is highly correlated with the strategy, i.e., the distribution of the samples can vary significantly from strategy to strategy, we use running means and standard deviations to normalize the observed states, rather than fixed means and standard deviations.</p>
@@ -462,9 +462,8 @@ Note that in some cases, as the normalised bounds of the observed state change, 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

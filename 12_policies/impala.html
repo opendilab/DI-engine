@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,15 +299,15 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="impala">
-<h1>IMPALA<a class="headerlink" href="#impala" title="Permalink to this headline">¶</a></h1>
+<h1>IMPALA<a class="headerlink" href="#impala" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>IMPALA, or the Importance Weighted Actor Learner Architecture, is an off-policy actor-critic framework that
 decouples data collecting from learning and optimizes policy from experience trajectories using off-policy correction V-trace. This method is firstly
 introduced in <a class="reference external" href="https://arxiv.org/abs/1802.01561">IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures</a>.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>IMPALA is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
 <li><p>IMPALA can support both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces.</p></li>
@@ -318,7 +318,7 @@ introduced in <a class="reference external" href="https://arxiv.org/abs/1802.015
 </ol>
 </section>
 <section id="key-equations">
-<h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this heading">¶</a></h2>
 <p>Loss used in IMPALA is similar to that in PPO, A2C and other value function actor-critic models. All of them come from <code class="docutils literal notranslate"><span class="pre">policy_loss</span></code>,<code class="docutils literal notranslate"><span class="pre">value_loss</span></code> and <code class="docutils literal notranslate"><span class="pre">entropy_loss</span></code>, with respect to some carefully chosen weights, i.e.:</p>
 <div class="math notranslate nohighlight">
 \[loss_{total} = loss_{policy} + w_{value} * loss_{value} + w_{entropy} * loss_{entropy}\]</div>
@@ -368,7 +368,7 @@ loss_{entropy} &amp;= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\
 <p>where <span class="math notranslate nohighlight">\(r_s + \gamma v_{s+1}\)</span> is the v-trace advantage, which is estimated Q value subtracted by a state-dependent baseline <span class="math notranslate nohighlight">\(V_\theta(x_s)\)</span>.</p>
 </section>
 <section id="key-graphs">
-<h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>The following graph describes the distributed architecture in IMPALA original paper. However, our implication is a little different from
 that in original paper.</p>
 <a class="reference internal image-reference" href="../_images/IMPALA.png"><img alt="../_images/IMPALA.png" class="align-center" src="../_images/IMPALA.png" style="width: 503.29999999999995px; height: 375.2px;" /></a>
@@ -379,14 +379,14 @@ will have different ReplayBuffer. While in our setting, all of the learners, wil
 synchronize after each iteration.</p>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <section id="config">
-<h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
+<h3>Config<a class="headerlink" href="#config" title="Permalink to this heading">¶</a></h3>
 <p>The default config is defined as follows:</p>
 <p>The network interface IMPALA used is defined as follows:</p>
 </section>
 <section id="data-processing">
-<h3>Data Processing<a class="headerlink" href="#data-processing" title="Permalink to this headline">¶</a></h3>
+<h3>Data Processing<a class="headerlink" href="#data-processing" title="Permalink to this heading">¶</a></h3>
 <p>Usually, we hope to compute everything as a batch to improve efficiency. Especially, when computing vtrace, we
 need all training sample (sequences of training data) have the same length. This is done in <code class="docutils literal notranslate"><span class="pre">policy._get_train_sample</span></code>.
 Once we execute this function in collector, the length of samples will equal to <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> in config. For details, please
@@ -461,7 +461,7 @@ default and recommended.</p>
 </div>
 </section>
 <section id="optimization">
-<h3>Optimization<a class="headerlink" href="#optimization" title="Permalink to this headline">¶</a></h3>
+<h3>Optimization<a class="headerlink" href="#optimization" title="Permalink to this heading">¶</a></h3>
 <p>Now, we introduce the computation of <code class="docutils literal notranslate"><span class="pre">vtrace-value</span></code>.
 First, we use the following functions to compute importance_weights.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_importance_weights</span><span class="p">(</span><span class="n">target_output</span><span class="p">,</span> <span class="n">behaviour_output</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -576,21 +576,21 @@ process is as follows.</p>
 </div>
 </section>
 <section id="difference-between-old-and-new-pipeline">
-<h3>Difference between old and new pipeline<a class="headerlink" href="#difference-between-old-and-new-pipeline" title="Permalink to this headline">¶</a></h3>
+<h3>Difference between old and new pipeline<a class="headerlink" href="#difference-between-old-and-new-pipeline" title="Permalink to this heading">¶</a></h3>
 <p>The way of task startup and the training component organization form is very different in old and new pipeline. In old pipeline, the training process is serial and intuitive, each part of the training is fully expressed in the main function.  In new pipeline, each part of the training is encapsulated as a function. The training process is completed through function calls, and use ‘task.context’ to control the data transfer during the training process.</p>
 <p>Meanwhile, the way of data slicing is different too. In new pipeline, data will be sliced by ‘unroll_len’ first, then randomly selected.</p>
 </section>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id1">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of IMPALA algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -681,11 +681,11 @@ process is as follows.</p>
 </ol>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <p>Lasse Espeholt, Hubert Soyer, Remi Munos, Karen Simonyan, Volodymir Mnih, Tom Ward, Yotam Doron, Vlad Firoiu, Tim Harley, Iain Dunning, Shane Legg, Koray Kavukcuoglu: “IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures”, 2018; arXiv:1802.01561.  https://arxiv.org/abs/1802.01561</p>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>[Official](<a class="reference external" href="https://github.com/deepmind/scalable_agent">https://github.com/deepmind/scalable_agent</a>)</p></li>
 <li><p>[Facebook torchbeast](<a class="reference external" href="https://github.com/facebookresearch/torchbeast">https://github.com/facebookresearch/torchbeast</a>)</p></li>
@@ -770,9 +770,8 @@ process is as follows.</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

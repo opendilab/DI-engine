@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,10 +299,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>多智能体强化学习<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>多智能体强化学习<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <section id="id2">
-<h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<p>在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/smac_zh.html">SMAC</a> <a class="footnote-reference brackets" href="#id20" id="id3">7</a> , 足球游戏 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gfootball_zh.html">Gfootball</a> , 以及 <a class="reference external" href="https://carla.org/">Carla</a> 等自动驾驶的环境。</p>
+<h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
+<p>在很多现实场景中，人们需要控制同时存在的多个智能体（agent）来完成特定任务，如交通信控，机器人协作，自动驾驶和多人网络游戏等。因此，对强化学习的研究逐渐从单智能体领域延伸了到多智能体强化学习（Multi-agent Reinforcement Learning, MARL）。近年来，深度强化学习在多智能体环境和游戏中展现出了巨大的潜力，例如星际争霸 StarCraftII 的子环境 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/smac_zh.html">SMAC</a> <a class="footnote-reference brackets" href="#id20" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> , 足球游戏 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/13_envs/gfootball_zh.html">Gfootball</a> , 以及 <a class="reference external" href="https://carla.org/">Carla</a> 等自动驾驶的环境。</p>
 <a class="reference internal image-reference" href="../_images/smac.gif"><img alt="../_images/smac.gif" class="align-center" src="../_images/smac.gif" style="width: 230.0px; height: 132.5px;" /></a>
 <p>在MARL中，策略控制多个智能体同时与环境交互，其目标仍然是最大化能够获得的累积回报。此时，环境全局状态（global state）的转移以及奖励值（reward）是和所有智能体的联合动作（joint action）而非单个智能体的动作相关的。因此在策略的学习过程中，每个智能体的策略的更新需要考虑其他智能体的当前策略。</p>
 <a class="reference internal image-reference" href="../_images/MARL_summary.png"><img alt="../_images/MARL_summary.png" class="align-center" src="../_images/MARL_summary.png" style="width: 260.5px; height: 227.0px;" /></a>
@@ -319,27 +319,27 @@
 </div></blockquote>
 </section>
 <section id="id4">
-<h2>研究方向<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>研究方向<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>对于 MARL cooperation 任务来说，最简单的思路就是将单智能体强化学习方法直接套用在多智能体系统中，即每个智能体把其他智能体都当做环境中的因素，仍然按照单智能体学习的方式、通过与环境的交互来更新策略；这是 independent Q-learning， independent PPO方法的思想，但是由于环境的非平稳性和智能体观测的局部性，这些方法很难取得不错的效果。</p>
 <p>目前 MARL cooperation 主要是采用 CTDE(centralized training and decentralized execute) 的方法，主要有两类解决思路， Valued-based MARL和Actor-Critic MARL。具体可以参考下图：</p>
 <a class="reference internal image-reference" href="../_images/MARL_cooperation_algo.png"><img alt="../_images/MARL_cooperation_algo.png" class="align-center" src="../_images/MARL_cooperation_algo.png" style="width: 384.5px; height: 215.5px;" /></a>
 <p><strong>Valued-based MARL</strong></p>
-<p>对于 Valued-based MARL， 主要的思路是将全局的 reward 值分解为可以供各个 agent 学习的局部 reward 值 <a class="footnote-reference brackets" href="#id16" id="id5">3</a> ，从而便于智能体的训练。主要有 QMIX， WQMIX， QTRAN 等方法。</p>
+<p>对于 Valued-based MARL， 主要的思路是将全局的 reward 值分解为可以供各个 agent 学习的局部 reward 值 <a class="footnote-reference brackets" href="#id16" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> ，从而便于智能体的训练。主要有 QMIX， WQMIX， QTRAN 等方法。</p>
 <ul class="simple">
-<li><p>QMIX: QMIX 的核心是学习一个单调性的Q值混合网络，每个智能体的Q值经过非线性变换求和生成 <span class="math notranslate nohighlight">\(Q_tot\)</span>。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qmix.rst">QMIX</a> <a class="footnote-reference brackets" href="#id15" id="id6">2</a></p></li>
-<li><p>WQMIX: WQMIX 的核心与 QMIX 相同，也是学习一个Q值混合网络，但其通过加权投影的方法学到可以突破单调性限制的Q值混合网络。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/wqmix.rst">WQMIX</a> <a class="footnote-reference brackets" href="#id14" id="id7">1</a></p></li>
-<li><p>QTRAN: QTRAN 通过学习独立 action-value 网络,混合 action-value 网络，全局 state-value 网络来突破单调性限制。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qtran.rst">QTRAN</a> <a class="footnote-reference brackets" href="#id17" id="id8">4</a></p></li>
-<li><p>QPLEX: QPLEX 通过分别对联合 Q 值 <span class="math notranslate nohighlight">\(Q_tot\)</span> 和各个 agent 的 Q 值 <span class="math notranslate nohighlight">\(Q_i\)</span> 使用 Dueling structure 进行分解，将 IGM 一致性转化为易于实现的优势函数取值范围约束，从而方便了具有线性分解结构的值函数的学习。具体可以参考 <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id21" id="id9">8</a></p></li>
+<li><p>QMIX: QMIX 的核心是学习一个单调性的Q值混合网络，每个智能体的Q值经过非线性变换求和生成 <span class="math notranslate nohighlight">\(Q_tot\)</span>。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qmix.rst">QMIX</a> <a class="footnote-reference brackets" href="#id15" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p></li>
+<li><p>WQMIX: WQMIX 的核心与 QMIX 相同，也是学习一个Q值混合网络，但其通过加权投影的方法学到可以突破单调性限制的Q值混合网络。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/wqmix.rst">WQMIX</a> <a class="footnote-reference brackets" href="#id14" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p></li>
+<li><p>QTRAN: QTRAN 通过学习独立 action-value 网络,混合 action-value 网络，全局 state-value 网络来突破单调性限制。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/qtran.rst">QTRAN</a> <a class="footnote-reference brackets" href="#id17" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></li>
+<li><p>QPLEX: QPLEX 通过分别对联合 Q 值 <span class="math notranslate nohighlight">\(Q_tot\)</span> 和各个 agent 的 Q 值 <span class="math notranslate nohighlight">\(Q_i\)</span> 使用 Dueling structure 进行分解，将 IGM 一致性转化为易于实现的优势函数取值范围约束，从而方便了具有线性分解结构的值函数的学习。具体可以参考 <a class="reference external" href="https://arxiv.org/abs/2008.01062">QPLEX</a> <a class="footnote-reference brackets" href="#id21" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></li>
 </ul>
 <p><strong>Actor-critic MARL</strong></p>
 <p>对于 Actor-critic MARL， 主要的思路是学习一个适用于多智能体的策略网络。主要有 COMA, MAPPO 等方法。</p>
 <ul class="simple">
-<li><p>COMA: COMA 使用反事实基线来解决多个 agent 信用分配的挑战，并使用critic网络来有效地计算反事实基线。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/coma.rst">COMA</a> <a class="footnote-reference brackets" href="#id18" id="id10">5</a></p></li>
-<li><p>MAPPO: MAPPO 的基本思路与 PPO 相同， 但它输入Actor网络的为各个agent的 Local observation， 输入 Critic 网络的为各个 agent 的 Agent specific global state。具体可参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/best_practice/maac.rst">MAPPO</a> <a class="footnote-reference brackets" href="#id19" id="id11">6</a></p></li>
+<li><p>COMA: COMA 使用反事实基线来解决多个 agent 信用分配的挑战，并使用critic网络来有效地计算反事实基线。具体可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/hands_on/coma.rst">COMA</a> <a class="footnote-reference brackets" href="#id18" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></li>
+<li><p>MAPPO: MAPPO 的基本思路与 PPO 相同， 但它输入Actor网络的为各个agent的 Local observation， 输入 Critic 网络的为各个 agent 的 Agent specific global state。具体可参考 <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/best_practice/maac.rst">MAPPO</a> <a class="footnote-reference brackets" href="#id19" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></li>
 </ul>
 </section>
 <section id="id12">
-<h2>未来展望<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<h2>未来展望<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>对于一些 Agent 数量更多，更加复杂的环境如 Multi-Agent Petting Zoo 的一些子环境中，存在近百个 agent , 单纯的 MARL cooperation 可能无法起到很好的效果，需要各个 agent 之间实时通信以共享信息</p></li>
 <li><p>对于一些实际情况，比如自动驾驶中，获得实时的全局状态所需的带宽压力过大，尤其是当车辆数量较多时，获取实时的全局状态几乎不可能，也就无法采用 CTDE 的方法进行训练</p></li>
@@ -348,33 +348,41 @@
 <p>在未来， MARL 可以与 Offline RL 技术结合，从而更进一步提高样本效率。同时， MARL 也可应用于智能体行为分析，智能体建模，人机协作等多个领域。</p>
 </section>
 <section id="id13">
-<h2>参考文献<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
-<dl class="footnote brackets">
-<dt class="label" id="id14"><span class="brackets"><a class="fn-backref" href="#id7">1</a></span></dt>
-<dd><p>ashid, Tabish, et al. “Weighted qmix: Expanding monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv preprint arXiv:2006.10800 (2020).</p>
-</dd>
-<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id6">2</a></span></dt>
-<dd><p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p>
-</dd>
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id5">3</a></span></dt>
-<dd><p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p>
-</dd>
-<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id8">4</a></span></dt>
-<dd><p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p>
-</dd>
-<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id10">5</a></span></dt>
-<dd><p>Jakob Foerster, Gregory Farquhar, Triantafyllos Afouras, Nantas Nardelli, Shimon Whiteson. Counterfactual Multi-Agent Policy Gradients. In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence, 2018.</p>
-</dd>
-<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id11">6</a></span></dt>
-<dd><p>Yu, C., Velu, A., Vinitsky, E., Wang, Y., Bayen, A., and Wu, Y. The surprising effectiveness of mappo in cooperative, multi-agent games. arXiv preprint arXiv:2103.01955, 2021.</p>
-</dd>
-<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id3">7</a></span></dt>
-<dd><p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
-</dd>
-<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id9">8</a></span></dt>
-<dd><p>Wang, J., Ren, Z., Liu, T., Yu, Y., and Zhang, C. Qplex: Duplex dueling multi-agent q-learning. arXiv preprint arXiv:2008.01062, 2020.</p>
-</dd>
-</dl>
+<h2>参考文献<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id14" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">1</a><span class="fn-bracket">]</span></span>
+<p>ashid, Tabish, et al. “Weighted qmix: Expanding monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv preprint arXiv:2006.10800 (2020).</p>
+</aside>
+<aside class="footnote brackets" id="id15" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">2</a><span class="fn-bracket">]</span></span>
+<p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p>
+</aside>
+<aside class="footnote brackets" id="id16" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">3</a><span class="fn-bracket">]</span></span>
+<p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p>
+</aside>
+<aside class="footnote brackets" id="id17" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">4</a><span class="fn-bracket">]</span></span>
+<p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p>
+</aside>
+<aside class="footnote brackets" id="id18" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">5</a><span class="fn-bracket">]</span></span>
+<p>Jakob Foerster, Gregory Farquhar, Triantafyllos Afouras, Nantas Nardelli, Shimon Whiteson. Counterfactual Multi-Agent Policy Gradients. In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence, 2018.</p>
+</aside>
+<aside class="footnote brackets" id="id19" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">6</a><span class="fn-bracket">]</span></span>
+<p>Yu, C., Velu, A., Vinitsky, E., Wang, Y., Bayen, A., and Wu, Y. The surprising effectiveness of mappo in cooperative, multi-agent games. arXiv preprint arXiv:2103.01955, 2021.</p>
+</aside>
+<aside class="footnote brackets" id="id20" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">7</a><span class="fn-bracket">]</span></span>
+<p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
+</aside>
+<aside class="footnote brackets" id="id21" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">8</a><span class="fn-bracket">]</span></span>
+<p>Wang, J., Ren, Z., Liu, T., Yu, Y., and Zhang, C. Qplex: Duplex dueling multi-agent q-learning. arXiv preprint arXiv:2008.01062, 2020.</p>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -445,9 +453,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

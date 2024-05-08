@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="basic-concepts">
-<h1>Basic Concepts<a class="headerlink" href="#basic-concepts" title="Permalink to this headline">¶</a></h1>
+<h1>Basic Concepts<a class="headerlink" href="#basic-concepts" title="Permalink to this heading">¶</a></h1>
 <p>Reinforcement learning (RL) has been used to solve the interaction problem between agents and environments. The interaction process can be simply described as follows: An agent receives observation from the environment, and acts accordingly. The environment will change due to the action taken by the agent and send a reward to the agent. This process runs repeatedly and the goal of the agent is to maximize the cumulative reward (sum of (discounted) rewards) received. The objective of reinforcement learning is to enable agents to learn strategies which we call ‘policy’ and maximize the cumulative reward.</p>
 <p>To have a basic understanding for reinforcement learning, we explain the following basic concepts：</p>
 <ul class="simple">
@@ -319,7 +319,7 @@
 </ul>
 <p>In the end, we will list and answer some common questions raised in the domain of reinforcement learning for reference.</p>
 <section id="markov-decision-process-mdp">
-<h2>Markov Decision Process/MDP<a class="headerlink" href="#markov-decision-process-mdp" title="Permalink to this headline">¶</a></h2>
+<h2>Markov Decision Process/MDP<a class="headerlink" href="#markov-decision-process-mdp" title="Permalink to this heading">¶</a></h2>
 <p><strong>Markov Decision Process (MDP)</strong> is the ideal mathematical model of reinforcement learning and the commonest one.</p>
 <ul class="simple">
 <li><p>Markov property：State <span class="math notranslate nohighlight">\(s_t\)</span> is Markov, iff <span class="math notranslate nohighlight">\(P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]\)</span> .</p></li>
@@ -348,30 +348,30 @@
 </ol>
 </section>
 <section id="state-spaces">
-<h2>State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this headline">¶</a></h2>
+<h2>State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this heading">¶</a></h2>
 <p>State <span class="math notranslate nohighlight">\(s\)</span> is a global description of the environment，observation <span class="math notranslate nohighlight">\(o\)</span> is a partial description of the environment. States and observations from an environment can be represented by real vectors, matrices or tensors. For example, RGB pictures are used in Atari games to represent information about the game environment, and vectors are used in MuJoCo control tasks to represent the state of an intelligent body.</p>
 <p>When an agent can receive all information of states in an environment <span class="math notranslate nohighlight">\(s\)</span> ，we call its learning process fully observable. When an agent can only receive partial information of states in an environment <span class="math notranslate nohighlight">\(o\)</span>，we call its learning process partially observable，namely, partially observable Markov decision processes (POMDP) <span class="math notranslate nohighlight">\((O, A, P, R, \gamma)\)</span>.</p>
 </section>
 <section id="action-spaces">
-<h2>Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this headline">¶</a></h2>
+<h2>Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this heading">¶</a></h2>
 <p>Different environments allow different action spaces. The set of all valid actions <span class="math notranslate nohighlight">\(a\)</span> in an environment is generally referred to as the Action Space. The action space can be classified into a discrete action space or a continuous action space.</p>
 <p>For example, in Atari games and SMAC games, the action spaces are both discrete and only a limited number of actions can be selected from each space. However, in some robot continuous control tasks such as MuJoCo, the action space is continuous and generally belongs to a real-valued vector interval.</p>
 </section>
 <section id="policy">
-<h2>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
+<h2>Policy<a class="headerlink" href="#policy" title="Permalink to this heading">¶</a></h2>
 <p><strong>Policy</strong> determines actions an agent takes when facing different states. If a policy is deterministic, it is usually denoted by <span class="math notranslate nohighlight">\(a_t = \mu(s_t)\)</span> .
 when a policy is stochastic，it is usually denoted by <span class="math notranslate nohighlight">\(a_t ~ \pi(·｜s_t')\)</span>.</p>
 <p>In reinforcement learning，the policy gradient approach requires learning a parametric representation of the policy (parameterized policy) by fitting a policy function with parameters. <span class="math notranslate nohighlight">\(\theta\)</span> is often used as the parameters. Another approach based on value functions does not necessarily require a policy gradient function. In the following sections, we describe in a more detailed approach to learning policies in reinforcement learning.</p>
 </section>
 <section id="trajectory">
-<h2>Trajectory<a class="headerlink" href="#trajectory" title="Permalink to this headline">¶</a></h2>
+<h2>Trajectory<a class="headerlink" href="#trajectory" title="Permalink to this heading">¶</a></h2>
 <p>In reinforcement learning, a sample learning sequence in an MDP is called <strong>trajectory</strong> <span class="math notranslate nohighlight">\((s_0, a_0, ..., s_n, a_n)\)</span>. Trajectory data includes a state transition function，namely, <span class="math notranslate nohighlight">\(s_{t+1} = f(s_t, a_t)\)</span> and a policy followed by the agents. Reinforcement learning contains two parts: how to use the policy to sample the trajectory data and how to use the trajectory data to update the learning target. The difference between the two components creates a difference in reinforcement learning methods.</p>
 <p>As the trajectory also contains information about the dynamics of the model in the environment, it is possible to use the policy data to learn information about the environment as well, which can be used to help the learning of the intelligence. </p>
 <p>Note that the transition function can be deterministic or stochastic. In a grid world, the transition function is deterministic, i.e., an agent is going to go to a certain state given its current state and action. On the contrary, the state function is stochastic if an agent’s current state and action are given, but the agent may end up with more than one state with each probability smaller than one. A stochastic state function is random in nature and cannot be determined completely by an agent.
 This case can be easily illustrated in a simple MDP environment.</p>
 </section>
 <section id="return-and-reward">
-<h2>Return and reward<a class="headerlink" href="#return-and-reward" title="Permalink to this headline">¶</a></h2>
+<h2>Return and reward<a class="headerlink" href="#return-and-reward" title="Permalink to this heading">¶</a></h2>
 <p><strong>Reward</strong> is a learning signal assigned to an agent by its surrounding environment. When the environment changes，the reward function also changes. The reward function is determined by the current state and the action taken by the agent，and can be written as <span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span></p>
 <p><strong>Cumulative Reward</strong> is the sum of the decaying returns from moment t onwards in an MDP.</p>
 <p><span class="math notranslate nohighlight">\(G_t = R_{t}+\gamma * R_{t+1}+{\gamma}^2 * R_{t+2}+ ...\)</span></p>
@@ -379,11 +379,11 @@ This case can be easily illustrated in a simple MDP environment.</p>
 <p>Other difficulties in dealing with reward functions may exist in different environments, such as sparse rewards where the environment does not give feedback in every state and only acquires rewards after a period of trajectory has elapsed. Therefore, the design and processing of reward functions in reinforcement learning are important directions that have a significant impact on the effectiveness of reinforcement learning.</p>
 </section>
 <section id="rl-optimization-problem">
-<h2>RL optimization problem<a class="headerlink" href="#rl-optimization-problem" title="Permalink to this headline">¶</a></h2>
+<h2>RL optimization problem<a class="headerlink" href="#rl-optimization-problem" title="Permalink to this heading">¶</a></h2>
 <p>In simple terms, the goal of a reinforcement learning problem is to find a policy that maximizes the expected total reward. Then, if we can calculate the return after each state by taking some action, we only need to take the action with the higher reward or the action that will lead to the states with the higher reward. Thus, the estimation of expected reward is also an optimization direction for reinforcement learning. Another approach is to search directly over the action space. In either case, the ultimate optimization goal is to maximize the reward.</p>
 </section>
 <section id="value-functions">
-<h2>Value functions<a class="headerlink" href="#value-functions" title="Permalink to this headline">¶</a></h2>
+<h2>Value functions<a class="headerlink" href="#value-functions" title="Permalink to this heading">¶</a></h2>
 <p><strong>State Value Function</strong> refers to a long-term expected reward by following a policy <span class="math notranslate nohighlight">\(\pi\)</span> under a state <span class="math notranslate nohighlight">\(s\)</span> . The state value function is one of the criteria for evaluating a policy function</p>
 <p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[G_t|s_t=s]\)</span></p>
 <p><strong>Action Value Function</strong> refers to a long-term expected reward by following a policy <span class="math notranslate nohighlight">\(\pi\)</span> under a state <span class="math notranslate nohighlight">\(s\)</span> ,  and an action <span class="math notranslate nohighlight">\(a\)</span></p>
@@ -404,7 +404,7 @@ We can express the state value function and the action value function as:</p>
 <p>For a grid reinforcement learning environment，the estimation of the value function is obtained by iteratively updating the table of value functions. In many cases，say, state space and action space are not discrete，the value function cannot be represented by a table. In this situation, we need to take advantage of function approximation to approximate the value function.</p>
 </section>
 <section id="policy-gradients">
-<h2>Policy Gradients<a class="headerlink" href="#policy-gradients" title="Permalink to this headline">¶</a></h2>
+<h2>Policy Gradients<a class="headerlink" href="#policy-gradients" title="Permalink to this heading">¶</a></h2>
 <p>In some situations, a stochastic policy is better than a deterministic policy. As a result, value-based reinforcement learning cannot learn such policy and a policy-based approach to reinforcement learning is therefore proposed.</p>
 <p>Unlike value-based reinforcement learning, policy-based reinforcement learning parameterises the policy and represent it by using linear or non-linear functions to find the optimal parameters that maximize the expectation of the cumulative reward, the goal of reinforcement learning.</p>
 <p>In the value-based approach, we iteratively compute the value function and then improve the policy based on the value function, whereas in the policy search approach, we directly compute the policy iteration using <strong>policy gradient</strong>, i.e. we compute the policy gradient on the action, and iteratively update the policy parameter values along the gradient until the expectation of cumulative return is maximzed, at which point the policy corresponding to the parameter is the optimal policy.</p>
@@ -413,14 +413,14 @@ We can express the state value function and the action value function as:</p>
 RL</a></p>
 </section>
 <section id="actor-critic">
-<h2>Actor Critic<a class="headerlink" href="#actor-critic" title="Permalink to this headline">¶</a></h2>
+<h2>Actor Critic<a class="headerlink" href="#actor-critic" title="Permalink to this heading">¶</a></h2>
 <p><strong>Critic</strong>, parametrized behavioral value function; performs the value evaluation of the policy.</p>
 <p><strong>Actor</strong>, parametrized policy function, performs an update of the policy function parameters using the policy gradient according to the value obtained in the Critic part.</p>
 <p>In summary, Actor Critic is an approach that learns both the value function and the policy function, combining the advantages of both of these approaches. Various algorithms based on this framework can adapt to problems in different action and state spaces as well as to find optimal policies in different policy spaces.</p>
 <p>More Actor Critic algorithms such as A2C, DDPG, TD3, etc. are explained in our documentation.</p>
 </section>
 <section id="model-based-rl">
-<h2>Model-based RL<a class="headerlink" href="#model-based-rl" title="Permalink to this headline">¶</a></h2>
+<h2>Model-based RL<a class="headerlink" href="#model-based-rl" title="Permalink to this heading">¶</a></h2>
 <p>Of the above model-free approaches, the value-based approach learns the value function (MC or TD) before updating the policy, while the policy-based approach updates the policy directly. The model-based approach focuses on the environment dynamics, where a model of the environment is learned through sampling, and then the value function/ policy is optimized based on the learned environment model.</p>
 <p>Once the modeling of the environment has been completed, there are also two paths in the model-based approach: one is to generate some simulation trajectories from the learned model and estimate the value function from the simulation trajectories to optimise the strategy; the other is to optimize the policy directly from the learned model, which is the route the model-based approach is usually taking. Learning a model of the environment first can help us to solve the problem of sample efficiency in reinforcement learning methods.</p>
 <p>The definition of a model can be expressed mathematically as a tuple of state transfer distributions and reward functions.</p>
@@ -429,7 +429,7 @@ RL</a></p>
 <p>Model-based policy optimization: A classical approach is to first sample a large amount of data by some strategy, then learn a model to minimize the error, apply the learned model to planning to obtain new data, and repeat the above steps. It is by doing planning on top of the learned model that model-based improves the efficiency of the entire iteration of the reinforcement learning algorithm.</p>
 </section>
 <section id="q-a">
-<h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+<h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this heading">¶</a></h2>
 <dl class="simple">
 <dt>Q1: What are model-based and model-free methods，what are the differences？Which category should MC、TD、DP, etc. belong to?</dt><dd><ul class="simple">
 <li><p>Answer：
@@ -544,9 +544,8 @@ There are many ways to balance exploration and exploitation. There are also diff
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

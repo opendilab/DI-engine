@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="middleware">
-<h1>Middleware<a class="headerlink" href="#middleware" title="Permalink to this headline">¶</a></h1>
+<h1>Middleware<a class="headerlink" href="#middleware" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>In most reinforcement learning processes, there is a ‘collect-learn’ cycle between the environment and the agent – get data from the environment, train the agent, get better data, and so on. We will introduce the characteristics of each environment in the <a class="reference external" href=".../11_dizoo/index_zh.html">DI-zoo chapter</a>, and here we will focus on implementing the interaction strategy of the agent.</p>
@@ -327,7 +327,7 @@
 </pre></div>
 </div>
 <section id="context">
-<h2>Context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
+<h2>Context<a class="headerlink" href="#context" title="Permalink to this heading">¶</a></h2>
 <p>Contexts are messengers that pass data between middleware, and different interaction policies determine what type of context they should use.
 For example, <code class="docutils literal notranslate"><span class="pre">OnlineRLContext</span></code> and <code class="docutils literal notranslate"><span class="pre">OfflineRLContext</span></code> are provided in DI-engine.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
@@ -355,7 +355,7 @@ such as list, dict, torch.tensor, or torch.nn.Module. It should only keep int, f
 <p>Note: __post_init__(self) is a method called immediately after __init__(self). In our Context, it means calling this method after each field is initialized.
 We call self.keep in this function because we need to initialize each field before calling self.keep to keep selected variables.</p>
 <section id="v0-4-2-changes-update-context-from-dict-to-dataclass">
-<h3>v0.4.2 changes: Update Context from dict to dataclass<a class="headerlink" href="#v0-4-2-changes-update-context-from-dict-to-dataclass" title="Permalink to this headline">¶</a></h3>
+<h3>v0.4.2 changes: Update Context from dict to dataclass<a class="headerlink" href="#v0-4-2-changes-update-context-from-dict-to-dataclass" title="Permalink to this heading">¶</a></h3>
 <p>In <a class="reference external" href="https://github.com/opendilab/DI-engine/releases/tag/v0.4.2">v0.4.2</a>, We changed the Context from dict to dataclass.
 The reason for this change is:</p>
 <ul class="simple">
@@ -386,17 +386,17 @@ Here’s a concrete example of a custom Context:</p>
 <p>If you think a new field needs to be added to DI-egnine, make a PR to DI-engine and explain it.</p>
 </section>
 <section id="the-introduction-of-context-variables">
-<h3>The introduction of Context variables<a class="headerlink" href="#the-introduction-of-context-variables" title="Permalink to this headline">¶</a></h3>
+<h3>The introduction of Context variables<a class="headerlink" href="#the-introduction-of-context-variables" title="Permalink to this heading">¶</a></h3>
 <p>Note: Updated position does not include the case that ctx.attribute = None.</p>
 <section id="onlinerlcontext">
-<h4>OnlineRLContext<a class="headerlink" href="#onlinerlcontext" title="Permalink to this headline">¶</a></h4>
-<table class="colwidths-given docutils align-default">
+<h4>OnlineRLContext<a class="headerlink" href="#onlinerlcontext" title="Permalink to this heading">¶</a></h4>
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
+<col style="width: 16.1%" />
+<col style="width: 16.1%" />
+<col style="width: 16.1%" />
+<col style="width: 25.8%" />
+<col style="width: 25.8%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute</p></th>
@@ -501,14 +501,14 @@ Here’s a concrete example of a custom Context:</p>
 </table>
 </section>
 <section id="offlinerlcontext">
-<h4>OfflineRLContext<a class="headerlink" href="#offlinerlcontext" title="Permalink to this headline">¶</a></h4>
-<table class="colwidths-given docutils align-default">
+<h4>OfflineRLContext<a class="headerlink" href="#offlinerlcontext" title="Permalink to this heading">¶</a></h4>
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 26%" />
-<col style="width: 26%" />
+<col style="width: 16.1%" />
+<col style="width: 16.1%" />
+<col style="width: 16.1%" />
+<col style="width: 25.8%" />
+<col style="width: 25.8%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute</p></th>
@@ -567,7 +567,7 @@ Here’s a concrete example of a custom Context:</p>
 </section>
 </section>
 <section id="using-task-to-execute-tasks-asynchronously">
-<h2>Using task to execute tasks asynchronously<a class="headerlink" href="#using-task-to-execute-tasks-asynchronously" title="Permalink to this headline">¶</a></h2>
+<h2>Using task to execute tasks asynchronously<a class="headerlink" href="#using-task-to-execute-tasks-asynchronously" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Task</span></code> is a global object used by DI-engine to manage reinforcement learning interaction tasks. All runtime state is maintained within task, and some syntactic sugar is provided to help make the process easier.</p>
 <p>Asynchrony is of great benefit in a time-critical training environment. If the data for the next training (CPU intensive work) can be collected while the model is being trained (GPU intensive work), the training time can theoretically be halved. To implement the asynchrony, one needs to control complex processes and carefully maintain various states. Now, with middleware and tasks, it is possible to change only one parameter to achieve asynchrony in each step.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sequential execution</span>
@@ -583,7 +583,7 @@ Here’s a concrete example of a custom Context:</p>
 <img alt="../_images/async.png" class="align-center" src="../_images/async.png" />
 </section>
 <section id="middleware-in-different-stages">
-<h2>Middleware in different stages<a class="headerlink" href="#middleware-in-different-stages" title="Permalink to this headline">¶</a></h2>
+<h2>Middleware in different stages<a class="headerlink" href="#middleware-in-different-stages" title="Permalink to this heading">¶</a></h2>
 <p>Most of the middleware can correspond to different stages. You can see the correspondence between the existing middleware and the stages in the following diagram in order to combine the various middleware correctly.</p>
 <img alt="../_images/pipeline.png" class="align-center" src="../_images/pipeline.png" />
 </section>
@@ -663,9 +663,8 @@ Here’s a concrete example of a custom Context:</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

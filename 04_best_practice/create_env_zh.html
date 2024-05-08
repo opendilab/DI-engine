@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,12 +299,12 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>如何高效构建决策环境<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>如何高效构建决策环境<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <p>本文档将介绍 DI-engine 中用于高效构建和标准化不同类型决策环境的系列工具，从而方便使用者将各式各样的原始决策问题转化为适合使用强化学习方法解决的形式。</p>
 <p>关于一些特殊环境的说明可参考： <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh-cn/latest/04_best_practice/marl_zh.html">多智能体环境文档</a> 和
 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh-cn/latest/04_best_practice/marl_zh.html">multi-discrete 动作环境文档</a> 。</p>
 <section id="id3">
-<h2>1. 困境：决策环境复杂性<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>1. 困境：决策环境复杂性<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>决策智能是一个覆盖面很广的抽象概念，从虚拟世界的多人对抗游戏到现实世界的棋类对弈和自动驾驶问题，都和决策智能技术有着紧密的联系。
 这种任务类别的复杂性已经成为制约算法研究和应用的重要挑战，如图 1 所示，为了运用现有的强化学习方法高效解决决策问题，需要使用各种技术将原始场景转化为标准的 MDP，这其中包含一系列对于观察空间，动作空间，奖励空间等信息进行预处理和变换的操作。</p>
 <a class="reference internal image-reference" href="../_images/create_env_1.jpg"><img alt="../_images/create_env_1.jpg" class="align-center" src="../_images/create_env_1.jpg" style="width: 930.0px; height: 457.2px;" /></a>
@@ -358,7 +358,7 @@
 <p>而基于 DI-zoo 中的实践经验，DI-engine 中还抽象整合了环境包装器（Env Wrapper）和环境管理器（Env Manager）两类功能组件，用于更便利高效地完成决策环境的预处理和标准化，本文档将在下面两节详细展开介绍。</p>
 </section>
 <section id="env-wrapper">
-<h2>2. 易用性：环境包装器（Env Wrapper）<a class="headerlink" href="#env-wrapper" title="Permalink to this headline">¶</a></h2>
+<h2>2. 易用性：环境包装器（Env Wrapper）<a class="headerlink" href="#env-wrapper" title="Permalink to this heading">¶</a></h2>
 <p>训练决策智能体时经常需要对环境的 MDP 定义进行预处理和转换，以追求更好的训练效果， 而这些处理技巧也具备一定的普适性。
 例如对于某些环境，观测状态的归一化是很常见的预处理技巧，通过统一量纲和缩小尺度让训练更快且更加稳定。</p>
 <p>基于多种不同类型决策环境的实践经验，DI-engine 将其中通用的部分提取出来，统一整合在环境包装器（Env Wrapper）中进行管理，以便后续使用和修改。
@@ -374,11 +374,11 @@
 </div>
 <p>DI-engine 提供了大量预定义且常用的 Env Wrapper，开发者可以根据自己的需求直接包裹在需要使用的环境之上。
 所有 Env Wrapper 在实现时依然遵循 <code class="docutils literal notranslate"><span class="pre">Gym.Wrapper</span></code>格式，典型的例子有:</p>
-<table class="colwidths-given docutils align-default" id="id6">
+<table class="docutils align-default" id="id6">
 <caption><span class="caption-text">Wrapper Functionalities</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 30%" />
-<col style="width: 70%" />
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Wrapper Name</p></th>
@@ -524,7 +524,7 @@
 <p>有关 Env Wrapper 更详细的文档可以参考链接： <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/04_best_practice/env_wrapper_zh.html">如何使用 Env Wrapper 快速构建决策环境</a> 。</p>
 </section>
 <section id="env-manager">
-<h2>3. 高效性：向量化环境管理器（Env Manager）<a class="headerlink" href="#env-manager" title="Permalink to this headline">¶</a></h2>
+<h2>3. 高效性：向量化环境管理器（Env Manager）<a class="headerlink" href="#env-manager" title="Permalink to this heading">¶</a></h2>
 <p>由于强化学习常常需要在训练过程中和环境实时交互收集训练，环境的向量化和并行化就成为了加速训练的重要方式。
 具体来说，如果智能体/策略需要收集一定量的数据，最朴素的方法是只运行一个环境但重复多个 episode 直到满足收集的数量要求，
 而向量化的思路则是并行地运行多个环境实例，每个环境负责收集其中一部分的数据，并且每个环境使用独占的计算资源（例如 CPU 核心）来进行运算，
@@ -581,11 +581,11 @@ Env Manager 可以实现多个环境并行运行并返回相应信息，保持�
 而对于不同类型的环境，每个环境实例的运行时间，episode 长度，数据包大小都可能不一致，强制让所有实例向量化运行并一起返回很容易因为“木桶效应”而造成大量的冗余等待，因此也就衍生出了一些分组向量化的解决方案。
 此外，在工程实现角度，类似 Python 多进程库的不稳定性和通信开销等问题也制约了向量化的规模和期望收益。为了满足不同的需求，DI-engine 中集成了多种功能的特点的环境管理器，也将在未来的工作中不断优化和新增更好的环境并行方案，
 目前支持的环境管理器类型有 ： <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/envs/env_manager">环境管理器</a> 。</p>
-<table class="colwidths-given docutils align-default" id="id7">
+<table class="docutils align-default" id="id7">
 <caption><span class="caption-text">Env Managers</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 30%" />
-<col style="width: 70%" />
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Env Manager Name</p></th>
@@ -719,9 +719,8 @@ Env Manager 可以实现多个环境并行运行并返回相应信息，保持�
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

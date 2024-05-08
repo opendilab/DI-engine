@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="configuration-file-system">
-<h1>Configuration File System<a class="headerlink" href="#configuration-file-system" title="Permalink to this headline">¶</a></h1>
+<h1>Configuration File System<a class="headerlink" href="#configuration-file-system" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
 <p>Configuration file system is an important component in machine learning algorithm tools, and the complexity of reinforcement learning makes its configuration field tasks more intricate compared to other machine learning tasks. To address this issue, DI-engine is designed based on the principle of “Convention over Configuration” (CoC), and a set of basic principles and related tools are developed, including:</p>
 <ul class="simple">
 <li><p>Python configuration principles</p></li>
@@ -317,15 +317,15 @@
 </div>
 </section>
 <section id="basic-principles">
-<h2>Basic Principles<a class="headerlink" href="#basic-principles" title="Permalink to this headline">¶</a></h2>
+<h2>Basic Principles<a class="headerlink" href="#basic-principles" title="Permalink to this heading">¶</a></h2>
 <p>The overall schematic diagram is as follows:</p>
 <img alt="../_images/config.png" class="align-center" src="../_images/config.png" />
 <section id="python-configuration-principles">
-<h3>Python Configuration Principles<a class="headerlink" href="#python-configuration-principles" title="Permalink to this headline">¶</a></h3>
+<h3>Python Configuration Principles<a class="headerlink" href="#python-configuration-principles" title="Permalink to this heading">¶</a></h3>
 <p>As most machine learning programs value programming flexibility and ease of use, DI-engine uses Python files (specifically, multi-level dict) as the default configuration file to be compatible with various special requirements. Users who previously used <code class="docutils literal notranslate"><span class="pre">yaml</span></code> and <code class="docutils literal notranslate"><span class="pre">json</span></code> can also easily migrate to Python configuration. However, for parts outside of the core modules, such as communication interfaces in reinforcement learning simulation environments, native configuration can also be used without any special restrictions.</p>
 </section>
 <section id="configuration-compilation-principles">
-<h3>Configuration Compilation Principles<a class="headerlink" href="#configuration-compilation-principles" title="Permalink to this headline">¶</a></h3>
+<h3>Configuration Compilation Principles<a class="headerlink" href="#configuration-compilation-principles" title="Permalink to this heading">¶</a></h3>
 <p>For the entire training program, DI-engine uses tool functions such as <code class="docutils literal notranslate"><span class="pre">compile_config</span></code> and <code class="docutils literal notranslate"><span class="pre">get_instance_cfg</span></code> as boundaries. Before the boundary, users can customize the required configuration content through various means such as using default configurations, modifying configurations in the code, and entering configurations from the command line. However, after the boundary, all configuration files will be fixed and no further changes will be allowed. The training program will also create corresponding functional modules and training pipelines based on the configuration at that time. This rule is called the <code class="docutils literal notranslate"><span class="pre">Configuration</span> <span class="pre">Compilation</span> <span class="pre">Principles</span></code> , where the period before the boundary is the <code class="docutils literal notranslate"><span class="pre">configuration</span> <span class="pre">compilation</span> <span class="pre">generation</span> <span class="pre">period</span></code> , and the period after the boundary is the <code class="docutils literal notranslate"><span class="pre">configuration</span> <span class="pre">runtime</span> <span class="pre">usage</span> <span class="pre">period</span></code> . In addition, in the tool functions, the final generated configuration file will be exported and stored in the experiment directory folder (usually named <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> ), which can be used by users to check the validity of the configuration file settings or to reproduce the original experiment directly using this file.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -337,7 +337,7 @@
 </div>
 </section>
 <section id="default-configuration-and-user-configuration">
-<h3>Default Configuration and User Configuration<a class="headerlink" href="#default-configuration-and-user-configuration" title="Permalink to this headline">¶</a></h3>
+<h3>Default Configuration and User Configuration<a class="headerlink" href="#default-configuration-and-user-configuration" title="Permalink to this heading">¶</a></h3>
 <p>On the other hand, due to the various configuration contents such as MDP modeling settings, algorithm tuning settings, and training system efficiency settings in reinforcement learning training programs, there are often numerous configurable file fields. However, different configuration fields have different usage frequencies, and in most cases, most configuration fields do not need to be modified by users. Therefore, DI-engine has introduced the concept of default configuration, where core concepts in reinforcement learning, such as Policy, Env, and Buffer, often have their default configurations (default config), whose complete definitions and explanations can be found in the corresponding class definitions. When using DI-engine, users only need to specify the configuration fields that need to be modified or added in the current situation. In the boundary function mentioned earlier (such as <code class="docutils literal notranslate"><span class="pre">compile_config</span></code> ), the default configuration and user configuration are compiled and merged to form the final configuration file. The specific merging rules are as follows:</p>
 <blockquote>
 <div><ul class="simple">
@@ -348,7 +348,7 @@
 </div></blockquote>
 </section>
 <section id="the-categories-of-core-configuration-fields-of-a-reinforcement-learning-task">
-<h3>The Categories of Core Configuration Fields of a Reinforcement Learning Task<a class="headerlink" href="#the-categories-of-core-configuration-fields-of-a-reinforcement-learning-task" title="Permalink to this headline">¶</a></h3>
+<h3>The Categories of Core Configuration Fields of a Reinforcement Learning Task<a class="headerlink" href="#the-categories-of-core-configuration-fields-of-a-reinforcement-learning-task" title="Permalink to this heading">¶</a></h3>
 <p>Overall, the configuration fields required for reinforcement learning tasks in DI-engine can be mainly classified into two categories:</p>
 <ul class="simple">
 <li><p>The first category consists of objects that are shared by various workers/middleware in the training pipeline, such as algorithm policies ( <code class="docutils literal notranslate"><span class="pre">Policy</span></code> ), environments ( <code class="docutils literal notranslate"><span class="pre">Env</span></code> ), reward models ( <code class="docutils literal notranslate"><span class="pre">Reward</span> <span class="pre">Model</span></code> ), data queues ( <code class="docutils literal notranslate"><span class="pre">Buffer</span></code> ), and so on. Each of these objects has its own default configuration. In the overall configuration file, they are placed in parallel with each other and maintain a flat hierarchy. The meaning of each object’s configuration fields can be found in the corresponding class definition, and the class variables <code class="docutils literal notranslate"><span class="pre">config</span></code> and class method <code class="docutils literal notranslate"><span class="pre">default_config</span></code> specify the default configuration and calling method.</p></li>
@@ -361,12 +361,12 @@
 </div>
 </section>
 <section id="other-tools">
-<h3>Other Tools<a class="headerlink" href="#other-tools" title="Permalink to this headline">¶</a></h3>
+<h3>Other Tools<a class="headerlink" href="#other-tools" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine also provides some related tools for configuration file storage and formatting. For specific information, please refer to the code <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/config">ding/config</a> .</p>
 </section>
 </section>
 <section id="analysis-of-configuration-file-examples">
-<h2>Analysis of Configuration File Examples<a class="headerlink" href="#analysis-of-configuration-file-examples" title="Permalink to this headline">¶</a></h2>
+<h2>Analysis of Configuration File Examples<a class="headerlink" href="#analysis-of-configuration-file-examples" title="Permalink to this heading">¶</a></h2>
 <p>Here’s a <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">specific configuration example</a> in DI-engine, which is used to train a DQN agent in the CartPole environment (the example used in the quick start document). The specific configuration content and related field explanations are as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 
@@ -492,9 +492,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

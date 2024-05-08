@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="model">
-<h1>如何自定义神经网络模型（model）<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
+<h1>如何自定义神经网络模型（model）<a class="headerlink" href="#model" title="Permalink to this heading">¶</a></h1>
 <p>在强化学习中，我们需要根据决策问题类型和使用的策略（Policy）来选择相应的神经网络。而在 DI-engine 中，Policy 使用的神经网络可以通过配置文件中的 <code class="docutils literal notranslate"><span class="pre">cfg.policy.model</span></code> 来自动生成，
 也可由用户自定义实例化相应的神经网络，作为参数传入 Policy 中。而在接下来的部分，我们将会详细展开每种使用方式具体的接口和原理。</p>
 <section id="policy">
-<h2>Policy 默认使用的模型是什么<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
+<h2>Policy 默认使用的模型是什么<a class="headerlink" href="#policy" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 中已经实现的 policy，默认使用 <code class="docutils literal notranslate"><span class="pre">default_model</span></code> 方法中表明的神经网络模型，例如在 SACPolicy 中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
  <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
@@ -322,23 +322,23 @@
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py#L13">QAC</a> ），模型类中根据传入参数自动生成所需的神经网络（例如为向量输入使用全连接层（FC）而为图像输入使用卷积（Conv））。</p>
 </section>
 <section id="id1">
-<h2>如何自定义神经网络模型<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>如何自定义神经网络模型<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>但很多时候 DI-engine 中实现的 <code class="docutils literal notranslate"><span class="pre">policy</span></code>中的  <code class="docutils literal notranslate"><span class="pre">default_model</span></code>不适用自己的任务，例如这里想要在 <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code>环境 <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> 任务下应用 <code class="docutils literal notranslate"><span class="pre">sac</span></code>算法，且环境 observation 为  <code class="docutils literal notranslate"><span class="pre">pixel</span></code>，
 即 <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>（如果设置 <code class="docutils literal notranslate"><span class="pre">from_pixel</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">channels_first</span> <span class="pre">=</span> <span class="pre">True</span></code>，详情见  <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym 环境文档</a>）</p>
 <p>而此时查阅 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">sac 源码</a>可知 <code class="docutils literal notranslate"><span class="pre">default_model</span></code>为 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py">qac</a>，
 <code class="docutils literal notranslate"><span class="pre">qac</span> <span class="pre">model</span></code>中暂时只支持 <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>为一维的情况，此时我们即可根据需求自定义 model 并应用到 policy。</p>
 </section>
 <section id="id2">
-<h2>自定义 model 基本步骤<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>自定义 model 基本步骤<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="env-policy">
-<h3>1. 明确 env, policy<a class="headerlink" href="#env-policy" title="Permalink to this headline">¶</a></h3>
+<h3>1. 明确 env, policy<a class="headerlink" href="#env-policy" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>比如这里选定 <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code>环境 <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> 任务，且设置 <code class="docutils literal notranslate"><span class="pre">from_pixel</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">channels_first</span> <span class="pre">=</span> <span class="pre">True</span></code>（详情见  <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym 环境文档</a>）
 ，即此时观察空间为图像 <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>，并选择 <code class="docutils literal notranslate"><span class="pre">sac</span></code>算法进行学习。</p></li>
 </ul>
 </section>
 <section id="policy-default-model">
-<h3>2. 查阅 policy 中的 default_model 是否适用<a class="headerlink" href="#policy-default-model" title="Permalink to this headline">¶</a></h3>
+<h3>2. 查阅 policy 中的 default_model 是否适用<a class="headerlink" href="#policy-default-model" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>此时根据<a class="reference external" href="https://xxx">policy-default_model 链接</a>或者直接查阅源码 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">ding/policy/sac:SACPolicy</a>，找到 SAC 的  <code class="docutils literal notranslate"><span class="pre">default_model</span></code>：</p></li>
 </ul>
@@ -361,7 +361,7 @@
 </ul>
 </section>
 <section id="custom-model">
-<h3>3. custom_model 实现<a class="headerlink" href="#custom-model" title="Permalink to this headline">¶</a></h3>
+<h3>3. custom_model 实现<a class="headerlink" href="#custom-model" title="Permalink to this heading">¶</a></h3>
 <p>根据已有的 defaul_model 来决定 custom_model 所需实现的功能:</p>
 <ul class="simple">
 <li><p>需要实现原 default model 中所有的 public 方法</p></li>
@@ -372,10 +372,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">encoder</span></code>用于对输入的 <code class="docutils literal notranslate"><span class="pre">obs</span></code>或者 <code class="docutils literal notranslate"><span class="pre">action</span></code>等进行编码，便于进行后续处理， DI-engine 中已实现的 encoder 如下：</p></li>
 </ul>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 38%" />
-<col style="width: 62%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>encoder</p></th>
 <th class="head"><p>usage</p></th>
@@ -397,10 +393,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">head</span></code>用于对已经编码的数据进行相应处理，输出 policy 所需信息或者辅助 RL 过程， DI-engine 中已实现的 head ：</p></li>
 </ul>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 38%" />
-<col style="width: 62%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>head</p></th>
 <th class="head"><p>usage</p></th>
@@ -508,7 +500,7 @@
 </ul>
 </section>
 <section id="id3">
-<h3>4. 如何应用自定义模型<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>4. 如何应用自定义模型<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>新 pipeline ： 直接定义model，作为参数传入 policy 进行初始化，如：</p></li>
 </ul>
@@ -541,7 +533,7 @@
 </div>
 </section>
 <section id="id4">
-<h3>5. 测试自定义 model<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>5. 测试自定义 model<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>编写新的 model 测试，一般而言，首先需要构造 <code class="docutils literal notranslate"><span class="pre">obs</span></code> <code class="docutils literal notranslate"><span class="pre">action</span></code>等输入，传入 model ，验证输出的维度、类型的正确性。其次如果涉及神经网络，需要验证 model 是否可微。
 如对于我们编写的新模型 <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>编写测试，首先构造维度为 <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">channel,</span> <span class="pre">height,</span> <span class="pre">width)</span></code>（B = batch_size）的 <code class="docutils literal notranslate"><span class="pre">obs</span></code>和维度为 <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_shape)</span></code>的 <code class="docutils literal notranslate"><span class="pre">obs</span></code>，传入 <code class="docutils literal notranslate"><span class="pre">QACPixel</span></code>的 <code class="docutils literal notranslate"><span class="pre">actor</span></code>和 <code class="docutils literal notranslate"><span class="pre">critic</span></code>得到输出.
@@ -654,9 +646,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

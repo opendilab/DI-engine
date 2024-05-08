@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,13 +299,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="ppg">
-<h1>PPG<a class="headerlink" href="#ppg" title="Permalink to this headline">¶</a></h1>
+<h1>PPG<a class="headerlink" href="#ppg" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>PPG 是在 <a class="reference external" href="https://arxiv.org/abs/2009.04416">Phasic Policy Gradient</a> 中提出的。在以前的方法中，人们需要选择表示策略和价值函数是否需要分开训练还是共享全局信息。分开训练可以避免目标之间的干扰，而使用共享全局信息可以实现有用特征的共享。PPG 能够兼顾两者的优点，通过将优化分为两个阶段，一个用于推进训练，另一个用于提取特征。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>PPG 是一种无模型、基于策略的强化学习算法。</p></li>
 <li><p>PP 支持离散动作空间和连续动作空间。</p></li>
@@ -315,12 +315,12 @@
 </ol>
 </section>
 <section id="id3">
-<h2>重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>重要图示<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>PPG 利用分开的策略和价值网络来减少目标之间的干扰。策略网络包括一个辅助价值头部网络，用于将价值知识提取到策略网络中，具体的网络结构如下所示：</p>
 <a class="reference internal image-reference" href="../_images/ppg_net_zh.png"><img alt="../_images/ppg_net_zh.png" class="align-center" src="../_images/ppg_net_zh.png" style="height: 250px;" /></a>
 </section>
 <section id="id4">
-<h2>重要公式<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>重要公式<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>PPG 的优化分为两个阶段，策略阶段和辅助阶段。在策略阶段，策略网络和价值网络的更新方式类似于 PPO。在辅助阶段，使用联合损失将价值知识提取到策略网络中：</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{L}^{\mathrm{joint}}=\mathcal{L}^{aux}+\beta_{clone} \cdot \hat{\mathbb{E}}_{t}\left[K L\left[\pi_{\theta_{o l d}}\left(\cdot \mid s_{t}\right), \pi_{\theta}\left(\cdot \mid s_{t}\right)\right]\right]\]</div>
@@ -329,9 +329,9 @@
 \[L^{\mathrm{aux}}=\frac{1}{2} \cdot \hat{\mathbb{E}}_{t}\left[\left(V_{\theta_{\pi}}\left(s_{t}\right)-\hat{V}_{t}^{\mathrm{targ}}\right)^{2}\right]\]</div>
 </section>
 <section id="id5">
-<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="on-policy">
-<h3>on-policy 训练流程<a class="headerlink" href="#on-policy" title="Permalink to this headline">¶</a></h3>
+<h3>on-policy 训练流程<a class="headerlink" href="#on-policy" title="Permalink to this heading">¶</a></h3>
 <p>以下流程图展示了 PPG 如何在策略阶段和辅助阶段之间进行交替</p>
 <a class="reference internal image-reference" href="../_images/PPG_zh.png"><img alt="../_images/PPG_zh.png" class="align-center" src="../_images/PPG_zh.png" style="width: 600px;" /></a>
 <div class="admonition note">
@@ -340,12 +340,12 @@
 </div>
 </section>
 <section id="off-policy">
-<h3>off-policy 训练流程<a class="headerlink" href="#off-policy" title="Permalink to this headline">¶</a></h3>
+<h3>off-policy 训练流程<a class="headerlink" href="#off-policy" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine 实现了采用两个不同数据使用次数约束（”max_use”）缓冲区的 PPG。其中，策略缓冲区提供策略阶段的数据，而值缓冲区提供辅助阶段的数据。整个训练过程类似于 off-policy PPO，但会以固定频率执行额外的辅助阶段。</p>
 </section>
 </section>
 <section id="id6">
-<h2>扩展<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>扩展<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>PPG 可以与以下方法结合使用：</p>
 <ul>
@@ -362,20 +362,20 @@
 </ul>
 </section>
 <section id="id7">
-<h2>实现<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <p>默认配置如下所示：</p>
 <p>PPG 使用的网络定义如下：</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id10">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id10">
 <caption><span class="caption-text">Benchmark and comparison of PPG algorithm</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -432,11 +432,11 @@
 </table>
 </section>
 <section id="id8">
-<h2>引用<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>引用<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <p>Karl Cobbe, Jacob Hilton, Oleg Klimov, John Schulman: “Phasic Policy Gradient”, 2020; arXiv:2009.04416.</p>
 </section>
 <section id="id9">
-<h2>其他开源实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<h2>其他开源实现<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>[openai](<a class="reference external" href="https://github.com/openai/phasic-policy-gradient">https://github.com/openai/phasic-policy-gradient</a>)</p></li>
 </ul>
@@ -520,9 +520,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

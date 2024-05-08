@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="lunarlander">
-<h1>LunarLander<a class="headerlink" href="#lunarlander" title="Permalink to this headline">¶</a></h1>
+<h1>LunarLander<a class="headerlink" href="#lunarlander" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>LunarLander, or Lunar Landing, is a mission aimed at navigating a lander to a designated landing site. The environment has both discrete action space and continuous action space versions. Currently, DI-engine only supports the discrete action space version, and the continuous space version and some adaptations will be added in the future. The following mainly introduces the offline action space version of lunarlander.</p>
 <img alt="../_images/lunarlander1.gif" class="align-center" src="../_images/lunarlander1.gif" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>Just install the gym and Box2d libraries. Users can choose to install them with one click through pip</p>
 <p>Note: If the user does not have root privileges, please add –user after the install command</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
@@ -318,7 +318,7 @@ pip<span class="w"> </span>install<span class="w"> </span>Box2D
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;LunarLander-v2&#39;</span><span class="p">)</span>
@@ -331,15 +331,15 @@ pip<span class="w"> </span>install<span class="w"> </span>Box2D
 </div>
 </section>
 <section id="image">
-<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this heading">¶</a></h3>
 <p>The image of DI-engine is equipped with the framework itself and the Lunarlander environment, which can be obtained by <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code>, or by visiting <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a> for more images</p>
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>np array with 8-latitude observation space, data type <code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
 <li><p>s[0] is the abscissa</p></li>
@@ -353,7 +353,7 @@ hub</a> for more images</p>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>For the game operation key space of the discrete version of lunarlander, it is generally a discrete action space of size 4, and the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
 <li><p>In the discrete version of lunarlander, actions take values in 0-3, the specific meanings are:</p></li>
@@ -364,41 +364,41 @@ hub</a> for more images</p>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>a <code class="docutils literal notranslate"><span class="pre">int</span></code>value</p></li>
 <li><p>The reward for moving from the top of the screen to the landing point and going to zero speed is about 100…140 points. If the lander travels in a direction away from the landing pad, it loses the reward. If the lander falls or stops, the episode ends, earning an extra -100 or +100 points. Ground contact for each leg is a +10 bonus. The launch main engine is -0.3 bonus per frame. A successful landing to the landing site is 200 points. Landing outside the landing gear is possible. Fuel is unlimited.</p></li>
 </ul>
 </section>
 <section id="other">
-<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The end of the game is the end of the current environment episode. If the lander crashes or reaches a stationary state, the current episode ends</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Discrete and continuous action spaces</p></li>
 </ol>
 </section>
 <section id="transformed-space-rl-environment">
-<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
-<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>no change</p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>It is still a discrete action space of size 4, but the data type is changed from <code class="docutils literal notranslate"><span class="pre">int</span></code> to <code class="docutils literal notranslate"><span class="pre">np.int64</span></code>, the size is <code class="docutils literal notranslate"><span class="pre">(</span> <span class="pre">)</span></code>, that is, an array of 0-dim</p></li>
 </ul>
 </section>
 <section id="id3">
-<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transformation content: data structure transformation</p></li>
 <li><p>Transformation result: it becomes an np array, the size is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">np.float64</span></code></p></li>
@@ -411,20 +411,20 @@ hub</a> for more images</p>
 </div>
 </section>
 <section id="id4">
-<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in lunarlander</p></li>
 </ul>
 </section>
 </section>
 <section id="id5">
-<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to support parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method is used.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details</p></li>
@@ -434,13 +434,13 @@ np_seed = 100 * np.random.randint(1, 1000).</p></li>
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The difference between training and testing environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The difference between training and testing environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method.</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game recording. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>implementation), the code shown below will run an environment episode and save the result of this episode in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.box2d.lunarlander.envs</span> <span class="kn">import</span> <span class="n">LunarLanderEnv</span>
@@ -460,7 +460,7 @@ np_seed = 100 * np.random.randint(1, 1000).</p></li>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/">github
 link</a>
 Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">lunarlander_dqn_config.py</span></code>, use the following demo to run:</p>
@@ -540,7 +540,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>LunarLander (Average reward greater than or equal to 200 is considered a better Agent)</p>
 <blockquote>
@@ -648,9 +648,8 @@ Inside, for specific configuration files, such as <code class="docutils literal 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

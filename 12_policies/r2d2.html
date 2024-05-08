@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="r2d2">
-<h1>R2D2<a class="headerlink" href="#r2d2" title="Permalink to this headline">¶</a></h1>
+<h1>R2D2<a class="headerlink" href="#r2d2" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>R2D2 was first proposed in <a class="reference external" href="https://openreview.net/pdf?id=r1lyTjAqYX">Recurrent experience replay in distributed reinforcement learning</a>.
 In RNN training with experience replay, the RL algorithms usually face the problem of representational drift and recurrent state staleness.
 R2D2 utilizes two approaches: stored states and burn-in to mitigate the aforementioned effects.
@@ -309,7 +309,7 @@ R2D2 agent integrates these findings to achieve significant advances in the stat
 The authors claim that, Recurrent Replay Distributed DQN (R2D2) is the first agent to achieve this using a single network architecture and fixed set of hyper-parameters.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>R2D2 is an <strong>off-policy</strong>, <strong>model-free</strong> and <strong>value-based</strong> RL algorithm,</p></li>
 <li><p>R2D2 is essentially a DQN-based algorithm using a distributed framework, double Q networks, dueling architecture, n-step TD loss, and prioritized experience replay.</p></li>
@@ -319,7 +319,7 @@ The authors claim that, Recurrent Replay Distributed DQN (R2D2) is the first age
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>R2D2 agent is most similar to Ape-X, built upon prioritized distributed replay and n-step double Q-learning (with n = 5),
 generating experience by a large number of actors (typically 256) and learning from batches of
 replayed experience by a single learner.
@@ -341,7 +341,7 @@ for data arrangement process in R2D2, users can refer to the section <a class="r
 for the burn-in technique in R2D2, users can refer to the section <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/best_practice/rnn.html#burn-in-in-r2d2">burn-in-in-r2d2</a>.</p>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <p>R2D2 can be combined with:</p>
 <blockquote>
 <div><ul>
@@ -357,20 +357,20 @@ Users can refer to <a class="reference external" href="https://arxiv.org/abs/191
 </div></blockquote>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config of <code class="docutils literal notranslate"><span class="pre">R2D2Policy</span></code> is defined as follows:</p>
 <p>The network interface R2D2 used is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id1">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of R2D2 algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -427,7 +427,7 @@ Users can refer to <a class="reference external" href="https://arxiv.org/abs/191
 </table>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience replay in distributed reinforcement learning[C]//International conference on learning representations. 2018.</p></li>
 <li><p>Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Alex Graves, Ioannis Antonoglou, Daan Wierstra, Martin Riedmiller: “Playing Atari with Deep Reinforcement Learning”, 2013; arXiv:1312.5602.</p></li>
@@ -438,7 +438,7 @@ Users can refer to <a class="reference external" href="https://arxiv.org/abs/191
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference external" href="https://github.com/google-research/seed_rl/tree/master/agents/r2d2">seed_rl</a></p>
 <p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/dqn/r2d2.py">ray</a></p>
 </section>
@@ -515,9 +515,8 @@ Users can refer to <a class="reference external" href="https://arxiv.org/abs/191
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

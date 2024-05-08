@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,14 +299,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="her">
-<h1>HER<a class="headerlink" href="#her" title="Permalink to this headline">¶</a></h1>
+<h1>HER<a class="headerlink" href="#her" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>HER(Hindsight Experience Replay) was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a> to deal with the challenge caused by sparse reward. HER can be easily combined with any off-policy RL algorithm, allowing sample-efficient learning from rewards which are sparse and binary and therefore avoid the need for complicated reward engineering.</p>
 <p>HER’s core is to <strong>learn from failures</strong>. HER proposes that even if a task’s final goal is not achieved, the episode is still of use, because other goals might be achieved by the way. So HER creates a new episode from the original episode, labeling the new one with new rewards by changing the desired task goal.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>HER is not a seperate algorithm, it can be <strong>combined with any off-policy</strong> algorithm.</p></li>
 <li><p>HER needs to define rewards after changing the desired goal, but it does not need to be the same as the env’s reward function.</p></li>
@@ -321,7 +321,7 @@
 </ol>
 </section>
 <section id="pseudo-code">
-<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/HER_psuedo_code.png"><img alt="../_images/HER_psuedo_code.png" class="align-center" src="../_images/HER_psuedo_code.png" style="width: 741.4000000000001px; height: 602.8000000000001px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -330,18 +330,18 @@
 </div>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The implementation in DI-engine is not in <code class="docutils literal notranslate"><span class="pre">ding.policy</span></code> as many other algorithms, but in <code class="docutils literal notranslate"><span class="pre">ding.reward_model.her_reward_model</span></code>:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id2">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id2">
 <caption><span class="caption-text">Benchmark and comparison of c51 algorithm</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 29%" />
-<col style="width: 18%" />
-<col style="width: 35%" />
-<col style="width: 18%" />
+<col style="width: 29.4%" />
+<col style="width: 17.6%" />
+<col style="width: 35.3%" />
+<col style="width: 17.6%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -369,13 +369,13 @@
 <p>The above results are obtained by running the same configuration on 3 different random seeds (0, 1, 2)</p>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Andrychowicz M, Wolski F, Ray A, et al. Hindsight experience replay[J]. arXiv preprint arXiv:1707.01495, 2017.</p></li>
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/her">StableBaselines3</a></p></li>
 </ul>
@@ -452,9 +452,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

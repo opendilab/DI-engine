@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="mujoco">
-<h1>MuJoCo<a class="headerlink" href="#mujoco" title="Permalink to this headline">¶</a></h1>
+<h1>MuJoCo<a class="headerlink" href="#mujoco" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Mujoco is a physics engine designed to facilitate research and development in areas such as robotics, biomechanics, graphics, and animation that require fast and accurate simulation. It is often used as a benchmarking environment for continuous-space reinforcement learning algorithms. It is a collection of a series of environments (a total of 20 sub-environments), commonly used sub-environments are Ant, Half Cheetah, Hopper, Huanmoid , Walker2D, etc. The following figure shows the Hopper game.</p>
 <a class="reference internal image-reference" href="../_images/mujoco.gif"><img alt="../_images/mujoco.gif" class="align-center" src="../_images/mujoco.gif" style="width: 363.20000000000005px; height: 363.20000000000005px;" /></a>
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>First, install a MuJoCo library of a specific version in your operation system.
 Then, install three Python libraries, gym, mujoco and mujoco-py , which can be installed by one-click pip or combined with DI-engine.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>DI-engine<span class="o">[</span>common_env,video<span class="o">]</span>
@@ -379,7 +379,7 @@ pip<span class="w"> </span>install<span class="w"> </span>gym
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;Hopper-v3&#39;</span><span class="p">)</span>
@@ -389,41 +389,41 @@ pip<span class="w"> </span>install<span class="w"> </span>gym
 </div>
 </section>
 <section id="image">
-<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this heading">¶</a></h3>
 <p>The image of the DI-engine comes with the framework itself and the Mujoco environment, available via <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-mujoco</span></code>, or by accessing <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a> Get more images</p>
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>A vector composed of physical information (3D position, orientation, and joint angles etc. ), the specific size is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">)</span></code>, where <code class="docutils literal notranslate"><span class="pre">N</span></code>is determined according to the environment, and the data type is<code class="docutils literal notranslate"><span class="pre">float64</span></code></p></li>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>A vector (torque etc.) composed of physical information, generally a continuous action space of size N (N varies with the specific sub-environment), the data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>, and an np array needs to be passed in (for example, The action is <code class="docutils literal notranslate"><span class="pre">array([-0.9266078</span> <span class="pre">,</span> <span class="pre">-0.4958926</span> <span class="pre">,</span> <span class="pre">0.46242517],</span> <span class="pre">dtype</span> <span class="pre">=np.float32)</span></code>)</p></li>
 <li><p>For example, in the Hopper environment, the size of N is 3, and the action takes the value in<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code></p></li>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game score will vary greatly depending on the specific game content. Generally, it is a <code class="docutils literal notranslate"><span class="pre">float</span></code>value. For the specific value, please refer to the benchmark algorithm performance section at the bottom.</p></li>
 </ul>
 </section>
 <section id="other">
-<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The end of the game is the end of the current environment episode</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Vector physical information input, according to actual experience, it is not appropriate to subtract the mean value when doing norm.</p></li>
 <li><p>Continuous action space</p></li>
@@ -432,21 +432,21 @@ hub</a> Get more images</p>
 </ol>
 </section>
 <section id="transformed-space-rl-environment">
-<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
-<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation</p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation, it is still a continuous action space of size N, the value range is <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>, the size is <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code></p></li>
 </ul>
 </section>
 <section id="id3">
-<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation</p></li>
 </ul>
@@ -459,20 +459,20 @@ hub</a> Get more images</p>
 </div>
 </section>
 <section id="id4">
-<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key-value pair, indicating the evaluation index of the entire episode, and the cumulative sum of the rewards of the entire episode in Mujoco</p></li>
 </ul>
 </section>
 </section>
 <section id="id5">
-<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to facilitate parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The<code class="docutils literal notranslate"><span class="pre">reset</span></code>method initializes the concrete original environment instance.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of the random seed that need to be set in the environment, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the<code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details</p></li>
@@ -481,13 +481,13 @@ hub</a> Get more images</p>
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the<code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the<code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>implementation), the code shown below will run an environment episode, and save the result of this episode in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.mujoco.envs</span> <span class="kn">import</span> <span class="n">MujocoEnv</span>
@@ -507,7 +507,7 @@ hub</a> Get more images</p>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config">github
 link</a>
 Inside, for specific configuration files, such as<code class="docutils literal notranslate"><span class="pre">hopper_sac_default_config.py</span></code>, use the following demo to run:</p>
@@ -584,7 +584,7 @@ Inside, for specific configuration files, such as<code class="docutils literal n
 You can also use <code class="docutils literal notranslate"><span class="pre">serial_pipeline_onpolicy</span></code> to enter with one click.</p>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>Hopper-v3</p>
 <ul class="simple">
@@ -690,9 +690,8 @@ You can also use <code class="docutils literal notranslate"><span class="pre">se
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

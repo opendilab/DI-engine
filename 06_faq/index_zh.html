@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -297,10 +297,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="faq">
-<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this heading">¶</a></h1>
 <section id="frequently-asked-questions">
-<h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this headline">¶</a></h2>
-<div class="contents local topic" id="contents">
+<h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Permalink to this heading">¶</a></h2>
+<nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#q1-warning" id="id6">Q1. 关于使用时出现的warning</a></p></li>
 <li><p><a class="reference internal" href="#q2-di-engine-cli" id="id7">Q2. 安装之后无法使用DI-engine命令行工具(CLI)</a></p></li>
@@ -313,15 +313,15 @@
 <li><p><a class="reference internal" href="#q9-di-engine-episode" id="id14">Q9: DI-engine 中的 episode 指什么呢？</a></p></li>
 <li><p><a class="reference internal" href="#q10-di-engine-selfplay" id="id15">Q10: DI-engine 支持 selfplay 机制吗？</a></p></li>
 </ul>
-</div>
+</nav>
 <hr class="docutils" />
 <section id="q1-warning">
-<h3>Q1. 关于使用时出现的warning<a class="headerlink" href="#q1-warning" title="Permalink to this headline">¶</a></h3>
+<h3>Q1. 关于使用时出现的warning<a class="headerlink" href="#q1-warning" title="Permalink to this heading">¶</a></h3>
 <p><strong>A1:</strong></p>
 <p>对于运行DI-engine时命令行中显示的import linlink, ceph, memcache, redis的相关warning，一般使用者忽略即可，DI-engine会在import时自动进行寻找相应的替代库或代码实现。</p>
 </section>
 <section id="q2-di-engine-cli">
-<h3>Q2. 安装之后无法使用DI-engine命令行工具(CLI)<a class="headerlink" href="#q2-di-engine-cli" title="Permalink to this headline">¶</a></h3>
+<h3>Q2. 安装之后无法使用DI-engine命令行工具(CLI)<a class="headerlink" href="#q2-di-engine-cli" title="Permalink to this heading">¶</a></h3>
 <p><strong>A2:</strong></p>
 <ul class="simple">
 <li><p>部分运行环境使用pip安装时指定 <code class="docutils literal notranslate"><span class="pre">-e</span></code> 选项会导致无法使用CLI，一般非开发者无需指定该选项，去掉该选项重新安装即可</p></li>
@@ -329,7 +329,7 @@
 </ul>
 </section>
 <section id="q3">
-<h3>Q3: 安装时出现”没有权限”相关错误<a class="headerlink" href="#q3" title="Permalink to this headline">¶</a></h3>
+<h3>Q3: 安装时出现”没有权限”相关错误<a class="headerlink" href="#q3" title="Permalink to this heading">¶</a></h3>
 <p><strong>A3:</strong></p>
 <dl class="simple">
 <dt>由于某些运行环境中缺少相应权限，pip安装时可能出现”没有权限”(Permission denied)，具体原因及解决方法如下：</dt><dd><ul class="simple">
@@ -340,7 +340,7 @@
 </dl>
 </section>
 <section id="q4-syncsubprocessenvmanager">
-<h3>Q4: 如何设置SyncSubprocessEnvManager的相关运行参数<a class="headerlink" href="#q4-syncsubprocessenvmanager" title="Permalink to this headline">¶</a></h3>
+<h3>Q4: 如何设置SyncSubprocessEnvManager的相关运行参数<a class="headerlink" href="#q4-syncsubprocessenvmanager" title="Permalink to this heading">¶</a></h3>
 <p><strong>A4:</strong></p>
 <p>在配置文件的env字段添加manager字段，可以指定是否使用shared_memory，多进程multiprocessing启动的上下文，下面的代码提供了一个简单样例，详细的参数信息可参考 <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -352,7 +352,7 @@
 </div>
 </section>
 <section id="q5">
-<h3>Q5: 如何调整学习率<a class="headerlink" href="#q5" title="Permalink to this headline">¶</a></h3>
+<h3>Q5: 如何调整学习率<a class="headerlink" href="#q5" title="Permalink to this heading">¶</a></h3>
 <p><strong>A5:</strong></p>
 <p>在相应算法的入口添加 <code class="docutils literal notranslate"><span class="pre">lr_scheduler</span></code> 代码，可以通过调用 <code class="docutils literal notranslate"><span class="pre">torch.optim.lr_scheduler</span></code> （参考： <a class="reference external" href="https://pytorch.org/docs/stable/optim.html">https://pytorch.org/docs/stable/optim.html</a>）模块来调整学习率，并且在模型优化更新之后使用 <code class="docutils literal notranslate"><span class="pre">scheduler.step()</span></code> 对学习率进行更新。
 下面代码提供一个简单的案例，具体可参考demo: <a class="reference external" href="https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f">https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f</a>。</p>
@@ -381,7 +381,7 @@
 <a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
 </section>
 <section id="q6-evaluator">
-<h3>Q6: 如何理解打印出的 [EVALUATOR] 信息<a class="headerlink" href="#q6-evaluator" title="Permalink to this headline">¶</a></h3>
+<h3>Q6: 如何理解打印出的 [EVALUATOR] 信息<a class="headerlink" href="#q6-evaluator" title="Permalink to this heading">¶</a></h3>
 <p><strong>A6:</strong></p>
 <p>我们在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/collector/interaction_serial_evaluator.py#L253">interaction_serial_evaluator.py</a> ，打印出 <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> 的评估信息，
 包括 <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">final</span> <span class="pre">reward</span></code>, <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">episode</span></code> 分别代表当前已完成局 (<code class="docutils literal notranslate"><span class="pre">timestep.done=True</span></code>) 对应的环境索引 (<code class="docutils literal notranslate"><span class="pre">env_id</span></code>), 当前已完成局游戏的奖励， 以及它是 <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> 评估的第几局游戏。
@@ -401,7 +401,7 @@
 用户不必担心这些重复的 logs，它们不会对评估结果产生不好的影响。</p>
 </section>
 <section id="q7-di-engine-config-config">
-<h3>Q7: DI-engine 里的 config 文件有相关说明吗？如何在 config 中设置控制训练停止的相关字段？<a class="headerlink" href="#q7-di-engine-config-config" title="Permalink to this headline">¶</a></h3>
+<h3>Q7: DI-engine 里的 config 文件有相关说明吗？如何在 config 中设置控制训练停止的相关字段？<a class="headerlink" href="#q7-di-engine-config-config" title="Permalink to this heading">¶</a></h3>
 <p><strong>A7:</strong></p>
 <p>关于 DI-engine 配置文件系统详细介绍可见 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/config_zh.html">配置文件系统文档</a> 。DI-engine 中一般来说有三种停止设置：</p>
 <ul class="simple">
@@ -427,7 +427,7 @@
 <p>强化学习相关配置文件较为复杂，如果还有不懂的细节欢迎大家随时提问！</p>
 </section>
 <section id="q8-di-engine">
-<h3>Q8: DI-engine 安装相关问题。<a class="headerlink" href="#q8-di-engine" title="Permalink to this headline">¶</a></h3>
+<h3>Q8: DI-engine 安装相关问题。<a class="headerlink" href="#q8-di-engine" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p><strong>Q8-1</strong> 能否用 pip 安装 DI-engine？</p>
 <p><strong>A8-1:</strong></p>
@@ -453,12 +453,12 @@
 </ul>
 </section>
 <section id="q9-di-engine-episode">
-<h3>Q9: DI-engine 中的 episode 指什么呢？<a class="headerlink" href="#q9-di-engine-episode" title="Permalink to this headline">¶</a></h3>
+<h3>Q9: DI-engine 中的 episode 指什么呢？<a class="headerlink" href="#q9-di-engine-episode" title="Permalink to this heading">¶</a></h3>
 <p><strong>A9:</strong></p>
 <p>episode 这个词的中文翻译比较生硬，并不是强化学习的原创概念，它来自于游戏，类似“关卡”的意思，指智能体开始玩游戏到通关或者 game over 的过程，本质是指跟环境交互的一个完整周期，比如一局游戏一盘围棋这样，或许翻译为“集”or“局”比较好。</p>
 </section>
 <section id="q10-di-engine-selfplay">
-<h3>Q10: DI-engine 支持 selfplay 机制吗？<a class="headerlink" href="#q10-di-engine-selfplay" title="Permalink to this headline">¶</a></h3>
+<h3>Q10: DI-engine 支持 selfplay 机制吗？<a class="headerlink" href="#q10-di-engine-selfplay" title="Permalink to this heading">¶</a></h3>
 <p><strong>A10:</strong></p>
 <p>支持的，最简单的例子可以参考 <code class="docutils literal notranslate"><span class="pre">dizoo</span></code> 中的 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/league_demo">league demo</a> 和 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley">slime volleyball</a> 。</p>
 </section>
@@ -541,9 +541,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

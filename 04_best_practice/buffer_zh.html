@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="buffer">
-<h1>Buffer 使用指南<a class="headerlink" href="#buffer" title="Permalink to this headline">¶</a></h1>
+<h1>Buffer 使用指南<a class="headerlink" href="#buffer" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>Buffer 入门<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>Buffer 入门<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p><strong>Buffer 的基本概念</strong></p>
 <p>在 Off-policy RL 算法中，我们通常会使用经验回放（Experience Replay）机制来提高样本利用效率，并降低样本之间的相关性。
 DI-engine 提供了 <strong>DequeBuffer</strong> 来实现经验回放池的常见功能，例如数据的存入、采样等。用户可以通过以下命令创建 DequeBuffer 对象:</p>
@@ -353,7 +353,7 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
 </div>
 </section>
 <section id="id2">
-<h2>Buffer 进阶<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>Buffer 进阶<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>在上一节中，我们提供了 buffer 基本的应用场景。接下来，我们将为用户深入展示 buffer 更全面的功能。</p>
 <p><strong>优先级采样</strong></p>
 <p>在一些算法中，需要用到优先级采样。在 DI-engine 中，使用 <strong>PriorityExperienceReplay 中间件</strong>，即可赋予 buffer 优先级采样功能。
@@ -499,9 +499,8 @@ Dataclass 是 python3 的一种特性，相比于字典（Dict），它能够明
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

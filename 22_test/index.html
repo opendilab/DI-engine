@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -297,9 +297,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="unit-test-guide">
-<h1>Unit Test Guide<a class="headerlink" href="#unit-test-guide" title="Permalink to this headline">¶</a></h1>
+<h1>Unit Test Guide<a class="headerlink" href="#unit-test-guide" title="Permalink to this heading">¶</a></h1>
 <section id="significance-of-unit-testing">
-<h2>Significance of Unit Testing<a class="headerlink" href="#significance-of-unit-testing" title="Permalink to this headline">¶</a></h2>
+<h2>Significance of Unit Testing<a class="headerlink" href="#significance-of-unit-testing" title="Permalink to this heading">¶</a></h2>
 <p>In the field of software engineering, unit testing is a testing method. Through this method, each unit of the source code set of one or more computer program modules and related control data, use programs and operation programs are tested to determine whether they can operate correctly (from <a class="reference external" href="https://en.wikipedia.org/wiki/Unit_testing">Wikipedia - Unit testing</a>).</p>
 <p>In actual development, the significance of unit testing is as follows:</p>
 <ul class="simple">
@@ -311,7 +311,7 @@
 </ul>
 </section>
 <section id="types-of-unit-test">
-<span id="ref-test-types"></span><h2>Types of Unit Test<a class="headerlink" href="#types-of-unit-test" title="Permalink to this headline">¶</a></h2>
+<span id="ref-test-types"></span><h2>Types of Unit Test<a class="headerlink" href="#types-of-unit-test" title="Permalink to this heading">¶</a></h2>
 <p>In the DI-engine project, we divide the unit test into the following parts:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unittest</span></code> – functional unit test in a general sense to ensure the normal function of engineering code and the convergence of algorithm code on simple use cases.</p></li>
@@ -323,11 +323,11 @@
 </ul>
 </section>
 <section id="how-to-build-unit-test">
-<h2>How to Build Unit Test<a class="headerlink" href="#how-to-build-unit-test" title="Permalink to this headline">¶</a></h2>
+<h2>How to Build Unit Test<a class="headerlink" href="#how-to-build-unit-test" title="Permalink to this heading">¶</a></h2>
 <p>In DI-engine, we use <a class="reference external" href="https://docs.pytest.org/">pytest</a> to build unit tests.</p>
 <p>For unit test writing, you can refer to the <code class="docutils literal notranslate"><span class="pre">tests</span></code> folder under the code path at all levels as a whole, such as <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/envs/env_manager/tests">ding/envs/env_manager/tests</a>.</p>
 <section id="naming-conventions">
-<h3>Naming Conventions<a class="headerlink" href="#naming-conventions" title="Permalink to this headline">¶</a></h3>
+<h3>Naming Conventions<a class="headerlink" href="#naming-conventions" title="Permalink to this heading">¶</a></h3>
 <p>For unit testing, we generally build it in the unit of class or function, and its name should meet certain specifications, specifically:</p>
 <ul class="simple">
 <li><p>For the unit test of function form, the function name is required to be started with <code class="docutils literal notranslate"><span class="pre">test_</span></code>.</p></li>
@@ -335,7 +335,7 @@
 </ul>
 </section>
 <section id="assertions">
-<h3>Assertions<a class="headerlink" href="#assertions" title="Permalink to this headline">¶</a></h3>
+<h3>Assertions<a class="headerlink" href="#assertions" title="Permalink to this heading">¶</a></h3>
 <p>In the test cases, we use <code class="docutils literal notranslate"><span class="pre">assert</span></code> (assertion) to check the prototype results. If the assertion is not true, very detailed information will be displayed, as shown in the following figure</p>
 <a class="reference internal image-reference" href="../_images/pytest_assert.png"><img alt="../_images/pytest_assert.png" class="align-center" src="../_images/pytest_assert.png" style="width: 787.6px; height: 502.70000000000005px;" /></a>
 <p>In addition, `` pytest`` also supports assertion of thrown exceptions, as shown below</p>
@@ -351,18 +351,18 @@
 <a class="reference internal image-reference" href="../_images/pytest_approx.png"><img alt="../_images/pytest_approx.png" class="align-center" src="../_images/pytest_approx.png" style="width: 599.5px; height: 176.0px;" /></a>
 </section>
 <section id="fixture-and-conftest">
-<h3>Fixture and Conftest<a class="headerlink" href="#fixture-and-conftest" title="Permalink to this headline">¶</a></h3>
+<h3>Fixture and Conftest<a class="headerlink" href="#fixture-and-conftest" title="Permalink to this heading">¶</a></h3>
 <p>Fixture is a very important mechanism in <code class="docutils literal notranslate"><span class="pre">pytest</span></code>. It can initialize the resources required for testing and pass them in as parameters of the test function for its usage. Not only that, but also the recovery of operation resources can be realized to ensure that the subsequent operation will not be affected. In addition, code reuse can be easily realized through the definition of scope.</p>
 <p>This <a class="reference external" href="https://www.lambdatest.com/blog/end-to-end-tutorial-for-pytest-fixtures-with-examples/">fixture tutorial</a> is written in great detail and can be used as a reference. In the existing code of DI-engine, you can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/league/tests/test_player.py">ding/league/tests/test_player.py</a>.</p>
 <p>Fixture is generally used in a single file, that is, it is used after defining fixture under the current file. If you need to use fixture across files, you can use the <code class="docutils literal notranslate"><span class="pre">conftest</span></code> (abbreviation of <code class="docutils literal notranslate"><span class="pre">config</span> <span class="pre">of</span> <span class="pre">test</span></code>) mechanism. There is no need to explicitly import in the test file, and the <code class="docutils literal notranslate"><span class="pre">pytest</span></code> framework will automatically complete the loading. You can refer to this <a class="reference external" href="https://www.lambdatest.com/blog/end-to-end-tutorial-for-pytest-fixtures-with-examples/#Sharingpytest">tutorial</a>, and in the existing code, you can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/league/tests/conftest.py">ding/league/tests/conftest.py</a>.</p>
 </section>
 <section id="test-mark">
-<h3>Test Mark<a class="headerlink" href="#test-mark" title="Permalink to this headline">¶</a></h3>
+<h3>Test Mark<a class="headerlink" href="#test-mark" title="Permalink to this heading">¶</a></h3>
 <p>In order to distinguish the types of tests (for example, ref:<cite>ref-test-types</cite>), you can add <code class="docutils literal notranslate"><span class="pre">pytest.mark(&quot;MARK-NAME&quot;)</span></code> decorator to let the test be executed by category, and use <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">–m</span> <span class="pre">MARK-NAME</span></code> to execute the selected type of test at run time.</p>
 <a class="reference internal image-reference" href="../_images/pytest_mark.png"><img alt="../_images/pytest_mark.png" class="align-center" src="../_images/pytest_mark.png" style="width: 684.2px; height: 594.0px;" /></a>
 </section>
 <section id="parameterized">
-<h3>Parameterized<a class="headerlink" href="#parameterized" title="Permalink to this headline">¶</a></h3>
+<h3>Parameterized<a class="headerlink" href="#parameterized" title="Permalink to this heading">¶</a></h3>
 <p>In some cases, we need to reuse the same test logic and test for different input data. At this point, we can use parameter configuration <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize(argsnames,</span> <span class="pre">argsvalues,</span> <span class="pre">ids=None)</span></code> realize parameter configuration for multiple groups of tests. Of which:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">argsnames</span></code>
@@ -379,7 +379,7 @@
 </section>
 </section>
 <section id="how-do-run-unit-test">
-<h2>How do Run Unit Test<a class="headerlink" href="#how-do-run-unit-test" title="Permalink to this headline">¶</a></h2>
+<h2>How do Run Unit Test<a class="headerlink" href="#how-do-run-unit-test" title="Permalink to this heading">¶</a></h2>
 <p>In DI-engine, we use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to start unit tests. For very simple cases, you can use the command directly:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-sv<span class="w"> </span>./ding
 </pre></div>
@@ -485,9 +485,8 @@ make<span class="w"> </span>platformtext
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

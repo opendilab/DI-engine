@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="cql">
-<h1>CQL<a class="headerlink" href="#cql" title="Permalink to this headline">¶</a></h1>
+<h1>CQL<a class="headerlink" href="#cql" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>综述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>离线强化学习（RL）是一个新出现的研究领域，旨在使用大量预先收集的数据集学习行为，而无需进一步与环境进行交互。它有可能在许多实际决策问题中取得巨大进展，
 其中与环境交互昂贵（例如，在机器人技术、药物发现、对话生成、推荐系统中）或不安全/危险（例如，在医疗保健、自动驾驶或教育中）。
 此外，在线收集的数据量远远低于离线数据集。这样的范式有望解决将强化学习算法从受限实验室环境带到现实世界的关键挑战。</p>
@@ -310,7 +310,7 @@
 是其中之一，它通过对标准基于价值的 RL 算法进行简单修改来学习保守 Q 函数，其期望值下限。</p>
 </section>
 <section id="id2">
-<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>CQL 是一种离线 RL 算法。</p></li>
 <li><p>CQL 可以在许多标准在线 RL 算法之上用不到20行代码实现。</p></li>
@@ -318,7 +318,7 @@
 </ol>
 </section>
 <section id="id3">
-<h2>重要公式/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>重要公式/重要图示<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>CQL 可以在许多标准在线 RL 算法之上用不到20行代码实现，只需将 CQL 正则化项添加到 Q 函数更新中。</p>
 <p>通常情况下，对于保守的离线策略评估，Q 函数通过迭代更新进行训练：</p>
 <a class="reference internal image-reference" href="../_images/cql_policy_evaluation.png"><img alt="../_images/cql_policy_evaluation.png" class="align-center" src="../_images/cql_policy_evaluation.png" style="width: 700.7px; height: 103.4px;" /></a>
@@ -340,7 +340,7 @@
 <p>其次，如果 <span class="math notranslate nohighlight">\(\rho(a|s)\)</span> 被选择为前一个策略 <span class="math notranslate nohighlight">\(\hat{\pi}^{k-1}\)</span> ，则上述方程（4）中的第一项被替换为来自所选 <span class="math notranslate nohighlight">\(\hat{\pi}^{k-1}(a|s)\)</span> 的动作的 Q 值的指数加权平均值。</p>
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>伪代码显示在算法1中，与传统的 Actor-Critic 算法（例如SAC）和深度 Q 学习算法（例如DQN）的区别以红色显示。</p>
 <a class="reference internal image-reference" href="../_images/cql.png"><img alt="../_images/cql.png" class="align-center" src="../_images/cql.png" style="width: 547.8000000000001px; height: 276.1px;" /></a>
 <p>上述伪代码中的方程4如下：</p>
@@ -348,19 +348,12 @@
 <p>请注意，在实现过程中，方程（4）中的第一项将在 <cite>torch.logsumexp</cite> 下计算，这会消耗大量运行时间。</p>
 </section>
 <section id="id5">
-<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>CQL 算法的默认设置如下：</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -410,14 +403,6 @@
 </table>
 <p>对于每个数据集，我们的实现结果如下：</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 19%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
-<col style="width: 20%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>random</p></th>
@@ -478,14 +463,14 @@
 </ol>
 </section>
 <section id="id6">
-<h2>引用<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>引用<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Kumar, Aviral, et al. “Conservative q-learning for offline reinforcement learning.” arXiv preprint arXiv:2006.04779 (2020).</p></li>
 <li><p>Chenjia Bai, et al. “Pessimistic Bootstrapping for Uncertainty-Driven Offline Reinforcement Learning.”</p></li>
 </ul>
 </section>
 <section id="id7">
-<h2>其他开源实现<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>其他开源实现<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/aviralkumar2907/CQL">CQL release repo</a></p></li>
 </ul>
@@ -563,9 +548,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

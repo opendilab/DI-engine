@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,14 +299,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>强化学习中的探索机制<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
-<p>本文主要参考这篇关于强化学习中探索策略的综述<a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">博客</a><a class="footnote-reference brackets" href="#id43" id="id2">14</a> 。</p>
+<h1>强化学习中的探索机制<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
+<p>本文主要参考这篇关于强化学习中探索策略的综述<a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">博客</a><a class="footnote-reference brackets" href="#id43" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a> 。</p>
 <section id="id3">
-<h2>问题定义和研究动机<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>问题定义和研究动机<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>强化学习，是通过环境给出的奖励信号来指导策略的更新，力求获取最大累计折扣奖励。但在很多现实世界环境中奖励是稀疏的，甚至完全没有奖励。如何在这种情况下，引导智能体高效地探索状态和动作空间，进而找到最优策略完成任务？</p>
 <p>因为如果智能体在有限步的训练之后变得贪婪，即在某个状态下只选择当前它认为最优的动作，它可能永远学不到最优策略，因为它很可能已经收敛到了次优策略，永远到达不了真正有意义的奖励大的状态。这即是所谓的探索与利用困境问题。
 通俗来讲，所谓探索：是指做你以前从来没有做过的事情，以期望获得更高的回报；所谓利用：是指做你当前知道的能产生最大回报的事情。</p>
-<p>参考 <a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id38" id="id4">9</a>，探索困难的问题主要包括两个难点：</p>
+<p>参考 <a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id38" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>，探索困难的问题主要包括两个难点：</p>
 <ul class="simple">
 <li><p>环境给出的奖励很稀疏。智能体需要作出特定的序列动作才可能得到一个非零的奖励，如果每一步仅仅采用随机探索，很可能在整个学习过程中都遇不到一个非零的奖励。例如在
 Montezuma’s Revenge
@@ -317,7 +317,7 @@ Montezuma’s Revenge
 <p>在上述情况下，一个高效的探索机制对于智能体完成任务至关重要。</p>
 </section>
 <section id="id5">
-<h2>研究方向<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>研究方向<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>强化学习中的探索机制可以大致分为以下几个研究方向：</p>
 <ol class="arabic">
 <li><p>经典的探索机制</p></li>
@@ -343,7 +343,7 @@ Montezuma’s Revenge
 <p>各个研究方向的代表性算法及其关键要点，请参见下图：</p>
 <a class="reference internal image-reference" href="../_images/exploration_overview.png"><img alt="../_images/exploration_overview.png" class="align-center" src="../_images/exploration_overview.png" style="width: 450.0px; height: 278.5px;" /></a>
 <section id="id6">
-<h3>经典的探索机制<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>经典的探索机制<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>在传统的 multi-armed bandit 问题中，常用的经典探索机制包括：</p>
 <ul class="simple">
 <li><p>Epsilon-Greedy：在某一时刻，所有动作的选择概率都大于0。智能体以一个较小的概率<span class="math notranslate nohighlight">\(\epsilon\)</span>执行随机的动作（探索），以一个较大的概率<span class="math notranslate nohighlight">\(1-\epsilon\)</span>执行Q值最大的动作（利用）。</p></li>
@@ -365,7 +365,7 @@ Exploration：通过在观察、动作甚至网络的参数空间添加噪声来
 </ul>
 </section>
 <section id="id7">
-<h3>基于内在奖励的探索<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>基于内在奖励的探索<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>探索机制设计中比较重要的一类方法就是设计特殊的 reward，从而激发智能体的“好奇心”。一般地，我们将环境给出的奖励称为<strong>外在奖励</strong>（extrinsic
 reward)，而探索机制给出的奖励称为<strong>内在奖励</strong>（intrinsic reward)。</p>
 <p>我们希望通过增加这个额外的内在奖励来实现下列两种目的：</p>
@@ -384,7 +384,7 @@ state)。(需要评估状态<span class="math notranslate nohighlight">\(s\)</sp
 因此，这种特别设计的探索机制就会赋予该状态更大的内在奖励。那状态<span class="math notranslate nohighlight">\(s\)</span>的新颖性具体如何度量呢？主要有2种方式，一是通过某种方式对状态进行计数来衡量，二是基于某个预测问题的预测误差来衡量，
 这样就分别得到了<strong>基于内在奖励的探索</strong>下面的2大子类算法：<strong>基于计数的内在奖励</strong>和<strong>基于预测误差的内在奖励</strong>。</p>
 <section id="id8">
-<h4>基于计数的内在奖励<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
+<h4>基于计数的内在奖励<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h4>
 <p>基于计数的内在奖励采用最简单的思想，即通过计数度量新颖性，即每个
 <span class="math notranslate nohighlight">\(s\)</span>
 都对应一个访问计数<span class="math notranslate nohighlight">\(N(s)\)</span>，其值越大，说明之前智能体对其访问的次数越多，也即对
@@ -393,10 +393,10 @@ state)。(需要评估状态<span class="math notranslate nohighlight">\(s\)</sp
 <ul class="simple">
 <li><p><a class="reference external" href="https://arxiv.org/abs/1606.01868">Unifying Count-Based Exploration and Intrinsic
 Motivation</a>
-<a class="footnote-reference brackets" href="#id30" id="id9">1</a> 使用了密度模型来近似状态访问的频率，并提出了一个从密度模型中推导出伪计数(pseudo-count)的新颖算法。</p></li>
+<a class="footnote-reference brackets" href="#id30" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> 使用了密度模型来近似状态访问的频率，并提出了一个从密度模型中推导出伪计数(pseudo-count)的新颖算法。</p></li>
 <li><p><a class="reference external" href="https://arxiv.org/abs/1611.04717">#Exploration: A Study of Count-Based Exploration for Deep
 Reinforcement Learning</a>
-<a class="footnote-reference brackets" href="#id31" id="id10">2</a> 提出使用局部敏感哈希 (Locality-Sensitive hash,
+<a class="footnote-reference brackets" href="#id31" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> 提出使用局部敏感哈希 (Locality-Sensitive hash,
 LSH) 将连续的高维状态数据转换为离散哈希码。从而使得状态出现频率的统计变得可行。</p></li>
 </ul>
 <p>但基于计数的方法度量新颖性存在很多明显的局限性：</p>
@@ -406,12 +406,12 @@ LSH) 将连续的高维状态数据转换为离散哈希码。从而使得状态
 </ul>
 </section>
 <section id="id11">
-<h4>基于预测误差的内在奖励<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<h4>基于预测误差的内在奖励<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h4>
 <p>基于预测误差的内在奖励是<strong>利用状态在某个预测问题 (通常是监督学习问题)
 上的预测误差来度量新颖性</strong>。根据在监督学习中神经网络拟合数据集的特性，如果智能体在某个状态<span class="math notranslate nohighlight">\(s\)</span>上预测误差越大，近似说明在状态<span class="math notranslate nohighlight">\(s\)</span>
 附近的状态空间上智能体之前访问的次数少，从而该状态<span class="math notranslate nohighlight">\(s\)</span>
 新颖性较大。</p>
-<p>预测问题往往是与环境的 dynamics 相关的问题，例如论文 <a class="footnote-reference brackets" href="#id32" id="id12">3</a> <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> (ICM) 提出了一种新的基于预测误差的内在好奇心模块 (Intrinsic Curiosity
+<p>预测问题往往是与环境的 dynamics 相关的问题，例如论文 <a class="footnote-reference brackets" href="#id32" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> <a class="reference external" href="http://proceedings.mlr.press/v70/pathak17a/pathak17a.pdf">Curiosity-driven Exploration by Self-supervised Prediction</a> (ICM) 提出了一种新的基于预测误差的内在好奇心模块 (Intrinsic Curiosity
 Module，ICM)，通过在原始问题空间上，利用逆向动力学模型和前向动力学模型来学习一个新的特征空间，促使学习到的特征空间只编码影响智能体决策的部分，而忽视掉环境中的噪声等无关干扰。然后在这个更纯粹的特征空间上，根据前向模型预测误差来为 RL 训练提供 intrinsic
 reward。关于 ICM 的更多细节可以参考<a class="reference external" href="https://zhuanlan.zhihu.com/p/473676311">博客</a>。</p>
 <p>但是 ICM 存在如下问题：</p>
@@ -420,7 +420,7 @@ reward。关于 ICM 的更多细节可以参考<a class="reference external" hre
 <li><p>在有些环境上，环境的状态转移函数是随机函数，例如包含 noisy-TV 属性的环境
 ，智能体不可能通过通常的神经网络准确预测的下一状态。</p></li>
 </ul>
-<p>为了缓解上述问题，论文 <a class="footnote-reference brackets" href="#id33" id="id13">4</a> <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">Exploration by Random Network
+<p>为了缓解上述问题，论文 <a class="footnote-reference brackets" href="#id33" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">Exploration by Random Network
 Distillation</a>一文提出 RND
 算法，它也是一种<strong>基于预测问题</strong>的探索方法，不过特殊的是，RND 算法中的预测问题是只和观测状态
 (observation)
@@ -429,17 +429,17 @@ Distillation</a>一文提出 RND
 network)，预测器网络用于输出对<em>目标网络给出的状态编码</em>的预测值。然后 RND 内在探索奖励定义为正比于<strong>预测器网络预测的状态特征</strong><span class="math notranslate nohighlight">\(\hat{f}(s_t)\)</span>与<strong>目标网络的状态特征</strong><span class="math notranslate nohighlight">\(f(s_t)\)</span>之间的误差。关于 RND 的更多细节可以参考<a class="reference external" href="https://zhuanlan.zhihu.com/p/485476646">博客</a>。</p>
 </section>
 <section id="id14">
-<h4>基于信息论的内在奖励<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<h4>基于信息论的内在奖励<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h4>
 <p>为了鼓励探索, 另一个思路是设计基于信息理论的内在奖励。
-论文 <a class="footnote-reference brackets" href="#id40" id="id15">11</a> 引入了变分信息最大化探索 (Variational information maximizing exploration, VIME)，核心思想在于最大化智能体对环境动力学信念的信息增益 (maximization of information gain about the agent’s belief
+论文 <a class="footnote-reference brackets" href="#id40" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a> 引入了变分信息最大化探索 (Variational information maximizing exploration, VIME)，核心思想在于最大化智能体对环境动力学信念的信息增益 (maximization of information gain about the agent’s belief
 of environment dynamics)，在贝叶斯神经网络中使用变分推理，它可以有效地处理连续的状态和动作空间。
-论文 <a class="footnote-reference brackets" href="#id41" id="id16">12</a> 提出 EMI 算法 (Exploration with Mutual Information)，不是通过通常的编解码原始状态或动作空间来学习表征，而是通过最大化相关状态动作表征之间的互信息来学习状态和动作的表征，
+论文 <a class="footnote-reference brackets" href="#id41" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a> 提出 EMI 算法 (Exploration with Mutual Information)，不是通过通常的编解码原始状态或动作空间来学习表征，而是通过最大化相关状态动作表征之间的互信息来学习状态和动作的表征，
 他们在实验中验证了在这样的表征空间中提取到的前向预测信号可以很好地指导探索。
-此外还有基于互信息的目标函数学习 skill 变量的 DIYAN <a class="footnote-reference brackets" href="#id42" id="id17">13</a> 等方法，可以在没有外在奖励的条件下，通过设置互信息相关的内在奖励，自动学习到状态与 skill 的分布，用于后续的分层学习，模仿学习和探索等任务中。</p>
+此外还有基于互信息的目标函数学习 skill 变量的 DIYAN <a class="footnote-reference brackets" href="#id42" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a> 等方法，可以在没有外在奖励的条件下，通过设置互信息相关的内在奖励，自动学习到状态与 skill 的分布，用于后续的分层学习，模仿学习和探索等任务中。</p>
 </section>
 </section>
 <section id="memory">
-<h3>基于 Memory 的探索<a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h3>
+<h3>基于 Memory 的探索<a class="headerlink" href="#memory" title="Permalink to this heading">¶</a></h3>
 <p>ICM, RND 等基于内在奖励的探索方法提出通过预测问题的误差来度量状态的新颖性，为新颖性大的状态提供一个大的内在奖励，促进探索，这些方法在许多稀疏奖励设置下，探索困难的任务上取得了不错的效果，但是存在一个问题：<strong>随着智能体训练步数的增加，预测问题的预测误差开始减小，探索信号变小，即不再鼓励智能体再次访问某些状态，但是有可能这些状态正是获得外在奖励所必须访问的状态</strong>。而且还可能存在以下问题：</p>
 <ul class="simple">
 <li><p>函数逼近速度比较慢，有时跟不上智能体探索的速度，导致内在奖励不能很好描述状态的新颖性。</p></li>
@@ -447,17 +447,17 @@ of environment dynamics)，在贝叶斯神经网络中使用变分推理，它�
 </ul>
 <p>基于存储的探索的探索机制，显式利用一个 Memory 维护历史的状态，然后根据当前状态与历史状态的某中度量给出当前状态的内在奖励值。</p>
 <section id="episodic-memory">
-<h4>Episodic Memory<a class="headerlink" href="#episodic-memory" title="Permalink to this headline">¶</a></h4>
+<h4>Episodic Memory<a class="headerlink" href="#episodic-memory" title="Permalink to this heading">¶</a></h4>
 <section id="ngu">
-<h5>NGU<a class="headerlink" href="#ngu" title="Permalink to this headline">¶</a></h5>
-<p>为了解决前述探索信号逐渐衰减的问题，论文 <a class="footnote-reference brackets" href="#id34" id="id18">5</a> <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a>基于 R2D2 <a class="footnote-reference brackets" href="#id35" id="id19">6</a> 算法提出了 Never Give Up（NGU）算法。
+<h5>NGU<a class="headerlink" href="#ngu" title="Permalink to this heading">¶</a></h5>
+<p>为了解决前述探索信号逐渐衰减的问题，论文 <a class="footnote-reference brackets" href="#id34" id="id18" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a>基于 R2D2 <a class="footnote-reference brackets" href="#id35" id="id19" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a> 算法提出了 Never Give Up（NGU）算法。
 这种智能体采用一种新的内在奖励产生机制，融合了2个维度的新颖性：即<strong>life-long 维度上的局间内在奖励</strong>和<strong>单局维度上的局内内在奖励</strong>，此外还提出通过同时学习一组具有不同探索程度的策略 (directed
 exploratory policies)来采集更为丰富的样本用于训练。其中局间内在奖励是通过维护一个存储本局状态的 Episodic
 Memory, 计算当前状态与 Memory 中与其最相似的k个样本的距离计算得到的。关于 NGU 的更多细节可以参考 <a class="reference external" href="https://zhuanlan.zhihu.com/p/551992517">NGU 中文博客</a> 。</p>
 </section>
 <section id="agent57">
-<h5>Agent57<a class="headerlink" href="#agent57" title="Permalink to this headline">¶</a></h5>
-<p>论文 <a class="footnote-reference brackets" href="#id36" id="id21">7</a> <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human
+<h5>Agent57<a class="headerlink" href="#agent57" title="Permalink to this heading">¶</a></h5>
+<p>论文 <a class="footnote-reference brackets" href="#id36" id="id21" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human
 Benchmark</a>在 NGU 的基础上做了如下改进：</p>
 <ul class="simple">
 <li><p>Q 函数的参数化方式：将 Q 网络分为2部分，分别学习内在奖励对应的 Q 值和外在奖励对应的Q值。</p></li>
@@ -469,10 +469,10 @@ Benchmark</a>在 NGU 的基础上做了如下改进：</p>
 </section>
 </section>
 <section id="id22">
-<h4>直接探索<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h4>
+<h4>直接探索<a class="headerlink" href="#id22" title="Permalink to this heading">¶</a></h4>
 <section id="go-explore">
-<h5>Go-Explore<a class="headerlink" href="#go-explore" title="Permalink to this headline">¶</a></h5>
-<p><a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id37" id="id23">8</a> <a class="footnote-reference brackets" href="#id38" id="id24">9</a> 指出当前阻碍智能体探索的因素有2个：忘记了如何到达之前访问过的状态
+<h5>Go-Explore<a class="headerlink" href="#go-explore" title="Permalink to this heading">¶</a></h5>
+<p><a class="reference external" href="https://www.nature.com/articles/s41586-020-03157-9">Go-Explore</a> <a class="footnote-reference brackets" href="#id37" id="id23" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#id38" id="id24" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> 指出当前阻碍智能体探索的因素有2个：忘记了如何到达之前访问过的状态
 (detachment)；智能体无法首先返回某个状态，然后从那个状态上开始探索(derailment)。为此作者提出<strong>记住状态，返回那个状态，从那个状态开始探索</strong>的简单机制，用于应对上述问题：通过维护一个感兴趣状态的存储器以及如何通向这些状态的轨迹，智能体可以回到
 (假设模拟器是确定性的) 这些有希望的状态，并从那里继续进行随机探索。</p>
 <p>具体地，首先状态被映射成一个短的离散编码（称为 cell ）以便存储。如果出现新的状态或找到更好/更短的轨迹，存储器就会更新相应的状态和轨迹。智能体可以在存储器中均匀随机选择一个状态返回，或者根据某种启发式规则，例如可以根据新旧程度，访问计数，在存储器中它的邻居计数等相关指标选择返回的状态。然后在这个状态上开始探索。Go-Explore 重复上述过程，直到任务被解决，即至少找到一条成功的轨迹。</p>
@@ -480,12 +480,12 @@ Benchmark</a>在 NGU 的基础上做了如下改进：</p>
 </section>
 </section>
 <section id="id25">
-<h3>其他探索机制<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
-<p>除了上述探索机制外，还有基于 Q 值的探索 <a class="footnote-reference brackets" href="#id39" id="id26">10</a> 等等，感兴趣的读者，可以参考这篇关于强化学习中的探索策略的综述<a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">博客</a><a class="footnote-reference brackets" href="#id43" id="id27">14</a> 。</p>
+<h3>其他探索机制<a class="headerlink" href="#id25" title="Permalink to this heading">¶</a></h3>
+<p>除了上述探索机制外，还有基于 Q 值的探索 <a class="footnote-reference brackets" href="#id39" id="id26" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a> 等等，感兴趣的读者，可以参考这篇关于强化学习中的探索策略的综述<a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">博客</a><a class="footnote-reference brackets" href="#id43" id="id27" role="doc-noteref"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></a> 。</p>
 </section>
 </section>
 <section id="id28">
-<h2>未来展望<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h2>
+<h2>未来展望<a class="headerlink" href="#id28" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>目前基于内在奖励的探索方法中，如何自适应设置内在奖励和环境给出奖励的相对权重是一个值得研究的问题。</p></li>
 <li><p>可以观察到目前已有的探索机制，往往是考虑单个状态的新颖性，未来或许可以拓展到序列状态的新颖性，以实现更高语义层面的探索。</p></li>
@@ -494,71 +494,87 @@ Benchmark</a>在 NGU 的基础上做了如下改进：</p>
 </ul>
 </section>
 <section id="id29">
-<h2>参考文献<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
-<dl class="footnote brackets">
-<dt class="label" id="id30"><span class="brackets"><a class="fn-backref" href="#id9">1</a></span></dt>
-<dd><p>Marc G. Bellemare, et al. “Unifying Count-Based Exploration and
+<h2>参考文献<a class="headerlink" href="#id29" title="Permalink to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id30" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">1</a><span class="fn-bracket">]</span></span>
+<p>Marc G. Bellemare, et al. “Unifying Count-Based Exploration and
 Intrinsic Motivation”. NIPS 2016.</p>
-</dd>
-<dt class="label" id="id31"><span class="brackets"><a class="fn-backref" href="#id10">2</a></span></dt>
-<dd><p>Haoran Tang, et al. “#Exploration: A Study of Count-Based
+</aside>
+<aside class="footnote brackets" id="id31" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">2</a><span class="fn-bracket">]</span></span>
+<p>Haoran Tang, et al. “#Exploration: A Study of Count-Based
 Exploration for Deep Reinforcement Learning”. NIPS 2017.</p>
-</dd>
-<dt class="label" id="id32"><span class="brackets"><a class="fn-backref" href="#id12">3</a></span></dt>
-<dd><p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration
+</aside>
+<aside class="footnote brackets" id="id32" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">3</a><span class="fn-bracket">]</span></span>
+<p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration
 by self-supervised prediction[C]//International conference on
 machine learning. PMLR, 2017: 2778-2787</p>
-</dd>
-<dt class="label" id="id33"><span class="brackets"><a class="fn-backref" href="#id13">4</a></span></dt>
-<dd><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network
+</aside>
+<aside class="footnote brackets" id="id33" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id13">4</a><span class="fn-bracket">]</span></span>
+<p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network
 distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>.
 arXiv:1810.12894, 2018.</p>
-</dd>
-<dt class="label" id="id34"><span class="brackets"><a class="fn-backref" href="#id18">5</a></span></dt>
-<dd><p>Badia A P, Sprechmann P, Vitvitskyi A, et al. Never give up:
+</aside>
+<aside class="footnote brackets" id="id34" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id18">5</a><span class="fn-bracket">]</span></span>
+<p>Badia A P, Sprechmann P, Vitvitskyi A, et al. Never give up:
 Learning directed exploration strategies[J]. arXiv preprint
 arXiv:2002.06038, 2020.</p>
-</dd>
-<dt class="label" id="id35"><span class="brackets"><a class="fn-backref" href="#id19">6</a></span></dt>
-<dd><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
+</aside>
+<aside class="footnote brackets" id="id35" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id19">6</a><span class="fn-bracket">]</span></span>
+<p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience
 replay in distributed reinforcement learning[C]//International
 conference on learning representations. 2018.</p>
-</dd>
-<dt class="label" id="id36"><span class="brackets"><a class="fn-backref" href="#id21">7</a></span></dt>
-<dd><p>Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
+</aside>
+<aside class="footnote brackets" id="id36" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id21">7</a><span class="fn-bracket">]</span></span>
+<p>Agent57: [Badia A P, Piot B, Kapturowski S, et al. Agent57:
 Outperforming the atari human benchmark<a class="reference external" href="https://link.zhihu.com/?target=https%3A//arxiv.org/pdf/2003.13350.pdf">J]. arXiv preprint
 arXiv:2003.13350,
 2020.</a></p>
-</dd>
-<dt class="label" id="id37"><span class="brackets"><a class="fn-backref" href="#id23">8</a></span></dt>
-<dd><p>Adrien Ecoffet, et al. “Go-Explore: a New Approach for
+</aside>
+<aside class="footnote brackets" id="id37" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id23">8</a><span class="fn-bracket">]</span></span>
+<p>Adrien Ecoffet, et al. “Go-Explore: a New Approach for
 Hard-Exploration Problems”. arXiv 1901.10995 (2019).</p>
-</dd>
-<dt class="label" id="id38"><span class="brackets">9</span><span class="fn-backref">(<a href="#id4">1</a>,<a href="#id24">2</a>)</span></dt>
-<dd><p>Adrien Ecoffet, et al. “First return then explore”. arXiv 2004.12919
+</aside>
+<aside class="footnote brackets" id="id38" role="note">
+<span class="label"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id4">1</a>,<a role="doc-backlink" href="#id24">2</a>)</span>
+<p>Adrien Ecoffet, et al. “First return then explore”. arXiv 2004.12919
 (2020).</p>
-</dd>
-<dt class="label" id="id39"><span class="brackets"><a class="fn-backref" href="#id26">10</a></span></dt>
-<dd><p>Ian Osband, et al. <a class="reference external" href="https://arxiv.org/abs/1602.04621">“Deep Exploration via Bootstrapped
+</aside>
+<aside class="footnote brackets" id="id39" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id26">10</a><span class="fn-bracket">]</span></span>
+<p>Ian Osband, et al. <a class="reference external" href="https://arxiv.org/abs/1602.04621">“Deep Exploration via Bootstrapped
 DQN”</a>. NIPS 2016.</p>
-</dd>
-<dt class="label" id="id40"><span class="brackets"><a class="fn-backref" href="#id15">11</a></span></dt>
-<dd><p>Houthooft, Rein, et al. “VIME: Variational information maximizing
+</aside>
+<aside class="footnote brackets" id="id40" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id15">11</a><span class="fn-bracket">]</span></span>
+<p>Houthooft, Rein, et al. “VIME: Variational information maximizing
 exploration.” Advances in Neural Information Processing Systems.
 2016.</p>
-</dd>
-<dt class="label" id="id41"><span class="brackets"><a class="fn-backref" href="#id16">12</a></span></dt>
-<dd><p>Hyoungseok Kim, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“EMI: Exploration with Mutual Information.”</a>. ICML 2019.</p>
-</dd>
-<dt class="label" id="id42"><span class="brackets"><a class="fn-backref" href="#id17">13</a></span></dt>
-<dd><p>Benjamin Eysenbach, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“Diversity is all you need: Learning
+</aside>
+<aside class="footnote brackets" id="id41" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id16">12</a><span class="fn-bracket">]</span></span>
+<p>Hyoungseok Kim, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“EMI: Exploration with Mutual Information.”</a>. ICML 2019.</p>
+</aside>
+<aside class="footnote brackets" id="id42" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id17">13</a><span class="fn-bracket">]</span></span>
+<p>Benjamin Eysenbach, et al. <a class="reference external" href="https://arxiv.org/abs/1802.06070">“Diversity is all you need: Learning
 skills without a reward
 function.”</a>. ICLR 2019.</p>
-</dd>
-<dt class="label" id="id43"><span class="brackets">14</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id27">2</a>)</span></dt>
-<dd><p><a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">https://lilianweng.github.io/posts/2020-06-07-exploration-drl/</a></p>
-</dd>
-</dl>
+</aside>
+<aside class="footnote brackets" id="id43" role="note">
+<span class="label"><span class="fn-bracket">[</span>14<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id27">2</a>)</span>
+<p><a class="reference external" href="https://lilianweng.github.io/posts/2020-06-07-exploration-drl/">https://lilianweng.github.io/posts/2020-06-07-exploration-drl/</a></p>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -651,9 +667,8 @@ function.”</a>. ICLR 2019.</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

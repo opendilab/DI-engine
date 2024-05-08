@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,10 +299,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="git-usage">
-<h1>Git Usage<a class="headerlink" href="#git-usage" title="Permalink to this headline">¶</a></h1>
+<h1>Git Usage<a class="headerlink" href="#git-usage" title="Permalink to this heading">¶</a></h1>
 <p>In this section, we will introduce a list of commonly used knowledge in actual development.</p>
 <section id="basic-concepts-and-commands">
-<h2>1. Basic Concepts and Commands<a class="headerlink" href="#basic-concepts-and-commands" title="Permalink to this headline">¶</a></h2>
+<h2>1. Basic Concepts and Commands<a class="headerlink" href="#basic-concepts-and-commands" title="Permalink to this heading">¶</a></h2>
 <p><strong>Concept</strong> of original code, workspace, stage, local repository, remote repository, and commands for <strong>interconversion between them</strong>:</p>
 <a class="reference internal image-reference" href="../_images/git_command1.png"><img alt="../_images/git_command1.png" class="align-center" src="../_images/git_command1.png" style="width: 724.02px; height: 366.3px;" /></a>
 <p>Here are some commands that are not shown in the figure above, but are also very commonly used:</p>
@@ -314,7 +314,7 @@
 <p><strong>git cherry-pick command</strong>: You can apply a commit to another branch. The difference from <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span></code> is that git merge merges the entire branch into other branches. While git cherry-pick will only apply a commit to other branches, please refer to <a class="reference external" href="https://ruanyifeng.com/blog/2020/04/git-cherry-pick.html">tutorial</a></p>
 </section>
 <section id="git-commit-specification">
-<h2>2. Git Commit Specification<a class="headerlink" href="#git-commit-specification" title="Permalink to this headline">¶</a></h2>
+<h2>2. Git Commit Specification<a class="headerlink" href="#git-commit-specification" title="Permalink to this heading">¶</a></h2>
 <p>We have some rules for git commit:</p>
 <ol class="arabic">
 <li><p>As far as possible, each independent function corresponds to a commit</p></li>
@@ -327,7 +327,7 @@ commit message</div>
 </ol>
 </section>
 <section id="take-an-actual-development-as-an-example">
-<h2>3. Take an Actual Development As an Example<a class="headerlink" href="#take-an-actual-development-as-an-example" title="Permalink to this headline">¶</a></h2>
+<h2>3. Take an Actual Development As an Example<a class="headerlink" href="#take-an-actual-development-as-an-example" title="Permalink to this heading">¶</a></h2>
 <p>Let’s take an actual development process as an example to explain the git commands that need to be used.</p>
 <ol class="arabic simple">
 <li><p>Clone the repository: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">REPO-URL</span></code>;</p></li>
@@ -338,7 +338,7 @@ commit message</div>
 </ol>
 </section>
 <section id="gitignore-file">
-<h2>4. .gitignore File<a class="headerlink" href="#gitignore-file" title="Permalink to this headline">¶</a></h2>
+<h2>4. .gitignore File<a class="headerlink" href="#gitignore-file" title="Permalink to this heading">¶</a></h2>
 <p>In our local development path, there are many files that we do not want to submit to the remote repo, such as the local configuration information of the project, pycache, log files, checkpoints, and so on. At this time, using the .gitignore file can ignore these files by string matching.</p>
 <p>.gitignore file is commonly as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Ignore the specified file
@@ -426,9 +426,8 @@ __pycache__/
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

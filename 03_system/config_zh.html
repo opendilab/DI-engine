@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>配置文件系统<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>配置文件系统<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <section id="id2">
-<h2>简介<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>简介<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>配置文件系统是机器学习算法工具中的重要组成部分，而由于强化学习的复杂性，相关任务中包含的配置字段相比一般任务则会更加复杂。为了应对这个问题，DI-engine 基于“约定大于配置”（Convention over Configuration，简称为CoC）的思想，设计了一套基本原则和相关工具，具体包括:</p>
 <ul class="simple">
 <li><p>Python 配置原则</p></li>
@@ -317,16 +317,16 @@
 </div>
 </section>
 <section id="id3">
-<h2>基本原则<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>基本原则<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>整体示意图如下：</p>
 <img alt="../_images/config.png" class="align-center" src="../_images/config.png" />
 <section id="python">
-<h3>Python 配置原则<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+<h3>Python 配置原则<a class="headerlink" href="#python" title="Permalink to this heading">¶</a></h3>
 <p>由于大部分机器学习程序都极为重视编程的灵活性和易用性，因此 DI-engine 中使用 Python 文件（即使用多级dict）来作为默认配置文件，便于兼容各种特殊需求。之前使用 yaml 和 json 的用户，也可以非常简单地迁移到 Python 配置。
 不过，对于非核心模块之外的部分，例如强化学习模拟环境中的通信接口，使用原生的配置也可，并无特殊限制。</p>
 </section>
 <section id="id4">
-<h3>配置编译原则<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>配置编译原则<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>对于整个训练程序，DI-engine 以 <code class="docutils literal notranslate"><span class="pre">compile_config</span></code>, <code class="docutils literal notranslate"><span class="pre">get_instance_cfg</span></code> 等类似的工具函数为分界线，在分界线之前，用户可通过使用默认配置，代码中修改配置，命令行输入配置等多种手段自定义所需的配置内容，
 但在分界线之后，所有的配置文件将被固定，后续不允许任何改动，训练程序也将依照此时的配置创建相应的功能模块和训练 pipeline。这种规则即为配置编译原则，即分界线之前为配置的编译生成期，而之后则会配置的运行使用期。
 另外，在工具函数中，也会将最终生成的配置文件导出存储在实验目录文件夹下（一般命名为 <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> ），用户可通过这个文件来检查配置文件设定的有效性，或是直接使用该文件复现原来的实验。</p>
@@ -341,7 +341,7 @@
 </div>
 </section>
 <section id="id5">
-<h3>默认配置与用户配置<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>默认配置与用户配置<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>另一方面，由于强化学习训练程序环境 MDP 建模设置，算法调优设置，训练系统效率设置等多方面的配置内容，往往会产生大量可修改的配置文件字段。但不同的配置字段有着不同的使用频率，甚至说在大部分情况下，多数配置字段
 都是不需要用户修改的，因此，DI-engine 中引入了默认配置的概念，即强化学习中的核心概念（例如 Policy，Env，Buffer）往往都具有自己的默认配置（default config），完整的定义和解释说明都可以在相应类的定义中找到。具体
 使用时，用户只需要指定当前情况必须要修改或添加的配置字段即可，而在上文提到的分界线函数中（例如 <code class="docutils literal notranslate"><span class="pre">compile_config</span></code> ），会将默认配置和用户配置进行编译融合，构成最终的配置文件，具体融合的规则如下：</p>
@@ -354,7 +354,7 @@
 </div></blockquote>
 </section>
 <section id="id6">
-<h3>强化学习任务核心配置字段分类<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>强化学习任务核心配置字段分类<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>整体来说，DI-engine 中的强化学习任务所需的配置字段主要分类两大类：</p>
 <ul class="simple">
 <li><p>第一类是在训练 pipeline 中被各个 worker/middleware 共享的对象，例如算法策略（Policy），环境（Env），奖励模型（Reward Model），数据队列（Buffer）等等，它们各自拥有自己的默认配置。在整体配置文件中，它们也
@@ -371,12 +371,12 @@
 </div>
 </section>
 <section id="id7">
-<h3>其他工具<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>其他工具<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine 还提供了一些关于配置文件存储，格式化的相关工具，具体信息可以参考代码 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/config">ding/config</a></p>
 </section>
 </section>
 <section id="id8">
-<h2>配置文件示例解析<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>配置文件示例解析<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <p>下方是一个具体的 DI-engine 中的配置示例，其含义是在 CartPole 环境上训练 DQN 智能体（即快速上手文档中用到的例子），具体配置内容和相关字段解释如下：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 
@@ -502,9 +502,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

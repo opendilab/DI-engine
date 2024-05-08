@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="rnn">
-<h1>如何使用 RNN<a class="headerlink" href="#rnn" title="Permalink to this headline">¶</a></h1>
+<h1>如何使用 RNN<a class="headerlink" href="#rnn" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>RNN简介<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>RNN简介<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>循环神经网络（RNN）是神经网络中的一类。RNN 是从前馈神经网络中衍生出来的，额外增加了内部状态 （hidden state）来存储历史输入信息，可以处理可变长度的输入序列。其中RNN网络在不同时刻之间的连接关系沿时间维度形成了有向图，这个性质允许它可以捕捉与时间相关的动态行为。从而适用于处理输入为可变长度序列的手写识别或语音识别等任务。</p>
 <p>在深度强化学习中， <a class="reference external" href="https://arxiv.org/abs/1507.06527">DRQN</a> (Deep Recurrent
 Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决atari游戏中不完全信息观测的问题。 之后，RNN 就成为了RL研究中解决复杂时序决策任务的一个重要方法。</p>
@@ -314,7 +314,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 实现 RNN 的变体。</p>
 </section>
 <section id="di-engine">
-<h2>DI-engine中的相关组件<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h2>
+<h2>DI-engine中的相关组件<a class="headerlink" href="#di-engine" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ding/model/wrapper/model_wrappers.py:</span> <span class="pre">HiddenStateWrapper</span></code> :
 用于维护隐藏状态 （hidden state）</p></li>
@@ -324,12 +324,8 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 </ol>
 </section>
 <section id="rnn-di-engine">
-<h2>RNN 在 DI-engine 中的示例<a class="headerlink" href="#rnn-di-engine" title="Permalink to this headline">¶</a></h2>
+<h2>RNN 在 DI-engine 中的示例<a class="headerlink" href="#rnn-di-engine" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 39%" />
-<col style="width: 61%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>policy</p></th>
 <th class="head"><p>RNN-support</p></th>
@@ -401,7 +397,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 <li><p>Burn-in（Optional）</p></li>
 </ul>
 <section id="id2">
-<h3>构建包含 RNN 的模型<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>构建包含 RNN 的模型<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <p>您可以使用 DI-engine 的已实现的包含 RNN 的模型或您自己的模型。</p>
 <ol class="arabic simple">
 <li><p>使用 DI-engine 已实现的模型。 DI-engine 的 DRQN 对于离散动作空间环境提供 RNN
@@ -447,7 +443,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 </div>
 </section>
 <section id="wrapper">
-<span id="use-model-wrapper-to-wrap-your-rnn-model-in-policy"></span><h3>使用模型 Wrapper 将您的模型包装在策略中<a class="headerlink" href="#wrapper" title="Permalink to this headline">¶</a></h3>
+<span id="use-model-wrapper-to-wrap-your-rnn-model-in-policy"></span><h3>使用模型 Wrapper 将您的模型包装在策略中<a class="headerlink" href="#wrapper" title="Permalink to this heading">¶</a></h3>
 <p>由于包含 RNN 的模型需要维护数据的隐藏状态（hidden states），DI-engine 提供 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> 来支持这个功能。 用户只需要在
 策略的学习/收集/评估的初始化阶段来包装模型。 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> 会帮助智能体在模型计算时保留隐藏状态（hidden states），并在下一次模型计算时发送这些隐藏状态（hidden states）。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># In policy</span>
@@ -478,7 +474,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 </div></blockquote>
 </section>
 <section id="id3">
-<h3>数据处理<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>数据处理<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>用于训练 RNN 的 mini-batch 数据不同于通常的数据。 这些数据通常应按时间序列排列。 对于 DI-engine, 这个处理是在
 <code class="docutils literal notranslate"><span class="pre">collector</span></code> 阶段完成的。 用户需要在配置文件中指定 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 以确保序列数据的长度与算法匹配。 对于大多数情况，
 <code class="docutils literal notranslate"><span class="pre">learn_unroll_len</span></code> 应该等于 RNN 的历史长度（a.k.a 时间序列长度），但在某些情况下并非如此。比如，在 r2d2 中， 我们使用burn-in操作， 序列长度等于
@@ -510,7 +506,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 </div></blockquote>
 </section>
 <section id="hidden-state">
-<h3>初始化隐藏状态 (Hidden State)<a class="headerlink" href="#hidden-state" title="Permalink to this headline">¶</a></h3>
+<h3>初始化隐藏状态 (Hidden State)<a class="headerlink" href="#hidden-state" title="Permalink to this heading">¶</a></h3>
 <p>策略的 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 需要初始化 RNN。这些隐藏状态来自 <code class="docutils literal notranslate"><span class="pre">_collect_model</span></code> 保存的 <code class="docutils literal notranslate"><span class="pre">prev_state</span></code>。
 用户需要通过 <code class="docutils literal notranslate"><span class="pre">_process_transition</span></code> 函数将这些状态添加到 <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> 输入数据字典中。?</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -535,7 +531,7 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
 </div>
 </section>
 <section id="burn-in-in-r2d2">
-<h3>Burn-in(in R2D2)<a class="headerlink" href="#burn-in-in-r2d2" title="Permalink to this headline">¶</a></h3>
+<h3>Burn-in(in R2D2)<a class="headerlink" href="#burn-in-in-r2d2" title="Permalink to this heading">¶</a></h3>
 <p>Burn-in的概念来自 <a class="reference external" href="https://www.deepmind.com/publications/recurrent-experience-replay-in-distributed-reinforcement-learning">R2D2</a> （Recurrent Experience Replay In Distributed Reinforcement Learning）论文。论文指出在使用 LSTM 时，最基础的方式是：</p>
 <blockquote>
 <div><p>1.将完整的 episode 轨迹切分为很多序列样本。在每个序列样本的初始时刻，使用全部为0的 tensor 作为 RNN 网络的初始化 hidden state。</p>
@@ -687,9 +683,8 @@ Q-Learning Network) 算法首先将 RNN 网络应用于RL算法中, 旨在解决
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

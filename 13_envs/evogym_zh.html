@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,17 +299,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="evogym">
-<h1>Evogym<a class="headerlink" href="#evogym" title="Permalink to this headline">¶</a></h1>
+<h1>Evogym<a class="headerlink" href="#evogym" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Evolution Gym（Evogym）是第一个用于共同优化软体机器人设计和控制的大规模基准。每个机器人都由不同类型的体素（如软体、硬体、执行器）组成，从而形成了一个模块化和富有表现力的机器人设计空间。该环境跨越了广泛的任务范围，包括在各种类型的地形上进行运动和操纵。
 下面的图片显示了一个正在行动的机器人。</p>
 <img alt="../_images/evogym.gif" class="align-center" src="../_images/evogym.gif" />
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>Evogym 环境可以从 GitHub 下载并使用 pip 安装。
 鉴于安装过程可能会因操作系统而有一些不同，遇到任何问题可以查看原始<a class="reference external" href="https://github.com/EvolutionGym/evogym#installation">仓库</a>中的说明。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/EvolutionGym/evogym.git
@@ -320,7 +320,7 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成以后，运行如下命令，如果没有报错则证明安装成功。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>gym_test.py
 </pre></div>
@@ -328,9 +328,9 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </section>
 </section>
 <section id="id5">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>观察空间包括机器人的状态信息，一个包括每个四边形体素的顶点相对于机器人 <code class="docutils literal notranslate"><span class="pre">(2N)</span></code>质心的相对位置的矢量 <code class="docutils literal notranslate"><span class="pre">(2N</span> <span class="pre">+</span> <span class="pre">3)</span></code>，以及质心的速度和方向 <code class="docutils literal notranslate"><span class="pre">(3)</span></code>。数据类型是 <code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
 <li><p>为了处理复杂的任务，特别是那些具有不同地形类型的任务，提供了一个包括地形信息的额外观察向量。</p></li>
@@ -339,21 +339,21 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </ul>
 </section>
 <section id="id7">
-<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>动作空间是大小为 N 的连续动作空间。动作向量的每个分量都与机器人的一个执行器体素（水平或垂直）相关联，并指示该体素的变形目标，将体素的大小从60%压缩或拉伸到160%。数据类型是 <code class="docutils literal notranslate"><span class="pre">float</span></code>。</p></li>
 <li><p>具体来说，行动值 <code class="docutils literal notranslate"><span class="pre">u</span></code>是在 <code class="docutils literal notranslate"><span class="pre">[0.6,</span> <span class="pre">1.6]</span></code>范围内，相当于该执行器逐渐膨胀/收缩到其静止长度的 <code class="docutils literal notranslate"><span class="pre">u</span></code>倍。</p></li>
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>每个任务都配备了一个奖励函数，衡量机器人当前的控制行动的性能。一般来说，它是一个 <code class="docutils literal notranslate"><span class="pre">float</span></code> 值。</p></li>
 </ul>
 </section>
 </section>
 <section id="id9">
-<h2>关键事实<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<h2>关键事实<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>连续观察空间根据机器人的结构、任务和环境而变化。</p></li>
 <li><p>依据机器人结构的连续工作空间。</p></li>
@@ -361,19 +361,19 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </ol>
 </section>
 <section id="id10">
-<h2>其他<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <section id="id11">
-<h3>机器人和环境的定义<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<h3>机器人和环境的定义<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
 <p>Evogym提供固定的任务，但你可以自定义你自己的机器人结构和环境。
 具体的例子，你可以参考以下内容 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/envs/world_data/carry_bot.json">json file</a>
 以及官方 <a class="reference external" href="https://evolutiongym.github.io/tutorials/new-env.html">文档</a>.</p>
 </section>
 <section id="id12">
-<h3>惰性初始化<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <p>为了支持环境矢量化等并行操作，环境实例一般都实现了惰性初始化，也就是说，<code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法并不初始化真正的原始环境实例，而只是设置相关参数和配置值。在第一个调用中， <code class="docutils literal notranslate"><span class="pre">reset</span></code>方法初始化了具体的原始环境实例。</p>
 </section>
 <section id="id13">
-<h3>随机种子<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<h3>随机种子<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境中的随机种子有两部分需要设置，一部分是原始环境的随机种子，另一部分是各种环境转换所使用的随机库的随机种子（如：<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）。</p></li>
 <li><p>对于环境调用者来说，只需通过环境的 <code class="docutils literal notranslate"><span class="pre">seed</span></code> 方法设置这两个种子，不需要关心具体的实现细节</p></li>
@@ -383,13 +383,13 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </ul>
 </section>
 <section id="id14">
-<h3>训练和测试环境的区别<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<h3>训练和测试环境的区别<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个episode的随机种子都不同，都是由一个随机数发生器生成，但这个随机数发生器的种子是由环境的 <code class="docutils literal notranslate"><span class="pre">seed</span></code> 方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子是相同的，由 <code class="docutils literal notranslate"><span class="pre">seed</span></code> 方法指定。</p></li>
 </ul>
 </section>
 <section id="id15">
-<h3>存储录像<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<h3>存储录像<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前调用 <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> 方法，指定游戏录像保存的路径。环境将在每个 episode 结束后自动保存本地视频文件。(默认调用 <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> 实现)，下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在一个文件夹 <code class="docutils literal notranslate"><span class="pre">./video/</span></code>里。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">gym</span>
@@ -427,7 +427,7 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/config/">github
 link</a>
 里面, 对于具体的配置文件，例如 <code class="docutils literal notranslate"><span class="pre">walker_ppo_config.py</span></code> , 使用如下的 demo 即可运行:</p>
@@ -499,7 +499,7 @@ link</a>
 </div>
 </section>
 <section id="id16">
-<h2>基准算法性能<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h2>
 <p>Carrier</p>
 <ul>
 <li><p>任务描述：机器人接住上面初始化的盒子，并尽可能地把它带到远处而不摔落，携带的距离越远奖励越大。。</p>
@@ -602,9 +602,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

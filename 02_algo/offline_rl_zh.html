@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>离线强化学习<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>离线强化学习<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <section id="id2">
-<h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>问题定义与研究动机<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>离线强化学习（Offline Reinforcement Learning, Offline RL），又称作批量强化学习（Batch Reinforcement Learning, BRL），是强化学习的一种变体，主要研究的是如何利用预先收集的大规模静态数据集来训练强化学习智能体。
 利用静态数据集意味着在智能体的训练过程中，Offline RL 不进行任何形式的在线交互与探索，这也是它和其它常见的强化学习方法最显著的区别。方便起见，在本文后续的阐述中，我们将非离线的强化学习（包含 On-policy 和 Off-policy）称为在线强化学习（Online RL）。</p>
 <a class="reference internal image-reference" href="../_images/offline_no_words.png"><img alt="../_images/offline_no_words.png" class="align-center" src="../_images/offline_no_words.png" style="width: 1376.5px; height: 385.5px;" /></a>
@@ -345,14 +345,14 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 但在 Offline RL 场景下，策略的马尔科夫静态状态分布相比原数据集会产生偏移（distributional shift）。对于数据集中罕见的 <span class="math notranslate nohighlight">\((\mathbf{s}, \mathbf{a})\)</span> 训练样本，Q-函数就有可能会输出过高的估计值。在实际交互中，当智能体选择最大化期望奖励的动作时，便可能选到实际收益非常差的动作，导致整体的表现非常差。</p>
 </section>
 <section id="id3">
-<h2>研究方向<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>根据 Aviral Kumar 与 Sergey Levine 在 NeurIPS 2020 Tutorial <a class="footnote-reference brackets" href="#id15" id="id4">1</a> 中的介绍，现有的（Model-free） Offline RL 主要有以下三种研究方向：</p>
+<h2>研究方向<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
+<p>根据 Aviral Kumar 与 Sergey Levine 在 NeurIPS 2020 Tutorial <a class="footnote-reference brackets" href="#id15" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> 中的介绍，现有的（Model-free） Offline RL 主要有以下三种研究方向：</p>
 <ol class="arabic simple">
 <li><p>策略约束方法</p></li>
 <li><p>基于不确定性的方法</p></li>
 <li><p>值函数的正则化方法</p></li>
 </ol>
-<p>除此以外，还有针对 Model-based RL 在离线设定下的一些研究工作，这里就不再展开，有兴趣的读者可以参考 <a class="footnote-reference brackets" href="#id21" id="id5">7</a> <a class="footnote-reference brackets" href="#id22" id="id6">8</a> 等文献。关于 Offline RL 领域整体的发展，可以参考 <a class="footnote-reference brackets" href="#id23" id="id7">9</a> 中的概述图：</p>
+<p>除此以外，还有针对 Model-based RL 在离线设定下的一些研究工作，这里就不再展开，有兴趣的读者可以参考 <a class="footnote-reference brackets" href="#id21" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#id22" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a> 等文献。关于 Offline RL 领域整体的发展，可以参考 <a class="footnote-reference brackets" href="#id23" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a> 中的概述图：</p>
 <img alt="../_images/offline_roadmap.png" class="align-center" src="../_images/offline_roadmap.png" />
 <p><strong>策略约束方法</strong></p>
 <p>该类方法的核心思想是让待优化策略 <span class="math notranslate nohighlight">\(\pi(\mathbf{a} \mid \mathbf{s})\)</span> 和行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}(\mathbf{a} \mid \mathbf{s})\)</span> 尽可能地接近，从而来保证Q-函数的估计足够有效。
@@ -360,17 +360,17 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 <div class="math notranslate nohighlight">
 \[\mathbf{D}_f(\pi, \pi_{\beta}) \le \mathcal{C}, \forall \pi.\]</div>
 <p>也可以使用隐式的约束，如通过策略重建等方式，使其与行为策略 <span class="math notranslate nohighlight">\(\pi_{\beta}(\mathbf{a} \mid \mathbf{s})\)</span> 相似。
-在 BCQ <a class="footnote-reference brackets" href="#id16" id="id8">2</a> 中，作者提出训练一个生成模型（VAE）来模拟数据集中的动作。在策略更新过程中，策略从 VAE 扰动产生的动作中选择 Q 值最高的，从而确保被选择的动作和数据集中的动作相近。
-在 BCQ 的基础上，选择 TD3 作为网络结构，衍生出了 TD3BC 算法，具体内容可参考 <a class="footnote-reference brackets" href="#id17" id="id9">3</a>。</p>
+在 BCQ <a class="footnote-reference brackets" href="#id16" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> 中，作者提出训练一个生成模型（VAE）来模拟数据集中的动作。在策略更新过程中，策略从 VAE 扰动产生的动作中选择 Q 值最高的，从而确保被选择的动作和数据集中的动作相近。
+在 BCQ 的基础上，选择 TD3 作为网络结构，衍生出了 TD3BC 算法，具体内容可参考 <a class="footnote-reference brackets" href="#id17" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>。</p>
 <p>另外，也可以通过惩罚项等方式，将 <span class="math notranslate nohighlight">\(\mathbf{D}(\pi, \pi_{\beta})\)</span> 加入奖励或者Q值中。</p>
 <p><strong>基于不确定性的方法</strong></p>
 <p>如果说策略约束方法主要是为了从Q-函数的输入源头避免 OOD 动作的出现，那么基于不确定性的方法就是尽可能使Q-函数足够鲁棒，以至于即便输入 OOD 动作后它也能够保持一个相对有效的估计。
-这一类方法需要先学习一个关于Q-函数的不确定集合或者不确定分布 <span class="math notranslate nohighlight">\(\mathcal{P}(\mathbf{Q}^{\pi})\)</span>，具体做法可参考 <a class="footnote-reference brackets" href="#id18" id="id10">4</a> <a class="footnote-reference brackets" href="#id19" id="id11">5</a>。然后，将 <span class="math notranslate nohighlight">\(\mathcal{P}(\mathbf{Q}^{\pi})\)</span> 作为Q-函数的一个惩罚项，</p>
+这一类方法需要先学习一个关于Q-函数的不确定集合或者不确定分布 <span class="math notranslate nohighlight">\(\mathcal{P}(\mathbf{Q}^{\pi})\)</span>，具体做法可参考 <a class="footnote-reference brackets" href="#id18" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> <a class="footnote-reference brackets" href="#id19" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a>。然后，将 <span class="math notranslate nohighlight">\(\mathcal{P}(\mathbf{Q}^{\pi})\)</span> 作为Q-函数的一个惩罚项，</p>
 <div class="math notranslate nohighlight">
 \[\pi_{k+1} \leftarrow \arg\max_{\pi}\mathbb{E}_{\mathbf{s} \sim \mathcal{D}}[\mathbb{E}_{\mathbf{a} \sim \pi(\mathbf{a} \mid \mathbf{s})}[\mathbb{E}_{\mathbf{Q}_{k+1}^{\pi} \sim \mathcal{P}(\mathbf{Q}^{\pi})}[\mathbf{Q}_{k+1}^{\pi}(\mathbf{s}, \mathbf{a})] - \alpha \mathbf{Unc}(\mathcal{P}(\mathbf{Q}^{\pi}))]],\]</div>
 <p>其中 <span class="math notranslate nohighlight">\(\mathbf{Unc}(\cdot)\)</span> 表示对不确定分布的度量。由此，我们得到了一个对Q-函数的保守估计，在一定程度上能够减少或避免策略选择 OOD 动作。</p>
 <p><strong>值函数的正则化方法</strong></p>
-<p>该方法顾名思义，就是在Q-函数上增加正则项，代表性工作有 Conservative Q-learning（简称CQL） <a class="footnote-reference brackets" href="#id20" id="id12">6</a>。相比于前两种方法，其优势是不必显式地计算行为策略的分布，且可以适用于绝大多数基于 Actor-Critic 或Q-函数架构的强化学习算法。</p>
+<p>该方法顾名思义，就是在Q-函数上增加正则项，代表性工作有 Conservative Q-learning（简称CQL） <a class="footnote-reference brackets" href="#id20" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a>。相比于前两种方法，其优势是不必显式地计算行为策略的分布，且可以适用于绝大多数基于 Actor-Critic 或Q-函数架构的强化学习算法。</p>
 <p>与基于不确定性的方法类似，CQL 也是为了得到保守的Q-函数估计，但采用的方式为关于Q值的正则化。其目标为：</p>
 <div class="math notranslate nohighlight">
 \[\hat{\mathcal{E}}(\mathcal{B}, \mathcal{\phi}) = \alpha\mathcal{C}(\mathcal{B}, \mathcal{\phi}) + \mathcal{E}(\mathcal{B}, \mathbf{\phi}),\]</div>
@@ -387,7 +387,7 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 \[\mathcal{C}_{CQL_1}(\mathcal{B}, \mathbf{\phi}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{D}}\mathbb{E}_{\mathbf{a} \sim \mu(\mathbf{a} \mid \mathbf{s})}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})] - \mathbb{E}_{(\mathbf{s}, \mathbf{a}) \sim \mathcal{D}}[\mathbf{Q}_{\phi}(\mathbf{s}, \mathbf{a})].\]</div>
 </section>
 <section id="id13">
-<h2>未来展望<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<h2>未来展望<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h2>
 <p>在机器学习领域，过去十余年的惊人成就很大一部分都要归功于 Data-driven 的学习范式。在计算机视觉和自然语言领域，架构和模型的衍进的确推动了学习性能的显著提升。
 但从某种程度而言，数据规模和多样性的不断增加才是这些进步最根本的推动力。在实际应用中，收集大型、多样化、有代表性和标记良好的数据集通常比使用最先进的模型算法重要得多。
 然而，在大多数在线强化学习方法的标准设定中，收集大型和多样化的数据集通常是不切实际的，并且在许多应用中，如自动驾驶和人机交互领域，风险与成本是巨大的。</p>
@@ -400,36 +400,45 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
 <p>在未来，离线强化学习——即 Data-driven 的强化学习——有希望能够开创强化学习的新纪元，既能解决此前不适合使用强化学习的一系列现实问题，又能通过使用更大量，更多元，更具有表现力的数据集，在现有应用（自动驾驶，机器人等）上取得更好的表现。</p>
 </section>
 <section id="id14">
-<h2>参考文献<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
-<dl class="footnote brackets">
-<dt class="label" id="id15"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>
-<dd><p>Levine, S., A. Kumar, G. Tucker, and J. Fu (2020). Offline reinforcement learning: Tutorial, review, and perspectives on open problems. arXiv preprint arXiv:2005.01643.</p>
-</dd>
-<dt class="label" id="id16"><span class="brackets"><a class="fn-backref" href="#id8">2</a></span></dt>
-<dd><p>Fujimoto, S., Meger, D., and Precup, D. (2018). Off-policy deep reinforcement learning without exploration. arXiv preprint arXiv:1812.02900.</p>
-</dd>
-<dt class="label" id="id17"><span class="brackets"><a class="fn-backref" href="#id9">3</a></span></dt>
-<dd><p>Fujimoto, S., Gu, S. S. (2021). A Minimalist Approach to Offline Reinforcement Learning. arXiv preprint arXiv:2106.06860.</p>
-</dd>
-<dt class="label" id="id18"><span class="brackets"><a class="fn-backref" href="#id10">4</a></span></dt>
-<dd><p>Jaksch, T., Ortner, R., and Auer, P. (2010). Near-optimal regret bounds for reinforcement learning. Journal of Machine Learning Research, 11(Apr):1563–1600.</p>
-</dd>
-<dt class="label" id="id19"><span class="brackets"><a class="fn-backref" href="#id11">5</a></span></dt>
-<dd><p>O’Donoghue, B., Osband, I., Munos, R., and Mnih, V. (2018). The uncertainty bellman equation and exploration. In International Conference on Machine Learning, pages 3836–3845.</p>
-</dd>
-<dt class="label" id="id20"><span class="brackets"><a class="fn-backref" href="#id12">6</a></span></dt>
-<dd><p>Kumar, A., Zhou, A., Tucker, G., and Levine, S. (2020b). Conservative q-learning for ofﬂine reinforcement learning. In Neural Information Processing Systems (NeurIPS).</p>
-</dd>
-<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id5">7</a></span></dt>
-<dd><p>Lerer, A., Gross, S., and Fergus, R. (2016). Learning physical intuition of block towers by example. arXiv preprint arXiv:1603.01312.</p>
-</dd>
-<dt class="label" id="id22"><span class="brackets"><a class="fn-backref" href="#id6">8</a></span></dt>
-<dd><p>Battaglia, P., Pascanu, R., Lai, M., Rezende, D. J., et al. (2016). Interaction networks for learning about objects, relations and physics. In Advances in neural information processing systems, pages 4502–4510.</p>
-</dd>
-<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id7">9</a></span></dt>
-<dd><p>Rafael Figueiredo Prudencio, Marcos R. O. A. Maximo, Esther Luna Colombini. A Survey on Offline Reinforcement Learning: Taxonomy, Review, and Open Problems. CoRR abs/2203.01387 (2022)</p>
-</dd>
-</dl>
+<h2>参考文献<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id15" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">1</a><span class="fn-bracket">]</span></span>
+<p>Levine, S., A. Kumar, G. Tucker, and J. Fu (2020). Offline reinforcement learning: Tutorial, review, and perspectives on open problems. arXiv preprint arXiv:2005.01643.</p>
+</aside>
+<aside class="footnote brackets" id="id16" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">2</a><span class="fn-bracket">]</span></span>
+<p>Fujimoto, S., Meger, D., and Precup, D. (2018). Off-policy deep reinforcement learning without exploration. arXiv preprint arXiv:1812.02900.</p>
+</aside>
+<aside class="footnote brackets" id="id17" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">3</a><span class="fn-bracket">]</span></span>
+<p>Fujimoto, S., Gu, S. S. (2021). A Minimalist Approach to Offline Reinforcement Learning. arXiv preprint arXiv:2106.06860.</p>
+</aside>
+<aside class="footnote brackets" id="id18" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">4</a><span class="fn-bracket">]</span></span>
+<p>Jaksch, T., Ortner, R., and Auer, P. (2010). Near-optimal regret bounds for reinforcement learning. Journal of Machine Learning Research, 11(Apr):1563–1600.</p>
+</aside>
+<aside class="footnote brackets" id="id19" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">5</a><span class="fn-bracket">]</span></span>
+<p>O’Donoghue, B., Osband, I., Munos, R., and Mnih, V. (2018). The uncertainty bellman equation and exploration. In International Conference on Machine Learning, pages 3836–3845.</p>
+</aside>
+<aside class="footnote brackets" id="id20" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">6</a><span class="fn-bracket">]</span></span>
+<p>Kumar, A., Zhou, A., Tucker, G., and Levine, S. (2020b). Conservative q-learning for ofﬂine reinforcement learning. In Neural Information Processing Systems (NeurIPS).</p>
+</aside>
+<aside class="footnote brackets" id="id21" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">7</a><span class="fn-bracket">]</span></span>
+<p>Lerer, A., Gross, S., and Fergus, R. (2016). Learning physical intuition of block towers by example. arXiv preprint arXiv:1603.01312.</p>
+</aside>
+<aside class="footnote brackets" id="id22" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">8</a><span class="fn-bracket">]</span></span>
+<p>Battaglia, P., Pascanu, R., Lai, M., Rezende, D. J., et al. (2016). Interaction networks for learning about objects, relations and physics. In Advances in neural information processing systems, pages 4502–4510.</p>
+</aside>
+<aside class="footnote brackets" id="id23" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">9</a><span class="fn-bracket">]</span></span>
+<p>Rafael Figueiredo Prudencio, Marcos R. O. A. Maximo, Esther Luna Colombini. A Survey on Offline Reinforcement Learning: Taxonomy, Review, and Open Problems. CoRR abs/2203.01387 (2022)</p>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -500,9 +509,8 @@ Offline RL 研究的恰好是如何从固定数据集学习到近似最优的策
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,13 +299,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sqil">
-<h1>SQIL<a class="headerlink" href="#sqil" title="Permalink to this headline">¶</a></h1>
+<h1>SQIL<a class="headerlink" href="#sqil" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Soft Q imitation learning (SQIL) is an off-policy maximum entropy Q learning algorithm together with imitation learning. SQIL was first proposed in <a class="reference external" href="https://arxiv.org/abs/1905.11108">SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards</a>, which combines soft Q-learning with imitation learning. In the domain of discrete action spaces, soft Q learning proposed in <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> learns stochastic (maximum entropy) policies instead of determistic policies comparing to the deep Q learning algorithm.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQIL is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
 <li><p>SQIL is SQL incorporated with Imitation learning.</p></li>
@@ -318,7 +318,7 @@
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>SQIL is a behavior cloning variant of SQL, so you may refer to <a class="reference external" href="./sql.html">SQL doc</a> first.</p>
 <p>SQIL performs three small but important modifications on SQL:</p>
 <ol class="arabic simple">
@@ -357,7 +357,7 @@ loss in line 4 of Algorithm 1 below, plus an additional term that penalizes the 
 Furthermore, the ablation study from the experiments in the paper suggests that SQIL actually performs better than the regularized BC.</p>
 </section>
 <section id="pseudo-code">
-<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this heading">¶</a></h2>
 <p>SQIL = SQL + Imitation learning. The pseudo code is as follows:</p>
 <img alt="../_images/SQIL_algo.png" src="../_images/SQIL_algo.png" />
 <div class="line-block">
@@ -366,7 +366,7 @@ Furthermore, the ablation study from the experiments in the paper suggests that 
 <img alt="../_images/SQIL_part.png" src="../_images/SQIL_part.png" />
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <p>The Bellman update of SQIL/SQL and the Q-value function update are defined in the function <code class="docutils literal notranslate"><span class="pre">q_nstep_sql_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">q_nstep_sql_td_error</span><span class="p">(</span>
@@ -495,15 +495,8 @@ we use a well-trained model to generate data in the collecting stage and push th
 <p>Regarding the demonstration data, we can leave these rewards unchanged. For a general reward modification, please refer to <code class="docutils literal notranslate"><span class="pre">ding//entry/serial_entry_sqil.py</span></code>.</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -549,7 +542,7 @@ skip-v4)</p>
 </ol>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <p>Siddharth Reddy, Anca D. Dragan, Sergey Levine: “SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards”, 2019; [<a class="reference external" href="https://arxiv.org/abs/1905.11108">https://arxiv.org/abs/1905.11108</a> arXiv:1905.11108].</p>
 <p>Haarnoja, Tuomas, et al. “Reinforcement learning with deep energy-based policies.” International Conference on Machine Learning. PMLR, 2017.</p>
 <p>Piot, Bilal, Matthieu Geist, and Olivier Pietquin. “Boosted and reward-regularized classification for apprenticeship learning.” Proceedings of the 2014 international conference on Autonomous agents and multi-agent systems. 2014.</p>
@@ -626,9 +619,8 @@ skip-v4)</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="diffuser-plan-diffuser">
-<h1>Diffuser (Plan Diffuser)<a class="headerlink" href="#diffuser-plan-diffuser" title="Permalink to this headline">¶</a></h1>
+<h1>Diffuser (Plan Diffuser)<a class="headerlink" href="#diffuser-plan-diffuser" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>In the field of reinforcement learning, if we have a dataset <span class="math notranslate nohighlight">\(T\)</span> that contains a variety of trajectories, the goal of reinforcement learning is to mine and construct a high-performance agent from <span class="math notranslate nohighlight">\(T\)</span>, hoping that it can be directly deployed to the environment and achieve good returns. From the perspective of model-free Offline RL, the core of the work focuses on how to more accurately estimate the <span class="math notranslate nohighlight">\(Q\)</span>
 value of each possible state-action pair, especially those that may query out-of-distribution state-action pairs. From the perspective of model-based Offline RL, the goal often becomes how to better fit the dynamic model of the real environment with this batch of data, and then implement the Online RL algorithm on this converged environmental model. After these two types of algorithms are finished, we usually get an explicit or implicit policy that can return an action that interacts with the environment given any environmental state.</p>
 <p>The above methods often do not take advantage of the continuity of trajectories in <span class="math notranslate nohighlight">\(T\)</span>, but instead divide each trajectory into several state transition segments and treat each such segment as an independent sample point for subsequent training. However, we can look at this dataset
@@ -310,14 +310,14 @@ value of each possible state-action pair, especially those that may query out-of
 <span class="math notranslate nohighlight">\(T\)</span>. Diffusion, as proposed in the study <a class="reference external" href="https://arxiv.org/pdf/2205.09991.pdf">Planning with Diffusion for Flexible Behavior Synthesis</a>, represents a research approach that generates trajectories using a diffusion model.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Diffusion views offline decisions as a sequence model problem.</p></li>
 <li><p>Diffusion use diffusion model generating trajectory</p></li>
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>In diffusion, trajectories are concatenated as follows in the array:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align} \tau = \begin{bmatrix}s_0 s_1 ... s_T\\a_0 a_1 ... a_T \end{bmatrix} \nonumber\end{align}\end{split}\]</div>
@@ -336,20 +336,20 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 \[\begin{align} p(\tau| \mathcal{O}_{1:T} = 1) \propto p(\tau)p(\mathcal{O}_{1:T} = 1|\tau) \nonumber \end{align}\]</div>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <p>The network interface diffusion used is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id1">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of DT algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -430,13 +430,13 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
 </table>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Michael Janner, Yilun Du, Joshua B.Tenenbaum, Sergey Levine Planning with Diffusion for Flexible Behavior Synthesis <a class="reference external" href="https://arxiv.org/pdf/2205.09991">https://arxiv.org/pdf/2205.09991</a></p></li>
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -510,9 +510,8 @@ Ultimately, the algorithm selects the best trajectory as its output. The best tr
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

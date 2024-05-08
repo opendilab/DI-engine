@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,22 +299,22 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="bitflip">
-<h1>BitFlip<a class="headerlink" href="#bitflip" title="Permalink to this headline">¶</a></h1>
+<h1>BitFlip<a class="headerlink" href="#bitflip" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>BitFlip is a very simple little game. Assuming there are n coins, each coin has two states, the positive side is denoted as 0 and the negative side is denoted as 1. The action space is a vector of length n, and executing the nth action type represents flipping the nth coin.
 For each episode, we randomly initialize the coin state and target state. If the coin state and the target state are not the same, the reward is -1, otherwise it is 1.</p>
 <img alt="../_images/bitflip.gif" class="align-center" src="../_images/bitflip.gif" />
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>The BitFlip environment does not need to be installed, it is built into DI-engine.</p>
 </section>
 </section>
 <section id="runnable-code-example-in-di-zoo">
-<h2>Runnable Code Example in DI-zoo<a class="headerlink" href="#runnable-code-example-in-di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>Runnable Code Example in DI-zoo<a class="headerlink" href="#runnable-code-example-in-di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>Below is a complete RL training pipeline for Bitflip environment, which uses the DQN algorithm as the policy. Please run the “bitflip_dqn_main.py” file in the “DI-enginedizooclassic_controlbitflipentry” directory as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">gym</span>
@@ -420,7 +420,7 @@ For each episode, we randomly initialize the coin state and target state. If the
 </div>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>BitFlip <a class="reference external" href="https://github.com/NervanaSystems/gym-bit-flip/blob/master/gym_bit_flip/bit_flip.py">source code</a></p></li>
 </ul>
@@ -497,9 +497,8 @@ For each episode, we randomly initialize the coin state and target state. If the
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

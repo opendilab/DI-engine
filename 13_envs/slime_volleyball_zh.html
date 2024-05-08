@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="slime-volleyball">
-<h1>Slime Volleyball<a class="headerlink" href="#slime-volleyball" title="Permalink to this headline">¶</a></h1>
+<h1>Slime Volleyball<a class="headerlink" href="#slime-volleyball" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Slime Volleyball 是一个双人对战型环境，可以看作一个简化的一对一排球游戏。它是 self-play 相关算法测试的基本环境，其观察空间有向量和图片形式两种，动作空间常简化为离散动作空间。它由三个子环境构成，分别为 SlimeVolley-v0，SlimeVolleyPixel-v0，SlimeVolleyNoFrameskip-v0），下图所示为其中的 SlimeVolley-v0 游戏。</p>
 <img alt="../_images/slime_volleyball.gif" class="align-center" src="../_images/slime_volleyball.gif" />
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>pip 一键安装 slimevolleygym 这个库即可</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
@@ -316,7 +316,7 @@ pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">slimevolleygym</span>
@@ -327,23 +327,23 @@ pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
 </div>
 </section>
 <section id="id5">
-<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>由于 Slime Volleyball 安装起来非常简单，所以 DI-engine 并没有为其专门准备镜像，可快速通过基准镜像 <code class="docutils literal notranslate"><span class="pre">opendilab/ding:nightly</span></code> 自定义构建，或访问 <a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker
 hub</a>获取更多镜像</p>
 </section>
 </section>
 <section id="id6">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>注：这里以 SlimeVolley-v0 为例，因为对 self-play 系列算法做基准测试自然是简单优先。如要用到其他两个环境，可结合原仓库查看，并根据 <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/feature/env_overview.html">DI-engine的API</a> 进行相应适配。</p>
 <section id="id7">
-<h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>向量观察空间，是一个尺寸为 <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> 的向量，包含了由连续两帧的数据拼接而成的自己，对手，球三者的绝对位置坐标，数据类型为<code class="docutils literal notranslate"><span class="pre">float64</span></code>
 即（x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next）</p></li>
 </ul>
 </section>
 <section id="id8">
-<h3>动作空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> 的原始动作空间被定义为 <code class="docutils literal notranslate"><span class="pre">MultiBinary(3)</span></code> 动作空间，即动作有三种，同一时刻可同时释放多个动作，每个动作对应 0 和 1 两种情况，分别为不执行（0）、执行（1），例如 <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></code> 代表同时执行第一种和第三种动作，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入 python list 对象（或是 1 维尺寸为 3 的 np 数组，例如 <code class="docutils literal notranslate"><span class="pre">np.array([0,</span> <span class="pre">1,</span> <span class="pre">0])</span></code></p></li>
 <li><p>实际环境内部逻辑实现中，并没有严格限制动作必须为 0 和 1，它是将大于 0 值的视作 1，小于等于 0 的值视作 0</p></li>
@@ -367,13 +367,13 @@ hub</a>获取更多镜像</p>
 </ul>
 </section>
 <section id="id9">
-<h3>奖励空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>奖励即该游戏得分，如果小球落到己方场地的地面，则奖励 -1，如果落到对方场地的地面，则奖励 +1，如果游戏仍在进行中，则奖励 0</p></li>
 </ul>
 </section>
 <section id="id10">
-<h3>其他<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏结束即为当前环境 episode 结束。游戏结束的条件有两种：</p></li>
 </ul>
@@ -391,27 +391,27 @@ hub</a>获取更多镜像</p>
 </section>
 </section>
 <section id="id11">
-<h2>关键事实<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>关键事实<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <p>（1） 一维向量观察空间（尺寸为 <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> ），信息为绝对坐标</p>
 <p>（2） <code class="docutils literal notranslate"><span class="pre">MultiBinary</span></code> 动作空间</p>
 <p>（3） 较稀疏奖励（最大生命值为5，最大步数为 3000，只有对战双方扣除生命值时才有奖励）</p>
 </section>
 <section id="rl">
-<h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this heading">¶</a></h2>
 <section id="id12">
-<h3>观察空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，只是简单的格式转换，是一个尺寸为 <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> 的一维np数组，数据类型为 <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，</p></li>
 </ul>
 </section>
 <section id="id13">
-<h3>动作空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>将 <code class="docutils literal notranslate"><span class="pre">MultiBinary</span></code> 动作空间变换为大小为 6 离散动作空间（由简单笛卡尔积并去除其中无意义的动作后得到），最终结果为一维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
 </section>
 <section id="id14">
-<h3>奖励空间<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，只是简单的格式转换，一维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">0,</span> <span class="pre">1]</span></code></p></li>
 </ul>
@@ -426,7 +426,7 @@ hub</a>获取更多镜像</p>
 </div>
 </section>
 <section id="id15">
-<h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在这里为整个 episode 的奖励累加和（即我方相比对手的生命值差异）</p></li>
 <li><p>如果选择智能体对战内置 bot，请将环境输入配置的 <code class="docutils literal notranslate"><span class="pre">agent_vs_agent</span></code> 字段设置为 False，智能体对战智能体则设置为 True</p></li>
@@ -435,13 +435,13 @@ hub</a>获取更多镜像</p>
 </section>
 </section>
 <section id="id16">
-<h2>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h2>
 <section id="id17">
-<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this heading">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
 </section>
 <section id="id18">
-<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
 <li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
@@ -450,13 +450,13 @@ hub</a>获取更多镜像</p>
 </ul>
 </section>
 <section id="id19">
-<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
 </section>
 <section id="id20">
-<h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.slime_volley.envs.slime_volley_env</span> <span class="kn">import</span> <span class="n">SlimeVolleyEnv</span>
@@ -476,7 +476,7 @@ hub</a>获取更多镜像</p>
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练入口文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley/entry">github
 link</a>
 内，对于具体的入口文件，例如下列所示的<code class="docutils literal notranslate"><span class="pre">slime_volley_selfplay_ppo_main.py</span></code>，直接使用 python 运行即可：</p>
@@ -569,7 +569,7 @@ link</a>
 <p>注：如要使用其他算法，需调用相应的入口函数</p>
 </section>
 <section id="id21">
-<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>SlimeVolley-v0（平均奖励大于等于 1 视为较好的 Agent，评测指标都是使用智能体对战内置 bot）</p>
 <ul class="simple">
@@ -679,9 +679,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

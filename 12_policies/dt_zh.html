@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,15 +299,15 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="dt-decisiontransformer">
-<h1>DT (DecisionTransformer)<a class="headerlink" href="#dt-decisiontransformer" title="Permalink to this headline">¶</a></h1>
+<h1>DT (DecisionTransformer)<a class="headerlink" href="#dt-decisiontransformer" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>综述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>如果想要将强化学习技术应用在某个决策领域，最重要的就是将原始问题转换为一个合理的 MDP （马尔科夫决策过程）问题，而一旦问题环境本身有一些不那么友好的”特性“（比如部分可观测，非平稳过程等等），常规强化学习方法的效果便可能大打折扣。另一方面，随着近些年来数据驱动范式的发展，大数据和预训练大模型在计算机视觉（Computer Vision）和自然语言处理（Natural Language Processing）领域大放异彩，比如 CLIP，DALL·E 和 GPT-3 等工作都取得了惊人的效果，序列预测技术便是其中的核心模块之一。但对于决策智能，尤其是强化学习（Reinforcement Learning），由于缺少类似 CV 和 NLP 中的大数据集和适合的预训练任务，决策大模型迟迟没有进展。</p>
 <p>在这样的背景下，为了推进决策大模型的发展，提高相关技术的实际落地价值，许多研究者开始关注 Offline RL/Batch RL 这一子领域。具体来说，Offline RL是一种只通过离线数据集（Offline dataset）训练策略（Policy），在训练过程中不与环境交互的强化学习任务。那对于这样的任务，是否可以借鉴 CV 和 NLP 领域的一些研究成果，比如序列预测相关技术呢？</p>
 <p>于是乎，在2021年，以 Decision Transformer[3]/Trajectory Transformer[1-2]为代表的一系列工作出现了，试图将决策问题归于序列预测，将 transformer 结构应用在RL任务上，同时与语言模型，如 GPT-x 和 BERT 等联系起来。不像传统 RL 中计算 value 函数或计算 policy 梯度， DT 通过一个屏蔽后序的 transformer 直接输出最有动作选择。通过指定期望模型达到的reward，同时借助 states 和 actions 信息，就可以给出下一动作并达到期望的 reward。 DT 的达到并超过了 SOTA model-free offline RL 算法在 Atari，D4RL (MuJoCo) 等环境上的效果。</p>
 </section>
 <section id="id2">
-<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>DT 是一个 <strong>offline</strong> 强化学习算法。</p></li>
 <li><p>DT 支持 <strong>离散（discrete）</strong> 和 <strong>连续（continuous）</strong> 动作空间。</p></li>
@@ -316,30 +316,30 @@
 </ol>
 </section>
 <section id="id3">
-<h2>重要公示/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>重要公示/重要图示<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>DT 的结构图如下：</p>
 <img alt="../_images/DT.png" class="align-center" src="../_images/DT.png" />
 <p>图示说明 DT 算法在进行动作 a<sub>t</sub> 的预测时，仅与当前时间步的 r<sub>t</sub> 和 s<sub>t</sub> 以及之前的 r<sub>t-n</sub>, s<sub>t-n</sub>, a<sub>t-n</sub> 相关，与之后的无关， causal transformer 就是用来实现这一效果的模块。</p>
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <img alt="../_images/DT_algo.png" class="align-center" src="../_images/DT_algo.png" />
 </section>
 <section id="id5">
-<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>DQNPolicy 的默认 config 如下所示：</p>
 <p>其中使用的神经网络接口如下所示：</p>
 </section>
 <section id="benchmark">
-<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id7">
+<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id7">
 <caption><span class="caption-text">Benchmark and comparison of DT algorithm</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -510,7 +510,7 @@
 <p>以上结果是在3个不同的随机种子（即123， 213， 321）运行相同的配置得到</p>
 </section>
 <section id="id6">
-<h2>参考文献<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Zheng, Q., Zhang, A., &amp; Grover, A. (2022, June). Online decision transformer. In international conference on machine learning (pp. 27042-27059). PMLR.</p></li>
 <li><p><a class="reference external" href="https://github.com/kzl/decision-transformer">https://github.com/kzl/decision-transformer</a></p></li>
@@ -588,9 +588,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

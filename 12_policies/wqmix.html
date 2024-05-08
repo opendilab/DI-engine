@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="wqmix">
-<h1>WQMIX<a class="headerlink" href="#wqmix" title="Permalink to this headline">¶</a></h1>
+<h1>WQMIX<a class="headerlink" href="#wqmix" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>WQMIX was first proposed in <a class="reference external" href="https://arxiv.org/abs/2006.10800">Weighted QMIX: Expanding Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning</a>.
 Their focus of study is the unique properties of the particular function space represented by monotonic structure of Q functions in QMIX,
 and the tradeoffs in representation quality across different joint actions induced by projection into that space.
@@ -313,7 +313,7 @@ WQMIX rectify this by introducing a weighting into the projection, in order to p
 Centrally-Weighted (CW) QMIX and Optimistically-Weighted (OW) QMIX and demonstrate improved performance on both predator-prey and challenging multi-agent StarCraft benchmark tasks.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>WQMIX is an <strong>off-policy model-free value-based multi-agent</strong> RL algorithm using the paradigm of <strong>centralized training with decentralized execution</strong>.
 And only support <strong>discrete</strong> action spaces.</p></li>
@@ -324,7 +324,7 @@ The mixing network is a feed-forward neural network that takes the agent network
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>The overall WQMIX architecture including individual agent networks and the mixing network structure:</p>
 <a class="reference internal image-reference" href="../_images/wqmix_setup.png"><img alt="../_images/wqmix_setup.png" class="align-center" src="../_images/wqmix_setup.png" style="width: 735.6px; height: 232.79999999999998px;" /></a>
 <p>First, WQMIX examine an operator that represents an idealised version of QMIX in a tabular setting.
@@ -369,21 +369,14 @@ and hence could be the true optimal actions (in an optimistic outlook).</p>
 <p>For the details analysis, please refer to the  <a class="reference external" href="https://arxiv.org/abs/2006.10800">WQMIX paper</a>.</p>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <p>The network interface WQMIX used is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <p>The Benchmark result of WQMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 37%" />
-<col style="width: 18%" />
-<col style="width: 18%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>smac map</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -421,7 +414,7 @@ and hence could be the true optimal actions (in an optimistic outlook).</p>
 </table>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Rashid, Tabish, et al. “Weighted qmix: Expanding monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv preprint arXiv:2006.10800 (2020).</p></li>
 <li><p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p></li>
@@ -501,9 +494,8 @@ and hence could be the true optimal actions (in an optimistic outlook).</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

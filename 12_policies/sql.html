@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sql">
-<h1>SQL<a class="headerlink" href="#sql" title="Permalink to this headline">¶</a></h1>
+<h1>SQL<a class="headerlink" href="#sql" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Soft Q Learning (SQL) is an off-policy maximum entropy Q learning algorithm that first proposed in <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a>.
 The energy based model is used in Soft Q-Learning, where the optimal policy expressed via a Boltzmann distribution is learned through maximizing the expectation of the cumulative reward added by an entropy term.
 In this way, the resulting policies gain the advantages to try to learn all of the ways of performing the task, instead of only learning the best way to perform the task as the other traditional RL algorithms do.
@@ -313,7 +313,7 @@ and compositionality that allows transferring
 skills between tasks.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQL is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
 <li><p>SQL is an <strong>off-policy</strong> algorithm.</p></li>
@@ -322,7 +322,7 @@ skills between tasks.</p>
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>SQL considers a more general maximum entropy policy, such that the optimal policy aims to maximize its entropy at each visited state:</p>
 <img alt="../_images/sql_policy.png" src="../_images/sql_policy.png" />
 <p>where <span class="math notranslate nohighlight">\({\alpha}\)</span>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <span class="math notranslate nohighlight">\({\alpha}\)</span>  is a hyperparameter that has to be tuned (not one to be learned during training).</p>
@@ -367,13 +367,13 @@ KL divergence.</p>
 <img alt="../_images/SQL_sto_pi14.png" src="../_images/SQL_sto_pi14.png" />
 </section>
 <section id="pseudo-code">
-<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this heading">¶</a></h2>
 <p>The pseudo code is as follows:</p>
 <img alt="../_images/SQL.png" src="../_images/SQL.png" />
 <p>Where the equation 10, 11, 13, 14 can be referred from the above section.</p>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <p>SQL can be combined with:</p>
 <blockquote>
 <div><ul class="simple">
@@ -386,20 +386,13 @@ Soft Q-Learning</a>.</p></li>
 </div></blockquote>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <p>The table below shows a benchmark of the performance of DQN, SQL (in discrete action spaces), and SQIL in Lunarlander and Pong environments.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 26%" />
-<col style="width: 28%" />
-<col style="width: 29%" />
-<col style="width: 6%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>env / method</p></th>
 <th class="head"><p>DQN</p></th>
@@ -434,7 +427,7 @@ Soft Q-Learning</a>.</p></li>
 </div>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Haarnoja, Tuomas, et al. “Reinforcement learning with deep energy-based policies.” International Conference on Machine Learning. PMLR, 2017.</p></li>
 <li><p>Uhlenbeck, G. E. and Ornstein, L. S. On the theory of the brownian motion. Physical review, 36(5):823, 1930.</p></li>
@@ -450,7 +443,7 @@ the principle of maximum causal entropy. PhD thesis,
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/rail-berkeley/softlearning">SQL release repo</a></p></li>
 </ul>
@@ -529,9 +522,8 @@ the principle of maximum causal entropy. PhD thesis,
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

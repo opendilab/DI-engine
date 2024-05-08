@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,13 +299,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="averaged-dqn">
-<h1>Averaged-DQN<a class="headerlink" href="#averaged-dqn" title="Permalink to this headline">¶</a></h1>
+<h1>Averaged-DQN<a class="headerlink" href="#averaged-dqn" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Averaged-DQN was proposed in <a class="reference external" href="https://arxiv.org/abs/1611.01929">Averaged-DQN: Variance Reduction and Stabilization for Deep Reinforcement Learning</a>. Averaged-DQN is a simple extension to the DQN algorithm, based on averaging previously learned Q-values estimates, which leads to a more stable training procedure and improved performance by reducing approximation error variance in the target values. Compare to the Double DQN which also tackles with overestimation proiblem, averaged-DQN tries for a different road but reaches the same goal, provides more analysis to the reason behinds.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Averaged-DQN is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
 <li><p>Averaged-DQN only support <strong>discrete</strong> action spaces.</p></li>
@@ -314,7 +314,7 @@
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>The Q function update difference can be divided into three parts:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{aligned}
@@ -327,12 +327,12 @@
 <p>Averaged-DQN focus on the original error TAE and try to control it into a minimum limits, which would also disadvantage the developments of OE. By averaging DQN’s results with its meta parameter <span class="math notranslate nohighlight">\(K\)</span> previous version, the value variance could be brought down to <span class="math notranslate nohighlight">\(\frac{1}{K}\)</span> of DQN’s.</p>
 </section>
 <section id="pseudo-code">
-<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this heading">¶</a></h2>
 <img alt="../_images/averaged-dqn.png" class="align-center" src="../_images/averaged-dqn.png" />
 <p>Compared to DQN, averaged-DQN needs <span class="math notranslate nohighlight">\(K\)</span>-fold more forward passes through a Q-network and its previous <span class="math notranslate nohighlight">\(K\)</span> versions while minimizing the DQN loss (line 7), but back-propagation updates remains the same as in DQN. The output of the algorithm is the averaged over the last <span class="math notranslate nohighlight">\(K\)</span> previously learned Q-networks.</p>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <dl class="simple">
 <dt>Averaged-DQN can be combined with:</dt><dd><ul class="simple">
 <li><p>PER (Prioritized Experience Replay)</p></li>
@@ -342,15 +342,15 @@
 </dl>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">¶</a></h2>
 <p>The default config of AveragedDQNPolicy is defined as follows:</p>
 <p>The network interface AveragedDQN used is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Oron Anschel, Nir Baram, and Nahum Shimkin. 2017. Averaged-DQN: variance reduction and stabilization for deep reinforcement learning. In Proceedings of the 34th International Conference on Machine Learning - Volume 70 (ICML’17). JMLR.org, 176–185.</p></li>
 <li><p>Mnih, Volodymyr, et al. “Human-level control through deep reinforcement learning.” nature 518.7540 (2015): 529-533.</p></li>
@@ -430,9 +430,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

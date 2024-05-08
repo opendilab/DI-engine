@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,10 +299,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="distributed-reinforcement-learning">
-<h1>Distributed Reinforcement Learning<a class="headerlink" href="#distributed-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
+<h1>Distributed Reinforcement Learning<a class="headerlink" href="#distributed-reinforcement-learning" title="Permalink to this heading">¶</a></h1>
 <section id="problem-definition-and-research-motivation">
-<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
-<p>Distributed reinforcement learning (Distributed RL) is the only way for deep reinforcement learning to be applied to large-scale applications and solve complex decision spaces and long-term planning problems. In order to solve super-large-scale decision-making problems like StarCraft 2 (SC2) <a class="footnote-reference brackets" href="#id18" id="id1">1</a> and DOTA2 <a class="footnote-reference brackets" href="#id19" id="id2">2</a>, the computing power of a single process or even a single machine is far from enough, and it is necessary to expand each of computing and storage devices. Researchers hope to design a complete set of ‘algorithm + system’ solutions, which can allow the DRL training program to efficiently run under various computing scales and improve the efficiency of each link as much as possible while ensuring the convergence of algorithm optimization.</p>
+<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this heading">¶</a></h2>
+<p>Distributed reinforcement learning (Distributed RL) is the only way for deep reinforcement learning to be applied to large-scale applications and solve complex decision spaces and long-term planning problems. In order to solve super-large-scale decision-making problems like StarCraft 2 (SC2) <a class="footnote-reference brackets" href="#id18" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and DOTA2 <a class="footnote-reference brackets" href="#id19" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>, the computing power of a single process or even a single machine is far from enough, and it is necessary to expand each of computing and storage devices. Researchers hope to design a complete set of ‘algorithm + system’ solutions, which can allow the DRL training program to efficiently run under various computing scales and improve the efficiency of each link as much as possible while ensuring the convergence of algorithm optimization.</p>
 <p>Generally speaking, a reinforcement learning training program has three types of core modules:</p>
 <ul class="simple">
 <li><p>The Environment (Env) to generate data,</p></li>
@@ -316,12 +316,12 @@
 <p>To sum up, distributed reinforcement learning is a more comprehensive research subfield, which requires mutual perception and coordination of deep reinforcement learning algorithm + distributed system design.</p>
 </section>
 <section id="research-direction">
-<h2>Research Direction<a class="headerlink" href="#research-direction" title="Permalink to this headline">¶</a></h2>
+<h2>Research Direction<a class="headerlink" href="#research-direction" title="Permalink to this heading">¶</a></h2>
 <section id="system">
-<h3>System<a class="headerlink" href="#system" title="Permalink to this headline">¶</a></h3>
+<h3>System<a class="headerlink" href="#system" title="Permalink to this heading">¶</a></h3>
 <section id="overall-architecture">
-<h4>Overall Architecture<a class="headerlink" href="#overall-architecture" title="Permalink to this headline">¶</a></h4>
-<p>For common decision problems, the two most commonly used distributed architectures are IMPALA <a class="footnote-reference brackets" href="#id20" id="id3">3</a> and SEED RL <a class="footnote-reference brackets" href="#id21" id="id4">4</a>.</p>
+<h4>Overall Architecture<a class="headerlink" href="#overall-architecture" title="Permalink to this heading">¶</a></h4>
+<p>For common decision problems, the two most commonly used distributed architectures are IMPALA <a class="footnote-reference brackets" href="#id20" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> and SEED RL <a class="footnote-reference brackets" href="#id21" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>.</p>
 <img alt="../_images/impala.png" class="align-center" src="../_images/impala.png" />
 <ul class="simple">
 <li><p>The former is the classic Actor-Learner mode; that is, the data collection and training sides are entirely separated, and the latest neural network model is regularly passed from the Learner to the Actor, and the data collected by the Actor are sent to the Learner after collecting a certain amount of dataframes (i.e. observations). If there are multiple Learners, they also periodically synchronize their gradients to update the neural network (i.e. the data-parallel model in distributed deep learning).</p></li>
@@ -334,40 +334,40 @@
 <p class="admonition-title">Note</p>
 <p>There is no absolute superiority or inferiority between these two schemes. If it is more expensive to transmit models across machines and there are better communication components between GPU/TPU, then SEED RL could be a more suitable option. Otherwise, if it is more expensive to transmit observations and actions data across machines, then IMPALA is a more stable choice. In addition, IMPALA can accumulate a batch of data for data transmission, while SEED RL requires data transmission in each interactive frame. This is a classic data batch and stream processing comparison problem. For the current machine learning community, the former is generally more user-friendly. Also, if the entire training procedure requires a higher degree of freedom and customization, such as dynamically controlling some behavior of the Actor, IMPALA is more convenient.</p>
 </div>
-<p>In addition to the above two architectures, there are many other distributed reinforcement learning design schemes, such as A3C <a class="footnote-reference brackets" href="#id22" id="id5">5</a> and Gossip A2C <a class="footnote-reference brackets" href="#id23" id="id6">6</a> that introduce asynchronous neural network update schemes. In order to support large-scale self-play, AlphaStar <a class="footnote-reference brackets" href="#id18" id="id7">1</a> with a complex League mechanism was designed, and MuZero <a class="footnote-reference brackets" href="#id24" id="id8">7</a> combined with model-based RL and MCTS-related modules will not be described here. Interested readers can refer to the specific Papers or refer to our <a class="reference external" href="../12_policies/index_zh.html">Algorithm Raiders Collection section</a>.</p>
+<p>In addition to the above two architectures, there are many other distributed reinforcement learning design schemes, such as A3C <a class="footnote-reference brackets" href="#id22" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a> and Gossip A2C <a class="footnote-reference brackets" href="#id23" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a> that introduce asynchronous neural network update schemes. In order to support large-scale self-play, AlphaStar <a class="footnote-reference brackets" href="#id18" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> with a complex League mechanism was designed, and MuZero <a class="footnote-reference brackets" href="#id24" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a> combined with model-based RL and MCTS-related modules will not be described here. Interested readers can refer to the specific Papers or refer to our <a class="reference external" href="../12_policies/index_zh.html">Algorithm Raiders Collection section</a>.</p>
 </section>
 <section id="efficiency-optimization-on-some-sub-topics-modules-objectives">
-<h4>Efficiency Optimization on Some Sub Topics/Modules/Objectives<a class="headerlink" href="#efficiency-optimization-on-some-sub-topics-modules-objectives" title="Permalink to this headline">¶</a></h4>
+<h4>Efficiency Optimization on Some Sub Topics/Modules/Objectives<a class="headerlink" href="#efficiency-optimization-on-some-sub-topics-modules-objectives" title="Permalink to this heading">¶</a></h4>
 <p>In addition to the design and innovation of the overall structure, there are many methods for optimizing a single-point module in the entire training program. They are mainly customized and optimized for a certain sub-problem. Here are some of the main methods:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Object</span> <span class="pre">Store</span></code> in Ray/RLLib <a class="footnote-reference brackets" href="#id25" id="id9">8</a>: For data transfer between multiple processes and multiple machines, the Object Store in Ray/RLLib provides a very convenient and efficient way. As long as any process knows the reference of an object, it can request the Store to provide it. Providing the corresponding value, and the specific internal data transmission is completely managed by the Store, so that a distributed training program can be implemented like writing a local single-process program. The specific implementation of Object Store is completed by combining redis, plasma and gRPC.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Sample</span> <span class="pre">Factory</span></code> <a class="footnote-reference brackets" href="#id26" id="id10">9</a>: Sample Factory customized and optimized the APPO algorithm at the scale of a single machine, carefully designed an asynchronous scheme between the environment and the action-generating strategy, and used shared memory to greatly improve the transmission efficiency between modules.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Reverb</span></code> in Acme <a class="footnote-reference brackets" href="#id27" id="id11">10</a>: Reverb provides a set of highly flexible and efficient data manipulation and management modules. For RL, it is very suitable for implementing replay buffer related components.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">envpool</span></code> <a class="footnote-reference brackets" href="#id28" id="id12">11</a>: envpool is currently the fastest environment vectorized parallel solution, using c++ threadpool and efficient implementation of many classic RL environments to provide powerful asynchronous vectorized environment simulation capabilities.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Object</span> <span class="pre">Store</span></code> in Ray/RLLib <a class="footnote-reference brackets" href="#id25" id="id9" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a>: For data transfer between multiple processes and multiple machines, the Object Store in Ray/RLLib provides a very convenient and efficient way. As long as any process knows the reference of an object, it can request the Store to provide it. Providing the corresponding value, and the specific internal data transmission is completely managed by the Store, so that a distributed training program can be implemented like writing a local single-process program. The specific implementation of Object Store is completed by combining redis, plasma and gRPC.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sample</span> <span class="pre">Factory</span></code> <a class="footnote-reference brackets" href="#id26" id="id10" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a>: Sample Factory customized and optimized the APPO algorithm at the scale of a single machine, carefully designed an asynchronous scheme between the environment and the action-generating strategy, and used shared memory to greatly improve the transmission efficiency between modules.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Reverb</span></code> in Acme <a class="footnote-reference brackets" href="#id27" id="id11" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a>: Reverb provides a set of highly flexible and efficient data manipulation and management modules. For RL, it is very suitable for implementing replay buffer related components.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">envpool</span></code> <a class="footnote-reference brackets" href="#id28" id="id12" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a>: envpool is currently the fastest environment vectorized parallel solution, using c++ threadpool and efficient implementation of many classic RL environments to provide powerful asynchronous vectorized environment simulation capabilities.</p></li>
 </ul>
 </section>
 </section>
 <section id="algorithm">
-<h3>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this headline">¶</a></h3>
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this heading">¶</a></h3>
 <section id="reduce-the-throughput-requirements-of-the-algorithm-for-data-generation">
-<h4>Reduce the throughput requirements of the algorithm for data generation<a class="headerlink" href="#reduce-the-throughput-requirements-of-the-algorithm-for-data-generation" title="Permalink to this headline">¶</a></h4>
+<h4>Reduce the throughput requirements of the algorithm for data generation<a class="headerlink" href="#reduce-the-throughput-requirements-of-the-algorithm-for-data-generation" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">V-trace</span></code> in IMPALA <a class="footnote-reference brackets" href="#id20" id="id13">3</a>: The off-policy algorithm can widen the range of data available for training, thereby improving the algorithm’s tolerance for old data to a certain extent and reducing the throughput pressure of the data generated by the Collector, but the data that is too off-policy can easily affect the convergence of the algorithm. Aiming at this problem, IMPALA uses the importance sampling mechanism and the corresponding clipping method to design a relatively stable algorithm scheme V-trace under the distributed training setting, which limits the negative impact of off-policy data on the optimization itself.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Reuse</span></code> and <code class="docutils literal notranslate"><span class="pre">Staleness</span></code> in OpenAI FIVE <a class="footnote-reference brackets" href="#id19" id="id14">2</a>: In the agent designed by OpenAI for DOTA2, they conducted some experiments on the number of data reuse and the degree of staleness. Excessive number of reuse and too old data will affect the stability of the PPO algorithm in large-scale training.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">V-trace</span></code> in IMPALA <a class="footnote-reference brackets" href="#id20" id="id13" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>: The off-policy algorithm can widen the range of data available for training, thereby improving the algorithm’s tolerance for old data to a certain extent and reducing the throughput pressure of the data generated by the Collector, but the data that is too off-policy can easily affect the convergence of the algorithm. Aiming at this problem, IMPALA uses the importance sampling mechanism and the corresponding clipping method to design a relatively stable algorithm scheme V-trace under the distributed training setting, which limits the negative impact of off-policy data on the optimization itself.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Reuse</span></code> and <code class="docutils literal notranslate"><span class="pre">Staleness</span></code> in OpenAI FIVE <a class="footnote-reference brackets" href="#id19" id="id14" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>: In the agent designed by OpenAI for DOTA2, they conducted some experiments on the number of data reuse and the degree of staleness. Excessive number of reuse and too old data will affect the stability of the PPO algorithm in large-scale training.</p></li>
 </ul>
 </section>
 <section id="improve-data-exploration-efficiency-utilization-efficiency-of-collected-data">
-<h4>Improve data exploration efficiency + utilization efficiency of collected data<a class="headerlink" href="#improve-data-exploration-efficiency-utilization-efficiency-of-collected-data" title="Permalink to this headline">¶</a></h4>
+<h4>Improve data exploration efficiency + utilization efficiency of collected data<a class="headerlink" href="#improve-data-exploration-efficiency-utilization-efficiency-of-collected-data" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Priority</span> <span class="pre">and</span> <span class="pre">Diversity</span></code>——Ape-x <a class="footnote-reference brackets" href="#id29" id="id15">12</a>: Ape-x is a classic distributed reinforcement learning scheme. One of the core practices is to use Priority Experience Replay to set sample different data with priority preference, so that the algorithm pays more attention to those “important” trajctories. In addition, Ape-x also sets different exploration parameters (i.e. epsilon of eps greedy) in different parallel collectors to improve data diversity.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Representation</span> <span class="pre">Learning</span></code> in RL——CURL <a class="footnote-reference brackets" href="#id30" id="id16">13</a>: For some high-dimensional or multi-modal inputs, the representation learning method can be combined to improve the data utilization efficiency of RL. For example, for the control problem of high-dimensional image input, CURL introduces an additional contrastive learning process, and RL is based on the learned feature space for decision-making. From the perspective of system design, there is also a lot of room for optimization in the combination of representation learning and reinforcement learning training, such as the asynchrony of the two.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Model-based/MCTS</span> <span class="pre">RL</span></code>——MuZero <a class="footnote-reference brackets" href="#id24" id="id17">7</a>: MuZero combines model-based RL and MCTS RL to improve the overall training efficiency, which includes many unique modules, such as the search process of MCTS, the reanalyze process of data before training, etc., which will lead to more complicated and diverse distributed reinforcement learning training systems.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">Priority</span> <span class="pre">and</span> <span class="pre">Diversity</span></code>——Ape-x <a class="footnote-reference brackets" href="#id29" id="id15" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a>: Ape-x is a classic distributed reinforcement learning scheme. One of the core practices is to use Priority Experience Replay to set sample different data with priority preference, so that the algorithm pays more attention to those “important” trajctories. In addition, Ape-x also sets different exploration parameters (i.e. epsilon of eps greedy) in different parallel collectors to improve data diversity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Representation</span> <span class="pre">Learning</span></code> in RL——CURL <a class="footnote-reference brackets" href="#id30" id="id16" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a>: For some high-dimensional or multi-modal inputs, the representation learning method can be combined to improve the data utilization efficiency of RL. For example, for the control problem of high-dimensional image input, CURL introduces an additional contrastive learning process, and RL is based on the learned feature space for decision-making. From the perspective of system design, there is also a lot of room for optimization in the combination of representation learning and reinforcement learning training, such as the asynchrony of the two.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model-based/MCTS</span> <span class="pre">RL</span></code>——MuZero <a class="footnote-reference brackets" href="#id24" id="id17" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a>: MuZero combines model-based RL and MCTS RL to improve the overall training efficiency, which includes many unique modules, such as the search process of MCTS, the reanalyze process of data before training, etc., which will lead to more complicated and diverse distributed reinforcement learning training systems.</p></li>
 </ul>
 </section>
 </section>
 </section>
 <section id="future-study">
-<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this headline">¶</a></h2>
+<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this heading">¶</a></h2>
 <p>At present, distributed reinforcement learning is only an emerging research subfield. In many cases, it is limited by computing power and problem complexity. There are still many problems that need to be solved:</p>
 <ul class="simple">
 <li><p>Lack of a unified benchmark to evaluate the efficiency of distributed reinforcement learning algorithms and systems;</p></li>
@@ -376,48 +376,65 @@
 </ul>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
-<dl class="footnote brackets">
-<dt class="label" id="id18"><span class="brackets">1</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id7">2</a>)</span></dt>
-<dd><p>Oriol Vinyals, Igor Babuschkin, David Silver, et al. Grandmaster level in StarCraft II using multi-agent reinforcement learning. Nat. 575(7782): 350-354 (2019)</p>
-</dd>
-<dt class="label" id="id19"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id14">2</a>)</span></dt>
-<dd><p>Christopher Berner, Greg Brockman, et al. Dota 2 with Large Scale Deep Reinforcement Learning. CoRR abs/1912.06680 (2019)</p>
-</dd>
-<dt class="label" id="id20"><span class="brackets">3</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id13">2</a>)</span></dt>
-<dd><p>Lasse Espeholt, Hubert Soyer, Rémi Munos, et al. IMPALA. Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures. ICML 2018: 1406-1415</p>
-</dd>
-<dt class="label" id="id21"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
-<dd><p>Lasse Espeholt, Raphaël Marinier, Piotr Stanczyk, Ke Wang, Marcin Michalski. SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference. ICLR 2020</p>
-</dd>
-<dt class="label" id="id22"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
-<dd><p>Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timothy P. Lillicrap, Tim Harley, David Silver, Koray Kavukcuoglu. Asynchronous Methods for Deep Reinforcement Learning. ICML 2016: 1928-1937</p>
-</dd>
-<dt class="label" id="id23"><span class="brackets"><a class="fn-backref" href="#id6">6</a></span></dt>
-<dd><p>Mahmoud Assran, Joshua Romoff, Nicolas Ballas, Joelle Pineau, Mike Rabbat. Gossip-based Actor-Learner Architectures for Deep Reinforcement Learning. NeurIPS 2019: 13299-13309</p>
-</dd>
-<dt class="label" id="id24"><span class="brackets">7</span><span class="fn-backref">(<a href="#id8">1</a>,<a href="#id17">2</a>)</span></dt>
-<dd><p>Julian Schrittwieser, Ioannis Antonoglou, Thomas Hubert, Karen Simonyan, Laurent Sifre, Simon Schmitt, Arthur Guez, Edward Lockhart, Demis Hassabis, Thore Graepel, Timothy P. Lillicrap, David Silver. Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model. CoRR abs/1911.08265 (2019)</p>
-</dd>
-<dt class="label" id="id25"><span class="brackets"><a class="fn-backref" href="#id9">8</a></span></dt>
-<dd><p>Eric Liang, Richard Liaw, Robert Nishihara, Philipp Moritz, Roy Fox, Joseph Gonzalez, Ken Goldberg, Ion Stoica. Ray RLLib: A Composable and Scalable Reinforcement Learning Library. CoRR abs/1712.09381 (2017)</p>
-</dd>
-<dt class="label" id="id26"><span class="brackets"><a class="fn-backref" href="#id10">9</a></span></dt>
-<dd><p>Aleksei Petrenko, Zhehui Huang, Tushar Kumar, Gaurav S. Sukhatme, Vladlen Koltun. Sample Factory: Egocentric 3D Control from Pixels at 100000 FPS with Asynchronous Reinforcement Learning. ICML 2020: 7652-7662</p>
-</dd>
-<dt class="label" id="id27"><span class="brackets"><a class="fn-backref" href="#id11">10</a></span></dt>
-<dd><p>Matt Hoffman, Bobak Shahriari, John Aslanides, Gabriel Barth-Maron, Feryal Behbahani, Tamara Norman, Abbas Abdolmaleki, Albin Cassirer, Fan Yang, Kate Baumli, Sarah Henderson, Alexander Novikov, Sergio Gómez Colmenarejo, Serkan Cabi, Çaglar Gülçehre, Tom Le Paine, Andrew Cowie, Ziyu Wang, Bilal Piot, Nando de Freitas. Acme: A Research Framework for Distributed Reinforcement Learning. CoRR abs/2006.00979 (2020)</p>
-</dd>
-<dt class="label" id="id28"><span class="brackets"><a class="fn-backref" href="#id12">11</a></span></dt>
-<dd><p>Jiayi Weng and Min Lin and Zhongwen Xu and Shuicheng Yan. <a class="reference external" href="https://github.com/sail-sg/envpool">https://github.com/sail-sg/envpool</a></p>
-</dd>
-<dt class="label" id="id29"><span class="brackets"><a class="fn-backref" href="#id15">12</a></span></dt>
-<dd><p>Dan Horgan, John Quan, David Budden, Gabriel Barth-Maron, Matteo Hessel, Hado van Hasselt, David Silver. Distributed Prioritized Experience Replay. ICLR (Poster) 2018</p>
-</dd>
-<dt class="label" id="id30"><span class="brackets"><a class="fn-backref" href="#id16">13</a></span></dt>
-<dd><p>Michael Laskin, Aravind Srinivas, Pieter Abbeel: CURL: Contrastive Unsupervised Representations for Reinforcement Learning. ICML 2020: 5639-5650</p>
-</dd>
-</dl>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id18" role="note">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id7">2</a>)</span>
+<p>Oriol Vinyals, Igor Babuschkin, David Silver, et al. Grandmaster level in StarCraft II using multi-agent reinforcement learning. Nat. 575(7782): 350-354 (2019)</p>
+</aside>
+<aside class="footnote brackets" id="id19" role="note">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id14">2</a>)</span>
+<p>Christopher Berner, Greg Brockman, et al. Dota 2 with Large Scale Deep Reinforcement Learning. CoRR abs/1912.06680 (2019)</p>
+</aside>
+<aside class="footnote brackets" id="id20" role="note">
+<span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id13">2</a>)</span>
+<p>Lasse Espeholt, Hubert Soyer, Rémi Munos, et al. IMPALA. Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures. ICML 2018: 1406-1415</p>
+</aside>
+<aside class="footnote brackets" id="id21" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<p>Lasse Espeholt, Raphaël Marinier, Piotr Stanczyk, Ke Wang, Marcin Michalski. SEED RL: Scalable and Efficient Deep-RL with Accelerated Central Inference. ICLR 2020</p>
+</aside>
+<aside class="footnote brackets" id="id22" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">5</a><span class="fn-bracket">]</span></span>
+<p>Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timothy P. Lillicrap, Tim Harley, David Silver, Koray Kavukcuoglu. Asynchronous Methods for Deep Reinforcement Learning. ICML 2016: 1928-1937</p>
+</aside>
+<aside class="footnote brackets" id="id23" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">6</a><span class="fn-bracket">]</span></span>
+<p>Mahmoud Assran, Joshua Romoff, Nicolas Ballas, Joelle Pineau, Mike Rabbat. Gossip-based Actor-Learner Architectures for Deep Reinforcement Learning. NeurIPS 2019: 13299-13309</p>
+</aside>
+<aside class="footnote brackets" id="id24" role="note">
+<span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id8">1</a>,<a role="doc-backlink" href="#id17">2</a>)</span>
+<p>Julian Schrittwieser, Ioannis Antonoglou, Thomas Hubert, Karen Simonyan, Laurent Sifre, Simon Schmitt, Arthur Guez, Edward Lockhart, Demis Hassabis, Thore Graepel, Timothy P. Lillicrap, David Silver. Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model. CoRR abs/1911.08265 (2019)</p>
+</aside>
+<aside class="footnote brackets" id="id25" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id9">8</a><span class="fn-bracket">]</span></span>
+<p>Eric Liang, Richard Liaw, Robert Nishihara, Philipp Moritz, Roy Fox, Joseph Gonzalez, Ken Goldberg, Ion Stoica. Ray RLLib: A Composable and Scalable Reinforcement Learning Library. CoRR abs/1712.09381 (2017)</p>
+</aside>
+<aside class="footnote brackets" id="id26" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id10">9</a><span class="fn-bracket">]</span></span>
+<p>Aleksei Petrenko, Zhehui Huang, Tushar Kumar, Gaurav S. Sukhatme, Vladlen Koltun. Sample Factory: Egocentric 3D Control from Pixels at 100000 FPS with Asynchronous Reinforcement Learning. ICML 2020: 7652-7662</p>
+</aside>
+<aside class="footnote brackets" id="id27" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id11">10</a><span class="fn-bracket">]</span></span>
+<p>Matt Hoffman, Bobak Shahriari, John Aslanides, Gabriel Barth-Maron, Feryal Behbahani, Tamara Norman, Abbas Abdolmaleki, Albin Cassirer, Fan Yang, Kate Baumli, Sarah Henderson, Alexander Novikov, Sergio Gómez Colmenarejo, Serkan Cabi, Çaglar Gülçehre, Tom Le Paine, Andrew Cowie, Ziyu Wang, Bilal Piot, Nando de Freitas. Acme: A Research Framework for Distributed Reinforcement Learning. CoRR abs/2006.00979 (2020)</p>
+</aside>
+<aside class="footnote brackets" id="id28" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id12">11</a><span class="fn-bracket">]</span></span>
+<p>Jiayi Weng and Min Lin and Zhongwen Xu and Shuicheng Yan. <a class="reference external" href="https://github.com/sail-sg/envpool">https://github.com/sail-sg/envpool</a></p>
+</aside>
+<aside class="footnote brackets" id="id29" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id15">12</a><span class="fn-bracket">]</span></span>
+<p>Dan Horgan, John Quan, David Budden, Gabriel Barth-Maron, Matteo Hessel, Hado van Hasselt, David Silver. Distributed Prioritized Experience Replay. ICLR (Poster) 2018</p>
+</aside>
+<aside class="footnote brackets" id="id30" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id16">13</a><span class="fn-bracket">]</span></span>
+<p>Michael Laskin, Aravind Srinivas, Pieter Abbeel: CURL: Contrastive Unsupervised Representations for Reinforcement Learning. ICML 2020: 5639-5650</p>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -500,9 +517,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

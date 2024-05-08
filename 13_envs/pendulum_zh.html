@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,23 +299,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="pendulum">
-<h1>Pendulum<a class="headerlink" href="#pendulum" title="Permalink to this headline">¶</a></h1>
+<h1>Pendulum<a class="headerlink" href="#pendulum" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>倒立摆问题是强化学习中的经典控制问题。Pendulum 是倒立摆问题中的一个连续控制任务。钟摆以随机位置开始，目标是向上摆动保持直立。如下图所示。</p>
 <img alt="../_images/pendulum.gif" class="align-center" src="../_images/pendulum.gif" />
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>Pendulum 环境内置在 gym 中，直接安装 gym 即可。其环境 id 是<code class="docutils literal notranslate"><span class="pre">Pendulum-v0</span></code> 。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gym
 </pre></div>
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>运行如下 Python 程序，如果没有报错则证明安装成功。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>gym
 <span class="nv">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>gym.make<span class="o">(</span><span class="s1">&#39;Pendulum-v0&#39;</span><span class="o">)</span>
@@ -326,9 +326,9 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </section>
 </section>
 <section id="id5">
-<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>Pendulum 的动作空间属于连续动作空间。</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">控制力矩</span></code> : 大小范围是 <code class="docutils literal notranslate"><span class="pre">[-2,</span> <span class="pre">2]</span></code> 。</p></li>
@@ -339,7 +339,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </div>
 </section>
 <section id="id7">
-<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>Pendulum 的状态空间有 3 个元素，描述了钟摆的角度和角速度。分别是：</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sin</span></code> ：钟摆偏离竖直方向角度的 sin 值，范围是 <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code> 。</p></li>
@@ -348,7 +348,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <p>首先计算 <code class="docutils literal notranslate"><span class="pre">cost</span></code> ，包括三项：</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">angle_normalize(th)**2</span></code> : 对于当前倒立摆与目标位置的角度差的惩罚</p></li>
@@ -358,7 +358,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <p>三项相加得到<code class="docutils literal notranslate"><span class="pre">cost</span></code> 。最后，将<code class="docutils literal notranslate"><span class="pre">cost</span></code> 的相反数，即<code class="docutils literal notranslate"><span class="pre">-cost</span></code> 作为 reward 值返回。</p>
 </section>
 <section id="id9">
-<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <p>Pendulum 环境每个 episode 的终止条件是遇到以下任何一种情况：</p>
 <ul class="simple">
 <li><p>达到 episode 的最大 step。</p></li>
@@ -366,7 +366,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>下面提供一个完整的 Pendulum 环境 config，采用 DDPG 算法作为 policy。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/classic_control/pendulum/entry</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">pendulum_ddpg_main.py</span></code> 文件，如下。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">gym</span>
@@ -447,12 +447,12 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </div>
 </section>
 <section id="id10">
-<h2>实验结果<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>实验结果<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <p>使用 DDPG 算法的实验结果如下。横坐标是<code class="docutils literal notranslate"><span class="pre">episode</span></code> ，纵坐标是<code class="docutils literal notranslate"><span class="pre">reward_mean</span></code> 。</p>
 <a class="reference internal image-reference" href="../_images/pendulum_ddpg.png"><img alt="../_images/pendulum_ddpg.png" class="align-center" src="../_images/pendulum_ddpg.png" style="width: 431.20000000000005px; height: 295.6px;" /></a>
 </section>
 <section id="id11">
-<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Pendulum <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/envs/classic_control/pendulum.py">源码</a></p></li>
 </ul>
@@ -538,9 +538,8 @@ print<span class="o">(</span>obs<span class="o">)</span>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

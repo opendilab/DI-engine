@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="gtrxl">
-<h1>GTrXL<a class="headerlink" href="#gtrxl" title="Permalink to this headline">¶</a></h1>
+<h1>GTrXL<a class="headerlink" href="#gtrxl" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Gated Transformer-XL, or GTrXL, first proposed in <a class="reference external" href="https://arxiv.org/pdf/1910.06764.pdf">Stabilizing Transformers for Reinforcement Learning</a>,
 is a novel framework for reinforcement learning adapted from the Transformer-XL architecture.
 It mainly introduces two architectural modifications that improve the stability and learning speed of Transformer including:
@@ -310,7 +310,7 @@ The proposed architecture, surpasses LSTMs on challenging memory environments an
 results on the several memory benchmarks, exceeding the performance of an external memory architecture.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>GTrXL can serve as a <strong>backbone</strong> for many RL algorithms.</p></li>
 <li><p>GTrXL only supports <strong>sequential</strong> observations.</p></li>
@@ -319,7 +319,7 @@ results on the several memory benchmarks, exceeding the performance of an extern
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p><strong>Transformer-XL</strong>: to address the context fragmentation problem, Transformer-XL introduces the notion of recurrence to the deep self-attention network.
 Instead of computing the hidden states from scratch for each new segment, Transformer-XL reuses the hidden states obtained in previous segments.
 The reused hidden states serve as memory for the current segment, which builds up a recurrent connection between the segments.
@@ -352,7 +352,7 @@ If this is indeed the cause of improved stability, we can explicitly initialize 
 This is the purpose of the bias <span class="math notranslate nohighlight">\(b_g^{(l)}\)</span> in the applicable gating layers. The authors demonstrate in an ablation that initially setting <span class="math notranslate nohighlight">\(b_g^{(l)}&gt;0\)</span> produces the best results.</p>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <p>GTrXL can be combined with:</p>
 <blockquote>
 <div><ul>
@@ -372,20 +372,13 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
 </div></blockquote>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The network interface GTrXL used is defined as follows:</p>
 <p>The default implementation of our R2D2-based GTrXL is defined as follows:</p>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -413,7 +406,7 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
 </ol>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Parisotto, Emilio, et al. “Stabilizing Transformers for Reinforcement Learning.”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1910.06764">http://arxiv.org/abs/1910.06764</a> arXiv:1910.06764]</p></li>
 <li><p>Dai, Zihang , et al. “Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context.”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1901.02860">http://arxiv.org/abs/1901.02860</a> arXiv:1901.02860]</p></li>
@@ -491,9 +484,8 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

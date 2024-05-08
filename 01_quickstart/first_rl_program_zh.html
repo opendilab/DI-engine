@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>揭秘第一个强化学习程序<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>揭秘第一个强化学习程序<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>强化学习算法是众多获得决策智能体的机器学习算法之一。
@@ -307,7 +307,7 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 我们将基于 CartPole + DQN 介绍一下 DI-engine 的用法。</p>
 <a class="reference internal image-reference" href="../_images/cartpole_cmp.gif"><img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" style="width: 1000px;" /></a>
 <section id="id2">
-<h2>使用配置文件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>使用配置文件<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 使用一个全局的配置文件来控制环境和策略的所有变量，每个环境和策略都有对应的默认配置，这个样例使用的完整配置可以在
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">cartpole_dqn_config</a>
 看到，在教程中我们直接调用即可：</p>
@@ -319,7 +319,7 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 </div>
 </section>
 <section id="id3">
-<h2>初始化采集环境和评估环境<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>初始化采集环境和评估环境<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>在强化学习中，训练阶段和评估阶段和环境交互的策略可能有区别，例如训练阶段往往是采集 n 个步骤就训练一次，且需要一些额外信息帮助训练
 而评估阶段则需要完成整局游戏才能得到评分，且只考虑性能评价指标本身。我们推荐将采集和评估环境分开初始化：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
@@ -341,7 +341,7 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 </div>
 </section>
 <section id="id4">
-<h2>选择策略<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>选择策略<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 集成了大部分强化学习策略，使用它们只需要选择相应的模型和策略即可（完整的策略列表可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine#algorithm-versatility">Policy Zoo</a> ）。
 由于 DQN 是一个 off-policy 策略，所以我们还需要实例化一个 buffer 模块。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
@@ -355,7 +355,7 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 </div>
 </section>
 <section id="id5">
-<h2>构建训练管线<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>构建训练管线<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>利用 DI-engine 提供的各类中间件，我们可以很容易的构建整个训练管线，各个中间件的功能和使用方法可以参考 <a class="reference external" href="https://di-engine-docs.readthedocs.io/zh_CN/latest/03_system/middleware_zh.html#id1">中间件入门</a> ：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
@@ -373,7 +373,7 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
 </div>
 </section>
 <section id="id7">
-<h2>运行代码<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>运行代码<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <p>完整的示例代码可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a> 中找到，通过 <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-u</span> <span class="pre">dqn.py</span></code> 即可运行代码，下面的 gif 便是一个具体运行的例子。
 此外，我们提供了从 DI-engine 安装到训练的全过程 <a class="reference external" href="https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing">Colab 运行示例</a> 作为参考。</p>
 <a class="reference internal image-reference" href="../_images/train_dqn.gif"><img alt="../_images/train_dqn.gif" class="align-center" src="../_images/train_dqn.gif" style="width: 1000px;" /></a>
@@ -450,9 +450,8 @@ CartPole 是强化学习入门的理想学习环境，使用 DQN 算法可以在
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

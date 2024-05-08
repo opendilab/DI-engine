@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,23 +299,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="cartpole">
-<h1>CartPole<a class="headerlink" href="#cartpole" title="Permalink to this headline">¶</a></h1>
+<h1>CartPole<a class="headerlink" href="#cartpole" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>The inverted pendulum problem is a classic control problem in reinforcement learning. CartPole is a discrete control task in the inverted pendulum problem. In the game there is a car with a pole on it. The cart slides side to side on a smooth and frictionless track to keep the pole upright. As shown below.</p>
 <img alt="../_images/cartpole.gif" class="align-center" src="../_images/cartpole.gif" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>The CartPole environment is built into the gym, and you can install the gym directly. Its environment id is <code class="docutils literal notranslate"><span class="pre">CartPole-v0</span></code>.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gym
 </pre></div>
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>Run the following command on the Python command line to verify that the installation is successful.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>gym
 <span class="nv">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>gym.make<span class="o">(</span><span class="s1">&#39;CartPole-v0&#39;</span><span class="o">)</span>
@@ -326,9 +326,9 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </section>
 </section>
 <section id="environment-introduction">
-<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Environment Introduction<a class="headerlink" href="#environment-introduction" title="Permalink to this heading">¶</a></h2>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <p>The action space of CartPole belongs to the discrete action space, and there are two discrete actions, namely left shift and right shift.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Left</span> <span class="pre">Move</span></code> : 0 means to move the agent to the left.</p></li>
@@ -340,7 +340,7 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </div>
 </section>
 <section id="state-space">
-<h3>State Space<a class="headerlink" href="#state-space" title="Permalink to this headline">¶</a></h3>
+<h3>State Space<a class="headerlink" href="#state-space" title="Permalink to this heading">¶</a></h3>
 <p>CartPole’s state space has 4 elements, which are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Cart</span> <span class="pre">Position</span></code> : Cart position, in the range <code class="docutils literal notranslate"><span class="pre">[-4.8,</span> <span class="pre">4.8]</span></code> .</p></li>
@@ -350,11 +350,11 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <p>Each step will receive a reward of 1 until the episode terminates (the termination state will also receive a reward of 1).</p>
 </section>
 <section id="termination-condition">
-<h3>Termination Condition<a class="headerlink" href="#termination-condition" title="Permalink to this headline">¶</a></h3>
+<h3>Termination Condition<a class="headerlink" href="#termination-condition" title="Permalink to this heading">¶</a></h3>
 <p>The termination condition for each episode of the CartPole environment is any of the following:</p>
 <ul class="simple">
 <li><p>The angle of the rod offset is more than 12 degrees.</p></li>
@@ -363,19 +363,19 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </ul>
 </section>
 <section id="when-does-the-cartpole-mission-count-as-a-victory">
-<h3>When Does the CartPole Mission Count as a Victory<a class="headerlink" href="#when-does-the-cartpole-mission-count-as-a-victory" title="Permalink to this headline">¶</a></h3>
+<h3>When Does the CartPole Mission Count as a Victory<a class="headerlink" href="#when-does-the-cartpole-mission-count-as-a-victory" title="Permalink to this heading">¶</a></h3>
 <p>When the average episode reward for 100 trials reaches 195 or more, the game is considered a victory.</p>
 </section>
 </section>
 <section id="others">
-<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this heading">¶</a></h2>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>Some environments have their own rendering plug-ins, but DI-engine does not support the rendering plug-ins that come with the environment, but generates video recordings by saving the logs during training. For details, please refer to the Visualization &amp; Logging section under the DI-engine <a class="reference external" href="https://opendilab.github.io/DI-engine/quick_start/index.html">official documentation</a> Quick start chapter.</p>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The following provides a complete CartPole environment config, using the DQN algorithm as the policy. Please run the <code class="docutils literal notranslate"><span class="pre">dqn_nstep.py</span></code> file in the <code class="docutils literal notranslate"><span class="pre">DI-engine/ding/example</span></code> directory, as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
@@ -430,12 +430,12 @@ print<span class="o">(</span>obs<span class="o">)</span>
 </div>
 </section>
 <section id="experimental-results">
-<h2>Experimental Results<a class="headerlink" href="#experimental-results" title="Permalink to this headline">¶</a></h2>
+<h2>Experimental Results<a class="headerlink" href="#experimental-results" title="Permalink to this heading">¶</a></h2>
 <p>The experimental results using the DQN algorithm are as follows. The abscissa is <code class="docutils literal notranslate"><span class="pre">env</span> <span class="pre">step</span></code> , and the ordinate is <code class="docutils literal notranslate"><span class="pre">episode</span> <span class="pre">reward</span> <span class="pre">(return)</span> <span class="pre">mean</span></code> .</p>
 <a class="reference internal image-reference" href="../_images/cartpole_dqn.png"><img alt="../_images/cartpole_dqn.png" class="align-center" src="../_images/cartpole_dqn.png" style="width: 415.6px; height: 296.0px;" /></a>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>CartPole <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py">source code</a></p></li>
 </ul>
@@ -526,9 +526,8 @@ print<span class="o">(</span>obs<span class="o">)</span>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

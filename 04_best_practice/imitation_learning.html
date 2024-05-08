@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="how-to-construct-a-data-pipeline-for-imitation-learning-offline-training">
-<h1>How to construct a data pipeline for Imitation Learning / Offline Training<a class="headerlink" href="#how-to-construct-a-data-pipeline-for-imitation-learning-offline-training" title="Permalink to this headline">¶</a></h1>
+<h1>How to construct a data pipeline for Imitation Learning / Offline Training<a class="headerlink" href="#how-to-construct-a-data-pipeline-for-imitation-learning-offline-training" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Generally speaking, data pipeline for Imitation Learning or Offline Training mainly contains three steps:</p>
 <ul class="simple">
 <li><p>Train an expert policy.</p></li>
@@ -313,7 +313,7 @@
 <p>Next, we will introduce details about how to implement the pipeline of these two algorithms.</p>
 </section>
 <section id="train-an-expert-policy">
-<h2><code class="docutils literal notranslate"><span class="pre">Train</span> <span class="pre">an</span> <span class="pre">expert</span> <span class="pre">policy</span></code><a class="headerlink" href="#train-an-expert-policy" title="Permalink to this headline">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">Train</span> <span class="pre">an</span> <span class="pre">expert</span> <span class="pre">policy</span></code><a class="headerlink" href="#train-an-expert-policy" title="Permalink to this heading">¶</a></h2>
 <p>In this step, we will train an expert policy, which has no difference with standard RL process. For example, to perform PPO on cartpole, we can use:</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
@@ -330,7 +330,7 @@
 </div></blockquote>
 </section>
 <section id="generate-data">
-<h2><code class="docutils literal notranslate"><span class="pre">Generate</span> <span class="pre">data</span></code><a class="headerlink" href="#generate-data" title="Permalink to this headline">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">Generate</span> <span class="pre">data</span></code><a class="headerlink" href="#generate-data" title="Permalink to this heading">¶</a></h2>
 <p>In this step, the expert policy will generate demonstration data.</p>
 <p>For different Imitation Learning or Offline Training algorithms, formats of demonstration data may be different. If we only require state-action pair (e.g. BC), the demonstration data can be easily generated like:</p>
 <blockquote>
@@ -367,7 +367,7 @@
 </div></blockquote>
 </section>
 <section id="imitation-learning-offline-training">
-<h2><code class="docutils literal notranslate"><span class="pre">Imitation</span> <span class="pre">Learning</span> <span class="pre">/</span> <span class="pre">Offline</span> <span class="pre">Training</span></code><a class="headerlink" href="#imitation-learning-offline-training" title="Permalink to this headline">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">Imitation</span> <span class="pre">Learning</span> <span class="pre">/</span> <span class="pre">Offline</span> <span class="pre">Training</span></code><a class="headerlink" href="#imitation-learning-offline-training" title="Permalink to this heading">¶</a></h2>
 <p>Finally in this step, we will use the generated demonstration data for Imitation Learning / Offline Training. For BC, we can use:</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_bc_config</span> <span class="kn">import</span> <span class="n">cartpole_bc_config</span><span class="p">,</span>\
@@ -482,9 +482,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

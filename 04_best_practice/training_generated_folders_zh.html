@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>如何理解训练过程中生成的文件夹？<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>如何理解训练过程中生成的文件夹？<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <p>DI-engine 在训练过程中会生成很多文件夹：</p>
 <blockquote>
 <div><ul class="simple">
@@ -309,7 +309,7 @@
 </div></blockquote>
 <p>我们将分别介绍这两种模式。</p>
 <section id="id2">
-<h2>串行模式<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>串行模式<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>在串行模式下，生成的文件树如下：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
 ├── ckpt
@@ -337,16 +337,6 @@
 <div><p>在 buffer 这个文件夹里, 有一个名为 <code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> 的文件，其中包含buffer中有关数据使用情况的一些信息。</p>
 <p>经过一定次数的采样后，会打印出采样信息，显示采样数据的属性，并且也展示出数据的质量。 表格如下图所示：</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 7%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p>Name</p></td>
 <td><p>use_avg</p></td>
@@ -370,13 +360,6 @@
 </table>
 <p>一定秒数后，吞吐量信息（进入buffer的数据数量、采样次数、删除数量、目前拥有的有效数量）将打印如下：</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 11%" />
-<col style="width: 22%" />
-<col style="width: 22%" />
-<col style="width: 22%" />
-<col style="width: 22%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p>Name</p></td>
 <td><p>pushed_in</p></td>
@@ -496,11 +479,6 @@
 <div><p>网格表：</p>
 <blockquote>
 <div><table class="docutils align-default">
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 34%" />
-<col style="width: 46%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p>Name</p></td>
 <td><p>cur_lr_avg</p></td>
@@ -539,7 +517,7 @@
 </ul>
 </section>
 <section id="id3">
-<h2>并行模式<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>并行模式<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
 ├── ckpt
 │   └── iteration_0.pth.tar
@@ -702,9 +680,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

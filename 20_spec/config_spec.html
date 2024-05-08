@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,26 +299,26 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="specifications-of-di-engine-config">
-<h1>Specifications of DI-engine Config<a class="headerlink" href="#specifications-of-di-engine-config" title="Permalink to this headline">¶</a></h1>
+<h1>Specifications of DI-engine Config<a class="headerlink" href="#specifications-of-di-engine-config" title="Permalink to this heading">¶</a></h1>
 <p>In order to ensure the ease of use, readability, and scalability of config, the config submitted by developers needs to comply with the following specifications.</p>
 <p>The config of DI-engine consists of two parts: main_config and create_config.</p>
 <section id="example-link">
-<h2>Example Link<a class="headerlink" href="#example-link" title="Permalink to this headline">¶</a></h2>
+<h2>Example Link<a class="headerlink" href="#example-link" title="Permalink to this heading">¶</a></h2>
 <p>Example of Deep Q-Network (DQN)：</p>
 <p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_dqn_config.py</a></p>
 <p>Example config for algorithms with model or data, e.g. SQIL:
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_sqil_config.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_sqil_config.py</a></p>
 </section>
 <section id="details-of-the-specification">
-<h2>Details of the specification<a class="headerlink" href="#details-of-the-specification" title="Permalink to this headline">¶</a></h2>
+<h2>Details of the specification<a class="headerlink" href="#details-of-the-specification" title="Permalink to this heading">¶</a></h2>
 <section id="specification-of-grammar">
-<h3>Specification of Grammar<a class="headerlink" href="#specification-of-grammar" title="Permalink to this headline">¶</a></h3>
+<h3>Specification of Grammar<a class="headerlink" href="#specification-of-grammar" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>config needs to pass python’s flake8 syntax check and execute yapf formatting.</p></li>
 </ul>
 </section>
 <section id="specification-of-naming">
-<h3>Specification of naming<a class="headerlink" href="#specification-of-naming" title="Permalink to this headline">¶</a></h3>
+<h3>Specification of naming<a class="headerlink" href="#specification-of-naming" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The file name of X_config.py, related variable name in main_config and create_config</p>
 <ul>
@@ -357,7 +357,7 @@ For algorithms like ICM, the full algorithm is the module proposed in the paper 
 </div>
 </section>
 <section id="main-specification">
-<h3>Main Specification<a class="headerlink" href="#main-specification" title="Permalink to this headline">¶</a></h3>
+<h3>Main Specification<a class="headerlink" href="#main-specification" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>For env_manager field in create_config, except for some simple environments such as cartpole, pendulum, bitflip, we set it as base, for other environments, we seet env_manager as subprocess：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
@@ -506,9 +506,8 @@ learning algorithm needs to introduce expert config, see the example of sqil for
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

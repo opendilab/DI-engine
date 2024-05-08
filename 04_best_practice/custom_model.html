@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="how-to-customize-the-neural-network-model">
-<h1>How to customize the neural network model<a class="headerlink" href="#how-to-customize-the-neural-network-model" title="Permalink to this headline">¶</a></h1>
+<h1>How to customize the neural network model<a class="headerlink" href="#how-to-customize-the-neural-network-model" title="Permalink to this heading">¶</a></h1>
 <p>In using reinforcement learning methods, one would have to choose an appropriate neural networks depending on the nature of the decision problem and the policy that is used. In the context of the DI-engine framework, a user can do so in 2 primary ways. The first way involves a user making use of the configuration file <code class="docutils literal notranslate"><span class="pre">cfg.policy.model</span></code> to automatically generate the desired neural network. The second way gives the user more control by allowing the desired neural network (instantiated as an object) to be passed direcly into the policy.</p>
 <p>The purpose of this guide is to explain the details with regards to these 2 primary ways of choosing the appropriate neural network and as well as the principles behind them.</p>
 <section id="default-model-used-in-a-policy">
-<h2>Default model used in a policy<a class="headerlink" href="#default-model-used-in-a-policy" title="Permalink to this headline">¶</a></h2>
+<h2>Default model used in a policy<a class="headerlink" href="#default-model-used-in-a-policy" title="Permalink to this heading">¶</a></h2>
 <p>For a policy implemented in DI-engine, the <code class="docutils literal notranslate"><span class="pre">default_model</span></code> method contains the details of the default neural network model that was implemented. Take for example the SACPolicy implementation:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;sac&#39;</span><span class="p">)</span>
  <span class="k">class</span> <span class="nc">SACPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
@@ -321,20 +321,20 @@
 <p>When using the configuration file <code class="docutils literal notranslate"><span class="pre">cfg.policy.model</span></code>, DI-engine will correspondingly pass each argument into the model registered with DI-engine’s registry mechanism. (For example, argument <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>, <code class="docutils literal notranslate"><span class="pre">action_shape</span></code> etc will be passed into <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py#L13">QAC</a> ). The required neural network is then automatically generated in the model class based on the incoming arguments (e.g. a fully connected layer (FC) for vector input and a convolution (Conv) for image input).</p>
 </section>
 <section id="id1">
-<h2>How to customize the neural network model<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>How to customize the neural network model<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>It is often the case that the <code class="docutils literal notranslate"><span class="pre">default_model</span></code>chosen in a DI-engine <code class="docutils literal notranslate"><span class="pre">policy</span></code> is not suitable for one’s task at hand. Take for example the use of <code class="docutils literal notranslate"><span class="pre">sac</span></code> on the <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> task of <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> (a wrapper for the Deep Mind Control Suite). Note the default values for observation is  <code class="docutils literal notranslate"><span class="pre">pixel</span></code>, while <code class="docutils literal notranslate"><span class="pre">obs_shape</span> <span class="pre">=</span> <span class="pre">(3,</span> <span class="pre">height,</span> <span class="pre">width)</span></code> (For setting <code class="docutils literal notranslate"><span class="pre">from_pixel</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">channels_first</span> <span class="pre">=</span> <span class="pre">True</span></code>, see <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym</a> documentation for details)</p>
 <p>If one were to look at the source code of <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">sac</a>, it can be seen that the <code class="docutils literal notranslate"><span class="pre">default_model</span></code> is actually <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/qac.py">qac</a>. The <code class="docutils literal notranslate"><span class="pre">qac</span> <span class="pre">model</span></code> currently only supports an <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code> of one dimensoin (e.g. (4, )). Hence, it becomes apparent that one must customize a model according to one’s needs and ensure that the policy is setup accordingly.</p>
 </section>
 <section id="step-by-step-guide-to-customizing-a-model">
-<h2>Step-by-step guide to customizing a model<a class="headerlink" href="#step-by-step-guide-to-customizing-a-model" title="Permalink to this headline">¶</a></h2>
+<h2>Step-by-step guide to customizing a model<a class="headerlink" href="#step-by-step-guide-to-customizing-a-model" title="Permalink to this heading">¶</a></h2>
 <section id="choose-your-environment-and-policy">
-<h3>1. Choose your environment and policy<a class="headerlink" href="#choose-your-environment-and-policy" title="Permalink to this headline">¶</a></h3>
+<h3>1. Choose your environment and policy<a class="headerlink" href="#choose-your-environment-and-policy" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>For the purpose of this guide, let the choice of environment and policy to be the use of <code class="docutils literal notranslate"><span class="pre">sac</span></code> on the <code class="docutils literal notranslate"><span class="pre">cartpole-swingup</span></code> task of <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> (a wrapper for the Deep Mind Control Suite). (For details, see <a class="reference external" href="https://github.com/opendilab/DI-engine-docs/blob/main/source/13_envs/dmc2gym_zh.rst">dmc2gym</a> documentation)</p></li>
 </ul>
 </section>
 <section id="check-to-see-if-the-policy-s-default-model-is-suitable">
-<h3>2. Check to see if the policy’s default_model is suitable<a class="headerlink" href="#check-to-see-if-the-policy-s-default-model-is-suitable" title="Permalink to this headline">¶</a></h3>
+<h3>2. Check to see if the policy’s default_model is suitable<a class="headerlink" href="#check-to-see-if-the-policy-s-default-model-is-suitable" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>This can be done in 1 of 2 ways. One either look up the documentation at <a class="reference external" href="https://xxx">policy-default_model</a> or read the source code of <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/sac.py">ding/policy/sac:SACPolicy</a> and find out what is being used in the <code class="docutils literal notranslate"><span class="pre">default_model</span></code> method.</p></li>
 </ul>
@@ -356,7 +356,7 @@
 <p>Hence, we will need to do some customization.</p>
 </section>
 <section id="customizing-the-model">
-<h3>3. Customizing the model<a class="headerlink" href="#customizing-the-model" title="Permalink to this headline">¶</a></h3>
+<h3>3. Customizing the model<a class="headerlink" href="#customizing-the-model" title="Permalink to this heading">¶</a></h3>
 <p>Using the default_model as a guide and reference when crafting the custom_model:</p>
 <ul class="simple">
 <li><p>All public methods in the default_model must be implemented in custom_model.</p></li>
@@ -367,10 +367,6 @@
 <li><p>The <code class="docutils literal notranslate"><span class="pre">encoder</span></code> is used to encode inputs such as <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code> etc. for subsequent processing. DI-engine have thus far implemented the following encoders:</p></li>
 </ul>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 38%" />
-<col style="width: 62%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>encoder</p></th>
 <th class="head"><p>usage</p></th>
@@ -392,10 +388,6 @@
 <li><p>The <code class="docutils literal notranslate"><span class="pre">head</span></code> is used to process the encoded inputs and outputs data required by the policy or the overall RL process. DI-engine have thus far implemented the following heads:</p></li>
 </ul>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 38%" />
-<col style="width: 62%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>head</p></th>
 <th class="head"><p>usage</p></th>
@@ -501,7 +493,7 @@ continuous action value</p></td>
 </ul>
 </section>
 <section id="how-to-make-use-of-a-customized-model">
-<h3>4. How to make use of a customized model<a class="headerlink" href="#how-to-make-use-of-a-customized-model" title="Permalink to this headline">¶</a></h3>
+<h3>4. How to make use of a customized model<a class="headerlink" href="#how-to-make-use-of-a-customized-model" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>New pipeline: Define the model with the corresponding imports, then pass the model into the policy as an argument as follows.</p></li>
 </ul>
@@ -532,7 +524,7 @@ continuous action value</p></td>
 </div>
 </section>
 <section id="unit-testing-a-customized-model">
-<h3>5. Unit testing a customized model<a class="headerlink" href="#unit-testing-a-customized-model" title="Permalink to this headline">¶</a></h3>
+<h3>5. Unit testing a customized model<a class="headerlink" href="#unit-testing-a-customized-model" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>In general, when writing unit tests, one would need to first manually construct the <code class="docutils literal notranslate"><span class="pre">obs</span></code> and <code class="docutils literal notranslate"><span class="pre">action</span></code> inputs, define the model and verify that output dimensions and type are correct. Following that, if the model contains a neural network, it is also necessary to verify that the model is differentiable.</p></li>
 </ul>
@@ -644,9 +636,8 @@ continuous action value</p></td>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

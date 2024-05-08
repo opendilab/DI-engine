@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sqn">
-<h1>SQN<a class="headerlink" href="#sqn" title="Permalink to this headline">¶</a></h1>
+<h1>SQN<a class="headerlink" href="#sqn" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Soft Q-learning is an extension from many previous work, including:
 Leverage the Average: an Analysis of KL Regularization in Reinforcement
 Learning , Soft Actor-Critic Algorithms and Applications, Equivalence
@@ -310,7 +310,7 @@ Q-learning algorithm, but adopt the maximum entropy framework, making a
 connection between Policy Gradients and Q-learning.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQN is implemented for environments with <strong>Discrete</strong> action
 spaces.(i.e. Atari, Go)</p></li>
@@ -322,7 +322,7 @@ Q-function and construct a policy from Q-function</p></li>
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>An entropy-regularized version of RL objective could lead to better
 exploration and stability. The most general way to define
 entropy-augmented return is</p>
@@ -351,7 +351,7 @@ state and the TD-target becomes:</p>
 \[y_t = r + \gamma\left[Q_{\bar{\theta}}\left(\mathbf{s}', \mathbf{a}'\right)-\tau \log \pi_{\phi}\left(\mathbf{a}' \mid \mathbf{s}')\right]\right.\]</div>
 </section>
 <section id="pseudocode">
-<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this heading">¶</a></h2>
 <img alt="../_images/sqn.png" class="align-center" src="../_images/sqn.png" />
 <div class="highlight-tex notranslate"><div class="highlight"><pre><span></span><span class="k">\begin</span><span class="nb">{</span>algorithm<span class="nb">}</span>[tp]
 <span class="k">\setstretch</span><span class="nb">{</span>1.35<span class="nb">}</span>
@@ -399,7 +399,7 @@ state and the TD-target becomes:</p>
 </div>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <p>SQN can be combined with:</p>
 <ul class="simple">
 <li><p>SQN could use a separate policy network, which called
@@ -421,7 +421,7 @@ activate area.</p></li>
 </ul>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">¶</a></h2>
 <p>Soft Q loss</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Target</span>
 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -459,7 +459,7 @@ activate area.</p></li>
 </div>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference external" href="https://github.com/createamind/DRL/tree/master/spinup/algos/sqn">DRL</a></p>
 </section>
 </section>
@@ -534,9 +534,8 @@ activate area.</p></li>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="pettingzoo">
-<h1>PettingZoo<a class="headerlink" href="#pettingzoo" title="Permalink to this headline">¶</a></h1>
+<h1>PettingZoo<a class="headerlink" href="#pettingzoo" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference external" href="https://www.pettingzoo.ml/">PettingZoo</a> is a Python zoo for studying multi-agent reinforcement learning，It can be considered as a multi-agent version of <a class="reference external" href="https://gym.openai.com/">Gym</a>。It contains the following environment families：</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://www.pettingzoo.ml/atari">Atari</a>：Multiplayer Atari 2600 game, including cooperative, competitive and hybrid scenarios</p></li>
@@ -319,9 +319,9 @@
 </div>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>Currently PettingZoo officially supports Python 3.7~3.9 on Linux and macOS。</p>
 <p>It can be installed directly through pip; in addition, since PettingZoo is used in unit tests in DI-engine, installing DI-engine will also install PettingZoo by default：</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install directly with pip</span>
@@ -339,7 +339,7 @@ pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class=
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, run the following Python program. If no error is reported, the installation is successful.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">()</span>
@@ -349,20 +349,20 @@ pip<span class="w"> </span>install<span class="w"> </span>pettingzoo<span class=
 </div>
 </section>
 <section id="image">
-<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine has an image ready with the framework itself and the PettingZoo environment, available via <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code>, or by visiting <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a> Get more images</p>
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<span id="the-original-spatial-environment-before-transformation"></span><h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<span id="the-original-spatial-environment-before-transformation"></span><h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <p>Since PettingZoo includes many families of environments, each of which is unique, it is difficult to cover everything. Here is an example of the <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code> environment in <code class="docutils literal notranslate"><span class="pre">MPE</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code> game‘s goal is to want agents to cover all landmarks while avoiding collisions with each other.</p>
 </div>
 <section id="observation-space">
-<span id="observation-space-1"></span><h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<span id="observation-space-1"></span><h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The agent’s observations are made by</p>
 <ul>
@@ -378,7 +378,7 @@ hub</a> Get more images</p>
 For example, when you generate a simple spread environment with 5 agents (n_agents=5) and 5 landmarks (n_landmarks=5), each agent has an observation dimension of (30,)。</p>
 </section>
 <section id="action-space">
-<span id="action-space-1"></span><h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<span id="action-space-1"></span><h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>No manual control</p></li>
 <li><p>Discrete action space: The action space of each agent is the same, the size is <code class="docutils literal notranslate"><span class="pre">(5,)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">gym.spaces.Discrete(5)</span></code>. The dimension of each specific action is (,), the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, the specific meaning is to do nothing or move in four basic directions.</p></li>
@@ -397,21 +397,21 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 </div>
 </section>
 <section id="reward-space">
-<span id="reward-space-1"></span><h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<span id="reward-space-1"></span><h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>All agents contribute a global reward, based on the closest agent to each landmark, a <code class="docutils literal notranslate"><span class="pre">float</span></code>value</p></li>
 <li><p>Specifically, all agents receive a global reward based on the distance of the nearest agent from each landmark (sum of minimum distances). Also, if agents collide with other agents, they will be penalized.</p></li>
 </ul>
 </section>
 <section id="others">
-<span id="others-1"></span><h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<span id="others-1"></span><h3>Others<a class="headerlink" href="#others" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game will terminate after executing the number of cycles specified by the environment parameter <code class="docutils literal notranslate"><span class="pre">max_cycles</span></code>. The default value for all environments is 25 cycles.</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>The input is state instead of raw pixel；</p></li>
 <li><p>Either discrete action space or continuous action space can be selected；</p></li>
@@ -419,9 +419,9 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 </ol>
 </section>
 <section id="transformed-space-rl-environment">
-<span id="transformed-spatial-rl-environment"></span><h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<span id="transformed-spatial-rl-environment"></span><h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space-2">
-<span id="id2"></span><h3>Observation Space<a class="headerlink" href="#observation-space-2" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Observation Space<a class="headerlink" href="#observation-space-2" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>For the multi-agent algorithm, according to the state before the transformation, the local agent_state and the global global_state are generated respectively：</p>
 <ul>
@@ -449,27 +449,27 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 </ul>
 </section>
 <section id="action-space-2">
-<span id="id3"></span><h3>Action Space<a class="headerlink" href="#action-space-2" title="Permalink to this headline">¶</a></h3>
+<span id="id3"></span><h3>Action Space<a class="headerlink" href="#action-space-2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Discrete action space without transformation</p></li>
 <li><p>ontinuous action space, if the environment variable <code class="docutils literal notranslate"><span class="pre">act_scale=True</span></code>, the action value is affine transformed</p></li>
 </ul>
 </section>
 <section id="reward-space-2">
-<span id="id4"></span><h3>Reward Space<a class="headerlink" href="#reward-space-2" title="Permalink to this headline">¶</a></h3>
+<span id="id4"></span><h3>Reward Space<a class="headerlink" href="#reward-space-2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>No change，<code class="docutils literal notranslate"><span class="pre">gym.spaces.Box(low=float(&quot;-inf&quot;),</span> <span class="pre">high=float(&quot;inf&quot;),</span> <span class="pre">shape=(1,</span> <span class="pre">),</span> <span class="pre">dtype=np.float32)</span></code></p></li>
 </ul>
 </section>
 </section>
 <section id="others-3">
-<span id="id5"></span><h2>Others<a class="headerlink" href="#others-3" title="Permalink to this headline">¶</a></h2>
+<span id="id5"></span><h2>Others<a class="headerlink" href="#others-3" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to facilitate parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the<code class="docutils literal notranslate"><span class="pre">reset</span></code>method is used.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details</p></li>
@@ -478,14 +478,14 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The Difference Between Training And Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The Difference Between Training And Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses dynamic random seeds, that is, the random seeds of each episode are different, and they are all generated by a random number generator, but the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment; The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method.</p></li>
 </ul>
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-Zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-Zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training profile is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/">github link</a>
 ，or specific configuration files such as，such as<code class="docutils literal notranslate"><span class="pre">ptz_simple_spread_mappo_config.py</span></code>，Use the following demo to run：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -577,7 +577,7 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>simple_spread_v2</p>
 <ul class="simple">
@@ -681,9 +681,8 @@ For example, when you generate a simple spread environment with 5 agents (n_agen
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

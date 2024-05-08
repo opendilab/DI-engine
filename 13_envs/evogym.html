@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="evogym">
-<h1>Evogym<a class="headerlink" href="#evogym" title="Permalink to this headline">¶</a></h1>
+<h1>Evogym<a class="headerlink" href="#evogym" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Evolution Gym (Evogym) is the first large-scale benchmark for co-optimizing the design and control of soft robots.
 Each robot is composed of different types of voxels (e.g., soft, rigid, actuators), resulting in a modular and expressive robot design space.
 The environment spans a wide range of tasks, including locomotion and manipulation on various types of terrains.
@@ -309,9 +309,9 @@ The image below shows a robot in action.</p>
 <img alt="../_images/evogym.gif" class="align-center" src="../_images/evogym.gif" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>The Evogym environment can be downloaded from GitHub and installed using pip.
 Given that the installation procedure may vary a little according to your OS, you are invited to check the instructions in the original <a class="reference external" href="https://github.com/EvolutionGym/evogym#installation">repository</a> in case you should encounter any problem.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/EvolutionGym/evogym.git
@@ -322,7 +322,7 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After installation, you can verify whether if it is successful by running the following command:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>gym_test.py
 </pre></div>
@@ -330,9 +330,9 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The observation space includes the state information of the robot, a<code class="docutils literal notranslate"><span class="pre">(2N</span> <span class="pre">+</span> <span class="pre">3)</span></code>vector including the relative position of each voxel corner with respect to the center of mass of the robot <code class="docutils literal notranslate"><span class="pre">(2N)</span></code>, and the velocity and orientation of center of mass <code class="docutils literal notranslate"><span class="pre">(3)</span></code>. The data type is<code class="docutils literal notranslate"><span class="pre">float32</span></code>.</p></li>
 <li><p>To handle complex tasks, specifically those with varying terrain types, an additional observation vector including terrain information is provided.</p></li>
@@ -341,21 +341,21 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The action space is continuous of size N. Each component of the N-size action vector is associated with an actuator voxel (either horizontal or vertical) of the robot, and instructs a deformation target of that voxel, compressing or stretching the size of voxel from 60% to 160%. The data type is <code class="docutils literal notranslate"><span class="pre">float</span></code>.</p></li>
 <li><p>Specifically, the action value<code class="docutils literal notranslate"><span class="pre">u</span></code>is within the range<code class="docutils literal notranslate"><span class="pre">[0.6,</span> <span class="pre">1.6]</span></code>, and corresponds to a gradual expansion/contraction of that actuator to<code class="docutils literal notranslate"><span class="pre">u</span></code>times its rest length.</p></li>
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Each task is equipped with a reward function measuring the robot’s current performance of the control action. Generally, it is a <code class="docutils literal notranslate"><span class="pre">float</span></code> value.</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Vector observation space (1D vector) varies according to robot’s structure, task and environment.</p></li>
 <li><p>Continuous action space varies according to the structure of the robot.</p></li>
@@ -363,19 +363,19 @@ python<span class="w"> </span>setup.py<span class="w"> </span>install
 </ol>
 </section>
 <section id="other">
-<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h2>
 <section id="robot-and-environment-definition">
-<h3>Robot and environment definition<a class="headerlink" href="#robot-and-environment-definition" title="Permalink to this headline">¶</a></h3>
+<h3>Robot and environment definition<a class="headerlink" href="#robot-and-environment-definition" title="Permalink to this heading">¶</a></h3>
 <p>Evogym provides fixed tasks, but you can define your own robot structure and environment.
 For a concrete example you can refer to the following <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/envs/world_data/carry_bot.json">json file</a>
 and to the official <a class="reference external" href="https://evolutiongym.github.io/tutorials/new-env.html">documentation</a>.</p>
 </section>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to support parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. In the first call<code class="docutils literal notranslate"><span class="pre">reset</span></code> method initializes the concrete original environment instance.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of the random seed in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment, no need to care about the specific implementation details</p></li>
@@ -384,13 +384,13 @@ and to the official <a class="reference external" href="https://evolutiongym.git
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method, specifying the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> implementation ), the code shown below will run an environment episode and save the result of this episode in a folder<code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">gym</span>
@@ -428,7 +428,7 @@ and to the official <a class="reference external" href="https://evolutiongym.git
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration files are at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/evogym/config/">github
 link</a>
 Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">walker_ppo_config.py</span></code> , use the following demo to run:</p>
@@ -500,7 +500,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <p>Carrier</p>
 <ul>
 <li><p>Task description: The robot catches the box initialized above and carries it as far as possible without dropping it, the farther the distance carried the greater the reward.</p>
@@ -603,9 +603,8 @@ Inside, for specific configuration files, such as <code class="docutils literal 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

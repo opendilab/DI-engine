@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,12 +299,12 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="di-engine">
-<h1>如何将自己的环境迁移到DI-engine中<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h1>
+<h1>如何将自己的环境迁移到DI-engine中<a class="headerlink" href="#di-engine" title="Permalink to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 为用户提供了大量的强化学习常用环境（ <a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">已支持的环境</a> ），但在很多研究和工程场景中，用户依然需要自己实现一个环境，并期待可以将其快速迁移到 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中，使之满足 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 的相关规范。因此在本节中，将会介绍如何一步步进行上述迁移，以满足 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 的基础环境基类 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的规范，从而轻松应用在训练的 pipeline 中。</p>
 <p>下面的介绍，首先将从 <strong>基础</strong> 和 <strong>进阶</strong> 两部分开始。 <strong>基础</strong> 部分说明了必须实现的功能，并特别提醒了要注意的细节； <strong>进阶</strong> 则说明了一些拓展功能。</p>
 <p>然后介绍 <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 这样一个可以快速将 <code class="docutils literal notranslate"><span class="pre">ClassicControl,</span> <span class="pre">Box2d,</span> <span class="pre">Atari,</span> <span class="pre">Mujoco,</span> <span class="pre">GymHybrid</span></code> 等简单环境转换为符合 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的环境的“神器”。并在最后针对常见问题进行 Q &amp; A。</p>
 <section id="id2">
-<h2>基础<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>基础<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>本节将介绍迁移环境时，用户 <strong>必须</strong> 满足的规范约束、以及必须实现的功能。</p>
 <p>如果要在 DI-engine 中使用环境，需要实现一个继承自 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的子类环境，例如 <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> 。 <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> 和你自己的环境之间是 <a class="reference external" href="https://en.wikipedia.org/wiki/Object_composition">组合</a> 关系，即在一个 <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> 实例中，会持有一个使用者原生的环境（例如 gym 格式的环境）的实例。</p>
 <p>强化学习的环境有一些普遍的、被大多数环境实现了的主要接口，如 <code class="docutils literal notranslate"><span class="pre">reset()</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code>, <code class="docutils literal notranslate"><span class="pre">seed()</span></code> 等。在 DI-engine 中， <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 将对这些接口进行进一步的封装，下面大部分情况下将以 Atari 为例进行说明。具体代码可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_env.py">Atari Env</a> 和 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_wrappers.py">Atari Env Wrapper</a></p>
@@ -409,7 +409,7 @@
 </ol>
 </section>
 <section id="id4">
-<h2>进阶<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>进阶<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic">
 <li><p>环境预处理wrapper</p>
 <p>很多环境如果要用于强化学习的训练中，都需要进行一些预处理，来达到增加随机性、数据归一化、易于训练等目的。这些预处理通过 wrapper 的形式实现（wrapper 的介绍可以参考 <a class="reference external" href="./env_wrapper_zh.html">这里</a> ）。</p>
@@ -596,12 +596,12 @@
 </ol>
 </section>
 <section id="dingenvwrapper">
-<h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this headline">¶</a></h2>
+<h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 可以快速将 ClassicControl, Box2d, Atari, Mujoco, GymHybrid 等简单环境转换为符合 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的环境。</p>
 <p>注：<code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 的具体实现可以在 <code class="docutils literal notranslate"><span class="pre">ding/envs/env/ding_env_wrapper.py</span></code> 中找到，另外，可以查看 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py">使用实例</a> 获取更多信息。</p>
 </section>
 <section id="q-a">
-<h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
+<h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic">
 <li><p>MARL 环境应当如何迁移？</p>
 <p>可以参考 <a class="reference external" href="../13_envs/competitive_rl_zh.html">Competitive RL</a></p>
@@ -688,9 +688,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

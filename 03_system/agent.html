@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,18 +299,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="agent">
-<h1>Agent<a class="headerlink" href="#agent" title="Permalink to this headline">¶</a></h1>
+<h1>Agent<a class="headerlink" href="#agent" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <section id="about-rl-agent">
-<h2>About RL Agent<a class="headerlink" href="#about-rl-agent" title="Permalink to this headline">¶</a></h2>
+<h2>About RL Agent<a class="headerlink" href="#about-rl-agent" title="Permalink to this heading">¶</a></h2>
 <p>The RL Agent class in DI-engine, as its name implies, functions as a direct surrogate for interaction with the environment during the training or evaluation process.</p>
 <p>Once initialized, each RL Agent retains an environment, a policy instance, and its related configurations. All RL algorithms in DI-engine will be implemented as specific RL Agent classes, each equipped with the standard training or evaluation methods. The RL Agent class supports a wide range of classic RL benchmark environments including Gym Atari and Mujoco, ensuring the compatibility and versatility of the class.</p>
 <a class="reference internal image-reference" href="../_images/agent.png"><img alt="../_images/agent.png" class="align-center" src="../_images/agent.png" style="width: 684px;" /></a>
 <p>The RL Agent class provides an effective abstraction for RL pipelines. In particular, the RL Agent class includes four main methods: “train”, “deploy”, “batch_evaluate”, and “collect_data”. This abstraction allows for the combination of four distinct DI-engine pipelines into one class with four methods. This saves the previously required need of writing individual pipeline code into separate files. It solves the issue of inconsistency and confusion when users unfamiliar with reinforcement learning pipelines or DI-engine code have to train the PPO algorithm for some game environment and deploy the trained model for a video replay, necessitating the combination of the training and deployment pipelines or using the model checkpoint as an intermediary to run the pipelines separately. Thanks to the RL Agent class, a standard implementation to manage all operations is now available, allowing training and evaluation processes to be concatenated in any order or easily called by third-party pipelines.</p>
 </section>
 <section id="usage-of-rl-agent">
-<h2>Usage of RL Agent<a class="headerlink" href="#usage-of-rl-agent" title="Permalink to this headline">¶</a></h2>
+<h2>Usage of RL Agent<a class="headerlink" href="#usage-of-rl-agent" title="Permalink to this heading">¶</a></h2>
 <p>The RL Agent class offers streamlined configurations for benchmark environments encountered in classic RL. These default settings have been extensively tested and deliver reliable performance. This makes it possible for new users to initiate the training process without requiring any prior information.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.bonus</span> <span class="kn">import</span> <span class="n">DQNAgent</span>
 
@@ -408,9 +408,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

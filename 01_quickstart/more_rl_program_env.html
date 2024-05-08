@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,13 +299,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="more-reinforcement-learning-program-customized-env">
-<h1>More Reinforcement Learning Program (Customized Env)<a class="headerlink" href="#more-reinforcement-learning-program-customized-env" title="Permalink to this headline">¶</a></h1>
+<h1>More Reinforcement Learning Program (Customized Env)<a class="headerlink" href="#more-reinforcement-learning-program-customized-env" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p><a class="reference external" href="https://github.com/Kautenja/gym-super-mario-bros">Super Mario Bros. &amp; Super Mario Bros. 2 (Lost Levels)</a> on The Nintendo Entertainment System (NES) is one of the most popular games in 1980s. How about design a DRL-based AI to explore this classic game? In this tutorial, we will implement an AI-powered Mario (using DQN algorithm) in DI-engine.</p>
 <a class="reference internal image-reference" href="../_images/mario.gif"><img alt="../_images/mario.gif" class="align-center" src="../_images/mario.gif" style="width: 400px;" /></a>
 <section id="using-the-configuration-file">
-<h2>Using the Configuration File<a class="headerlink" href="#using-the-configuration-file" title="Permalink to this headline">¶</a></h2>
+<h2>Using the Configuration File<a class="headerlink" href="#using-the-configuration-file" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine uses a global configuration file to control all variables of the environment and strategy, each of which has a corresponding default configuration that can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_config.py">mario_dqn_config</a>, in the tutorial we use the default configuration directly:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.mario.mario_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 <span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
@@ -315,7 +315,7 @@
 </div>
 </section>
 <section id="initialize-the-environments">
-<h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this headline">¶</a></h2>
+<h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Super</span> <span class="pre">Mario</span> <span class="pre">Bros.</span></code> is an <strong>image input</strong> observation environment, so we don’t just wrapper original gym environment with <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> but need to add some additional wrappers to pre-process observation before sending it to DQN Policy.</p>
 <p>In this tutorial, we use the following 5 wrapper to pre-process data and transform into DI-engine’s environment format. Here are some basic description, and you can find the whole code implementation and comments <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_wrappers/env_wrappers.py">here</a></p>
 <blockquote>
@@ -367,7 +367,7 @@
 </div>
 </section>
 <section id="select-policy">
-<h2>Select Policy<a class="headerlink" href="#select-policy" title="Permalink to this headline">¶</a></h2>
+<h2>Select Policy<a class="headerlink" href="#select-policy" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine covers most of the reinforcement learning policies, using them only requires selecting the right policy and model.
 Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
@@ -381,7 +381,7 @@ Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 </div>
 </section>
 <section id="build-the-pipeline">
-<h2>Build the Pipeline<a class="headerlink" href="#build-the-pipeline" title="Permalink to this headline">¶</a></h2>
+<h2>Build the Pipeline<a class="headerlink" href="#build-the-pipeline" title="Permalink to this heading">¶</a></h2>
 <p>With the various middleware provided by DI-engine, we can easily build the entire pipeline:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
@@ -402,7 +402,7 @@ Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 </div>
 </section>
 <section id="run-the-code">
-<h2>Run the Code<a class="headerlink" href="#run-the-code" title="Permalink to this headline">¶</a></h2>
+<h2>Run the Code<a class="headerlink" href="#run-the-code" title="Permalink to this heading">¶</a></h2>
 <p>The full example can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mario/mario_dqn_example.py">mario DQN example</a> and can be run via <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">mario_dqn_example.py</span></code>.
 This demo can draw a successful result in a few hours, our super mario can pass level 1-1 as soon as possible without any demage, here are the trained agent replay video and the detailed training curve (evaluation episode return/env interaction step).</p>
 <a class="reference internal image-reference" href="../_images/mario.gif"><img alt="../_images/mario.gif" class="align-center" src="../_images/mario.gif" style="width: 600px;" /></a>
@@ -479,9 +479,8 @@ This demo can draw a successful result in a few hours, our super mario can pass 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sac">
-<h1>SAC<a class="headerlink" href="#sac" title="Permalink to this headline">¶</a></h1>
+<h1>SAC<a class="headerlink" href="#sac" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Soft actor-critic (SAC) is a stable and efficient model-free off-policy maximum entropy actor-critic algorithm for
 continuous state and action spaces, which is proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a>.
 The augmented entropy objective of the policy brings a number of conceptual and practical
@@ -311,7 +311,7 @@ updates with a stable stochastic actor-critic formulation, achieves state-of-the
 off-policy methods.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SAC is implemented for environments with <strong>continuous</strong> action spaces.(i.e. MuJoCo, Pendulum, and LunarLander)</p></li>
 <li><p>SAC is an <strong>off-policy</strong> and <strong>model-free</strong> algorithm, combined with non-empty replay buffer for policy exploration.</p></li>
@@ -320,7 +320,7 @@ off-policy methods.</p>
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>SAC considers a more general maximum entropy objective, which favors stochastic policies by augmenting the objective with the expected entropy of the policy:</p>
 <div class="math notranslate nohighlight">
 \[J(\pi)=\sum_{t=0}^{T} \mathbb{E}_{\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \sim \rho_{\pi}}\left[r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\alpha \mathcal{H}\left(\pi\left(\cdot \mid \mathbf{s}_{t}\right)\right)\right].\]</div>
@@ -343,7 +343,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">model.
 </div>
 </section>
 <section id="pseudocode">
-<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this heading">¶</a></h2>
 <img alt="../_images/SAC-algorithm.png" class="align-center" src="../_images/SAC-algorithm.png" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -351,7 +351,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">model.
 </div>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <p>SAC can be combined with:</p>
 <ul>
 <li><p>Auto alpha strategy</p>
@@ -364,7 +364,7 @@ Since we implement auto alpha strategy depending on maximum entropy through conf
 </ul>
 </section>
 <section id="implementation">
-<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <p>We take the second version implementation (only predict soft Q function) as an example to introduce SAC algorithm:</p>
 <p><strong>Basic Actor-Critic Definition</strong></p>
@@ -512,15 +512,8 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </div>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -570,14 +563,14 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </table>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Haarnoja, et al. Soft Actor-Critic Algorithms and Applications. [<a class="reference external" href="https://arxiv.org/abs/1812.05905">https://arxiv.org/abs/1812.05905</a> arXiv:1812.05905], 2019.</p></li>
 <li><p>Haarnoja, et al. Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor. [<a class="reference external" href="https://arxiv.org/abs/1801.01290">https://arxiv.org/abs/1801.01290</a> arXiv:1801.01290], 2018.</p></li>
 </ul>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/sac">Baselines</a></p></li>
 <li><p><a class="reference external" href="https://github.com/rll/rllab/blob/master/rllab/algos/sac.py">rllab</a></p></li>
@@ -660,9 +653,8 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

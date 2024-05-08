@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,24 +299,19 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="rpc">
-<h1>高性能RPC框架<a class="headerlink" href="#rpc" title="Permalink to this headline">¶</a></h1>
+<h1>高性能RPC框架<a class="headerlink" href="#rpc" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <section id="id1">
-<h2>简介<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>简介<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine 集成了 <a class="reference external" href="https://pytorch.org/docs/stable/rpc.html">torch.distributed.rpc</a>  模块， torchrpc 专注于高性能 P2P 的 RPC 通信，其可以自动选择最佳的通信策略（ NVLINK ，共享内存， RDMA 或是 TCP ），并且支持 <a class="reference external" href="https://docs.nvidia.com/cuda/gpudirect-rdma/">GPU direct RDMA</a> 技术。
 如果您的集群配备有 InfiniBand/RoCE 网络，则非常建议您使用 torchrpc 作为 DI-engine 的消息队列通信实现；即使没有， torchrpc 实现的多线程 TCP-RPC 通信性能也要优于过去 DI-engine 基于 NNG 的消息队列实现。</p>
 <a class="reference internal image-reference" href="../_images/rpc.png"><img alt="../_images/rpc.png" class="align-center" src="../_images/rpc.png" style="width: 600px;" /></a>
 <section id="nccl">
-<h3>为什么不是NCCL<a class="headerlink" href="#nccl" title="Permalink to this headline">¶</a></h3>
+<h3>为什么不是NCCL<a class="headerlink" href="#nccl" title="Permalink to this heading">¶</a></h3>
 <p>NCCL 作为广泛使用的高性能集合通信库，其专注于诸如 AllReduce 等集合通信范式，但却不擅长进行任意消息类型的高性能P2P通信，而 torchrpc 填补了这一空白。
 下表给出了其和 NCCL 的一些对比：</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 39%" />
-<col style="width: 28%" />
-<col style="width: 33%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>对比</p></th>
 <th class="head"><p>NCCL</p></th>
@@ -344,21 +339,11 @@
 </table>
 </section>
 <section id="id2">
-<h3>性能测试<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>性能测试<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <p>测试环境：配备有 A100-80GB GPU 和 200G 的 Infiniband 网卡的K8S集群</p>
 <section id="p2p">
-<h4>跨节点 P2P 测试<a class="headerlink" href="#p2p" title="Permalink to this headline">¶</a></h4>
+<h4>跨节点 P2P 测试<a class="headerlink" href="#p2p" title="Permalink to this heading">¶</a></h4>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 12%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>test
 case(unit:ms)</p></th>
@@ -519,18 +504,8 @@ GB</p></th>
 </table>
 </section>
 <section id="id3">
-<h4>节点内 P2P 测试<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<h4>节点内 P2P 测试<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h4>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 27%" />
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 11%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>test
 case(unit:ms)</p></th>
@@ -603,7 +578,7 @@ a-shared-tensor</p></td>
 </table>
 </section>
 <section id="atari">
-<h4>Atari 训练任务测试<a class="headerlink" href="#atari" title="Permalink to this headline">¶</a></h4>
+<h4>Atari 训练任务测试<a class="headerlink" href="#atari" title="Permalink to this heading">¶</a></h4>
 <p>测试代码： dizoo/atari/example/atari_dqn_dist_rdma.py</p>
 <blockquote>
 <div><ul class="simple">
@@ -613,10 +588,6 @@ a-shared-tensor</p></td>
 </ul>
 </div></blockquote>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 49%" />
-<col style="width: 51%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>test case(unit:s)</p></th>
 <th class="head"><p>100 epoch avg time</p></th>
@@ -638,7 +609,7 @@ a-shared-tensor</p></td>
 </section>
 </section>
 <section id="id4">
-<h2>使用<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>使用<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>cli-ditask 引入了新的命令行参数：</p>
 <ul>
 <li><p>–mq_type ：引入了 cuda 和 torchrpc:cpu 选项：</p>
@@ -689,23 +660,23 @@ ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w">
 </div>
 </section>
 <section id="id5">
-<h2>注意事项<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>注意事项<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>如果您在K8S或其他容器集群环境下使用 DI-engine ，请使用 opendilab 提供的镜像，或参照此处的 <a class="reference external" href="https://github.com/SolenoidWGT/DI-engine/blob/p2p-rpc-dockerfile/docker/Dockerfile.rpc">Dockerfile</a> 。否则 torchrpc 可能无法正常工作。</p>
 <section id="ib">
-<h3>多IB设备<a class="headerlink" href="#ib" title="Permalink to this headline">¶</a></h3>
+<h3>多IB设备<a class="headerlink" href="#ib" title="Permalink to this heading">¶</a></h3>
 <p>如果您的集群环境有多张 HCA 设备，torchrpc 可能不会正常工作，这一问题是由 torchrpc 底层的 <a class="reference external" href="https://github.com/pytorch/tensorpipe">tensorpip</a> 代码缺陷导致的，我们在 opendilab 的镜像中修复了这一问题。如果您无法使用我们的镜像，请保证您机器上的 HCA 的端口都处于可用状态。</p>
 </section>
 <section id="id6">
-<h3>容器环境<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>容器环境<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>torchrpc 无法判断自己是否处于容器环境，我们的opendilab的镜像增加了容器环境的判断功能，避免 torchrpc 在容器环境下进行 GPU 设备映射导致的初始化错误。</p>
 </section>
 <section id="fork">
-<h3>和fork()混合使用<a class="headerlink" href="#fork" title="Permalink to this headline">¶</a></h3>
+<h3>和fork()混合使用<a class="headerlink" href="#fork" title="Permalink to this heading">¶</a></h3>
 <p>torchrpc 没有考虑到进程混合使用 RDMA 和 fork 的情况。如果在使用 RDMA 时没有进行相应的初始化措施，使用 fork 会出现严重问题， <a class="reference external" href="https://www.rdmamojo.com/2012/05/24/ibv_fork_init/">请参考</a>。
 因此，如果您在 IB/RoCE 网络环境下使用 torchrpc，并需要配合 fork 混合使用，请指定环境变量 <cite>IBV_FORK_SAFE=1</cite> 和 <cite>RDMAV_FORK_SAFE=1</cite>。</p>
 </section>
 <section id="id8">
-<h3>反馈<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>反馈<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <p>因为目前 tensorpipe 不会有活跃的开发计划， 如果您遇到和 torchrpc 有关的问题或 bug ， 您可以在 DI-engine 社区中提 issue 。
 同时我们正在积极和 tensorpipe 社区沟通并跟踪上述问题的修复情况，如果有任何修复我们会第一时间进行更新。</p>
 </section>
@@ -793,9 +764,8 @@ ditask<span class="w"> </span>--package<span class="w"> </span>.<span class="w">
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

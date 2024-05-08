@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,18 +299,18 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>如何构建多智能体环境<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>如何构建多智能体环境<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <p>在日常生活的许多任务场景中，往往包含大量与环境交互的智能体，包括无人机集群、无人驾驶、智能电网等。相较于单智能体与人类控制，多智能体有更多优势，且已经被包括我国在内的很多国家列为发展目标。研究如何在考虑其它协作智能体的情况下，最大化团队目标，具有重要实际应用价值、需求广阔！</p>
 <p>这篇文章将讲解如何结合特定的需求，构建多智能体强化学习环境，并将其融入到 <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中，再利用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中自带的多智能体强化学习算法来解决多智能体问题。</p>
 <p>目前  <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中已经融合了以下的多智能体强化学习常用环境：</p>
-<table class="colwidths-given docutils align-default" id="id11">
+<table class="docutils align-default" id="id11">
 <caption><span class="caption-text">MARL environments in DI-zoo</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Env Name</p></th>
@@ -559,15 +559,15 @@
 </div>
 </section>
 <section id="di-engine-marl">
-<h1>如何使用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中的 MARL 算法<a class="headerlink" href="#di-engine-marl" title="Permalink to this headline">¶</a></h1>
+<h1>如何使用 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中的 MARL 算法<a class="headerlink" href="#di-engine-marl" title="Permalink to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中集成了多种多智能体强化学习算法，包括属于 value-based 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qmix.py">QMIX算法</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/qtran.py">QTRAN算法</a> 以及属于 actor-critic 的 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/coma.py">COMA算法</a> 、 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py">MAPPO算法</a> ，具体算法 benchmark 如下：</p>
-<table class="colwidths-given docutils align-default" id="id12">
+<table class="docutils align-default" id="id12">
 <caption><span class="caption-text">MARL environments in DI-zoo</span><a class="headerlink" href="#id12" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
+<col style="width: 25.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Algorithm</p></th>
@@ -752,7 +752,7 @@
 <p>下面以 QMIX 与 MAPPO 为例，介绍如何在用户自定义的环境上使用这些算法。</p>
 <p>当用户自定义的多智能体环境构建完成后，想要使用 DI-engine 中已经集成的多智能体算法进行基线的训练，只需要找到想调用的多智能体算法配置的模板，然后修改跟环境相关的参数即可。</p>
 <section id="id9">
-<h2>QMIX<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<h2>QMIX<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
 <p>例如，如果想要使用 QMIX 算法，那么首先找到 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 下的 QMIX config <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/petting_zoo/config/ptz_simple_spread_qmix_config.py">ptz_simple_spread_qmix_config.py</a> 文件，然后修改以下与环境相关的内容：</p>
 <p>需要修改的内容有以下几点：</p>
 <ul class="simple">
@@ -836,7 +836,7 @@
 </div>
 </section>
 <section id="id10">
-<h2>MAPPO<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>MAPPO<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <p>如果想要利用 actor-critic 的 MAPPO 算法，则需要对环境作额外的改动，由于 critic 需要对每个智能体的价值做判断，而之前的全局信息对每个智能体都是相同的，不包含智能体的判别信息，即 critic 无从得知这是要对哪个智能体做出评价，因此无法为每个智能体给出特异的价值评估。为此，在环境中需要使用 <code class="docutils literal notranslate"><span class="pre">agent_specific_global_state</span></code> 来替代原来的 <code class="docutils literal notranslate"><span class="pre">global_state</span></code>。还是用 <code class="docutils literal notranslate"><span class="pre">PettingZoo</span></code> 环境作为例子：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent_specific_global_state</span><span class="p">:</span>
     <span class="n">agent_specifig_global_state</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
@@ -1020,9 +1020,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

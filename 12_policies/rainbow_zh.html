@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,13 +299,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="rainbow">
-<h1>Rainbow<a class="headerlink" href="#rainbow" title="Permalink to this headline">¶</a></h1>
+<h1>Rainbow<a class="headerlink" href="#rainbow" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Rainbow 是在 <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a>. 它将许多独立的改进方法应用于DQN，包括： Double DQN, priority, dueling head, multi-step TD-loss, C51 (distributional RL) 和 noisy net。</p>
 </section>
 <section id="id2">
-<h2>要点摘要<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>要点摘要<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Rainbow 是一种 <strong>无模型（model-free）</strong> 和 <strong>基于值（value-based）</strong> 的强化学习算法。</p></li>
 <li><p>Rainbow 仅支持 <strong>离散动作空间</strong> 。</p></li>
@@ -316,22 +316,22 @@
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键图表<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键图表<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <section id="double-dqn">
-<h3>Double DQN<a class="headerlink" href="#double-dqn" title="Permalink to this headline">¶</a></h3>
+<h3>Double DQN<a class="headerlink" href="#double-dqn" title="Permalink to this heading">¶</a></h3>
 <p>Double DQN, 是在 <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a> 中提出的一种常见的 DQN 变体。传统的DQN维护一个目标Q网络，该网络周期性地使用当前的Q网络进行更新。双重DQN通过解耦解决了Q值的过高估计问题。它使用当前的Q网络选择动作，但使用目标网络估计Q值，具体而言：</p>
 <div class="math notranslate nohighlight">
 \[\left(R_{t+1}+\gamma_{t+1} q_{\bar{\theta}}\left(S_{t+1}, \underset{a^{\prime}}{\operatorname{argmax}} q_{\theta}\left(S_{t+1}, a^{\prime}\right)\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
 </section>
 <section id="prioritized-experience-replay-per">
-<h3>Prioritized Experience Replay(PER)<a class="headerlink" href="#prioritized-experience-replay-per" title="Permalink to this headline">¶</a></h3>
+<h3>Prioritized Experience Replay(PER)<a class="headerlink" href="#prioritized-experience-replay-per" title="Permalink to this heading">¶</a></h3>
 <p>DQN 从经验回放缓冲区均匀地进行采样。理想情况下，我们希望更频繁地采样那些有更多可学习内容的 transition。作为评估学习潜力的一种替代方法，优先级经验回放会根据最新的绝对 TD 误差转化得到的概率来采样对应的transition，具体而言：</p>
 <div class="math notranslate nohighlight">
 \[p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}\]</div>
 <p>在优先级经验回放（PER）的原始论文中，作者展示了在57个Atari游戏中，PER在大多数游戏上都取得了改进，特别是在 Gopher, Atlantis, James Bond 007, Space Invaders 等游戏中。</p>
 </section>
 <section id="dueling-network">
-<h3>Dueling Network<a class="headerlink" href="#dueling-network" title="Permalink to this headline">¶</a></h3>
+<h3>Dueling Network<a class="headerlink" href="#dueling-network" title="Permalink to this heading">¶</a></h3>
 <p>Ddueling network 是一种为基于值的强化学习算法设计的网络架构。它包含两个计算流，一个用于状态值函数 <span class="math notranslate nohighlight">\(V\)</span> ，另一个用于状态相关的动作优势函数 <span class="math notranslate nohighlight">\(A\)</span> 。
 这两个流共享一个公共的卷积编码器，并通过一个特殊的聚合器合并，产生状态-动作值函数Q的估计，如图所示。</p>
 <a class="reference internal image-reference" href="../_images/DuelingDQN.png"><img alt="../_images/DuelingDQN.png" class="align-center" src="../_images/DuelingDQN.png" style="height: 300px;" /></a>
@@ -341,7 +341,7 @@
 <p>通过这种方式，可以解决可识别性问题，并增加优化过程的稳定性。Rainbow的网络架构是一种针对回报分布进行调整的 dueling network 网络架构。</p>
 </section>
 <section id="multi-step-learning">
-<h3>Multi-step Learning<a class="headerlink" href="#multi-step-learning" title="Permalink to this headline">¶</a></h3>
+<h3>Multi-step Learning<a class="headerlink" href="#multi-step-learning" title="Permalink to this heading">¶</a></h3>
 <p>DQN的多步变体通过最小化替代损失来定义，具体如下：</p>
 <div class="math notranslate nohighlight">
 \[\left(R_{t}^{(n)}+\gamma_{t}^{(n)} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+n}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
@@ -351,7 +351,7 @@
 <p>在文章 <a class="reference external" href="https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf">Revisiting Fundamentals of Experience Replay</a>, 作者分析认为，当使用多步学习时，更大容量的回放缓冲区显著提高了性能，并且他们认为原因是多步学习带来了更大的方差，而这一方差可以通过更大的回放缓冲区来进行补偿。</p>
 </section>
 <section id="distributional-rl">
-<h3>Distributional RL<a class="headerlink" href="#distributional-rl" title="Permalink to this headline">¶</a></h3>
+<h3>Distributional RL<a class="headerlink" href="#distributional-rl" title="Permalink to this heading">¶</a></h3>
 <p>Distributional RL 最初是在 <a class="reference external" href="https://arxiv.org/abs/1707.06887">A Distributional Perspective on Reinforcement Learning</a> 中提出的。它通过使用离散分布来学习逼近回报的分布，而不是期望回报。它的分布由一个向量 <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span> 支持, 即 <span class="math notranslate nohighlight">\(z^{i}=v_{\min }+(i-1) \frac{v_{\max }-v_{\min }}{N_{\text {atoms }}-1}\)</span> ,其中 <span class="math notranslate nohighlight">\(i \in\left\{1, \ldots, N_{\text {atoms }}\right\}\)</span>,  <span class="math notranslate nohighlight">\(N_{\text {atoms }} \in \mathbb{N}^{+}atoms\)</span> 。
 它在t时刻的近似分布 <span class="math notranslate nohighlight">\(d_{t}\)</span> 在这个支持向量上被定义, 在每个原子 <span class="math notranslate nohighlight">\(i\)</span> 上的概率为 <span class="math notranslate nohighlight">\(p_{\theta}^{i}\left(S_{t}, A_{t}\right)\)</span>  最终的分布可以表示为 <span class="math notranslate nohighlight">\(d_{t}=\left(z, p_{\theta}\left(S_{t}, A_{t}\right)\right)\)</span> 。
 然后，通过最小化分布 <span class="math notranslate nohighlight">\(d_{t}\)</span> 和目标分布之间的Kullback-Leibler散度，得到了一种 Q-learning 的 distributional variant 。</p>
@@ -360,7 +360,7 @@
 <p>在这里， <span class="math notranslate nohighlight">\(\Phi_{\boldsymbol{z}}\)</span> 是目标分布在固定支持 <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span> 上的L2投影。</p>
 </section>
 <section id="noisy-net">
-<h3>Noisy Net<a class="headerlink" href="#noisy-net" title="Permalink to this headline">¶</a></h3>
+<h3>Noisy Net<a class="headerlink" href="#noisy-net" title="Permalink to this heading">¶</a></h3>
 <p>Noisy Nets使用一个噪声线性层，它结合了确定性和噪声流：</p>
 <div class="math notranslate nohighlight">
 \[\boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)\]</div>
@@ -368,7 +368,7 @@
 在我们的实现中，噪声在每次前向传播时都会重新采样，无论是在数据收集还是训练过程中。当使用双重Q学习时，目标网络也会在每次前向传播之前重新采样噪声。噪声采样过程中，噪声首先从 <span class="math notranslate nohighlight">\(N(0,1)\)</span> 中进行采样，然后通过一个保持符号的平方根函数进行调节，即 <span class="math notranslate nohighlight">\(x \rightarrow x.sign() * x.sqrt()\)</span>.</p>
 </section>
 <section id="intergrated-method">
-<h3>Intergrated Method<a class="headerlink" href="#intergrated-method" title="Permalink to this headline">¶</a></h3>
+<h3>Intergrated Method<a class="headerlink" href="#intergrated-method" title="Permalink to this heading">¶</a></h3>
 <p>首先，我们将一步的 distributional loss 替换为多步损失：</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{split}
@@ -387,7 +387,7 @@ p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\
 </section>
 </section>
 <section id="id4">
-<h2>扩展<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>扩展<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Rainbow 可以与以下技术相结合使用:</p>
 <ul>
@@ -397,20 +397,13 @@ p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\
 </ul>
 </section>
 <section id="id5">
-<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>Rainbow 默认参数如下:</p>
 <p>Rainbow使用的网络接口被定义如下：</p>
 </section>
 <section id="id6">
-<h2>基准<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>基准<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -457,7 +450,7 @@ skip-v4)</p>
 </ol>
 </section>
 <section id="id7">
-<h2>关于Rainbow算法的实验技巧<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>关于Rainbow算法的实验技巧<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <p>我们在LunarLander环境上进行了实验， 把 rainbow (dqn) 策略与 n-step, dueling, priority, and priority_IS 等基准比较. 实验的代码链接在这里 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py">here</a>.
 请注意，配置文件默认设置为 <code class="docutils literal notranslate"><span class="pre">dqn</span></code> ，如果我们想采用 <code class="docutils literal notranslate"><span class="pre">rainbow</span></code> 需要将策略类型更改如下：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lunarlander_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -472,10 +465,6 @@ skip-v4)</p>
 </div>
 <p>以下是关于实验设置的详细说明：</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 18%" />
-<col style="width: 83%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Experiments setting</p></th>
 <th class="head"><p>Remark</p></th>
@@ -524,7 +513,7 @@ skip-v4)</p>
 <img alt="../_images/rainbow_exp.png" class="align-center" src="../_images/rainbow_exp.png" />
 </section>
 <section id="id8">
-<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <p><strong>(DQN)</strong> Mnih, Volodymyr, et al. “Human-level control through deep reinforcement learning.” 2015; [<a class="reference external" href="https://deepmind-data.storage.googleapis.com/assets/papers/DeepMindNature14236Paper.pdf">https://deepmind-data.storage.googleapis.com/assets/papers/DeepMindNature14236Paper.pdf</a>]</p>
 <p><strong>(Rainbow)</strong> Matteo Hessel, Joseph Modayil, Hado van Hasselt, Tom Schaul, Georg Ostrovski, Will Dabney, Dan Horgan, Bilal Piot, Mohammad Azar, David Silver: “Rainbow: Combining Improvements in Deep Reinforcement Learning”, 2017; [<a class="reference external" href="http://arxiv.org/abs/1710.02298">http://arxiv.org/abs/1710.02298</a> arXiv:1710.02298].</p>
 <p><strong>(Double DQN)</strong> Van Hasselt, Hado, Arthur Guez, and David Silver: “Deep reinforcement learning with double q-learning.”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1509.06461">https://arxiv.org/abs/1509.06461</a> arXiv:1509.06461]</p>
@@ -535,7 +524,7 @@ skip-v4)</p>
 <p><strong>(Distibutional RL)</strong> Bellemare, Marc G., Will Dabney, and Rémi Munos.: “A distributional perspective on reinforcement learning.”, 2017; [<a class="reference external" href="https://arxiv.org/abs/1707.06887">https://arxiv.org/abs/1707.06887</a> arXiv:1707.06887]</p>
 <p><strong>(Noisy net)</strong> Fortunato, Meire, et al.: “Noisy networks for exploration.”, 2017; [<a class="reference external" href="https://arxiv.org/abs/1706.10295">https://arxiv.org/abs/1706.10295</a> arXiv:1706.10295]</p>
 <section id="id9">
-<h3>其他开源实现<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>其他开源实现<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/rainbow.py">Tianshou</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/dqn/dqn.py">RLlib</a></p></li>
@@ -627,9 +616,8 @@ skip-v4)</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

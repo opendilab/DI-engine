@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,13 +299,13 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="plr">
-<h1>PLR<a class="headerlink" href="#plr" title="Permalink to this headline">¶</a></h1>
+<h1>PLR<a class="headerlink" href="#plr" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>PLR 是在 <a class="reference external" href="https://arxiv.org/abs/2010.03934">Prioritized Level Replay</a> 中提出的。  PLR是一种采样训练水平的方法，利用水平之间的学习潜力差异来提高样本效率和泛化能力。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>PLR 支持 <strong>多层次环境</strong>。</p></li>
 <li><p>PLR 同时更新 <strong>策略</strong> and <strong>水平分数</strong>。</p></li>
@@ -314,13 +314,13 @@
 </ol>
 </section>
 <section id="id3">
-<h2>关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键框图<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>游戏关卡由随机种子确定，可以在导航布局、视觉外观和实体的起始位置方面有所变化。
 PLR基于重播每个水平的预估学习潜力，有选择地采样下一个训练水平。下一个水平可以从支持未见过水平的分布中采样（顶部），这可能是环境的（可能是隐含的）完整训练水平分布，或者从重播分布中采样，该分布基于未来的学习潜力对水平进行优先排序（底部）。</p>
 <a class="reference internal image-reference" href="../_images/PLR_pic.png"><img alt="../_images/PLR_pic.png" class="align-center" src="../_images/PLR_pic.png" style="height: 250px;" /></a>
 </section>
 <section id="id4">
-<h2>关键方程<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>学习潜力的得分水平是：</p>
 <a class="reference internal image-reference" href="../_images/PLR_Score.png"><img alt="../_images/PLR_Score.png" class="align-center" src="../_images/PLR_Score.png" style="height: 250px;" /></a>
 <p>给定水平分数，我们使用在这些分数上评估并使用温度参数 <span class="math notranslate nohighlight">\(\beta\)</span> 进行调整的优先级函数 <span class="math notranslate nohighlight">\(h\)</span> 的归一化输出，以定义得分优先的分布 <span class="math notranslate nohighlight">\(P_{S}\left(\Lambda_{\text {train }}\right)\)</span> ，用于对训练水平进行采样</p>
@@ -336,20 +336,20 @@ PLR基于重播每个水平的预估学习潜力，有选择地采样下一个�
 \[P_{\text {replay }}\left(l_{i}\right)=(1-\rho) \cdot P_{S}\left(l_{i} \mid \Lambda_{\text {seen }}, S\right)+\rho \cdot P_{C}\left(l_{i} \mid \Lambda_{\text {seen }}, C, c\right)\]</div>
 </section>
 <section id="id5">
-<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>使用 PLR 的策略梯度训练循环</p>
 <img alt="../_images/PLR_1.png" src="../_images/PLR_1.png" />
 <p>使用PLR进行经验采集</p>
 <img alt="../_images/PLR_2.png" src="../_images/PLR_2.png" />
 </section>
 <section id="id6">
-<h2>基准测试<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id9">
+<h2>基准测试<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id9">
 <caption><span class="caption-text">Benchmark of PLR algorithm</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 36%" />
-<col style="width: 43%" />
-<col style="width: 21%" />
+<col style="width: 35.7%" />
+<col style="width: 42.9%" />
+<col style="width: 21.4%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -370,11 +370,11 @@ PLR基于重播每个水平的预估学习潜力，有选择地采样下一个�
 </table>
 </section>
 <section id="id7">
-<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <p>Minqi Jiang, Edward Grefenstette, Tim Rocktaschel: “Prioritized Level Replay”, 2021; arXiv:2010.03934.</p>
 </section>
 <section id="id8">
-<h2>其他开源实现<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>其他开源实现<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>[facebookresearch](<a class="reference external" href="https://github.com/facebookresearch/level-replay">https://github.com/facebookresearch/level-replay</a>)</p></li>
 </ul>
@@ -452,9 +452,8 @@ PLR基于重播每个水平的预估学习潜力，有选择地采样下一个�
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

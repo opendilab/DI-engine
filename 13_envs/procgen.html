@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="procgen">
-<h1>Procgen<a class="headerlink" href="#procgen" title="Permalink to this headline">¶</a></h1>
+<h1>Procgen<a class="headerlink" href="#procgen" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Procgen Benchmark is a set of randomly generated environments released by OpenAI using 16 exploits (CoinRun, StarPilot, CaveFlyer, Dodgeball, FruitBot, Chaser
 , Miner, Jumper, Leaper, Maze, BigFish, Heist, Climber, Plunder, Ninja and BossFight), the full name of procgen is Procedural Generation, which means procedural generation. For the procgen environment, it can generate games of the same difficulty but using different maps, or games using the same map but different difficulties, which can be used to measure the speed at which the model learns general skills, thereby judging the generalization ability of the algorithm to the environment. The image below shows the Coinrun game in it.</p>
 <img alt="../_images/coinrun.gif" class="align-center" src="../_images/coinrun.gif" />
@@ -311,9 +311,9 @@
 <img alt="../_images/coinrun_level3.png" class="align-center" src="../_images/coinrun_level3.png" />
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>It can be installed by one-click pip or combined with DI-engine. It only needs to install two libraries, gym and gym[procgen].</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>gym
@@ -325,7 +325,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;procgen:procgen-maze-v0&#39;</span><span class="p">,</span> <span class="n">start_level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_levels</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -338,15 +338,15 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space Before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The actual game screen, RGB three-channel image, the specific size is<code class="docutils literal notranslate"><span class="pre">(64,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>, the data type is<code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game operation button space, generally a discrete action space of size N (N varies with the specific sub-environment), the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, you need to pass in python values (or 0-dimensional np arrays, such as actions 3 is<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>)</p></li>
 <li><p>For example, in the Coinrun environment, the size of N is 5, that is, the action takes a value from 0 to 4. The specific meaning is:</p>
@@ -361,20 +361,20 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game score will vary according to the specific game content. Generally, it is a <code class="docutils literal notranslate"><span class="pre">float</span></code> value. For example, in the Coinrun environment, if you eat coins, you will be rewarded 10.0 points, and there are no other rewards.</p></li>
 </ul>
 </section>
 <section id="other">
-<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The end of the game is the end of the current environment episode. For example, in coinrun, if the agent eats coins or the game time exceeds the maximum allowed game time, the game ends.</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <p>1. 2D
 RGB three-channel image input, three-dimensional np array, size <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></code> , data type <code class="docutils literal notranslate"><span class="pre">np.float32</span></code> , value  <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">255]</span></code></p>
 <ol class="arabic simple" start="2">
@@ -384,22 +384,22 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 </ol>
 </section>
 <section id="transformed-space-rl-environment">
-<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
-<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transform content: resize from <code class="docutils literal notranslate"><span class="pre">(64,64,3)</span></code> to <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></code> </p></li>
 <li><p>Transformation result: 3D np array with size <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">84,</span> <span class="pre">84)</span></code> , data type <code class="docutils literal notranslate"><span class="pre">np.float32</span></code> , value <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">255]</span></code> </p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation, it is still a discrete action space of size N, but generally a one-dimensional np array, the size is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code> , the data type is <code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
 </section>
 <section id="id3">
-<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation</p></li>
 </ul>
@@ -412,18 +412,18 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 </div>
 </section>
 <section id="id4">
-<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the method <code class="docutils literal notranslate"><span class="pre">step</span></code>must contain<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key - value pair, representing the evaluation metrics of the entire episode, and the cumulative sum of the rewards for the entire episode in Procgen</p>
 </section>
 </section>
 <section id="id5">
-<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to support parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. In the first call<code class="docutils literal notranslate"><span class="pre">reset</span></code> method initializes the concrete original environment instance.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of the random seed in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment, no need to care about the specific implementation details</p></li>
@@ -432,13 +432,13 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The Difference between Training and Testing Environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method, specifying the path to save the game replay. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code> implementation ), the code shown below will run an environment episode and save the result of this episode in a folder<code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.procgen.coinrun.envs</span> <span class="kn">import</span> <span class="n">CoinRunEnv</span>
@@ -456,7 +456,7 @@ RGB three-channel image input, three-dimensional np array, size <code class="doc
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen/coinrun/entry">github
 link</a>
 Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">coinrun_dqn_config.py</span></code> , use the following demo to run:</p>
@@ -515,7 +515,7 @@ Inside, for specific configuration files, such as <code class="docutils literal 
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>Coinrun（Average reward equal to 10 is considered a better Agent）</p>
 <ul class="simple">
@@ -628,9 +628,8 @@ Inside, for specific configuration files, such as <code class="docutils literal 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

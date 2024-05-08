@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="slime-volleyball">
-<h1>Slime Volleyball<a class="headerlink" href="#slime-volleyball" title="Permalink to this headline">¶</a></h1>
+<h1>Slime Volleyball<a class="headerlink" href="#slime-volleyball" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Slime Volleyball is a two-player match-based environment with two types of observation spaces, vector and picture forms. The action space is often simplified to a discrete action space, used as the basic environment for testing <code class="docutils literal notranslate"><span class="pre">self-play</span></code>-related algorithms. It is a collection of environments (there are 3 sub-environments, namely <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code>, <code class="docutils literal notranslate"><span class="pre">SlimeVolleyPixel-v0</span></code>, <code class="docutils literal notranslate"><span class="pre">SlimeVolleyNoFrameskip-v0</span></code>), of which the <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> game is shown in the figure below.</p>
 <img alt="../_images/slime_volleyball.gif" class="align-center" src="../_images/slime_volleyball.gif" />
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="installation-methods">
-<h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this heading">¶</a></h3>
 <p>Install <code class="docutils literal notranslate"><span class="pre">slimevolleygym</span></code>. You can install by command <code class="docutils literal notranslate"><span class="pre">pip</span></code> or through <strong>DI-engine</strong>.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
@@ -316,7 +316,7 @@ pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
 </div>
 </section>
 <section id="installation-check">
-<h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this heading">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">slimevolleygym</span>
@@ -327,23 +327,23 @@ pip<span class="w"> </span>install<span class="w"> </span>slimevolleygym
 </div>
 </section>
 <section id="di-engine-mirrors">
-<h3>DI-engine Mirrors<a class="headerlink" href="#di-engine-mirrors" title="Permalink to this headline">¶</a></h3>
+<h3>DI-engine Mirrors<a class="headerlink" href="#di-engine-mirrors" title="Permalink to this heading">¶</a></h3>
 <p>Due to Slime Volleyball is easy to install, DI-engine does not have Mirror specifically for it. You can customize your build with the benchmark Mirror <code class="docutils literal notranslate"><span class="pre">opendilab/ding:nightly</span></code>, or visit the <a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker
 hub</a> for more mirrors.</p>
 </section>
 </section>
 <section id="original-environment">
-<h2>Original Environment<a class="headerlink" href="#original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Original Environment<a class="headerlink" href="#original-environment" title="Permalink to this heading">¶</a></h2>
 <p>Note: SlimeVolley-v0 is used here as an example, because benchmarking the self-play series of algorithms naturally gives priority to simplicity. If you want to use the other two environments, you can check the original repository and adapt the environment according to the <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/feature/env_overview.html">DI-engine’s API</a>.</p>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The observation space is a vector of size <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> containing the absolute coordinates of self, opponent, and ball with two consecutive frames stitched togerther. The data type is <code class="docutils literal notranslate"><span class="pre">float64</span></code>
 i.e. (x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next)</p></li>
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>The original action space of <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> is defined as <code class="docutils literal notranslate"><span class="pre">MultiBinary(3)</span></code> with three kinds of actions. More than one actions can be performed at the same time. Each action is corresponding to two cases: 0 (not executed) and 1 (executed).
 i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></code> represents the execution of the first and third actions at the same time. The data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, which needs to be passed into a python list object (or a 1-dimensional np array of size 3, i.e. <code class="docutils literal notranslate"><span class="pre">np.array([0,</span> <span class="pre">1,</span> <span class="pre">0])</span></code></p></li>
@@ -372,13 +372,13 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The reward is the score of the game. If the ball lands on the ground of your field, -1 is given. If it lands on the ground of the opponent‘s field, +1 is given. If the game is still in progress, 0 is given.</p></li>
 </ul>
 </section>
 <section id="other">
-<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The end of the game is represented as the end of episode. There are two ending conditions</p>
 <ul>
@@ -399,7 +399,7 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>1-dimensional vector observation space (of size (12, )) with information in absolute coordinates</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MultiBinary</span></code> action space</p></li>
@@ -407,21 +407,21 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </ol>
 </section>
 <section id="rl-environment-space">
-<h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this headline">¶</a></h2>
+<h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
-<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transform the space vector into a one-dimensional np array of size <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code>. The data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>.</p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transform the <code class="docutils literal notranslate"><span class="pre">MultiBinary</span></code> action space into a discrete action space of size 6 (a simple Cartesian product is sufficient). The final result is a one-dimensional np array of size <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. The data type is <code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
 </section>
 <section id="id3">
-<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transform the reward vector into a one-dimensional np array of size<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. The data type is<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>values in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">0,</span> <span class="pre">1]</span></code>.</p></li>
 </ul>
@@ -435,7 +435,7 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </div>
 </section>
 <section id="id4">
-<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The<cite>info`</cite>returned form the environment<code class="docutils literal notranslate"><span class="pre">step</span></code>must contain the<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key-value pair, which represents the evaluation metrics for the entire episode, containing the rewards for the episode (life value difference between two players).</p></li>
 <li><p>The above spatial definitions are all descriptions of single intelligences. The multi-intelligence space splices the corresponding obs/action/reward information.</p></li>
@@ -444,13 +444,13 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </section>
 </section>
 <section id="id5">
-<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="lazy-initialization">
-<h3>Lazy initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<h3>Lazy initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this heading">¶</a></h3>
 <p>In order to support environment vetorization, an environment instance is oftern initialized lazily. In this way, method <code class="docutils literal notranslate"><span class="pre">__init__</span></code> does not really initialize the real original environment, but only set corresponding parameters and configurations. The real original environment is initialized when first calling mdthod <code class="docutils literal notranslate"><span class="pre">reset</span></code>.</p>
 </section>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two random seeds in the environment. One is orignal environment’s random seed; The other is the random seed which is required in many environment space transformations. (e.g. <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>As a user, you only need to set these two random seeds by calling method <code class="docutils literal notranslate"><span class="pre">seed</span></code>, and do not need to care about the implementation details.</p></li>
@@ -459,14 +459,14 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </ul>
 </section>
 <section id="difference-between-training-env-and-evaluation-env">
-<h3>Difference between training env and evaluation env<a class="headerlink" href="#difference-between-training-env-and-evaluation-env" title="Permalink to this headline">¶</a></h3>
+<h3>Difference between training env and evaluation env<a class="headerlink" href="#difference-between-training-env-and-evaluation-env" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Training env uses dynamic random seed, i.e. Every episode has different random seeds generated by one random generator. However, this random generator’s random seed is set by env’s <code class="docutils literal notranslate"><span class="pre">seed</span></code> method, and is fixed throughout an experiment. Evaluation env uses static random seed, i.e. Every episode has the same random seed, which is set directly by <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 <li><p>Training env and evaluation env use different pre-process wrappers. <code class="docutils literal notranslate"><span class="pre">episode_life</span></code> and <code class="docutils literal notranslate"><span class="pre">clip_reward</span></code> are not used in evaluation env.</p></li>
 </ul>
 </section>
 <section id="save-the-replay-video">
-<h3>Save the replay video<a class="headerlink" href="#save-the-replay-video" title="Permalink to this headline">¶</a></h3>
+<h3>Save the replay video<a class="headerlink" href="#save-the-replay-video" title="Permalink to this heading">¶</a></h3>
 <p>After env is initiated, and before it is reset, call <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>). The code shown below will run an environment episode and save the replay viedo in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.slime_volley.envs.slime_volley_env</span> <span class="kn">import</span> <span class="n">SlimeVolleyEnv</span>
@@ -486,7 +486,7 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </section>
 </section>
 <section id="di-zoo-runnable-code">
-<h2>DI-zoo runnable code<a class="headerlink" href="#di-zoo-runnable-code" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo runnable code<a class="headerlink" href="#di-zoo-runnable-code" title="Permalink to this heading">¶</a></h2>
 <p>Complete training configuration can be found on <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley/entry">github
 link</a>.
 For specific configuration file, e.g. <code class="docutils literal notranslate"><span class="pre">slime_volley_selfplay_ppo_main.py</span></code>, you can run the demo as shown below:</p>
@@ -579,7 +579,7 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
 <p>Note: For some specific algorithm, use the corresponding specific entry function.</p>
 </section>
 <section id="algorithm-benchmark">
-<h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>SlimeVolley-v0（Average reward greater than 1 is considered as good agent with the build-in bot）</p>
 <ul class="simple">
@@ -689,9 +689,8 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

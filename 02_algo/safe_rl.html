@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="safe-reinforcement-learning">
-<h1>Safe Reinforcement Learning<a class="headerlink" href="#safe-reinforcement-learning" title="Permalink to this headline">¶</a></h1>
+<h1>Safe Reinforcement Learning<a class="headerlink" href="#safe-reinforcement-learning" title="Permalink to this heading">¶</a></h1>
 <section id="problem-definition-and-research-motivation">
-<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this headline">¶</a></h2>
+<h2>Problem Definition and Research Motivation<a class="headerlink" href="#problem-definition-and-research-motivation" title="Permalink to this heading">¶</a></h2>
 <p><strong>Safe Reinforcement Learning</strong> is a subdivided development direction of reinforcement learning. The goal of reinforcement learning is to learn a policy that maximizes expected returns, but in real-world decision-making problems, such as autonomous driving and robotics scenarios, deploying such agents that only maximize expected returns often raises safety concerns.</p>
-<p>The following security issues usually arise during reinforcement learning training [<a class="footnote-reference brackets" href="#id6" id="id1">1</a>]:</p>
+<p>The following security issues usually arise during reinforcement learning training [<a class="footnote-reference brackets" href="#id6" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>]:</p>
 <ul class="simple">
 <li><p>Negative Side Effects</p></li>
 <li><p>Reward Hacking</p></li>
@@ -311,7 +311,7 @@
 <li><p>Safe Exploration</p></li>
 <li><p>Robustness to Distributional Shift</p></li>
 </ul>
-<p>Due to the existence of these problems, it is very necessary to consider security conditions during actual deployment. There are five key issues when defining safe reinforcement learning [<a class="footnote-reference brackets" href="#id7" id="id2">2</a>]:</p>
+<p>Due to the existence of these problems, it is very necessary to consider security conditions during actual deployment. There are five key issues when defining safe reinforcement learning [<a class="footnote-reference brackets" href="#id7" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>]:</p>
 <ul class="simple">
 <li><p>Safety Policy. How to optimize strategies and find safe strategies?</p></li>
 <li><p>Safety Complexit. How much training data is needed to find a safe policy?</p></li>
@@ -319,7 +319,7 @@
 <li><p>Safety Benchmarks. What benchmarks can we use to fairly and comprehensively examine secure reinforcement learning performance?</p></li>
 <li><p>Safety Challenges. What challenges will future safety reinforcement learning research face?</p></li>
 </ul>
-<p>A framework outlining these five secure reinforcement learning problems from a unified perspective is shown below [<a class="footnote-reference brackets" href="#id7" id="id3">2</a>].</p>
+<p>A framework outlining these five secure reinforcement learning problems from a unified perspective is shown below [<a class="footnote-reference brackets" href="#id7" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>].</p>
 <a class="reference internal image-reference" href="../_images/safe_rl_2h3w.png"><img alt="../_images/safe_rl_2h3w.png" class="align-center" src="../_images/safe_rl_2h3w.png" style="width: 386.5px; height: 281.0px;" /></a>
 <p>Safe reinforcement learning is often modeled as <strong>Constrained Markov Decision Process(CMDP)</strong> . The constrained Markov decision process is an extension of the Markov decision process (MDP), consisting of seven tuples <span class="math notranslate nohighlight">\((S, A, P, r, c, b, \mu)\)</span>, which means state space, action space, state transition function, reward, cost, cost threshold, and discount factor. After the agent takes an action, it will not only receive the reward r but also the cost c. The policy goal is to maximize the long-term reward under the constraint that the cost threshold b is not exceeded:</p>
 <p><span class="math notranslate nohighlight">\(\max_{\pi}\mathbb{E}_{\tau\sim\pi}\big[R(\tau)\big],\quad s.t.\quad\mathbb{E}_{\tau\sim\pi}\big[C(\tau)\big]\leq\kappa.\)</span></p>
@@ -327,7 +327,7 @@
 <p>The picture above is the <a class="reference external" href="https://github.com/openai/safety-gym">safety-gym</a> environment released by OpenAI. The optimal strategy trained by traditional reinforcement learning is often task-centered, without considering the impact on the environment and itself, whether it meets human expectations, etc.  The car(red) will move to the target location(green cylinder) at the fastest speed, without avoiding the trap area(blue circle) on the ground. If there are obstacles(cyan cubes) on the moving path, it will be knocked away or forced away.</p>
 </section>
 <section id="direction">
-<h2>Direction<a class="headerlink" href="#direction" title="Permalink to this headline">¶</a></h2>
+<h2>Direction<a class="headerlink" href="#direction" title="Permalink to this heading">¶</a></h2>
 <p>The theoretical basis of safety reinforcement learning is mainly knowledge related to the dual method and convex optimization. The main theoretical methods can be divided into:</p>
 <ul class="simple">
 <li><p>Primal Dual. Use the Lagrange multiplier method to convert to solving the dual problem.</p></li>
@@ -341,32 +341,32 @@
 <p>For a detailed classification of algorithms in the current field of security reinforcement learning, please see the figure below(Quote from <a class="reference external" href="https://github.com/PKU-Alignment/omnisafe">omnisafe</a> ):</p>
 <a class="reference internal image-reference" href="../_images/safe_rl_registry.png"><img alt="../_images/safe_rl_registry.png" class="align-center" src="../_images/safe_rl_registry.png" style="width: 468.5px; height: 350.0px;" /></a>
 <section id="primal-dual">
-<h3>Primal Dual<a class="headerlink" href="#primal-dual" title="Permalink to this headline">¶</a></h3>
+<h3>Primal Dual<a class="headerlink" href="#primal-dual" title="Permalink to this heading">¶</a></h3>
 <p>In the original problem of safe RL, neither the objective nor the constraints are convex, but it can be converted into a dual problem using the Lagrange multiplier method. The dual problem is a minimization convex problem and can be solved. This solution has many classic jobs [<span id="id4">[3-7]</span>]。</p>
 <p>Lagrangian function: <span class="math notranslate nohighlight">\(\mathcal{L}(\pi,\lambda)=V(\pi)+\Sigma\lambda_i(U_i(\pi)-c_i),\lambda\geq0\)</span></p>
 <p>Lagrangian dual function: <span class="math notranslate nohighlight">\(d(\lambda)=\max_{\pi\in\mathcal{P}(\mathcal{S})}\mathcal{L}(\pi,\lambda)\)</span></p>
 <p>Minimize the dual function: <span class="math notranslate nohighlight">\(D^*=\min_{\lambda\in\mathbb{R}_+}d(\lambda)\)</span> will obtain the optimal solution to the dual problem.</p>
 </section>
 <section id="primal">
-<h3>Primal<a class="headerlink" href="#primal" title="Permalink to this headline">¶</a></h3>
+<h3>Primal<a class="headerlink" href="#primal" title="Permalink to this heading">¶</a></h3>
 <p>Although using the dualization scheme ensures the solvability of the problem, the speed of training iterations is very slow. While optimizing the policy function, the dual function must also be optimized. At the same time, it is not easy to select the Lagrange multiplier.  Therefore, some methods do not directly focus on solving the entire original problem, but use the single-step update formula in Natural Policy Gradiants:</p>
 <a class="reference internal image-reference" href="../_images/safe_rl_npg.png"><img alt="../_images/safe_rl_npg.png" class="align-center" src="../_images/safe_rl_npg.png" style="width: 298.0px; height: 97.0px;" /></a>
 <p>Solve a relatively simple single-step constrained optimization problem at each update step to ensure that each update does not violate the constraints and improves performance. Naturally, a solution that meets the constraints will eventually be obtained. The representative method is PCPO etc.</p>
 </section>
 <section id="model-free">
-<h3>model-free<a class="headerlink" href="#model-free" title="Permalink to this headline">¶</a></h3>
-<p>Constrained Policy Optimization(CPO) [<a class="footnote-reference brackets" href="#id8" id="id5">3</a>] is the first policy gradient method to solve the CMDP problem. By optimizing the following two equations, you can ensure that the return increases monotonically while satisfying the security constraints.</p>
+<h3>model-free<a class="headerlink" href="#model-free" title="Permalink to this heading">¶</a></h3>
+<p>Constrained Policy Optimization(CPO) [<a class="footnote-reference brackets" href="#id8" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>] is the first policy gradient method to solve the CMDP problem. By optimizing the following two equations, you can ensure that the return increases monotonically while satisfying the security constraints.</p>
 <p><span class="math notranslate nohighlight">\(J\left(\pi'\right)-J(\pi)\geq\frac{1}{1-\gamma}\underset{\stackrel{s\sim d\pi}{a\sim\pi'}}{\operatorname*{E}}\left[A^{\pi}(s,a)-\frac{2\gamma\epsilon^{\pi'}}{1-\gamma}D_{TV}\left(\pi'\|\pi\right)[s]\right]\)</span></p>
 <p><span class="math notranslate nohighlight">\(J_{C_{i}}\left(\pi^{\prime}\right)-J_{C_{i}}\left(\pi\right)\leq\frac{1}{1-\gamma}\underset{\overset{s\sim d^{\pi}}{a\sim\pi^{\prime}}}{\operatorname*{E}}\left[A_{C_{i}}^{\pi}\left(s,a\right)+\frac{2\gamma\epsilon_{C_{i}}^{\pi^{\prime}}}{1-\gamma}D_{TV}\left(\pi^{\prime}\|\pi\right)\left[s\right]\right]\)</span></p>
 <p>This approach converges almost to safety bounds and yields better performance than the primal-dual approach on some tasks. However, CPO is computationally more expensive than the Lagrange multiplier method because it requires computing the Fisher information matrix and using a quadratic Taylor expansion to optimize the objective.</p>
 </section>
 <section id="model-based">
-<h3>Model-based<a class="headerlink" href="#model-based" title="Permalink to this headline">¶</a></h3>
+<h3>Model-based<a class="headerlink" href="#model-based" title="Permalink to this heading">¶</a></h3>
 <p>Model-based deep reinforcement learning(DRL) methods generally have better learning efficiency than model-free DRL methods, and this is also true in the field of secure reinforcement learning.  But in real-life situations, building accurate environment models is challenging, and many simulation environments have difficulty building models to assist the deployment of deep reinforcement learning methods.</p>
 </section>
 </section>
 <section id="future-study">
-<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this headline">¶</a></h2>
+<h2>Future Study<a class="headerlink" href="#future-study" title="Permalink to this heading">¶</a></h2>
 <p>When we leverage reinforcement learning in real-world applications, there are many challenges encountered during deployment.  Security reinforcement learning is a direction that has not been developed for a long time, and there are many aspects that need to be explored [[8, 9, 10]_]. For example:</p>
 <ul class="simple">
 <li><p>Using game theory to implement safe multi-agent reinforcement learning. Different games can be considered in different game settings for real-world applications.</p></li>
@@ -376,39 +376,50 @@
 </ul>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<dl class="footnote brackets">
-<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>Amodei D, Olah C, Steinhardt J, et al. Concrete problems in AI safety[J]. arXiv preprint arXiv:1606.06565, 2016.</p>
-</dd>
-<dt class="label" id="id7"><span class="brackets">2</span><span class="fn-backref">(<a href="#id2">1</a>,<a href="#id3">2</a>)</span></dt>
-<dd><p>Gu S, Yang L, Du Y, et al. A review of safe reinforcement learning: Methods, theory and applications[J]. arXiv preprint arXiv:2205.10330, 2022.</p>
-</dd>
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id5">3</a></span></dt>
-<dd><p>Achiam J, Held D, Tamar A, et al. Constrained policy optimization[C]//International conference on machine learning. PMLR, 2017: 22-31.</p>
-</dd>
-<dt class="label" id="id9"><span class="brackets">4</span></dt>
-<dd><p>Paternain, S., Calvo-Fullana, M., Chamon, L. F., &amp; Ribeiro, A. (2019). Safe policies for reinforcement learning via primal-dual methods.arXiv preprint arXiv:1911.09101.</p>
-</dd>
-<dt class="label" id="id10"><span class="brackets">5</span></dt>
-<dd><p>Ding, D., Wei, X., Yang, Z., Wang, Z., &amp; Jovanovic, M. (2021, March). Provably efficient safe exploration via primal-dual policy optimization. InInternational Conference on Artificial Intelligence and Statistics(pp. 3304-3312). PMLR.</p>
-</dd>
-<dt class="label" id="id11"><span class="brackets">6</span></dt>
-<dd><p>Ding, D., Zhang, K., Basar, T., &amp; Jovanovic, M. R. (2020). Natural Policy Gradient Primal-Dual Method for Constrained Markov Decision Processes. InNeurIPS.</p>
-</dd>
-<dt class="label" id="id12"><span class="brackets">7</span></dt>
-<dd><p>Paternain, S., Chamon, L. F., Calvo-Fullana, M., &amp; Ribeiro, A. (2019). Constrained reinforcement learning has zero duality gap.arXiv preprint arXiv:1910.13393.</p>
-</dd>
-<dt class="label" id="id13"><span class="brackets">8</span></dt>
-<dd><p><a class="reference external" href="https://zhuanlan.zhihu.com/p/407168691">https://zhuanlan.zhihu.com/p/407168691</a></p>
-</dd>
-<dt class="label" id="id14"><span class="brackets">9</span></dt>
-<dd><p><a class="reference external" href="https://zhuanlan.zhihu.com/p/347272765">https://zhuanlan.zhihu.com/p/347272765</a></p>
-</dd>
-<dt class="label" id="id15"><span class="brackets">10</span></dt>
-<dd><p><a class="reference external" href="https://github.com/PKU-Alignment/omnisafe">https://github.com/PKU-Alignment/omnisafe</a></p>
-</dd>
-</dl>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id6" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Amodei D, Olah C, Steinhardt J, et al. Concrete problems in AI safety[J]. arXiv preprint arXiv:1606.06565, 2016.</p>
+</aside>
+<aside class="footnote brackets" id="id7" role="note">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id3">2</a>)</span>
+<p>Gu S, Yang L, Du Y, et al. A review of safe reinforcement learning: Methods, theory and applications[J]. arXiv preprint arXiv:2205.10330, 2022.</p>
+</aside>
+<aside class="footnote brackets" id="id8" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">3</a><span class="fn-bracket">]</span></span>
+<p>Achiam J, Held D, Tamar A, et al. Constrained policy optimization[C]//International conference on machine learning. PMLR, 2017: 22-31.</p>
+</aside>
+<aside class="footnote brackets" id="id9" role="note">
+<span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
+<p>Paternain, S., Calvo-Fullana, M., Chamon, L. F., &amp; Ribeiro, A. (2019). Safe policies for reinforcement learning via primal-dual methods.arXiv preprint arXiv:1911.09101.</p>
+</aside>
+<aside class="footnote brackets" id="id10" role="note">
+<span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
+<p>Ding, D., Wei, X., Yang, Z., Wang, Z., &amp; Jovanovic, M. (2021, March). Provably efficient safe exploration via primal-dual policy optimization. InInternational Conference on Artificial Intelligence and Statistics(pp. 3304-3312). PMLR.</p>
+</aside>
+<aside class="footnote brackets" id="id11" role="note">
+<span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
+<p>Ding, D., Zhang, K., Basar, T., &amp; Jovanovic, M. R. (2020). Natural Policy Gradient Primal-Dual Method for Constrained Markov Decision Processes. InNeurIPS.</p>
+</aside>
+<aside class="footnote brackets" id="id12" role="note">
+<span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
+<p>Paternain, S., Chamon, L. F., Calvo-Fullana, M., &amp; Ribeiro, A. (2019). Constrained reinforcement learning has zero duality gap.arXiv preprint arXiv:1910.13393.</p>
+</aside>
+<aside class="footnote brackets" id="id13" role="note">
+<span class="label"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://zhuanlan.zhihu.com/p/407168691">https://zhuanlan.zhihu.com/p/407168691</a></p>
+</aside>
+<aside class="footnote brackets" id="id14" role="note">
+<span class="label"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://zhuanlan.zhihu.com/p/347272765">https://zhuanlan.zhihu.com/p/347272765</a></p>
+</aside>
+<aside class="footnote brackets" id="id15" role="note">
+<span class="label"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="https://github.com/PKU-Alignment/omnisafe">https://github.com/PKU-Alignment/omnisafe</a></p>
+</aside>
+</aside>
 </section>
 </section>
 
@@ -485,9 +496,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

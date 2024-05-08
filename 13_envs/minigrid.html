@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="minigrid">
-<h1>MiniGrid<a class="headerlink" href="#minigrid" title="Permalink to this headline">¶</a></h1>
+<h1>MiniGrid<a class="headerlink" href="#minigrid" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>MiniGrid, that is, the minimized grid world environment, is a classic discrete action space reinforcement learning environment with sparse rewards, and is often used as a benchmark test environment for sparse reinforcement learning algorithms under discrete action space conditions.
 In this game, the agent needs to learn to select the appropriate action in a discrete action set, complete the move in the grid world, obtain the key, open the door and a series of sequential decisions to reach the target position.
 It has many different implementation versions, which are mainly introduced here
@@ -311,9 +311,9 @@ A series of environments such as MiniGrid-ObstructedMaze-2Dlh-v0, MiniGrid-Obstr
 <a class="reference internal image-reference" href="../_images/MiniGrid-DoorKey-16x16-v0.png"><img alt="../_images/MiniGrid-DoorKey-16x16-v0.png" class="align-center" src="../_images/MiniGrid-DoorKey-16x16-v0.png" style="width: 240.6px; height: 249.6px;" /></a>
 </section>
 <section id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <section id="installation-method">
-<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this heading">¶</a></h3>
 <p>Users can choose to install via pip one-click or git clone the repository and then pip install locally.</p>
 <p>Note: If the user does not have root privileges, please add –user after the install command</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
@@ -326,7 +326,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>After the installation is complete, you can run the following command on the Python command line. If the interactive interface of the game is displayed, the installation is successful:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="n">cd</span> <span class="n">gym</span><span class="o">-</span><span class="n">minigrid</span>
 <span class="o">./</span><span class="n">manual_contril</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">env</span> <span class="n">MiniGrid</span><span class="o">-</span><span class="n">Empty</span><span class="o">-</span><span class="mi">8</span><span class="n">x8</span><span class="o">-</span><span class="n">v0</span>
@@ -335,9 +335,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 </section>
 <section id="space-before-transformation-original-environment">
-<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Take MiniGrid-Empty-8x8-v0 as an example,</p></li>
 </ul>
@@ -365,7 +365,7 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul>
 <li><p>The game operation button space, generally a discrete action space with a size of 7, the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, you need to pass in a python value (or a 0-dimensional np array, for example, action 3 is <code class="docutils literal notranslate"><span class="pre">np.array</span> <span class="pre">(3)</span></code>)</p></li>
 <li><p>Action takes value in 0-6, the specific meaning is:</p>
@@ -397,20 +397,20 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Game score, different minigrid sub-environments have a small difference in the reward range, the maximum value is 1, which is generally a <code class="docutils literal notranslate"><span class="pre">float</span></code>value. Because it is a sparse reward environment, it can only be reached when the agent (displayed as a red point) reaches goal(displayed as green dots), there is a reward greater than zero. The specific value is determined by different environments and the total number of steps used to reach the goal. The reward before reaching the goal is all 0.</p></li>
 </ul>
 </section>
 <section id="other">
-<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game ends when the agent reaches the green goal or reaches the maximum step limit of the environment.</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>The observation input can be an image in the form of pixels or an “image” with specific semantics, or a textual string describing what the agent should achieve in order to obtain a reward.</p></li>
 <li><p>Discrete action spaces.</p></li>
@@ -418,22 +418,22 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </ol>
 </section>
 <section id="transformed-space-rl-environment">
-<h2>Transformed Space (RL environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<h2>Transformed Space (RL environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
-<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transform content: Our codebase uses a 4th <code class="docutils literal notranslate"><span class="pre">FlatObsWrapper</span></code>method, which encodes the mission string in the <code class="docutils literal notranslate"><span class="pre">mission</span></code>field in a one-hot fashion and combines it with <code class="docutils literal notranslate"><span class="pre">image</span></code>field contents are concatenated into a long array</p></li>
 <li><p>Transformation result: one-dimensional np array with size <code class="docutils literal notranslate"><span class="pre">(2739,)</span></code>, data type <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>, value <code class="docutils literal notranslate"><span class="pre">[0.,</span> <span class="pre">7.]</span></code></p></li>
 </ul>
 </section>
 <section id="id2">
-<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation, it is still a discrete action space of size N=7, generally a one-dimensional np array, the size is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
 </section>
 <section id="id3">
-<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Transform content: basically no transform</p></li>
 </ul>
@@ -447,16 +447,16 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </div>
 </section>
 <section id="id4">
-<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in minigrid</p></li>
 </ul>
 </section>
 </section>
 <section id="id5">
-<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="random-seed">
-<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
 <li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details</p></li>
@@ -468,13 +468,13 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </ul>
 </section>
 <section id="the-difference-between-training-and-testing-environments">
-<h3>The difference between training and testing environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<h3>The difference between training and testing environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, generated by a random number generator, and the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment; test The environment uses a static random seed, i.e. the same random seed for each episode, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method.</p></li>
 </ul>
 </section>
 <section id="store-video">
-<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this heading">¶</a></h3>
 <p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game recording. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>implementation), the code shown below will run an environment episode and save the result of this episode in a folder <code class="docutils literal notranslate"><span class="pre">./video/</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -497,7 +497,7 @@ And concatenate it with the <code class="docutils literal notranslate"><span cla
 </section>
 </section>
 <section id="di-zoo-runnable-code-example">
-<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config">github
 link</a>
 The specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">minigrid_r2d2_config.py</span></code>, use the following demo to run:</p>
@@ -586,7 +586,7 @@ The specific configuration files, such as <code class="docutils literal notransl
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>MiniGrid-Empty-8x8-v0 (under 0.5M env step, the average reward is greater than 0.95)</p>
 <blockquote>
@@ -708,9 +708,8 @@ The specific configuration files, such as <code class="docutils literal notransl
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

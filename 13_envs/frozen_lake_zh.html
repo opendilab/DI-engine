@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,24 +299,24 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="frozenlake">
-<h1>FrozenLake<a class="headerlink" href="#frozenlake" title="Permalink to this headline">¶</a></h1>
+<h1>FrozenLake<a class="headerlink" href="#frozenlake" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>FrozenLake 是强化学习中的经典控制问题。需要控制智能体在冰冻湖面上行进，从起点穿越冰冻湖到达目标点，且不会掉到任何冰洞里
 。如下图所示。</p>
 <a class="reference internal image-reference" href="../_images/FrozenLake.gif"><img alt="../_images/FrozenLake.gif" class="align-center" src="../_images/FrozenLake.gif" style="width: 204.8px; height: 204.8px;" /></a>
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>FrozenLake 环境内置在 gymnasium 中，直接安装 gymnasium 即可。其环境 id 是<code class="docutils literal notranslate"><span class="pre">FrozenLake-v1</span></code> 。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>gymnasium
 </pre></div>
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>在 Python 命令行中运行如下命令验证安装成功。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>gymnasium
 <span class="nv">env</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>gymnasium.make<span class="o">(</span><span class="s1">&#39;FrozenLake-v1&#39;</span>,<span class="w"> </span><span class="nv">desc</span><span class="o">=</span>None,<span class="w"> </span><span class="nv">map_name</span><span class="o">=</span><span class="s2">&quot;4x4&quot;</span>,<span class="w"> </span><span class="nv">is_slippery</span><span class="o">=</span>True<span class="o">)</span>
@@ -329,9 +329,9 @@ assert<span class="w"> </span>env.action_space<span class="w"> </span><span clas
 </section>
 </section>
 <section id="id5">
-<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>FrozenLake 的动作空间属于离散动作空间，动作形状为 (1,) ，范围为 {0, 3} ，表示玩家移动的方向。</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">0:</span></code> : 向左移动</p></li>
@@ -345,14 +345,14 @@ assert<span class="w"> </span>env.action_space<span class="w"> </span><span clas
 </div>
 </section>
 <section id="id7">
-<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>状态空间是一个代表玩家当前位置的值，即 <code class="docutils literal notranslate"><span class="pre">current_row</span> <span class="pre">*</span> <span class="pre">nrows</span> <span class="pre">+</span> <span class="pre">current_col</span></code> （其中行和列都从 0 开始）。</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">15</span></code> : (4x4 地图中的目标位置通过下面方式计算:<code class="docutils literal notranslate"><span class="pre">3*4+3</span> <span class="pre">=</span> <span class="pre">15</span></code> )</p></li>
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">+1</span></code> : 到达目标</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> : 到达冰洞</p></li>
@@ -360,7 +360,7 @@ assert<span class="w"> </span>env.action_space<span class="w"> </span><span clas
 </ul>
 </section>
 <section id="id9">
-<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <p>FrozenLake 环境每个 episode 的终止条件是遇到以下任何一种情况：</p>
 <ul class="simple">
 <li><p>玩家掉入冰洞。</p></li>
@@ -370,7 +370,7 @@ assert<span class="w"> </span>env.action_space<span class="w"> </span><span clas
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/frozen_lake/config">github
 link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">frozen_lake_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
@@ -441,12 +441,12 @@ link</a>
 </div>
 </section>
 <section id="id10">
-<h2>基准算法性能<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <p>使用 DQN 算法的实验结果如下。横坐标是<code class="docutils literal notranslate"><span class="pre">step</span></code> ，纵坐标是<code class="docutils literal notranslate"><span class="pre">reward_mean</span></code> 。</p>
 <a class="reference internal image-reference" href="../_images/frozen_lake_dqn.jpg"><img alt="../_images/frozen_lake_dqn.jpg" class="align-center" src="../_images/frozen_lake_dqn.jpg" style="width: 266.40000000000003px; height: 192.0px;" /></a>
 </section>
 <section id="id11">
-<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>FrozenLake <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/frozen_lake">源码</a></p></li>
 </ul>
@@ -532,9 +532,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

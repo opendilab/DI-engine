@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="ddpg">
-<h1>DDPG<a class="headerlink" href="#ddpg" title="Permalink to this headline">¶</a></h1>
+<h1>DDPG<a class="headerlink" href="#ddpg" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>DDPG (Deep Deterministic Policy Gradient) 首次在论文
 <a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a> 中提出,
 是一种同时学习Q函数和策略函数的算法。</p>
@@ -309,7 +309,7 @@
 其中算法 DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver14.pdf">Deterministic policy gradient algorithms</a> 与算法 NFQCA <a class="reference external" href="https://link.springer.com/content/pdf/10.1007/s10994-011-5235-x.pdf?pdf=button">Reinforcement learning in feedback control</a> 相似。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>DDPG 仅支持 <strong>连续动作空间</strong> （例如： MuJoCo）.</p></li>
 <li><p>DDPG 是一种 <strong>异策略（off-policy）</strong> 算法.</p></li>
@@ -318,7 +318,7 @@
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>DDPG 包含一个参数化的策略函数（actor） <span class="math notranslate nohighlight">\(\mu\left(s \mid \theta^{\mu}\right)\)</span> ,
 此函数通过将每一个状态确定性地映射到一个具体的动作从而明确当前策略。
 此外，算法还包含一个参数化的Q函数（critic） <span class="math notranslate nohighlight">\(Q(s, a)\)</span> 。
@@ -345,7 +345,7 @@
 \[\mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}\]</div>
 </section>
 <section id="id5">
-<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
     \caption{Deep Deterministic Policy Gradient}
@@ -387,7 +387,7 @@
 <a class="reference internal image-reference" href="../_images/DDPG.jpg"><img alt="../_images/DDPG.jpg" class="align-center" src="../_images/DDPG.jpg" style="width: 751.5px; height: 556.5px;" /></a>
 </section>
 <section id="id6">
-<h2>扩展<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>扩展<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <dl>
 <dt>DDPG 可以与以下技术相结合使用:</dt><dd><ul>
 <li><p>目标网络</p>
@@ -417,14 +417,14 @@ DDPG/TD3 的 <code class="docutils literal notranslate"><span class="pre">random
 </dl>
 </section>
 <section id="id8">
-<h2>实现<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <p>默认配置定义如下:</p>
 <section id="id9">
-<h3>模型<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>模型<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <p>在这里，我们提供了 <cite>ContinuousQAC</cite> 模型作为 <cite>DDPG</cite> 的默认模型的示例。</p>
 </section>
 <section id="actor-critic">
-<h3>训练 actor-critic 模型<a class="headerlink" href="#actor-critic" title="Permalink to this headline">¶</a></h3>
+<h3>训练 actor-critic 模型<a class="headerlink" href="#actor-critic" title="Permalink to this heading">¶</a></h3>
 <p>首先，我们在 <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code> 中分别初始化 actor 和 critic 优化器。
 设置两个独立的优化器可以保证我们在计算 actor 损失时只更新 actor 网络参数而不更新 critic 网络，反之亦然。</p>
 <blockquote>
@@ -498,7 +498,7 @@ DDPG/TD3 的 <code class="docutils literal notranslate"><span class="pre">random
 </dl>
 </section>
 <section id="id10">
-<h3>目标网络<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<h3>目标网络<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
 <p>我们通过 <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code> 中的目标模型初始化来实现目标网络。
 我们配置 <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code> 来控制平均中的插值因子。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># main and target models</span>
@@ -514,15 +514,8 @@ DDPG/TD3 的 <code class="docutils literal notranslate"><span class="pre">random
 </section>
 </section>
 <section id="id11">
-<h2>基准<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>基准<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -570,14 +563,14 @@ Spinning-up(1950)</p></td>
 </ol>
 </section>
 <section id="id12">
-<h2>参考<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<h2>参考<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h2>
 <p>Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [<a class="reference external" href="http://arxiv.org/abs/1509.02971">http://arxiv.org/abs/1509.02971</a> arXiv:1509.02971].</p>
 <p>David Silver, Guy Lever, Nicolas Heess, Thomas Degris, Daan Wierstra, et al.. Deterministic Policy Gradient Algorithms. ICML, Jun 2014, Beijing, China. ffhal-00938992f</p>
 <p>Hafner, R., Riedmiller, M. Reinforcement learning in feedback control. Mach Learn 84, 137–169 (2011).</p>
 <p>Degris, T., White, M., and Sutton, R. S. (2012b). Linear off-policy actor-critic. In 29th International Conference on Machine Learning.</p>
 </section>
 <section id="id13">
-<h2>其他公开的实现<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<h2>其他公开的实现<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/ddpg">Baselines</a></p></li>
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ddpg">sb3</a></p></li>
@@ -667,9 +660,8 @@ Spinning-up(1950)</p></td>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

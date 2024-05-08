@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="d4pg">
-<h1>D4PG<a class="headerlink" href="#d4pg" title="Permalink to this headline">¶</a></h1>
+<h1>D4PG<a class="headerlink" href="#d4pg" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>D4PG, proposed in the paper <a class="reference external" href="https://arxiv.org/abs/1804.08617v1">Distributed Distributional Deterministic Policy Gradients</a>,
 is an actor-critic, model-free policy gradient algorithm that extends upon <a class="reference external" href="https://arxiv.org/abs/1509.02971">DDPG</a>.
 Improvements over DDPG include the use of N-step returns, prioritized experience replay and distributional value function.
@@ -310,7 +310,7 @@ The authors found that these simple modifications contribute to the overall perf
 returns brining the biggest performance gain and priority buffer being the less crucial one.</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>D4PG is only used for environments with <strong>continuous action spaces</strong>.(i.e. MuJoCo)</p></li>
 <li><p>D4PG is an <strong>off-policy</strong> algorithm.</p></li>
@@ -320,7 +320,7 @@ returns brining the biggest performance gain and priority buffer being the less 
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>The D4PG algorithm maintains a distributional critic <span class="math notranslate nohighlight">\(Z_\pi(s, a)\)</span> which estimates the expected Q value as a
 random variable such that <span class="math notranslate nohighlight">\(Q(s, a)=\mathbb{E}Z_\pi(s, a)\)</span>. <span class="math notranslate nohighlight">\(Z\)</span> is usually a Categorical distribution over Q with 51 supports.</p>
 <p>Accordingly, the distributional Bellman operator can be defined as:</p>
@@ -350,7 +350,7 @@ However, our implementation only makes use of a single actor.</p>
 </div>
 </section>
 <section id="pseudocode">
-<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this heading">¶</a></h2>
 <figure class="align-center" id="id1">
 <a class="reference internal image-reference" href="../_images/D4PG_algo.png"><img alt="../_images/D4PG_algo.png" src="../_images/D4PG_algo.png" style="width: 1048.5px; height: 810.0px;" /></a>
 <figcaption>
@@ -359,23 +359,16 @@ However, our implementation only makes use of a single actor.</p>
 </figure>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <section id="model">
-<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+<h3>Model<a class="headerlink" href="#model" title="Permalink to this heading">¶</a></h3>
 <p>Here we provide examples of <cite>QACDIST</cite> model as default model for <cite>D4PG</cite>.</p>
 </section>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -416,13 +409,13 @@ However, our implementation only makes use of a single actor.</p>
 </table>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/schatty/d4pg-pytorch">D4PG Pytorch</a></p></li>
 </ul>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Gabriel Barth-Maron, Matthew W. Hoffman, David Budden, Will Dabney, Dan Horgan, Dhruva TB, Alistair Muldal, Nicolas Heess, Timothy Lillicrap: “Distributed Distributional Deterministic Policy Gradients”, 2018; [<a class="reference external" href="https://arxiv.org/abs/1804.08617v1">https://arxiv.org/abs/1804.08617v1</a> arXiv:1804.08617v1].</p></li>
 </ul>
@@ -503,9 +496,8 @@ However, our implementation only makes use of a single actor.</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

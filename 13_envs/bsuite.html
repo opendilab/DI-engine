@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="bsuite">
-<h1>Bsuite<a class="headerlink" href="#bsuite" title="Permalink to this headline">¶</a></h1>
+<h1>Bsuite<a class="headerlink" href="#bsuite" title="Permalink to this heading">¶</a></h1>
 <section id="description">
-<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bsuite</span></code> is a collection of carefully-designed experiments that investigate core capabilities of a reinforcement learning (RL) agent with two main objectives:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -333,9 +333,9 @@ action space <span class="math notranslate nohighlight">\(\mathcal{A}=\{-1,+1\}\
 </figure>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="how-to-install">
-<h3>How To install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">¶</a></h3>
+<h3>How To install<a class="headerlink" href="#how-to-install" title="Permalink to this heading">¶</a></h3>
 <p>You just need to use the command <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install bsuite.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>bsuite
@@ -343,7 +343,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div>
 </section>
 <section id="verify-installation">
-<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this heading">¶</a></h3>
 <p>Once installed, you can verify whether the installation is successful by running the following command on the Python command line.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">)</span> <span class="c1"># this environment configuration is &#39;memory steps&#39; long</span>
@@ -354,9 +354,9 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </section>
 </section>
 <section id="original-environment-space">
-<h2>Original Environment Space<a class="headerlink" href="#original-environment-space" title="Permalink to this headline">¶</a></h2>
+<h2>Original Environment Space<a class="headerlink" href="#original-environment-space" title="Permalink to this heading">¶</a></h2>
 <section id="observations-space">
-<h3>Observations Space<a class="headerlink" href="#observations-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observations Space<a class="headerlink" href="#observations-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The observation of agent is a 3-dimensional vector. Data type is <code class="docutils literal notranslate"><span class="pre">float32</span></code>. Their specific meaning is as below:</p></li>
 </ul>
@@ -369,13 +369,13 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div></blockquote>
 </section>
 <section id="actions-space">
-<h3>Actions Space<a class="headerlink" href="#actions-space" title="Permalink to this headline">¶</a></h3>
+<h3>Actions Space<a class="headerlink" href="#actions-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The action space is a discrete space of size 2, which is {-1,1}. Data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>.</p></li>
 </ul>
 </section>
 <section id="rewards-space">
-<h3>Rewards Space<a class="headerlink" href="#rewards-space" title="Permalink to this headline">¶</a></h3>
+<h3>Rewards Space<a class="headerlink" href="#rewards-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The reward space is a discrete space of size 3, which is a <code class="docutils literal notranslate"><span class="pre">float</span></code> value.</p></li>
 </ul>
@@ -388,14 +388,14 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div></blockquote>
 </section>
 <section id="others">
-<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Environments terminate once they have reached their maximum number of steps N.</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>We can change the memory length N to make it gradually more challenging.</p></li>
 <li><p>Discrete actions space.</p></li>
@@ -403,9 +403,9 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </ol>
 </section>
 <section id="id1">
-<h2>Others<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>Others<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <section id="using-bsuite-in-openai-gym-format">
-<h3>Using bsuite in ‘OpenAI Gym’ format<a class="headerlink" href="#using-bsuite-in-openai-gym-format" title="Permalink to this headline">¶</a></h3>
+<h3>Using bsuite in ‘OpenAI Gym’ format<a class="headerlink" href="#using-bsuite-in-openai-gym-format" title="Permalink to this heading">¶</a></h3>
 <p>Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run under the OpenAI Gym interface. Hence, <code class="docutils literal notranslate"><span class="pre">gym</span></code> needs to be installed to make bsuite work properly.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
 <span class="kn">from</span> <span class="nn">bsuite.utils</span> <span class="kn">import</span> <span class="n">gym_wrapper</span>
@@ -415,7 +415,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div>
 </section>
 <section id="about-configurations">
-<h3>About Configurations<a class="headerlink" href="#about-configurations" title="Permalink to this headline">¶</a></h3>
+<h3>About Configurations<a class="headerlink" href="#about-configurations" title="Permalink to this heading">¶</a></h3>
 <p>Configurations are designed to increase the level of difficulty of an environment. For example, in a 5-armed bandit environment, configurations are used to regulate the level of noise to perturb the rewards.
 Given a specific environment, all possible configurations can be visualized with the following code snippet.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bsuite</span> <span class="kn">import</span> <span class="n">sweep</span>  <span class="c1"># this module contains information about all the environments</span>
@@ -436,7 +436,7 @@ Given a specific environment, all possible configurations can be visualized with
 </section>
 </section>
 <section id="di-zoo-runnable-code">
-<h2>DI-zoo Runnable Code<a class="headerlink" href="#di-zoo-runnable-code" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Runnable Code<a class="headerlink" href="#di-zoo-runnable-code" title="Permalink to this heading">¶</a></h2>
 <p>The full training configuration can be found on <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/config/serial">github
 link</a>
 . In the following part, we show an example of configuration for the file, <code class="docutils literal notranslate"><span class="pre">memory_len_0_dqn_config.py</span></code>, you can run the demo with the following code：</p>
@@ -499,7 +499,7 @@ link</a>
 </div>
 </section>
 <section id="benchmark-algorithm-performance">
-<h2>Benchmark algorithm performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark algorithm performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this heading">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
 <li><p>memory_len/15 + R2D2</p></li>
@@ -595,9 +595,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

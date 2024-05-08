@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -297,9 +297,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>单元测试指南<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>单元测试指南<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <section id="id2">
-<h2>单元测试的意义<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>单元测试的意义<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>在软件工程领域，单元测试是一种测试方法，通过这种方法，对一个或多个计算机程序模块的源代码集的各个单元以及相关的控制数据、使用程序和操作程序进行测试，以确定它们是否能正确运行（摘自 <a class="reference external" href="https://en.wikipedia.org/wiki/Unit_testing">维基百科 - Unit testing</a> ）。</p>
 <p>在实际开发中，单元测试的意义如下：</p>
 <ul class="simple">
@@ -311,7 +311,7 @@
 </ul>
 </section>
 <section id="ref-test-types-zh">
-<span id="id3"></span><h2>测试类型<a class="headerlink" href="#ref-test-types-zh" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>测试类型<a class="headerlink" href="#ref-test-types-zh" title="Permalink to this heading">¶</a></h2>
 <p>在DI-engine项目中，我们将单元测试分为如下的若干部分：</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unittest</span></code> ——为一般意义上的功能性单元测试，确保工程代码功能正常，算法代码在简单用例上能实现收敛。</p></li>
@@ -323,11 +323,11 @@
 </ul>
 </section>
 <section id="id4">
-<h2>如何编写单元测试<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>如何编写单元测试<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>在DI-engine中，我们使用 <a class="reference external" href="https://docs.pytest.org/">pytest</a> 进行单元测试的搭建。</p>
 <p>对于单元测试的撰写，整体上可以参考各级代码路径下的 <code class="docutils literal notranslate"><span class="pre">tests</span></code> 文件夹，例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/envs/env_manager/tests">ding/envs/env_manager/tests</a> 。</p>
 <section id="id5">
-<h3>命名规范<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>命名规范<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>对于单元测试，我们一般以类或函数为单位进行搭建，其命名应当满足一定的规范，具体为：</p>
 <ul class="simple">
 <li><p>对于函数形态的单元测试，要求函数以 <code class="docutils literal notranslate"><span class="pre">test_</span></code> 开头。</p></li>
@@ -335,7 +335,7 @@
 </ul>
 </section>
 <section id="id6">
-<h3>断言<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>断言<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>在测试用例中，我们使用 <code class="docutils literal notranslate"><span class="pre">assert</span></code> （断言）对原型结果进行检查。如果断言不成立，则会显示非常详细的信息，如下图所示</p>
 <a class="reference internal image-reference" href="../_images/pytest_assert.png"><img alt="../_images/pytest_assert.png" class="align-center" src="../_images/pytest_assert.png" style="width: 787.6px; height: 502.70000000000005px;" /></a>
 <p>不仅如此， <code class="docutils literal notranslate"><span class="pre">pytest</span></code> 还支持对抛出的异常进行断言，如下所示</p>
@@ -351,18 +351,18 @@
 <a class="reference internal image-reference" href="../_images/pytest_approx.png"><img alt="../_images/pytest_approx.png" class="align-center" src="../_images/pytest_approx.png" style="width: 599.5px; height: 176.0px;" /></a>
 </section>
 <section id="id7">
-<h3>固件与配置<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>固件与配置<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>固件（fixture）是 <code class="docutils literal notranslate"><span class="pre">pytest</span></code> 中非常重要的机制，其可以完成测试所需资源的初始化，并作为测试函数的参数传入，供测试函数使用。不仅如此，还可以实现对运行资源的回收，确保后续运行不受影响。此外，还可以通过对作用域的定义，轻松地实现代码复用。</p>
 <p>这篇 <a class="reference external" href="https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-fixture.html">fixture 中文教程</a> 写的很详细，可以作为参考。在DI-engine的现有代码中，可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/league/tests/test_player.py">ding/league/tests/test_player.py</a> 。</p>
 <p>固件一般在单个文件中使用，即在当前文件下定义固件后使用。如果需要跨文件使用固件，可以使用测试配置（conftest，config of test的缩写）机制实现。在测试文件中不需要显式地进行导入， <code class="docutils literal notranslate"><span class="pre">pytest</span></code> 框架会自动完成加载。可以参考这篇 <a class="reference external" href="https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-conftest.html">中文教程</a>，在现有的代码中可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/ding/league/tests/conftest.py">ding/league/tests/conftest.py</a> 。</p>
 </section>
 <section id="id9">
-<h3>测试标记<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>测试标记<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <p>为了对测试的类型进行区分（如:ref:<cite>ref-test-types-zh</cite>），可以添加 <code class="docutils literal notranslate"><span class="pre">pytest.mark(&quot;MARK-NAME&quot;)</span></code> 装饰器来让测试分类执行，并在运行时使用 <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">–m</span> <span class="pre">MARK-NAME</span></code> 来执行所选择类型的测试。</p>
 <a class="reference internal image-reference" href="../_images/pytest_mark.png"><img alt="../_images/pytest_mark.png" class="align-center" src="../_images/pytest_mark.png" style="width: 684.2px; height: 594.0px;" /></a>
 </section>
 <section id="id10">
-<h3>参数配置<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<h3>参数配置<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
 <p>部分情况下，我们需要复用同一段测试逻辑，针对不同的输入数据展开测试。此时我们可以使用参数配置（parameterize） <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize(argsnames,</span> <span class="pre">argsvalues,</span> <span class="pre">ids=None)</span></code> 实现对多组测试的参数配置。其中：</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">argsnames</span></code>
@@ -379,7 +379,7 @@
 </section>
 </section>
 <section id="id11">
-<h2>如何进行单元测试<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>如何进行单元测试<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <p>在DI-engine中，我们使用 <code class="docutils literal notranslate"><span class="pre">pytest</span></code> 启动单元测试。对于极为简单的情况，可以直接使用命令</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-sv<span class="w"> </span>./ding
 </pre></div>
@@ -485,9 +485,8 @@ make<span class="w"> </span>platformtext
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

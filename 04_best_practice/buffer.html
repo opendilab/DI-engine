@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="buffer-user-guide">
-<h1>Buffer User Guide<a class="headerlink" href="#buffer-user-guide" title="Permalink to this headline">¶</a></h1>
+<h1>Buffer User Guide<a class="headerlink" href="#buffer-user-guide" title="Permalink to this heading">¶</a></h1>
 <section id="buffer-getting-started">
-<h2>Buffer Getting Started<a class="headerlink" href="#buffer-getting-started" title="Permalink to this headline">¶</a></h2>
+<h2>Buffer Getting Started<a class="headerlink" href="#buffer-getting-started" title="Permalink to this heading">¶</a></h2>
 <p><strong>Basic Concepts of Buffer</strong></p>
 <p>In the off-policy RL algorithms, we usually use Experience Replay to improve sample efficiency and reduce the correlation between samples from different time frames.
 DI-engine uses <strong>DequeBuffer</strong> to implement common features, like data input, sampling and so on, of experience replay pools. Users can create DequeBuffer object through the follwing codes:</p>
@@ -352,7 +352,7 @@ In fact, in most tasks, the user does not need to use these underlying atomic op
 </div>
 </section>
 <section id="buffer-advanced">
-<h2>Buffer Advanced<a class="headerlink" href="#buffer-advanced" title="Permalink to this headline">¶</a></h2>
+<h2>Buffer Advanced<a class="headerlink" href="#buffer-advanced" title="Permalink to this heading">¶</a></h2>
 <p>In the previous section, we provided a basic application scenario for buffer. Next, we will show you a more comprehensive view of the buffer’s capabilities.</p>
 <p><strong>Priority Experience Replay(PER)</strong></p>
 <p>In some algorithms, priority experience replay is needed. In DI-engine, you can use <strong>PriorityExperienceReplay middleware</strong> to enable the buffer priority experience replay function.
@@ -497,9 +497,8 @@ To avoid this problem, we can use <strong>use_time_check middleware</strong> to 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

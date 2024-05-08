@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="overcooked">
-<h1>Overcooked<a class="headerlink" href="#overcooked" title="Permalink to this headline">¶</a></h1>
+<h1>Overcooked<a class="headerlink" href="#overcooked" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai">Overcooked-AI</a> is a benchmark environment for fully cooperative human-AI task performance, based on the wildly popular video game <a class="reference external" href="http://www.ghosttowngames.com/overcooked/">Overcooked</a> .</p>
 <p>The goal of the game is to deliver soups as fast as possible.
 Each soup requires placing up to 3 ingredients in a pot, waiting for the soup to cook, and then having an agent pick up the soup and delivering it.</p>
@@ -312,9 +312,9 @@ Each soup requires placing up to 3 ingredients in a pot, waiting for the soup to
 <p>New layouts are easy to hardcode or generate programmatically.</p>
 </section>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <section id="installation-methods">
-<h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this heading">¶</a></h3>
 <p>Install <code class="docutils literal notranslate"><span class="pre">overcooked-ai</span></code>. You can install by command <code class="docutils literal notranslate"><span class="pre">pip</span></code> or build from source.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>overcooked-ai
@@ -325,7 +325,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="installation-check">
-<h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this headline">¶</a></h3>
+<h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this heading">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>DI-engine
 pytest<span class="w"> </span>-sv<span class="w"> </span>dizoo/overcooked/envs/test_overcooked_env.py
@@ -334,9 +334,9 @@ pytest<span class="w"> </span>-sv<span class="w"> </span>dizoo/overcooked/envs/t
 </section>
 </section>
 <section id="rl-environment-space">
-<h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this headline">¶</a></h2>
+<h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this heading">¶</a></h2>
 <section id="observation-space">
-<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Right now we use cramped_room setting to describe the observation space of overcooked env. The layout of the cramped_room is of shape <code class="docutils literal notranslate"><span class="pre">(5,</span> <span class="pre">4)</span></code>.</p></li>
 <li><p>Contain 2 agents.</p></li>
@@ -346,7 +346,7 @@ pytest<span class="w"> </span>-sv<span class="w"> </span>dizoo/overcooked/envs/t
 </ul>
 </section>
 <section id="action-space">
-<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The action space is also containing 2 agents.</p></li>
 <li><p>Buttons used in the game. In general 6 discrete action (N is different in different sub environments).</p></li>
@@ -363,21 +363,21 @@ pytest<span class="w"> </span>-sv<span class="w"> </span>dizoo/overcooked/envs/t
 </ul>
 </section>
 <section id="reward-space">
-<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Game score of overcooked.</p></li>
 <li><p>Note that we used reward shapingin order to ease the training process. You can turn up/down shape reward by setting <code class="docutils literal notranslate"><span class="pre">use_shaped_reward</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> .</p></li>
 </ul>
 </section>
 <section id="others">
-<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>The game end after a fixed number of steps (default set to 400 steps).</p></li>
 </ul>
 </section>
 </section>
 <section id="key-facts">
-<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>The environment contains two agent.</p></li>
 <li><p>Discrete action space.</p></li>
@@ -385,15 +385,15 @@ pytest<span class="w"> </span>-sv<span class="w"> </span>dizoo/overcooked/envs/t
 </ol>
 </section>
 <section id="other">
-<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this heading">¶</a></h2>
 <section id="different-layouts">
-<h3>Different Layouts<a class="headerlink" href="#different-layouts" title="Permalink to this headline">¶</a></h3>
+<h3>Different Layouts<a class="headerlink" href="#different-layouts" title="Permalink to this heading">¶</a></h3>
 <p>You can change the layout used by changing <code class="docutils literal notranslate"><span class="pre">env_name</span></code> in environment config. However, the overcooked env is still under development, so not all layout is supported.</p>
 <p>You can also hand code your own layout, referencing this link for layouts <a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai/tree/master/src/overcooked_ai_py/data/layouts">files</a>.</p>
 </section>
 </section>
 <section id="di-zoo-code-example">
-<h2>DI-zoo Code Example<a class="headerlink" href="#di-zoo-code-example" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo Code Example<a class="headerlink" href="#di-zoo-code-example" title="Permalink to this heading">¶</a></h2>
 <p>Complete training configuration is at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/overcooked/entry/overcooked_selfplay_ppo_main.py">github
 link</a>.
 You can run the demo as shown below:</p>
@@ -496,7 +496,7 @@ You can run the demo as shown below:</p>
 </div>
 </section>
 <section id="algorithm-benchmark">
-<h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>TODO</p></li>
 </ul>
@@ -586,9 +586,8 @@ You can run the demo as shown below:</p>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

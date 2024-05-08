@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,10 +299,10 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="git">
-<h1>Git 使用<a class="headerlink" href="#git" title="Permalink to this headline">¶</a></h1>
+<h1>Git 使用<a class="headerlink" href="#git" title="Permalink to this heading">¶</a></h1>
 <p>如果对 git 几乎不了解，那么推荐看一下<a class="reference external" href="https://www.liaoxuefeng.com/wiki/896043488029600">廖雪峰 git 教程</a>，会对相关概念和命令有一个正确且充分的认识。下面罗列一下实际开发中常用的知识。</p>
 <section id="id1">
-<h2>1. 基础概念和命令<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>1. 基础概念和命令<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>原始代码、工作区、暂存区、本地仓库、远程仓库的<strong>概念</strong>，和它们之间<strong>互相转换的命令</strong>：</p>
 <a class="reference internal image-reference" href="../_images/git_command1.png"><img alt="../_images/git_command1.png" class="align-center" src="../_images/git_command1.png" style="width: 724.02px; height: 366.3px;" /></a>
 <p>下面介绍一些没有在上图展示，但也很常用的命令：</p>
@@ -315,7 +315,7 @@
 而 git cherry-pick 只会将某个 commit 应用在其它分支，可参考<a class="reference external" href="https://ruanyifeng.com/blog/2020/04/git-cherry-pick.html">教程</a></p>
 </section>
 <section id="git-commit">
-<h2>2. Git Commit 规范<a class="headerlink" href="#git-commit" title="Permalink to this headline">¶</a></h2>
+<h2>2. Git Commit 规范<a class="headerlink" href="#git-commit" title="Permalink to this heading">¶</a></h2>
 <p>我们对 git commit 进行了一些规定：</p>
 <ol class="arabic">
 <li><p>尽量每一个独立的功能对应一个 commit</p></li>
@@ -328,7 +328,7 @@ commit message</div>
 </ol>
 </section>
 <section id="id2">
-<h2>3. 以一次实际开发为例<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>3. 以一次实际开发为例<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>下面以一次实际开发过程为例，讲解需要用到的 git 命令。</p>
 <ol class="arabic simple">
 <li><p>克隆仓库：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">REPO-URL</span></code>；</p></li>
@@ -339,7 +339,7 @@ commit message</div>
 </ol>
 </section>
 <section id="gitignore">
-<h2>4. .gitignore 文件<a class="headerlink" href="#gitignore" title="Permalink to this headline">¶</a></h2>
+<h2>4. .gitignore 文件<a class="headerlink" href="#gitignore" title="Permalink to this heading">¶</a></h2>
 <p>我们本地的开发路径下，有很多不想提交到远程仓库的文件，比如项目的本地配置信息、pycache、log文件、checkpoint等等。这时，使用 .gitignore 文件可以通过字符匹配的方式忽略掉这些文件，就可以更加愉快地使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">.</span></code>或<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">-u</span></code>命令了（当然，此时还是需要先<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code>查看一下都增加/删除/修改了哪些文件）。</p>
 <p>.gitignore 文件中常见的写法如下：</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># 忽略指定文件
@@ -427,9 +427,8 @@ __pycache__/
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

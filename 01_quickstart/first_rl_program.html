@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,14 +299,14 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="first-reinforcement-learning-program">
-<h1>First Reinforcement Learning Program<a class="headerlink" href="#first-reinforcement-learning-program" title="Permalink to this headline">¶</a></h1>
+<h1>First Reinforcement Learning Program<a class="headerlink" href="#first-reinforcement-learning-program" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>Reinforcement learning is a promising algorithm for making a decision-intelligence artificial agent, among many machine learning algorithms.
 CartPole is the ideal learning environment for an introduction to reinforcement learning, and using the DQN algorithm allows CartPole to converge (maintain equilibrium) in a very short time. We will introduce the use of DI-engine based on CartPole + DQN.</p>
 <a class="reference internal image-reference" href="../_images/cartpole_cmp.gif"><img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" style="width: 1000px;" /></a>
 <section id="using-the-configuration-file">
-<h2>Using the Configuration File<a class="headerlink" href="#using-the-configuration-file" title="Permalink to this headline">¶</a></h2>
+<h2>Using the Configuration File<a class="headerlink" href="#using-the-configuration-file" title="Permalink to this heading">¶</a></h2>
 <p>The DI-engine uses a global configuration file to control all variables of the environment and strategy, each of which has a corresponding default configuration that can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/classic_control/cartpole/config/cartpole_dqn_config.py">cartpole_dqn_config</a>, in the tutorial we use the default configuration directly:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_dqn_config</span> <span class="kn">import</span> <span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span>
 <span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
@@ -316,7 +316,7 @@ CartPole is the ideal learning environment for an introduction to reinforcement 
 </div>
 </section>
 <section id="initialize-the-environments">
-<h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this headline">¶</a></h2>
+<h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this heading">¶</a></h2>
 <p>In reinforcement learning, there may be a difference in the strategy for collecting environment data between the training process and the evaluation process, for example, the training process tends to train one epoch for n steps of collection, while the evaluation process requires completing the whole game to get a score. We recommend that the collection and evaluation environments be initialized separately as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span>
 
@@ -336,7 +336,7 @@ CartPole is the ideal learning environment for an introduction to reinforcement 
 </div>
 </section>
 <section id="select-policy">
-<h2>Select Policy<a class="headerlink" href="#select-policy" title="Permalink to this headline">¶</a></h2>
+<h2>Select Policy<a class="headerlink" href="#select-policy" title="Permalink to this heading">¶</a></h2>
 <p>DI-engine covers most of the reinforcement learning policies, using them only requires selecting the right policy and model.
 Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">DQN</span>
@@ -350,7 +350,7 @@ Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 </div>
 </section>
 <section id="build-the-pipeline">
-<h2>Build the Pipeline<a class="headerlink" href="#build-the-pipeline" title="Permalink to this headline">¶</a></h2>
+<h2>Build the Pipeline<a class="headerlink" href="#build-the-pipeline" title="Permalink to this heading">¶</a></h2>
 <p>With the various middleware provided by DI-engine, we can easily build the entire pipeline:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">OnlineRLContext</span>
@@ -370,7 +370,7 @@ Since DQN is off-policy, we also need to instantiate a buffer module.</p>
 </div>
 </section>
 <section id="run-the-code">
-<h2>Run the Code<a class="headerlink" href="#run-the-code" title="Permalink to this headline">¶</a></h2>
+<h2>Run the Code<a class="headerlink" href="#run-the-code" title="Permalink to this heading">¶</a></h2>
 <p>The full example can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a> and can be run via <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">dqn.py</span></code>.
 In addition, we also provide the <a class="reference external" href="https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing">Colab Running Example</a> from the DI-engine installation to training for reference.</p>
 <a class="reference internal image-reference" href="../_images/train_dqn.gif"><img alt="../_images/train_dqn.gif" class="align-center" src="../_images/train_dqn.gif" style="width: 1000px;" /></a>
@@ -446,9 +446,8 @@ In addition, we also provide the <a class="reference external" href="https://col
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

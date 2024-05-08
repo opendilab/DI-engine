@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="td3">
-<h1>TD3<a class="headerlink" href="#td3" title="Permalink to this headline">¶</a></h1>
+<h1>TD3<a class="headerlink" href="#td3" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Twin Delayed DDPG (TD3), proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a>, is an algorithm which considers the interplay between function approximation error in both policy and value updates.
 TD3 is an actor-critic, model-free algorithm based on the <a class="reference external" href="https://arxiv.org/abs/1509.02971">deep deterministic policy gradient (DDPG)</a> that can address overestimation bias, the accumulation of error in temporal difference methods and high sensitivity to hyper-parameters in continuous action spaces. Specifically, TD3 addresses the issue by introducing the following three critical tricks:</p>
 <ol class="arabic simple">
@@ -311,7 +311,7 @@ TD3 is an actor-critic, model-free algorithm based on the <a class="reference ex
 </ol>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>TD3 is only used for environments with <strong>continuous action spaces</strong> (e.g., MuJoCo).</p></li>
 <li><p>TD3 is an <strong>off-policy</strong> algorithm.</p></li>
@@ -319,7 +319,7 @@ TD3 is an actor-critic, model-free algorithm based on the <a class="reference ex
 </ol>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>TD3 proposes a clipped Double Q-learning variant which leverages the notion that a value estimate suffering from overestimation bias can be used as an approximate upper-bound to the true value estimate. TD3 shows that target networks, a common approach in deep Q-learning methods, are critical for variance reduction by reducing the accumulation of errors.</p>
 <p>Firstly, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic.
 We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p>
@@ -337,7 +337,7 @@ y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\pri
 <p>we implement Target Policy Smoothing through configuring <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code>.</p>
 </section>
 <section id="pseudocode">
-<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this heading">¶</a></h2>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
     \caption{Twin Delayed DDPG}
@@ -385,7 +385,7 @@ y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\pri
 <a class="reference internal image-reference" href="../_images/TD3.png"><img alt="../_images/TD3.png" class="align-center" src="../_images/TD3.png" style="width: 526.4px; height: 603.2px;" /></a>
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <p>TD3 is combined with:</p>
 <blockquote>
 <div><ul>
@@ -400,7 +400,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">random
 </div></blockquote>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <ol class="arabic">
 <li><p>Model
@@ -543,15 +543,8 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
 </ol>
 </section>
 <section id="benchmark">
-<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 38%" />
-<col style="width: 19%" />
-<col style="width: 16%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
 <th class="head"><p>best mean reward</p></th>
@@ -604,11 +597,11 @@ Walker2d-v2)</p></td>
 </ol>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h2>
 <p>Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [<a class="reference external" href="http://arxiv.org/abs/1802.09477">http://arxiv.org/abs/1802.09477</a> arXiv:1802.09477].</p>
 </section>
 <section id="other-public-implementations">
-<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/td3">sb3</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/ddpg/td3.py">rllib (Ray)</a></p></li>
@@ -691,9 +684,8 @@ Walker2d-v2)</p></td>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

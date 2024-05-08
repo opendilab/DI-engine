@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="mbpo">
-<h1>MBPO<a class="headerlink" href="#mbpo" title="Permalink to this headline">¶</a></h1>
+<h1>MBPO<a class="headerlink" href="#mbpo" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Model-based policy optimization (MBPO) 首次在论文 <a class="reference external" href="https://arxiv.org/abs/1906.08253">When to Trust Your Model: Model-Based Policy Optimization</a> 中被提出。
 MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 具体来说，MBPO 通过训练模型集合来拟合真实环境的 transition ，并利用它生成从真实环境状态开始的短轨迹来进行策略提升。
@@ -309,7 +309,7 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 <p>这个 repo <a class="reference external" href="https://github.com/opendilab/awesome-model-based-RL">awesome-model-based-RL</a> 提供了更多 model-based rl 的论文。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>MBPO 是一种 <strong>基于模型（model-based）的</strong> 强化学习算法。</p></li>
 <li><p>MBPO 用 SAC 作为 RL 策略。</p></li>
@@ -318,9 +318,9 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <section id="predictive-model">
-<h3>预测模型（Predictive Model）<a class="headerlink" href="#predictive-model" title="Permalink to this headline">¶</a></h3>
+<h3>预测模型（Predictive Model）<a class="headerlink" href="#predictive-model" title="Permalink to this heading">¶</a></h3>
 <p>MBPO 利用高斯神经网络集合（ensemble of gaussian neural network），集合中的每个成员都是：</p>
 <div class="math notranslate nohighlight">
 \[p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t) = N(\mu_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t), \Sigma_\theta(\boldsymbol{s}_t,\boldsymbol{a}_t))\]</div>
@@ -329,7 +329,7 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 \[L(\theta)=\mathbb{E}\left[log(p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t))\right]\]</div>
 </section>
 <section id="policy-optimization">
-<h3>策略优化（Policy Optimization）<a class="headerlink" href="#policy-optimization" title="Permalink to this headline">¶</a></h3>
+<h3>策略优化（Policy Optimization）<a class="headerlink" href="#policy-optimization" title="Permalink to this heading">¶</a></h3>
 <p>策略评估步骤（Policy evaluation step）：</p>
 <div class="math notranslate nohighlight">
 \[Q^\pi(\boldsymbol{s}_t,\boldsymbol{a}_t) = \mathbb{E}_\pi[{\sum}_{t=0}^{\infty}\gamma^t r(\boldsymbol{s}_t,\boldsymbol{a}_t)]\]</div>
@@ -342,7 +342,7 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 </section>
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/MBPO.png"><img alt="../_images/MBPO.png" class="align-center" src="../_images/MBPO.png" style="width: 1689.6000000000001px; height: 555.5px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -350,17 +350,17 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 </div>
 </section>
 <section id="id5">
-<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>默认配置定义如下:</p>
 </section>
 <section id="id6">
-<h2>基准<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id9">
+<h2>基准<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id9">
 <caption><span class="caption-text">Benchmark of MBPO algorithm</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 36%" />
-<col style="width: 43%" />
-<col style="width: 21%" />
+<col style="width: 35.7%" />
+<col style="width: 42.9%" />
+<col style="width: 21.4%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -392,13 +392,13 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
 </ol>
 </section>
 <section id="id7">
-<h2>其他公开的实现<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>其他公开的实现<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/facebookresearch/mbrl-lib/blob/main/mbrl/algorithms/mbpo.py">mbrl-lib</a></p></li>
 </ul>
 </section>
 <section id="id8">
-<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Michael Janner, Justin Fu, Marvin Zhang, Sergey Levine: “When to Trust Your Model: Model-Based Policy Optimization”, 2019; arXiv:1906.08253.</p></li>
 </ul>
@@ -480,9 +480,8 @@ MBPO 利用模型生成的短轨迹，并保证每一步的单调提升。
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,11 +299,11 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="distributed">
-<h1>Distributed<a class="headerlink" href="#distributed" title="Permalink to this headline">¶</a></h1>
+<h1>Distributed<a class="headerlink" href="#distributed" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <section id="using-the-event-system">
-<h2>Using the Event System<a class="headerlink" href="#using-the-event-system" title="Permalink to this headline">¶</a></h2>
+<h2>Using the Event System<a class="headerlink" href="#using-the-event-system" title="Permalink to this heading">¶</a></h2>
 <p>Before we start the distributed running, let’s introduce the event system of DI-engine, which will be used by all remote calls.</p>
 <p>The event system is an asynchronous programming paradigm that has the advantage of decoupling the code of different logics, increasing readability and, due to asynchronous execution, resource utilization. The event system also has some disadvantages, as asynchronous calls can make debugging more difficult, we will see later in the <a class="reference external" href=".../20_spec/index_zh.html">Code specification</a> describes some ways to avoid these drawbacks.</p>
 <p>The task object provides five methods related to the event system – <code class="docutils literal notranslate"><span class="pre">emit</span></code>, <code class="docutils literal notranslate"><span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">off</span></code>, <code class="docutils literal notranslate"><span class="pre">once</span></code>, <code class="docutils literal notranslate"><span class="pre">wait_for</span></code> – and we will focus on the <code class="docutils literal notranslate"><span class="pre">emit</span></code> and <code class="docutils literal notranslate"><span class="pre">on</span></code> methods. All other methods are derived from these two methods.</p>
@@ -337,7 +337,7 @@
 <p>This code will send and receive greeting events ten times in one process, let’s see how to use them in different processes.</p>
 </section>
 <section id="parallelize">
-<h2>Parallelize<a class="headerlink" href="#parallelize" title="Permalink to this headline">¶</a></h2>
+<h2>Parallelize<a class="headerlink" href="#parallelize" title="Permalink to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Parallel</span></code> module is a parallel module in DI-engine that will allow your main function to run in multiple processes. It integrates a message middleware internally, which, together with task’s event system, allows you to pass information between processes without sensing it.</p>
 <a class="reference internal image-reference" href="../_images/event_system.png"><img alt="../_images/event_system.png" class="align-center" src="../_images/event_system.png" style="width: 600px;" /></a>
 <p>When executing code with <code class="docutils literal notranslate"><span class="pre">Parallel</span></code>, the task’s internal event system will automatically route messages to connected processes. This allows you to use events and data from other processes as if you were using the event system locally.</p>
@@ -364,7 +364,7 @@
 </div>
 </section>
 <section id="deploying-on-kubernetes">
-<h2>Deploying on Kubernetes<a class="headerlink" href="#deploying-on-kubernetes" title="Permalink to this headline">¶</a></h2>
+<h2>Deploying on Kubernetes<a class="headerlink" href="#deploying-on-kubernetes" title="Permalink to this heading">¶</a></h2>
 <p>We equate distributed operation with multi-process operation, so there is no need to make any changes in the code to scale from a single to a multi-computer environment. However, we prefer to use kubernetes for DI-engine deployments to better use of task management and resource isolation techniques.</p>
 <p>To be able to run on kubernetes with one click, we recommend using the command line tool <code class="docutils literal notranslate"><span class="pre">ditask</span></code> provided by DI-engine instead of starting the application directly from a python script. <code class="docutils literal notranslate"><span class="pre">ditask</span></code> supports all parameters of the <code class="docutils literal notranslate"><span class="pre">Parallel</span></code> module, and you can start the application via ditask by simply completing the main function in your code.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ditask<span class="w"> </span>--package<span class="w"> </span>my_module<span class="w"> </span>--main<span class="w"> </span>my_module.main<span class="w"> </span>--parallel-workers<span class="w"> </span><span class="m">2</span>
@@ -407,7 +407,7 @@
 </div>
 </section>
 <section id="worker-job-pod-task-node">
-<h2>Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …<a class="headerlink" href="#worker-job-pod-task-node" title="Permalink to this headline">¶</a></h2>
+<h2>Worker &amp; Job &amp; Pod &amp; Task &amp; Node &amp; …<a class="headerlink" href="#worker-job-pod-task-node" title="Permalink to this heading">¶</a></h2>
 <p>Since DI-engine supports standalone, k8s and slurm deployment, and k8s and slurm itself have similar concepts like node and task, here are some explanations to avoid confusion.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="k">with</span> <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">OnlineRLContext</span><span class="p">()):</span>
@@ -504,9 +504,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

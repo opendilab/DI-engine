@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="ngu">
-<h1>NGU<a class="headerlink" href="#ngu" title="Permalink to this headline">¶</a></h1>
+<h1>NGU<a class="headerlink" href="#ngu" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>NGU(Never Give up) 首次在论文
 <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a> 中提出,
 通过学习一组不同程度的探索策略（directed exploratory policies） 来解决探索困难的游戏。它定义的内在奖励分为2部分: 局内内在奖励(episodic intrinsic reward) 和 局间内在奖励（life-long/inter-episodic intrinsic reward）。</p>
@@ -316,7 +316,7 @@ NGU 在 Atari-57 中的所有难于探索的任务中性能翻倍，同时在其
 作者称 NGU 是第一个在不使用专家轨迹和手工设计特征的情况下，在 Pitfall 游戏中实现非零奖励（平均得分为 8400）的算法。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>NGU 的基线强化学习算法是 <a class="reference external" href="https://openreview.net/forum?id=r1lyTjAqYX">R2D2</a> ,可以参考我们的实现
 <a class="reference external" href="hhttps://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">r2d2</a> ，它本质上是一个基于分布式框架，采用了双 Q 网络, dueling 结构，n-step td 的 DQN 算法。</p></li>
@@ -333,7 +333,7 @@ NGU 在 Atari-57 中的所有难于探索的任务中性能翻倍，同时在其
 </ol>
 </section>
 <section id="id3">
-<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>NGU 算法的整体训练与计算流程如下：</p>
 <figure class="align-center">
 <a class="reference internal image-reference" href="../_images/ngu.png"><img alt="" src="../_images/ngu.png" style="width: 692.0px; height: 284.0px;" /></a>
@@ -356,7 +356,7 @@ NGU 在 Atari-57 中的所有难于探索的任务中性能翻倍，同时在其
 </figure>
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>以下为局内内在奖励的伪代码：</p>
 <figure class="align-center">
 <a class="reference internal image-reference" href="../_images/ngu_episodic_intrinsic_reward.png"><img alt="" src="../_images/ngu_episodic_intrinsic_reward.png" style="width: 618.8px; height: 537.5999999999999px;" /></a>
@@ -365,7 +365,7 @@ NGU 在 Atari-57 中的所有难于探索的任务中性能翻倍，同时在其
 <a class="reference external" href="hhttps://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">r2d2</a> 。</p>
 </section>
 <section id="id5">
-<h2>重要的实现细节<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>重要的实现细节<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>1. 奖励归一化。在通过上面所述的算法计算得到局内内在奖励后，由于在智能体学习的不同阶段和不同的环境下，它的幅度是变化剧烈的，如果直接用作后续的计算，很容易造成学习的不稳定。在我们
 的实现中，是按照下面的最大最小归一化公式 归一化到 [0,1] 之间:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>episodic_reward = (episodic_reward - episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)，
@@ -408,14 +408,14 @@ episodic/rnd 内在奖励模型训练时 batch_size 应设置足够大(例如 32
 否则会导致下次从 replay_buffer 采样同一个样本时一直累加其内在奖励。</p>
 </section>
 <section id="id6">
-<h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>局间内在奖励模型( <code class="docutils literal notranslate"><span class="pre">RndNGURewardModel</span></code> )的接口定义如下：</p>
 <p>局内内在奖励模型( <code class="docutils literal notranslate"><span class="pre">EpisodicNGURewardModel</span></code> )的接口定义如下：</p>
 <p>NGU的接口定义如下,它相对于 r2d2 主要有以下几个改动，首先网络的输入除了时刻 t 的状态观测外，还增加了时刻 t-1 的动作，外在奖励，和beta，在实现时动作和 beta 我们都转化成了相应的 one-hot 向量.</p>
 <p>注意：<code class="docutils literal notranslate"><span class="pre">...</span></code> 表示省略的代码片段。 完整代码请参考我们的在DI-engine中的
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/reward_model/ngu_reward_model.py">实现</a> 。</p>
 <section id="rndnetwork-inversenetwork">
-<h3>RndNetwork/InverseNetwork<a class="headerlink" href="#rndnetwork-inversenetwork" title="Permalink to this headline">¶</a></h3>
+<h3>RndNetwork/InverseNetwork<a class="headerlink" href="#rndnetwork-inversenetwork" title="Permalink to this heading">¶</a></h3>
 <p>首先，我们定义类 <code class="docutils literal notranslate"><span class="pre">RndNetwork</span></code> 涉及两个神经网络：固定和随机初始化的目标网络 <code class="docutils literal notranslate"><span class="pre">self.target</span></code> ，
 和预测网络 <code class="docutils literal notranslate"><span class="pre">self.predictor</span></code> 根据代理收集的数据进行训练。我们定义类 <code class="docutils literal notranslate"><span class="pre">InverseNetwork</span></code> 也分为 2 个部分：<code class="docutils literal notranslate"><span class="pre">self.embedding_net</span></code> 负责将原始观测映射到隐空间，
 和 <code class="docutils literal notranslate"><span class="pre">self.inverse_net</span></code> 根据t时刻观测和t+1时刻观测的 <code class="docutils literal notranslate"><span class="pre">embedding</span></code> ，预测 t 时刻的动作。</p>
@@ -479,7 +479,7 @@ episodic/rnd 内在奖励模型训练时 batch_size 应设置足够大(例如 32
 </div>
 </section>
 <section id="id8">
-<h3>内在奖励计算<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>内在奖励计算<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <p>关于 RndNGURewardModel/EpisodicNGURewardModel 的训练部分请参考 <a class="reference external" href="hhttps://github.com/opendilab/DI-engine/blob/main/ding/reward_model/ngu_reward_model.py">ngu_reward_model</a> .
 这里主要展示是如何根据已经训练好的模型计算局内内在奖励(<code class="docutils literal notranslate"><span class="pre">episodic</span> <span class="pre">reward</span></code>)和局外内在奖励(<code class="docutils literal notranslate"><span class="pre">rnd</span> <span class="pre">reward</span></code>)。</p>
 <blockquote>
@@ -588,7 +588,7 @@ episodic/rnd 内在奖励模型训练时 batch_size 应设置足够大(例如 32
 </div></blockquote>
 </section>
 <section id="id9">
-<h3>融合局内内在奖励和局外内在奖励<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>融合局内内在奖励和局外内在奖励<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fusion_reward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">inter_episodic_reward</span><span class="p">,</span> <span class="n">episodic_reward</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">collector_env_num</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">estimate_cnt</span><span class="p">):</span>
     <span class="n">estimate_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -659,12 +659,12 @@ episodic/rnd 内在奖励模型训练时 batch_size 应设置足够大(例如 32
 </section>
 </section>
 <section id="id10">
-<h2>基准算法性能<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <p>读者仔细思考可以发现NGU仍然存在一些问题：例如如何选择 N,将内在奖励和外在奖励分为 2 个 Q 网络来学习，如何自适应的奖励选择折扣因子和内在奖励权重系数。
 有兴趣的读者可以阅读后续改进工作 <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human Benchmark</a>.</p>
 </section>
 <section id="id11">
-<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Badia A P, Sprechmann P, Vitvitskyi A, et al. Never give up: Learning directed exploration strategies[J]. arXiv preprint arXiv:2002.06038, 2020.</p></li>
 <li><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>. arXiv:1810.12894, 2018.</p></li>
@@ -750,9 +750,8 @@ episodic/rnd 内在奖励模型训练时 batch_size 应设置足够大(例如 32
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

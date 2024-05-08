@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="google-research-football-gfootball">
-<h1>Google Research Football (Gfootball)<a class="headerlink" href="#google-research-football-gfootball" title="Permalink to this headline">¶</a></h1>
+<h1>Google Research Football (Gfootball)<a class="headerlink" href="#google-research-football-gfootball" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Google Research Football（以下简称 Gfootball）是 Google 团队在开源足球游戏 GamePlay Football的基础上创建的适用于强化学习研究的足球环境，
 兼容 OpenAI Gym API，不仅可用于智能体训练，也允许玩家以键盘或手柄输入与内置AI或训练的智能体进行游戏。下图为渲染后的 Gfootball 游戏环境。</p>
 <figure class="align-center">
@@ -309,7 +309,7 @@
 </figure>
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>依赖包</p></li>
 </ol>
@@ -357,7 +357,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 <p>更多安装环境相关的问题，可以参考<a class="reference external" href="https://github.com/google-research/football">Gfootball 官网 github</a>。此外，官方也提供了 docker image 用于在 docker 环境中部署环境，可以参考 <a class="reference external" href="https://github.com/google-research/football/blob/master/gfootball/doc/docker.md">docker 部署文档</a> 。</p>
 </section>
 <section id="api">
-<h2>环境创建API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<h2>环境创建API<a class="headerlink" href="#api" title="Permalink to this heading">¶</a></h2>
 <p>在导入并创建环境成功后，可以通过与 openAI gym 相同的代码来与环境交互：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gfootball.env</span> <span class="k">as</span> <span class="nn">football_env</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">football_env</span><span class="o">.</span><span class="n">create_environment</span><span class="p">(</span>
@@ -403,7 +403,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </div>
 </section>
 <section id="id4">
-<h2>状态空间<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>状态空间<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p><strong>一般使用raw输入信息</strong></p>
 <ul class="simple">
 <li><p>球信息：</p>
@@ -545,7 +545,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </ul>
 </section>
 <section id="id5">
-<h2>动作空间<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>动作空间<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>Gfootball 的动作空间为 19 维离散动作：</p>
 <ul class="simple">
 <li><p>无状态动作</p>
@@ -586,7 +586,7 @@ python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </s
 </ul>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练入口见<a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gfootball/entry">DI-zoo
 gfootball</a>。使用 ppo-lstm 进行self-play 训练的配置文件如下。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -699,7 +699,7 @@ gfootball</a>。使用 ppo-lstm 进行self-play 训练的配置文件如下。</
 </div>
 </section>
 <section id="id6">
-<h2>训练实例<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>训练实例<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>在 DI-engine 的状态空间下，经过 reward 设计和动作空间约束，self play 训练中对内置 hard AI 胜率曲线如下图所示：</p>
 <a class="reference internal image-reference" href="../_images/gfootball_train.png"><img alt="../_images/gfootball_train.png" class="align-center" src="../_images/gfootball_train.png" style="width: 572.0px; height: 373.6px;" /></a>
 </section>
@@ -775,9 +775,8 @@ gfootball</a>。使用 ppo-lstm 进行self-play 训练的配置文件如下。</
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

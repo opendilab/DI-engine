@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="procgen">
-<h1>Procgen<a class="headerlink" href="#procgen" title="Permalink to this headline">¶</a></h1>
+<h1>Procgen<a class="headerlink" href="#procgen" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Procgen Benchmark 是 OpenAI 发布的一组利用 16 种利用程序随机生成的环境（CoinRun，StarPilot，CaveFlyer，Dodgeball，FruitBot，Chaser，Miner，Jumper，Leaper，Maze，BigFish，Heist，Climber，Plunder，Ninja 和 BossFight）。
 procgen 的全称是 Procedural Generation，表示程序化生成。对于 procgen 环境，它可以生成同一难度但是采用不同地图的游戏，也可以生成采用同一地图但是不同难度的游戏，可以用来衡量模型学习通用技能的速度，从而判断算法对于环境的泛化能力。下图所示为其中的 Coinrun 游戏。</p>
 <img alt="../_images/coinrun.gif" class="align-center" src="../_images/coinrun.gif" />
@@ -311,9 +311,9 @@ procgen 的全称是 Procedural Generation，表示程序化生成。对于 proc
 <img alt="../_images/coinrun_level3.png" class="align-center" src="../_images/coinrun_level3.png" />
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>可以通过 pip 一键安装或结合 DI-engine 安装，只需要安装 gym 和 gym[procgen] 两个库即可完成</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>gym
@@ -325,7 +325,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;procgen:procgen-maze-v0&#39;</span><span class="p">,</span> <span class="n">start_level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_levels</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -338,15 +338,15 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </section>
 </section>
 <section id="id5">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>实际的游戏画面，RGB 三通道图片，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(64,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
 </ul>
 </section>
 <section id="id7">
-<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏操作按键空间，一般是大小为 N 的离散动作空间（N 随具体子环境变化），数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入 python 数值（或是 0 维 np 数组，例如动作 3 为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）</p></li>
 <li><p>如在 Coinrun 环境中，N 的大小为 5，即动作在 0-4 中取值，具体的含义是：</p>
@@ -361,20 +361,20 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏得分，根据具体游戏内容不同会有一定的差异，一般是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值， 如在 Coinrun 环境中， 吃到硬币则奖励 10.0分，除此以外没有其它奖励。</p></li>
 </ul>
 </section>
 <section id="id9">
-<h3>其他<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏结束即为当前环境 episode 结束，例如在 coinrun 中，智能体吃到硬币或者游戏时间超过了允许的最长游戏时间，则游戏结束。</p></li>
 </ul>
 </section>
 </section>
 <section id="id10">
-<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>2D RGB三通道图像输入，三维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">255]</span></code></p></li>
 <li><p>离散动作空间</p></li>
@@ -383,22 +383,22 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </ol>
 </section>
 <section id="rl">
-<h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this heading">¶</a></h2>
 <section id="id11">
-<h3>观察空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：将尺寸由<code class="docutils literal notranslate"><span class="pre">（64</span> <span class="pre">,64</span> <span class="pre">,3）</span></code>调整为<code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">64,</span> <span class="pre">64)</span></code></p></li>
 <li><p>变换结果：三维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">84,</span> <span class="pre">84)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">255]</span></code></p></li>
 </ul>
 </section>
 <section id="id12">
-<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，依然是大小为N的离散动作空间，但一般为一维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
 </section>
 <section id="id13">
-<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换</p></li>
 </ul>
@@ -413,20 +413,20 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </div>
 </section>
 <section id="id14">
-<h3>其他<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">eval_episode_return</span></code>键值对，表示整个 episode 的评测指标，在 Procgen 中为整个 episode 的奖励累加和</p></li>
 </ul>
 </section>
 </section>
 <section id="id15">
-<h2>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h2>
 <section id="id16">
-<h3>惰性初始化<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
 </section>
 <section id="id17">
-<h3>随机种子<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<h3>随机种子<a class="headerlink" href="#id17" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
 <li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
@@ -435,13 +435,13 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </ul>
 </section>
 <section id="id18">
-<h3>训练和测试环境的区别<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<h3>训练和测试环境的区别<a class="headerlink" href="#id18" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
 </section>
 <section id="id19">
-<h3>存储录像<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<h3>存储录像<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.procgen.coinrun.envs</span> <span class="kn">import</span> <span class="n">CoinRunEnv</span>
@@ -461,7 +461,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen/coinrun/entry">github
 link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">coinrun_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
@@ -523,7 +523,7 @@ link</a>
 </div>
 </section>
 <section id="id20">
-<h2>基准算法性能<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id20" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>Coinrun（平均奖励等于 10 视为较好的 Agent）</p>
 <ul class="simple">
@@ -632,9 +632,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

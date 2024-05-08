@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,23 +299,23 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="gym-hybrid">
-<h1>Gym-Hybrid<a class="headerlink" href="#gym-hybrid" title="Permalink to this headline">¶</a></h1>
+<h1>Gym-Hybrid<a class="headerlink" href="#gym-hybrid" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>在 gym-hybrid 任务中, 智能体需要在一个正方形框内，从随机出发点启动，通过加速（Accelerate）、转向（Turn）或刹车（Break）等一系列控制操作，最终希望停留在绿色目标区域（一个有目标旗帜的圆）。如下图所示：</p>
 <a class="reference internal image-reference" href="../_images/hybrid.gif"><img alt="../_images/hybrid.gif" class="align-center" src="../_images/hybrid.gif" style="width: 448.0px; height: 336.0px;" /></a>
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>./DI-engine/dizoo/gym_hybrid/envs/gym-hybrid
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>方法一: 运行如下命令, 如果能正常显示版本信息，即顺利安装完成。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>show<span class="w"> </span>gym-hybrid
 </pre></div>
@@ -331,9 +331,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 </section>
 <section id="id5">
-<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <p>Gym-hybrid 的动作空间属于离散连续动作混合空间，有3 个离散动作：<code class="docutils literal notranslate"><span class="pre">Accelerate</span></code> ，<code class="docutils literal notranslate"><span class="pre">Turn</span></code> ，<code class="docutils literal notranslate"><span class="pre">Break</span></code> ，其中动作 <code class="docutils literal notranslate"><span class="pre">Accelerate</span></code> ，<code class="docutils literal notranslate"><span class="pre">Turn</span></code> 需要给出对应的 1 维连续参数。</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Accelerate</span> <span class="pre">(Acceleration</span> <span class="pre">value)</span></code> : 表示让智能体以 <code class="docutils literal notranslate"><span class="pre">acceleration</span> <span class="pre">value</span></code> 的大小加速。 <code class="docutils literal notranslate"><span class="pre">Acceleration</span> <span class="pre">value</span></code> 的取值范围是<code class="docutils literal notranslate"><span class="pre">[0,1]</span></code> 。数值类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
@@ -350,7 +350,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="id7">
-<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>Gym-hybrid 的状态空间是一个有 10 个元素的数组，描述了当前智能体的状态，包含智能体当前的坐标，速度，朝向角度的正余弦值，目标的坐标，距离目标的距离，是否达到目标，当前相对步数。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">agent</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
@@ -368,7 +368,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <p>每一步的奖励设置为，智能体上一个 step 执行动作后到目标的距离，减去当前 step 执行动作后距离目标的距离，即<code class="docutils literal notranslate"><span class="pre">dist_t-1</span> <span class="pre">-</span> <span class="pre">dist_t</span></code> 。另外，算法内置了一个惩罚项<code class="docutils literal notranslate"><span class="pre">penalty</span></code> 来激励智能体更快的
 达到目标。当 episode 结束时，如果智能体在目标区域停下来，就会获得额外的 reward，值为 1；如果智能体出界或是超过 episode 最大步数，则不会获得额外奖励。奖励的伪代码实现如下：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reward</span> <span class="o">=</span> <span class="n">last_distance</span> <span class="o">-</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">penalty</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">goal</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
@@ -376,7 +376,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="id9">
-<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <p>遇到以下任何一种情况，则环境会该认为当前 episode 终止：</p>
 <ul class="simple">
 <li><p>智能体成功进入目标区域</p></li>
@@ -385,12 +385,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </section>
 <section id="id10">
-<h3>内置环境<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<h3>内置环境<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
 <p>内置有两个环境，<code class="docutils literal notranslate"><span class="pre">&quot;Moving-v0&quot;</span></code> 和<code class="docutils literal notranslate"><span class="pre">&quot;Sliding-v0&quot;</span></code> 。前者不考虑惯性守恒，而后者考虑（所以更切合实际）。两个环境在状态空间、动作空间、奖励空间上都保持一致。</p>
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_hybrid/config">github
 link</a>
 内，对于具体的配置文件，例如 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/gym_hybrid/config/gym_hybrid_ddpg_config.py">gym_hybrid_ddpg_config.py</a> ，使用如下命令即可运行：</p>
@@ -399,7 +399,7 @@ link</a>
 </div>
 </section>
 <section id="id11">
-<h2>基准算法性能<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>Moving-v0（10M env step 后停止，平均奖励大于等于 1.8 视为表现较好的智能体）</p>
 <ul class="simple">
@@ -491,9 +491,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="bsuite">
-<h1>Bsuite<a class="headerlink" href="#bsuite" title="Permalink to this headline">¶</a></h1>
+<h1>Bsuite<a class="headerlink" href="#bsuite" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bsuite</span></code>  是一个精心设计的环境集合，研究强化学习智能体的在不同方面的核心能力。其主要有两个目标：</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -333,9 +333,9 @@ action space <span class="math notranslate nohighlight">\(\mathcal{A}=\{-1,+1\}\
 </figure>
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>你需要使用下列 <code class="docutils literal notranslate"><span class="pre">pip</span></code> 命令来安装 bsuite。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip<span class="w"> </span>install<span class="w"> </span>bsuite
@@ -343,7 +343,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>一旦安装完毕，你可以通过在 Python 命令行上运行以下命令来验证安装是否成功。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">bsuite</span><span class="o">.</span><span class="n">load_from_id</span><span class="p">(</span><span class="s1">&#39;memory_len/0&#39;</span><span class="p">)</span> <span class="c1"># this environment configuration is &#39;memory steps&#39; long</span>
@@ -354,9 +354,9 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </section>
 </section>
 <section id="id5">
-<h2>原始环境空间<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>原始环境空间<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>智能体的观察是一个三维的向量。数据类型是 <code class="docutils literal notranslate"><span class="pre">float32</span></code>。它们的具体含义如下：</p></li>
 </ul>
@@ -369,13 +369,13 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div></blockquote>
 </section>
 <section id="id7">
-<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>动作空间是一个大小为 2 的离散空间，它是 {-1,1}。 数据类型为 <code class="docutils literal notranslate"><span class="pre">int</span></code>。</p></li>
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>奖励空间是一个大小为 3 的离散空间，是一个 <code class="docutils literal notranslate"><span class="pre">float</span></code> 值。</p></li>
 </ul>
@@ -388,14 +388,14 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div></blockquote>
 </section>
 <section id="id9">
-<h3>其他<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>其他<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境一旦达到其最大步数N，就会终止。</p></li>
 </ul>
 </section>
 </section>
 <section id="id10">
-<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>我们可以改变记忆的长度N，使其逐渐变得更具挑战性。</p></li>
 <li><p>离散行动空间。</p></li>
@@ -403,9 +403,9 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </ol>
 </section>
 <section id="id11">
-<h2>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <section id="openai-gym-bsuite">
-<h3>以”OpenAI Gym“ 格式使用 bsuite<a class="headerlink" href="#openai-gym-bsuite" title="Permalink to this headline">¶</a></h3>
+<h3>以”OpenAI Gym“ 格式使用 bsuite<a class="headerlink" href="#openai-gym-bsuite" title="Permalink to this heading">¶</a></h3>
 <p>我们的实现使用bsuite Gym包装器来使bsuite代码库在OpenAI Gym接口下运行。因此，需要安装 <code class="docutils literal notranslate"><span class="pre">gym</span></code> 来使bsuite正常工作。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
 <span class="kn">from</span> <span class="nn">bsuite.utils</span> <span class="kn">import</span> <span class="n">gym_wrapper</span>
@@ -415,7 +415,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div>
 </section>
 <section id="id12">
-<h3>配置<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<h3>配置<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <p>配置的设计是为了提高环境的难度水平。例如，在一个五臂老虎机的环境中，配置被用来调节噪音水平以扰乱奖励。给定一个特定的环境，所有可能的配置都可以通过下面的代码片断进行可视化。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">bsuite</span> <span class="kn">import</span> <span class="n">sweep</span>  <span class="c1"># this module contains information about all the environments</span>
 <span class="k">for</span> <span class="n">bsuite_id</span> <span class="ow">in</span> <span class="n">sweep</span><span class="o">.</span><span class="n">BANDIT_NOISE</span><span class="p">:</span>
@@ -435,7 +435,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的训练配置可以在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/config/serial">github
 链接</a> 中找到。
 在下面的部门，我们展示了一个配置文件的例子，<code class="docutils literal notranslate"><span class="pre">memory_len_0_dqn_config.py</span></code>，你可以用下面的代码来运行这个演示：</p>
@@ -498,7 +498,7 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
 </div>
 </section>
 <section id="id13">
-<h2>基准算法性能<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
 <li><p>memory_len/15 + R2D2</p></li>
@@ -594,9 +594,8 @@ pip<span class="w"> </span>install<span class="w"> </span>bsuite
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

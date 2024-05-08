@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,17 +299,17 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="dmc2gym">
-<h1>dmc2gym<a class="headerlink" href="#dmc2gym" title="Permalink to this headline">¶</a></h1>
+<h1>dmc2gym<a class="headerlink" href="#dmc2gym" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>dmc2gym 是针对<a class="reference external" href="https://github.com/deepmind/dm_control">DeepMind Control Suite</a>的轻量级wrapper，提供标准的 OpenAI Gym 接口。
 DeepMind Control Suite 是一组具有标准化结构和可解释奖励的连续控制任务，旨在作为强化学习agent的性能基准。</p>
 <img alt="../_images/dmc2gym.png" class="align-center" src="../_images/dmc2gym.png" />
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>需要安装 <code class="docutils literal notranslate"><span class="pre">gym</span></code>， <code class="docutils literal notranslate"><span class="pre">dm_control</span></code>和 <code class="docutils literal notranslate"><span class="pre">dmc2gym</span></code> , 用户可以选择通过下列 pip 命令一键安装。（注意 <code class="docutils literal notranslate"><span class="pre">dm_control</span></code> 如果存在问题请参考官方的<a class="reference external" href="https://github.com/deepmind/dm_control">相关说明</a>）</p>
 <p>注：如果要把相应的包安装到用户目录（例如用户没有 root 权限，需将相应的包安装到用户目录），请在 install 的命令后面加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code>。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Directly</span>
@@ -320,7 +320,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dmc2gym</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">dmc2gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">domain_name</span><span class="o">=</span><span class="s1">&#39;point_mass&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="s1">&#39;easy&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -330,14 +330,14 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </div>
 </section>
 <section id="id5">
-<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<h3>镜像<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>DI-engine 的镜像配备有框架本身和 dmc2gym 环境，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-dmc2gym</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/r/opendilab/ding">docker hub</a>获取更多镜像</p>
 </section>
 </section>
 <section id="id6">
-<h2>环境介绍<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>环境介绍<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <section id="id7">
-<h3>选择任务<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>选择任务<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <p>dm_control 包含多个domain （即物理模型），而不同domain有不同的task（具有特定 MDP 结构的模型的实例）。我们这里暂时实现了如下 domain 及其 task ：</p>
 <ul>
 <li><p>Ball in cup</p>
@@ -410,13 +410,6 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 <li><p>相应的状态空间、动作空间、观察空间<code class="docutils literal notranslate"><span class="pre">(dim(S),</span> <span class="pre">dim(A),</span> <span class="pre">dim(O))</span></code>如下表所示：</p></li>
 </ul>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 21%" />
-<col style="width: 18%" />
-<col style="width: 21%" />
-<col style="width: 21%" />
-<col style="width: 19%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Domain</p></th>
 <th class="head"><p>Task</p></th>
@@ -479,9 +472,9 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </div>
 </section>
 <section id="id8">
-<h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <section id="id9">
-<h4>基于图像观察<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h4>
+<h4>基于图像观察<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>即当设置<code class="docutils literal notranslate"><span class="pre">from_pixels=True</span></code>时，观察空间为三通道，长宽分别为height, width的游戏图像</p></li>
 <li><p>可以通过设置<code class="docutils literal notranslate"><span class="pre">height,</span> <span class="pre">width</span></code>参数调整所观察图像尺寸。</p></li>
@@ -495,7 +488,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </ul>
 </section>
 <section id="id10">
-<h4>非基于图像观察<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
+<h4>非基于图像观察<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>即当设置<code class="docutils literal notranslate"><span class="pre">from_pixels=False</span></code>时，观察空间维度遵循上述表格的中<code class="docutils literal notranslate"><span class="pre">dim(O)</span></code></p></li>
 <li><p>默认范围为 <code class="docutils literal notranslate"><span class="pre">[-inf,</span> <span class="pre">inf]</span></code></p></li>
@@ -503,16 +496,16 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </section>
 </section>
 <section id="id11">
-<h3>动作空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>动作空间维度遵循上述表格的中<code class="docutils literal notranslate"><span class="pre">dim(A)</span></code></p></li>
 <li><p>dmc2gym 对动作空间进行了标准化，每个维度动作空间的范围是<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>，类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>。</p></li>
 </ul>
 </section>
 <section id="id12">
-<h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h3>
 <section id="id13">
-<h4>基于图像观察<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<h4>基于图像观察<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>与 <code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>参数有关，即表示每一步基于<code class="docutils literal notranslate"><span class="pre">frame_skip</span></code>帧的图像，维度为<code class="docutils literal notranslate"><span class="pre">(1,)</span></code></p></li>
 <li><p>范围为<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">frame_skip]</span></code>，类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>，默认<code class="docutils literal notranslate"><span class="pre">frame_skip</span> <span class="pre">=</span> <span class="pre">1</span></code></p>
@@ -523,7 +516,7 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </ul>
 </section>
 <section id="id14">
-<h4>非基于图像观察<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
+<h4>非基于图像观察<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>维度为 <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，范围 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>，类型为 <code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
 </ul>
@@ -531,17 +524,17 @@ pip<span class="w"> </span>install<span class="w"> </span>git+git://github.com/d
 </section>
 </section>
 <section id="id15">
-<h2>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h2>
 <section id="id16">
-<h3>中止条件<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<h3>中止条件<a class="headerlink" href="#id16" title="Permalink to this heading">¶</a></h3>
 <p>控制任务分为 finite-horizon, firstexit 以及 infinite-horizon ， DeepMind Control Suite 属于 infinite-horizon ，所以任务没有中止状态或时间限制。</p>
 </section>
 <section id="id17">
-<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this heading">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
 </section>
 <section id="id18">
-<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
 <li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
@@ -551,7 +544,7 @@ np_seed = 100 * np.random.randint(1, 1000)。</p></li>
 </ul>
 </section>
 <section id="id19">
-<h3>存储录像<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<h3>存储录像<a class="headerlink" href="#id19" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.dmc2gym.envs</span> <span class="kn">import</span> <span class="n">DMC2GymEnv</span>
@@ -577,7 +570,7 @@ np_seed = 100 * np.random.randint(1, 1000)。</p></li>
 </section>
 </section>
 <section id="di-zoo">
-<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this heading">¶</a></h2>
 <p>完整的示例文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/dmc2gym/entry/dmc2gym_save_replay_example.py">github
 link</a>
 内</p>
@@ -745,9 +738,8 @@ link</a>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

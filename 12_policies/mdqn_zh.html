@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,15 +299,15 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="mdqn">
-<h1>MDQN<a class="headerlink" href="#mdqn" title="Permalink to this headline">¶</a></h1>
+<h1>MDQN<a class="headerlink" href="#mdqn" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>MDQN 是在 <a class="reference external" href="https://arxiv.org/abs/2007.14430">Munchausen Reinforcement Learning</a> 中提出的。 作者将这种通用方法称为 “Munchausen Reinforcement Learning”
 (M-RL)， 以纪念 Raspe 的《吹牛大王历险记》中的一段著名描写， 即 Baron 通过拉自己的头发从沼泽中脱身的情节。
 从实际使用的角度来看， MDQN 和 DQN 之间的关键区别是 Soft-DQN (传统 DQN 算法的扩展)的即时奖励中添加了一个缩放的 log-policy 。</p>
 </section>
 <section id="id2">
-<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>1。 MDQN 是一种 <strong>无模型 (model-free)</strong> 且 <strong>基于值函数 (value-based)</strong> 的强化学习算法。</p>
 <p>2。 MDQN 只支持 <strong>离散 (discrete)</strong>  动作空间。</p>
 <p>3。 MDQN 是一个 <strong>异策略 (off-policy)</strong> 算法。</p>
@@ -315,7 +315,7 @@
 <p>5。 MDQN 增加了 <strong>动作间隔 (action gap)</strong> ， 并具有隐式的 <strong>KL正则化 (KL regularization)</strong> 。</p>
 </section>
 <section id="id3">
-<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>MDQN 中使用的目标 Q 值 (target Q value) 是:</p>
 <div class="math notranslate nohighlight">
 \[\hat{q}_{\mathrm{m} \text {-dqn }}\left(r_t, s_{t+1}\right)=r_t+\alpha \tau \ln \pi_{\bar{\theta}}\left(a_t \mid s_t\right)+\gamma \sum_{a^{\prime} \in A} \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\left(q_{\bar{\theta}}\left(s_{t+1}, a^{\prime}\right)-\tau \ln \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\right)\]</div>
@@ -323,36 +323,36 @@
 <div class="math notranslate nohighlight">
 \[\tau \ln \pi_{k}=q_k-v_k-\tau \ln \left\langle 1, \exp \frac{q_k-v_k}{\tau}\right\rangle\]</div>
 <p>其中  <span class="math notranslate nohighlight">\(q_k\)</span>  在我们的代码中表示为  <cite>target_q_current</cite> 。 对于最大熵部分  <span class="math notranslate nohighlight">\(\tau \ln \pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\)</span> 我们使用相同的公式进行计算，其中  <span class="math notranslate nohighlight">\(q_{k+1}\)</span> 在我们的代码中表示为 <cite>target_q</cite> 。</p>
-<p>我们将 <span class="math notranslate nohighlight">\(\tau \ln \pi(a \mid s)\)</span> 替换为 <span class="math notranslate nohighlight">\([\tau \ln \pi(a \mid s)]_{l_0}^0\)</span> 因为对数策略项 (log-policy term) 是无界的， 如果策略变得过于接近确定性策略 (deterministic policy) ，可能会导致数值性问题 (numerical issues) 。</p>
+<p>我们将 <span class="math notranslate nohighlight">\(\tau \ln \pi(a \mid s)\)</span> 替换为 <span class="math notranslate nohighlight">\([\tau \ln \pi(a \mid s)]_{l_0}^0`\)</span> 因为对数策略项 (log-policy term) 是无界的， 如果策略变得过于接近确定性策略 (deterministic policy) ，可能会导致数值性问题 (numerical issues) 。</p>
 <p>同时还将 <span class="math notranslate nohighlight">\(\pi_{\bar{\theta}}\left(a^{\prime} \mid s_{t+1}\right)\)</span> 替换为 <span class="math notranslate nohighlight">\(softmax(q-v)\)</span> ，因为这是在官方实现中使用的方法，但他们并未在论文中提及。</p>
 <p>我们使用上述改动后的配置在 asterix 进行测试，得到了与原论文相同的结果， 即MDQN可以增加动作间隙 (action gap) 。</p>
 <img alt="../_images/action_gap.png" class="align-center" src="../_images/action_gap.png" />
 </section>
 <section id="id4">
-<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <img alt="../_images/mdqn.png" class="align-center" src="../_images/mdqn.png" />
 </section>
 <section id="id5">
-<h2>扩展<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>扩展<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>TBD</p></li>
 </ul>
 </section>
 <section id="id6">
-<h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>实现<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>MDQNPolicy 的默认配置如下：</p>
 <p>MDQN 使用的 TD error 接口定义如下：</p>
 </section>
 <section id="benchmark">
-<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
-<table class="colwidths-given docutils align-default" id="id8">
+<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading">¶</a></h2>
+<table class="docutils align-default" id="id8">
 <caption><span class="caption-text">Benchmark and comparison of mdqn algorithm</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col style="width: 25%" />
-<col style="width: 15%" />
-<col style="width: 30%" />
-<col style="width: 15%" />
-<col style="width: 15%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>environment</p></th>
@@ -420,7 +420,7 @@
 </ul>
 </section>
 <section id="id7">
-<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Vieillard, Nino, Olivier Pietquin, and Matthieu Geist. “Munchausen reinforcement learning.” Advances in Neural Information Processing Systems 33 (2020): 4235-4246.</p></li>
 </ul>
@@ -498,9 +498,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,16 +299,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="sokoban">
-<h1>Sokoban<a class="headerlink" href="#sokoban" title="Permalink to this headline">¶</a></h1>
+<h1>Sokoban<a class="headerlink" href="#sokoban" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>Sokoban 是一种离散动作空间环境。在该游戏中，智能体需要在离散动作集合中选择动作，目标是将房间中所有的箱子推到指定位置。这里的 Sokoban 环境实现了房间的随机生成，避免深度神经网络因为预定义的房间而训练过拟合。</p>
 <a class="reference internal image-reference" href="../_images/sokoban.gif"><img alt="../_images/sokoban.gif" class="align-center" src="../_images/sokoban.gif" style="width: 112.0px; height: 112.0px;" /></a>
 </section>
 <section id="id2">
-<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <section id="id3">
-<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <p>用户可以选择通过 pip 一键安装或 git clone 代码库后 pip 本地安装</p>
 <p>注：如果用户没有 root 权限，请在 install 命令后加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code></p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
@@ -321,7 +321,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </div>
 </section>
 <section id="id4">
-<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <p>安装完成后，运行如下 Python 程序，如果没有报错则证明安装成功。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">gym_sokoban</span>
@@ -333,16 +333,16 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 </section>
 <section id="id5">
-<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <section id="id6">
-<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>实际的游戏画面，RGB 三通道图片，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(160,</span> <span class="pre">160,</span> <span class="pre">3)</span></code>(以 Sokoban-v0 为例)，数据类型为<code class="docutils literal notranslate"><span class="pre">uint8</span></code></p></li>
 <li><p>每个房间中包含五种主要元素：墙壁，地板，箱子，目标点，和玩家，在游戏画面中以不同颜色标识。当箱子和玩家与目标点重合时，颜色也会发生变化。</p></li>
 </ul>
 </section>
 <section id="id7">
-<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏提供了 9 种环境交互动作，形成大小为 9 的离散动作空间，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入 python 数值（或是 0 维 np 数组，例如动作 3 为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）。动作在 0-8 中取值，具体的含义是：</p>
 <ul>
@@ -362,7 +362,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </section>
 <section id="id8">
-<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>游戏得分，一般是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值，具体的数值如下：</p>
 <ul>
@@ -375,13 +375,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </section>
 <section id="id9">
-<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>所有箱子都推到目标点上，或者行动步数到达最大步数 max_step ，则当前环境 episode 结束。默认 max_step 为 120 步，可在 config 中调节。</p></li>
 </ul>
 </section>
 <section id="id10">
-<h3>内置环境<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<h3>内置环境<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>Sokoban 内置了 9 个环境，分别为 <code class="docutils literal notranslate"><span class="pre">Sokoban-v0</span></code>, <code class="docutils literal notranslate"><span class="pre">Sokoban-v1</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-v2</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-small-v0</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-small-v1</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-large-v0</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-large-v1</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-large-v2</span></code>， <code class="docutils literal notranslate"><span class="pre">Sokoban-huge-v0</span></code>。环境仅有房间大小和箱子数量差异，房间内部环境均为随机生成。</p></li>
 <li><p>例如 <code class="docutils literal notranslate"><span class="pre">Sokoban-v0</span></code> 即为房间大小为 10×10，房间里有 3 个箱子。每次 reset 后，会根据房间大小和箱子数量随机生成环境。</p></li>
@@ -390,20 +390,20 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </section>
 </section>
 <section id="id11">
-<h2>关键事实<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<h2>关键事实<a class="headerlink" href="#id11" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>稀疏奖励环境，仅在箱子推到目标点时能获得正奖励。奖励取值范围较小，最大值为 10+N ， N 为箱子数量。最小值为 -max_step 。</p></li>
 <li><p>离散动作空间</p></li>
 </ol>
 </section>
 <section id="id12">
-<h2>其他<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<h2>其他<a class="headerlink" href="#id12" title="Permalink to this heading">¶</a></h2>
 <section id="id13">
-<h3>惰性初始化<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<h3>惰性初始化<a class="headerlink" href="#id13" title="Permalink to this heading">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
 </section>
 <section id="id14">
-<h3>随机种子<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<h3>随机种子<a class="headerlink" href="#id14" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
 <li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
@@ -412,7 +412,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </ul>
 </section>
 <section id="id15">
-<h3>存储录像<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<h3>存储录像<a class="headerlink" href="#id15" title="Permalink to this heading">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrappers.RecordVideo</span></code>实现 ），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在<code class="docutils literal notranslate"><span class="pre">./video/</span></code>中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.sokoban.envs.sokoban_env</span> <span class="kn">import</span> <span class="n">SokobanEnv</span>
@@ -517,9 +517,8 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

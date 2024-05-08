@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="wrapper">
-<h1>如何自定义模型 Wrapper<a class="headerlink" href="#wrapper" title="Permalink to this headline">¶</a></h1>
+<h1>如何自定义模型 Wrapper<a class="headerlink" href="#wrapper" title="Permalink to this heading">¶</a></h1>
 <section id="id1">
-<h2>模型包装器的功能<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>模型包装器的功能<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>通常强化学习模型的输出是 V, Q 或者动作 logits。 DI-engine需要定制模型来输出这些的部分或者全部。 为了提高模型的可用性并支持更多
 功能, DI-engine 提供模型 wrapper 去通过某个具体的策略（比如RNN或者其他方程）去采样动作。</p>
 <p>DI-engine 提供以下模型 wrapper：</p>
@@ -316,7 +316,7 @@ MultinomialSampleWrapper，EpsGreedySampleWrapper：允许用户通过 argmax、
 </ul>
 </section>
 <section id="id2">
-<h2>举例<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<h2>举例<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
 <p>用户可以参考以下步骤自定义模型 wrapper：</p>
 <ol class="arabic simple">
 <li><p>像其他 wrapper 一样定义模型 wrapper 类
@@ -471,9 +471,8 @@ is ‘prev_state’</p></li>
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   

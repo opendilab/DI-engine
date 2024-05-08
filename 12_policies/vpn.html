@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,9 +299,9 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="vpn">
-<h1>VPN<a class="headerlink" href="#vpn" title="Permalink to this headline">¶</a></h1>
+<h1>VPN<a class="headerlink" href="#vpn" title="Permalink to this heading">¶</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>Value Prediction Network(VPN) was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.03497">Value Prediction Network</a> from NeurIPS 2017.
 Value prediction network is an improvement upon the traditional model-based reinforcement learning algorithm
 and a predecessor of the Muzero algorithm.</p>
@@ -313,7 +313,7 @@ VPN performs lookahead planning to choose actions and compute bootstrapped targe
 sufficient for computing future rewards and values)</p>
 </section>
 <section id="quick-facts">
-<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>VPN can be viewed as combination of model-based RL and model-free RL.</p></li>
 <li><p>The model-based part of VPN is to learn the dynamics of an abstract state space sufficient for computing future rewards and values, and the model-free part of VPN is to map the learned abstract states to rewards and values.</p></li>
@@ -340,7 +340,7 @@ which makes it difficult for model-based algorithms to learn the observation-pre
 </div>
 </section>
 <section id="key-equations-or-key-graphs">
-<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this heading">¶</a></h2>
 <p>Value Prediction Network mainly consists of 4 parts:</p>
 <p>The VPN consists of the following modules parameterized by <span class="math notranslate nohighlight">\(\theta=\left\{\theta^{\text {enc }}, \theta^{\text {value }}, \theta^{\text {out }}, \theta^{\text {trans }}\right\}\)</span>:</p>
 <blockquote>
@@ -379,11 +379,11 @@ f_{\theta}^{\text {trans }}\left(\mathbf{s}_{t-1}^{k-1}, \mathbf{o}_{t-1}\right)
 <img alt="../_images/vpn-learning.png" class="align-center" src="../_images/vpn-learning.png" />
 </section>
 <section id="pseudo-code">
-<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this heading">¶</a></h2>
 <img alt="../_images/vpn-code.png" src="../_images/vpn-code.png" />
 </section>
 <section id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this heading">¶</a></h2>
 <ul>
 <li><p>VPN can be combined with:</p>
 <blockquote>
@@ -401,7 +401,7 @@ replaces the simple rollout with MCTS, and achieves superhuman performance in a 
 </ul>
 </section>
 <section id="implementations">
-<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <blockquote>
 <div><ul class="simple">
@@ -416,7 +416,7 @@ replaces the simple rollout with MCTS, and achieves superhuman performance in a 
 </div></blockquote>
 </section>
 <section id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">¶</a></h2>
 <p>Junhyuk Oh, Satinder Singh, Honglak Lee: “Value Prediction Network”, 2017; [<a class="reference external" href="http://arxiv.org/abs/1707.03497">http://arxiv.org/abs/1707.03497</a> arXiv:1707.03497].</p>
 <p>Julian Schrittwieser, Ioannis Antonoglou, Thomas Hubert, Karen Simonyan, Laurent Sifre, Simon Schmitt, Arthur Guez, Edward Lockhart, Demis Hassabis, Thore Graepel, Timothy Lillicrap, David Silver: “Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1911.08265">http://arxiv.org/abs/1911.08265</a> arXiv:1911.08265]. DOI: [https://dx.doi.org/10.1038/s41586-020-03051-4 10.1038/s41586-020-03051-4].</p>
 </section>
@@ -492,9 +492,8 @@ replaces the simple rollout with MCTS, and achieves superhuman performance in a 
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
 

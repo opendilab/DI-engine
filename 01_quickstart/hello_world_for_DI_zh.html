@@ -9,7 +9,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -299,7 +299,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <section id="id1">
-<h1>冒险，开始！<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>冒险，开始！<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>决策智能是人工智能领域最重要的方向之一，研究者们试图结合强化学习和深度学习去打造媲美甚至超越人类的智能体。更具体一点，我们会将各种各样的决策问题抽象为一种通用的形式：<strong>智能体与决策环境不断交互，并在交互中通过探索和利用不断成长。</strong> 而从数据流的角度来看，就是智能体来处理来自环境的状态信息，给出合理的响应和决策，环境执行决策并返回反馈信号和新的状态。从优化的角度来看，就是让智能体的行为向探索，适应，征服环境的方向前进。联系实际应用，比如无人驾驶汽车会接收来自环境中的路况信息，给出实时的驾驶行为决策，从而让车辆高效平稳地驶向目的地。</p>
@@ -311,7 +311,7 @@
 <p>如果想了解强化学习的基础知识，可以参考我们的 <a class="reference external" href="https://github.com/opendilab/PPOxFamily">入门公开课</a> 和 <a class="reference external" href="../10_concepts/index_zh.html">基础概念文档</a></p>
 </div>
 <section id="id4">
-<h2>先定一个小目标：让你的智能体动起来！<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h2>先定一个小目标：让你的智能体动起来！<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>智能体形式上是一个可以与环境自由互动的对象，其本质上是一个接受输入，反馈输出的数学模型。它的模型由一个模型结构和一组模型参数构成。
 通常，我们会把模型写入存放在一个文件中，或是从一个文件中读出所需要的智能体模型。
 这里我们提供了一个由 DI-engine 框架使用 DQN 算法训练的智能体模型：
@@ -365,7 +365,7 @@
 </div>
 </section>
 <section id="id5">
-<h2>更好地评估智能体<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h2>更好地评估智能体<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <p>在强化学习的各种环境中，智能体的初始状态并不总是完全相同。而智能体的成绩可能会随不同的初始状态而发生波动。
 因此，我们需要开设多个环境，从而多进行几次评估测试，来更好地为它打分。
 比如在”月球着陆器”这个环境里，每一次的月球地貌都不相同。</p>
@@ -442,7 +442,7 @@
 <a class="reference internal image-reference" href="../_images/evaluator_info.png"><img alt="../_images/evaluator_info.png" class="align-center" src="../_images/evaluator_info.png" style="width: 600px;" /></a>
 </section>
 <section id="id6">
-<h2>从零训练出强大的智能体<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h2>从零训练出强大的智能体<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
 <p>使用 DI-engine 运行以下的代码，来获得上述测试中的智能体模型。
 试试自己生成一个智能体模型，或许它会更强：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -573,9 +573,8 @@
   <script type="text/javascript" id="documentation_options" data-url_root="../"
     src="../_static/documentation_options.js"></script>
   <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-  <script src="../_static/jquery.js"></script>
-  <script src="../_static/underscore.js"></script>
   <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
   
 
   
