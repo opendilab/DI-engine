@@ -1,4 +1,5 @@
 from easydict import EasyDict
+import torch.nn as nn
 
 pendulum_ppo_config = dict(
     exp_name='pendulum_ppo_seed0',
@@ -20,25 +21,26 @@ pendulum_ppo_config = dict(
             action_space='continuous',
             actor_head_layer_num=0,
             critic_head_layer_num=0,
-            sigma_type='conditioned',
+            sigma_type='independent',
+            activation=nn.Tanh(),
             bound_type='tanh',
         ),
         learn=dict(
             epoch_per_collect=10,
             batch_size=32,
-            learning_rate=3e-5,
+            learning_rate=1e-3,
             value_weight=0.5,
             entropy_weight=0.0,
             clip_ratio=0.2,
-            adv_norm=False,
+            adv_norm=True,
             value_norm=True,
             ignore_done=True,
         ),
         collect=dict(
-            n_sample=200,
+            n_sample=5000,
             unroll_len=1,
             discount_factor=0.9,
-            gae_lambda=1.,
+            gae_lambda=.95,
         ),
         eval=dict(evaluator=dict(eval_freq=200, ))
     ),
