@@ -1118,8 +1118,9 @@ class GTrXLDQN(nn.Module):
             gru_bias=gru_bias,
         )
 
+        # for vector obs, use Identity Encoder, i.e. pass
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            raise NotImplementedError("not support obs_shape for pre-defined encoder: {}".format(obs_shape))
+            pass
         # replace the embedding layer of Transformer with Conv Encoder
         elif len(obs_shape) == 3:
             assert encoder_hidden_size_list[-1] == hidden_size
