@@ -1,13 +1,13 @@
-import copy
-import os, sys
-from typing import List, Tuple, Union, Literal, Optional
+from typing import List, Optional
+import os
 
-import imageio
-import gym
+from easydict import EasyDict
 from gym.spaces import Space, Discrete
 from gym.spaces.box import Box
+import gym
 import numpy as np
-from easydict import EasyDict
+import imageio
+
 
 from ding.envs.env.base_env import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
@@ -15,46 +15,30 @@ from ding.utils import ENV_REGISTRY
 
 
 @ENV_REGISTRY.register('taxi')
-class TaxiV3Env(BaseEnv):
+class TaxiEnv(BaseEnv):
+    
     def __init__(self, cfg: dict) -> None:
         
-        #^ 该部分为初始化定义，需要有的
-        self._cfg = EasyDict(
-            env_id='Taxi-v3',
-            render_mode='single_rgb_array',
-            max_episode_steps=300,  # default max trajectory length to truncate possible infinite attempts
-        )
-        self._cfg.update(cfg)
-        self._env = gym.make(
-                "Taxi-v3", render_mode=self._cfg.render_mode, max_episode_steps=self._cfg.max_episode_steps
-            )
+        self._cfg = cfg
+        assert self._cfg.env_id == "Taxi-v3", "Your environment name is not Taxi-v3!"
         self._init_flag = False
-        
-        #^ SAR space 定义
-        self._observation_space = Box(low=0, high=1, shape=(500, ), dtype=np.float32)
-        self._action_space = Discrete(6)
-        self._reward_space =  Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
-        )
-        
-        #^ 可视化设定
         self._replay_path = None
-        self._save_replay_bool = False
+        self._save_replay = False
         self._frames = []
        
-    
     def reset(self) -> np.ndarray:
-        
         if not self._init_flag:
             self._env = gym.make(
-                "Taxi-v3", render_mode=self._cfg.render_mode, max_episode_steps=self._cfg.max_episode_steps
+                id=self._cfg.env_id,
+                render_mode="single_rgb_array",
+                max_episode_steps=self._cfg.max_episode_steps
             )
-            self._init_flag = True
-        self._observation_space = gym.spaces.Box(low=0, high=1, shape=(500, ), dtype=np.float32)
-        self._action_space = Discrete(6)
+        self._observation_space = self._env.observation_space
+        self._action_space = self._env.action_space
         self._reward_space = Box(
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
-        )
+        )    
+        self._init_flag = True    
         self._eval_episode_return = 0
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -66,27 +50,23 @@ class TaxiV3Env(BaseEnv):
         else:
             obs = self._env.reset()
         
-        #? 这块多加一点是为了把初始化的首帧也放进去
-        if self._save_replay_bool:
+        if self._save_replay:
             picture = self._env.render()
             self._frames.append(picture)
         self._eval_episode_return = 0.
         obs = to_ndarray(obs)
         return obs
     
-    #* 本部分和规范保持大差不差
     def close(self) -> None:
         if self._init_flag:
             self._env.close()
         self._init_flag = False
         
-    #* 本部分和规范保持大差不差
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
         
-    #* 本部分参考规范，加入gif部分参考了Frozenlake
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         action = action.item()
@@ -94,16 +74,12 @@ class TaxiV3Env(BaseEnv):
         self._eval_episode_return += rew
         obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # Transformed to an array with shape (1, )
-        if self._save_replay_bool:
+        if self._save_replay:
             picture = self._env.render()
             self._frames.append(picture)
-            
-        #^ 这里为可视化save过程
-        #^ 测试里随机采样木有等到done触发，故可能没有gif保存
-        #^ 但当把下面的replay取出来时发现可执行，有gif图片保存。
         if done:
             info['eval_episode_return'] = self._eval_episode_return
-            if self._save_replay_bool:
+            if self._save_replay:
                 assert self._replay_path is not None, "your should have a path"
                 path = os.path.join(
                     self._replay_path, '{}_episode_{}.gif'.format(self._cfg.env_id, self._save_replay_count)
@@ -121,10 +97,9 @@ class TaxiV3Env(BaseEnv):
             if not os.path.exists(replay_path):
                 os.makedirs(replay_path)
         self._replay_path = replay_path
-        self._save_replay_bool = True
+        self._save_replay = True
         self._save_replay_count = 0
         
-    #* 该部分为random_action 部分，一致
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
         if isinstance(random_action, np.ndarray):
@@ -141,11 +116,10 @@ class TaxiV3Env(BaseEnv):
             )
         return random_action
         
-    #todo 有关taxi的state的编码implementation     
+    #todo encode the state into a vector    
     def _encode_taxi(self, obs: np.ndarray) -> np.ndarray:
         taxi_row, taxi_col, passenger_location, destination = self._env.unwrapped.decode(obs)
         
-    #* 三个Property部分，一致
     @property
     def observation_space(self) -> Space:
         return self._observation_space
@@ -164,14 +138,14 @@ class TaxiV3Env(BaseEnv):
     @staticmethod
     def frames_to_gif(frames: List[imageio.core.util.Array], gif_path: str, duration: float = 0.1) -> None:
         """
-        &Convert a list of frames into a GIF.
-        *Args:
-        *- frames (List[imageio.core.util.Array]): A list of frames, each frame is an image.
-        *- gif_path (str): The path to save the GIF file.
-        *- duration (float): Duration between each frame in the GIF (seconds).
+        Convert a list of frames into a GIF.
+        Args:
+        - frames (List[imageio.core.util.Array]): A list of frames, each frame is an image.
+        - gif_path (str): The path to save the GIF file.
+        - duration (float): Duration between each frame in the GIF (seconds).
 
-        ?Returns:
-        ?None, the GIF file is saved directly to the specified path.
+        Returns:
+        None, the GIF file is saved directly to the specified path.
         """
         # Save all frames as temporary image files
         temp_image_files = []

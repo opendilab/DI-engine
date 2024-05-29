@@ -1,1 +1,1 @@
-from .taxi_env import TaxiV3Env
+from .taxi_env import TaxiEnv
