@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from easydict import EasyDict
-from dizoo.taxi.envs import TaxiEnv
+from dizoo.taxi import TaxiEnv
 
 @pytest.mark.envtest
 class TestTaxiEnv:
@@ -16,7 +16,7 @@ class TestTaxiEnv:
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314
         obs = env.reset()
-        assert obs.shape == ()
+        assert obs.shape == (4, )
         for _ in range(5):
             env.reset()
             np.random.seed(314)
@@ -32,7 +32,7 @@ class TestTaxiEnv:
                 print(f"Your timestep in wrapped mode is: {timestep}")
                 assert isinstance(timestep.obs, np.ndarray)
                 assert isinstance(timestep.done, bool)
-                assert timestep.obs.shape == ()
+                assert timestep.obs.shape == (4, )
                 assert timestep.reward.shape == (1, )
                 assert timestep.reward >= env.reward_space.low
                 assert timestep.reward <= env.reward_space.high

@@ -12,12 +12,11 @@ import imageio
 from ding.envs.env.base_env import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-
-
-@ENV_REGISTRY.register('taxi')
+ 
+@ENV_REGISTRY.register('taxi', force_overwrite=True)
 class TaxiEnv(BaseEnv):
     
-    def __init__(self, cfg: dict) -> None:
+    def __init__(self, cfg: EasyDict) -> None:
         
         self._cfg = cfg
         assert self._cfg.env_id == "Taxi-v3", "Your environment name is not Taxi-v3!"
@@ -54,7 +53,7 @@ class TaxiEnv(BaseEnv):
             picture = self._env.render()
             self._frames.append(picture)
         self._eval_episode_return = 0.
-        obs = to_ndarray(obs)
+        obs = self._encode_taxi(obs).astype(np.float32)
         return obs
     
     def close(self) -> None:
@@ -72,7 +71,7 @@ class TaxiEnv(BaseEnv):
         action = action.item()
         obs, rew, done, info = self._env.step(action)
         self._eval_episode_return += rew
-        obs = to_ndarray(obs)
+        obs = self._encode_taxi(obs)
         rew = to_ndarray([rew])  # Transformed to an array with shape (1, )
         if self._save_replay:
             picture = self._env.render()
@@ -119,6 +118,7 @@ class TaxiEnv(BaseEnv):
     #todo encode the state into a vector    
     def _encode_taxi(self, obs: np.ndarray) -> np.ndarray:
         taxi_row, taxi_col, passenger_location, destination = self._env.unwrapped.decode(obs)
+        return to_ndarray([taxi_row, taxi_col, passenger_location, destination])
         
     @property
     def observation_space(self) -> Space:

@@ -4,8 +4,8 @@ taxi_dqn_config = dict(
     exp_name='taxi_seed0',
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=8,
-        n_evaluator_episode=5,
+        evaluator_env_num=8,  
+        n_evaluator_episode=10,
         max_episode_steps=300,
         env_id="Taxi-v3"
     ),
@@ -13,7 +13,7 @@ taxi_dqn_config = dict(
         cuda=True,
         load_path="./taxi_dqn_seed0/ckpt/ckpt_best.pth.tar",
         model=dict(
-            ops_shape=500,
+            obs_shape=4,    
             action_shape=6,
             encoder_hidden_size_list=[256, 128, 64]
         ),
@@ -25,7 +25,7 @@ taxi_dqn_config = dict(
             learning_rate=0.001,
         ),
         collect=dict(n_sample=10),
-        eval=dict(evaluator=dict(eval_freq=40, )),
+        eval=dict(evaluator=dict(eval_freq=5, )),
         other=dict(
             eps=dict(
               type="linear",
@@ -47,6 +47,7 @@ taxi_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    replay_buffer=dict(type='deque', import_names=['ding.data.buffer.deque_buffer_wrapper']),
 )
 
 taxi_dqn_create_config = EasyDict(taxi_dqn_create_config)
