@@ -8,11 +8,11 @@ import gym
 import numpy as np
 import imageio
 
-
+from ditk import logging
 from ding.envs.env.base_env import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
- 
+
 @ENV_REGISTRY.register('taxi', force_overwrite=True)
 class TaxiEnv(BaseEnv):
     
@@ -138,14 +138,12 @@ class TaxiEnv(BaseEnv):
     @staticmethod
     def frames_to_gif(frames: List[imageio.core.util.Array], gif_path: str, duration: float = 0.1) -> None:
         """
-        Convert a list of frames into a GIF.
-        Args:
-        - frames (List[imageio.core.util.Array]): A list of frames, each frame is an image.
-        - gif_path (str): The path to save the GIF file.
-        - duration (float): Duration between each frame in the GIF (seconds).
-
-        Returns:
-        None, the GIF file is saved directly to the specified path.
+        Overview: 
+            Convert a list of frames into a GIF.
+        Arguments:
+            - frames (:obj:`List[imageio.core.util.Array]`): A list of frames, each frame is an image.
+            - gif_path (:obj:`str`): The path to save the GIF file.
+            - duration (:obj:`float`): Duration between each frame in the GIF (seconds).
         """
         # Save all frames as temporary image files
         temp_image_files = []
@@ -163,4 +161,4 @@ class TaxiEnv(BaseEnv):
         # Clean up temporary image files
         for temp_image_file in temp_image_files:
             os.remove(temp_image_file)
-        print(f"GIF saved as {gif_path}")
+        logging.info(f"GIF saved as {gif_path}")
