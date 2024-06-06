@@ -54,12 +54,12 @@ class VAC(nn.Module):
                 ``ReparameterizationHead``, and hybrid heads.
             - share_encoder (:obj:`bool`): Whether to share observation encoders between actor and decoder.
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
-                the last element must match ``head_hidden_size``.
+                the last element is used as the input size of ``actor_head`` and ``critic_head``.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``actor_head`` network, defaults \
-                to 64, it must match the last element of ``encoder_hidden_size_list``.
+                to 64, it is the hidden size of the last layer of the ``actor_head`` network.
             - actor_head_layer_num (:obj:`int`): The num of layers used in the ``actor_head`` network to compute action.
             - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` of ``critic_head`` network, defaults \
-                to 64, it must match the last element of ``encoder_hidden_size_list``.
+                to 64, it is the hidden size of the last layer of the ``critic_head`` network.
             - critic_head_layer_num (:obj:`int`): The num of layers used in the ``critic_head`` network.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function in networks \
                 if ``None`` then default set it to ``nn.ReLU()``.
@@ -108,15 +108,13 @@ class VAC(nn.Module):
                     )
 
         if self.share_encoder:
-            assert actor_head_hidden_size == critic_head_hidden_size, \
-                "actor and critic network head should have same size."
             if encoder:
                 if isinstance(encoder, torch.nn.Module):
                     self.encoder = encoder
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.encoder = new_encoder(actor_head_hidden_size, activation)
+                self.encoder = new_encoder(encoder_hidden_size_list[-1], activation)
         else:
             if encoder:
                 if isinstance(encoder, torch.nn.Module):
@@ -125,25 +123,31 @@ class VAC(nn.Module):
                 else:
                     raise ValueError("illegal encoder instance.")
             else:
-                self.actor_encoder = new_encoder(actor_head_hidden_size, activation)
-                self.critic_encoder = new_encoder(critic_head_hidden_size, activation)
+                self.actor_encoder = new_encoder(encoder_hidden_size_list[-1], activation)
+                self.critic_encoder = new_encoder(encoder_hidden_size_list[-1], activation)
 
         # Head Type
         self.critic_head = RegressionHead(
-            critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
+            encoder_hidden_size_list[-1],
+            1,
+            critic_head_layer_num,
+            activation=activation,
+            norm_type=norm_type,
+            hidden_size=critic_head_hidden_size
         )
         self.action_space = action_space
         assert self.action_space in ['discrete', 'continuous', 'hybrid'], self.action_space
         if self.action_space == 'continuous':
             self.multi_head = False
             self.actor_head = ReparameterizationHead(
-                actor_head_hidden_size,
+                encoder_hidden_size_list[-1],
                 action_shape,
                 actor_head_layer_num,
                 sigma_type=sigma_type,
                 activation=activation,
                 norm_type=norm_type,
-                bound_type=bound_type
+                bound_type=bound_type,
+                hidden_size=actor_head_hidden_size,
             )
         elif self.action_space == 'discrete':
             actor_head_cls = DiscreteHead
@@ -172,7 +176,7 @@ class VAC(nn.Module):
             action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
             action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
             actor_action_args = ReparameterizationHead(
-                actor_head_hidden_size,
+                encoder_hidden_size_list[-1],
                 action_shape.action_args_shape,
                 actor_head_layer_num,
                 sigma_type=sigma_type,
@@ -180,6 +184,7 @@ class VAC(nn.Module):
                 activation=activation,
                 norm_type=norm_type,
                 bound_type=bound_type,
+                hidden_size=actor_head_hidden_size,
             )
             actor_action_type = DiscreteHead(
                 actor_head_hidden_size,
