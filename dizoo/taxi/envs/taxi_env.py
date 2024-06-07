@@ -93,8 +93,8 @@ class TaxiEnv(BaseEnv):
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
-            if not os.path.exists(replay_path):
-                os.makedirs(replay_path)
+        if not os.path.exists(replay_path):
+            os.makedirs(replay_path)
         self._replay_path = replay_path
         self._save_replay = True
         self._save_replay_count = 0
@@ -118,7 +118,11 @@ class TaxiEnv(BaseEnv):
     #todo encode the state into a vector    
     def _encode_taxi(self, obs: np.ndarray) -> np.ndarray:
         taxi_row, taxi_col, passenger_location, destination = self._env.unwrapped.decode(obs)
-        return to_ndarray([taxi_row, taxi_col, passenger_location, destination])
+        encoded_obs = np.zeros(34)
+        encoded_obs[5 * taxi_row + taxi_col] = 1
+        encoded_obs[25 + passenger_location] = 1
+        encoded_obs[30 + destination] = 1
+        return to_ndarray(encoded_obs)
         
     @property
     def observation_space(self) -> Space:
