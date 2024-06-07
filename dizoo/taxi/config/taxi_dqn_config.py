@@ -34,7 +34,7 @@ taxi_dqn_config = dict(
               end=0.01,
               decay=1000000  
             ),
-            replay_buffer=dict(replay_buffer_size=10000,),
+            replay_buffer=dict(replay_buffer_size=50000,),
         ),
     )
 )
