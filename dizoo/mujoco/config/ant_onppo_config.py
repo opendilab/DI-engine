@@ -1,4 +1,5 @@
 from easydict import EasyDict
+import torch.nn as nn
 
 ant_ppo_config = dict(
     exp_name="ant_onppo_seed0",
@@ -17,15 +18,24 @@ ant_ppo_config = dict(
         recompute_adv=True,
         action_space='continuous',
         model=dict(
+            encoder_hidden_size_list=[128, 128],
             action_space='continuous',
             obs_shape=111,
             action_shape=8,
+            share_encoder=False,
+            actor_head_layer_num=0,
+            critic_head_layer_num=2,
+            critic_head_hidden_size=256,
+            actor_head_hidden_size=128,
+            activation=nn.Tanh(),
+            bound_type='tanh',
         ),
         learn=dict(
             epoch_per_collect=10,
             update_per_collect=1,
-            batch_size=320,
+            batch_size=128,
             learning_rate=3e-4,
+            lr_scheduler=dict(epoch_num=1500, min_lr_lambda=0),
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
@@ -39,7 +49,7 @@ ant_ppo_config = dict(
             grad_clip_value=0.5,
         ),
         collect=dict(
-            n_sample=3200,
+            n_sample=2048,
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,

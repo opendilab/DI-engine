@@ -52,6 +52,11 @@ class PPOPolicy(Policy):
             batch_size=64,
             # (float) The step size of gradient descent.
             learning_rate=3e-4,
+            # (dict or None) The learning rate decay.
+            # If not None, should contain key 'epoch_num' and 'min_lr_lambda'.
+            # where 'epoch_num' is the total epoch num to decay the learning rate to min value,
+            # 'min_lr_lambda' is the final decayed learning rate.
+            lr_scheduler=None,
             # (float) The loss weight of value network, policy network weight is set to 1.
             value_weight=0.5,
             # (float) The loss weight of entropy regularization, policy network weight is set to 1.
@@ -168,6 +173,16 @@ class PPOPolicy(Policy):
             grad_clip_type=self._cfg.learn.grad_clip_type,
             clip_value=self._cfg.learn.grad_clip_value
         )
+
+        # Define linear lr scheduler
+        if self._cfg.learn.lr_scheduler is not None:
+            epoch_num = self._cfg.learn.lr_scheduler['epoch_num']
+            min_lr_lambda = self._cfg.learn.lr_scheduler['min_lr_lambda']
+
+            self._lr_scheduler = torch.optim.lr_scheduler.LambdaLR(
+                self._optimizer,
+                lr_lambda=lambda epoch: max(1.0 - epoch * (1.0 - min_lr_lambda) / epoch_num, min_lr_lambda)
+            )
 
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
@@ -314,8 +329,13 @@ class PPOPolicy(Policy):
                 total_loss.backward()
                 self._optimizer.step()
 
+                if self._cfg.learn.lr_scheduler is not None:
+                    cur_lr = sum(self._lr_scheduler.get_last_lr()) / len(self._lr_scheduler.get_last_lr())
+                else:
+                    cur_lr = self._optimizer.defaults['lr']
+
                 return_info = {
-                    'cur_lr': self._optimizer.defaults['lr'],
+                    'cur_lr': cur_lr,
                     'total_loss': total_loss.item(),
                     'policy_loss': ppo_loss.policy_loss.item(),
                     'value_loss': ppo_loss.value_loss.item(),
@@ -336,6 +356,10 @@ class PPOPolicy(Policy):
                         }
                     )
                 return_infos.append(return_info)
+
+        if self._cfg.learn.lr_scheduler is not None:
+            self._lr_scheduler.step()
+
         return return_infos
 
     def _init_collect(self) -> None:
