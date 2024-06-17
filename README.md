@@ -35,6 +35,12 @@
 [![discord badge](https://dcbadge.vercel.app/api/server/dkZS2JF56X?style=flat)](https://discord.gg/dkZS2JF56X)
 [![slack badge](https://img.shields.io/badge/Slack-join-blueviolet?logo=slack&amp)](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
 
+<div align="center">
+  <a href="https://hellogithub.com/repository/175c1e13739c4e429d0abf2b32ec583d" target="_blank">
+    <img src="https://api.hellogithub.com/v1/widgets/recommend.svg?rid=175c1e13739c4e429d0abf2b32ec583d&claim_uid=cExIpHuMKdTQ6BW" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" />
+  </a>
+</div>
+
 Updated on 2024.02.04 DI-engine-v0.5.1
 
 ## Introduction to DI-engine
