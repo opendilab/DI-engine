@@ -266,6 +266,8 @@ def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_
         if value_gamma is None:
             return_ = return_tmp + (gamma ** nstep) * next_value * (1 - done)
         else:
+            if np.isscalar(value_gamma):
+                value_gamma = torch.full_like(next_value, value_gamma)
             value_gamma = view_similar(value_gamma, next_value)
             done = view_similar(done, next_value)
             return_ = return_tmp + value_gamma * next_value * (1 - done)

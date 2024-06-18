@@ -1,7 +1,8 @@
 from easydict import EasyDict
+import torch.nn as nn
 
-collector_env_num = 1
-evaluator_env_num = 1
+collector_env_num = 8
+evaluator_env_num = 8
 halfcheetah_ppo_config = dict(
     exp_name='halfcheetah_onppo_seed0',
     env=dict(
@@ -10,7 +11,7 @@ halfcheetah_ppo_config = dict(
         norm_reward=dict(use_norm=False, ),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=1,
+        n_evaluator_episode=8,
         stop_value=12000,
     ),
     policy=dict(
@@ -18,15 +19,24 @@ halfcheetah_ppo_config = dict(
         recompute_adv=True,
         action_space='continuous',
         model=dict(
+            encoder_hidden_size_list=[128, 128],
             action_space='continuous',
+            share_encoder=False,
+            actor_head_layer_num=0,
+            critic_head_layer_num=2,
+            critic_head_hidden_size=256,
+            actor_head_hidden_size=128,
             obs_shape=17,
             action_shape=6,
+            activation=nn.Tanh(),
+            bound_type='tanh',
         ),
         learn=dict(
             epoch_per_collect=10,
             update_per_collect=1,
-            batch_size=320,
+            batch_size=128,
             learning_rate=3e-4,
+            lr_scheduler=dict(epoch_num=1500, min_lr_lambda=0),
             value_weight=0.5,
             entropy_weight=0.001,
             clip_ratio=0.2,
@@ -42,12 +52,12 @@ halfcheetah_ppo_config = dict(
         ),
         collect=dict(
             collector_env_num=collector_env_num,
-            n_sample=3200,
+            n_sample=2048,
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=500, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
 halfcheetah_ppo_config = EasyDict(halfcheetah_ppo_config)
