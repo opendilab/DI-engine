@@ -47,6 +47,7 @@ Environments:
    gym_soccer
    evogym
    metadrive
+   taxi
 
    image_cls
 
