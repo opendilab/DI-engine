@@ -78,14 +78,23 @@ class ReplayMemoryDataset(Dataset):
     def __getitem__(self, idx):
         episode_index, timestep_index = self.indices[idx]
         timestep_slice = slice(timestep_index, (timestep_index + self.num_timesteps))
-        states = self.states[episode_index, timestep_slice].copy()
-        actions = self.actions[episode_index, timestep_slice].copy()
-        rewards = self.rewards[episode_index, timestep_slice].copy()
-        dones = self.dones[episode_index, timestep_slice].copy()
-        next_state = self.states[
-            episode_index, min(timestep_index, self.max_episode_len - 1)
-        ].copy()
-        return states, actions, rewards, dones, next_state
+        timestep_slice_next = slice(
+            timestep_index + 1, (timestep_index + self.num_timesteps) + 1
+        )
+        state = self.states[episode_index, timestep_slice].copy()
+        action = self.actions[episode_index, timestep_slice].copy()
+        reward = self.rewards[episode_index, timestep_slice].copy()
+        done = self.dones[episode_index, timestep_slice].copy()
+        next_state = self.states[episode_index, timestep_slice_next].copy()
+        next_action = self.actions[episode_index, timestep_slice_next].copy()
+        return {
+            "state": state,
+            "action": action,
+            "reward": reward,
+            "done": done,
+            "next_state": next_state,
+            "next_action": next_action,
+        }
 
 
 class SampleData:

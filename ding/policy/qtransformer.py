@@ -243,7 +243,9 @@ class QTransformerPolicy(SACPolicy):
                 dtype=torch.float32,
             )
             self._auto_alpha = False
-
+        for p in self._model.parameters():
+            if p.dim() > 1:
+                torch.nn.init.xavier_uniform_(p)
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
             self._target_model,
@@ -253,12 +255,14 @@ class QTransformerPolicy(SACPolicy):
         )
 
         self._action_bin = self._cfg.model.action_bin
-        self._low = np.full(self._cfg.model.action_dim, -1)
-        self._high = np.full(self._cfg.model.action_dim, 1)
+
         self._action_values = np.array(
             [
                 np.linspace(min_val, max_val, self._action_bin)
-                for min_val, max_val in zip(self._low, self._high)
+                for min_val, max_val in zip(
+                    np.full(self._cfg.model.action_dim, -1),
+                    np.full(self._cfg.model.action_dim, 1),
+                )
             ]
         )
         # Main and target models
@@ -294,98 +298,43 @@ class QTransformerPolicy(SACPolicy):
             issue in GitHub repo and we will continue to follow up.
         """
         loss_dict = {}
-        data = default_preprocess_learn(
-            data,
-            use_priority=self._priority,
-            use_priority_IS_weight=self._cfg.priority_IS_weight,
-            ignore_done=self._cfg.learn.ignore_done,
-            use_nstep=False,
-        )
-        if len(data.get("action").shape) == 1:
-            data["action"] = data["action"].reshape(-1, 1)
-        self._action_values = torch.tensor(self._action_values)
-        indices = torch.zeros_like(
-            data["action"], dtype=torch.long, device=data["action"].device
-        )
-        for i in range(data["action"].shape[1]):
-            diff = (data["action"][:, i].unsqueeze(-1) - self._action_values[i, :]) ** 2
-            indices[:, i] = diff.argmin(dim=-1)
-        data["action"] = indices
+
+        # data = default_preprocess_learn(
+        #     data,
+        #     use_priority=self._priority,
+        #     use_priority_IS_weight=self._cfg.priority_IS_weight,
+        #     ignore_done=self._cfg.learn.ignore_done,
+        #     use_nstep=False,
+        # )
+        def discretization(x):
+            self._action_values = torch.tensor(self._action_values)
+            indices = torch.zeros_like(x, dtype=torch.long, device=x.device)
+            for i in range(x.shape[1]):
+                diff = (x[:, i].unsqueeze(-1) - self._action_values[i, :]) ** 2
+                indices[:, i] = diff.argmin(dim=-1)
+            action = torch.nn.functional.one_hot(indices, num_classes=self._action_bin)
+            return action
+
+        data["action"] = discretization(data["action"][:, -1, :])
+        data["next_action"] = discretization(data["next_action"][:, -1, :])
+
         if self._cuda:
             data = to_device(data, self._device)
 
         self._learn_model.train()
         self._target_model.train()
-        states = data["obs"]
-        next_obs = data["next_obs"]
+        state = data["state"]
+        next_state = data["next_state"]
         reward = data["reward"]
-        dones = data["done"]
-        actions = data["action"]
+        done = data["done"]
+        action = data["action"]
+        next_action = data["next_action"]
 
-        # get q
-        num_timesteps = states.shape[1]
-        dones = dones.cumsum(dim=-1) > 0
-        dones = F.pad(dones, (1, -1), value=False)
-        not_terminal = (~dones).float()
-        reward = reward * not_terminal
-        gamma = self._cfg.learn["discount_factor_gamma"]
-        q_pred_all_actions = self._learn_model.forward(states, actions=actions)
-        q_pred = self._batch_select_indices(q_pred_all_actions, actions)
-        q_pred = q_pred.unsqueeze(1)
+        q = self._learn_model.forward(state, action=action)
 
         with torch.no_grad():
-            # get q_next
-            q_next = self._target_model.forward(next_obs)
-            # get target Q
-            q_target_all_actions = self._target_model.forward(states, actions=actions)
-
-        q_next = q_next.max(dim=-1).values
-        q_next.clamp_(min=-100)
-        q_target = q_target_all_actions.max(dim=-1).values
-        q_target.clamp_(min=-100)
-        q_target = q_target.unsqueeze(1)
-        q_pred_rest_actions, q_pred_last_action = q_pred[..., :-1], q_pred[..., -1]
-        q_target_first_action, q_target_rest_actions = (
-            q_target[..., 0],
-            q_target[..., 1:],
-        )
-        losses_all_actions_but_last = F.mse_loss(
-            q_pred_rest_actions, q_target_rest_actions, reduction="none"
-        )
-
-        # next take care of the very last action, which incorporates the rewards
-        q_target_last_action, _ = pack([q_target_first_action[..., 1:], q_next], "b *")
-        if reward.dim() == 1:
-            reward = reward.unsqueeze(-1)
-        q_target_last_action = reward + gamma * q_target_last_action
-        losses_last_action = F.mse_loss(
-            q_pred_last_action, q_target_last_action, reduction="none"
-        )
-
-        # flatten and average
-        losses, _ = pack([losses_all_actions_but_last, losses_last_action], "*")
-        td_loss = losses.mean()
-        q_intermediates = QIntermediates(q_pred_all_actions, q_pred, q_next, q_target)
-        num_timesteps = actions.shape[1]
-        batch = actions.shape[0]
-
-        q_preds = q_intermediates.q_pred_all_actions
-        q_preds = rearrange(q_preds, "... a -> (...) a")
-        num_action_bins = q_preds.shape[-1]
-        num_non_dataset_actions = num_action_bins - 1
-        actions = rearrange(actions, "... -> (...) 1")
-        dataset_action_mask = torch.zeros_like(q_preds).scatter_(
-            -1, actions, torch.ones_like(q_preds)
-        )
-        q_actions_not_taken = q_preds[~dataset_action_mask.bool()]
-        q_actions_not_taken = rearrange(
-            q_actions_not_taken, "(b t a) -> b t a", b=batch, a=num_non_dataset_actions
-        )
-        conservative_reg_loss = (
-            (q_actions_not_taken - (self._cfg.learn["min_reward"] * num_timesteps)) ** 2
-        ).sum() / num_non_dataset_actions
-        # total loss
-        loss_dict["loss"] = 0.5 * td_loss + 0.5 * conservative_reg_loss
+            q_next_target = self._target_model.forward(next_state, actions=next_action)
+            q_target = self._target_model.forward(state, actions=action)
 
         self._optimizer_q.zero_grad()
         loss_dict["loss"].backward()
@@ -393,21 +342,11 @@ class QTransformerPolicy(SACPolicy):
 
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
-        return {
-            "cur_lr_q": self._optimizer_q.defaults["lr"],
-            "td_loss": td_loss,
-            "conser_loss": conservative_reg_loss,
-            "all_loss": loss_dict["loss"],
-            "target_q": q_pred_all_actions.detach().mean().item(),
-        }
 
-    def _batch_select_indices(self, t, indices):
-        indices = rearrange(indices, "... -> ... 1")
-        selected = t.gather(-1, indices)
-        return rearrange(selected, "... 1 -> ...")
+        return loss_dict
 
     def _get_actions(self, obs):
-        # evaluate to get action
+
         action = self._eval_model.get_actions(obs)
         action = 2.0 * action / (1.0 * self._action_bin) - 1.0
         return action
