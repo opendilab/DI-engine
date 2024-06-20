@@ -141,9 +141,9 @@ def serial_pipeline_episode(
     #     random_collect(
     #         cfg.policy, policy, collector, collector_env, commander, replay_buffer
     #     )
-
+    n_episode = 50
     collected_episode = collector.collect(
-        n_episode=30,
+        n_episode=n_episode,
         train_iter=collector._collect_print_freq,
         policy_kwargs={"eps": 0.5},
     )
@@ -151,6 +151,7 @@ def serial_pipeline_episode(
         collected_episode, "/root/code/DI-engine/qtransformer/model/torchdict_tmp"
     )
     value_test = SampleData(
-        memories_dataset_folder="/root/code/DI-engine/qtransformer/model"
+        memories_dataset_folder="/root/code/DI-engine/qtransformer/model",
+        num_episodes=n_episode,
     )
     value_test.transformer("/root/code/DI-engine/qtransformer/model/torchdict_tmp")

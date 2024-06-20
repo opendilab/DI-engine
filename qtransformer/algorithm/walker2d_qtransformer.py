@@ -4,7 +4,7 @@ from easydict import EasyDict
 from ding.model import QTransformer
 
 
-num_timesteps = (10,)
+num_timesteps = 10
 
 main_config = dict(
     exp_name="walker2d_qtransformer",
@@ -16,16 +16,29 @@ main_config = dict(
     #     n_evaluator_episode=8,
     #     stop_value=6000,
     # ),
+    env=dict(
+        env_id="Walker2d-v3",
+        norm_obs=dict(
+            use_norm=False,
+        ),
+        norm_reward=dict(
+            use_norm=False,
+        ),
+        collector_env_num=1,
+        evaluator_env_num=8,
+        n_evaluator_episode=8,
+        stop_value=6000,
+    ),
     dataset=dict(
-        dataset_folder="./dataset/model",
+        dataset_folder="/root/code/DI-engine/qtransformer/model",
         num_timesteps=num_timesteps,
     ),
     policy=dict(
         cuda=True,
         model=dict(
             num_timesteps=num_timesteps,
-            state_dim=11,
-            action_dim=7,
+            state_dim=17,
+            action_dim=6,
             action_bin=256,
         ),
         learn=dict(
@@ -64,8 +77,8 @@ create_config = dict(
     ),
     env_manager=dict(type="subprocess"),
     policy=dict(
-        type="sac",
-        import_names=["ding.policy.sac"],
+        type="qtransformer",
+        import_names=["ding.policy.qtransformer"],
     ),
     replay_buffer=dict(
         type="naive",
@@ -76,7 +89,7 @@ create_config = create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c walker2d_sac_config.py -s 0`
-    from ding.entry import serial_pipeline_offline
+    from qtransformer.algorithm.serial_entry_qtransformer import serial_pipeline_offline
 
     model = QTransformer(**main_config.policy.model)
     serial_pipeline_offline([main_config, create_config], seed=0, model=model)

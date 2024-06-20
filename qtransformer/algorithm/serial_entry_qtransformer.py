@@ -47,7 +47,11 @@ def serial_pipeline_offline(
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
     # Dataset
-    dataset = ReplayMemoryDataset(*cfg.dataset)
+    dataloader = DataLoader(
+            ReplayMemoryDataset(**cfg.dataset),
+            batch_size=cfg.policy.learn.batch_size,
+            shuffle=True,
+    )
     # dataset = create_dataset(cfg)
     # sampler, shuffle = None, True
     # if get_world_size() > 1:
@@ -89,12 +93,12 @@ def serial_pipeline_offline(
     # here
     policy = create_policy(cfg.policy, model=model, enable_field=["learn", "eval"])
 
-    if cfg.policy.collect.data_type == "diffuser_traj":
-        policy.init_data_normalizer(dataset.normalizer)
+    # if cfg.policy.collect.data_type == "diffuser_traj":
+    #     policy.init_data_normalizer(dataset.normalizer)
 
-    if hasattr(policy, "set_statistic"):
-        # useful for setting action bounds for ibc
-        policy.set_statistic(dataset.statistics)
+    # if hasattr(policy, "set_statistic"):
+    #     # useful for setting action bounds for ibc
+    #     policy.set_statistic(dataset.statistics)
 
     # Otherwise, directory may conflicts in the multigpu settings.
     if get_rank() == 0:

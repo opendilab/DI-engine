@@ -347,7 +347,7 @@ class DynamicMultiActionEmbedding(nn.Module):
 
 
 class QTransformer(nn.Module):
-    def __init__(self, state_episode, state_dim, action_dim, action_bin):
+    def __init__(self, num_timesteps, state_dim, action_dim, action_bin):
         super().__init__()
         assert action_bin >= 1
         self.state_encode = state_encode(state_dim)

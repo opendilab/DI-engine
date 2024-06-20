@@ -34,9 +34,7 @@ def cast_tuple(t):
 
 # replay memory dataset
 class ReplayMemoryDataset(Dataset):
-    def __init__(self, config):
-        dataset_folder = config.dataset_folder
-        num_timesteps = config.num_timesteps
+    def __init__(self, dataset_folder, num_timesteps):
         assert num_timesteps >= 1, "num_timesteps must be at least 1"
         self.is_single_timestep = num_timesteps == 1
         self.num_timesteps = num_timesteps
@@ -94,8 +92,8 @@ class SampleData:
     @beartype
     def __init__(
         self,
-        memories_dataset_folder="./",
-        num_episodes=5100,
+        memories_dataset_folder,
+        num_episodes,
         max_num_steps_per_episode=1100,
         state_shape=17,
         action_shape=6,
@@ -121,7 +119,7 @@ class SampleData:
 
         self.actions = open_memmap(
             str(actions_path),
-            dtype="int",
+            dtype="float32",
             mode="w+",
             shape=(*prec_shape, action_shape),
         )

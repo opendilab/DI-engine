@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 import numpy as np
 import torch
 import torch.nn.functional as F
+
 # from einops import pack, rearrange
 
 from ding.model import model_wrap
@@ -175,7 +176,6 @@ class QTransformerPolicy(SACPolicy):
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
-        self._twin_critic = self._cfg.model.twin_critic
         self._num_actions = self._cfg.learn.num_actions
 
         self._min_q_version = 3
@@ -201,6 +201,7 @@ class QTransformerPolicy(SACPolicy):
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
+
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
             if self._cfg.learn.target_entropy is None:
@@ -250,9 +251,10 @@ class QTransformerPolicy(SACPolicy):
             update_type="momentum",
             update_kwargs={"theta": self._cfg.learn.target_theta},
         )
-        self._action_bin = self._cfg.model.action_bins
-        self._low = np.full(self._cfg.model.num_actions, -1)
-        self._high = np.full(self._cfg.model.num_actions, 1)
+
+        self._action_bin = self._cfg.model.action_bin
+        self._low = np.full(self._cfg.model.action_dim, -1)
+        self._high = np.full(self._cfg.model.action_dim, 1)
         self._action_values = np.array(
             [
                 np.linspace(min_val, max_val, self._action_bin)
