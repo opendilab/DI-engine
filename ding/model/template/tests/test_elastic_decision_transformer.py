@@ -64,7 +64,3 @@ def test_elastic_decision_transformer():
                     model.embed_state
                 ]
             )
-
-# if __name__ == "__main__":
-#     test_elastic_decision_transformer()
-#     print(f"Finished！")
