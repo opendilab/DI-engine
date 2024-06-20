@@ -55,7 +55,7 @@ setup(
         'gym==0.25.1',  # pypy incompatible; some environments only support gym==0.22.0
         'gymnasium',
         'torch>=1.1.0',
-        'numpy>=1.18.0',
+        'numpy>=1.18.0,<2',
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.1.0',
         'trueskill',
