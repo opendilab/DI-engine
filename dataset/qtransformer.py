@@ -8,6 +8,7 @@ from numpy.lib.format import open_memmap
 from rich.progress import track
 from torch.utils.data import DataLoader, Dataset
 
+
 # just force training on 64 bit systems
 
 assert sys.maxsize > (
@@ -33,7 +34,6 @@ def cast_tuple(t):
 
 # replay memory dataset
 class ReplayMemoryDataset(Dataset):
-    @beartype
     def __init__(self, config):
         dataset_folder = config.dataset_folder
         num_timesteps = config.num_timesteps

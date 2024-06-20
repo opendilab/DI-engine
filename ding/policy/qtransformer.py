@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 import numpy as np
 import torch
 import torch.nn.functional as F
-from einops import pack, rearrange
+# from einops import pack, rearrange
 
 from ding.model import model_wrap
 from ding.torch_utils import Adam, to_device
