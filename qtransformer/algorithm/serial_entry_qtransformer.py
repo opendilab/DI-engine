@@ -14,7 +14,7 @@ from ding.policy import create_policy
 from ding.utils import set_pkg_seed, get_world_size, get_rank
 from ding.utils.data import create_dataset
 
-from dataset.qtransformer import ReplayMemoryDataset
+from qtransformer.algorithm.dataset_qtransformer import ReplayMemoryDataset
 
 
 def serial_pipeline_offline(
@@ -86,9 +86,8 @@ def serial_pipeline_offline(
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-    #here
+    # here
     policy = create_policy(cfg.policy, model=model, enable_field=["learn", "eval"])
-
 
     if cfg.policy.collect.data_type == "diffuser_traj":
         policy.init_data_normalizer(dataset.normalizer)

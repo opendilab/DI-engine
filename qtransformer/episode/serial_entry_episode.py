@@ -10,7 +10,7 @@ from ditk import logging
 from numpy.lib.format import open_memmap
 from tensorboardX import SummaryWriter
 
-from dataset.qtransformer import ReplayMemoryDataset, SampleData
+from qtransformer.algorithm.dataset_qtransformer import ReplayMemoryDataset, SampleData
 from ding.config import compile_config, read_config
 from ding.envs import (
     AsyncSubprocessEnvManager,
@@ -86,7 +86,7 @@ def serial_pipeline_episode(
         cfg.policy, model=model, enable_field=["learn", "collect", "eval", "command"]
     )
 
-    ckpt_path = "/root/code/DI-engine/dataset/walker2d_sac_seed0/ckpt/ckpt_best.pth.tar"
+    ckpt_path = "/root/code/DI-engine/qtransformer/model/ckpt_best.pth.tar"
     checkpoint = torch.load(ckpt_path)
     policy._model.load_state_dict(checkpoint["model"])
 
@@ -143,7 +143,7 @@ def serial_pipeline_episode(
     #     )
 
     collected_episode = collector.collect(
-        n_episode=50,
+        n_episode=10,
         train_iter=collector._collect_print_freq,
         policy_kwargs={"eps": 0.5},
     )

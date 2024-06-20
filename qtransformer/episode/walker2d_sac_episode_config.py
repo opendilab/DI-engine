@@ -75,6 +75,5 @@ create_config = walker2d_sac_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c walker2d_sac_config.py -s 0`
-    from ding.entry import serial_pipeline_episode
-
+    from qtransformer.algorithm.serial_entry_qtransformer import serial_pipeline_episode
     serial_pipeline_episode([main_config, create_config], seed=0)
