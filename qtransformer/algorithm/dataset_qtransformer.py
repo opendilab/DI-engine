@@ -187,5 +187,4 @@ class SampleData:
         del self.actions
         del self.rewards
         del self.dones
-        self.memories_dataset_folder.resolve()
         print(f"completed")
