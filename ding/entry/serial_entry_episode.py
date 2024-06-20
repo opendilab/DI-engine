@@ -143,12 +143,12 @@ def serial_pipeline_episode(
     #     )
 
     collected_episode = collector.collect(
-        n_episode=5000,
+        n_episode=50,
         train_iter=collector._collect_print_freq,
         policy_kwargs={"eps": 0.5},
     )
-    torch.save(collected_episode, "/root/code/DI-engine/dataset/torch_dict_tmp")
+    torch.save(collected_episode, "/root/code/DI-engine/dataset/torchdict_tmp")
     value_test = SampleData(
         memories_dataset_folder="/root/code/DI-engine/dataset/model"
     )
-    value_test.transformer("/root/code/DI-engine/dataset/torch_dict_tmp")
+    value_test.transformer("/root/code/DI-engine/dataset/torchdict_tmp")
