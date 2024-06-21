@@ -8,14 +8,6 @@ num_timesteps = 10
 
 main_config = dict(
     exp_name="walker2d_qtransformer",
-    # env=dict(
-    #     env_id="hopper-medium-expert-v0",
-    #     collector_env_num=5,
-    #     evaluator_env_num=8,
-    #     use_act_scale=True,
-    #     n_evaluator_episode=8,
-    #     stop_value=6000,
-    # ),
     env=dict(
         env_id="Walker2d-v3",
         norm_obs=dict(
@@ -43,20 +35,23 @@ main_config = dict(
         ),
         learn=dict(
             data_path=None,
-            train_epoch=3000,
+            train_epoch=30000,
             batch_size=2048,
             learning_rate_q=3e-4,
+            learning_rate_policy=1e-4,
+            learning_rate_alpha=1e-4,
             alpha=0.2,
-            discount_factor_gamma=0.99,
             min_reward=0.0,
             auto_alpha=False,
+            lagrange_thresh=-1.0,
+            min_q_weight=5.0,
         ),
         collect=dict(
             data_type="d4rl",
         ),
         eval=dict(
             evaluator=dict(
-                eval_freq=5,
+                eval_freq=100,
             )
         ),
         other=dict(

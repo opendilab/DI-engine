@@ -52,35 +52,6 @@ def serial_pipeline_offline(
             batch_size=cfg.policy.learn.batch_size,
             shuffle=True,
     )
-    # dataset = create_dataset(cfg)
-    # sampler, shuffle = None, True
-    # if get_world_size() > 1:
-    #     sampler, shuffle = DistributedSampler(dataset), False
-    # dataloader = DataLoader(
-    #     dataset,
-    #     # Dividing by get_world_size() here simply to make multigpu
-    #     # settings mathmatically equivalent to the singlegpu setting.
-    #     # If the training efficiency is the bottleneck, feel free to
-    #     # use the original batch size per gpu and increase learning rate
-    #     # correspondingly.
-    #     cfg.policy.learn.batch_size // get_world_size(),
-    #     # cfg.policy.learn.batch_size
-    #     shuffle=shuffle,
-    #     sampler=sampler,
-    #     collate_fn=lambda x: x,
-    #     pin_memory=cfg.policy.cuda,
-    # )
-    # Env, Policy
-    # try:
-    #     if (
-    #         cfg.env.norm_obs.use_norm
-    #         and cfg.env.norm_obs.offline_stats.use_offline_stats
-    #     ):
-    #         cfg.env.norm_obs.offline_stats.update(
-    #             {"mean": dataset.mean, "std": dataset.std}
-    #         )
-    # except (KeyError, AttributeError):
-    #     pass
 
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env, collect=False)
     evaluator_env = create_env_manager(
@@ -93,14 +64,6 @@ def serial_pipeline_offline(
     # here
     policy = create_policy(cfg.policy, model=model, enable_field=["learn", "eval"])
 
-    # if cfg.policy.collect.data_type == "diffuser_traj":
-    #     policy.init_data_normalizer(dataset.normalizer)
-
-    # if hasattr(policy, "set_statistic"):
-    #     # useful for setting action bounds for ibc
-    #     policy.set_statistic(dataset.statistics)
-
-    # Otherwise, directory may conflicts in the multigpu settings.
     if get_rank() == 0:
         tb_logger = SummaryWriter(
             os.path.join("./{}/log/".format(cfg.exp_name), "serial")
@@ -110,11 +73,11 @@ def serial_pipeline_offline(
     learner = BaseLearner(
         cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name
     )
-    evaluator = InteractionSerialEvaluator(
+    evaluator = create_serial_evaluator(
         cfg.policy.eval.evaluator,
-        evaluator_env,
-        policy.eval_mode,
-        tb_logger,
+        env=evaluator_env,
+        policy=policy.eval_mode,
+        tb_logger=tb_logger,
         exp_name=cfg.exp_name,
     )
     # ==========
@@ -132,12 +95,26 @@ def serial_pipeline_offline(
 
         # Evaluate policy at most once per epoch.
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
+            stop, eval_info = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
         if stop or learner.train_iter >= max_train_iter:
             stop = True
             break
 
     learner.call_hook("after_run")
-    print("final reward is: {}".format(reward))
-    return policy, stop
+    if get_rank() == 0:
+        import time
+        import pickle
+        import numpy as np
+        with open(os.path.join(cfg.exp_name, 'result.pkl'), 'wb') as f:
+            eval_value_raw = eval_info['eval_episode_return']
+            final_data = {
+                'stop': stop,
+                'env_step': collector.envstep,
+                'train_iter': learner.train_iter,
+                'eval_value': np.mean(eval_value_raw),
+                'eval_value_raw': eval_value_raw,
+                'finish_time': time.ctime(),
+            }
+            pickle.dump(final_data, f)
+    return policy
