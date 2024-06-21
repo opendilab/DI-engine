@@ -3,7 +3,7 @@ from easydict import EasyDict
 enduro_onppo_config = dict(
     exp_name='enduro_onppo_seed0',
     env=dict(
-        collector_env_num=64,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
@@ -14,38 +14,50 @@ enduro_onppo_config = dict(
     ),
     policy=dict(
         cuda=True,
+        recompute_adv=True,
+        action_space='discrete',
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=9,
-            encoder_hidden_size_list=[32, 64, 64, 128],
-            actor_head_hidden_size=128,
-            critic_head_hidden_size=128,
-            critic_head_layer_num=2,
+            action_space='discrete',
+            encoder_hidden_size_list=[32, 64, 64, 512],
+            actor_head_layer_num=0,
+            critic_head_layer_num=0,
+            actor_head_hidden_size=512,
+            critic_head_hidden_size=512,
         ),
         learn=dict(
-            update_per_collect=24,
-            batch_size=128,
-            # (bool) Whether to normalize advantage. Default to False.
-            adv_norm=False,
-            learning_rate=0.0001,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
-            value_weight=1.0,
-            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.001,  # [0.1, 0.01 ,0.0]
-            clip_ratio=0.1
+            lr_scheduler=dict(epoch_num=5200, min_lr_lambda=0),
+            epoch_per_collect=4,
+            update_per_collect=1,
+            batch_size=256,
+            learning_rate=2.5e-4,
+            value_weight=0.5,
+            entropy_weight=0.01,
+            clip_ratio=0.1,
+            adv_norm=True,
+            value_norm=True,
+            # for onppo, when we recompute adv, we need the key done in data to split traj, so we must
+            # use ignore_done=False here,
+            # but when we add key traj_flag in data as the backup for key done, we could choose to use ignore_done=True
+            # for halfcheetah, the length=1000
+            ignore_done=False,
+            grad_clip_type='clip_norm',
+            grad_clip_value=0.5,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=1024,
+            unroll_len=1,
             # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.95,
             discount_factor=0.99,
         ),
-        eval=dict(evaluator=dict(eval_freq=1000, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=10000,
-            max_use=3,
-        ), ),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
+        # other=dict(replay_buffer=dict(
+        #     replay_buffer_size=10000,
+        #     max_use=3,
+        # ), ),
     ),
 )
 main_config = EasyDict(enduro_onppo_config)
