@@ -28,7 +28,6 @@ qbert_onppo_config = dict(
         learn=dict(
             lr_scheduler=dict(epoch_num=5200, min_lr_lambda=0),
             epoch_per_collect=4,
-            update_per_collect=1,
             batch_size=256,
             learning_rate=2.5e-4,
             value_weight=0.5,

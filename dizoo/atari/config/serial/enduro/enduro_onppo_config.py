@@ -29,7 +29,6 @@ enduro_onppo_config = dict(
         learn=dict(
             lr_scheduler=dict(epoch_num=5200, min_lr_lambda=0),
             epoch_per_collect=4,
-            update_per_collect=1,
             batch_size=256,
             learning_rate=2.5e-4,
             value_weight=0.5,
@@ -54,10 +53,6 @@ enduro_onppo_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        # other=dict(replay_buffer=dict(
-        #     replay_buffer_size=10000,
-        #     max_use=3,
-        # ), ),
     ),
 )
 main_config = EasyDict(enduro_onppo_config)
