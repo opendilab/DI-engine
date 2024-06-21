@@ -109,13 +109,7 @@ def serial_pipeline_offline(
     wandb.init(**cfg.wandb)
     config = merge_two_dicts_into_newone(EasyDict(wandb.config), cfg)
     wandb.config.update(config)
-
-    if get_rank() == 0:
-        tb_logger = SummaryWriter(
-            os.path.join("./{}/log/".format(cfg.exp_name), "serial")
-        )
-    else:
-        tb_logger = None
+    tb_logger = SummaryWriter(os.path.join("./{}/log/".format(cfg.exp_name), "serial"))
     learner = BaseLearner(
         cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name
     )
@@ -139,14 +133,14 @@ def serial_pipeline_offline(
         for train_data in dataloader:
             learner.train(train_data)
 
-        if evaluator.should_eval(learner.train_iter):
-            stop, eval_info = evaluator.eval(
-                learner.save_checkpoint, learner.train_iter
-            )
+        # if evaluator.should_eval(learner.train_iter):
+        #     stop, eval_info = evaluator.eval(
+        #         learner.save_checkpoint, learner.train_iter
+        #     )
 
-        if stop or learner.train_iter >= max_train_iter:
-            stop = True
-            break
+        # if stop or learner.train_iter >= max_train_iter:
+        #     stop = True
+        #     break
 
     learner.call_hook("after_run")
     if get_rank() == 0:

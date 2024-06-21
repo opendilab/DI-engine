@@ -8,7 +8,6 @@ import torch.nn.functional as F
 import wandb
 
 # from einops import pack, rearrange
-
 from ding.model import model_wrap
 from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
@@ -202,6 +201,7 @@ class QTransformerPolicy(SACPolicy):
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
+        self._action_dim = self._cfg.model.action_dim
 
         # Init auto alpha
         if self._cfg.learn.auto_alpha:
@@ -306,6 +306,7 @@ class QTransformerPolicy(SACPolicy):
         #     ignore_done=self._cfg.learn.ignore_done,
         #     use_nstep=False,
         # )
+
         def discretization(x):
             self._action_values = torch.tensor(self._action_values)
             indices = torch.zeros_like(x, dtype=torch.long, device=x.device)
@@ -330,8 +331,10 @@ class QTransformerPolicy(SACPolicy):
         next_state = data["next_state"]  # torch.Size([2048, 10, 17])
         reward = data["reward"][:, -1]  # torch.Size([2048])
         done = data["done"][:, -1]  # torch.Size([2048])
-        action = data["action"]  # torch.Size([2048, 6, 256])
-        next_action = data["next_action"]  # torch.Size([2048, 6, 256])
+        action = data["action"]  
+        next_action = data["next_action"]  
+
+        action = self._get_actions(state)
 
         q_pred_all_actions = self._learn_model.forward(state, action=action)[:, 1:, :]
         # torch.Size([2048, 6, 256])
@@ -377,7 +380,7 @@ class QTransformerPolicy(SACPolicy):
         losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action)
         td_loss = losses_all_actions_but_last + losses_last_action
         td_loss.mean()
-        loss = td_loss + conservative_loss
+        loss = td_loss + conservative_loss * 0
         self._optimizer_q.zero_grad()
         loss.backward()
         self._optimizer_q.step()
@@ -411,13 +414,47 @@ class QTransformerPolicy(SACPolicy):
                 "q_real": q_pred.mean().item(),
             },
         )
-        return loss, q_pred_all_actions.mean().item()
+        return {
+            "td_error": loss.item(),
+            "policy_loss": q_pred_all_actions.mean().item(),
+        }
 
     def _get_actions(self, obs):
-
-        action = self._eval_model.get_actions(obs)
-        action = 2.0 * action / (1.0 * self._action_bin) - 1.0
+        action_bins = None
+        action_bins = torch.full(
+            (obs.size(0), self._action_dim), -1, dtype=torch.long, device=obs.device
+        )
+        for action_idx in range(self._action_dim):
+            if action_idx == 0:
+                q_values = self._eval_model.forward(obs)
+            else:
+                q_values = self._eval_model.forward(
+                    obs, action=action_bins[:, :action_idx]
+                )[:, action_idx-1:action_idx, :]
+            selected_action_bins = q_values.argmax(dim=-1)
+            action_bins[:, action_idx] = selected_action_bins.squeeze()
+        action = 2.0 * action_bins.float() / (1.0 * self._action_bin) - 1.0
         return action
+
+    def _monitor_vars_learn(self) -> List[str]:
+        """
+        Overview:
+            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+            as text logger, tensorboard logger, will use these keys to save the corresponding data.
+        Returns:
+            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+        """
+        return [
+            "value_loss" "alpha_loss",
+            "policy_loss",
+            "critic_loss",
+            "cur_lr_q",
+            "cur_lr_p",
+            "target_q_value",
+            "alpha",
+            "td_error",
+            "transformed_log_prob",
+        ]
 
     # def _monitor_vars_learn(self) -> List[str]:
     #     """
