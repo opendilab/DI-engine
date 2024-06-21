@@ -21,6 +21,7 @@ main_config = dict(
         n_evaluator_episode=8,
         stop_value=6000,
     ),
+    wandb=dict(project=f"Qtransformer_walker2d_{num_timesteps}"),
     dataset=dict(
         dataset_folder="/root/code/DI-engine/qtransformer/model",
         num_timesteps=num_timesteps,

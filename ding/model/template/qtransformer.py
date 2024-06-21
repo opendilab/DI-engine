@@ -270,7 +270,6 @@ class DecoderOnly(nn.Module):
         )
         self.Generator = Generator(d_model, vocab=action_bin)
 
-
     def forward(self, x):
         x = self.position(x)
         x = self.model(x, subsequent_mask(x.size(1)).to(x.device))
@@ -284,6 +283,7 @@ class QTransformer(nn.Module):
         self.stateEncode = stateEncode(num_timesteps, state_dim)
         self.actionEncode = actionEncode(action_dim, action_bin)
         self.Transormer = DecoderOnly(action_bin)
+        self._action_bin = action_bin
 
     def forward(
         self,
@@ -292,6 +292,7 @@ class QTransformer(nn.Module):
     ):
         stateEncode = self.stateEncode(state)
         if action is not None:
+            action = torch.nn.functional.one_hot(action, num_classes=self._action_bin)
             actionEncode = self.actionEncode(action)
             return self.Transormer(torch.cat((stateEncode, actionEncode), dim=1))
         return self.Transormer(stateEncode)

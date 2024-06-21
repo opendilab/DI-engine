@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 import numpy as np
 import torch
 import torch.nn.functional as F
+import wandb
 
 # from einops import pack, rearrange
 
@@ -297,7 +298,6 @@ class QTransformerPolicy(SACPolicy):
             You can implement you own model rather than use the default model. For more information, please raise an \
             issue in GitHub repo and we will continue to follow up.
         """
-        loss_dict = {}
 
         # data = default_preprocess_learn(
         #     data,
@@ -312,49 +312,106 @@ class QTransformerPolicy(SACPolicy):
             for i in range(x.shape[1]):
                 diff = (x[:, i].unsqueeze(-1) - self._action_values[i, :]) ** 2
                 indices[:, i] = diff.argmin(dim=-1)
-            action = torch.nn.functional.one_hot(indices, num_classes=self._action_bin)
-            return action
+            return indices
 
-        data["action"] = discretization(data["action"][:, -1, :])
-        data["next_action"] = discretization(data["next_action"][:, -1, :])
+        data["action"] = discretization(
+            data["action"][:, -1, :]
+        )  # torch.Size([2048, 10, 6]) -->torch.Size([2048, 6])
+        data["next_action"] = discretization(
+            data["next_action"][:, -1, :]
+        )  # torch.Size([2048, 10, 6]) -->torch.Size([2048, 6])
 
         if self._cuda:
             data = to_device(data, self._device)
 
         self._learn_model.train()
         self._target_model.train()
-        state = data["state"]
-        next_state = data["next_state"]
-        reward = data["reward"]
-        done = data["done"]
-        action = data["action"]
-        next_action = data["next_action"]
+        state = data["state"]  # torch.Size([2048, 10, 17])
+        next_state = data["next_state"]  # torch.Size([2048, 10, 17])
+        reward = data["reward"][:, -1]  # torch.Size([2048])
+        done = data["done"][:, -1]  # torch.Size([2048])
+        action = data["action"]  # torch.Size([2048, 6, 256])
+        next_action = data["next_action"]  # torch.Size([2048, 6, 256])
 
-        q_pred = self._learn_model.forward(state, action=action)
+        q_pred_all_actions = self._learn_model.forward(state, action=action)[:, 1:, :]
+        # torch.Size([2048, 6, 256])
 
+        def batch_select_indices(t, indices):
+            indices = indices.unsqueeze(-1)
+            selected = t.gather(-1, indices)
+            selected = selected.squeeze(-1)
+            return selected
+
+        q_pred = batch_select_indices(q_pred_all_actions, action)
+        # Create the dataset action mask and set selected values to 1
+        dataset_action_mask = torch.zeros_like(q_pred_all_actions).scatter_(
+            -1, action.unsqueeze(-1), 1
+        )
+        q_actions_not_taken = q_pred_all_actions[~dataset_action_mask.bool()]
+        num_non_dataset_actions = q_actions_not_taken.size(0) // q_pred.size(0)
+        conservative_loss = (
+            (q_actions_not_taken - (0)) ** 2
+        ).sum() / num_non_dataset_actions
+        # Iterate over each row in the action tensor
+
+        q_pred_rest_actions = q_pred[:, :-1]
+        q_pred_last_action = q_pred[:, -1].unsqueeze(-1)
         with torch.no_grad():
-            q_next_target = self._target_model.forward(next_state, actions=next_action)
-            q_next_target = q_next_target.max(dim=-1).values
-            q_target = self._target_model.forward(state, actions=action)
-            q_target = q_target.max(dim=-1).values
-        q_pred_rest_actions, q_pred_last_action = q_pred[..., :-1], q_pred[..., -1]
-        q_target_rest_actions = q_target[..., 1:]
-        q_next_first_action = q_next_target[..., 0]
-        losses_all_actions_but_last = F.mse_loss(
-            q_pred_rest_actions, q_target_rest_actions, reduction="none"
-        )
-        q_target_last_action = reward[-1] + 0.99 * q_next_first_action
-        losses_last_action = F.mse_loss(
-            q_pred_last_action, q_target_last_action, reduction="none"
-        )
-        td_loss = losses_all_actions_but_last + losses_last_action
+            q_next_target = self._target_model.forward(next_state, action=next_action)[
+                :, 1:, :
+            ]
+            q_target = self._target_model.forward(state, action=action)[:, 1:, :]
 
+        q_target_rest_actions = q_target[:, 1:, :]
+        max_q_target_rest_actions = q_target_rest_actions.max(dim=-1).values
+
+        q_next_target_first_action = q_next_target[:, 0, :].unsqueeze(1)
+        max_q_next_target_first_action = q_next_target_first_action.max(dim=-1).values
+
+        losses_all_actions_but_last = F.mse_loss(
+            q_pred_rest_actions, max_q_target_rest_actions
+        )
+        q_target_last_action = (reward * (1.0 - done.int())).unsqueeze(
+            1
+        ) + self._gamma * max_q_next_target_first_action
+        losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action)
+        td_loss = losses_all_actions_but_last + losses_last_action
+        td_loss.mean()
+        loss = td_loss + conservative_loss
         self._optimizer_q.zero_grad()
-        td_loss.backward()
+        loss.backward()
         self._optimizer_q.step()
         self._forward_learn_cnt += 1
         self._target_model.update(self._learn_model.state_dict())
-        return loss
+
+        split_tensors = q_pred_all_actions.chunk(6, dim=1)
+        q_means = [tensor.mean() for tensor in split_tensors]
+        split_tensors_r = q_pred.chunk(6, dim=1)
+        q_r_means = [tensor.mean() for tensor in split_tensors_r]
+        wandb.log(
+            {
+                "td_loss": td_loss.item(),
+                "losses_all_actions_but_last": losses_all_actions_but_last.item(),
+                "losses_last_action": losses_last_action.item(),
+                "conservative_loss": conservative_loss.item(),
+                "q_mean": q_pred_all_actions.mean().item(),
+                "q_a11": q_means[0].item(),
+                "q_a12": q_means[1].item(),
+                "q_a13": q_means[2].item(),
+                "q_a14": q_means[3].item(),
+                "q_a15": q_means[4].item(),
+                "q_a16": q_means[5].item(),
+                "q_r_a11": q_r_means[0].item(),
+                "q_r_a12": q_r_means[1].item(),
+                "q_r_a13": q_r_means[2].item(),
+                "q_r_a14": q_r_means[3].item(),
+                "q_r_a15": q_r_means[4].item(),
+                "q_r_a16": q_r_means[5].item(),
+                "q_all": q_pred_all_actions.mean().item(),
+                "q_real": q_pred.mean().item(),
+            },
+        )
+        return loss, q_pred_all_actions.mean().item()
 
     def _get_actions(self, obs):
 
@@ -362,22 +419,15 @@ class QTransformerPolicy(SACPolicy):
         action = 2.0 * action / (1.0 * self._action_bin) - 1.0
         return action
 
-    def _monitor_vars_learn(self) -> List[str]:
-        """
-        Overview:
-            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
-            as text logger, tensorboard logger, will use these keys to save the corresponding data.
-        Returns:
-            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
-        """
-        return [
-            "cur_lr_q",
-            "td_loss",
-            "conser_loss",
-            "critic_loss",
-            "all_loss",
-            "target_q",
-        ]
+    # def _monitor_vars_learn(self) -> List[str]:
+    #     """
+    #     Overview:
+    #         Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
+    #         as text logger, tensorboard logger, will use these keys to save the corresponding data.
+    #     Returns:
+    #         - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
+    #     """
+    #     return ["loss", "q_pred_all_actions.mean().item()"]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
