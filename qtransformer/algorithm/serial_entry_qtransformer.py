@@ -132,15 +132,21 @@ def serial_pipeline_offline(
             dataloader.sampler.set_epoch(epoch)
         for train_data in dataloader:
             learner.train(train_data)
+        if evaluator.should_eval(learner.train_iter):
+            stop, eval_info = evaluator.eval(
+                learner.save_checkpoint, learner.train_iter
+            )
+            import numpy as np
 
-        # if evaluator.should_eval(learner.train_iter):
-        #     stop, eval_info = evaluator.eval(
-        #         learner.save_checkpoint, learner.train_iter
-        #     )
-
-        # if stop or learner.train_iter >= max_train_iter:
-        #     stop = True
-        #     break
+            mean_value = np.mean(eval_info["eval_episode_return"])
+            std_value = np.std(eval_info["eval_episode_return"])
+            max_value = np.max(eval_info["eval_episode_return"])
+            wandb.log(
+                {"mean": mean_value, "std": std_value, "max": max_value}, commit=False
+            )
+        if stop or learner.train_iter >= max_train_iter:
+            stop = True
+            break
 
     learner.call_hook("after_run")
     if get_rank() == 0:

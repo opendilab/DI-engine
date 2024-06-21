@@ -331,10 +331,8 @@ class QTransformerPolicy(SACPolicy):
         next_state = data["next_state"]  # torch.Size([2048, 10, 17])
         reward = data["reward"][:, -1]  # torch.Size([2048])
         done = data["done"][:, -1]  # torch.Size([2048])
-        action = data["action"]  
-        next_action = data["next_action"]  
-
-        action = self._get_actions(state)
+        action = data["action"]
+        next_action = data["next_action"]
 
         q_pred_all_actions = self._learn_model.forward(state, action=action)[:, 1:, :]
         # torch.Size([2048, 6, 256])
@@ -430,7 +428,7 @@ class QTransformerPolicy(SACPolicy):
             else:
                 q_values = self._eval_model.forward(
                     obs, action=action_bins[:, :action_idx]
-                )[:, action_idx-1:action_idx, :]
+                )[:, action_idx - 1 : action_idx, :]
             selected_action_bins = q_values.argmax(dim=-1)
             action_bins[:, action_idx] = selected_action_bins.squeeze()
         action = 2.0 * action_bins.float() / (1.0 * self._action_bin) - 1.0
@@ -504,7 +502,7 @@ class QTransformerPolicy(SACPolicy):
         self._eval_model = model_wrap(self._model, wrapper_name="base")
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict) -> dict:
+    def _forward_eval(self, data: dict, the_time) -> dict:
         r"""
         Overview:
             Forward function of eval mode, similar to ``self._forward_collect``.
@@ -517,12 +515,24 @@ class QTransformerPolicy(SACPolicy):
             - necessary: ``action``
         """
         data_id = list(data.keys())
+        expected_ids = list(range(self._cfg.model.num_timesteps))
+        missing_ids = [i for i in expected_ids if i not in data_id]
+        for missing_id in missing_ids:
+            data[missing_id] = torch.zeros_like(input=next(iter(data.values())))
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
         self._eval_model.eval()
+        if the_time == 0:
+            self._state_list = data.unsqueeze(1).expand(
+                -1, self._cfg.model.num_timesteps, -1
+            )
+        else:
+            self._state_list = self._state_list[:, 1:, :]
+            # Insert the new data at the last position
+            self._state_list = torch.cat((self._state_list, data.unsqueeze(1)), dim=1)
         with torch.no_grad():
-            output = self._get_actions(data)
+            output = self._get_actions(self._state_list)
         if self._cuda:
             output = to_device(output, "cpu")
         output = default_decollate(output)

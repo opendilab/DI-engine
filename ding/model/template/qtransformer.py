@@ -231,7 +231,7 @@ class stateEncode(nn.Module):
     def forward(self, x):
         batch_size = x.size(0)
         # Reshape from (Batch, 8, 256) to (Batch, 2048)
-        x = x.view(batch_size, -1)
+        x = x.reshape(batch_size, -1)
         # Pass through the layers with activation functions
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
