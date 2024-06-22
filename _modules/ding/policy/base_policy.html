@@ -1,0 +1,1272 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.policy.base_policy &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.policy.base_policy</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.policy.base_policy</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">create_model</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">broadcast</span><span class="p">,</span> <span class="n">get_rank</span><span class="p">,</span> <span class="n">allreduce_async</span><span class="p">,</span> <span class="n">synchronize</span><span class="p">,</span> <span class="n">deep_merge_dicts</span><span class="p">,</span> \
+    <span class="n">POLICY_REGISTRY</span>
+
+
+<div class="viewcode-block" id="Policy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy">[docs]</a><span class="k">class</span> <span class="nc">Policy</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The basic class of Reinforcement Learning (RL) and Imitation Learning (IL) policy in DI-engine.</span>
+<span class="sd">    Property:</span>
+<span class="sd">        ``cfg``, ``learn_mode``, ``collect_mode``, ``eval_mode``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Policy.default_config"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.default_config">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the default config of policy. This method is used to create the default config of policy.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): The default config of corresponding policy. For the derived policy class, \</span>
+<span class="sd">                it will recursively merge the default config of base class and its own default config.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            This method will deepcopy the ``config`` attribute of the class and return the result. So users don&#39;t need \</span>
+<span class="sd">            to worry about the modification of the returned config.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="o">==</span> <span class="n">Policy</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Basic class Policy doesn&#39;t have completed default_config&quot;</span><span class="p">)</span>
+
+        <span class="n">base_cls</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__base__</span>
+        <span class="k">if</span> <span class="n">base_cls</span> <span class="o">==</span> <span class="n">Policy</span><span class="p">:</span>
+            <span class="n">base_policy_cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">Policy</span><span class="o">.</span><span class="n">config</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_policy_cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">base_cls</span><span class="o">.</span><span class="n">default_config</span><span class="p">())</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">config</span><span class="p">))</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">base_policy_cfg</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">cfg_type</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;Dict&#39;</span>
+        <span class="k">return</span> <span class="n">cfg</span></div>
+
+    <span class="n">learn_function</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+        <span class="s1">&#39;learn_function&#39;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">&#39;forward&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;reset&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;info&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;monitor_vars&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_attribute&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;set_attribute&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;state_dict&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;load_state_dict&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">collect_function</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+        <span class="s1">&#39;collect_function&#39;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">&#39;forward&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;process_transition&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_train_sample&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;reset&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_attribute&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;set_attribute&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;state_dict&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;load_state_dict&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">eval_function</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+        <span class="s1">&#39;eval_function&#39;</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">&#39;forward&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;reset&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;get_attribute&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;set_attribute&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;state_dict&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;load_state_dict&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">total_field</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;learn&#39;</span><span class="p">,</span> <span class="s1">&#39;collect&#39;</span><span class="p">,</span> <span class="s1">&#39;eval&#39;</span><span class="p">])</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (bool) Whether the learning policy is the same as the collecting data policy (on-policy).</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda in policy.</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use data parallel multi-gpu mode in policy.</span>
+        <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to synchronize update the model parameters after allreduce the gradients of model parameters.</span>
+        <span class="n">bp_update_sync</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to enable infinite trajectory length in data collecting.</span>
+        <span class="n">traj_len_inf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># neural network model config</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="Policy.__init__"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+            <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">enable_field</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize policy instance according to input configures and model. This method will initialize differnent \</span>
+<span class="sd">            fields in policy, including ``learn``, ``collect``, ``eval``. The ``learn`` field is used to train the \</span>
+<span class="sd">            policy, the ``collect`` field is used to collect data for training, and the ``eval`` field is used to \</span>
+<span class="sd">            evaluate the policy. The ``enable_field`` is used to specify which field to initialize, if it is None, \</span>
+<span class="sd">            then all fields will be initialized.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): The final merged config used to initialize policy. For the default config, \</span>
+<span class="sd">                see the ``config`` attribute and its comments of policy class.</span>
+<span class="sd">            - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. If it \</span>
+<span class="sd">                is None, then the model will be created according to ``default_model`` method and ``cfg.model`` field. \</span>
+<span class="sd">                Otherwise, the model will be set to the ``model`` instance created by outside caller.</span>
+<span class="sd">            - enable_field (:obj:`Optional[List[str]]`): The field list to initialize. If it is None, then all fields \</span>
+<span class="sd">                will be initialized. Otherwise, only the fields in ``enable_field`` will be initialized, which is \</span>
+<span class="sd">                beneficial to save resources.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the derived policy class, it should implement the ``_init_learn``, ``_init_collect``, ``_init_eval`` \</span>
+<span class="sd">            method to initialize the corresponding field.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span> <span class="o">=</span> <span class="n">cfg</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">on_policy</span>
+        <span class="k">if</span> <span class="n">enable_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_field</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span> <span class="o">=</span> <span class="n">enable_field</span>
+        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_field</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="s1">&#39;learn&#39;</span><span class="p">,</span> <span class="s1">&#39;collect&#39;</span><span class="p">,</span> <span class="s1">&#39;eval&#39;</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">cuda</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+            <span class="c1"># now only support multi-gpu for only enable learn mode</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="s1">&#39;learn&#39;</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">multi_gpu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_gpu</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="n">get_rank</span><span class="p">()</span> <span class="k">if</span> <span class="n">multi_gpu</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+                    <span class="c1"># model.cuda() is an in-place operation.</span>
+                    <span class="n">model</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">multi_gpu</span><span class="p">:</span>
+                    <span class="n">bp_update_sync</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">bp_update_sync</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_bp_update_sync</span> <span class="o">=</span> <span class="n">bp_update_sync</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_init_multi_gpu_setting</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">bp_update_sync</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+                    <span class="c1"># model.cuda() is an in-place operation.</span>
+                    <span class="n">model</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="s1">&#39;cuda:</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">%</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">device_count</span><span class="p">())</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span>
+
+        <span class="c1"># call the initialization method of different modes, such as ``_init_learn``, ``_init_collect``, ``_init_eval``</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_field</span><span class="p">:</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_init_&#39;</span> <span class="o">+</span> <span class="n">field</span><span class="p">)()</span></div>
+
+<div class="viewcode-block" id="Policy._init_multi_gpu_setting"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._init_multi_gpu_setting">[docs]</a>    <span class="k">def</span> <span class="nf">_init_multi_gpu_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">bp_update_sync</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize multi-gpu data parallel training setting, including broadcast model parameters at the beginning \</span>
+<span class="sd">            of the training, and prepare the hook function to allreduce the gradients of model parameters.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - model (:obj:`torch.nn.Module`): The neural network model to be trained.</span>
+<span class="sd">            - bp_update_sync (:obj:`bool`): Whether to synchronize update the model parameters after allreduce the \</span>
+<span class="sd">                gradients of model parameters. Async update can be parallel in different network layers like pipeline \</span>
+<span class="sd">                so that it can save time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">broadcast</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># here we manually set the gradient to zero tensor at the beginning of the training, which is necessary for</span>
+        <span class="c1"># the case that different GPUs have different computation graph.</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bp_update_sync</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">make_hook</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+
+                <span class="k">def</span> <span class="nf">hook</span><span class="p">(</span><span class="o">*</span><span class="n">ignore</span><span class="p">):</span>
+                    <span class="n">allreduce_async</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">hook</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                    <span class="n">p_tmp</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">expand_as</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="n">grad_acc</span> <span class="o">=</span> <span class="n">p_tmp</span><span class="o">.</span><span class="n">grad_fn</span><span class="o">.</span><span class="n">next_functions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">grad_acc</span><span class="o">.</span><span class="n">register_hook</span><span class="p">(</span><span class="n">make_hook</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Policy._create_model"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._create_model">[docs]</a>    <span class="k">def</span> <span class="nf">_create_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Create or validate the neural network model according to the input configuration and model. \</span>
+<span class="sd">            If the input model is None, then the model will be created according to ``default_model`` \</span>
+<span class="sd">            method and ``cfg.model`` field. Otherwise, the model will be verified as an instance of \</span>
+<span class="sd">            ``torch.nn.Module`` and set to the ``model`` instance created by outside caller.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): The final merged config used to initialize policy.</span>
+<span class="sd">            - model (:obj:`torch.nn.Module`): The neural network model used to initialize policy. User can refer to \</span>
+<span class="sd">                the default model defined in the corresponding policy to customize its own model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - model (:obj:`torch.nn.Module`): The created neural network model. The different modes of policy will \</span>
+<span class="sd">                add distinct wrappers and plugins to the model, which is used to train, collect and evaluate.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            - RuntimeError: If the input model is not None and is not an instance of ``torch.nn.Module``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model_cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">model</span>
+            <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">model_cfg</span><span class="p">:</span>
+                <span class="n">m_type</span><span class="p">,</span> <span class="n">import_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_model</span><span class="p">()</span>
+                <span class="n">model_cfg</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">m_type</span>
+                <span class="n">model_cfg</span><span class="o">.</span><span class="n">import_names</span> <span class="o">=</span> <span class="n">import_names</span>
+            <span class="k">return</span> <span class="n">create_model</span><span class="p">(</span><span class="n">model_cfg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">model</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;invalid model: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cfg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span>
+
+<div class="viewcode-block" id="Policy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._init_learn">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. This method will be \</span>
+<span class="sd">            called in ``__init__`` method if ``learn`` field is in ``enable_field``. Almost different policies have \</span>
+<span class="sd">            its own learn mode, so this method must be overrided in subclass.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Policy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._init_collect">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the collect mode of policy, including related attributes and modules. This method will be \</span>
+<span class="sd">            called in ``__init__`` method if ``collect`` field is in ``enable_field``. Almost different policies have \</span>
+<span class="sd">            its own collect mode, so this method must be overrided in subclass.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_collect`` \</span>
+<span class="sd">            and ``_load_state_dict_collect`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_collect`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Policy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._init_eval">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the eval mode of policy, including related attributes and modules. This method will be \</span>
+<span class="sd">            called in ``__init__`` method if ``eval`` field is in ``enable_field``. Almost different policies have \</span>
+<span class="sd">            its own eval mode, so this method must be override in subclass.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_eval`` \</span>
+<span class="sd">            and ``_load_state_dict_eval`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_eval`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">learn_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Policy.learn_function&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the interfaces of learn mode of policy, which is used to train the model. Here we use namedtuple \</span>
+<span class="sd">            to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived \</span>
+<span class="sd">            subclass can override the interfaces to customize its own learn mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - interfaces (:obj:`Policy.learn_function`): The interfaces of learn mode of policy, it is a namedtuple \</span>
+<span class="sd">                whose values of distinct fields are different internal methods.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; policy = Policy(cfg, model)</span>
+<span class="sd">            &gt;&gt;&gt; policy_learn = policy.learn_mode</span>
+<span class="sd">            &gt;&gt;&gt; train_output = policy_learn.forward(data)</span>
+<span class="sd">            &gt;&gt;&gt; state_dict = policy_learn.state_dict()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Policy</span><span class="o">.</span><span class="n">learn_function</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_learn</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_attribute</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_attribute</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state_dict_learn</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_dict_learn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">collect_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Policy.collect_function&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the interfaces of collect mode of policy, which is used to train the model. Here we use namedtuple \</span>
+<span class="sd">            to define immutable interfaces and restrict the usage of policy in different modes. Moreover, derived \</span>
+<span class="sd">            subclass can override the interfaces to customize its own collect mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - interfaces (:obj:`Policy.collect_function`): The interfaces of collect mode of policy, it is a \</span>
+<span class="sd">                namedtuple whose values of distinct fields are different internal methods.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; policy = Policy(cfg, model)</span>
+<span class="sd">            &gt;&gt;&gt; policy_collect = policy.collect_mode</span>
+<span class="sd">            &gt;&gt;&gt; obs = env_manager.ready_obs</span>
+<span class="sd">            &gt;&gt;&gt; inference_output = policy_collect.forward(obs)</span>
+<span class="sd">            &gt;&gt;&gt; next_obs, rew, done, info = env_manager.step(inference_output.action)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Policy</span><span class="o">.</span><span class="n">collect_function</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_forward_collect</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_transition</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_train_sample</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_collect</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_attribute</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_attribute</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state_dict_collect</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_dict_collect</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">eval_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Policy.eval_function&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the interfaces of eval mode of policy, which is used to train the model. Here we use namedtuple \</span>
+<span class="sd">            to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \</span>
+<span class="sd">            subclass can override the interfaces to customize its own eval mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - interfaces (:obj:`Policy.eval_function`): The interfaces of eval mode of policy, it is a namedtuple \</span>
+<span class="sd">                whose values of distinct fields are different internal methods.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; policy = Policy(cfg, model)</span>
+<span class="sd">            &gt;&gt;&gt; policy_eval = policy.eval_mode</span>
+<span class="sd">            &gt;&gt;&gt; obs = env_manager.ready_obs</span>
+<span class="sd">            &gt;&gt;&gt; inference_output = policy_eval.forward(obs)</span>
+<span class="sd">            &gt;&gt;&gt; next_obs, rew, done, info = env_manager.step(inference_output.action)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Policy</span><span class="o">.</span><span class="n">eval_function</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_forward_eval</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_eval</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_attribute</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_attribute</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state_dict_eval</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_state_dict_eval</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Policy._set_attribute"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._set_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">_set_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            In order to control the access of the policy attributes, we expose different modes to outside rather than \</span>
+<span class="sd">            directly use the policy instance. And we also provide a method to set the attribute of the policy in \</span>
+<span class="sd">            different modes. And the new attribute will name as ``_{name}``.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): The name of the attribute.</span>
+<span class="sd">            - value (:obj:`Any`): The value of the attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Policy._get_attribute"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._get_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">_get_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            In order to control the access of the policy attributes, we expose different modes to outside rather than \</span>
+<span class="sd">            directly use the policy instance. And we also provide a method to get the attribute of the policy in \</span>
+<span class="sd">            different modes.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): The name of the attribute.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - value (:obj:`Any`): The value of the attribute.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            DI-engine&#39;s policy will first try to access `_get_{name}` method, and then try to access `_{name}` \</span>
+<span class="sd">            attribute. If both of them are not found, it will raise a ``NotImplementedError``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_get_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_get_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)()</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Policy.__repr__"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.__repr__">[docs]</a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the string representation of the policy.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - repr (:obj:`str`): The string representation of the policy.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;DI-engine DRL Policy</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Policy.sync_gradients"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.sync_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Synchronize (allreduce) gradients of model parameters in data-parallel multi-gpu training.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - model (:obj:`torch.nn.Module`): The model to synchronize gradients.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This method is only used in multi-gpu training, and it should be called after ``backward`` method and \</span>
+<span class="sd">            before ``step`` method. The user can also use ``bp_update_sync`` config to control whether to synchronize \</span>
+<span class="sd">            gradients allreduce and optimizer updates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bp_update_sync</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                    <span class="n">allreduce</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">synchronize</span><span class="p">()</span></div>
+
+    <span class="c1"># don&#39;t need to implement default_model method by force</span>
+<div class="viewcode-block" id="Policy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
+<span class="sd">            automatically call this method to get the default model setting and create model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
+<span class="sd">            by import_names path. For example about DQN, its registered name is ``dqn`` and the import_names is \</span>
+<span class="sd">            ``ding.model.template.q_learning.DQN``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># *************************************** learn function ************************************</span>
+
+<div class="viewcode-block" id="Policy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._forward_learn">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss value, policy entropy, q value, priority, \</span>
+<span class="sd">            and so on. This method is left to be implemented by the subclass, and more arguments can be added in \</span>
+<span class="sd">            ``data`` item if necessary.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
+<span class="sd">                training samples. For each element in list, the key of the dict is the name of data items and the \</span>
+<span class="sd">                value is the corresponding data. Usually, in the ``_forward_learn`` method, data should be stacked in \</span>
+<span class="sd">                the batch dimension by some utility functions such as ``default_preprocess_learn``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The training information of policy forward, including some metrics for \</span>
+<span class="sd">                monitoring training such as loss, priority, q value, policy entropy, and some data for next step \</span>
+<span class="sd">                training such as priority. Note the output data item should be Python native scalar rather than \</span>
+<span class="sd">                PyTorch tensor, which is convenient for the outside to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># don&#39;t need to implement _reset_learn method by force</span>
+<div class="viewcode-block" id="Policy._reset_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._reset_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Reset some stateful variables for learn mode when necessary, such as the hidden state of RNN or the \</span>
+<span class="sd">            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \</span>
+<span class="sd">            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \</span>
+<span class="sd">            different trajectories in ``data_id`` will have different hidden state in RNN.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \</span>
+<span class="sd">                specified by ``data_id``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This method is not mandatory to be implemented. The sub-class can overwrite this method if necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Policy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            The default implementation is ``[&#39;cur_lr&#39;, &#39;total_loss&#39;]``. Other derived classes can overwrite this \</span>
+<span class="sd">            method to add their own keys if necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Policy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of learn mode, usually including model and optimizer.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn state, for saving and restoring.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="Policy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict variable into policy learn mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn state saved before.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
+<span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
+<span class="sd">            complicated operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="c1"># some specifial algorithms use different batch size for different optimization parts.</span>
+        <span class="k">if</span> <span class="s1">&#39;batch_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">batch_size</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># for compatibility</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span>
+
+    <span class="c1"># *************************************** collect function ************************************</span>
+
+<div class="viewcode-block" id="Policy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._forward_collect">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \</span>
+<span class="sd">            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \</span>
+<span class="sd">            data, such as the action to interact with the envs, or the action logits to calculate the loss in learn \</span>
+<span class="sd">            mode. This method is left to be implemented by the subclass, and more arguments can be added in ``kwargs`` \</span>
+<span class="sd">            part if necessary.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \</span>
+<span class="sd">                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \</span>
+<span class="sd">                dict is the same as the input data, i.e. environment id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Policy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._process_transition">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]],</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+            <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Process and pack one timestep transition data into a dict, such as &lt;s, a, r, s&#39;, done&gt;. Some policies \</span>
+<span class="sd">            need to do some special process and pack its own necessary attributes (e.g. hidden state and logit), \</span>
+<span class="sd">            so this method is left to be implemented by the subclass.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - obs (:obj:`Union[torch.Tensor, Dict[str, torch.Tensor]]`): The observation of the current timestep.</span>
+<span class="sd">            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \</span>
+<span class="sd">                as input. Usually, it contains the action and the logit of the action.</span>
+<span class="sd">            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \</span>
+<span class="sd">                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \</span>
+<span class="sd">                reward, done, info, etc.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Policy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._get_train_sample">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
+<span class="sd">            can be used for training directly. A train sample can be a processed transition (DQN with nstep TD) \</span>
+<span class="sd">            or some multi-timestep transitions (DRQN). This method is usually used in collectors to execute necessary \</span>
+<span class="sd">            RL data preprocessing before training, which can help learner amortize revelant time consumption. \</span>
+<span class="sd">            In addition, you can also implement this method as an identity function and do the data processing \</span>
+<span class="sd">            in ``self._forward_learn`` method.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \</span>
+<span class="sd">                the same format as the return value of ``self._process_transition`` method.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \</span>
+<span class="sd">                as input transitions, but may contain more data for training, such as nstep reward, advantage, etc.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \</span>
+<span class="sd">            And the user can customize the this data processing procecure by overriding this two methods and collector \</span>
+<span class="sd">            itself</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># don&#39;t need to implement _reset_collect method by force</span>
+<div class="viewcode-block" id="Policy._reset_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._reset_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Reset some stateful variables for collect mode when necessary, such as the hidden state of RNN or the \</span>
+<span class="sd">            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \</span>
+<span class="sd">            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \</span>
+<span class="sd">            different environments/episodes in collecting in ``data_id`` will have different hidden state in RNN.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \</span>
+<span class="sd">                specified by ``data_id``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This method is not mandatory to be implemented. The sub-class can overwrite this method if necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Policy._state_dict_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._state_dict_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of collect mode, only including model in usual, which is necessary for distributed \</span>
+<span class="sd">            training scenarios to auto-recover collectors.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy collect state, for saving and restoring.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            Not all the scenarios need to auto-recover collectors, sometimes, we can directly shutdown the crashed \</span>
+<span class="sd">            collector and renew a new one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="Policy._load_state_dict_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._load_state_dict_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict variable into policy collect mode, such as load pretrained state_dict, auto-recover \</span>
+<span class="sd">            checkpoint, or model replica from learner in distributed training scenarios.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of policy collect state saved before.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
+<span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
+<span class="sd">            complicated operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_n_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s1">&#39;n_sample&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">n_sample</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># for compatibility</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_sample&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># for some adpative collecting data case</span>
+
+    <span class="k">def</span> <span class="nf">_get_n_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s1">&#39;n_episode&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">n_episode</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># for compatibility</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_episode&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># for some adpative collecting data case</span>
+
+    <span class="c1"># *************************************** eval function ************************************</span>
+
+<div class="viewcode-block" id="Policy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._forward_eval">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of eval mode (evaluation policy performance, such as interacting with envs or \</span>
+<span class="sd">            computing metrics on validation dataset). Forward means that the policy gets some necessary data (mainly \</span>
+<span class="sd">            observation) from the envs and then returns the output data, such as the action to interact with the envs. \</span>
+<span class="sd">            This method is left to be implemented by the subclass.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \</span>
+<span class="sd">                key of the dict is the same as the input data, i.e. environment id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># don&#39;t need to implement _reset_eval method by force</span>
+<div class="viewcode-block" id="Policy._reset_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._reset_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_reset_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Reset some stateful variables for eval mode when necessary, such as the hidden state of RNN or the \</span>
+<span class="sd">            memory bank of some special algortihms. If ``data_id`` is None, it means to reset all the stateful \</span>
+<span class="sd">            varaibles. Otherwise, it will reset the stateful variables according to the ``data_id``. For example, \</span>
+<span class="sd">            different environments/episodes in evaluation in ``data_id`` will have different hidden state in RNN.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data_id (:obj:`Optional[List[int]]`): The id of the data, which is used to reset the stateful variables \</span>
+<span class="sd">                specified by ``data_id``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This method is not mandatory to be implemented. The sub-class can overwrite this method if necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Policy._state_dict_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._state_dict_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of eval mode, only including model in usual, which is necessary for distributed \</span>
+<span class="sd">            training scenarios to auto-recover evaluators.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy eval state, for saving and restoring.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            Not all the scenarios need to auto-recover evaluators, sometimes, we can directly shutdown the crashed \</span>
+<span class="sd">            evaluator and renew a new one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="Policy._load_state_dict_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy._load_state_dict_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict variable into policy eval mode, such as load auto-recover \</span>
+<span class="sd">            checkpoint, or model replica from learner in distributed training scenarios.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of policy eval state saved before.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
+<span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
+<span class="sd">            complicated operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CommandModePolicy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.CommandModePolicy">[docs]</a><span class="k">class</span> <span class="nc">CommandModePolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy with command mode, which can be used in old version of DI-engine pipeline: ``serial_pipeline``. \</span>
+<span class="sd">        ``CommandModePolicy`` uses ``_get_setting_learn``, ``_get_setting_collect``, ``_get_setting_eval`` methods \</span>
+<span class="sd">        to exchange information between different workers.</span>
+
+<span class="sd">    Interface:</span>
+<span class="sd">        ``_init_command``, ``_get_setting_learn``, ``_get_setting_collect``, ``_get_setting_eval``</span>
+<span class="sd">    Property:</span>
+<span class="sd">        ``command_mode``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">command_function</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;command_function&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;get_setting_learn&#39;</span><span class="p">,</span> <span class="s1">&#39;get_setting_collect&#39;</span><span class="p">,</span> <span class="s1">&#39;get_setting_eval&#39;</span><span class="p">])</span>
+    <span class="n">total_field</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;learn&#39;</span><span class="p">,</span> <span class="s1">&#39;collect&#39;</span><span class="p">,</span> <span class="s1">&#39;eval&#39;</span><span class="p">,</span> <span class="s1">&#39;command&#39;</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">command_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Policy.command_function&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the interfaces of command mode of policy, which is used to train the model. Here we use namedtuple \</span>
+<span class="sd">            to define immutable interfaces and restrict the usage of policy in different mode. Moreover, derived \</span>
+<span class="sd">            subclass can override the interfaces to customize its own command mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - interfaces (:obj:`Policy.command_function`): The interfaces of command mode, it is a namedtuple \</span>
+<span class="sd">                whose values of distinct fields are different internal methods.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; policy = CommandModePolicy(cfg, model)</span>
+<span class="sd">            &gt;&gt;&gt; policy_command = policy.command_mode</span>
+<span class="sd">            &gt;&gt;&gt; settings = policy_command.get_setting_learn(command_info)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">CommandModePolicy</span><span class="o">.</span><span class="n">command_function</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_setting_learn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_setting_collect</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_setting_eval</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="CommandModePolicy._init_command"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.CommandModePolicy._init_command">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_init_command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the command mode of policy, including related attributes and modules. This method will be \</span>
+<span class="sd">            called in ``__init__`` method if ``command`` field is in ``enable_field``. Almost different policies have \</span>
+<span class="sd">            its own command mode, so this method must be overrided in subclass.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_command`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_command_`` to avoid conflict with other modes, such as ``self._command_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># *************************************** command function ************************************</span>
+<div class="viewcode-block" id="CommandModePolicy._get_setting_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.CommandModePolicy._get_setting_learn">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_get_setting_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Accoding to ``command_info``, i.e., global training information (e.g. training iteration, collected env \</span>
+<span class="sd">            step, evaluation results, etc.), return the setting of learn mode, which contains dynamically changed \</span>
+<span class="sd">            hyperparameters for learn mode, such as ``batch_size``, ``learning_rate``, etc.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - command_info (:obj:`Dict[str, Any]`): The global training information, which is defined in ``commander``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - setting (:obj:`Dict[str, Any]`): The latest setting of learn mode, which is usually used as extra \</span>
+<span class="sd">                arguments of the ``policy._forward_learn`` method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="CommandModePolicy._get_setting_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.CommandModePolicy._get_setting_collect">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_get_setting_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Accoding to ``command_info``, i.e., global training information (e.g. training iteration, collected env \</span>
+<span class="sd">            step, evaluation results, etc.), return the setting of collect mode, which contains dynamically changed \</span>
+<span class="sd">            hyperparameters for collect mode, such as ``eps``, ``temperature``, etc.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - command_info (:obj:`Dict[str, Any]`): The global training information, which is defined in ``commander``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - setting (:obj:`Dict[str, Any]`): The latest setting of collect mode, which is usually used as extra \</span>
+<span class="sd">                arguments of the ``policy._forward_collect`` method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="CommandModePolicy._get_setting_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.CommandModePolicy._get_setting_eval">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_get_setting_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Accoding to ``command_info``, i.e., global training information (e.g. training iteration, collected env \</span>
+<span class="sd">            step, evaluation results, etc.), return the setting of eval mode, which contains dynamically changed \</span>
+<span class="sd">            hyperparameters for eval mode, such as ``temperature``, etc.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - command_info (:obj:`Dict[str, Any]`): The global training information, which is defined in ``commander``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - setting (:obj:`Dict[str, Any]`): The latest setting of eval mode, which is usually used as extra \</span>
+<span class="sd">                arguments of the ``policy._forward_eval`` method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+
+<div class="viewcode-block" id="create_policy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.create_policy">[docs]</a><span class="k">def</span> <span class="nf">create_policy</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Policy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a policy instance according to ``cfg`` and other kwargs.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Final merged policy config.</span>
+<span class="sd">    ArgumentsKeys:</span>
+<span class="sd">        - type (:obj:`str`): Policy type set in ``POLICY_REGISTRY.register`` method , such as ``dqn`` .</span>
+<span class="sd">        - import_names (:obj:`List[str]`): A list of module names (paths) to import before creating policy, such \</span>
+<span class="sd">            as ``ding.policy.dqn`` .</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - policy (:obj:`Policy`): The created policy instance.</span>
+
+<span class="sd">    .. tip::</span>
+<span class="sd">        ``kwargs`` contains other arguments that need to be passed to the policy constructor. You can refer to \</span>
+<span class="sd">        the ``__init__`` method of the corresponding policy class for details.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        For more details about how to merge config, please refer to the system document of DI-engine \</span>
+<span class="sd">        (`en link &lt;../03_system/config.html&gt;`_).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">return</span> <span class="n">POLICY_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_policy_cls"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.get_policy_cls">[docs]</a><span class="k">def</span> <span class="nf">get_policy_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Get policy class according to ``cfg``, which is used to access related class variables/methods.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Final merged policy config.</span>
+<span class="sd">    ArgumentsKeys:</span>
+<span class="sd">        - type (:obj:`str`): Policy type set in ``POLICY_REGISTRY.register`` method , such as ``dqn`` .</span>
+<span class="sd">        - import_names (:obj:`List[str]`): A list of module names (paths) to import before creating policy, such \</span>
+<span class="sd">            as ``ding.policy.dqn`` .</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - policy (:obj:`type`): The policy class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">return</span> <span class="n">POLICY_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../"
+    src="../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+  <script src="../../../_static/doctools.js"></script>
+  <script src="../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

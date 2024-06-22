@@ -1,0 +1,1348 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.torch_utils.network.dreamer &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.torch_utils.network.dreamer</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.torch_utils.network.dreamer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">torchd</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">MLP</span>
+<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">symlog</span><span class="p">,</span> <span class="n">inv_symlog</span>
+
+
+<div class="viewcode-block" id="Conv2dSame"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame">[docs]</a><span class="k">class</span> <span class="nc">Conv2dSame</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">         Conv2dSame Network for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Conv2dSame.calc_same_pad"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame.calc_same_pad">[docs]</a>    <span class="k">def</span> <span class="nf">calc_same_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the same padding size.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - i (:obj:`int`): Input size.</span>
+<span class="sd">            - k (:obj:`int`): Kernel size.</span>
+<span class="sd">            - s (:obj:`int`): Stride size.</span>
+<span class="sd">            - d (:obj:`int`): Dilation size.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">d</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Conv2dSame.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Conv2dSame.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            compute the forward of Conv2dSame.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ih</span><span class="p">,</span> <span class="n">iw</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">pad_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_same_pad</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">ih</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dilation</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">pad_w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_same_pad</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">iw</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dilation</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">pad_h</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pad_w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">pad_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad_w</span> <span class="o">-</span> <span class="n">pad_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad_h</span> <span class="o">-</span> <span class="n">pad_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">])</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dilation</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret</span></div></div>
+
+
+<div class="viewcode-block" id="DreamerLayerNorm"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm">[docs]</a><span class="k">class</span> <span class="nc">DreamerLayerNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">         DreamerLayerNorm Network for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DreamerLayerNorm.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-03</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the DreamerLayerNorm class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ch (:obj:`int`): Input channel.</span>
+<span class="sd">            - eps (:obj:`float`): Epsilon.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DreamerLayerNorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DreamerLayerNorm.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DreamerLayerNorm.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            compute the forward of DreamerLayerNorm.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="DenseHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead">[docs]</a><span class="k">class</span> <span class="nc">DenseHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       DenseHead Network for value head, reward head, and discount head of dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DenseHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">inp_dim</span><span class="p">,</span>
+        <span class="n">shape</span><span class="p">,</span>  <span class="c1"># (255,)</span>
+        <span class="n">layer_num</span><span class="p">,</span>
+        <span class="n">units</span><span class="p">,</span>  <span class="c1"># 512</span>
+        <span class="n">act</span><span class="o">=</span><span class="s1">&#39;SiLU&#39;</span><span class="p">,</span>
+        <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;LN&#39;</span><span class="p">,</span>
+        <span class="n">dist</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+        <span class="n">std</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">outscale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the DenseHead class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inp_dim (:obj:`int`): Input dimension.</span>
+<span class="sd">            - shape (:obj:`tuple`): Output shape.</span>
+<span class="sd">            - layer_num (:obj:`int`): Number of layers.</span>
+<span class="sd">            - units (:obj:`int`): Number of units.</span>
+<span class="sd">            - act (:obj:`str`): Activation function.</span>
+<span class="sd">            - norm (:obj:`str`): Normalization function.</span>
+<span class="sd">            - dist (:obj:`str`): Distribution function.</span>
+<span class="sd">            - std (:obj:`float`): Standard deviation.</span>
+<span class="sd">            - outscale (:obj:`float`): Output scale.</span>
+<span class="sd">            - device (:obj:`str`): Device.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DenseHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">shape</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer_num</span> <span class="o">=</span> <span class="n">layer_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_act</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="p">,</span> <span class="n">act</span><span class="p">)()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_norm</span> <span class="o">=</span> <span class="n">norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span>
+            <span class="n">inp_dim</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer_num</span><span class="p">,</span>
+            <span class="n">layer_fn</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_act</span><span class="p">,</span>
+            <span class="n">norm_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_norm</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">weight_init</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_layer</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">uniform_weight_init</span><span class="p">(</span><span class="n">outscale</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">==</span> <span class="s2">&quot;learned&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">std_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">std_layer</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">uniform_weight_init</span><span class="p">(</span><span class="n">outscale</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DenseHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.DenseHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            compute the forward of DenseHead.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - features (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">features</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># (batch, time, _units=512)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_layer</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  <span class="c1"># (batch, time, 255)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">==</span> <span class="s2">&quot;learned&quot;</span><span class="p">:</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">std_layer</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_std</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ContDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;huber&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ContDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">UnnormalizedHuber</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;binary&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">bernoulli</span><span class="o">.</span><span class="n">Bernoulli</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">mean</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;twohot_symlog&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TwoHotDistSymlog</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">mean</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">1.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ActionHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead">[docs]</a><span class="k">class</span> <span class="nc">ActionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       ActionHead Network for action head of dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ActionHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">inp_dim</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">,</span>
+        <span class="n">layers</span><span class="p">,</span>
+        <span class="n">units</span><span class="p">,</span>
+        <span class="n">act</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">,</span>
+        <span class="n">norm</span><span class="o">=</span><span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">,</span>
+        <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;trunc_normal&quot;</span><span class="p">,</span>
+        <span class="n">init_std</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">min_std</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">max_std</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">temp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">outscale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">unimix_ratio</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the ActionHead class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inp_dim (:obj:`int`): Input dimension.</span>
+<span class="sd">            - size (:obj:`int`): Output size.</span>
+<span class="sd">            - layers (:obj:`int`): Number of layers.</span>
+<span class="sd">            - units (:obj:`int`): Number of units.</span>
+<span class="sd">            - act (:obj:`str`): Activation function.</span>
+<span class="sd">            - norm (:obj:`str`): Normalization function.</span>
+<span class="sd">            - dist (:obj:`str`): Distribution function.</span>
+<span class="sd">            - init_std (:obj:`float`): Initial standard deviation.</span>
+<span class="sd">            - min_std (:obj:`float`): Minimum standard deviation.</span>
+<span class="sd">            - max_std (:obj:`float`): Maximum standard deviation.</span>
+<span class="sd">            - temp (:obj:`float`): Temperature.</span>
+<span class="sd">            - outscale (:obj:`float`): Output scale.</span>
+<span class="sd">            - unimix_ratio (:obj:`float`): Unimix ratio.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ActionHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span> <span class="o">=</span> <span class="n">layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_act</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="p">,</span> <span class="n">act</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_norm</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="p">,</span> <span class="n">norm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_min_std</span> <span class="o">=</span> <span class="n">min_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_std</span> <span class="o">=</span> <span class="n">max_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_std</span> <span class="o">=</span> <span class="n">init_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unimix_ratio</span> <span class="o">=</span> <span class="n">unimix_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temp</span> <span class="o">=</span> <span class="n">temp</span><span class="p">()</span> <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="k">else</span> <span class="n">temp</span>
+
+        <span class="n">pre_layers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">):</span>
+            <span class="n">pre_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">inp_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="n">pre_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-03</span><span class="p">))</span>
+            <span class="n">pre_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_act</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">inp_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">pre_layers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_layers</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">weight_init</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;tanh_normal&quot;</span><span class="p">,</span> <span class="s2">&quot;tanh_normal_5&quot;</span><span class="p">,</span> <span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="s2">&quot;trunc_normal&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">uniform_weight_init</span><span class="p">(</span><span class="n">outscale</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;normal_1&quot;</span><span class="p">,</span> <span class="s2">&quot;onehot&quot;</span><span class="p">,</span> <span class="s2">&quot;onehot_gumbel&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">uniform_weight_init</span><span class="p">(</span><span class="n">outscale</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ActionHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ActionHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            compute the forward of ActionHead.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - features (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">features</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_layers</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;tanh_normal&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="n">std</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_std</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_std</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">transformed_distribution</span><span class="o">.</span><span class="n">TransformedDistribution</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">TanhBijector</span><span class="p">())</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">SampleDist</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;tanh_normal_5&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">mean</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="n">std</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">5</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">transformed_distribution</span><span class="o">.</span><span class="n">TransformedDistribution</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">TanhBijector</span><span class="p">())</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">SampleDist</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;normal&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_std</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_std</span><span class="p">)</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">std</span> <span class="o">+</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_std</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">mean</span><span class="p">),</span> <span class="n">std</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">ContDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;normal_1&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">ContDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;trunc_normal&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">std</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_std</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">SafeTruncatedNormal</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">ContDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">independent</span><span class="o">.</span><span class="n">Independent</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;onehot&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">OneHotDist</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">unimix_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_unimix_ratio</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s2">&quot;onehot_gumble&quot;</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">ContDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">gumbel</span><span class="o">.</span><span class="n">Gumbel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">temp</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dist</span></div></div>
+
+
+<div class="viewcode-block" id="SampleDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist">[docs]</a><span class="k">class</span> <span class="nc">SampleDist</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of sample Dist for ActionHead of dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``mean``, ``mode``, ``entropy``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SampleDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the SampleDist class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - dist (:obj:`torch.Tensor`): Distribution.</span>
+<span class="sd">            - samples (:obj:`int`): Number of samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_samples</span> <span class="o">=</span> <span class="n">samples</span></div>
+
+<div class="viewcode-block" id="SampleDist.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mean of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SampleDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">)</span>
+        <span class="n">logprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logprob</span><span class="p">)][</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SampleDist.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SampleDist.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the entropy of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_samples</span><span class="p">)</span>
+        <span class="n">logprob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">logprob</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="OneHotDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist">[docs]</a><span class="k">class</span> <span class="nc">OneHotDist</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">one_hot_categorical</span><span class="o">.</span><span class="n">OneHotCategorical</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of onehot Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``mode``, ``sample``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OneHotDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unimix_ratio</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the OneHotDist class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - logits (:obj:`torch.Tensor`): Logits.</span>
+<span class="sd">            - probs (:obj:`torch.Tensor`): Probabilities.</span>
+<span class="sd">            - unimix_ratio (:obj:`float`): Unimix ratio.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">logits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">unimix_ratio</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">unimix_ratio</span><span class="p">)</span> <span class="o">+</span> <span class="n">unimix_ratio</span> <span class="o">/</span> <span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">probs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">probs</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OneHotDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_mode</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">_mode</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span> <span class="o">-</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OneHotDist.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.OneHotDist.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">(),</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Sample from the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - sample_shape (:obj:`tuple`): Sample shape.</span>
+<span class="sd">            - seed (:obj:`int`): Seed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;need to check&#39;</span><span class="p">)</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">probs</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+        <span class="n">sample</span> <span class="o">+=</span> <span class="n">probs</span> <span class="o">-</span> <span class="n">probs</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">sample</span></div></div>
+
+
+<div class="viewcode-block" id="TwoHotDistSymlog"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog">[docs]</a><span class="k">class</span> <span class="nc">TwoHotDistSymlog</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of twohotsymlog Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``mode``, ``mean``, ``log_prob``, ``log_prob_target``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TwoHotDistSymlog.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the TwoHotDistSymlog class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - logits (:obj:`torch.Tensor`): Logits.</span>
+<span class="sd">            - low (:obj:`float`): Low.</span>
+<span class="sd">            - high (:obj:`float`): High.</span>
+<span class="sd">            - device (:obj:`str`): Device.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">255</span></div>
+
+<div class="viewcode-block" id="TwoHotDistSymlog.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mean of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span>
+        <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_mean</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TwoHotDistSymlog.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">buckets</span>
+        <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">_mode</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+
+    <span class="c1"># Inside OneHotCategorical, log_prob is calculated using only max element in targets</span>
+<div class="viewcode-block" id="TwoHotDistSymlog.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the log probability of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">symlog</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># x(time, batch, 1)</span>
+        <span class="n">below</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">above</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">below</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">below</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">above</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">above</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">equal</span> <span class="o">=</span> <span class="p">(</span><span class="n">below</span> <span class="o">==</span> <span class="n">above</span><span class="p">)</span>
+
+        <span class="n">dist_to_below</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">equal</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">[</span><span class="n">below</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
+        <span class="n">dist_to_above</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">equal</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">[</span><span class="n">above</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">))</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">dist_to_below</span> <span class="o">+</span> <span class="n">dist_to_above</span>
+        <span class="n">weight_below</span> <span class="o">=</span> <span class="n">dist_to_above</span> <span class="o">/</span> <span class="n">total</span>
+        <span class="n">weight_above</span> <span class="o">=</span> <span class="n">dist_to_below</span> <span class="o">/</span> <span class="n">total</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">below</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">))</span> <span class="o">*</span> <span class="n">weight_below</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span>
+            <span class="n">F</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">above</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buckets</span><span class="p">))</span> <span class="o">*</span> <span class="n">weight_above</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">log_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">logsumexp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">target</span> <span class="o">*</span> <span class="n">log_pred</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TwoHotDistSymlog.log_prob_target"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.TwoHotDistSymlog.log_prob_target">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the log probability of the target.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - target (:obj:`torch.Tensor`): Target tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">log_pred</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">logsumexp</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">target</span> <span class="o">*</span> <span class="n">log_pred</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SymlogDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist">[docs]</a><span class="k">class</span> <span class="nc">SymlogDist</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of Symlog Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``entropy``, ``mode``, ``mean``, ``log_prob``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SymlogDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="n">aggregation</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">dim_to_reduce</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the SymlogDist class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - mode (:obj:`torch.Tensor`): Mode.</span>
+<span class="sd">            - dist (:obj:`str`): Distribution function.</span>
+<span class="sd">            - aggregation (:obj:`str`): Aggregation function.</span>
+<span class="sd">            - tol (:obj:`float`): Tolerance.</span>
+<span class="sd">            - dim_to_reduce (:obj:`list`): Dimension to reduce.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aggregation</span> <span class="o">=</span> <span class="n">aggregation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tol</span> <span class="o">=</span> <span class="n">tol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dim_to_reduce</span> <span class="o">=</span> <span class="n">dim_to_reduce</span></div>
+
+<div class="viewcode-block" id="SymlogDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SymlogDist.mean"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mean of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">inv_symlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SymlogDist.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.SymlogDist.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the log probability of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - value (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">value</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s1">&#39;mse&#39;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">-</span> <span class="n">symlog</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">**</span> <span class="mf">2.0</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">distance</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tol</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">==</span> <span class="s1">&#39;abs&#39;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">-</span> <span class="n">symlog</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">distance</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tol</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aggregation</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dim_to_reduce</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aggregation</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dim_to_reduce</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aggregation</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">loss</span></div></div>
+
+
+<div class="viewcode-block" id="ContDist"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist">[docs]</a><span class="k">class</span> <span class="nc">ContDist</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of ordinary Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ContDist.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the ContDist class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - dist (:obj:`torch.Tensor`): Distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">mean</span></div>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get attribute.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): Attribute name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ContDist.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the entropy of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ContDist.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span></div>
+
+<div class="viewcode-block" id="ContDist.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">()):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Sample from the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - sample_shape (:obj:`tuple`): Sample shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ContDist.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.ContDist.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Bernoulli"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli">[docs]</a><span class="k">class</span> <span class="nc">Bernoulli</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of Bernoulli Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``entropy``, ``mode``, ``sample``, ``log_prob``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Bernoulli.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the Bernoulli distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - dist (:obj:`torch.Tensor`): Distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">mean</span></div>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get attribute.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): Attribute name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Bernoulli.entropy"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.entropy">[docs]</a>    <span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the entropy of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Bernoulli.mode"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_mode</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_mode</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Bernoulli.sample"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="p">()):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Sample from the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - sample_shape (:obj:`tuple`): Sample shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Bernoulli.log_prob"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.dreamer.Bernoulli.log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the log probability of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">base_dist</span><span class="o">.</span><span class="n">logits</span>
+        <span class="n">log_probs0</span> <span class="o">=</span> <span class="o">-</span><span class="n">F</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="n">_logits</span><span class="p">)</span>
+        <span class="n">log_probs1</span> <span class="o">=</span> <span class="o">-</span><span class="n">F</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="o">-</span><span class="n">_logits</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">log_probs0</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">log_probs1</span> <span class="o">*</span> <span class="n">x</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">UnnormalizedHuber</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of UnnormalizedHuber Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``mode``, ``log_prob``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the UnnormalizedHuber class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - loc (:obj:`torch.Tensor`): Location.</span>
+<span class="sd">            - scale (:obj:`torch.Tensor`): Scale.</span>
+<span class="sd">            - threshold (:obj:`float`): Threshold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+
+    <span class="k">def</span> <span class="nf">log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the log probability of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - event (:obj:`torch.Tensor`): Event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">event</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the mode of the distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span>
+
+
+<span class="k">class</span> <span class="nc">SafeTruncatedNormal</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">normal</span><span class="o">.</span><span class="n">Normal</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of SafeTruncatedNormal Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``sample``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the SafeTruncatedNormal class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - loc (:obj:`torch.Tensor`): Location.</span>
+<span class="sd">            - scale (:obj:`torch.Tensor`): Scale.</span>
+<span class="sd">            - low (:obj:`float`): Low.</span>
+<span class="sd">            - high (:obj:`float`): High.</span>
+<span class="sd">            - clip (:obj:`float`): Clip.</span>
+<span class="sd">            - mult (:obj:`float`): Mult.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_low</span> <span class="o">=</span> <span class="n">low</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_high</span> <span class="o">=</span> <span class="n">high</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clip</span> <span class="o">=</span> <span class="n">clip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mult</span> <span class="o">=</span> <span class="n">mult</span>
+
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Sample from the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - sample_shape (:obj:`tuple`): Sample shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">event</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip</span><span class="p">:</span>
+            <span class="n">clipped</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_low</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_high</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip</span><span class="p">)</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="n">event</span> <span class="o">-</span> <span class="n">event</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">+</span> <span class="n">clipped</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mult</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mult</span>
+        <span class="k">return</span> <span class="n">event</span>
+
+
+<span class="k">class</span> <span class="nc">TanhBijector</span><span class="p">(</span><span class="n">torchd</span><span class="o">.</span><span class="n">Transform</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       A kind of TanhBijector Dist for dreamerv3.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``_forward``, ``_inverse``, ``_forward_log_det_jacobian``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validate_args</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tanh&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the TanhBijector class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - validate_args (:obj:`bool`): Validate arguments.</span>
+<span class="sd">            - name (:obj:`str`): Name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the forward of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the inverse of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - y (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.99999997</span><span class="p">,</span> <span class="mf">0.99999997</span><span class="p">),</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">atanh</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">_forward_log_det_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Calculate the forward log det jacobian of the distribution.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">log2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">log2</span> <span class="o">-</span> <span class="n">x</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">softplus</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">static_scan</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">         Static scan function.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - fn (:obj:`function`): Function.</span>
+<span class="sd">        - inputs (:obj:`tuple`): Inputs.</span>
+<span class="sd">        - start (:obj:`torch.Tensor`): Start tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">last</span> <span class="o">=</span> <span class="n">start</span>  <span class="c1"># {logit, stoch, deter:[batch_size, self._deter]}</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">_input</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">_input</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">)</span>  <span class="c1"># inputs:(action:(time, batch, 6), embed:(time, batch, 4096))</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="o">*</span><span class="n">inp</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>  <span class="c1"># post, prior</span>
+        <span class="k">if</span> <span class="n">flag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">last</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">_last</span> <span class="ow">in</span> <span class="n">last</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_last</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">_last</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_last</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">last</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">last</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">last</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="n">outputs</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">outputs</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="n">last</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">outputs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">outputs</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">last</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">outputs</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">outputs</span>
+
+
+<span class="k">def</span> <span class="nf">weight_init</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       weight_init for Linear, Conv2d, ConvTranspose2d, and LayerNorm.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - m (:obj:`torch.nn`): Module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+        <span class="n">in_num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">in_features</span>
+        <span class="n">out_num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">out_features</span>
+        <span class="n">denoms</span> <span class="o">=</span> <span class="p">(</span><span class="n">in_num</span> <span class="o">+</span> <span class="n">out_num</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">denoms</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="o">/</span> <span class="mf">0.87962566103423978</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">trunc_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span> <span class="n">a</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ConvTranspose2d</span><span class="p">):</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">in_num</span> <span class="o">=</span> <span class="n">space</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">in_channels</span>
+        <span class="n">out_num</span> <span class="o">=</span> <span class="n">space</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">out_channels</span>
+        <span class="n">denoms</span> <span class="o">=</span> <span class="p">(</span><span class="n">in_num</span> <span class="o">+</span> <span class="n">out_num</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">denoms</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="o">/</span> <span class="mf">0.87962566103423978</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">trunc_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">std</span><span class="p">,</span> <span class="n">a</span><span class="o">=-</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">):</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">uniform_weight_init</span><span class="p">(</span><span class="n">given_scale</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       weight_init for Linear and LayerNorm.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - given_scale (:obj:`float`): Given scale.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+            <span class="n">in_num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">in_features</span>
+            <span class="n">out_num</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">out_features</span>
+            <span class="n">denoms</span> <span class="o">=</span> <span class="p">(</span><span class="n">in_num</span> <span class="o">+</span> <span class="n">out_num</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">given_scale</span> <span class="o">/</span> <span class="n">denoms</span>
+            <span class="n">limit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">a</span><span class="o">=-</span><span class="n">limit</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">fill_</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">f</span>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  <script src="../../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

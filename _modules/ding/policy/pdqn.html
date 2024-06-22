@@ -1,0 +1,938 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.policy.pdqn &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.policy.pdqn</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.policy.pdqn</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span>
+<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">q_nstep_td_data</span><span class="p">,</span> <span class="n">q_nstep_td_error</span><span class="p">,</span> <span class="n">get_nstep_return_data</span><span class="p">,</span> <span class="n">get_train_sample</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
+<span class="kn">from</span> <span class="nn">.base_policy</span> <span class="kn">import</span> <span class="n">Policy</span>
+<span class="kn">from</span> <span class="nn">.common_utils</span> <span class="kn">import</span> <span class="n">default_preprocess_learn</span>
+
+
+<div class="viewcode-block" id="PDQNPolicy"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;pdqn&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PDQNPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of PDQN algorithm, which extends the DQN algorithm on discrete-continuous hybrid action spaces.</span>
+<span class="sd">        Paper link: https://arxiv.org/abs/1810.06394.</span>
+
+<span class="sd">    Config:</span>
+<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">        ID Symbol               Type     Default Value  Description                              Other(Shape)</span>
+<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">        1  ``type``             str      pdqn           | RL policy register name, refer to      | This arg is optional,</span>
+<span class="sd">                                                        | registry ``POLICY_REGISTRY``           | a placeholder</span>
+<span class="sd">        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-</span>
+<span class="sd">                                                                                                 | erent from modes</span>
+<span class="sd">        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy  | This value is always</span>
+<span class="sd">                                                        | or off-policy                          | False for PDQN</span>
+<span class="sd">        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,</span>
+<span class="sd">                                                                                                 | update priority</span>
+<span class="sd">        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight</span>
+<span class="sd">           | ``_weight``                                | to correct biased update. If True,</span>
+<span class="sd">                                                        | priority must be True.</span>
+<span class="sd">        6  | ``discount_``      float    0.97,          | Reward&#39;s future discount factor, aka.  | May be 1 when sparse</span>
+<span class="sd">           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env</span>
+
+<span class="sd">        7  ``nstep``            int      1,             | N-step reward discount sum for target</span>
+<span class="sd">                                         [3, 5]         | q_value estimation</span>
+<span class="sd">        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary</span>
+<span class="sd">           | ``per_collect``                            | after collector&#39;s one collection. Only | from envs. Bigger val</span>
+<span class="sd">                                                        | valid in serial training               | means more off-policy</span>
+<span class="sd">        9  | ``learn.batch_``   int      64             | The number of samples of an iteration</span>
+<span class="sd">           | ``size``</span>
+<span class="sd">           | ``_gpu``</span>
+<span class="sd">        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.</span>
+<span class="sd">           | ``_rate``</span>
+<span class="sd">        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update</span>
+<span class="sd">           | ``update_freq``</span>
+<span class="sd">        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some</span>
+<span class="sd">           | ``done``                                   | calculation.                           | fake termination env</span>
+<span class="sd">        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from</span>
+<span class="sd">                                                        | call of collector.                     | different envs</span>
+<span class="sd">        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len&gt;1</span>
+<span class="sd">           | ``_len``</span>
+<span class="sd">        16 | ``collect.noise``  float    0.1            | add noise to continuous args</span>
+<span class="sd">           | ``_sigma``                                 | during collection</span>
+<span class="sd">        17 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support [&#39;exp&#39;,</span>
+<span class="sd">                                                                                                 | &#39;linear&#39;].</span>
+<span class="sd">        18 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]</span>
+<span class="sd">           | ``start``</span>
+<span class="sd">        19 | ``other.eps.``     float    0.05           | end value of exploration rate          | [0,1]</span>
+<span class="sd">           | ``end``</span>
+<span class="sd">        20 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set</span>
+<span class="sd">           | ``decay``                                                                           | decay=10000 means</span>
+<span class="sd">                                                                                                 | the exploration rate</span>
+<span class="sd">                                                                                                 | decay from start</span>
+<span class="sd">                                                                                                 | value to end value</span>
+<span class="sd">                                                                                                 | during decay length.</span>
+<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;pdqn&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda in policy.</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether learning policy is the same as collecting data policy(on-policy).</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to enable priority experience sample.</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
+        <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (float) Discount factor(gamma) for returns.</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="c1"># (int) The number of step for calculating target q_value.</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="c1"># learn_mode config</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
+            <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="c1"># (int) How many samples in a training batch.</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="c1"># (float) The step size of gradient descent.</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+            <span class="c1"># (int) Frequence of target network update.</span>
+            <span class="n">target_theta</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether ignore done(usually for max step termination env).</span>
+            <span class="c1"># Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.</span>
+            <span class="c1"># These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.</span>
+            <span class="c1"># However, interaction with HalfCheetah always gets done with done is False,</span>
+            <span class="c1"># Since we inplace done==True with done==False to keep</span>
+            <span class="c1"># TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),</span>
+            <span class="c1"># when the episode step is greater than max episode step.</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="c1"># collect_mode config</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) How many training samples collected in one collection procedure.</span>
+            <span class="c1"># Only one of [n_sample, n_episode] shoule be set.</span>
+            <span class="c1"># n_sample=8,</span>
+            <span class="c1"># (int) Split episodes or trajectories into pieces with length `unroll_len`.</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># (float) It is a must to add noise during collection. So here omits noise and only set ``noise_sigma``.</span>
+            <span class="n">noise_sigma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>  <span class="c1"># for compatibility</span>
+        <span class="c1"># other config</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># Epsilon greedy with decay.</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (str) Decay type. Support [&#39;exp&#39;, &#39;linear&#39;].</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="c1"># (float) Epsilon start value.</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                <span class="c1"># (float) Epsilon end value.</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="c1"># (int) Decay length(env step)</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (int) Maximum size of replay buffer. Usually, larger buffer size is better.</span>
+                <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="PDQNPolicy.default_model"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy.default_model">[docs]</a>    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
+<span class="sd">            automatically call this method to get the default model setting and create model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
+<span class="sd">            by import_names path. For example about PDQN, its registered name is ``pdqn`` and the import_names is \</span>
+<span class="sd">            ``ding.model.template.pdqn``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;pdqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.pdqn&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._init_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For PDQN, it mainly \</span>
+<span class="sd">            contains two optimizers, algorithm-specific arguments such as nstep and gamma, main and target model.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
+        <span class="c1"># Optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dis_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">dis_head</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">cont_encoder</span><span class="o">.</span><span class="n">parameters</span><span class="p">()),</span>
+            <span class="c1"># this is very important to put cont_encoder.parameters in here.</span>
+            <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate_dis</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cont_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">cont_head</span><span class="o">.</span><span class="n">parameters</span><span class="p">()),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate_cont</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">discount_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>
+
+        <span class="c1"># use model_wrapper for specialized demands of different modes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
+            <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
+            <span class="n">update_type</span><span class="o">=</span><span class="s1">&#39;momentum&#39;</span><span class="p">,</span>
+            <span class="n">update_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">target_theta</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_argmax_sample&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cont_train_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disc_train_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_cnt</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._forward_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._forward_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, q value, target_q_value, priority.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \</span>
+<span class="sd">                training samples. For each element in list, the key of the dict is the name of data items and the \</span>
+<span class="sd">                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \</span>
+<span class="sd">                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \</span>
+<span class="sd">                dimension by some utility functions such as ``default_preprocess_learn``. \</span>
+<span class="sd">                For PDQN, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \</span>
+<span class="sd">                ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight`` \</span>
+<span class="sd">                and ``value_gamma``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \</span>
+<span class="sd">                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \</span>
+<span class="sd">                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for PDQNPolicy: ``ding.policy.tests.test_pdqn``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">use_priority</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_priority</span><span class="p">,</span>
+            <span class="n">use_priority_IS_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">,</span>
+            <span class="n">use_nstep</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># ================================</span>
+        <span class="c1"># Continuous args network forward</span>
+        <span class="c1"># ================================</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_cnt</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_cnt</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_circle</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="n">dis_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_continuous&#39;</span><span class="p">)[</span><span class="s1">&#39;action_args&#39;</span><span class="p">]</span>
+
+            <span class="c1"># Current q value (main model) for cont loss</span>
+            <span class="n">discrete_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="p">}</span>
+            <span class="c1"># with torch.no_grad():</span>
+            <span class="n">q_pi_action_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">discrete_inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_discrete&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+            <span class="n">cont_loss</span> <span class="o">=</span> <span class="o">-</span><span class="n">q_pi_action_value</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+            <span class="c1"># ================================</span>
+            <span class="c1"># Continuous args network update</span>
+            <span class="c1"># ================================</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cont_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">cont_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cont_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="c1"># ====================</span>
+        <span class="c1"># Q-learning forward</span>
+        <span class="c1"># ====================</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_cnt</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_cnt</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_circle</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">cont_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">q_pi_action_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+            <span class="c1"># Current q value (main model)</span>
+            <span class="n">discrete_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">][</span><span class="s1">&#39;action_args&#39;</span><span class="p">]}</span>
+            <span class="n">q_data_action_args_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">discrete_inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_discrete&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+
+            <span class="c1"># Target q value</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">next_action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_continuous&#39;</span><span class="p">)[</span><span class="s1">&#39;action_args&#39;</span><span class="p">]</span>
+                <span class="n">next_action_args_cp</span> <span class="o">=</span> <span class="n">next_action_args</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+                <span class="n">next_discrete_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">next_action_args_cp</span><span class="p">}</span>
+                <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_discrete_inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_discrete&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+                <span class="c1"># Max q value action (main model)</span>
+                <span class="n">target_q_discrete_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
+                    <span class="n">next_discrete_inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_discrete&#39;</span>
+                <span class="p">)[</span><span class="s1">&#39;action&#39;</span><span class="p">][</span><span class="s1">&#39;action_type&#39;</span><span class="p">]</span>
+
+            <span class="n">data_n</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span>
+                <span class="n">q_data_action_args_value</span><span class="p">,</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">][</span><span class="s1">&#39;action_type&#39;</span><span class="p">],</span> <span class="n">target_q_discrete_action</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">value_gamma</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">)</span>
+            <span class="n">dis_loss</span><span class="p">,</span> <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">q_nstep_td_error</span><span class="p">(</span>
+                <span class="n">data_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="o">=</span><span class="n">value_gamma</span>
+            <span class="p">)</span>
+
+            <span class="c1"># ====================</span>
+            <span class="c1"># Q-learning update</span>
+            <span class="c1"># ====================</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dis_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            <span class="n">dis_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dis_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="c1"># =============</span>
+            <span class="c1"># after update</span>
+            <span class="c1"># =============</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;cur_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dis_optimizer</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;q_loss&#39;</span><span class="p">:</span> <span class="n">dis_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;total_loss&#39;</span><span class="p">:</span> <span class="n">cont_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">+</span> <span class="n">dis_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;continuous_loss&#39;</span><span class="p">:</span> <span class="n">cont_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">q_pi_action_value</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;target_q_value&#39;</span><span class="p">:</span> <span class="n">target_q_value</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of learn mode, usually including model, target model, discrete part optimizer, and \</span>
+<span class="sd">            continuous part optimizer.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;target_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;dis_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dis_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;cont_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cont_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict variable into policy learn mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
+<span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
+<span class="sd">            complicated operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dis_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;dis_optimizer&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cont_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;cont_optimizer&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._init_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._init_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the collect mode of policy, including related attributes and modules. For PDQN, it contains the \</span>
+<span class="sd">            collect_model to balance the exploration and exploitation with epsilon-greedy sample mechanism and \</span>
+<span class="sd">            continuous action mechanism, besides, other algorithm-specific arguments such as unroll_len and nstep are \</span>
+<span class="sd">            also initialized here.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_collect`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            Some variables need to initialize independently in different modes, such as gamma and nstep in PDQN. This \</span>
+<span class="sd">            design is for the convenience of parallel execution of different policy modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">discount_factor</span>  <span class="c1"># necessary for parallel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>  <span class="c1"># necessary for parallel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span>
+            <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;action_noise&#39;</span><span class="p">,</span>
+            <span class="n">noise_type</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">,</span>
+            <span class="n">noise_kwargs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s1">&#39;sigma&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">noise_sigma</span>
+            <span class="p">},</span>
+            <span class="n">noise_range</span><span class="o">=</span><span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_eps_greedy_multinomial_sample&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._forward_collect"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._forward_collect">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \</span>
+<span class="sd">            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \</span>
+<span class="sd">            data, such as the action to interact with the envs. Besides, this policy also needs ``eps`` argument for \</span>
+<span class="sd">            exploration, i.e., classic epsilon-greedy exploration strategy.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
+<span class="sd">            - eps (:obj:`float`): The epsilon value for exploration.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \</span>
+<span class="sd">                other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \</span>
+<span class="sd">                dict is the same as the input data, i.e. environment id.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for PDQNPolicy: ``ding.policy.tests.test_pdqn``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;compute_continuous&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)[</span><span class="s1">&#39;action_args&#39;</span><span class="p">]</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()}</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="s1">&#39;compute_discrete&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._get_train_sample"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._get_train_sample">[docs]</a>    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transitions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
+<span class="sd">            can be used for training directly. In PDQN, a train sample is a processed transition. \</span>
+<span class="sd">            This method is usually used in collectors to execute necessary \</span>
+<span class="sd">            RL data preprocessing before training, which can help learner amortize revelant time consumption. \</span>
+<span class="sd">            In addition, you can also implement this method as an identity function and do the data processing \</span>
+<span class="sd">            in ``self._forward_learn`` method.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \</span>
+<span class="sd">                the same format as the return value of ``self._process_transition`` method.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \</span>
+<span class="sd">                as input transitions, but may contain more data for training, such as nstep reward and target obs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">transitions</span> <span class="o">=</span> <span class="n">get_nstep_return_data</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">transitions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._process_transition"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._process_transition">[docs]</a>    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">policy_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+                            <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Process and pack one timestep transition data into a dict, which can be directly used for training and \</span>
+<span class="sd">            saved in replay buffer. For PDQN, it contains obs, next_obs, action, reward, done and logit.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): The env observation of current timestep, such as stacked 2D image in Atari.</span>
+<span class="sd">            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \</span>
+<span class="sd">                as input. For PDQN, it contains the hybrid action and the logit (discrete part q_value) of the action.</span>
+<span class="sd">            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \</span>
+<span class="sd">                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \</span>
+<span class="sd">                reward, done, info, etc.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+            <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">transition</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._init_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the eval mode of policy, including related attributes and modules. For PDQN, it contains the \</span>
+<span class="sd">            eval model to greedily select action with argmax q_value mechanism.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_eval`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hybrid_argmax_sample&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._forward_eval"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._forward_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \</span>
+<span class="sd">            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \</span>
+<span class="sd">            action to interact with the envs.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \</span>
+<span class="sd">                key of the dict is the same as the input data, i.e. environment id.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for PDQNPolicy: ``ding.policy.tests.test_pdqn``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_continuous&#39;</span><span class="p">)[</span><span class="s1">&#39;action_args&#39;</span><span class="p">]</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()}</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_discrete&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span></div>
+
+<div class="viewcode-block" id="PDQNPolicy._monitor_vars_learn"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.PDQNPolicy._monitor_vars_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;continuous_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;target_q_value&#39;</span><span class="p">]</span></div></div>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../"
+    src="../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+  <script src="../../../_static/doctools.js"></script>
+  <script src="../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1145 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.policy.happo &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.policy.happo</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.policy.happo</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Independent</span><span class="p">,</span> <span class="n">Normal</span>
+
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span><span class="p">,</span> <span class="n">to_dtype</span><span class="p">,</span> <span class="n">unsqueeze</span><span class="p">,</span> <span class="n">ContrastiveLoss</span>
+<span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">happo_data</span><span class="p">,</span> <span class="n">happo_error</span><span class="p">,</span> <span class="n">happo_policy_error</span><span class="p">,</span> <span class="n">happo_policy_data</span><span class="p">,</span> \
+    <span class="n">v_nstep_td_data</span><span class="p">,</span> <span class="n">v_nstep_td_error</span><span class="p">,</span> <span class="n">get_train_sample</span><span class="p">,</span> <span class="n">gae</span><span class="p">,</span> <span class="n">gae_data</span><span class="p">,</span> <span class="n">happo_error_continuous</span><span class="p">,</span> \
+    <span class="n">get_gae</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span><span class="p">,</span> <span class="n">split_data_generator</span><span class="p">,</span> <span class="n">RunningMeanStd</span>
+<span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
+<span class="kn">from</span> <span class="nn">.base_policy</span> <span class="kn">import</span> <span class="n">Policy</span>
+<span class="kn">from</span> <span class="nn">.common_utils</span> <span class="kn">import</span> <span class="n">default_preprocess_learn</span>
+
+
+<div class="viewcode-block" id="HAPPOPolicy"><a class="viewcode-back" href="../../../12_policies/happo_zh.html#ding.policy.happo.HAPPOPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;happo&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">HAPPOPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of on policy version HAPPO algorithm. Paper link: https://arxiv.org/abs/2109.11251.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) RL policy register name (refer to function &quot;POLICY_REGISTRY&quot;).</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;happo&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use cuda for network.</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use priority(priority sample, IS weight, update priority)</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use Importance Sampling Weight to correct biased update due to priority.</span>
+        <span class="c1"># If True, priority must be True.</span>
+        <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to recompurete advantages in each iteration of on-policy PPO</span>
+        <span class="n">recompute_adv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (str) Which kind of action space used in PPOPolicy, [&#39;discrete&#39;, &#39;continuous&#39;, &#39;hybrid&#39;]</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value</span>
+        <span class="n">nstep_return</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to enable multi-agent training, i.e.: MAPPO</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) The loss weight of value network, policy network weight is set to 1</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="c1"># (float) The loss weight of entropy regularization, policy network weight is set to 1</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="c1"># (float) PPO clip ratio, defaults to 0.2</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to use advantage norm in a whole training batch</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ppo_param_init</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="s1">&#39;clip_norm&#39;</span><span class="p">,</span>
+            <span class="n">grad_clip_value</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
+            <span class="c1"># n_sample=64,</span>
+            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) Reward&#39;s future discount factor, aka. gamma.</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+            <span class="c1"># (float) GAE lambda factor for the balance of bias and variance(1-step td and mc)</span>
+            <span class="n">gae_lambda</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the learn mode of policy, including related attributes and modules. For HAPPO, it mainly \</span>
+<span class="sd">            contains optimizer, algorithm-specific arguments such as loss weight, clip_ratio and recompute_adv. This \</span>
+<span class="sd">            method also executes some special network initializations and prepares running mean/std monitor for value.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \</span>
+<span class="sd">            and ``_load_state_dict_learn`` methods.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_learn`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span><span class="p">,</span> <span class="s2">&quot;Priority is not implemented in PPO&quot;</span>
+
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;continuous&quot;</span><span class="p">,</span> <span class="s2">&quot;discrete&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ppo_param_init</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">orthogonal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;continuous&#39;</span><span class="p">]:</span>
+                <span class="c1"># init log sigma</span>
+                <span class="k">for</span> <span class="n">agent_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">agent_num</span><span class="p">):</span>
+                    <span class="c1"># if hasattr(self._model.agent_models[agent_id].actor_head, &#39;log_sigma_param&#39;):</span>
+                    <span class="c1">#     torch.nn.init.constant_(self._model.agent_models[agent_id].actor_head.log_sigma_param, 1)</span>
+                    <span class="c1"># The above initialization step has been changed to reparameterizationHead.</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">agent_models</span><span class="p">[</span><span class="n">agent_id</span><span class="p">]</span><span class="o">.</span><span class="n">critic</span><span class="o">.</span><span class="n">modules</span><span class="p">())</span> <span class="o">+</span> \
+                    <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">agent_models</span><span class="p">[</span><span class="n">agent_id</span><span class="p">]</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">modules</span><span class="p">()):</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+                            <span class="c1"># orthogonal initialization</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">orthogonal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+                    <span class="c1"># do last policy layer scaling, this will make initial actions have (close to)</span>
+                    <span class="c1"># 0 mean and std, and will help boost performances,</span>
+                    <span class="c1"># see https://arxiv.org/abs/2006.05990, Fig.24 for details</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">agent_models</span><span class="p">[</span><span class="n">agent_id</span><span class="p">]</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+                            <span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># Add the actor/critic parameters of each HAVACAgent in HAVAC to the parameter list of actor/critic_optimizer</span>
+        <span class="n">actor_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">critic_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">agent_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">agent_num</span><span class="p">):</span>
+            <span class="n">actor_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">agent_models</span><span class="p">[</span><span class="n">agent_idx</span><span class="p">]</span><span class="o">.</span><span class="n">actor</span><span class="o">.</span><span class="n">parameters</span><span class="p">()})</span>
+            <span class="n">critic_params</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;params&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">agent_models</span><span class="p">[</span><span class="n">agent_idx</span><span class="p">]</span><span class="o">.</span><span class="n">critic</span><span class="o">.</span><span class="n">parameters</span><span class="p">()})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_actor_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
+            <span class="n">actor_params</span><span class="p">,</span>
+            <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">grad_clip_type</span><span class="p">,</span>
+            <span class="n">clip_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">grad_clip_value</span><span class="p">,</span>
+            <span class="c1"># eps = 1e-5,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_critic_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
+            <span class="n">critic_params</span><span class="p">,</span>
+            <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">critic_learning_rate</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">grad_clip_type</span><span class="p">,</span>
+            <span class="n">clip_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">grad_clip_value</span><span class="p">,</span>
+            <span class="c1"># eps = 1e-5,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
+        <span class="c1"># self._learn_model = model_wrap(</span>
+        <span class="c1">#     self._model,</span>
+        <span class="c1">#     wrapper_name=&#39;hidden_state&#39;,</span>
+        <span class="c1">#     state_num=self._cfg.learn.batch_size,</span>
+        <span class="c1">#     init_fn=lambda: [None for _ in range(self._cfg.model.agent_num)]</span>
+        <span class="c1"># )</span>
+
+        <span class="c1"># Algorithm config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">value_weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">entropy_weight</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clip_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">clip_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">adv_norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">value_norm</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">discount_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">gae_lambda</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">recompute_adv</span>
+        <span class="c1"># Main model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">prepocess_data_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Preprocess data for agent dim. This function is used in learn mode. \</span>
+<span class="sd">            It will be called recursively to process nested dict data. \</span>
+<span class="sd">            It will transpose the data with shape (B, agent_num, ...) to (agent_num, B, ...). \</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`dict`): Dict type data, where each element is the data of an agent of dict type.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - ret (:obj:`dict`): Dict type data, where each element is the data of an agent of dict type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepocess_data_agent</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Forward and backward function of learn mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`dict`): List type data, where each element is the data of an agent of dict type.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`):</span>
+<span class="sd">              Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \</span>
+<span class="sd">                        adv_abs_max, approx_kl, clipfrac</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of learn mode (training policy and updating parameters). Forward means \</span>
+<span class="sd">            that the policy inputs some training batch data from the replay buffer and then returns the output \</span>
+<span class="sd">            result, including various training information such as loss, clipfrac, approx_kl.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including the latest \</span>
+<span class="sd">                collected training samples for on-policy algorithms like HAPPO. For each element in list, the key of \</span>
+<span class="sd">                dict is the name of data items and the value is the corresponding data. Usually, the value is \</span>
+<span class="sd">                torch.Tensor or np.ndarray or there dict/list combinations. In the ``_forward_learn`` method, data \</span>
+<span class="sd">                often need to first be stacked in the batch dimension by some utility functions such as \</span>
+<span class="sd">                ``default_preprocess_learn``. \</span>
+<span class="sd">                For HAPPO, each element in list is a dict containing at least the following keys: ``obs``, \</span>
+<span class="sd">                ``action``, ``reward``, ``logit``, ``value``, ``done``. Sometimes, it also contains other keys \</span>
+<span class="sd">                such as ``weight``.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - return_infos (:obj:`List[Dict[str, Any]]`): The information list that indicated training result, each \</span>
+<span class="sd">                training iteration contains append a information dict into the final list. The list will be precessed \</span>
+<span class="sd">                and recorded in text log and tensorboard. The value of the dict must be python scalar or a list of \</span>
+<span class="sd">                scalars. For the detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            The training procedure of HAPPO is three for loops. The outermost loop trains each agent separately. \</span>
+<span class="sd">            The middle loop trains all the collected training samples with ``epoch_per_collect`` epochs. The inner \</span>
+<span class="sd">            loop splits all the data into different mini-batch with the length of ``batch_size``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for HAPPOPolicy: ``ding.policy.tests.test_happo``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_done</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">,</span> <span class="n">use_nstep</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">all_data_len</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_state&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># fator is the ratio of the old and new strategies of the first m-1 agents, initialized to 1.</span>
+        <span class="c1"># Each transition has its own factor. ref: http://arxiv.org/abs/2109.11251</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">all_data_len</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, 1)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="c1"># process agent dim</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepocess_data_agent</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="c1"># ====================</span>
+        <span class="c1"># PPO forward</span>
+        <span class="c1"># ====================</span>
+        <span class="n">return_infos</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">agent_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">agent_num</span><span class="p">):</span>
+            <span class="n">agent_data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+                        <span class="n">agent_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">agent_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>  <span class="c1"># not feasible for rnn</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">agent_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">agent_id</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">agent_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">agent_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+            <span class="c1"># update factor</span>
+            <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">factor</span>
+            <span class="c1"># calculate old_logits of all data in buffer for later factor</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span>
+                <span class="c1"># &#39;actor_prev_state&#39;: agent_data[&#39;actor_prev_state&#39;],</span>
+                <span class="c1"># &#39;critic_prev_state&#39;: agent_data[&#39;critic_prev_state&#39;],</span>
+            <span class="p">}</span>
+            <span class="n">old_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">epoch_per_collect</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span><span class="p">:</span>  <span class="c1"># calculate new value using the new updated value network</span>
+                    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                        <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
+                        <span class="c1"># value = self._learn_model.forward(agent_id, agent_data[&#39;obs&#39;], mode=&#39;compute_critic&#39;)[&#39;value&#39;]</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                        <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span>
+                        <span class="n">next_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                            <span class="n">next_value</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+
+                        <span class="n">traj_flag</span> <span class="o">=</span> <span class="n">agent_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;traj_flag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># traj_flag indicates termination of trajectory</span>
+                        <span class="n">compute_adv_data</span> <span class="o">=</span> <span class="n">gae_data</span><span class="p">(</span>
+                            <span class="n">value</span><span class="p">,</span> <span class="n">next_value</span><span class="p">,</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">],</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="n">traj_flag</span>
+                        <span class="p">)</span>
+                        <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gae</span><span class="p">(</span><span class="n">compute_adv_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span><span class="p">)</span>
+
+                        <span class="n">unnormalized_returns</span> <span class="o">=</span> <span class="n">value</span> <span class="o">+</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span>
+
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+                            <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                            <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unnormalized_returns</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">unnormalized_returns</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                            <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unnormalized_returns</span>
+
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># don&#39;t recompute adv</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+                        <span class="n">unnormalized_return</span> <span class="o">=</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                        <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unnormalized_return</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">unnormalized_return</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">split_data_generator</span><span class="p">(</span><span class="n">agent_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span>
+                        <span class="c1"># &#39;actor_prev_state&#39;: batch[&#39;actor_prev_state&#39;],</span>
+                        <span class="c1"># &#39;critic_prev_state&#39;: batch[&#39;critic_prev_state&#39;],</span>
+                    <span class="p">}</span>
+                    <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+                    <span class="n">adv</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;adv&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adv_norm</span><span class="p">:</span>
+                        <span class="c1"># Normalize advantage in a train_batch</span>
+                        <span class="n">adv</span> <span class="o">=</span> <span class="p">(</span><span class="n">adv</span> <span class="o">-</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">adv</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+
+                    <span class="c1"># Calculate happo error</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+                        <span class="n">happo_batch</span> <span class="o">=</span> <span class="n">happo_data</span><span class="p">(</span>
+                            <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span>
+                            <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span>
+                        <span class="p">)</span>
+                        <span class="n">happo_loss</span><span class="p">,</span> <span class="n">happo_info</span> <span class="o">=</span> <span class="n">happo_error_continuous</span><span class="p">(</span><span class="n">happo_batch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_ratio</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+                        <span class="n">happo_batch</span> <span class="o">=</span> <span class="n">happo_data</span><span class="p">(</span>
+                            <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="n">adv</span><span class="p">,</span>
+                            <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;factor&#39;</span><span class="p">]</span>
+                        <span class="p">)</span>
+                        <span class="n">happo_loss</span><span class="p">,</span> <span class="n">happo_info</span> <span class="o">=</span> <span class="n">happo_error</span><span class="p">(</span><span class="n">happo_batch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clip_ratio</span><span class="p">)</span>
+                    <span class="n">wv</span><span class="p">,</span> <span class="n">we</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entropy_weight</span>
+                    <span class="n">total_loss</span> <span class="o">=</span> <span class="n">happo_loss</span><span class="o">.</span><span class="n">policy_loss</span> <span class="o">+</span> <span class="n">wv</span> <span class="o">*</span> <span class="n">happo_loss</span><span class="o">.</span><span class="n">value_loss</span> <span class="o">-</span> <span class="n">we</span> <span class="o">*</span> <span class="n">happo_loss</span><span class="o">.</span><span class="n">entropy_loss</span>
+
+                    <span class="c1"># actor update</span>
+                    <span class="c1"># critic update</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_actor_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_critic_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                    <span class="n">total_loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_actor_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_critic_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                    <span class="n">return_info</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_cur_lr&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor_optimizer</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_total_loss&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">total_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_policy_loss&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">happo_loss</span><span class="o">.</span><span class="n">policy_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_value_loss&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">happo_loss</span><span class="o">.</span><span class="n">value_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_entropy_loss&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">happo_loss</span><span class="o">.</span><span class="n">entropy_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_adv_max&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">adv</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_adv_mean&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">adv</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_value_mean&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_value_max&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_approx_kl&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">happo_info</span><span class="o">.</span><span class="n">approx_kl</span><span class="p">,</span>
+                        <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_clipfrac&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">happo_info</span><span class="o">.</span><span class="n">clipfrac</span><span class="p">,</span>
+                    <span class="p">}</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+                        <span class="n">return_info</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_act&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                                <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_mu_mean&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;mu&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                                <span class="s1">&#39;agent</span><span class="si">{}</span><span class="s1">_sigma_mean&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">agent_id</span><span class="p">):</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+                    <span class="n">return_infos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">return_info</span><span class="p">)</span>
+            <span class="c1"># calculate the factor</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span>
+                <span class="c1"># &#39;actor_prev_state&#39;: agent_data[&#39;actor_prev_state&#39;],</span>
+            <span class="p">}</span>
+            <span class="n">new_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+                <span class="n">dist_new</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">categorical</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">new_logits</span><span class="p">)</span>
+                <span class="n">dist_old</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">categorical</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">old_logits</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+                <span class="n">dist_new</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">new_logits</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">new_logits</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
+                <span class="n">dist_old</span> <span class="o">=</span> <span class="n">Normal</span><span class="p">(</span><span class="n">old_logits</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">old_logits</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">])</span>
+            <span class="n">logp_new</span> <span class="o">=</span> <span class="n">dist_new</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
+            <span class="n">logp_old</span> <span class="o">=</span> <span class="n">dist_old</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">agent_data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">logp_new</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># for logp with shape(B, action_shape), we need to calculate the product of all action dimensions.</span>
+                <span class="n">factor</span> <span class="o">=</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logp_new</span> <span class="o">-</span> <span class="n">logp_old</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">all_data_len</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>  <span class="c1"># attention the shape</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># for logp with shape(B, ), directly calculate factor</span>
+                <span class="n">factor</span> <span class="o">=</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logp_new</span> <span class="o">-</span> <span class="n">logp_old</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">all_data_len</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">return_infos</span>
+
+    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of learn mode optimizer and model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of current policy learn mode. It contains the \</span>
+<span class="sd">                state_dict of current policy network and optimizer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;actor_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;critic_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_critic_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict of learn mode optimizer and model.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): The dict of policy learn mode. It contains the state_dict \</span>
+<span class="sd">                of current policy network and optimizer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_actor_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;actor_optimizer&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_critic_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;critic_optimizer&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_init_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the collect mode of policy, including related attributes and modules. For HAPPO, it contains \</span>
+<span class="sd">            the collect_model to balance the exploration and exploitation (e.g. the multinomial sample mechanism in \</span>
+<span class="sd">            discrete action space), and other algorithm-specific arguments such as unroll_len and gae_lambda.</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_collect`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            Some variables need to initialize independently in different modes, such as gamma and gae_lambda in PPO. \</span>
+<span class="sd">            This design is for the convenience of parallel execution of different policy modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">unroll_len</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;continuous&quot;</span><span class="p">,</span> <span class="s2">&quot;discrete&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;reparam_sample&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;multinomial_sample&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">discount_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">gae_lambda</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">recompute_adv</span>
+
+    <span class="k">def</span> <span class="nf">_forward_collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \</span>
+<span class="sd">            that the policy gets some necessary data (mainly observation) from the envs and then returns the output \</span>
+<span class="sd">            data, such as the action to interact with the envs.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \</span>
+<span class="sd">                other necessary data (action logit and value) for learn mode defined in ``self._process_transition`` \</span>
+<span class="sd">                method. The key of the dict is the same as the input data, i.e. environment id.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to add more tricks on this policy, like temperature factor in multinomial sample, you can pass \</span>
+<span class="sd">            related data as extra keyword arguments of this method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for HAPPOPolicy: ``ding.policy.tests.test_happo``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>  <span class="c1"># not feasible for rnn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">agent_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">agent_num</span><span class="p">):</span>
+                <span class="c1"># output = self._collect_model.forward(agent_id, data, mode=&#39;compute_actor_critic&#39;)</span>
+                <span class="n">single_agent_obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">agent_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">single_agent_obs</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)</span>
+                <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+            <span class="c1"># transfer data from (M, B, N)-&gt;(B, M, N)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="n">subkeys</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                    <span class="n">stacked_subvalues</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">subkey</span> <span class="ow">in</span> <span class="n">subkeys</span><span class="p">:</span>
+                        <span class="n">stacked_subvalues</span><span class="p">[</span><span class="n">subkey</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">subkey</span><span class="p">]</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">stacked_subvalues</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># If Value is tensor, stack it directly</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># If it is not tensor, assume that it is a non-stackable data type \</span>
+                        <span class="c1"># (such as int, float, etc.), and directly retain the original value</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Process and pack one timestep transition data into a dict, which can be directly used for training and \</span>
+<span class="sd">            saved in replay buffer. For HAPPO, it contains obs, next_obs, action, reward, done, logit, value.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): The env observation of current timestep.</span>
+<span class="sd">            - policy_output (:obj:`Dict[str, torch.Tensor]`): The output of the policy network with the observation \</span>
+<span class="sd">                as input. For PPO, it contains the state value, action and the logit of the action.</span>
+<span class="sd">            - timestep (:obj:`namedtuple`): The execution result namedtuple returned by the environment step method, \</span>
+<span class="sd">                except all the elements have been transformed into tensor data. Usually, it contains the next obs, \</span>
+<span class="sd">                reward, done, info, etc.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - transition (:obj:`Dict[str, torch.Tensor]`): The processed transition data of the current timestep.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            ``next_obs`` is used to calculate nstep return when necessary, so we place in into transition by default. \</span>
+<span class="sd">            You can delete this field to save memory occupancy if you do not need nstep return.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+            <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">transition</span>
+
+    <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            For a given trajectory (transitions, a list of transition) data, process it into a list of sample that \</span>
+<span class="sd">            can be used for training directly. In HAPPO, a train sample is a processed transition with new computed \</span>
+<span class="sd">            ``traj_flag`` and ``adv`` field. This method is usually used in collectors to execute necessary \</span>
+<span class="sd">            RL data preprocessing before training, which can help learner amortize revelant time consumption. \</span>
+<span class="sd">            In addition, you can also implement this method as an identity function and do the data processing \</span>
+<span class="sd">            in ``self._forward_learn`` method.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - transitions (:obj:`List[Dict[str, Any]`): The trajectory data (a list of transition), each element is \</span>
+<span class="sd">                the same format as the return value of ``self._process_transition`` method.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - samples (:obj:`List[Dict[str, Any]]`): The processed train samples, each element is the similar format \</span>
+<span class="sd">                as input transitions, but may contain more data for training, such as GAE advantage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">transition</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">transition</span><span class="p">[</span><span class="s1">&#39;traj_flag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">transition</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">])</span>
+        <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;traj_flag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;done&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;done&#39;</span><span class="p">]:</span>
+            <span class="n">last_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">last_values</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">agent_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">agent_num</span><span class="p">):</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">unsqueeze</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">agent_id</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}}</span>
+                    <span class="n">last_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collect_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                    <span class="n">last_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">last_value</span><span class="p">)</span>
+                <span class="n">last_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">last_values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">last_value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># multi_agent case:</span>
+                <span class="n">last_value</span> <span class="o">=</span> <span class="n">last_value</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+            <span class="n">last_value</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">get_gae</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">to_device</span><span class="p">(</span><span class="n">last_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">),</span>
+            <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span>
+            <span class="n">gae_lambda</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gae_lambda</span><span class="p">,</span>
+            <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value_norm</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std</span><span class="o">.</span><span class="n">std</span>
+
+        <span class="c1"># remove next_obs for save memory when not recompute adv</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recompute_adv</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)):</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;next_obs&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the eval mode of policy, including related attributes and modules. For PPO, it contains the \</span>
+<span class="sd">            eval model to select optimial action (e.g. greedily select action with argmax mechanism in discrete action).</span>
+<span class="sd">            This method will be called in ``__init__`` method if ``eval`` field is in ``enable_field``.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If you want to set some spacial member variables in ``_init_eval`` method, you&#39;d better name them \</span>
+<span class="sd">            with prefix ``_eval_`` to avoid conflict with other modes, such as ``self._eval_attr1``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;continuous&quot;</span><span class="p">,</span> <span class="s2">&quot;discrete&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">action_space</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;deterministic_sample&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_forward_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Policy forward function of eval mode (evaluation policy performance by interacting with envs). Forward \</span>
+<span class="sd">            means that the policy gets some necessary data (mainly observation) from the envs and then returns the \</span>
+<span class="sd">            action to interact with the envs. ``_forward_eval`` in HAPPO often uses deterministic sample method to \</span>
+<span class="sd">            get actions while ``_forward_collect`` usually uses stochastic sample method for balance exploration and \</span>
+<span class="sd">            exploitation.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \</span>
+<span class="sd">                key of the dict is environment id and the value is the corresponding data of the env.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action. The \</span>
+<span class="sd">                key of the dict is the same as the input data, i.e. environment id.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \</span>
+<span class="sd">            For the data type that not supported, the main reason is that the corresponding model does not support it. \</span>
+<span class="sd">            You can implement you own model rather than use the default model. For more information, please raise an \</span>
+<span class="sd">            issue in GitHub repo and we will continue to follow up.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For more detailed examples, please refer to our unittest for HAPPOPolicy: ``ding.policy.tests.test_happo``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_id</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_collate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+        <span class="c1"># transfer data from (B, M, N)-&gt;(M, B, N)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>  <span class="c1"># not feasible for rnn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">agent_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">agent_num</span><span class="p">):</span>
+                <span class="n">single_agent_obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">agent_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">single_agent_obs</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+                <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revert_agent_data</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">default_decollate</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \</span>
+<span class="sd">            automatically call this method to get the default model setting and create model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model&#39;s import_names.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
+<span class="sd">            by import_names path. For example about HAPPO, its registered name is ``happo`` and the import_names is \</span>
+<span class="sd">            ``ding.model.template.havac``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;havac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.havac&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \</span>
+<span class="sd">            as text logger, tensorboard logger, will use these keys to save the corresponding data.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_monitor_vars_learn</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="s1">&#39;policy_loss&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;value_loss&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;entropy_loss&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;adv_max&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;adv_mean&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;approx_kl&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;clipfrac&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;value_max&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;value_mean&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">==</span> <span class="s1">&#39;continuous&#39;</span><span class="p">:</span>
+            <span class="n">variables</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;mu_mean&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_mean&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma_grad&#39;</span><span class="p">,</span> <span class="s1">&#39;act&#39;</span><span class="p">]</span>
+        <span class="n">prefixes</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;agent</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">_&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">agent_num</span><span class="p">)]</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">var</span> <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="n">prefixes</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">variables</span>
+
+    <span class="k">def</span> <span class="nf">revert_agent_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Revert the data of each agent to the original data format.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`list`): List type data, where each element is the data of an agent of dict type.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - ret (:obj:`dict`): Dict type data, where each element is the data of an agent of dict type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># Traverse all keys of the first output</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+                <span class="c1"># If the value corresponding to the current key is tensor, stack N tensors</span>
+                <span class="n">stacked_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">data</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">stacked_tensor</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="c1"># If the value corresponding to the current key is a dictionary, recursively \</span>
+                <span class="c1"># call the function to process the contents inside the dictionary.</span>
+                <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revert_agent_data</span><span class="p">([</span><span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../"
+    src="../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+  <script src="../../../_static/doctools.js"></script>
+  <script src="../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

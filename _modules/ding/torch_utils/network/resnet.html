@@ -1,0 +1,1366 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.torch_utils.network.resnet &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.torch_utils.network.resnet</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.torch_utils.network.resnet</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This implementation of ResNet is a bit modification version of `https://github.com/rwightman/pytorch-image-models.git`</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+
+<span class="kn">from</span> <span class="nn">.nn_module</span> <span class="kn">import</span> <span class="n">Flatten</span>
+
+
+<div class="viewcode-block" id="to_2tuple"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.to_2tuple">[docs]</a><span class="k">def</span> <span class="nf">to_2tuple</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Convert a scalar to a 2-tuple or return the item if it&#39;s not a scalar.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - item (:obj:`int`): An item to be converted to a 2-tuple.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`tuple`): A 2-tuple of the item.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">item</span></div>
+
+
+<span class="c1"># Calculate asymmetric TensorFlow-like &#39;SAME&#39; padding for a convolution</span>
+<div class="viewcode-block" id="get_same_padding"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.get_same_padding">[docs]</a><span class="k">def</span> <span class="nf">get_same_padding</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Calculate asymmetric TensorFlow-like &#39;SAME&#39; padding for a convolution.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - x (:obj:`int`): The size of the input.</span>
+<span class="sd">        - k (:obj:`int`): The size of the kernel.</span>
+<span class="sd">        - s (:obj:`int`): The stride of the convolution.</span>
+<span class="sd">        - d (:obj:`int`): The dilation of the convolution.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`int`): The size of the padding.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">((</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span> <span class="o">+</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">d</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="c1"># Dynamically pad input x with &#39;SAME&#39; padding for conv with specified args</span>
+<div class="viewcode-block" id="pad_same"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.pad_same">[docs]</a><span class="k">def</span> <span class="nf">pad_same</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">s</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">d</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Dynamically pad input x with &#39;SAME&#39; padding for conv with specified args.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - x (:obj:`Tensor`): The input tensor.</span>
+<span class="sd">        - k (:obj:`List[int]`): The size of the kernel.</span>
+<span class="sd">        - s (:obj:`List[int]`): The stride of the convolution.</span>
+<span class="sd">        - d (:obj:`List[int]`): The dilation of the convolution.</span>
+<span class="sd">        - value (:obj:`float`): Value to fill the padding.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`Tensor`): The padded tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ih</span><span class="p">,</span> <span class="n">iw</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="n">pad_h</span><span class="p">,</span> <span class="n">pad_w</span> <span class="o">=</span> <span class="n">get_same_padding</span><span class="p">(</span><span class="n">ih</span><span class="p">,</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">get_same_padding</span><span class="p">(</span><span class="n">iw</span><span class="p">,</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">pad_h</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pad_w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">pad_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad_w</span> <span class="o">-</span> <span class="n">pad_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad_h</span> <span class="o">-</span> <span class="n">pad_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">],</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="avg_pool2d_same"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.avg_pool2d_same">[docs]</a><span class="k">def</span> <span class="nf">avg_pool2d_same</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">,</span>
+    <span class="n">kernel_size</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">stride</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">ceil_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">count_include_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Apply average pooling with &#39;SAME&#39; padding on the input tensor.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - x (:obj:`Tensor`): The input tensor.</span>
+<span class="sd">        - kernel_size (:obj:`List[int]`): The size of the kernel.</span>
+<span class="sd">        - stride (:obj:`List[int]`): The stride of the convolution.</span>
+<span class="sd">        - padding (:obj:`List[int]`): The size of the padding.</span>
+<span class="sd">        - ceil_mode (:obj:`bool`): When True, will use ceil instead of floor to compute the output shape.</span>
+<span class="sd">        - count_include_pad (:obj:`bool`): When True, will include the zero-padding in the averaging calculation.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`Tensor`): The tensor after average pooling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># FIXME how to deal with count_include_pad vs not for external padding?</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">pad_same</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">avg_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ceil_mode</span><span class="p">,</span> <span class="n">count_include_pad</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AvgPool2dSame"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.AvgPool2dSame">[docs]</a><span class="k">class</span> <span class="nc">AvgPool2dSame</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Tensorflow-like &#39;SAME&#39; wrapper for 2D average pooling.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AvgPool2dSame.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.AvgPool2dSame.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">stride</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">padding</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">ceil_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">count_include_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the AvgPool2dSame with given arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - kernel_size (:obj:`int`): The size of the window to take an average over.</span>
+<span class="sd">            - stride (:obj:`Optional[Tuple[int, int]]`): The stride of the window. If None, default to kernel_size.</span>
+<span class="sd">            - padding (:obj:`int`): Implicit zero padding to be added on both sides.</span>
+<span class="sd">            - ceil_mode (:obj:`bool`): When True, will use `ceil` instead of `floor` to compute the output shape.</span>
+<span class="sd">            - count_include_pad (:obj:`bool`): When True, will include the zero-padding in the averaging calculation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">to_2tuple</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="n">to_2tuple</span><span class="p">(</span><span class="n">stride</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AvgPool2dSame</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ceil_mode</span><span class="p">,</span> <span class="n">count_include_pad</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AvgPool2dSame.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.AvgPool2dSame.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Forward pass of the AvgPool2dSame.</span>
+<span class="sd">        Argument:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - (:obj:`torch.Tensor`): Output tensor after average pooling.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">pad_same</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">avg_pool2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ceil_mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_include_pad</span><span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_create_pool</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">pool_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span><span class="p">,</span>
+                 <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a global pooling layer based on the given arguments.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - num_features (:obj:`int`): Number of input features.</span>
+<span class="sd">        - num_classes (:obj:`int`): Number of output classes.</span>
+<span class="sd">        - pool_type (:obj:`str`): Type of the pooling operation. Defaults to &#39;avg&#39;.</span>
+<span class="sd">        - use_conv (:obj:`bool`): Whether to use convolutional layer after pooling. Defaults to False.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`Tuple[nn.Module, int]`): The created global pooling layer and the number of pooled features.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">flatten_in_pool</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">use_conv</span>  <span class="c1"># flatten when we use a Linear layer after pooling</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pool_type</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">num_classes</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">use_conv</span><span class="p">,</span> \
+            <span class="s1">&#39;Pooling can only be disabled if classifier is also removed or conv classifier is used&#39;</span>
+        <span class="n">flatten_in_pool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># disable flattening if pooling is pass-through (no pooling)</span>
+    <span class="k">assert</span> <span class="n">flatten_in_pool</span>
+    <span class="n">global_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">AdaptiveAvgPool2d</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">num_pooled_features</span> <span class="o">=</span> <span class="n">num_features</span> <span class="o">*</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">global_pool</span><span class="p">,</span> <span class="n">num_pooled_features</span>
+
+
+<span class="k">def</span> <span class="nf">_create_fc</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a fully connected layer based on the given arguments.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - num_features (:obj:`int`): Number of input features.</span>
+<span class="sd">        - num_classes (:obj:`int`): Number of output classes.</span>
+<span class="sd">        - use_conv (:obj:`bool`): Whether to use convolutional layer. Defaults to False.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`nn.Module`): The created fully connected layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">num_classes</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>  <span class="c1"># pass-through (no classifier)</span>
+    <span class="k">elif</span> <span class="n">use_conv</span><span class="p">:</span>
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">num_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># use nn.Linear for simplification</span>
+        <span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">num_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fc</span>
+
+
+<div class="viewcode-block" id="create_classifier"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.create_classifier">[docs]</a><span class="k">def</span> <span class="nf">create_classifier</span><span class="p">(</span><span class="n">num_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                      <span class="n">pool_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span><span class="p">,</span>
+                      <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a classifier with global pooling layer and fully connected layer.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - num_features (:obj:`int`): The number of features.</span>
+<span class="sd">        - num_classes (:obj:`int`): The number of classes for the final classification.</span>
+<span class="sd">        - pool_type (:obj:`str`): The type of pooling to use; &#39;avg&#39; for Average Pooling.</span>
+<span class="sd">        - use_conv (:obj:`bool`): Whether to use convolution or not.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - global_pool (:obj:`nn.Module`): The created global pooling layer.</span>
+<span class="sd">        - fc (:obj:`nn.Module`): The created fully connected layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">pool_type</span> <span class="o">==</span> <span class="s1">&#39;avg&#39;</span>
+    <span class="n">global_pool</span><span class="p">,</span> <span class="n">num_pooled_features</span> <span class="o">=</span> <span class="n">_create_pool</span><span class="p">(</span><span class="n">num_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">pool_type</span><span class="p">,</span> <span class="n">use_conv</span><span class="o">=</span><span class="n">use_conv</span><span class="p">)</span>
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">_create_fc</span><span class="p">(</span><span class="n">num_pooled_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">use_conv</span><span class="o">=</span><span class="n">use_conv</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">global_pool</span><span class="p">,</span> <span class="n">fc</span></div>
+
+
+<div class="viewcode-block" id="ClassifierHead"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ClassifierHead">[docs]</a><span class="k">class</span> <span class="nc">ClassifierHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Classifier head with configurable global pooling and dropout.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ClassifierHead.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ClassifierHead.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">in_chs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">pool_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span><span class="p">,</span>
+            <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="n">use_conv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the ClassifierHead with given arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - in_chs (:obj:`int`): Number of input channels.</span>
+<span class="sd">            - num_classes (:obj:`int`): Number of classes for the final classification.</span>
+<span class="sd">            - pool_type (:obj:`str`): The type of pooling to use; &#39;avg&#39; for Average Pooling.</span>
+<span class="sd">            - drop_rate (:obj:`float`): The dropout rate.</span>
+<span class="sd">            - use_conv (:obj:`bool`): Whether to use convolution or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ClassifierHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span> <span class="o">=</span> <span class="n">drop_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_pool</span><span class="p">,</span> <span class="n">num_pooled_features</span> <span class="o">=</span> <span class="n">_create_pool</span><span class="p">(</span><span class="n">in_chs</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">pool_type</span><span class="p">,</span> <span class="n">use_conv</span><span class="o">=</span><span class="n">use_conv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">_create_fc</span><span class="p">(</span><span class="n">num_pooled_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">use_conv</span><span class="o">=</span><span class="n">use_conv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span> <span class="o">=</span> <span class="n">Flatten</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_conv</span> <span class="ow">and</span> <span class="n">pool_type</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ClassifierHead.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ClassifierHead.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Forward pass of the ClassifierHead.</span>
+<span class="sd">        Argument:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - (:obj:`torch.Tensor`): Output tensor after classification.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span><span class="p">),</span> <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="create_attn"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.create_attn">[docs]</a><span class="k">def</span> <span class="nf">create_attn</span><span class="p">(</span><span class="n">layer</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create an attention mechanism.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - layer (:obj:`nn.Module`): The layer where the attention is to be applied.</span>
+<span class="sd">        - plane (:obj:`int`): The plane on which the attention is to be applied.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="get_padding"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.get_padding">[docs]</a><span class="k">def</span> <span class="nf">get_padding</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Compute the padding based on the kernel size, stride and dilation.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - kernel_size (:obj:`int`): The size of the kernel.</span>
+<span class="sd">        - stride (:obj:`int`): The stride of the convolution.</span>
+<span class="sd">        - dilation (:obj:`int`): The dilation factor.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - padding (:obj:`int`): The computed padding.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="p">((</span><span class="n">stride</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">dilation</span> <span class="o">*</span> <span class="p">(</span><span class="n">kernel_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">padding</span></div>
+
+
+<div class="viewcode-block" id="BasicBlock"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.BasicBlock">[docs]</a><span class="k">class</span> <span class="nc">BasicBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The basic building block for models like ResNet. This class extends pytorch&#39;s Module class.</span>
+<span class="sd">        It represents a standard block of layers including two convolutions, batch normalization,</span>
+<span class="sd">        an optional attention mechanism, and activation functions.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``zero_init_last_bn``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - expansion (:obj:int): Specifies the expansion factor for the planes of the conv layers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">expansion</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="BasicBlock.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.BasicBlock.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">inplanes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">planes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">downsample</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">cardinality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">base_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+            <span class="n">reduce_first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">first_dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">act_layer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">,</span>
+            <span class="n">norm_layer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">,</span>
+            <span class="n">attn_layer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">aa_layer</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">drop_block</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">drop_path</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the BasicBlock with given parameters.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inplanes (:obj:`int`): Number of input channels.</span>
+<span class="sd">            - planes (:obj:`int`): Number of output channels.</span>
+<span class="sd">            - stride (:obj:`int`): The stride of the convolutional layer.</span>
+<span class="sd">            - downsample (:obj:`Callable`): Function for downsampling the inputs.</span>
+<span class="sd">            - cardinality (:obj:`int`): Group size for grouped convolution.</span>
+<span class="sd">            - base_width (:obj:`int`): Base width of the convolutions.</span>
+<span class="sd">            - reduce_first (:obj:`int`): Reduction factor for first convolution of each block.</span>
+<span class="sd">            - dilation (:obj:`int`): Spacing between kernel points.</span>
+<span class="sd">            - first_dilation (:obj:`int`): First dilation value.</span>
+<span class="sd">            - act_layer (:obj:`Callable`): Function for activation layer.</span>
+<span class="sd">            - norm_layer (:obj:`Callable`): Function for normalization layer.</span>
+<span class="sd">            - attn_layer (:obj:`Callable`): Function for attention layer.</span>
+<span class="sd">            - aa_layer (:obj:`Callable`): Function for anti-aliasing layer.</span>
+<span class="sd">            - drop_block (:obj:`Callable`): Method for dropping block.</span>
+<span class="sd">            - drop_path (:obj:`Callable`): Method for dropping path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BasicBlock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">assert</span> <span class="n">cardinality</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;BasicBlock only supports cardinality of 1&#39;</span>
+        <span class="k">assert</span> <span class="n">base_width</span> <span class="o">==</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;BasicBlock does not support changing base width&#39;</span>
+        <span class="n">first_planes</span> <span class="o">=</span> <span class="n">planes</span> <span class="o">//</span> <span class="n">reduce_first</span>
+        <span class="n">outplanes</span> <span class="o">=</span> <span class="n">planes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion</span>
+        <span class="n">first_dilation</span> <span class="o">=</span> <span class="n">first_dilation</span> <span class="ow">or</span> <span class="n">dilation</span>
+        <span class="n">use_aa</span> <span class="o">=</span> <span class="n">aa_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">stride</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">first_dilation</span> <span class="o">!=</span> <span class="n">dilation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
+            <span class="n">inplanes</span><span class="p">,</span>
+            <span class="n">first_planes</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">use_aa</span> <span class="k">else</span> <span class="n">stride</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">first_dilation</span><span class="p">,</span>
+            <span class="n">dilation</span><span class="o">=</span><span class="n">first_dilation</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">first_planes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act1</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aa</span> <span class="o">=</span> <span class="n">aa_layer</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="n">first_planes</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_aa</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">first_planes</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">outplanes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="o">=</span> <span class="n">create_attn</span><span class="p">(</span><span class="n">attn_layer</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">act2</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dilation</span> <span class="o">=</span> <span class="n">dilation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="o">=</span> <span class="n">drop_block</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span> <span class="o">=</span> <span class="n">drop_path</span></div>
+
+<div class="viewcode-block" id="BasicBlock.zero_init_last_bn"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.BasicBlock.zero_init_last_bn">[docs]</a>    <span class="k">def</span> <span class="nf">zero_init_last_bn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the batch normalization layer with zeros.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicBlock.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.BasicBlock.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Defines the computation performed at every call.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - output (:obj:`torch.Tensor`): The output tensor after passing through the BasicBlock.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shortcut</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aa</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shortcut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">shortcut</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">shortcut</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="Bottleneck"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.Bottleneck">[docs]</a><span class="k">class</span> <span class="nc">Bottleneck</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The Bottleneck class is a basic block used to build ResNet networks. It is a part of the PyTorch&#39;s</span>
+<span class="sd">        implementation of ResNet. This block is designed with several layers including a convolutional layer,</span>
+<span class="sd">        normalization layer, activation layer, attention layer, anti-aliasing layer, and a dropout layer.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``zero_init_last_bn``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        expansion, inplanes, planes, stride, downsample, cardinality, base_width, reduce_first, dilation, \</span>
+<span class="sd">        first_dilation, act_layer, norm_layer, attn_layer, aa_layer, drop_block, drop_path</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">expansion</span> <span class="o">=</span> <span class="mi">4</span>
+
+<div class="viewcode-block" id="Bottleneck.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.Bottleneck.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">inplanes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">planes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">downsample</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">cardinality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">base_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+            <span class="n">reduce_first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">first_dilation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">act_layer</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">,</span>
+            <span class="n">norm_layer</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">,</span>
+            <span class="n">attn_layer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">aa_layer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">drop_block</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">drop_path</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the Bottleneck class with various parameters.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inplanes (:obj:`int`): The number of input planes.</span>
+<span class="sd">            - planes (:obj:`int`): The number of output planes.</span>
+<span class="sd">            - stride (:obj:`int`, optional): The stride size, defaults to 1.</span>
+<span class="sd">            - downsample (:obj:`nn.Module`, optional): The downsample method, defaults to None.</span>
+<span class="sd">            - cardinality (:obj:`int`, optional): The size of the group convolutions, defaults to 1.</span>
+<span class="sd">            - base_width (:obj:`int`, optional): The base width, defaults to 64.</span>
+<span class="sd">            - reduce_first (:obj:`int`, optional): The first reduction factor, defaults to 1.</span>
+<span class="sd">            - dilation (:obj:`int`, optional): The dilation factor, defaults to 1.</span>
+<span class="sd">            - first_dilation (:obj:`int`, optional): The first dilation factor, defaults to None.</span>
+<span class="sd">            - act_layer (:obj:`Type[nn.Module]`, optional): The activation layer type, defaults to nn.ReLU.</span>
+<span class="sd">            - norm_layer (:obj:`Type[nn.Module]`, optional): The normalization layer type, defaults to nn.BatchNorm2d.</span>
+<span class="sd">            - attn_layer (:obj:`Type[nn.Module]`, optional): The attention layer type, defaults to None.</span>
+<span class="sd">            - aa_layer (:obj:`Type[nn.Module]`, optional): The anti-aliasing layer type, defaults to None.</span>
+<span class="sd">            - drop_block (:obj:`Callable`): The dropout block, defaults to None.</span>
+<span class="sd">            - drop_path (:obj:`Callable`): The drop path, defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Bottleneck</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">planes</span> <span class="o">*</span> <span class="p">(</span><span class="n">base_width</span> <span class="o">/</span> <span class="mi">64</span><span class="p">))</span> <span class="o">*</span> <span class="n">cardinality</span><span class="p">)</span>
+        <span class="n">first_planes</span> <span class="o">=</span> <span class="n">width</span> <span class="o">//</span> <span class="n">reduce_first</span>
+        <span class="n">outplanes</span> <span class="o">=</span> <span class="n">planes</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion</span>
+        <span class="n">first_dilation</span> <span class="o">=</span> <span class="n">first_dilation</span> <span class="ow">or</span> <span class="n">dilation</span>
+        <span class="n">use_aa</span> <span class="o">=</span> <span class="n">aa_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">stride</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">first_dilation</span> <span class="o">!=</span> <span class="n">dilation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">first_planes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">first_planes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act1</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
+            <span class="n">first_planes</span><span class="p">,</span>
+            <span class="n">width</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">use_aa</span> <span class="k">else</span> <span class="n">stride</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">first_dilation</span><span class="p">,</span>
+            <span class="n">dilation</span><span class="o">=</span><span class="n">first_dilation</span><span class="p">,</span>
+            <span class="n">groups</span><span class="o">=</span><span class="n">cardinality</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act2</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aa</span> <span class="o">=</span> <span class="n">aa_layer</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_aa</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn3</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">outplanes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="o">=</span> <span class="n">create_attn</span><span class="p">(</span><span class="n">attn_layer</span><span class="p">,</span> <span class="n">outplanes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">act3</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dilation</span> <span class="o">=</span> <span class="n">dilation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="o">=</span> <span class="n">drop_block</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span> <span class="o">=</span> <span class="n">drop_path</span></div>
+
+<div class="viewcode-block" id="Bottleneck.zero_init_last_bn"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.Bottleneck.zero_init_last_bn">[docs]</a>    <span class="k">def</span> <span class="nf">zero_init_last_bn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the last batch normalization layer with zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bn3</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Bottleneck.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.Bottleneck.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Defines the computation performed at every call.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`Tensor`): The input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - x (:obj:`Tensor`): The output tensor resulting from the computation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shortcut</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aa</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aa</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_path</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shortcut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">shortcut</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">+=</span> <span class="n">shortcut</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="downsample_conv"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.downsample_conv">[docs]</a><span class="k">def</span> <span class="nf">downsample_conv</span><span class="p">(</span>
+        <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">first_dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">norm_layer</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a sequential module for downsampling that includes a convolution layer and a normalization layer.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - in_channels (:obj:`int`): The number of input channels.</span>
+<span class="sd">        - out_channels (:obj:`int`): The number of output channels.</span>
+<span class="sd">        - kernel_size (:obj:`int`): The size of the kernel.</span>
+<span class="sd">        - stride (:obj:`int`, optional): The stride size, defaults to 1.</span>
+<span class="sd">        - dilation (:obj:`int`, optional): The dilation factor, defaults to 1.</span>
+<span class="sd">        - first_dilation (:obj:`int`, optional): The first dilation factor, defaults to None.</span>
+<span class="sd">        - norm_layer (:obj:`Type[nn.Module]`, optional): The normalization layer type, defaults to nn.BatchNorm2d.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - nn.Sequential: A sequence of layers performing downsampling through convolution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">norm_layer</span> <span class="o">=</span> <span class="n">norm_layer</span> <span class="ow">or</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span>
+    <span class="n">kernel_size</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dilation</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">kernel_size</span>
+    <span class="n">first_dilation</span> <span class="o">=</span> <span class="p">(</span><span class="n">first_dilation</span> <span class="ow">or</span> <span class="n">dilation</span><span class="p">)</span> <span class="k">if</span> <span class="n">kernel_size</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">get_padding</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">first_dilation</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+        <span class="o">*</span><span class="p">[</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span>
+                <span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">first_dilation</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">),</span>
+            <span class="n">norm_layer</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="downsample_avg"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.downsample_avg">[docs]</a><span class="k">def</span> <span class="nf">downsample_avg</span><span class="p">(</span>
+        <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">first_dilation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">norm_layer</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a sequential module for downsampling that includes an average pooling layer, a convolution layer,</span>
+<span class="sd">        and a normalization layer.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - in_channels (:obj:`int`): The number of input channels.</span>
+<span class="sd">        - out_channels (:obj:`int`): The number of output channels.</span>
+<span class="sd">        - kernel_size (:obj:`int`): The size of the kernel.</span>
+<span class="sd">        - stride (:obj:`int`, optional): The stride size, defaults to 1.</span>
+<span class="sd">        - dilation (:obj:`int`, optional): The dilation factor, defaults to 1.</span>
+<span class="sd">        - first_dilation (:obj:`int`, optional): The first dilation factor, defaults to None.</span>
+<span class="sd">        - norm_layer (:obj:`Type[nn.Module]`, optional): The normalization layer type, defaults to nn.BatchNorm2d.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - nn.Sequential: A sequence of layers performing downsampling through average pooling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">norm_layer</span> <span class="o">=</span> <span class="n">norm_layer</span> <span class="ow">or</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span>
+    <span class="n">avg_stride</span> <span class="o">=</span> <span class="n">stride</span> <span class="k">if</span> <span class="n">dilation</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dilation</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">avg_pool_fn</span> <span class="o">=</span> <span class="n">AvgPool2dSame</span> <span class="k">if</span> <span class="n">avg_stride</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">dilation</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">avg_pool_fn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">avg_stride</span><span class="p">,</span> <span class="n">ceil_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">count_include_pad</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+        <span class="o">*</span><span class="p">[</span><span class="n">pool</span><span class="p">,</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+          <span class="n">norm_layer</span><span class="p">(</span><span class="n">out_channels</span><span class="p">)]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="drop_blocks"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.drop_blocks">[docs]</a><span class="k">def</span> <span class="nf">drop_blocks</span><span class="p">(</span><span class="n">drop_block_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Generate a list of None values based on the drop block rate.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - drop_block_rate (:obj:`float`, optional): The drop block rate, defaults to 0.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - List[None]: A list of None values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">drop_block_rate</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">drop_block_rate</span>
+    <span class="k">return</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="make_blocks"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.make_blocks">[docs]</a><span class="k">def</span> <span class="nf">make_blocks</span><span class="p">(</span>
+        <span class="n">block_fn</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">block_repeats</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">inplanes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">reduce_first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">output_stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">down_kernel_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">avg_down</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">drop_block_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
+        <span class="n">drop_path_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create a list of blocks for the network, with each block having a given number of repeats. Also, create a</span>
+<span class="sd">        feature info list that contains information about the output of each block.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - block_fn (:obj:`Type[nn.Module]`): The type of block to use.</span>
+<span class="sd">        - channels (:obj:`List[int]`): The list of output channels for each block.</span>
+<span class="sd">        - block_repeats (:obj:`List[int]`): The list of number of repeats for each block.</span>
+<span class="sd">        - inplanes (:obj:`int`): The number of input planes.</span>
+<span class="sd">        - reduce_first (:obj:`int`, optional): The first reduction factor, defaults to 1.</span>
+<span class="sd">        - output_stride (:obj:`int`, optional): The total stride of the network, defaults to 32.</span>
+<span class="sd">        - down_kernel_size (:obj:`int`, optional): The size of the downsample kernel, defaults to 1.</span>
+<span class="sd">        - avg_down (:obj:`bool`, optional): Whether to use average pooling for downsampling, defaults to False.</span>
+<span class="sd">        - drop_block_rate (:obj:`float`, optional): The drop block rate, defaults to 0.</span>
+<span class="sd">        - drop_path_rate (:obj:`float`, optional): The drop path rate, defaults to 0.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - Tuple[List[Tuple[str, nn.Module]], List[Dict[str, Union[int, str]]]]: \</span>
+<span class="sd">            A tuple that includes a list of blocks for the network and a feature info list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">stages</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">feature_info</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">net_num_blocks</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">block_repeats</span><span class="p">)</span>
+    <span class="n">net_block_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">net_stride</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">dilation</span> <span class="o">=</span> <span class="n">prev_dilation</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">stage_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">planes</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">block_repeats</span><span class="p">,</span> <span class="n">drop_blocks</span><span class="p">(</span><span class="n">drop_block_rate</span><span class="p">))):</span>
+        <span class="n">stage_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;layer</span><span class="si">{</span><span class="n">stage_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span>  <span class="c1"># never liked this name, but weight compat requires it</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">stage_idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">net_stride</span> <span class="o">&gt;=</span> <span class="n">output_stride</span><span class="p">:</span>
+            <span class="n">dilation</span> <span class="o">*=</span> <span class="n">stride</span>
+            <span class="n">stride</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">net_stride</span> <span class="o">*=</span> <span class="n">stride</span>
+
+        <span class="n">downsample</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">stride</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">inplanes</span> <span class="o">!=</span> <span class="n">planes</span> <span class="o">*</span> <span class="n">block_fn</span><span class="o">.</span><span class="n">expansion</span><span class="p">:</span>
+            <span class="n">down_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">in_channels</span><span class="o">=</span><span class="n">inplanes</span><span class="p">,</span>
+                <span class="n">out_channels</span><span class="o">=</span><span class="n">planes</span> <span class="o">*</span> <span class="n">block_fn</span><span class="o">.</span><span class="n">expansion</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="n">down_kernel_size</span><span class="p">,</span>
+                <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
+                <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span>
+                <span class="n">first_dilation</span><span class="o">=</span><span class="n">prev_dilation</span><span class="p">,</span>
+                <span class="n">norm_layer</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;norm_layer&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample_avg</span><span class="p">(</span><span class="o">**</span><span class="n">down_kwargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">avg_down</span> <span class="k">else</span> <span class="n">downsample_conv</span><span class="p">(</span><span class="o">**</span><span class="n">down_kwargs</span><span class="p">)</span>
+
+        <span class="n">block_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">reduce_first</span><span class="o">=</span><span class="n">reduce_first</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span> <span class="n">drop_block</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">block_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">):</span>
+            <span class="n">downsample</span> <span class="o">=</span> <span class="n">downsample</span> <span class="k">if</span> <span class="n">block_idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span> <span class="k">if</span> <span class="n">block_idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>
+            <span class="n">block_dpr</span> <span class="o">=</span> <span class="n">drop_path_rate</span> <span class="o">*</span> <span class="n">net_block_idx</span> <span class="o">/</span> <span class="p">(</span><span class="n">net_num_blocks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># stochastic depth linear decay rule</span>
+            <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">block_fn</span><span class="p">(</span>
+                    <span class="n">inplanes</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">downsample</span><span class="p">,</span> <span class="n">first_dilation</span><span class="o">=</span><span class="n">prev_dilation</span><span class="p">,</span> <span class="n">drop_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">block_kwargs</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">prev_dilation</span> <span class="o">=</span> <span class="n">dilation</span>
+            <span class="n">inplanes</span> <span class="o">=</span> <span class="n">planes</span> <span class="o">*</span> <span class="n">block_fn</span><span class="o">.</span><span class="n">expansion</span>
+            <span class="n">net_block_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">stages</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">stage_name</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)))</span>
+        <span class="n">feature_info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">num_chs</span><span class="o">=</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="n">net_stride</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="n">stage_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">stages</span><span class="p">,</span> <span class="n">feature_info</span></div>
+
+
+<div class="viewcode-block" id="ResNet"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet">[docs]</a><span class="k">class</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Implements ResNet, ResNeXt, SE-ResNeXt, and SENet models. This implementation supports various modifications</span>
+<span class="sd">        based on the v1c, v1d, v1e, and v1s variants included in the MXNet Gluon ResNetV1b model. For more details</span>
+<span class="sd">        about the variants and options, please refer to the &#39;Bag of Tricks&#39; paper: https://arxiv.org/pdf/1812.01187.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``zero_init_last_bn``, ``get_classifier``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ResNet.__init__"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">block</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+            <span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+            <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="n">in_chans</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="n">cardinality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">base_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+            <span class="n">stem_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+            <span class="n">stem_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">replace_stem_pool</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">output_stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+            <span class="n">block_reduce_first</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">down_kernel_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">avg_down</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">act_layer</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">,</span>
+            <span class="n">norm_layer</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">,</span>
+            <span class="n">aa_layer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">drop_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">drop_path_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">drop_block_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">global_pool</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span><span class="p">,</span>
+            <span class="n">zero_init_last_bn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">block_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the ResNet model with given block, layers and other configuration options.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - block (:obj:`nn.Module`): Class for the residual block.</span>
+<span class="sd">            - layers (:obj:`List[int]`): Numbers of layers in each block.</span>
+<span class="sd">            - num_classes (:obj:`int`, optional): Number of classification classes. Default is 1000.</span>
+<span class="sd">            - in_chans (:obj:`int`, optional): Number of input (color) channels. Default is 3.</span>
+<span class="sd">            - cardinality (:obj:`int`, optional): Number of convolution groups for 3x3 conv in Bottleneck. Default is 1.</span>
+<span class="sd">            - base_width (:obj:`int`, optional): Factor determining bottleneck channels. Default is 64.</span>
+<span class="sd">            - stem_width (:obj:`int`, optional): Number of channels in stem convolutions. Default is 64.</span>
+<span class="sd">            - stem_type (:obj:`str`, optional): The type of stem. Default is &#39;&#39;.</span>
+<span class="sd">            - replace_stem_pool (:obj:`bool`, optional): Whether to replace stem pooling. Default is False.</span>
+<span class="sd">            - output_stride (:obj:`int`, optional): Output stride of the network. Default is 32.</span>
+<span class="sd">            - block_reduce_first (:obj:`int`, optional): Reduction factor for first convolution output width of \</span>
+<span class="sd">                residual blocks. Default is 1.</span>
+<span class="sd">            - down_kernel_size (:obj:`int`, optional): Kernel size of residual block downsampling path. Default is 1.</span>
+<span class="sd">            - avg_down (:obj:`bool`, optional): Whether to use average pooling for projection skip connection between</span>
+<span class="sd">                stages/downsample. Default is False.</span>
+<span class="sd">            - act_layer (:obj:`nn.Module`, optional): Activation layer. Default is nn.ReLU.</span>
+<span class="sd">            - norm_layer (:obj:`nn.Module`, optional): Normalization layer. Default is nn.BatchNorm2d.</span>
+<span class="sd">            - aa_layer (:obj:`Optional[nn.Module]`, optional): Anti-aliasing layer. Default is None.</span>
+<span class="sd">            - drop_rate (:obj:`float`, optional): Dropout probability before classifier, for training. Default is 0.0.</span>
+<span class="sd">            - drop_path_rate (:obj:`float`, optional): Drop path rate. Default is 0.0.</span>
+<span class="sd">            - drop_block_rate (:obj:`float`, optional): Drop block rate. Default is 0.0.</span>
+<span class="sd">            - global_pool (:obj:`str`, optional): Global pooling type. Default is &#39;avg&#39;.</span>
+<span class="sd">            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero. \</span>
+<span class="sd">                Default is True.</span>
+<span class="sd">            - block_args (:obj:`Optional[dict]`, optional): Additional arguments for block. Default is None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">block_args</span> <span class="o">=</span> <span class="n">block_args</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">output_stride</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span> <span class="o">=</span> <span class="n">drop_rate</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ResNet</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Stem</span>
+        <span class="n">deep_stem</span> <span class="o">=</span> <span class="s1">&#39;deep&#39;</span> <span class="ow">in</span> <span class="n">stem_type</span>
+        <span class="n">inplanes</span> <span class="o">=</span> <span class="n">stem_width</span> <span class="o">*</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">deep_stem</span> <span class="k">else</span> <span class="mi">64</span>
+        <span class="k">if</span> <span class="n">deep_stem</span><span class="p">:</span>
+            <span class="n">stem_chs</span> <span class="o">=</span> <span class="p">(</span><span class="n">stem_width</span><span class="p">,</span> <span class="n">stem_width</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;tiered&#39;</span> <span class="ow">in</span> <span class="n">stem_type</span><span class="p">:</span>
+                <span class="n">stem_chs</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">stem_width</span> <span class="o">//</span> <span class="mi">4</span><span class="p">),</span> <span class="n">stem_width</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_chans</span><span class="p">,</span> <span class="n">stem_chs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">norm_layer</span><span class="p">(</span><span class="n">stem_chs</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">stem_chs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">stem_chs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">norm_layer</span><span class="p">(</span><span class="n">stem_chs</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">stem_chs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">inplanes</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_chans</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span> <span class="o">=</span> <span class="n">norm_layer</span><span class="p">(</span><span class="n">inplanes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act1</span> <span class="o">=</span> <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_info</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">num_chs</span><span class="o">=</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="s1">&#39;act1&#39;</span><span class="p">)]</span>
+
+        <span class="c1"># Stem Pooling</span>
+        <span class="k">if</span> <span class="n">replace_stem_pool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maxpool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="o">*</span><span class="nb">filter</span><span class="p">(</span>
+                    <span class="kc">None</span><span class="p">,</span> <span class="p">[</span>
+                        <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">inplanes</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span> <span class="k">if</span> <span class="n">aa_layer</span> <span class="k">else</span> <span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                        <span class="n">aa_layer</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">aa_layer</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">norm_layer</span><span class="p">(</span><span class="n">inplanes</span><span class="p">),</span>
+                        <span class="n">act_layer</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">aa_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxpool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="o">*</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                      <span class="n">aa_layer</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="n">inplanes</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxpool</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Feature Blocks</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">]</span>
+        <span class="n">stage_modules</span><span class="p">,</span> <span class="n">stage_feature_info</span> <span class="o">=</span> <span class="n">make_blocks</span><span class="p">(</span>
+            <span class="n">block</span><span class="p">,</span>
+            <span class="n">channels</span><span class="p">,</span>
+            <span class="n">layers</span><span class="p">,</span>
+            <span class="n">inplanes</span><span class="p">,</span>
+            <span class="n">cardinality</span><span class="o">=</span><span class="n">cardinality</span><span class="p">,</span>
+            <span class="n">base_width</span><span class="o">=</span><span class="n">base_width</span><span class="p">,</span>
+            <span class="n">output_stride</span><span class="o">=</span><span class="n">output_stride</span><span class="p">,</span>
+            <span class="n">reduce_first</span><span class="o">=</span><span class="n">block_reduce_first</span><span class="p">,</span>
+            <span class="n">avg_down</span><span class="o">=</span><span class="n">avg_down</span><span class="p">,</span>
+            <span class="n">down_kernel_size</span><span class="o">=</span><span class="n">down_kernel_size</span><span class="p">,</span>
+            <span class="n">act_layer</span><span class="o">=</span><span class="n">act_layer</span><span class="p">,</span>
+            <span class="n">norm_layer</span><span class="o">=</span><span class="n">norm_layer</span><span class="p">,</span>
+            <span class="n">aa_layer</span><span class="o">=</span><span class="n">aa_layer</span><span class="p">,</span>
+            <span class="n">drop_block_rate</span><span class="o">=</span><span class="n">drop_block_rate</span><span class="p">,</span>
+            <span class="n">drop_path_rate</span><span class="o">=</span><span class="n">drop_path_rate</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">block_args</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">stage</span> <span class="ow">in</span> <span class="n">stage_modules</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="o">*</span><span class="n">stage</span><span class="p">)</span>  <span class="c1"># layer1, layer2, etc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_info</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">stage_feature_info</span><span class="p">)</span>
+
+        <span class="c1"># Head (Pooling and Classifier)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_features</span> <span class="o">=</span> <span class="mi">512</span> <span class="o">*</span> <span class="n">block</span><span class="o">.</span><span class="n">expansion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_pool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">create_classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">,</span> <span class="n">pool_type</span><span class="o">=</span><span class="n">global_pool</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_weights</span><span class="p">(</span><span class="n">zero_init_last_bn</span><span class="o">=</span><span class="n">zero_init_last_bn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ResNet.init_weights"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet.init_weights">[docs]</a>    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero_init_last_bn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the weights in the model.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - zero_init_last_bn (:obj:`bool`, optional): Whether to initialize last batch normalization with zero.</span>
+<span class="sd">                Default is True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;fan_out&#39;</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">):</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">ones_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">zero_init_last_bn</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;zero_init_last_bn&#39;</span><span class="p">):</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">zero_init_last_bn</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ResNet.get_classifier"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet.get_classifier">[docs]</a>    <span class="k">def</span> <span class="nf">get_classifier</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the classifier module from the model.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - classifier (:obj:`nn.Module`): The classifier module in the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span></div>
+
+<div class="viewcode-block" id="ResNet.reset_classifier"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet.reset_classifier">[docs]</a>    <span class="k">def</span> <span class="nf">reset_classifier</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">global_pool</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;avg&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Reset the classifier with a new number of classes and pooling type.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - num_classes (:obj:`int`): New number of classification classes.</span>
+<span class="sd">            - global_pool (:obj:`str`, optional): New global pooling type. Default is &#39;avg&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_pool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">create_classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">,</span> <span class="n">pool_type</span><span class="o">=</span><span class="n">global_pool</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ResNet.forward_features"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet.forward_features">[docs]</a>    <span class="k">def</span> <span class="nf">forward_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Forward pass through the feature layers of the model.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The output tensor after passing through feature layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxpool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer4</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="ResNet.forward"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.ResNet.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Full forward pass through the model.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The input tensor.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): The output tensor after passing through the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_features</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_pool</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_rate</span><span class="p">),</span> <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="resnet18"><a class="viewcode-back" href="../../../../05_api_doc/torch_utils.html#ding.torch_utils.network.resnet.resnet18">[docs]</a><span class="k">def</span> <span class="nf">resnet18</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Creates a ResNet18 model.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - model (:obj:`nn.Module`): ResNet18 model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ResNet</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="n">BasicBlock</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span></div>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  <script src="../../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

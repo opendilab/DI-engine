@@ -1,0 +1,1056 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.model.template.diffusion &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.model.template.diffusion</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.model.template.diffusion</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">list_split</span><span class="p">,</span> <span class="n">MODEL_REGISTRY</span><span class="p">,</span> <span class="n">squeeze</span><span class="p">,</span> <span class="n">SequenceType</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils.network.diffusion</span> <span class="kn">import</span> <span class="n">extract</span><span class="p">,</span> <span class="n">cosine_beta_schedule</span><span class="p">,</span> <span class="n">apply_conditioning</span><span class="p">,</span> \
+    <span class="n">DiffusionUNet1d</span><span class="p">,</span> <span class="n">TemporalValue</span>
+
+<span class="n">Sample</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Sample&#39;</span><span class="p">,</span> <span class="s1">&#39;trajectories values chains&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">default_sample_fn</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
+    <span class="n">model_mean</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">model_log_variance</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">p_mean_variance</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+        <span class="n">cond</span><span class="o">=</span><span class="n">cond</span><span class="p">,</span>
+        <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># no noise when t == 0</span>
+    <span class="n">nonzero_mask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model_mean</span> <span class="o">+</span> <span class="n">nonzero_mask</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">model_log_variance</span><span class="p">)</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span> <span class="o">*</span> <span class="n">noise</span><span class="p">,</span> <span class="n">values</span>
+
+
+<span class="k">def</span> <span class="nf">get_guide_output</span><span class="p">(</span><span class="n">guide</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">guide</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">([</span><span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()],</span> <span class="p">[</span><span class="n">x</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">x</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">grad</span>
+
+
+<span class="k">def</span> <span class="nf">n_step_guided_p_sample</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">x</span><span class="p">,</span>
+    <span class="n">cond</span><span class="p">,</span>
+    <span class="n">t</span><span class="p">,</span>
+    <span class="n">guide</span><span class="p">,</span>
+    <span class="n">scale</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+    <span class="n">t_stopgrad</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">n_guide_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">scale_grad_by_std</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">model_log_variance</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">posterior_log_variance_clipped</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">model_std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">model_log_variance</span><span class="p">)</span>
+    <span class="n">model_var</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">model_log_variance</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_guide_steps</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">enable_grad</span><span class="p">():</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">grad</span> <span class="o">=</span> <span class="n">get_guide_output</span><span class="p">(</span><span class="n">guide</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scale_grad_by_std</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">model_var</span> <span class="o">*</span> <span class="n">grad</span>
+
+        <span class="n">grad</span><span class="p">[</span><span class="n">t</span> <span class="o">&lt;</span> <span class="n">t_stopgrad</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">grad</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">action_dim</span><span class="p">)</span>
+
+    <span class="n">model_mean</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">model_log_variance</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">p_mean_variance</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="o">=</span><span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># no noise when t == 0</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">noise</span><span class="p">[</span><span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">model_mean</span> <span class="o">+</span> <span class="n">model_std</span> <span class="o">*</span> <span class="n">noise</span><span class="p">,</span> <span class="n">y</span>
+
+
+<div class="viewcode-block" id="GaussianDiffusion"><a class="viewcode-back" href="../../../../12_policies/diffuser.html#ding.model.template.diffusion.GaussianDiffusion">[docs]</a><span class="k">class</span> <span class="nc">GaussianDiffusion</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">            Gaussian diffusion model</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">            - model (:obj:`str`): type of model</span>
+<span class="sd">            - model_cfg (:obj:&#39;dict&#39;) config of model</span>
+<span class="sd">            - horizon (:obj:`int`): horizon of trajectory</span>
+<span class="sd">            - obs_dim (:obj:`int`): Dim of the ovservation</span>
+<span class="sd">            - action_dim (:obj:`int`): Dim of the ation</span>
+<span class="sd">            - n_timesteps (:obj:`int`): Number of timesteps</span>
+<span class="sd">            - predict_epsilon (:obj:&#39;bool&#39;): Whether predict epsilon</span>
+<span class="sd">            - loss_discount (:obj:&#39;float&#39;): discount of loss</span>
+<span class="sd">            - clip_denoised (:obj:&#39;bool&#39;): Whether use clip_denoised</span>
+<span class="sd">            - action_weight (:obj:&#39;float&#39;): weight of action</span>
+<span class="sd">            - loss_weights (:obj:&#39;dict&#39;): weight of loss</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">model_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">horizon</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">obs_dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+            <span class="n">action_dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+            <span class="n">n_timesteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="n">predict_epsilon</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">loss_discount</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">clip_denoised</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">action_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">loss_weights</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizon</span> <span class="o">=</span> <span class="n">horizon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span> <span class="o">=</span> <span class="n">obs_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span> <span class="o">=</span> <span class="n">action_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transition_dim</span> <span class="o">=</span> <span class="n">obs_dim</span> <span class="o">+</span> <span class="n">action_dim</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">model_cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span> <span class="o">=</span> <span class="n">predict_epsilon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clip_denoised</span> <span class="o">=</span> <span class="n">clip_denoised</span>
+
+        <span class="n">betas</span> <span class="o">=</span> <span class="n">cosine_beta_schedule</span><span class="p">(</span><span class="n">n_timesteps</span><span class="p">)</span>
+        <span class="n">alphas</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">betas</span>
+        <span class="n">alphas_cumprod</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">alphas_cumprod_prev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">alphas_cumprod</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_timesteps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_timesteps</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;betas&#39;</span><span class="p">,</span> <span class="n">betas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">alphas_cumprod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;alphas_cumprod_prev&#39;</span><span class="p">,</span> <span class="n">alphas_cumprod_prev</span><span class="p">)</span>
+
+        <span class="c1"># calculations for diffusion q(x_t | x_{t-1}) and others</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_one_minus_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;log_one_minus_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_recip_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_recipm1_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">alphas_cumprod</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># calculations for posterior q(x_{t-1} | x_t, x_0)</span>
+        <span class="n">posterior_variance</span> <span class="o">=</span> <span class="n">betas</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod_prev</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;posterior_variance&#39;</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">)</span>
+
+        <span class="c1"># log calculation clipped because the posterior variance</span>
+        <span class="c1"># is 0 at the beginning of the diffusion chain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;posterior_log_variance_clipped&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">posterior_variance</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;posterior_mean_coef1&#39;</span><span class="p">,</span> <span class="n">betas</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alphas_cumprod_prev</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span>
+            <span class="s1">&#39;posterior_mean_coef2&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod_prev</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alphas</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_loss_weights</span><span class="p">(</span><span class="n">action_weight</span><span class="p">,</span> <span class="n">loss_discount</span><span class="p">,</span> <span class="n">loss_weights</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_loss_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_weight</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">discount</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">weights_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            sets loss coefficients for trajectory</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - action_weight (:obj:&#39;float&#39;) coefficient on first action loss</span>
+<span class="sd">            - discount (:obj:&#39;float&#39;) multiplies t^th timestep of trajectory loss by discount**t</span>
+<span class="sd">            - weights_dict (:obj:&#39;dict&#39;) { i: c } multiplies dimension i of observation loss by c</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_weight</span> <span class="o">=</span> <span class="n">action_weight</span>
+        <span class="n">dim_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transition_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># set loss coefficients for dimensions of observation</span>
+        <span class="k">if</span> <span class="n">weights_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">weights_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">weights_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">dim_weights</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span> <span class="o">+</span> <span class="n">ind</span><span class="p">]</span> <span class="o">*=</span> <span class="n">w</span>
+
+        <span class="c1"># decay loss with trajectory timestep: discount**t</span>
+        <span class="n">discounts</span> <span class="o">=</span> <span class="n">discount</span> <span class="o">**</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">horizon</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">discounts</span> <span class="o">=</span> <span class="n">discounts</span> <span class="o">/</span> <span class="n">discounts</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">loss_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;h,t-&gt;ht&#39;</span><span class="p">,</span> <span class="n">discounts</span><span class="p">,</span> <span class="n">dim_weights</span><span class="p">)</span>
+
+        <span class="c1"># manually set a0 weight</span>
+        <span class="n">loss_weights</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">action_weight</span>
+        <span class="k">return</span> <span class="n">loss_weights</span>
+
+    <span class="k">def</span> <span class="nf">predict_start_from_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_t</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            if self.predict_epsilon, model output is (scaled) noise;</span>
+<span class="sd">            otherwise, model predicts x0 directly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_recip_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_t</span> <span class="o">-</span>
+                <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_recipm1_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">noise</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">noise</span>
+
+    <span class="k">def</span> <span class="nf">q_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">x_t</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            give noise and step, compute mean, variance.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            x_start (:obj:&#39;tensor&#39;) noise trajectory in timestep 0</span>
+<span class="sd">            x_t (:obj:&#39;tuple&#39;) noise trajectory in timestep t</span>
+<span class="sd">            t (:obj:&#39;int&#39;) timestep of diffusion step</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">posterior_mean</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean_coef1</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_start</span> <span class="o">+</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean_coef2</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_t</span>
+        <span class="p">)</span>
+        <span class="n">posterior_variance</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_variance</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">posterior_log_variance_clipped</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_log_variance_clipped</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">posterior_mean</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">,</span> <span class="n">posterior_log_variance_clipped</span>
+
+    <span class="k">def</span> <span class="nf">p_mean_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">x_recon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_start_from_noise</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_denoised</span><span class="p">:</span>
+            <span class="n">x_recon</span><span class="o">.</span><span class="n">clamp_</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ne">RuntimeError</span><span class="p">()</span>
+
+        <span class="n">model_mean</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">,</span> <span class="n">posterior_log_variance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_posterior</span><span class="p">(</span><span class="n">x_start</span><span class="o">=</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">x_t</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model_mean</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">,</span> <span class="n">posterior_log_variance</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">p_sample_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">return_chain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sample_fn</span><span class="o">=</span><span class="n">default_sample_fn</span><span class="p">,</span> <span class="n">plan_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">sample_kwargs</span><span class="p">):</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">)</span>
+
+        <span class="n">chain</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="n">return_chain</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_timesteps</span><span class="p">)):</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="p">),</span> <span class="n">i</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">sample_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="o">**</span><span class="n">sample_kwargs</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">return_chain</span><span class="p">:</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plan_size</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">plan_size</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">plan_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">inds</span><span class="p">]</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">inds</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">return_chain</span><span class="p">:</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Sample</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">conditional_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">sample_kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            conditions : [ (time, state), ... ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="o">.</span><span class="n">device</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cond</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">horizon</span> <span class="o">=</span> <span class="n">horizon</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizon</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_dim</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_sample_loop</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="o">**</span><span class="n">sample_kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">q_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            conditions (:obj:&#39;tuple&#39;) [ (time, state), ... ] conditions of diffusion</span>
+<span class="sd">            t (:obj:&#39;int&#39;) timestep of diffusion</span>
+<span class="sd">            noise (:obj:&#39;tensor.float&#39;) timestep&#39;s noise of diffusion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x_start</span><span class="p">)</span>
+
+        <span class="n">sample</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_start</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_start</span> <span class="o">+</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_one_minus_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_start</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">noise</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sample</span>
+
+    <span class="k">def</span> <span class="nf">p_losses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x_start</span><span class="p">)</span>
+
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_sample</span><span class="p">(</span><span class="n">x_start</span><span class="o">=</span><span class="n">x_start</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">)</span>
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">)</span>
+
+        <span class="n">x_recon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">x_recon</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">noise</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">x_recon</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="n">a0_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="n">a0_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">a0_loss</span>
+
+<div class="viewcode-block" id="GaussianDiffusion.forward"><a class="viewcode-back" href="../../../../12_policies/diffuser.html#ding.model.template.diffusion.GaussianDiffusion.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditional_sample</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">ValueDiffusion</span><span class="p">(</span><span class="n">GaussianDiffusion</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">            Gaussian diffusion model for value function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">p_losses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x_start</span><span class="p">)</span>
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_sample</span><span class="p">(</span><span class="n">x_start</span><span class="o">=</span><span class="n">x_start</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">)</span>
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">)</span>
+
+        <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;mean_pred&#39;</span><span class="p">:</span> <span class="n">pred</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;max_pred&#39;</span><span class="p">:</span> <span class="n">pred</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;min_pred&#39;</span><span class="p">:</span> <span class="n">pred</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">log</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+
+<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;pd&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">PlanDiffuser</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">            Diffuser model for plan.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">            - diffuser_model (:obj:`str`): type of plan model</span>
+<span class="sd">            - diffuser_model_cfg (:obj:&#39;dict&#39;) config of diffuser_model</span>
+<span class="sd">            - value_model (:obj:`str`): type of value model, if haven&#39;t use, set it as None</span>
+<span class="sd">            - value_model_cfg (:obj:`int`): config of value_model</span>
+<span class="sd">            - sample_kwargs : config of sample function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">diffuser_model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">diffuser_model_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">value_model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value_model_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">sample_kwargs</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">diffuser_model</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">diffuser_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diffuser</span> <span class="o">=</span> <span class="n">diffuser_model</span><span class="p">(</span><span class="o">**</span><span class="n">diffuser_model_cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">value_model</span><span class="p">:</span>
+            <span class="n">value_model</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">value_model</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value_model</span><span class="p">(</span><span class="o">**</span><span class="n">value_model_cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_kwargs</span> <span class="o">=</span> <span class="n">sample_kwargs</span>
+
+    <span class="k">def</span> <span class="nf">diffuser_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffuser</span><span class="o">.</span><span class="n">p_losses</span><span class="p">(</span><span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">value_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">p_losses</span><span class="p">(</span><span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repeat_cond</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffuser</span><span class="p">(</span>
+                <span class="n">cond</span><span class="p">,</span> <span class="n">sample_fn</span><span class="o">=</span><span class="n">n_step_guided_p_sample</span><span class="p">,</span> <span class="n">plan_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">guide</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_kwargs</span>
+            <span class="p">)</span>
+            <span class="c1"># extract action [eval_num, batch_size, horizon, transition_dim]</span>
+            <span class="n">actions</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">trajectories</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">diffuser</span><span class="o">.</span><span class="n">action_dim</span><span class="p">]</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">actions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">action</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffuser</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">plan_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">samples</span><span class="o">.</span><span class="n">trajectories</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffuser</span><span class="o">.</span><span class="n">action_dim</span><span class="p">:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">repeat_cond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cond</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">cond</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cond</span>
+
+
+<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dd&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GaussianInvDynDiffusion</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">            Gaussian diffusion model with Invdyn action model.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">            - model (:obj:`str`): type of model</span>
+<span class="sd">            - model_cfg (:obj:&#39;dict&#39;) config of model</span>
+<span class="sd">            - horizon (:obj:`int`): horizon of trajectory</span>
+<span class="sd">            - obs_dim (:obj:`int`): Dim of the ovservation</span>
+<span class="sd">            - action_dim (:obj:`int`): Dim of the ation</span>
+<span class="sd">            - n_timesteps (:obj:`int`): Number of timesteps</span>
+<span class="sd">            - hidden_dim (:obj:&#39;int&#39;): hidden dim of inv_model</span>
+<span class="sd">            - returns_condition (:obj:&#39;bool&#39;): Whether use returns condition</span>
+<span class="sd">            - ar_inv (:obj:&#39;bool&#39;): Whether use inverse action learning</span>
+<span class="sd">            - train_only_inv (:obj:&#39;bool&#39;): Whether train inverse action model only</span>
+<span class="sd">            - predict_epsilon (:obj:&#39;bool&#39;): Whether predict epsilon</span>
+<span class="sd">            - condition_guidance_w (:obj:&#39;float&#39;): weight of condition guidance</span>
+<span class="sd">            - loss_discount (:obj:&#39;float&#39;): discount of loss</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">model_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">horizon</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">obs_dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+            <span class="n">action_dim</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+            <span class="n">n_timesteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="n">hidden_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
+            <span class="n">returns_condition</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">ar_inv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">train_only_inv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">predict_epsilon</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">condition_guidance_w</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">loss_discount</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">clip_denoised</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizon</span> <span class="o">=</span> <span class="n">horizon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span> <span class="o">=</span> <span class="n">obs_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span> <span class="o">=</span> <span class="n">action_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transition_dim</span> <span class="o">=</span> <span class="n">obs_dim</span> <span class="o">+</span> <span class="n">action_dim</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">model_cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_inv</span> <span class="o">=</span> <span class="n">ar_inv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_only_inv</span> <span class="o">=</span> <span class="n">train_only_inv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span> <span class="o">=</span> <span class="n">predict_epsilon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condition_guidance_w</span> <span class="o">=</span> <span class="n">condition_guidance_w</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inv_model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dim</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">returns_condition</span> <span class="o">=</span> <span class="n">returns_condition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clip_denoised</span> <span class="o">=</span> <span class="n">clip_denoised</span>
+
+        <span class="n">betas</span> <span class="o">=</span> <span class="n">cosine_beta_schedule</span><span class="p">(</span><span class="n">n_timesteps</span><span class="p">)</span>
+        <span class="n">alphas</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="n">betas</span>
+        <span class="n">alphas_cumprod</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">alphas_cumprod_prev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">alphas_cumprod</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_timesteps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_timesteps</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;betas&#39;</span><span class="p">,</span> <span class="n">betas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">alphas_cumprod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;alphas_cumprod_prev&#39;</span><span class="p">,</span> <span class="n">alphas_cumprod_prev</span><span class="p">)</span>
+
+        <span class="c1"># calculations for diffusion q(x_t | x_{t-1}) and others</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_one_minus_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;log_one_minus_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_recip_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;sqrt_recipm1_alphas_cumprod&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">alphas_cumprod</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># calculations for posterior q(x_{t-1} | x_t, x_0)</span>
+        <span class="n">posterior_variance</span> <span class="o">=</span> <span class="n">betas</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod_prev</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;posterior_variance&#39;</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">)</span>
+
+        <span class="c1"># log calculation clipped because the posterior variance</span>
+        <span class="c1"># is 0 at the beginning of the diffusion chain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;posterior_log_variance_clipped&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">posterior_variance</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">1e-20</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;posterior_mean_coef1&#39;</span><span class="p">,</span> <span class="n">betas</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alphas_cumprod_prev</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span>
+            <span class="s1">&#39;posterior_mean_coef2&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod_prev</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">alphas</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">alphas_cumprod</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_loss_weights</span><span class="p">(</span><span class="n">loss_discount</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_loss_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">discount</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_weight</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">dim_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># decay loss with trajectory timestep: discount**t</span>
+        <span class="n">discounts</span> <span class="o">=</span> <span class="n">discount</span> <span class="o">**</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">horizon</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="n">discounts</span> <span class="o">=</span> <span class="n">discounts</span> <span class="o">/</span> <span class="n">discounts</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">loss_weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;h,t-&gt;ht&#39;</span><span class="p">,</span> <span class="n">discounts</span><span class="p">,</span> <span class="n">dim_weights</span><span class="p">)</span>
+        <span class="c1"># Cause things are conditioned on t=0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span><span class="p">:</span>
+            <span class="n">loss_weights</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">loss_weights</span>
+
+    <span class="k">def</span> <span class="nf">predict_start_from_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_t</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            if self.predict_epsilon, model output is (scaled) noise;</span>
+<span class="sd">            otherwise, model predicts x0 directly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_recip_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_t</span> <span class="o">-</span>
+                <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_recipm1_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">noise</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">noise</span>
+
+    <span class="k">def</span> <span class="nf">q_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">x_t</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            x_start (:obj:&#39;tensor&#39;) noise trajectory in timestep 0</span>
+<span class="sd">            x_t (:obj:&#39;tuple&#39;) noise trajectory in timestep t</span>
+<span class="sd">            t (:obj:&#39;int&#39;) timestep of diffusion step</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">posterior_mean</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean_coef1</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_start</span> <span class="o">+</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_mean_coef2</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_t</span>
+        <span class="p">)</span>
+        <span class="n">posterior_variance</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_variance</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">posterior_log_variance_clipped</span> <span class="o">=</span> <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">posterior_log_variance_clipped</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">posterior_mean</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">,</span> <span class="n">posterior_log_variance_clipped</span>
+
+    <span class="k">def</span> <span class="nf">p_mean_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            x (:obj:&#39;tensor&#39;) noise trajectory in timestep t</span>
+<span class="sd">            cond (:obj:&#39;tuple&#39;) [ (time, state), ... ] state is init state of env, time = 0</span>
+<span class="sd">            t (:obj:&#39;int&#39;) timestep of diffusion step</span>
+<span class="sd">            returns (:obj:&#39;tensor&#39;) condition returns of trajectory, returns is normal return</span>
+<span class="sd">        returns:</span>
+<span class="sd">            model_mean (:obj:&#39;tensor.float&#39;)</span>
+<span class="sd">            posterior_variance (:obj:&#39;float&#39;)</span>
+<span class="sd">            posterior_log_variance (:obj:&#39;float&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">returns_condition</span><span class="p">:</span>
+            <span class="c1"># epsilon could be epsilon or x0 itself</span>
+            <span class="n">epsilon_cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="p">,</span> <span class="n">use_dropout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">epsilon_uncond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="p">,</span> <span class="n">force_dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon_uncond</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">condition_guidance_w</span> <span class="o">*</span> <span class="p">(</span><span class="n">epsilon_cond</span> <span class="o">-</span> <span class="n">epsilon_uncond</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">x_recon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_start_from_noise</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_denoised</span><span class="p">:</span>
+            <span class="n">x_recon</span><span class="o">.</span><span class="n">clamp_</span><span class="p">(</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ne">RuntimeError</span><span class="p">()</span>
+
+        <span class="n">model_mean</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">,</span> <span class="n">posterior_log_variance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_posterior</span><span class="p">(</span><span class="n">x_start</span><span class="o">=</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">x_t</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model_mean</span><span class="p">,</span> <span class="n">posterior_variance</span><span class="p">,</span> <span class="n">posterior_log_variance</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">p_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            x (:obj:&#39;tensor&#39;) noise trajectory in timestep t</span>
+<span class="sd">            cond (:obj:&#39;tuple&#39;) [ (time, state), ... ] state is init state of env, time = 0</span>
+<span class="sd">            t (:obj:&#39;int&#39;) timestep of diffusion step</span>
+<span class="sd">            returns (:obj:&#39;tensor&#39;) condition returns of trajectory, returns is normal return</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
+        <span class="n">model_mean</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">model_log_variance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_mean_variance</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="o">=</span><span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="n">returns</span><span class="p">)</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># no noise when t == 0</span>
+        <span class="n">nonzero_mask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">t</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">model_mean</span> <span class="o">+</span> <span class="n">nonzero_mask</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">model_log_variance</span><span class="p">)</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span> <span class="o">*</span> <span class="n">noise</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">p_sample_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_diffusion</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            shape (:obj:&#39;tuple&#39;) (batch_size, horizon, self.obs_dim)</span>
+<span class="sd">            cond (:obj:&#39;tuple&#39;) [ (time, state), ... ] state is init state of env, time = 0</span>
+<span class="sd">            returns (:obj:&#39;tensor&#39;) condition returns of trajectory, returns is normal return</span>
+<span class="sd">            horizon (:obj:&#39;int&#39;) horizon of trajectory</span>
+<span class="sd">            verbose (:obj:&#39;bool&#39;) whether log diffusion progress</span>
+<span class="sd">            return_diffusion (:obj:&#39;bool&#39;) whether use return diffusion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+        <span class="c1"># In this model, init state must be given by the env and without noise.</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_diffusion</span><span class="p">:</span>
+            <span class="n">diffusion</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_timesteps</span><span class="p">)):</span>
+            <span class="n">timesteps</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="p">),</span> <span class="n">i</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_sample</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">,</span> <span class="n">returns</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">return_diffusion</span><span class="p">:</span>
+                <span class="n">diffusion</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_diffusion</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">diffusion</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span>
+
+    <span class="nd">@torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">conditional_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            conditions (:obj:&#39;tuple&#39;) [ (time, state), ... ] state is init state of env, time is timestep of trajectory</span>
+<span class="sd">            returns (:obj:&#39;tensor&#39;) condition returns of trajectory, returns is normal return</span>
+<span class="sd">            horizon (:obj:&#39;int&#39;) horizon of trajectory</span>
+<span class="sd">        returns:</span>
+<span class="sd">            x (:obj:&#39;tensor&#39;) tarjctory of env</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="o">.</span><span class="n">device</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cond</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">horizon</span> <span class="o">=</span> <span class="n">horizon</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">horizon</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_sample_loop</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">returns</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">q_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            conditions (:obj:&#39;tuple&#39;) [ (time, state), ... ] conditions of diffusion</span>
+<span class="sd">            t (:obj:&#39;int&#39;) timestep of diffusion</span>
+<span class="sd">            noise (:obj:&#39;tensor.float&#39;) timestep&#39;s noise of diffusion</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x_start</span><span class="p">)</span>
+
+        <span class="n">sample</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_start</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">x_start</span> <span class="o">+</span>
+            <span class="n">extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sqrt_one_minus_alphas_cumprod</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_start</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">noise</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sample</span>
+
+    <span class="k">def</span> <span class="nf">p_losses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">x_start</span><span class="p">)</span>
+
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_sample</span><span class="p">(</span><span class="n">x_start</span><span class="o">=</span><span class="n">x_start</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">)</span>
+        <span class="n">x_noisy</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">x_recon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x_noisy</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">returns</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span><span class="p">:</span>
+            <span class="n">x_recon</span> <span class="o">=</span> <span class="n">apply_conditioning</span><span class="p">(</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">noise</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">x_recon</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_epsilon</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">x_recon</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_weights</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditional_sample</span><span class="p">(</span><span class="n">cond</span><span class="o">=</span><span class="n">cond</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  <script src="../../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

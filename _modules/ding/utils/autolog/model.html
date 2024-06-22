@@ -1,0 +1,712 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.utils.autolog.model &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../../../genindex.html" />
+  <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../04_best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../../../index.html">Module code</a> &gt;</li>
+        
+      <li>ding.utils.autolog.model</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <h1>Source code for ding.utils.autolog.model</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span><span class="p">,</span> <span class="n">_TimeType</span><span class="p">,</span> <span class="n">TimeMode</span><span class="p">,</span> \
+    <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span>
+<span class="kn">from</span> <span class="nn">.data</span> <span class="kn">import</span> <span class="n">TimeRangedData</span>
+<span class="kn">from</span> <span class="nn">.time_ctl</span> <span class="kn">import</span> <span class="n">BaseTime</span><span class="p">,</span> <span class="n">TimeProxy</span>
+<span class="kn">from</span> <span class="nn">.value</span> <span class="kn">import</span> <span class="n">LoggedValue</span>
+
+<span class="n">_TimeObjectType</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;_TimeObjectType&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">BaseTime</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_LoggedModelMeta</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Metaclass of LoggedModel, used to find all LoggedValue properties and register them.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bases</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">namespace</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">)</span>
+
+        <span class="n">_properties</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">namespace</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">LoggedValue</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">_LOGGED_VALUE__PROPERTY_NAME</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="n">_properties</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">,</span> <span class="n">_properties</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="LoggedModel"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel">[docs]</a><span class="k">class</span> <span class="nc">LoggedModel</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">_LoggedModelMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        A model with timeline (integered time, such as 1st, 2nd, 3rd, can also be modeled as a kind</span>
+<span class="sd">        of self-defined discrete time, such as the implement of TickTime). Serveral values have association</span>
+<span class="sd">        with each other can be maintained together by using LoggedModel.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        Define AvgList model like this</span>
+
+<span class="sd">        &gt;&gt;&gt; from ding.utils.autolog import LoggedValue, LoggedModel</span>
+<span class="sd">        &gt;&gt;&gt; class AvgList(LoggedModel):</span>
+<span class="sd">        &gt;&gt;&gt;     value = LoggedValue(float)</span>
+<span class="sd">        &gt;&gt;&gt;     __property_names = [&#39;value&#39;]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;     def __init__(self, time_: BaseTime, expire: Union[int, float]):</span>
+<span class="sd">        &gt;&gt;&gt;         LoggedModel.__init__(self, time_, expire)</span>
+<span class="sd">        &gt;&gt;&gt;         # attention, original value must be set in __init__ function, or it will not</span>
+<span class="sd">        &gt;&gt;&gt;         # be activated, the timeline of this value will also be unexpectedly affected.</span>
+<span class="sd">        &gt;&gt;&gt;         self.value = 0.0</span>
+<span class="sd">        &gt;&gt;&gt;         self.__register()</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;     def __register(self):</span>
+<span class="sd">        &gt;&gt;&gt;         def __avg_func(prop_name: str) -&gt; float:  # function to calculate average value of properties</span>
+<span class="sd">        &gt;&gt;&gt;             records = self.range_values[prop_name]()</span>
+<span class="sd">        &gt;&gt;&gt;             (_start_time, _), _ = records[0]</span>
+<span class="sd">        &gt;&gt;&gt;             (_, _end_time), _ = records[-1]</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;             _duration = _end_time - _start_time</span>
+<span class="sd">        &gt;&gt;&gt;             _sum = sum([_value * (_end_time - _begin_time) for (_begin_time, _end_time), _value in records])</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;             return _sum / _duration</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;         for _prop_name in self.__property_names:</span>
+<span class="sd">        &gt;&gt;&gt;             self.register_attribute_value(&#39;avg&#39;, _prop_name, partial(__avg_func, prop_name=_prop_name))</span>
+
+<span class="sd">        Use it like this</span>
+
+<span class="sd">        &gt;&gt;&gt; from ding.utils.autolog import NaturalTime, TimeMode</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; if __name__ == &quot;__main__&quot;:</span>
+<span class="sd">        &gt;&gt;&gt;     _time = NaturalTime()</span>
+<span class="sd">        &gt;&gt;&gt;     ll = AvgList(_time, expire=10)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;     # just do something here ...</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt;     print(ll.range_values[&#39;value&#39;]()) # original range_values function in LoggedModel of last 10 secs</span>
+<span class="sd">        &gt;&gt;&gt;     print(ll.range_values[&#39;value&#39;](TimeMode.ABSOLUTE))  # use absolute time</span>
+<span class="sd">        &gt;&gt;&gt;     print(ll.avg[&#39;value&#39;]())  # average value of last 10 secs</span>
+
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``time``, ``expire``, ``fixed_time``, ``current_time``, ``freeze``, ``unfreeze``, \</span>
+<span class="sd">        ``register_attribute_value``, ``__getattr__``, ``get_property_attribute``</span>
+
+<span class="sd">    Property:</span>
+<span class="sd">        - time (:obj:`BaseTime`): The time.</span>
+<span class="sd">        - expire (:obj:`float`): The expire time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LoggedModel.__init__"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">:</span> <span class="n">_TimeObjectType</span><span class="p">,</span> <span class="n">expire</span><span class="p">:</span> <span class="n">_TimeType</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the LoggedModel object using the given arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - time_ (:obj:`BaseTime`): The time.</span>
+<span class="sd">            - expire (:obj:`float`): The expire time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time</span> <span class="o">=</span> <span class="n">time_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span> <span class="o">=</span> <span class="n">TimeProxy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time</span><span class="p">,</span> <span class="n">frozen</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__init_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__expire</span> <span class="o">=</span> <span class="n">expire</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># used to find registerd attributes list according to property name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__init_properties</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register_default_funcs</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__properties</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get all property names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTIES</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__get_property_ranged_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeRangedData</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get ranged data of one property.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): The property name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize all properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__properties</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">_LOGGED_MODEL__PROPERTY_ATTR_PREFIX</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">TimeRangedData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="p">,</span> <span class="n">expire</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__expire</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__get_range_values_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get range_values function of one property.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - name (:obj:`str`): The property name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_func</span><span class="p">(</span><span class="n">mode</span><span class="p">:</span> <span class="n">TimeMode</span> <span class="o">=</span> <span class="n">TimeMode</span><span class="o">.</span><span class="n">RELATIVE_LIFECYCLE</span><span class="p">):</span>
+            <span class="n">_current_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_property_ranged_data</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">history</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">TimeMode</span><span class="o">.</span><span class="n">RELATIVE_LIFECYCLE</span><span class="p">:</span>
+                <span class="n">_result</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__init_time</span><span class="p">,</span> <span class="n">_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">_time</span><span class="p">,</span> <span class="n">_data</span> <span class="ow">in</span> <span class="n">_result</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">TimeMode</span><span class="o">.</span><span class="n">RELATIVE_CURRENT_TIME</span><span class="p">:</span>
+                <span class="n">_result</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_time</span> <span class="o">-</span> <span class="n">_current_time</span><span class="p">,</span> <span class="n">_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">_time</span><span class="p">,</span> <span class="n">_data</span> <span class="ow">in</span> <span class="n">_result</span><span class="p">]</span>
+
+            <span class="n">_ranges</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">_result</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">_this_time</span><span class="p">,</span> <span class="n">_this_data</span> <span class="o">=</span> <span class="n">_result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">_next_time</span><span class="p">,</span> <span class="n">_next_data</span> <span class="o">=</span> <span class="n">_result</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">_ranges</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">_this_time</span><span class="p">,</span> <span class="n">_next_time</span><span class="p">),</span> <span class="n">_this_data</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">_ranges</span>
+
+        <span class="k">return</span> <span class="n">_func</span>
+
+    <span class="k">def</span> <span class="nf">__register_default_funcs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Register default functions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_attribute_value</span><span class="p">(</span><span class="s1">&#39;range_values&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_range_values_func</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TimeObjectType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get original time object passed in, can execute method (such as step()) by this property.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            BaseTime: time object used by this model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expire</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_TimeType</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get expire time</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int or float: time that old value records expired</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__expire</span>
+
+<div class="viewcode-block" id="LoggedModel.fixed_time"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.fixed_time">[docs]</a>    <span class="k">def</span> <span class="nf">fixed_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get fixed time (will be frozen time if time proxy is frozen)</span>
+<span class="sd">            This feature can be useful when adding value replay feature (in the future)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int or float: fixed time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoggedModel.current_time"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.current_time">[docs]</a>    <span class="k">def</span> <span class="nf">current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get current time (real time that regardless of time proxy&#39;s frozen statement)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int or float: current time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">current_time</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoggedModel.freeze"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.freeze">[docs]</a>    <span class="k">def</span> <span class="nf">freeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Freeze time proxy object.</span>
+<span class="sd">            This feature can be useful when adding value replay feature (in the future)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoggedModel.unfreeze"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.unfreeze">[docs]</a>    <span class="k">def</span> <span class="nf">unfreeze</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Unfreeze time proxy object.</span>
+<span class="sd">            This feature can be useful when adding value replay feature (in the future)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__time_proxy</span><span class="o">.</span><span class="n">unfreeze</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoggedModel.register_attribute_value"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.register_attribute_value">[docs]</a>    <span class="k">def</span> <span class="nf">register_attribute_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Register a new attribute for one of the values. Example can be found in overview of class.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - attribute_name (:obj:`str`): name of attribute</span>
+<span class="sd">            - property_name (:obj:`str`): name of property</span>
+<span class="sd">            - value (:obj:`Any`): value of attribute</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">][</span><span class="n">property_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="n">attribute_name</span> <span class="o">==</span> <span class="s2">&quot;range_values&quot;</span><span class="p">:</span>
+            <span class="c1"># &quot;range_values&quot; is not added to ``self.__prop2attr``</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">property_name</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Support all methods registered.</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            attribute_name (str): name of attribute</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            A indelible object that can return attribute value.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; ll = AvgList(NaturalTime(), expire=10)</span>
+<span class="sd">            &gt;&gt;&gt; ll.range_value[&#39;value&#39;]  # get &#39;range_value&#39; attribute of &#39;value&#39; property, it should be a function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">attribute_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">_attributes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__methods</span><span class="p">[</span><span class="n">attribute_name</span><span class="p">]</span>
+
+            <span class="k">class</span> <span class="nc">_Cls</span><span class="p">:</span>
+
+                <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">property_name</span> <span class="ow">in</span> <span class="n">_attributes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">return</span> <span class="n">_attributes</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                            <span class="s2">&quot;Attribute </span><span class="si">{attr_name}</span><span class="s2"> for property </span><span class="si">{prop_name}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                <span class="n">attr_name</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">),</span>
+                                <span class="n">prop_name</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">property_name</span><span class="p">),</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">_Cls</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Attribute </span><span class="si">{name}</span><span class="s2"> not found.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="nb">repr</span><span class="p">(</span><span class="n">attribute_name</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="LoggedModel.get_property_attribute"><a class="viewcode-back" href="../../../../05_api_doc/utils.html#ding.utils.autolog.LoggedModel.get_property_attribute">[docs]</a>    <span class="k">def</span> <span class="nf">get_property_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Find all registered attributes (except common &quot;range_values&quot; attribute, since &quot;range_values&quot; is not</span>
+<span class="sd">            added to ``self.__prop2attr``) of one given property.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - property_name (:obj:`str`): name of property to query attributes</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - attr_list (:obj:`List[str]`): the registered attributes list of the input property</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__prop2attr</span><span class="p">[</span><span class="n">property_name</span><span class="p">]</span></div></div>
+</pre></div>
+
+              </article>
+              
+            </div>
+            <footer>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../../../"
+    src="../../../../_static/documentation_options.js"></script>
+  <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+  <script src="../../../../_static/doctools.js"></script>
+  <script src="../../../../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

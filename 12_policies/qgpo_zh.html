@@ -388,9 +388,226 @@ a_1 &amp;\sim \mathcal{N}(0, I)
 <section id="id4">
 <h2>实现<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>该策略的默认配置如下：</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.policy.qgpo.QGPOPolicy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ding.policy.qgpo.</span></span><span class="sig-name descname"><span class="pre">QGPOPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/qgpo.html#QGPOPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.qgpo.QGPOPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><blockquote>
+<div><p>Policy class of QGPO algorithm
+Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning
+<a class="reference external" href="https://arxiv.org/abs/2304.12824">https://arxiv.org/abs/2304.12824</a></p>
+</div></blockquote>
+<dl class="simple">
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">learn</span></code>, <code class="docutils literal notranslate"><span class="pre">eval</span></code>, <code class="docutils literal notranslate"><span class="pre">state_dict</span></code>, <code class="docutils literal notranslate"><span class="pre">load_state_dict</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <section id="id5">
 <h3>模型<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <p>支持 <cite>QGPO</cite> 算法的模型具有以下接口格式：</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.model.QGPO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ding.model.</span></span><span class="sig-name descname"><span class="pre">QGPO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Model of QGPO algorithm.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">calculateQ</span></code>, <code class="docutils literal notranslate"><span class="pre">select_actions</span></code>, <code class="docutils literal notranslate"><span class="pre">sample</span></code>, <code class="docutils literal notranslate"><span class="pre">score_model_loss_fn</span></code>, <code class="docutils literal notranslate"><span class="pre">q_loss_fn</span></code>,             <code class="docutils literal notranslate"><span class="pre">qt_loss_fn</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EasyDict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialization of QGPO.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): The config dict.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._backward_hooks">
+<span class="sig-name descname"><span class="pre">_backward_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._backward_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._backward_pre_hooks">
+<span class="sig-name descname"><span class="pre">_backward_pre_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._backward_pre_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._buffers">
+<span class="sig-name descname"><span class="pre">_buffers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._buffers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._forward_hooks">
+<span class="sig-name descname"><span class="pre">_forward_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._forward_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._forward_hooks_always_called">
+<span class="sig-name descname"><span class="pre">_forward_hooks_always_called</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._forward_hooks_always_called" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._forward_hooks_with_kwargs">
+<span class="sig-name descname"><span class="pre">_forward_hooks_with_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._forward_hooks_with_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._forward_pre_hooks">
+<span class="sig-name descname"><span class="pre">_forward_pre_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._forward_pre_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._forward_pre_hooks_with_kwargs">
+<span class="sig-name descname"><span class="pre">_forward_pre_hooks_with_kwargs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._forward_pre_hooks_with_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._is_full_backward_hook">
+<span class="sig-name descname"><span class="pre">_is_full_backward_hook</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ding.model.QGPO._is_full_backward_hook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._load_state_dict_post_hooks">
+<span class="sig-name descname"><span class="pre">_load_state_dict_post_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._load_state_dict_post_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._load_state_dict_pre_hooks">
+<span class="sig-name descname"><span class="pre">_load_state_dict_pre_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._load_state_dict_pre_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._modules">
+<span class="sig-name descname"><span class="pre">_modules</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._modules" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._non_persistent_buffers_set">
+<span class="sig-name descname"><span class="pre">_non_persistent_buffers_set</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._non_persistent_buffers_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._parameters">
+<span class="sig-name descname"><span class="pre">_parameters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Parameter</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._state_dict_hooks">
+<span class="sig-name descname"><span class="pre">_state_dict_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._state_dict_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO._state_dict_pre_hooks">
+<span class="sig-name descname"><span class="pre">_state_dict_pre_hooks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#ding.model.QGPO._state_dict_pre_hooks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.calculateQ">
+<span class="sig-name descname"><span class="pre">calculateQ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.calculateQ"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.calculateQ" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate the Q value.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>s (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input state.</p></li>
+<li><p>a (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input action.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.q_loss_fn">
+<span class="sig-name descname"><span class="pre">q_loss_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fake_a_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.99</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.q_loss_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.q_loss_fn" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The loss function for training Q function.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>a (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input action.</p></li>
+<li><p>s (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input state.</p></li>
+<li><p>r (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input reward.</p></li>
+<li><p><a href="#id10"><span class="problematic" id="id11">s_</span></a> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input next state.</p></li>
+<li><p>d (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input done.</p></li>
+<li><p><a href="#id12"><span class="problematic" id="id13">fake_a_</span></a> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input fake action.</p></li>
+<li><p>discount (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The discount factor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.qt_loss_fn">
+<span class="sig-name descname"><span class="pre">qt_loss_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fake_a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.qt_loss_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.qt_loss_fn" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The loss function for training Guidance Qt.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>s (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input state.</p></li>
+<li><p>fake_a (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): The input fake action.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_per_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffusion_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guidance_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.sample" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Sample actions for conditional sampling.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>states (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): The input states.</p></li>
+<li><p>sample_per_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The number of samples per state.</p></li>
+<li><p>diffusion_steps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The diffusion steps.</p></li>
+<li><p>guidance_scale (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The scale of guidance.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.score_model_loss_fn">
+<span class="sig-name descname"><span class="pre">score_model_loss_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.score_model_loss_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.score_model_loss_fn" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The loss function for training score-based generative models.</p>
+</dd>
+<dt>Arguments:</dt><dd><p>model: A PyTorch model instance that represents a                 time-dependent score-based model.
+x: A mini-batch of training data.
+eps: A tolerance value for numerical stability.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.model.QGPO.select_actions">
+<span class="sig-name descname"><span class="pre">select_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffusion_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guidance_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qgpo.html#QGPO.select_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.model.QGPO.select_actions" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Select actions for conditional sampling.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>states (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): The input states.</p></li>
+<li><p>diffusion_steps (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The diffusion steps.</p></li>
+<li><p>guidance_scale (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The scale of guidance.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ding.model.QGPO.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#ding.model.QGPO.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 <section id="benchmark">
@@ -521,7 +738,37 @@ a_1 &amp;\sim \mathcal{N}(0, I)
 <li><a class="reference internal" href="#id2">核心要点</a></li>
 <li><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
 <li><a class="reference internal" href="#id4">实现</a><ul>
-<li><a class="reference internal" href="#id5">模型</a></li>
+<li><a class="reference internal" href="#ding.policy.qgpo.QGPOPolicy"><code class="docutils literal notranslate"><span class="pre">QGPOPolicy</span></code></a></li>
+<li><a class="reference internal" href="#id5">模型</a><ul>
+<li><a class="reference internal" href="#ding.model.QGPO"><code class="docutils literal notranslate"><span class="pre">QGPO</span></code></a><ul>
+<li><a class="reference internal" href="#ding.model.QGPO.__init__"><code class="docutils literal notranslate"><span class="pre">QGPO.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._backward_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._backward_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._backward_pre_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._backward_pre_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._buffers"><code class="docutils literal notranslate"><span class="pre">QGPO._buffers</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._forward_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._forward_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._forward_hooks_always_called"><code class="docutils literal notranslate"><span class="pre">QGPO._forward_hooks_always_called</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._forward_hooks_with_kwargs"><code class="docutils literal notranslate"><span class="pre">QGPO._forward_hooks_with_kwargs</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._forward_pre_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._forward_pre_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._forward_pre_hooks_with_kwargs"><code class="docutils literal notranslate"><span class="pre">QGPO._forward_pre_hooks_with_kwargs</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._is_full_backward_hook"><code class="docutils literal notranslate"><span class="pre">QGPO._is_full_backward_hook</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._load_state_dict_post_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._load_state_dict_post_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._load_state_dict_pre_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._load_state_dict_pre_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._modules"><code class="docutils literal notranslate"><span class="pre">QGPO._modules</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._non_persistent_buffers_set"><code class="docutils literal notranslate"><span class="pre">QGPO._non_persistent_buffers_set</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._parameters"><code class="docutils literal notranslate"><span class="pre">QGPO._parameters</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._state_dict_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._state_dict_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO._state_dict_pre_hooks"><code class="docutils literal notranslate"><span class="pre">QGPO._state_dict_pre_hooks</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.calculateQ"><code class="docutils literal notranslate"><span class="pre">QGPO.calculateQ()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.q_loss_fn"><code class="docutils literal notranslate"><span class="pre">QGPO.q_loss_fn()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.qt_loss_fn"><code class="docutils literal notranslate"><span class="pre">QGPO.qt_loss_fn()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.sample"><code class="docutils literal notranslate"><span class="pre">QGPO.sample()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.score_model_loss_fn"><code class="docutils literal notranslate"><span class="pre">QGPO.score_model_loss_fn()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.select_actions"><code class="docutils literal notranslate"><span class="pre">QGPO.select_actions()</span></code></a></li>
+<li><a class="reference internal" href="#ding.model.QGPO.training"><code class="docutils literal notranslate"><span class="pre">QGPO.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#benchmark">Benchmark</a></li>

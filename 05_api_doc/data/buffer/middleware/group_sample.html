@@ -310,6 +310,21 @@
 <h2>group_sample<a class="headerlink" href="#group-sample" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
 <h3>group_sample<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.data.buffer.middleware.group_sample.group_sample">
+<span class="sig-prename descclassname"><span class="pre">ding.data.buffer.middleware.group_sample.</span></span><span class="sig-name descname"><span class="pre">group_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size_in_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered_in_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_use_in_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/data/buffer/middleware/group_sample.html#group_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.data.buffer.middleware.group_sample.group_sample" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The middleware is designed to process the data in each group after sampling from the buffer.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>size_in_group (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Sample size in each group.</p></li>
+<li><p>ordered_in_group (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to keep the original order of records, default is true.</p></li>
+<li><p>max_use_in_group (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use as much data in each group as possible, default is true.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -359,7 +374,10 @@
               <ul>
 <li><a class="reference internal" href="#">data.buffer.middleware.group_sample</a><ul>
 <li><a class="reference internal" href="#group-sample">group_sample</a><ul>
-<li><a class="reference internal" href="#id1">group_sample</a></li>
+<li><a class="reference internal" href="#id1">group_sample</a><ul>
+<li><a class="reference internal" href="#ding.data.buffer.middleware.group_sample.group_sample"><code class="docutils literal notranslate"><span class="pre">group_sample()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

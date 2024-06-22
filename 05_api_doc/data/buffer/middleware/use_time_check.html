@@ -310,6 +310,20 @@
 <h2>use_time_check<a class="headerlink" href="#use-time-check" title="Permalink to this heading">¶</a></h2>
 <section id="id1">
 <h3>use_time_check<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.data.buffer.middleware.use_time_check.use_time_check">
+<span class="sig-prename descclassname"><span class="pre">ding.data.buffer.middleware.use_time_check.</span></span><span class="sig-name descname"><span class="pre">use_time_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../buffer.html#ding.data.buffer.buffer.Buffer" title="ding.data.buffer.buffer.Buffer"><span class="pre">Buffer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_use</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span></span></span><a class="reference internal" href="../../../../_modules/ding/data/buffer/middleware/use_time_check.html#use_time_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.data.buffer.middleware.use_time_check.use_time_check" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>This middleware aims to check the usage times of data in buffer. If the usage times of a data is
+greater than or equal to max_use, this data will be removed from buffer as soon as possible.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>max_use (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The max reused (resampled) count for any individual object.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -359,7 +373,10 @@
               <ul>
 <li><a class="reference internal" href="#">data.buffer.middleware.use_time_check</a><ul>
 <li><a class="reference internal" href="#use-time-check">use_time_check</a><ul>
-<li><a class="reference internal" href="#id1">use_time_check</a></li>
+<li><a class="reference internal" href="#id1">use_time_check</a><ul>
+<li><a class="reference internal" href="#ding.data.buffer.middleware.use_time_check.use_time_check"><code class="docutils literal notranslate"><span class="pre">use_time_check()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
