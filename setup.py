@@ -74,6 +74,7 @@ setup(
         'responses~=0.12.1',  # interaction
         'URLObject>=2.4.0',  # interaction
         'MarkupSafe==2.0.1',  # interaction, compatibility
+        'itsdangerous<=2.0.1',  # interaction, compatibility
         'pynng',  # parallel
         'sniffio', # parallel
         'redis',  # parallel
