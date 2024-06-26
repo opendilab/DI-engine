@@ -72,6 +72,7 @@ setup(
         'flask',  # interaction
         'requests',  # interaction
         'responses',  # interaction
+        'URLObject',  # interaction
         'pynng',  # parallel
         'sniffio', # parallel
         'redis',  # parallel
