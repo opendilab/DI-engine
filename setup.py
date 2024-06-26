@@ -69,7 +69,7 @@ setup(
         'hickle',
         'tabulate',
         'click>=7.0.0',
-        'flask',  # interaction
+        'flask<=2.0.3',  # interaction
         'requests',  # interaction
         'responses',  # interaction
         'URLObject',  # interaction
