@@ -70,6 +70,7 @@ setup(
         'tabulate',
         'click>=7.0.0',
         'flask<=2.0.3',  # interaction
+        'werkzeug<=2.0.3',  # interaction
         'requests',  # interaction
         'responses',  # interaction
         'URLObject',  # interaction
