@@ -69,12 +69,11 @@ setup(
         'hickle',
         'tabulate',
         'click>=7.0.0',
-        'requests>=2.25.1',  # interaction
-        'flask~=1.1.2',  # interaction
-        'responses~=0.12.1',  # interaction
-        'URLObject>=2.4.0',  # interaction
-        'MarkupSafe==2.0.1',  # interaction, compatibility
-        'itsdangerous<=2.0.1',  # interaction, compatibility
+        'flask<=2.0.3',  # interaction
+        'werkzeug<=2.0.3',  # interaction
+        'requests',  # interaction
+        'responses',  # interaction
+        'URLObject',  # interaction
         'pynng',  # parallel
         'sniffio', # parallel
         'redis',  # parallel
