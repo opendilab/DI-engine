@@ -42,7 +42,7 @@
 </div>
 <br>
 
-Updated on 2024.02.04 DI-engine-v0.5.1
+Updated on 2024.06.27 DI-engine-v0.5.2
 
 ## Introduction to DI-engine
 
@@ -56,10 +56,13 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
 - Multi-agent RL algorithms: such as QMIX, WQMIX, MAPPO, HAPPO, ACE
 - Imitation learning algorithms (BC/IRL/GAIL): such as GAIL, SQIL, Guided Cost Learning, Implicit BC
 - Offline RL algorithms: BCQ, CQL, TD3BC, Decision Transformer, EDAC, Diffuser, Decision Diffuser, SO2
-- Model-based RL algorithms: SVG, STEVE, MBPO, DDPPO, DreamerV3, MuZero
+- Model-based RL algorithms: SVG, STEVE, MBPO, DDPPO, DreamerV3
 - Exploration algorithms: HER, RND, ICM, NGU
-- LLM + RL Algorithms: PPO-max, DPO, MODPO，PromptPG
+- LLM + RL Algorithms: PPO-max, DPO, PromptPG
 - Other algorithms: such as PER, PLR, PCGrad
+- MCTS + RL algorithms: AlphaZero, MuZero, please refer to [LightZero](https://github.com/opendilab/LightZero)
+- Generative Model + RL algorithms: Diffusion-QL, QGPO, SRPO, please refer to [GenerativeRL](https://github.com/opendilab/GenerativeRL)
+
 
 **DI-engine** aims to **standardize different Decision Intelligence environments and applications**, supporting both academic research and prototype applications. Various training pipelines and customized decision AI applications are also supported:
 
@@ -72,6 +75,7 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
   - [PPOxFamily](https://github.com/opendilab/PPOxFamily): PPO x Family DRL Tutorial Course
 - Real world decision AI applications
   - [DI-star](https://github.com/opendilab/DI-star): Decision AI in StarCraftII
+  - [PsyDI](https://github.com/opendilab/PsyDI): Towards a Multi-Modal and Interactive Chatbot for Psychological Assessments
   - [DI-drive](https://github.com/opendilab/DI-drive): Auto-driving platform
   - [DI-sheep](https://github.com/opendilab/DI-sheep): Decision AI in 3 Tiles Game
   - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
@@ -84,7 +88,10 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
   - [DOS](https://github.com/opendilab/DOS): [CVPR 2023] ReasonNet: End-to-End Driving with Temporal and Global Reasoning
   - [LightZero](https://github.com/opendilab/LightZero): [NeurIPS 2023 Spotlight] A lightweight and efficient MCTS/AlphaZero/MuZero algorithm toolkit
   - [SO2](https://github.com/opendilab/SO2): [AAAI 2024] A Perspective of Q-value Estimation on Offline-to-Online Reinforcement Learning
-  - [LMDrive](https://github.com/opendilab/LMDrive): LMDrive: Closed-Loop End-to-End Driving with Large Language Models
+  - [LMDrive](https://github.com/opendilab/LMDrive): [CVPR 2024] LMDrive: Closed-Loop End-to-End Driving with Large Language Models
+  - [SmartRefine](https://github.com/opendilab/SmartRefine): [CVPR 2024] SmartRefine: A Scenario-Adaptive Refinement Framework for Efficient Motion Prediction
+  - [ReZero](https://github.com/opendilab/LightZero): Boosting MCTS-based Algorithms by Backward-view and Entire-buffer Reanalyze
+  - [UniZero](https://github.com/opendilab/LightZero): Generalized and Efficient Planning with Scalable Latent World Models
 - Docs and Tutorials
   - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs): Tutorials, best practice and the API reference.
   - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources
@@ -92,8 +99,9 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
   - [awesome-decision-transformer](https://github.com/opendilab/awesome-decision-transformer): A curated list of Decision Transformer resources
   - [awesome-RLHF](https://github.com/opendilab/awesome-RLHF): A curated list of reinforcement learning with human feedback resources
   - [awesome-multi-modal-reinforcement-learning](https://github.com/opendilab/awesome-multi-modal-reinforcement-learning): A curated list of Multi-Modal Reinforcement Learning resources
-  - [awesome-AI-based-protein-design](https://github.com/opendilab/awesome-AI-based-protein-design): a collection of research papers for AI-based protein design
   - [awesome-diffusion-model-in-rl](https://github.com/opendilab/awesome-diffusion-model-in-rl): A curated list of Diffusion Model in RL resources
+  - [awesome-ui-agents](https://github.com/opendilab/awesome-ui-agents): A curated list of of awesome UI agents resources, encompassing Web, App, OS, and beyond
+  - [awesome-AI-based-protein-design](https://github.com/opendilab/awesome-AI-based-protein-design): a collection of research papers for AI-based protein design
   - [awesome-end-to-end-autonomous-driving](https://github.com/opendilab/awesome-end-to-end-autonomous-driving): A curated list of awesome End-to-End Autonomous Driving resources
   - [awesome-driving-behavior-prediction](https://github.com/opendilab/awesome-driving-behavior-prediction): A collection of research papers for Driving Behavior Prediction
 
@@ -482,8 +490,8 @@ We appreciate all the feedbacks and contributions to improve DI-engine, both alg
 
 ```latex
 @misc{ding,
-    title={DI-engine: OpenDILab Decision Intelligence Engine},
-    author={OpenDILab Contributors},
+    title={DI-engine: A Universal AI System/Engine for Decision Intelligence},
+    author={Yazhe Niu, Jingxin Xu, Yuan Pu, Yunpeng Nie, Jinouwen Zhang, Shuai Hu, Liangxuan Zhao, Ming Zhang, Yu Liu},
     publisher={GitHub},
     howpublished={\url{https://github.com/opendilab/DI-engine}},
     year={2021},
