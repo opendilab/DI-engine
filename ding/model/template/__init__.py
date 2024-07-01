@@ -29,3 +29,4 @@ from .edac import EDAC
 from .qgpo import QGPO
 from .ebm import EBM, AutoregressiveEBM
 from .havac import HAVAC
+from .qtransformer import QTransformer
