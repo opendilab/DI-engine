@@ -4,28 +4,22 @@ from easydict import EasyDict
 from ding.model import QTransformer
 
 
-num_timesteps = 10
+num_timesteps = 1
 
 main_config = dict(
     exp_name="walker2d_qtransformer",
     env=dict(
-        env_id="Walker2d-v3",
-        norm_obs=dict(
-            use_norm=False,
-        ),
-        norm_reward=dict(
-            use_norm=False,
-        ),
+        env_id="walker2d-expert-v2",
         collector_env_num=1,
         evaluator_env_num=8,
+        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
     ),
-    wandb=dict(project=f"Qtransformer_walker2d_{num_timesteps}"),
-    dataset=dict(
-        dataset_folder="/root/code/DI-engine/qtransformer/model",
-        num_timesteps=num_timesteps,
-    ),
+    # dataset=dict(
+    #     dataset_folder="/root/code/DI-engine/qtransformer/model",
+    #     num_timesteps=num_timesteps,
+    # ),
     policy=dict(
         cuda=True,
         model=dict(
@@ -52,7 +46,7 @@ main_config = dict(
         ),
         eval=dict(
             evaluator=dict(
-                eval_freq=100,
+                eval_freq=500,
             )
         ),
         other=dict(
@@ -68,10 +62,10 @@ main_config = main_config
 
 create_config = dict(
     env=dict(
-        type="mujoco",
-        import_names=["dizoo.mujoco.envs.mujoco_env"],
+        type="d4rl",
+        import_names=["dizoo.d4rl.envs.d4rl_env"],
     ),
-    env_manager=dict(type="subprocess"),
+    env_manager=dict(type="base"),
     policy=dict(
         type="qtransformer",
         import_names=["ding.policy.qtransformer"],
@@ -85,7 +79,7 @@ create_config = create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c walker2d_sac_config.py -s 0`
-    from qtransformer.algorithm.serial_entry_qtransformer import serial_pipeline_offline
+    from ding.entry import serial_pipeline_offline
 
     model = QTransformer(**main_config.policy.model)
     serial_pipeline_offline([main_config, create_config], seed=0, model=model)
