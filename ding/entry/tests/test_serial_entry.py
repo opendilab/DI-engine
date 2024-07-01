@@ -651,7 +651,9 @@ def test_discrete_dt():
         from ding.data import create_dataset
         from ding.config import compile_config
         from ding.model import DecisionTransformer
+        from ding.model.template.elastic_decision_transformer import ElasticDecisionTransformer
         from ding.policy import DTPolicy
+        from ding.policy.edt import EDTPolicy
         from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, \
             OfflineMemoryDataFetcher, offline_logger, termination_checker
         ding_init(config[0])
