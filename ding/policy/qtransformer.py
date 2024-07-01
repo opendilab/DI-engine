@@ -1,10 +1,12 @@
 import copy
-from collections import namedtuple
-from typing import Any, Dict, List
+from copy import deepcopy
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+from easydict import EasyDict
+
 import wandb
 
 # from einops import pack, rearrange
@@ -15,10 +17,6 @@ from ding.utils.data import default_collate, default_decollate
 
 from .common_utils import default_preprocess_learn
 from .sac import SACPolicy
-
-QIntermediates = namedtuple(
-    "QIntermediates", ["q_pred_all_actions", "q_pred", "q_next", "q_target"]
-)
 
 
 @POLICY_REGISTRY.register("qtransformer")
@@ -298,14 +296,56 @@ class QTransformerPolicy(SACPolicy):
             You can implement you own model rather than use the default model. For more information, please raise an \
             issue in GitHub repo and we will continue to follow up.
         """
+        wandb.init(**self._cfg.wandb)
 
-        # data = default_preprocess_learn(
-        #     data,
-        #     use_priority=self._priority,
-        #     use_priority_IS_weight=self._cfg.priority_IS_weight,
-        #     ignore_done=self._cfg.learn.ignore_done,
-        #     use_nstep=False,
-        # )
+        def merge_dict1_into_dict2(
+            dict1: Union[Dict, EasyDict], dict2: Union[Dict, EasyDict]
+        ) -> Union[Dict, EasyDict]:
+            """
+            Overview:
+                Merge two dictionaries recursively. \
+                Update values in dict2 with values in dict1, and add new keys from dict1 to dict2.
+            Arguments:
+                - dict1 (:obj:`dict`): The first dictionary.
+                - dict2 (:obj:`dict`): The second dictionary.
+            """
+            for key, value in dict1.items():
+                if (
+                    key in dict2
+                    and isinstance(value, dict)
+                    and isinstance(dict2[key], dict)
+                ):
+                    # Both values are dictionaries, so merge them recursively
+                    merge_dict1_into_dict2(value, dict2[key])
+                else:
+                    # Either the key doesn't exist in dict2 or the values are not dictionaries
+                    dict2[key] = value
+
+            return dict2
+
+        def merge_two_dicts_into_newone(
+            dict1: Union[Dict, EasyDict], dict2: Union[Dict, EasyDict]
+        ) -> Union[Dict, EasyDict]:
+            """
+            Overview:
+                Merge two dictionaries recursively into a new dictionary. \
+                Update values in dict2 with values in dict1, and add new keys from dict1 to dict2.
+            Arguments:
+                - dict1 (:obj:`dict`): The first dictionary.
+                - dict2 (:obj:`dict`): The second dictionary.
+            """
+            dict2 = deepcopy(dict2)
+            return merge_dict1_into_dict2(dict1, dict2)
+
+        config = merge_two_dicts_into_newone(EasyDict(wandb.config), self._cfg)
+        wandb.config.update(config)
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False,
+        )
 
         def discretization(x):
             self._action_values = torch.tensor(self._action_values)
@@ -315,26 +355,21 @@ class QTransformerPolicy(SACPolicy):
                 indices[:, i] = diff.argmin(dim=-1)
             return indices
 
-        data["action"] = discretization(
-            data["action"][:, -1, :]
-        )  # torch.Size([2048, 10, 6]) -->torch.Size([2048, 6])
-        data["next_action"] = discretization(
-            data["next_action"][:, -1, :]
-        )  # torch.Size([2048, 10, 6]) -->torch.Size([2048, 6])
+        data["action"] = discretization(data["action"])
 
         if self._cuda:
             data = to_device(data, self._device)
 
         self._learn_model.train()
         self._target_model.train()
-        state = data["state"]  # torch.Size([2048, 10, 17])
-        next_state = data["next_state"]  # torch.Size([2048, 10, 17])
-        reward = data["reward"][:, -1]  # torch.Size([2048])
-        done = data["done"][:, -1]  # torch.Size([2048])
-        action = data["action"]
-        next_action = data["next_action"]
 
-        q_pred_all_actions = self._learn_model.forward(state, action=action)[:, 1:, :]
+        state = data["obs"]
+        next_state = data["next_obs"]  # torch.Size([2048, 17])
+        reward = data["reward"]  # torch.Size([2048])
+        done = data["done"]  # torch.Size([2048])
+        action = data["action"]  # torch.Size([2048, 6])
+
+        q_pred_all_actions = self._learn_model.forward(state, action=action)[:, :-1, :]
         # torch.Size([2048, 6, 256])
 
         def batch_select_indices(t, indices):
@@ -343,30 +378,28 @@ class QTransformerPolicy(SACPolicy):
             selected = selected.squeeze(-1)
             return selected
 
+        # torch.Size([2048, 6])
         q_pred = batch_select_indices(q_pred_all_actions, action)
         # Create the dataset action mask and set selected values to 1
-        dataset_action_mask = torch.zeros_like(q_pred_all_actions).scatter_(
-            -1, action.unsqueeze(-1), 1
-        )
-        q_actions_not_taken = q_pred_all_actions[~dataset_action_mask.bool()]
-        num_non_dataset_actions = q_actions_not_taken.size(0) // q_pred.size(0)
-        conservative_loss = (
-            (q_actions_not_taken - (0)) ** 2
-        ).sum() / num_non_dataset_actions
+        # dataset_action_mask = torch.zeros_like(q_pred_all_actions).scatter_(
+        #     -1, action.unsqueeze(-1), 1
+        # )
+        # q_actions_not_taken = q_pred_all_actions[~dataset_action_mask.bool()]
+        # num_non_dataset_actions = q_actions_not_taken.size(0) // q_pred.size(0)
+        # conservative_loss = (
+        #     (q_actions_not_taken - (0)) ** 2
+        # ).sum() / num_non_dataset_actions
         # Iterate over each row in the action tensor
 
-        q_pred_rest_actions = q_pred[:, :-1]
-        q_pred_last_action = q_pred[:, -1].unsqueeze(-1)
+        q_pred_rest_actions, q_pred_last_action = q_pred[:, :-1], q_pred[:, -1:]
         with torch.no_grad():
-            q_next_target = self._target_model.forward(next_state, action=next_action)[
-                :, 1:, :
-            ]
-            q_target = self._target_model.forward(state, action=action)[:, 1:, :]
+            q_next_target = self._target_model.forward(next_state)
+            q_target = self._target_model.forward(state, action=action)[:, :-1, :]
 
         q_target_rest_actions = q_target[:, 1:, :]
         max_q_target_rest_actions = q_target_rest_actions.max(dim=-1).values
 
-        q_next_target_first_action = q_next_target[:, 0, :].unsqueeze(1)
+        q_next_target_first_action = q_next_target[:, 0:1, :]
         max_q_next_target_first_action = q_next_target_first_action.max(dim=-1).values
 
         losses_all_actions_but_last = F.mse_loss(
@@ -378,7 +411,7 @@ class QTransformerPolicy(SACPolicy):
         losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action)
         td_loss = losses_all_actions_but_last + losses_last_action
         td_loss.mean()
-        loss = td_loss + conservative_loss * 0
+        loss = td_loss
         self._optimizer_q.zero_grad()
         loss.backward()
         self._optimizer_q.step()
@@ -394,7 +427,6 @@ class QTransformerPolicy(SACPolicy):
                 "td_loss": td_loss.item(),
                 "losses_all_actions_but_last": losses_all_actions_but_last.item(),
                 "losses_last_action": losses_last_action.item(),
-                "conservative_loss": conservative_loss.item(),
                 "q_mean": q_pred_all_actions.mean().item(),
                 "q_a11": q_means[0].item(),
                 "q_a12": q_means[1].item(),
@@ -426,9 +458,10 @@ class QTransformerPolicy(SACPolicy):
             if action_idx == 0:
                 q_values = self._eval_model.forward(obs)
             else:
-                q_values = self._eval_model.forward(
+                q_values_all = self._eval_model.forward(
                     obs, action=action_bins[:, :action_idx]
-                )[:, action_idx - 1 : action_idx, :]
+                )
+                q_values = q_values_all[:, action_idx : action_idx + 1, :]
             selected_action_bins = q_values.argmax(dim=-1)
             action_bins[:, action_idx] = selected_action_bins.squeeze()
         action = 2.0 * action_bins.float() / (1.0 * self._action_bin) - 1.0
@@ -453,16 +486,6 @@ class QTransformerPolicy(SACPolicy):
             "td_error",
             "transformed_log_prob",
         ]
-
-    # def _monitor_vars_learn(self) -> List[str]:
-    #     """
-    #     Overview:
-    #         Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
-    #         as text logger, tensorboard logger, will use these keys to save the corresponding data.
-    #     Returns:
-    #         - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
-    #     """
-    #     return ["loss", "q_pred_all_actions.mean().item()"]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         """
@@ -502,7 +525,7 @@ class QTransformerPolicy(SACPolicy):
         self._eval_model = model_wrap(self._model, wrapper_name="base")
         self._eval_model.reset()
 
-    def _forward_eval(self, data: dict, the_time) -> dict:
+    def _forward_eval_offline(self, data: dict, the_time, **policy_kwargs) -> dict:
         r"""
         Overview:
             Forward function of eval mode, similar to ``self._forward_collect``.
@@ -533,6 +556,89 @@ class QTransformerPolicy(SACPolicy):
             self._state_list = torch.cat((self._state_list, data.unsqueeze(1)), dim=1)
         with torch.no_grad():
             output = self._get_actions(self._state_list)
+        if self._cuda:
+            output = to_device(output, "cpu")
+        output = default_decollate(output)
+        output = [{"action": o} for o in output]
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        r"""
+            Overview:
+                Forward function of eval mode, similar to ``self._forward_collect``.
+            Arguments:
+                - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                    values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+            Returns:
+                - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+            ReturnsKeys
+                - necessary: ``action``
+            """
+        data_id = list(data.keys())
+        expected_ids = list(range(self._cfg.model.num_timesteps))
+        missing_ids = [i for i in expected_ids if i not in data_id]
+        for missing_id in missing_ids:
+            data[missing_id] = torch.zeros_like(input=next(iter(data.values())))
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        with torch.no_grad():
+            output = self._get_actions(data)
+        if self._cuda:
+            output = to_device(output, "cpu")
+        output = default_decollate(output)
+        output = [{"action": o} for o in output]
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _init_collect(self) -> None:
+        """
+        Overview:
+            Initialize the collect mode of policy, including related attributes and modules. For SAC, it contains the \
+            collect_model other algorithm-specific arguments such as unroll_len. \
+            This method will be called in ``__init__`` method if ``collect`` field is in ``enable_field``.
+
+        .. note::
+            If you want to set some spacial member variables in ``_init_collect`` method, you'd better name them \
+            with prefix ``_collect_`` to avoid conflict with other modes, such as ``self._collect_attr1``.
+        """
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_model = model_wrap(self._model, wrapper_name="base")
+        self._collect_model.reset()
+
+    def _forward_collect(self, data: Dict[int, Any], **kwargs) -> Dict[int, Any]:
+        """
+            Overview:
+                Policy forward function of collect mode (collecting training data by interacting with envs). Forward means \
+                that the policy gets some necessary data (mainly observation) from the envs and then returns the output \
+                data, such as the action to interact with the envs.
+            Arguments:
+                - data (:obj:`Dict[int, Any]`): The input data used for policy forward, including at least the obs. The \
+                    key of the dict is environment id and the value is the corresponding data of the env.
+            Returns:
+                - output (:obj:`Dict[int, Any]`): The output data of policy forward, including at least the action and \
+                    other necessary data for learn mode defined in ``self._process_transition`` method. The key of the \
+                    dict is the same as the input data, i.e. environment id.
+
+            .. note::
+                The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
+                For the data type that not supported, the main reason is that the corresponding model does not support it. \
+                You can implement you own model rather than use the default model. For more information, please raise an \
+                issue in GitHub repo and we will continue to follow up.
+
+            .. note::
+                ``logit`` in SAC means the mu and sigma of Gaussioan distribution. Here we use this name for consistency.
+
+            .. note::
+                For more detailed examples, please refer to our unittest for SACPolicy: ``ding.policy.tests.test_sac``.
+            """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        with torch.no_grad():
+            output = self._get_actions(data)
         if self._cuda:
             output = to_device(output, "cpu")
         output = default_decollate(output)
