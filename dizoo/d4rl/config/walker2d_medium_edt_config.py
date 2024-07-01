@@ -18,6 +18,8 @@ walk2d_edt_config = dict(
         data_dir_prefix='/d4rl/walker2d-medium-v2.pkl',
     ),
     policy=dict(
+        env_id='Hopper-v3',
+        real_rtg=False,
         cuda=True,
         stop_value=5000,
         state_mean=None,
@@ -49,11 +51,25 @@ walk2d_edt_config = dict(
         ),
         learn=dict(batch_size=128),
         learning_rate=1e-4,
+        weights=dict(
+            top_percentile=0.15,
+            expectile=0.99,
+            expert_weight=10,
+            exp_loss_weight=0.5,
+            state_loss_weight=1.0,
+            cross_entropy_weight=0.001,
+            rs_ratio=1, # between 1 and 2
+            
+        ),
         collect=dict(
             data_type='d4rl_trajectory',
             unroll_len=1,
         ),
-        eval=dict(evaluator=dict(eval_freq=1000, ), ),
+        eval=dict(
+            evaluator=dict(eval_freq=1000, ), 
+            rs_steps=2,
+            heuristic=False,
+            heuristic_delta=2),
     ),
 )
 
