@@ -55,7 +55,7 @@ setup(
         'gym==0.25.1',  # pypy incompatible; some environments only support gym==0.22.0
         'gymnasium',
         'torch>=1.1.0',
-        'numpy>=1.18.0',
+        'numpy>=1.18.0,<2',
         'DI-treetensor>=0.4.0',
         'DI-toolkit>=0.1.0',
         'trueskill',
@@ -69,11 +69,11 @@ setup(
         'hickle',
         'tabulate',
         'click>=7.0.0',
-        'requests>=2.25.1',  # interaction
-        'flask~=1.1.2',  # interaction
-        'responses~=0.12.1',  # interaction
-        'URLObject>=2.4.0',  # interaction
-        'MarkupSafe==2.0.1',  # interaction, compatibility
+        'flask<=2.0.3',  # interaction
+        'werkzeug<=2.0.3',  # interaction
+        'requests',  # interaction
+        'responses',  # interaction
+        'URLObject',  # interaction
         'pynng',  # parallel
         'sniffio', # parallel
         'redis',  # parallel

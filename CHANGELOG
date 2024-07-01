@@ -1,3 +1,25 @@
+2024.06.27(v0.5.2)
+- env: add taxi env (#799) (#807) 
+- env: add ising model env (#782)
+- env: add new Flozen Lake env (#781)
+- env: optimize ppo continuous config in MuJoCo (#801)
+- env: fix masac smac config multi_agent=True bug (#791)
+- env: update/speed up pendulum ppo
+- algo: fix gtrxl compatibility bug (#796)
+- algo: fix complex obs demo for ppo pipeline (#786)
+- algo: add naive PWIL demo
+- algo: fix marl nstep td compatibility bug
+- feature: add GPU utils (#788)
+- feature: add deprecated function decorator (#778)
+- style: relax flask requirement (#811)
+- style: add new badge (hellogithub) in readme (#805)
+- style: update discord link and badge in readme (#795)
+- style: fix typo in config.py (#776)
+- style: polish rl_utils api docs
+- style: add constraint about numpy<2
+- style: polish macos platform test version to 12
+- style: polish ci python version
+
 2024.02.04(v0.5.1)
 - env: add MADDPG pettingzoo example (#774)
 - env: polish NGU Atari configs (#767)

@@ -8,10 +8,9 @@ import torch
 try:
     import pyecharts
 except ImportError:
-    import sys
     import logging
     logging.error("Please install pyecharts first, you can install it by running 'pip install pyecharts'")
-    sys.exit(1)
+    pyecharts = None
 
 MegaByte = 1024 * 1024
 
