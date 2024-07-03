@@ -1438,7 +1438,7 @@ class GymToGymnasiumWrapper(gym.Wrapper):
     Overview:
         This class is used to wrap a gymnasium environment to a gym environment.
     Interfaces:
-        __init__, seed, reset
+        __init__, seed, reset, step
     """
 
     def __init__(self, env: gymnasium.Env) -> None:
@@ -1470,9 +1470,20 @@ class GymToGymnasiumWrapper(gym.Wrapper):
             - observation (:obj:`np.ndarray`): The new observation after reset.
         """
         if self.seed is not None:
-            return self.env.reset(seed=self._seed)
+            obs, info = self.env.reset(seed=self._seed)
         else:
-            return self.env.reset()
+            obs, info = self.env.reset()
+        return obs
+
+    def step(self, *args, **kwargs):
+        """
+        Overview:
+            Execute the given action in the environment, and return the new observation,
+            reward, done status, and info. To keep consistency with gym, the done status should be the either \
+            terminated=True or truncated=True.
+        """
+        obs, rew, terminated, truncated, info = self.env.step(*args, **kwargs)
+        return obs, rew, terminated or truncated, info
 
 
 @ENV_WRAPPER_REGISTRY.register('reward_in_obs')
