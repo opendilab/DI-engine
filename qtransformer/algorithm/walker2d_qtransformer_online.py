@@ -18,7 +18,6 @@ main_config = dict(
         ),
         collector_env_num=1,
         evaluator_env_num=8,
-        n_evaluator_episode=8,
         stop_value=6000,
     ),
     # dataset=dict(
@@ -64,7 +63,7 @@ main_config = dict(
         ),
         other=dict(
             replay_buffer=dict(
-                replay_buffer_size=1000000,
+                replay_buffer_size=1000,
             ),
         ),
     ),

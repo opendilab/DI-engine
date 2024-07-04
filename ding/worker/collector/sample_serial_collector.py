@@ -6,13 +6,27 @@ import numpy as np
 import torch
 
 from ding.envs import BaseEnvManager
-from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY, one_time_warning, get_rank, get_world_size, \
-    broadcast_object_list, allreduce_data
+from ding.utils import (
+    build_logger,
+    EasyTimer,
+    SERIAL_COLLECTOR_REGISTRY,
+    one_time_warning,
+    get_rank,
+    get_world_size,
+    broadcast_object_list,
+    allreduce_data,
+)
 from ding.torch_utils import to_tensor, to_ndarray
-from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
+from .base_serial_collector import (
+    ISerialCollector,
+    CachePool,
+    TrajBuffer,
+    INF,
+    to_tensor_transitions,
+)
 
 
-@SERIAL_COLLECTOR_REGISTRY.register('sample')
+@SERIAL_COLLECTOR_REGISTRY.register("sample")
 class SampleSerialCollector(ISerialCollector):
     """
     Overview:
@@ -28,13 +42,13 @@ class SampleSerialCollector(ISerialCollector):
     config = dict(deepcopy_obs=False, transform_obs=False, collect_print_freq=100)
 
     def __init__(
-            self,
-            cfg: EasyDict,
-            env: BaseEnvManager = None,
-            policy: namedtuple = None,
-            tb_logger: 'SummaryWriter' = None,  # noqa
-            exp_name: Optional[str] = 'default_experiment',
-            instance_name: Optional[str] = 'collector'
+        self,
+        cfg: EasyDict,
+        env: BaseEnvManager = None,
+        policy: namedtuple = None,
+        tb_logger: "SummaryWriter" = None,  # noqa
+        exp_name: Optional[str] = "default_experiment",
+        instance_name: Optional[str] = "collector",
     ) -> None:
         """
         Overview:
@@ -59,18 +73,21 @@ class SampleSerialCollector(ISerialCollector):
         if self._rank == 0:
             if tb_logger is not None:
                 self._logger, _ = build_logger(
-                    path='./{}/log/{}'.format(self._exp_name, self._instance_name),
+                    path="./{}/log/{}".format(self._exp_name, self._instance_name),
                     name=self._instance_name,
-                    need_tb=False
+                    need_tb=False,
                 )
                 self._tb_logger = tb_logger
             else:
                 self._logger, self._tb_logger = build_logger(
-                    path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
+                    path="./{}/log/{}".format(self._exp_name, self._instance_name),
+                    name=self._instance_name,
                 )
         else:
             self._logger, _ = build_logger(
-                path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name, need_tb=False
+                path="./{}/log/{}".format(self._exp_name, self._instance_name),
+                name=self._instance_name,
+                need_tb=False,
             )
             self._tb_logger = None
 
@@ -103,21 +120,22 @@ class SampleSerialCollector(ISerialCollector):
         Arguments:
             - policy (:obj:`Optional[namedtuple]`): the api namedtuple of collect_mode policy
         """
-        assert hasattr(self, '_env'), "please set env first"
+        assert hasattr(self, "_env"), "please set env first"
         if _policy is not None:
             self._policy = _policy
-            self._policy_cfg = self._policy.get_attribute('cfg')
-            self._default_n_sample = _policy.get_attribute('n_sample')
+            self._policy_cfg = self._policy.get_attribute("cfg")
+            self._default_n_sample = _policy.get_attribute("n_sample")
             self._traj_len_inf = self._policy_cfg.traj_len_inf
-            self._unroll_len = _policy.get_attribute('unroll_len')
-            self._on_policy = _policy.get_attribute('on_policy')
+            self._unroll_len = _policy.get_attribute("unroll_len")
+            self._on_policy = _policy.get_attribute("on_policy")
             if self._default_n_sample is not None and not self._traj_len_inf:
                 self._traj_len = max(
                     self._unroll_len,
-                    self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
+                    self._default_n_sample // self._env_num
+                    + int(self._default_n_sample % self._env_num != 0),
                 )
                 self._logger.debug(
-                    'Set default n_sample mode(n_sample({}), env_num({}), traj_len({}))'.format(
+                    "Set default n_sample mode(n_sample({}), env_num({}), traj_len({}))".format(
                         self._default_n_sample, self._env_num, self._traj_len
                     )
                 )
@@ -125,7 +143,11 @@ class SampleSerialCollector(ISerialCollector):
                 self._traj_len = INF
         self._policy.reset()
 
-    def reset(self, _policy: Optional[namedtuple] = None, _env: Optional[BaseEnvManager] = None) -> None:
+    def reset(
+        self,
+        _policy: Optional[namedtuple] = None,
+        _env: Optional[BaseEnvManager] = None,
+    ) -> None:
         """
         Overview:
             Reset the environment and policy.
@@ -144,18 +166,21 @@ class SampleSerialCollector(ISerialCollector):
         if _policy is not None:
             self.reset_policy(_policy)
 
-        if self._policy_cfg.type == 'dreamer_command':
+        if self._policy_cfg.type == "dreamer_command":
             self._states = None
             self._resets = np.array([False for i in range(self._env_num)])
-        self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
-        self._policy_output_pool = CachePool('policy_output', self._env_num)
+        self._obs_pool = CachePool("obs", self._env_num, deepcopy=self._deepcopy_obs)
+        self._policy_output_pool = CachePool("policy_output", self._env_num)
         # _traj_buffer is {env_id: TrajBuffer}, is used to store traj_len pieces of transitions
         maxlen = self._traj_len if self._traj_len != INF else None
         self._traj_buffer = {
             env_id: TrajBuffer(maxlen=maxlen, deepcopy=self._deepcopy_obs)
             for env_id in range(self._env_num)
         }
-        self._env_info = {env_id: {'time': 0., 'step': 0, 'train_sample': 0} for env_id in range(self._env_num)}
+        self._env_info = {
+            env_id: {"time": 0.0, "step": 0, "train_sample": 0}
+            for env_id in range(self._env_num)
+        }
 
         self._episode_info = []
         self._total_envstep_count = 0
@@ -177,7 +202,7 @@ class SampleSerialCollector(ISerialCollector):
         self._traj_buffer[env_id].clear()
         self._obs_pool.reset(env_id)
         self._policy_output_pool.reset(env_id)
-        self._env_info[env_id] = {'time': 0., 'step': 0, 'train_sample': 0}
+        self._env_info[env_id] = {"time": 0.0, "step": 0, "train_sample": 0}
 
     @property
     def envstep(self) -> int:
@@ -212,14 +237,14 @@ class SampleSerialCollector(ISerialCollector):
         self.close()
 
     def collect(
-            self,
-            n_sample: Optional[int] = None,
-            train_iter: int = 0,
-            drop_extra: bool = True,
-            random_collect: bool = False,
-            record_random_collect: bool = True,
-            policy_kwargs: Optional[dict] = None,
-            level_seeds: Optional[List] = None,
+        self,
+        n_sample: Optional[int] = None,
+        train_iter: int = 0,
+        drop_extra: bool = True,
+        random_collect: bool = False,
+        record_random_collect: bool = True,
+        policy_kwargs: Optional[dict] = None,
+        level_seeds: Optional[List] = None,
     ) -> List[Any]:
         """
         Overview:
@@ -242,8 +267,10 @@ class SampleSerialCollector(ISerialCollector):
                 n_sample = self._default_n_sample
         if n_sample % self._env_num != 0:
             one_time_warning(
-                "Please make sure env_num is divisible by n_sample: {}/{}, ".format(n_sample, self._env_num) +
-                "which may cause convergence problems in a few algorithms"
+                "Please make sure env_num is divisible by n_sample: {}/{}, ".format(
+                    n_sample, self._env_num
+                )
+                + "which may cause convergence problems in a few algorithms"
             )
         if policy_kwargs is None:
             policy_kwargs = {}
@@ -253,6 +280,7 @@ class SampleSerialCollector(ISerialCollector):
         return_data = []
 
         while collected_sample < n_sample:
+            episode_data = []
             with self._timer:
                 # Get current env obs.
                 obs = self._env.ready_obs
@@ -260,15 +288,21 @@ class SampleSerialCollector(ISerialCollector):
                 self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
-                if self._policy_cfg.type == 'dreamer_command' and not random_collect:
-                    policy_output = self._policy.forward(obs, **policy_kwargs, reset=self._resets, state=self._states)
-                    #self._states = {env_id: output['state'] for env_id, output in policy_output.items()}
-                    self._states = [output['state'] for output in policy_output.values()]
+                if self._policy_cfg.type == "dreamer_command" and not random_collect:
+                    policy_output = self._policy.forward(
+                        obs, **policy_kwargs, reset=self._resets, state=self._states
+                    )
+                    # self._states = {env_id: output['state'] for env_id, output in policy_output.items()}
+                    self._states = [
+                        output["state"] for output in policy_output.values()
+                    ]
                 else:
                     policy_output = self._policy.forward(obs, **policy_kwargs)
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
-                actions = {env_id: output['action'] for env_id, output in policy_output.items()}
+                actions = {
+                    env_id: output["action"] for env_id, output in policy_output.items()
+                }
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
 
@@ -278,33 +312,48 @@ class SampleSerialCollector(ISerialCollector):
             # TODO(nyz) vectorize this for loop
             for env_id, timestep in timesteps.items():
                 with self._timer:
-                    if timestep.info.get('abnormal', False):
+                    if timestep.info.get("abnormal", False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         # suppose there is no reset param, just reset this env
                         self._env.reset({env_id: None})
                         self._policy.reset([env_id])
                         self._reset_stat(env_id)
-                        self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
+                        self._logger.info(
+                            "Env{} returns a abnormal step, its info is {}".format(
+                                env_id, timestep.info
+                            )
+                        )
                         continue
-                    if self._policy_cfg.type == 'dreamer_command' and not random_collect:
+                    if (
+                        self._policy_cfg.type == "dreamer_command"
+                        and not random_collect
+                    ):
                         self._resets[env_id] = timestep.done
-                    if self._policy_cfg.type == 'ngu_command':  # for NGU policy
+                    if self._policy_cfg.type == "ngu_command":  # for NGU policy
                         transition = self._policy.process_transition(
-                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
+                            self._obs_pool[env_id],
+                            self._policy_output_pool[env_id],
+                            timestep,
+                            env_id,
                         )
                     else:
                         transition = self._policy.process_transition(
-                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                            self._obs_pool[env_id],
+                            self._policy_output_pool[env_id],
+                            timestep,
                         )
                         if level_seeds is not None:
-                            transition['seed'] = level_seeds[env_id]
+                            transition["seed"] = level_seeds[env_id]
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
-                    transition['collect_iter'] = train_iter
+                    transition["collect_iter"] = train_iter
                     self._traj_buffer[env_id].append(transition)
-                    self._env_info[env_id]['step'] += 1
+                    self._env_info[env_id]["step"] += 1
                     collected_step += 1
                     # prepare data
-                    if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
+                    if (
+                        timestep.done
+                        or len(self._traj_buffer[env_id]) == self._traj_len
+                    ):
                         # If policy is r2d2:
                         # 1. For each collect_env, we want to collect data of length self._traj_len=INF
                         # unless the episode enters the 'done' state.
@@ -317,43 +366,51 @@ class SampleSerialCollector(ISerialCollector):
 
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         # indicate whether to shallow copy next obs, i.e., overlap of s_t and s_t+1
-                        transitions = to_tensor_transitions(self._traj_buffer[env_id], not self._deepcopy_obs)
+                        transitions = to_tensor_transitions(
+                            self._traj_buffer[env_id], not self._deepcopy_obs
+                        )
                         train_sample = self._policy.get_train_sample(transitions)
                         return_data.extend(train_sample)
-                        self._env_info[env_id]['train_sample'] += len(train_sample)
+                        episode_data.extend(train_sample)
+                        self._env_info[env_id]["train_sample"] += len(train_sample)
                         collected_sample += len(train_sample)
                         self._traj_buffer[env_id].clear()
 
-                self._env_info[env_id]['time'] += self._timer.value + interaction_duration
+                self._env_info[env_id]["time"] += (
+                    self._timer.value + interaction_duration
+                )
 
                 # If env is done, record episode info and reset
                 if timestep.done:
                     collected_episode += 1
-                    reward = timestep.info['eval_episode_return']
+                    reward = timestep.info["eval_episode_return"]
                     info = {
-                        'reward': reward,
-                        'time': self._env_info[env_id]['time'],
-                        'step': self._env_info[env_id]['step'],
-                        'train_sample': self._env_info[env_id]['train_sample'],
+                        "reward": reward,
+                        "time": self._env_info[env_id]["time"],
+                        "step": self._env_info[env_id]["step"],
+                        "train_sample": self._env_info[env_id]["train_sample"],
                     }
                     self._episode_info.append(info)
                     # Env reset is done by env_manager automatically
                     self._policy.reset([env_id])
                     self._reset_stat(env_id)
+                    episode_data=[]
 
-        collected_duration = sum([d['time'] for d in self._episode_info])
+        collected_duration = sum([d["time"] for d in self._episode_info])
         # reduce data when enables DDP
         if self._world_size > 1:
-            collected_sample = allreduce_data(collected_sample, 'sum')
-            collected_step = allreduce_data(collected_step, 'sum')
-            collected_episode = allreduce_data(collected_episode, 'sum')
-            collected_duration = allreduce_data(collected_duration, 'sum')
+            collected_sample = allreduce_data(collected_sample, "sum")
+            collected_step = allreduce_data(collected_step, "sum")
+            collected_episode = allreduce_data(collected_episode, "sum")
+            collected_duration = allreduce_data(collected_duration, "sum")
         self._total_envstep_count += collected_step
         self._total_episode_count += collected_episode
         self._total_duration += collected_duration
         self._total_train_sample_count += collected_sample
         # log
-        if record_random_collect:  # default is true, but when random collect, record_random_collect is False
+        if (
+            record_random_collect
+        ):  # default is true, but when random collect, record_random_collect is False
             self._output_log(train_iter)
         else:
             self._episode_info.clear()
@@ -377,37 +434,49 @@ class SampleSerialCollector(ISerialCollector):
         """
         if self._rank != 0:
             return
-        if (train_iter - self._last_train_iter) >= self._collect_print_freq and len(self._episode_info) > 0:
+        if (train_iter - self._last_train_iter) >= self._collect_print_freq and len(
+            self._episode_info
+        ) > 0:
             self._last_train_iter = train_iter
             episode_count = len(self._episode_info)
-            envstep_count = sum([d['step'] for d in self._episode_info])
-            train_sample_count = sum([d['train_sample'] for d in self._episode_info])
-            duration = sum([d['time'] for d in self._episode_info])
-            episode_return = [d['reward'] for d in self._episode_info]
+            envstep_count = sum([d["step"] for d in self._episode_info])
+            train_sample_count = sum([d["train_sample"] for d in self._episode_info])
+            duration = sum([d["time"] for d in self._episode_info])
+            episode_return = [d["reward"] for d in self._episode_info]
             info = {
-                'episode_count': episode_count,
-                'envstep_count': envstep_count,
-                'train_sample_count': train_sample_count,
-                'avg_envstep_per_episode': envstep_count / episode_count,
-                'avg_sample_per_episode': train_sample_count / episode_count,
-                'avg_envstep_per_sec': envstep_count / duration,
-                'avg_train_sample_per_sec': train_sample_count / duration,
-                'avg_episode_per_sec': episode_count / duration,
-                'reward_mean': np.mean(episode_return),
-                'reward_std': np.std(episode_return),
-                'reward_max': np.max(episode_return),
-                'reward_min': np.min(episode_return),
-                'total_envstep_count': self._total_envstep_count,
-                'total_train_sample_count': self._total_train_sample_count,
-                'total_episode_count': self._total_episode_count,
+                "episode_count": episode_count,
+                "envstep_count": envstep_count,
+                "train_sample_count": train_sample_count,
+                "avg_envstep_per_episode": envstep_count / episode_count,
+                "avg_sample_per_episode": train_sample_count / episode_count,
+                "avg_envstep_per_sec": envstep_count / duration,
+                "avg_train_sample_per_sec": train_sample_count / duration,
+                "avg_episode_per_sec": episode_count / duration,
+                "reward_mean": np.mean(episode_return),
+                "reward_std": np.std(episode_return),
+                "reward_max": np.max(episode_return),
+                "reward_min": np.min(episode_return),
+                "total_envstep_count": self._total_envstep_count,
+                "total_train_sample_count": self._total_train_sample_count,
+                "total_episode_count": self._total_episode_count,
                 # 'each_reward': episode_return,
             }
             self._episode_info.clear()
-            self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
+            self._logger.info(
+                "collect end:\n{}".format(
+                    "\n".join(["{}: {}".format(k, v) for k, v in info.items()])
+                )
+            )
             for k, v in info.items():
-                if k in ['each_reward']:
+                if k in ["each_reward"]:
                     continue
-                self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
-                if k in ['total_envstep_count']:
+                self._tb_logger.add_scalar(
+                    "{}_iter/".format(self._instance_name) + k, v, train_iter
+                )
+                if k in ["total_envstep_count"]:
                     continue
-                self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, self._total_envstep_count)
+                self._tb_logger.add_scalar(
+                    "{}_step/".format(self._instance_name) + k,
+                    v,
+                    self._total_envstep_count,
+                )
