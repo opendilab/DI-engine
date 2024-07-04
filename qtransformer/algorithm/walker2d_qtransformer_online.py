@@ -36,8 +36,8 @@ main_config = dict(
             action_bin=256,
         ),
         learn=dict(
-            update_per_collect=1,
-            batch_size=2048,
+            update_per_collect=5,
+            batch_size=200,
             learning_rate_q=3e-4,
             learning_rate_policy=1e-4,
             learning_rate_alpha=1e-4,
@@ -57,7 +57,11 @@ main_config = dict(
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(),
+        eval=dict(
+            evaluator=dict(
+                eval_freq=10,
+            )
+        ),
         other=dict(
             replay_buffer=dict(
                 replay_buffer_size=1000000,
@@ -88,7 +92,7 @@ create_config = create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c walker2d_sac_config.py -s 0`
-    from ding.entry import serial_pipeline
+    from qtransformer.algorithm.serial_entry import serial_pipeline
 
     model = QTransformer(**main_config.policy.model)
     serial_pipeline([main_config, create_config], seed=0, model=model)

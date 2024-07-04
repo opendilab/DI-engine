@@ -270,6 +270,7 @@ class QTransformerPolicy(SACPolicy):
         self._target_model.reset()
 
         self._forward_learn_cnt = 0
+        wandb.init(**self._cfg.wandb)
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -296,7 +297,6 @@ class QTransformerPolicy(SACPolicy):
             You can implement you own model rather than use the default model. For more information, please raise an \
             issue in GitHub repo and we will continue to follow up.
         """
-        wandb.init(**self._cfg.wandb)
 
         def merge_dict1_into_dict2(
             dict1: Union[Dict, EasyDict], dict2: Union[Dict, EasyDict]
@@ -393,21 +393,21 @@ class QTransformerPolicy(SACPolicy):
 
         q_pred_rest_actions, q_pred_last_action = q_pred[:, :-1], q_pred[:, -1:]
         with torch.no_grad():
-            q_next_target = self._target_model.forward(next_state)
+            # q_next_target = self._target_model.forward(next_state)
             q_target = self._target_model.forward(state, action=action)[:, :-1, :]
 
         q_target_rest_actions = q_target[:, 1:, :]
         max_q_target_rest_actions = q_target_rest_actions.max(dim=-1).values
 
-        q_next_target_first_action = q_next_target[:, 0:1, :]
-        max_q_next_target_first_action = q_next_target_first_action.max(dim=-1).values
+        # q_next_target_first_action = q_next_target[:, 0:1, :]
+        # max_q_next_target_first_action = q_next_target_first_action.max(dim=-1).values
 
         losses_all_actions_but_last = F.mse_loss(
             q_pred_rest_actions, max_q_target_rest_actions
         )
         q_target_last_action = (reward * (1.0 - done.int())).unsqueeze(
             1
-        ) + self._gamma * max_q_next_target_first_action
+        ) + self._gamma * data["mc"]
         losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action)
         td_loss = losses_all_actions_but_last + losses_last_action
         td_loss.mean()
