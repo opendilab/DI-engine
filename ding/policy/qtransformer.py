@@ -405,9 +405,7 @@ class QTransformerPolicy(SACPolicy):
         losses_all_actions_but_last = F.mse_loss(
             q_pred_rest_actions, max_q_target_rest_actions
         )
-        q_target_last_action = (reward * (1.0 - done.int())).unsqueeze(
-            1
-        ) + self._gamma * data["mc"]
+        q_target_last_action = next_state.unsqueeze(1)
         losses_last_action = F.mse_loss(q_pred_last_action, q_target_last_action)
         td_loss = losses_all_actions_but_last + losses_last_action
         td_loss.mean()
@@ -428,20 +426,21 @@ class QTransformerPolicy(SACPolicy):
                 "losses_all_actions_but_last": losses_all_actions_but_last.item(),
                 "losses_last_action": losses_last_action.item(),
                 "q_mean": q_pred_all_actions.mean().item(),
-                "q_a11": q_means[0].item(),
-                "q_a12": q_means[1].item(),
-                "q_a13": q_means[2].item(),
-                "q_a14": q_means[3].item(),
-                "q_a15": q_means[4].item(),
-                "q_a16": q_means[5].item(),
-                "q_r_a11": q_r_means[0].item(),
-                "q_r_a12": q_r_means[1].item(),
-                "q_r_a13": q_r_means[2].item(),
-                "q_r_a14": q_r_means[3].item(),
-                "q_r_a15": q_r_means[4].item(),
-                "q_r_a16": q_r_means[5].item(),
+                "q_a1": q_means[0].item(),
+                "q_a2": q_means[1].item(),
+                "q_a3": q_means[2].item(),
+                "q_a4": q_means[3].item(),
+                "q_a5": q_means[4].item(),
+                "q_a6": q_means[5].item(),
+                "q_r_a1": q_r_means[0].item(),
+                "q_r_a2": q_r_means[1].item(),
+                "q_r_a3": q_r_means[2].item(),
+                "q_r_a4": q_r_means[3].item(),
+                "q_r_a5": q_r_means[4].item(),
+                "q_r_a6": q_r_means[5].item(),
                 "q_all": q_pred_all_actions.mean().item(),
                 "q_real": q_pred.mean().item(),
+                "mc": next_state.mean().item(),
             },
         )
         return {

@@ -326,21 +326,25 @@ class EpisodeSerialCollector(ISerialCollector):
         def calculate_mc_returns(collected_episodes, gamma=0.99):
             flattened_data = []
 
-            def calculate_mc_return(episode, gamma):
+            def calculate_mc_return(episode, gamma=0.99):
                 G = 0
                 for step in reversed(episode):
-                    G = step["reward"].item() + gamma * G
+                    obs = step["obs"]
+                    reward = step["reward"]
+                    G = reward + gamma * G
                     flattened_data.append(
                         {
-                            "obs": step["obs"],
+                            "obs": obs,
                             "action": step["action"],
-                            "reward": step["reward"],
+                            "reward": reward,
                             "next_obs": G,
+                            "done": step["done"],
                         }
                     )
 
             for episode in collected_episodes:
                 calculate_mc_return(episode, gamma)
+
             return flattened_data
 
         collected_episodes = calculate_mc_returns(return_data)

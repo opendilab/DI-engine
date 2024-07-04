@@ -17,7 +17,7 @@ main_config = dict(
             use_norm=False,
         ),
         collector_env_num=1,
-        evaluator_env_num=8,
+        evaluator_env_num=4,
         stop_value=6000,
     ),
     # dataset=dict(
