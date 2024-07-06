@@ -50,16 +50,7 @@ Averaged-DQN can be combined with:
 
 Implementation
 ----------------
-The default config of AveragedDQNPolicy is defined as follows:
-
-.. autoclass:: ding.policy.averaged_dqn.AveragedDQNPolicy
-   :noindex:
-
-The network interface AveragedDQN used is defined as follows:
-
-.. autoclass:: ding.model.template.q_learning.DQN
-   :members: forward
-   :noindex:
+To be merged
 
 Benchmark
 -----------

@@ -3998,10 +3998,9 @@ And need add 1-dim when compute norm</p>
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#Memory.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.gtrxl.Memory.update" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
 <dt>Overview:</dt><dd><p>Update the memory given a sequence of hidden states.
-Example for single layer:</p>
+Example for single layer: (memory_len=3, hidden_size_len=2, bs=3)</p>
 <blockquote>
-<div><p>memory_len=3, hidden_size_len=2, bs=3</p>
-<blockquote>
+<div><blockquote>
 <div><p>m00 m01 m02      h00 h01 h02              m20 m21 m22</p>
 </div></blockquote>
 <dl class="simple">
@@ -4145,11 +4144,7 @@ a20 a21 a22      0 a20 a21 a22      a11 a12  0       a20 a21 a22     a20 a21 a22
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<dl class="simple">
-<dt>See the following material for better understanding:</dt><dd><p><a class="reference external" href="https://github.com/kimiyoung/transformer-xl/issues/8">https://github.com/kimiyoung/transformer-xl/issues/8</a>
-<a class="reference external" href="https://arxiv.org/pdf/1901.02860.pdf">https://arxiv.org/pdf/1901.02860.pdf</a> (Appendix B)</p>
-</dd>
-</dl>
+<p>See the following material for better understanding: <a class="reference external" href="https://github.com/kimiyoung/transformer-xl/issues/8">https://github.com/kimiyoung/transformer-xl/issues/8</a>             <a class="reference external" href="https://arxiv.org/pdf/1901.02860.pdf">https://arxiv.org/pdf/1901.02860.pdf</a> (Appendix B)</p>
 </div>
 <dl class="simple">
 <dt>Arguments:</dt><dd><ul class="simple">

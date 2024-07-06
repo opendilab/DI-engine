@@ -210,27 +210,6 @@ off-policy PPO Benchmark:
 |(SpaceInvadersNoFrame|                 |                                                     |spaceinvaders/spaceinva   |                      |
 |skip-v4)             |                 |                                                     |ders_offppo_config.py>`_  |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_ho <https:// |                      |
-|                     |                 |                                                     |github.com/opendilab/     |                      |
-|                     |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
-|Hopper               |  300            |.. image:: images/benchmark/hopper_offppo.png        |mujoco/config/hopper_     |                      |
-|                     |                 |                                                     |offppo_default_config     |                      |
-|(Hopper-v3)          |                 |                                                     |.py>`_                    |                      |
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_w <https://  |                      |
-|                     |                 |                                                     |github.com/opendilab/     |                      |
-|Walker2d             |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
-|                     |  500            |.. image:: images/benchmark/walker2d_offppo.png      |mujoco/config/            |                      |
-|(Walker2d-v3)        |                 |                                                     |walker2d_offppo_          |                      |
-|                     |                 |                                                     |default_config.py>`_      |                      |
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_ha <https:// |                      |
-|                     |                 |                                                     |github.com/opendilab/     |                      |
-|Halfcheetah          |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
-|                     |  2000           |.. image:: images/benchmark/halfcheetah_offppo.png   |mujoco/config/            |                      |
-|(Halfcheetah-v3)     |                 |                                                     |halfcheetah_offppo        |                      |
-|                     |                 |                                                     |_default_config.py>`_     |                      |
-+---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 
 
 on-policy PPO Benchmark:
@@ -249,43 +228,50 @@ on-policy PPO Benchmark:
 |                     |                 |                                                     |`config_link_2 <https://  |                      |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Qbert                |                 |                                                     |DI-engine/tree/main/dizoo/|    RLlib(11085)      |
-|                     |  10000          |.. image:: images/benchmark/qbert_onppo.png          |atari/config/serial/      |                      |
+|                     |  12146          |.. image:: images/benchmark/qbert_onppo.png          |atari/config/serial/      |                      |
 |(QbertNoFrameskip-v4)|                 |                                                     |qbert/qbert_onppo_config  |                      |
 |                     |                 |                                                     |.py>`_                    |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 |                     |                 |                                                     |`config_link_3 <https://  |                      |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |SpaceInvaders        |                 |                                                     |DI-engine/tree/main/dizoo/|    RLlib(671)        |
-|                     |  800            |.. image:: images/benchmark/spaceinvaders_onppo.png  |atari/config/serial/      |                      |
+|                     |  907            |.. image:: images/benchmark/spaceinvaders_onppo.png  |atari/config/serial/      |                      |
 |(SpaceInvadersNoFrame|                 |                                                     |spaceinvaders/spacein     |                      |
 |skip-v4)             |                 |                                                     |vaders_onppo_config.py>`_ |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_4  <https:// |    Tianshou(3127)    |
+|                     |                 |                                                     |`config_link_4 <https://  |                      |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
-|                     |                 |                                                     |DI-engine/tree/main/dizoo/|       Sb3(1567)      |
+|Enduro               |                 |                                                     |DI-engine/tree/main/dizoo/|    RLlib(855)        |
+|                     |  957            |.. image:: images/benchmark/enduro_onppo.png         |atari/config/serial/      |                      |
+|(EnduroNoFrameskip-  |                 |                                                     |enduro/enduro_onppo_config|                      |
+|v4)                  |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_5  <https:// |Tianshou(3127)        |
+|                     |                 |                                                     |github.com/opendilab/     |                      |
+|                     |                 |                                                     |DI-engine/tree/main/dizoo/|Sb3(1567)             |
 |Hopper               |  3000           |.. image:: images/benchmark/hopper_onppo.png         |mujoco/config/            |                      |
-|                     |                 |                                                     |hopper_onppo_             |    spinningup(2500)  |
+|                     |                 |                                                     |hopper_onppo_             |spinningup(2500)      |
 |(Hopper-v3)          |                 |                                                     |default_config.py>`_      |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_5 <https://  |    Tianshou(4895)    |
+|                     |                 |                                                     |`config_link_6 <https://  |Tianshou(4895)        |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
-|Walker2d             |                 |                                                     |DI-engine/tree/main/dizoo/|     Sb3(1230)        |
+|Walker2d             |                 |                                                     |DI-engine/tree/main/dizoo/|Sb3(1230)             |
 |                     |  3700           |.. image:: images/benchmark/walker2d_onppo.png       |mujoco/config/            |                      |
-|(Walker2d-v3)        |                 |                                                     |walker2d_onppo_           |    spinningup(2500)  |
+|(Walker2d-v3)        |                 |                                                     |walker2d_onppo_           |spinningup(2500)      |
 |                     |                 |                                                     |default_config.py>`_      |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_6  <https:// |    Tianshou(7337)    |
+|                     |                 |                                                     |`config_link_7  <https:// |Tianshou(7337)        |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
-|Halfcheetah          |                 |                                                     |DI-engine/tree/main/dizoo/|     Sb3(1976)        |
+|Halfcheetah          |                 |                                                     |DI-engine/tree/main/dizoo/|Sb3(1976)             |
 |                     |  3500           |.. image:: images/benchmark/halfcheetah_onppo.png    |mujoco/config/            |                      |
-|(Halfcheetah-v3)     |                 |                                                     |halfcheetah_onppo         |   spinningup(3000)   |
+|(Halfcheetah-v3)     |                 |                                                     |halfcheetah_onppo         |spinningup(3000)      |
 |                     |                 |                                                     |_default_config.py>`_     |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
-|                     |                 |                                                     |`config_link_7  <https:// |    Tianshou(3258)    |
+|                     |                 |                                                     |`config_link_8  <https:// |Tianshou(3258)        |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Ant                  |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
 |                     |  4200           |.. image:: images/benchmark/ant_onppo.png            |mujoco/config/            |                      |
-|(Ant-v3)             |                 |                                                     |ant_onppo                 |   spinningup(650)    |
+|(Ant-v3)             |                 |                                                     |ant_onppo                 |spinningup(650)       |
 |                     |                 |                                                     |_default_config.py>`_     |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 

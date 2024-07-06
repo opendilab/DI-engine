@@ -127,16 +127,18 @@ Implementations
 The default config is defined as follows:
 
 .. autoclass:: ding.policy.qgpo.QGPOPolicy
+   :noindex:
 
 Model
 ~~~~~~~~~~~~~~~~~
 Here we provide examples of `QGPO` model as default model for `QGPO`.
 
 .. autoclass:: ding.model.QGPO
-    :special-members: __init__
-    :members:
-    :private-members:
-    :undoc-members:
+   :noindex:
+   :special-members: __init__
+   :members:
+   :private-members:
+   :undoc-members:
 
 
 Benchmark

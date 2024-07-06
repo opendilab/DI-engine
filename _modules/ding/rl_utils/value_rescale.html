@@ -299,11 +299,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        A function to reduce the scale of the action-value function.</span>
-<span class="sd">        :math: `h(x) = sign(x)(\sqrt{(abs(x)+1)} - 1) + \eps * x` .</span>
+<span class="sd">        :math: `h(x) = sign(x)(\sqrt{(abs(x)+1)} - 1) + \epsilon * x` .</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - x: (:obj:`torch.Tensor`) The input tensor to be normalized.</span>
 <span class="sd">        - eps: (:obj:`float`) The coefficient of the additive regularization term \</span>
-<span class="sd">            to ensure h^{-1} is Lipschitz continuous</span>
+<span class="sd">            to ensure inverse function is Lipschitz continuous</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - (:obj:`torch.Tensor`) Normalized tensor.</span>
 
@@ -317,11 +317,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The inverse form of value rescale.</span>
-<span class="sd">        :math: `h^{-1}(x) = sign(x)({(\frac{\sqrt{1+4\eps(|x|+1+\eps)}-1}{2\eps})}^2-1)` .</span>
+<span class="sd">        :math: `h^{-1}(x) = sign(x)({(\frac{\sqrt{1+4\epsilon(|x|+1+\epsilon)}-1}{2\epsilon})}^2-1)` .</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - x: (:obj:`torch.Tensor`) The input tensor to be unnormalized.</span>
 <span class="sd">        - eps: (:obj:`float`) The coefficient of the additive regularization term \</span>
-<span class="sd">            to ensure h^{-1} is Lipschitz continuous</span>
+<span class="sd">            to ensure inverse function is Lipschitz continuous</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - (:obj:`torch.Tensor`) Unnormalized tensor.</span>
 <span class="sd">    &quot;&quot;&quot;</span>

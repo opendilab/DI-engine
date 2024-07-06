@@ -2981,11 +2981,11 @@ if the last state in trajectory is the terminal, just pass a 0 as bootstrap_term
 <span class="sig-prename descclassname"><span class="pre">ding.rl_utils.value_rescale.</span></span><span class="sig-name descname"><span class="pre">value_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/ding/rl_utils/value_rescale.html#value_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.value_rescale.value_transform" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>A function to reduce the scale of the action-value function.
-:math: <cite>h(x) = sign(x)(sqrt{(abs(x)+1)} - 1) + eps * x</cite> .</p>
+:math: <cite>h(x) = sign(x)(sqrt{(abs(x)+1)} - 1) + epsilon * x</cite> .</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>x: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) The input tensor to be normalized.</p></li>
-<li><p>eps: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) The coefficient of the additive regularization term             to ensure h^{-1} is Lipschitz continuous</p></li>
+<li><p>eps: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) The coefficient of the additive regularization term             to ensure inverse function is Lipschitz continuous</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -3013,10 +3013,10 @@ if the last state in trajectory is the terminal, just pass a 0 as bootstrap_term
 </dl>
 </div></blockquote>
 <dl class="simple">
-<dt>rac{sqrt{1+4eps(<a href="#id5"><span class="problematic" id="id6">|</span></a>x|+1+eps)}-1}{2eps})}^2-1)` .</dt><dd><dl class="simple">
+<dt>rac{sqrt{1+4epsilon(<a href="#id5"><span class="problematic" id="id6">|</span></a>x|+1+epsilon)}-1}{2epsilon})}^2-1)` .</dt><dd><dl class="simple">
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>x: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) The input tensor to be unnormalized.</p></li>
-<li><p>eps: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) The coefficient of the additive regularization term             to ensure h^{-1} is Lipschitz continuous</p></li>
+<li><p>eps: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) The coefficient of the additive regularization term             to ensure inverse function is Lipschitz continuous</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
