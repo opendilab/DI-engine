@@ -5,11 +5,11 @@ def value_transform(x: torch.Tensor, eps: float = 1e-2) -> torch.Tensor:
     """
     Overview:
         A function to reduce the scale of the action-value function.
-        :math: `h(x) = sign(x)(\sqrt{(abs(x)+1)} - 1) + \eps * x` .
+        :math: `h(x) = sign(x)(\sqrt{(abs(x)+1)} - 1) + \epsilon * x` .
     Arguments:
         - x: (:obj:`torch.Tensor`) The input tensor to be normalized.
         - eps: (:obj:`float`) The coefficient of the additive regularization term \
-            to ensure h^{-1} is Lipschitz continuous
+            to ensure inverse function is Lipschitz continuous
     Returns:
         - (:obj:`torch.Tensor`) Normalized tensor.
 
@@ -23,11 +23,11 @@ def value_inv_transform(x: torch.Tensor, eps: float = 1e-2) -> torch.Tensor:
     """
     Overview:
         The inverse form of value rescale.
-        :math: `h^{-1}(x) = sign(x)({(\frac{\sqrt{1+4\eps(|x|+1+\eps)}-1}{2\eps})}^2-1)` .
+        :math: `h^{-1}(x) = sign(x)({(\frac{\sqrt{1+4\epsilon(|x|+1+\epsilon)}-1}{2\epsilon})}^2-1)` .
     Arguments:
         - x: (:obj:`torch.Tensor`) The input tensor to be unnormalized.
         - eps: (:obj:`float`) The coefficient of the additive regularization term \
-            to ensure h^{-1} is Lipschitz continuous
+            to ensure inverse function is Lipschitz continuous
     Returns:
         - (:obj:`torch.Tensor`) Unnormalized tensor.
     """

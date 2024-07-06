@@ -124,7 +124,7 @@ class BaseEnvManager(object):
 
         .. note::
             For more details about how to merge config, please refer to the system document of DI-engine \
-            (`en link <../03_system/config.html>`_).
+            (`en link1 <../03_system/config.html>`_).
         """
         self._cfg = cfg
         self._env_fn = env_fn
@@ -484,7 +484,7 @@ class BaseEnvManager(object):
 
         .. note::
             For more details about ``dynamic_seed``, please refer to the best practice document of DI-engine \
-            (`en link <../04_best_practice/random_seed.html>`_).
+            (`en link2 <../04_best_practice/random_seed.html>`_).
         """
         if isinstance(seed, numbers.Integral):
             seed = [seed + i for i in range(self.env_num)]
@@ -580,7 +580,7 @@ class BaseEnvManagerV2(BaseEnvManager):
 
     .. note::
         For more details about new task pipeline, please refer to the system document of DI-engine \
-        (`system en link <../03_system/index.html>`_).
+        (`system en link3 <../03_system/index.html>`_).
 
     Interfaces:
         reset, step, seed, close, enable_save_replay, launch, default_config, reward_shaping, enable_save_figure

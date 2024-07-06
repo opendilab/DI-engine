@@ -418,9 +418,9 @@ class QGPO(nn.Module):
             - a (:obj:`torch.Tensor`): The input action.
             - s (:obj:`torch.Tensor`): The input state.
             - r (:obj:`torch.Tensor`): The input reward.
-            - s_ (:obj:`torch.Tensor`): The input next state.
+            - s\_ (:obj:`torch.Tensor`): The input next state.
             - d (:obj:`torch.Tensor`): The input done.
-            - fake_a_ (:obj:`torch.Tensor`): The input fake action.
+            - fake_a (:obj:`torch.Tensor`): The input fake action.
             - discount (:obj:`float`): The discount factor.
         """
 

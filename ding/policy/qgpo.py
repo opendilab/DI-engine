@@ -13,12 +13,11 @@ from .base_policy import Policy
 @POLICY_REGISTRY.register('qgpo')
 class QGPOPolicy(Policy):
     """
-       Overview:
-            Policy class of QGPO algorithm
-            Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning
-            https://arxiv.org/abs/2304.12824
-        Interfaces:
-            ``__init__``, ``forward``, ``learn``, ``eval``, ``state_dict``, ``load_state_dict``
+    Overview:
+        Policy class of QGPO algorithm (https://arxiv.org/abs/2304.12824).
+        Contrastive Energy Prediction for Exact Energy-Guided Diffusion Sampling in Offline Reinforcement Learning
+    Interfaces:
+        ``__init__``, ``forward``, ``learn``, ``eval``, ``state_dict``, ``load_state_dict``
     """
 
     config = dict(

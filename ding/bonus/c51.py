@@ -68,9 +68,8 @@ class C51Agent:
             - exp_name (:obj:`str`): The name of this experiment, which will be used to create the folder to save \
                 log data. Default to None. If not specified, the folder name will be ``env_id``-``algorithm``.
             - model (:obj:`torch.nn.Module`): The model of C51 algorithm, which should be an instance of class \
-                :class:`ding.model.C51DQN`. \
-                If not specified, a default model will be generated according to the configuration.
-            - cfg (:obj:Union[EasyDict, dict]): The configuration of C51 algorithm, which is a dict. \
+                :class:`ding.model.C51DQN`. If not specified, a default model will be generated according to the config.
+            - cfg (:obj:`Union[EasyDict, dict]`): The configuration of C51 algorithm, which is a dict. \
                 Default to None. If not specified, the default configuration will be used. \
                 The default configuration can be found in ``ding/config/example/C51/gym_lunarlander_v2.py``.
             - policy_state_dict (:obj:`str`): The path of policy state dict saved by PyTorch a in local file. \

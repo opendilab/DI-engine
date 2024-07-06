@@ -167,8 +167,7 @@ class Memory:
         """
         Overview:
             Update the memory given a sequence of hidden states.
-            Example for single layer:
-                memory_len=3, hidden_size_len=2, bs=3
+            Example for single layer: (memory_len=3, hidden_size_len=2, bs=3)
 
                     m00 m01 m02      h00 h01 h02              m20 m21 m22
                 m = m10 m11 m12  h = h10 h11 h12  => new_m =  h00 h01 h02
@@ -264,9 +263,8 @@ class AttentionXL(torch.nn.Module):
                 4) Mask out the upper triangle (optional)
 
         .. note::
-            See the following material for better understanding:
-                https://github.com/kimiyoung/transformer-xl/issues/8
-                https://arxiv.org/pdf/1901.02860.pdf (Appendix B)
+            See the following material for better understanding: https://github.com/kimiyoung/transformer-xl/issues/8 \
+            https://arxiv.org/pdf/1901.02860.pdf (Appendix B)
         Arguments:
             - x (:obj:`torch.Tensor`): The input tensor with shape (cur_seq, full_seq, bs, head_num).
             - zero_upper (:obj:`bool`): If True, the upper-right triangle of the matrix is set to zero.

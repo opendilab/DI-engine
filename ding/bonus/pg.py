@@ -68,7 +68,7 @@ class PGAgent:
             - model (:obj:`torch.nn.Module`): The model of PG algorithm, which should be an instance of class \
                 :class:`ding.model.PG`. \
                 If not specified, a default model will be generated according to the configuration.
-            - cfg (:obj:Union[EasyDict, dict]): The configuration of PG algorithm, which is a dict. \
+            - cfg (:obj:`Union[EasyDict, dict]`): The configuration of PG algorithm, which is a dict. \
                 Default to None. If not specified, the default configuration will be used. \
                 The default configuration can be found in ``ding/config/example/PG/gym_lunarlander_v2.py``.
             - policy_state_dict (:obj:`str`): The path of policy state dict saved by PyTorch a in local file. \
