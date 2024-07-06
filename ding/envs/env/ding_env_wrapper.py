@@ -7,7 +7,7 @@ import numpy as np
 import treetensor.numpy as tnp
 
 from ding.envs.common.common_function import affine_transform
-from ding.envs.env_wrappers import create_env_wrapper
+from ding.envs.env_wrappers import create_env_wrapper, GymToGymnasiumWrapper
 from ding.torch_utils import to_ndarray
 from ding.utils import CloudPickleWrapper
 from .base_env import BaseEnv, BaseEnvTimestep
@@ -23,7 +23,14 @@ class DingEnvWrapper(BaseEnv):
          create_evaluator_env_cfg, enable_save_replay, observation_space, action_space, reward_space, clone
      """
 
-    def __init__(self, env: gym.Env = None, cfg: dict = None, seed_api: bool = True, caller: str = 'collector') -> None:
+    def __init__(
+            self,
+            env: Union[gym.Env, gymnasium.Env] = None,
+            cfg: dict = None,
+            seed_api: bool = True,
+            caller: str = 'collector',
+            is_gymnasium: bool = False
+    ) -> None:
         """
         Overview:
             Initialize the DingEnvWrapper. Either an environment instance or a config to create the environment \
@@ -32,17 +39,20 @@ class DingEnvWrapper(BaseEnv):
             usually used in simple environments. For the latter, i.e., a config to create an environment instance: \
             The `cfg` parameter must contain `env_id`.
         Arguments:
-            - env (:obj:`gym.Env`): An environment instance to be wrapped.
+            - env (:obj:`Union[gym.Env, gymnasium.Env]`): An environment instance to be wrapped.
             - cfg (:obj:`dict`): The configuration dictionary to create an environment instance.
             - seed_api (:obj:`bool`): Whether to use seed API. Defaults to True.
             - caller (:obj:`str`): A string representing the caller of this method, including ``collector`` or \
                 ``evaluator``. Different caller may need different wrappers. Default is 'collector'.
+            - is_gymnasium (:obj:`bool`): Whether the environment is a gymnasium environment. Defaults to False, i.e., \
+                the environment is a gym environment.
         """
         self._env = None
         self._raw_env = env
         self._cfg = cfg
         self._seed_api = seed_api  # some env may disable `env.seed` api
         self._caller = caller
+
         if self._cfg is None:
             self._cfg = {}
         self._cfg = EasyDict(self._cfg)
@@ -55,6 +65,7 @@ class DingEnvWrapper(BaseEnv):
         if 'env_id' not in self._cfg:
             self._cfg.env_id = None
         if env is not None:
+            self._is_gymnasium = isinstance(env, gymnasium.Env)
             self._env = env
             self._wrap_env(caller)
             self._observation_space = self._env.observation_space
@@ -66,6 +77,7 @@ class DingEnvWrapper(BaseEnv):
             self._init_flag = True
         else:
             assert 'env_id' in self._cfg
+            self._is_gymnasium = is_gymnasium
             self._init_flag = False
             self._observation_space = None
             self._action_space = None
@@ -82,7 +94,8 @@ class DingEnvWrapper(BaseEnv):
             - obs (:obj:`Dict`): The new observation after reset.
         """
         if not self._init_flag:
-            self._env = gym.make(self._cfg.env_id)
+            gym_proxy = gymnasium if self._is_gymnasium else gym
+            self._env = gym_proxy.make(self._cfg.env_id)
             self._wrap_env(self._caller)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
@@ -98,29 +111,16 @@ class DingEnvWrapper(BaseEnv):
                 name_prefix='rl-video-{}'.format(id(self))
             )
             self._replay_path = None
-        if isinstance(self._env, gym.Env):
-            if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-                np_seed = 100 * np.random.randint(1, 1000)
-                if self._seed_api:
-                    self._env.seed(self._seed + np_seed)
-                self._action_space.seed(self._seed + np_seed)
-            elif hasattr(self, '_seed'):
-                if self._seed_api:
-                    self._env.seed(self._seed)
-                self._action_space.seed(self._seed)
-            obs = self._env.reset()
-        elif isinstance(self._env, gymnasium.Env):
-            if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-                np_seed = 100 * np.random.randint(1, 1000)
-                self._action_space.seed(self._seed + np_seed)
-                obs = self._env.reset(seed=self._seed + np_seed)
-            elif hasattr(self, '_seed'):
-                self._action_space.seed(self._seed)
-                obs = self._env.reset(seed=self._seed)
-            else:
-                obs = self._env.reset()
-        else:
-            raise RuntimeError("not support env type: {}".format(type(self._env)))
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+            np_seed = 100 * np.random.randint(1, 1000)
+            if self._seed_api:
+                self._env.seed(self._seed + np_seed)
+            self._action_space.seed(self._seed + np_seed)
+        elif hasattr(self, '_seed'):
+            if self._seed_api:
+                self._env.seed(self._seed)
+            self._action_space.seed(self._seed)
+        obs = self._env.reset()
         if self.observation_space.dtype == np.float32:
             obs = to_ndarray(obs, dtype=np.float32)
         else:
@@ -221,7 +221,7 @@ class DingEnvWrapper(BaseEnv):
         random_action = self.action_space.sample()
         if isinstance(random_action, np.ndarray):
             pass
-        elif isinstance(random_action, int):
+        elif isinstance(random_action, (int, np.int64)):
             random_action = to_ndarray([random_action], dtype=np.int64)
         elif isinstance(random_action, dict):
             random_action = to_ndarray(random_action)
@@ -241,6 +241,8 @@ class DingEnvWrapper(BaseEnv):
             - caller (:obj:`str`): The caller of the environment, including ``collector`` or ``evaluator``. \
                 Different caller may need different wrappers. Default is 'collector'.
         """
+        if self._is_gymnasium:
+            self._env = GymToGymnasiumWrapper(self._env)
         # wrapper_cfgs: Union[str, List]
         wrapper_cfgs = self._cfg.env_wrapper
         if isinstance(wrapper_cfgs, str):
@@ -362,4 +364,4 @@ class DingEnvWrapper(BaseEnv):
             raw_env.__setattr__('spec', spec)
         except Exception:
             raw_env = self._raw_env
-        return DingEnvWrapper(raw_env, self._cfg, self._seed_api, caller)
+        return DingEnvWrapper(raw_env, self._cfg, self._seed_api, caller, self._is_gymnasium)
