@@ -114,6 +114,38 @@ class D4RLDataset(Dataset):
         except (KeyError, AttributeError):
             # do not normalize
             pass
+        if hasattr(cfg.env, "reward_norm"):
+            if cfg.env.reward_norm == "normalize":
+                dataset['rewards'] = (dataset['rewards'] - dataset['rewards'].mean()) / dataset['rewards'].std()
+            elif cfg.env.reward_norm == "iql_antmaze":
+                dataset['rewards'] = dataset['rewards'] - 1.0
+            elif cfg.env.reward_norm == "iql_locomotion":
+
+                def return_range(dataset, max_episode_steps):
+                    returns, lengths = [], []
+                    ep_ret, ep_len = 0.0, 0
+                    for r, d in zip(dataset["rewards"], dataset["terminals"]):
+                        ep_ret += float(r)
+                        ep_len += 1
+                        if d or ep_len == max_episode_steps:
+                            returns.append(ep_ret)
+                            lengths.append(ep_len)
+                            ep_ret, ep_len = 0.0, 0
+                    # returns.append(ep_ret)    # incomplete trajectory
+                    lengths.append(ep_len)  # but still keep track of number of steps
+                    assert sum(lengths) == len(dataset["rewards"])
+                    return min(returns), max(returns)
+
+                min_ret, max_ret = return_range(dataset, 1000)
+                dataset['rewards'] /= max_ret - min_ret
+                dataset['rewards'] *= 1000
+            elif cfg.env.reward_norm == "cql_antmaze":
+                dataset['rewards'] = (dataset['rewards'] - 0.5) * 4.0
+            elif cfg.env.reward_norm == "antmaze":
+                dataset['rewards'] = (dataset['rewards'] - 0.25) * 2.0
+            else:
+                raise NotImplementedError
+
         self._data = []
         self._load_d4rl(dataset)
 

@@ -43,6 +43,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, DiscreteCQLPolicy
+from .iql import IQLPolicy
 from .dt import DTPolicy
 from .pdqn import PDQNPolicy
 from .madqn import MADQNPolicy
@@ -320,6 +321,9 @@ class DREAMERCommandModePolicy(DREAMERPolicy, DummyCommandModePolicy):
 class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
+@POLICY_REGISTRY.register('iql_command')
+class CQLCommandModePolicy(IQLPolicy, DummyCommandModePolicy):
+    pass
 
 @POLICY_REGISTRY.register('discrete_cql_command')
 class DiscreteCQLCommandModePolicy(DiscreteCQLPolicy, EpsCommandModePolicy):
