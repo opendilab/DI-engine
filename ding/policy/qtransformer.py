@@ -448,22 +448,36 @@ class QTransformerPolicy(SACPolicy):
             "policy_loss": q_pred_all_actions.mean().item(),
         }
 
-    def _get_actions(self, obs):
+    def _get_actions(self, obs, eval=False, epsilon=0.1):
+        import random
+
         action_bins = None
-        action_bins = torch.full(
-            (obs.size(0), self._action_dim), -1, dtype=torch.long, device=obs.device
-        )
-        for action_idx in range(self._action_dim):
-            if action_idx == 0:
-                q_values = self._eval_model.forward(obs)
-            else:
-                q_values_all = self._eval_model.forward(
-                    obs, action=action_bins[:, :action_idx]
-                )
-                q_values = q_values_all[:, action_idx : action_idx + 1, :]
-            selected_action_bins = q_values.argmax(dim=-1)
-            action_bins[:, action_idx] = selected_action_bins.squeeze()
+        if eval or random.random() > epsilon:
+            action_bins = torch.full(
+                (obs.size(0), self._action_dim), -1, dtype=torch.long, device=obs.device
+            )
+            for action_idx in range(self._action_dim):
+                if action_idx == 0:
+                    q_values = self._eval_model.forward(obs)
+                else:
+                    q_values_all = self._eval_model.forward(
+                        obs, action=action_bins[:, :action_idx]
+                    )
+                    q_values = q_values_all[:, action_idx : action_idx + 1, :]
+                selected_action_bins = q_values.argmax(dim=-1)
+                action_bins[:, action_idx] = selected_action_bins.squeeze()
+        else:
+            action_bins = torch.randint(
+                0, self._action_bin, (obs.size(0), self._action_dim), device=obs.device
+            )
         action = 2.0 * action_bins.float() / (1.0 * self._action_bin) - 1.0
+        wandb.log(
+            {
+                "action/action_mean": action.mean().item(),
+                "action/action_max": action.max().item(),
+                "action/action_min": action.min().item(),
+            }
+        )
         return action
 
     def _monitor_vars_learn(self) -> List[str]:
@@ -583,7 +597,7 @@ class QTransformerPolicy(SACPolicy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._get_actions(data)
+            output = self._get_actions(data, eval=True)
         if self._cuda:
             output = to_device(output, "cpu")
         output = default_decollate(output)
@@ -637,7 +651,7 @@ class QTransformerPolicy(SACPolicy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._get_actions(data)
+            output = self._get_actions(data, eval=False)
         if self._cuda:
             output = to_device(output, "cpu")
         output = default_decollate(output)

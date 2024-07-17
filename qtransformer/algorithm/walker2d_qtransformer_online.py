@@ -36,7 +36,7 @@ main_config = dict(
         ),
         learn=dict(
             update_per_collect=5,
-            batch_size=200,
+            batch_size=256,
             learning_rate_q=3e-4,
             learning_rate_policy=1e-4,
             learning_rate_alpha=1e-4,
@@ -63,7 +63,7 @@ main_config = dict(
         ),
         other=dict(
             replay_buffer=dict(
-                replay_buffer_size=1000,
+                replay_buffer_size=100000,
             ),
         ),
     ),
