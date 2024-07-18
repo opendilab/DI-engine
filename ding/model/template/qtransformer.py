@@ -26,6 +26,18 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data.distributed import DistributedSampler
 
 
+class FiLM(nn.Module):
+    def __init__(self, in_features, out_features):
+        super(FiLM, self).__init__()
+        self.gamma = nn.Linear(in_features, out_features)
+        self.beta = nn.Linear(in_features, out_features)
+
+    def forward(self, x, cond):
+        gamma = self.gamma(cond)
+        beta = self.beta(cond)
+        return gamma * x + beta
+
+
 class EncoderDecoder(nn.Module):
     """
     A standard Encoder-Decoder architecture. Base for this and many
@@ -43,16 +55,17 @@ class EncoderDecoder(nn.Module):
         return self.decoder(self.tgt_embed(tgt), memory, src_mask, tgt_mask)
 
 
-class Generator(nn.Module):
-    "Define standard linear + softmax generation step."
+# class Generator(nn.Module):
+#     "Define standard linear + softmax generation step."
 
-    def __init__(self, d_model, vocab):
-        super(Generator, self).__init__()
-        self.proj = nn.Linear(d_model, vocab)
+#     def __init__(self, d_model, vocab):
+#         super(Generator, self).__init__()
+#         self.proj = nn.Linear(d_model, vocab)
+#         self.proj1 = nn.Linear(vocab, vocab)
 
-    def forward(self, x):
-        # return log_softmax(self.proj(x), dim=-1)
-        return self.proj(x)
+#     def forward(self, x):
+#         x = self.proj(x)
+#         return x
 
 
 def clones(module, N):
@@ -258,6 +271,52 @@ class actionEncode(nn.Module):
         return layer_outputs
 
 
+class actionDecode(nn.Module):
+    def __init__(self, d_model, action_dim, action_bin):
+        super().__init__()
+        self.actionbin = action_bin
+        self.linear_layers = nn.ModuleList(
+            [nn.Linear(d_model, action_bin) for _ in range(action_dim)]
+        )
+
+    def forward(self, x):
+        x = x.to(dtype=torch.float)
+        b, n, _ = x.shape
+        slices = torch.unbind(x, dim=1)
+        layer_outputs = torch.empty(b, n, self.actionbin, device=x.device)
+        for i, layer in enumerate(self.linear_layers[:n]):
+            slice_output = layer(slices[i])
+            layer_outputs[:, i, :] = slice_output
+        return layer_outputs
+
+
+class actionDecode_with_relu(nn.Module):
+    def __init__(self, d_model, action_dim, action_bin, hidden_dim):
+        super().__init__()
+        self.actionbin = action_bin
+        self.hidden_dim = hidden_dim
+        self.linear_layers = nn.ModuleList(
+            [nn.Linear(d_model, hidden_dim) for _ in range(action_dim)]
+        )
+        self.hidden_layers = nn.ModuleList(
+            [nn.Linear(hidden_dim, action_bin) for _ in range(action_dim)]
+        )
+        self.activation = nn.ReLU()
+
+    def forward(self, x):
+        x = x.to(dtype=torch.float)
+        b, n, _ = x.shape
+        slices = torch.unbind(x, dim=1)
+        layer_outputs = torch.empty(b, n, self.actionbin, device=x.device)
+        for i, (linear_layer, hidden_layer) in enumerate(
+            zip(self.linear_layers[:n], self.hidden_layers[:n])
+        ):
+            slice_output = self.activation(linear_layer(slices[i]))
+            slice_output = hidden_layer(slice_output)
+            layer_outputs[:, i, :] = slice_output
+        return layer_outputs
+
+
 class DecoderOnly(nn.Module):
     def __init__(self, action_bin, N=8, d_model=512, d_ff=2048, h=8, dropout=0.1):
         super(DecoderOnly, self).__init__()
@@ -268,12 +327,12 @@ class DecoderOnly(nn.Module):
         self.model = Decoder(
             DecoderLayer(d_model, c(self_attn), c(feed_forward), dropout), N
         )
-        self.Generator = Generator(d_model, vocab=action_bin)
+        # self.Generator = Generator(d_model, vocab=action_bin)
 
     def forward(self, x):
         x = self.position(x)
         x = self.model(x, subsequent_mask(x.size(1)).to(x.device))
-        x = self.Generator(x)
+        # x = self.Generator(x)
         return x
 
 
@@ -284,6 +343,7 @@ class QTransformer(nn.Module):
         self.actionEncode = actionEncode(action_dim, action_bin)
         self.Transormer = DecoderOnly(action_bin)
         self._action_bin = action_bin
+        self.actionDecode = actionDecode(512, action_dim, action_bin)
 
     def forward(
         self,
@@ -294,33 +354,39 @@ class QTransformer(nn.Module):
         if action is not None:
             action = torch.nn.functional.one_hot(action, num_classes=self._action_bin)
             actionEncode = self.actionEncode(action)
-            return self.Transormer(torch.cat((stateEncode, actionEncode), dim=1))
-        return self.Transormer(stateEncode)
+            res = self.Transormer(torch.cat((stateEncode, actionEncode), dim=1))
+            return self.actionDecode(res)
+        res = self.Transormer(stateEncode)
+        return self.actionDecode(res)
 
 
-# def get_optimal_actions(
-#         self,
-#         encoded_state,
-#         actions: Optional[Tensor] = None,
-#     ):
-#         batch_size = encoded_state.shape[0]
-#         action_bins = torch.empty(
-#             batch_size, self.num_actions, device=encoded_state.device, dtype=torch.long
+# class QTransformerWithFiLM(nn.Module):
+#     def __init__(self, num_timesteps, state_dim, action_dim, action_bin):
+#         super().__init__()
+#         self.stateEncode = stateEncode(num_timesteps, state_dim)
+#         self.actionEncode = actionEncode(action_dim, action_bin)
+#         self.Transormer = DecoderOnly(action_bin)
+#         self._action_bin = action_bin
+#         self.actionDecode = actionDecode(512, action_dim, action_bin)
+
+#         # Define FiLM layers
+#         self.film_state = FiLM(num_timesteps, 512)
+#         self.film_action = FiLM(num_timesteps, 512)
+
+#     def forward(self, state: Tensor, action: Optional[Tensor] = None):
+#         stateEncode = self.stateEncode(state)
+#         seq_len = state.size(1)
+#         stateEncode = self.film_state(
+#             stateEncode, torch.tensor([seq_len], device=state.device)
 #         )
-#         cache = None
-#         tokens = self.state_append_actions(encoded_state, actions=actions)
-
-#         for action_idx in range(self.num_actions):
-#             embed, cache = self.transformer(
-#                 tokens, context=encoded_state, cache=cache, return_cache=True
+#         if action is not None:
+#             action = torch.nn.functional.one_hot(action, num_classes=self._action_bin)
+#             actionEncode = self.actionEncode(action)
+#             actionEncode = self.film_action(
+#                 actionEncode, torch.tensor([seq_len], device=action.device)
 #             )
-#             q_values = self.get_q_value_fuction(embed[:, 1:, :])
-#             if action_idx == 0:
-#                 special_idx = action_idx
-#             else:
-#                 special_idx = action_idx - 1
-#             _, selected_action_indices = q_values[:, special_idx, :].max(dim=-1)
-#             action_bins[:, action_idx] = selected_action_indices
-#             now_actions = action_bins[:, 0 : action_idx + 1]
-#             tokens = self.state_append_actions(encoded_state, actions=now_actions)
-#         return action_bins
+#             res = self.Transormer(torch.cat((stateEncode, actionEncode), dim=1))
+#             return self.actionDecode(res)
+
+#         res = self.Transormer(stateEncode)
+#         return self.actionDecode(res)
