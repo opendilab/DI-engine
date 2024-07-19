@@ -7,8 +7,6 @@ walker2d_onppo_config = dict(
     exp_name='walker2d_onppo_seed0',
     env=dict(
         env_id='Walker2d-v3',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
