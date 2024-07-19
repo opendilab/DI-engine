@@ -251,28 +251,28 @@ on-policy PPO Benchmark:
 |                     |                 |                                                     |DI-engine/tree/main/dizoo/|Sb3(1567)             |
 |Hopper               |  3000           |.. image:: images/benchmark/hopper_onppo.png         |mujoco/config/            |                      |
 |                     |                 |                                                     |hopper_onppo_             |spinningup(2500)      |
-|(Hopper-v3)          |                 |                                                     |default_config.py>`_      |                      |
+|(Hopper-v3)          |                 |                                                     |config.py>`_              |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 |                     |                 |                                                     |`config_link_6 <https://  |Tianshou(4895)        |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Walker2d             |                 |                                                     |DI-engine/tree/main/dizoo/|Sb3(1230)             |
 |                     |  3700           |.. image:: images/benchmark/walker2d_onppo.png       |mujoco/config/            |                      |
 |(Walker2d-v3)        |                 |                                                     |walker2d_onppo_           |spinningup(2500)      |
-|                     |                 |                                                     |default_config.py>`_      |                      |
+|                     |                 |                                                     |config.py>`_              |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 |                     |                 |                                                     |`config_link_7  <https:// |Tianshou(7337)        |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Halfcheetah          |                 |                                                     |DI-engine/tree/main/dizoo/|Sb3(1976)             |
 |                     |  3500           |.. image:: images/benchmark/halfcheetah_onppo.png    |mujoco/config/            |                      |
 |(Halfcheetah-v3)     |                 |                                                     |halfcheetah_onppo         |spinningup(3000)      |
-|                     |                 |                                                     |_default_config.py>`_     |                      |
+|                     |                 |                                                     |config.py>`_              |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 |                     |                 |                                                     |`config_link_8  <https:// |Tianshou(3258)        |
 |                     |                 |                                                     |github.com/opendilab/     |                      |
 |Ant                  |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
 |                     |  4200           |.. image:: images/benchmark/ant_onppo.png            |mujoco/config/            |                      |
 |(Ant-v3)             |                 |                                                     |ant_onppo                 |spinningup(650)       |
-|                     |                 |                                                     |_default_config.py>`_     |                      |
+|                     |                 |                                                     |config.py>`_              |                      |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
 
 

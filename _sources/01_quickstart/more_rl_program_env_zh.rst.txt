@@ -27,14 +27,14 @@ DI-engine 使用全局配置文件来控制环境和策略的所有变量，每�
 初始化环境
 ------------------------------
 
-``超级马里奥兄弟`` 是一个 **图像输入** 观察环境, 所以我们不只是通过 ``DingEnvWrapper`` 封装原始的 gym 环境，而是需要添加一些额外的 Wrapper 在发送给DQN    Policy 之前对观测进行预处理。
+``超级马里奥兄弟`` 是一个 **图像输入** 观察环境, 所以我们不只是通过 ``DingEnvWrapper`` 封装原始的 gym 环境，而是需要添加一些额外的 Wrapper 在发送给 DQN Policy 之前对观测进行预处理。
 在本教程中，我们使用以下5个 Wrapper 来预处理数据并转换为 DI-engine 的环境格式，下列是一些基本描述，你可以在这里找到 `完整代码实现和注释 <https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_wrappers/env_wrappers.py>`_
 
   - ``MaxAndSkipWrapper`` : 由于连续帧变化不大，我们可以跳过n个中间帧来简化它而不会损失太多信息。
-  - ``WarpFrameWrapper`` : 将原始RGB图像转换为灰度图，并将其调整为标准大小以进行DRL训练。
+  - ``WarpFrameWrapper`` : 将原始 RGB 图像转换为灰度图，并将其调整为标准大小以进行 DRL 训练。
   - ``ScaledFloatFrameWrapper`` : 将原始图像从[0-255]归一化到[0-1]，有利于神经网络训练。
   - ``FrameStackWrapper`` : 堆叠连续的帧。由于我们无法从单帧推断方向、速度等信息，堆叠帧可以提供更多的必要信息。
-  - ``EvalEpisodeReturnEnv`` : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。
+  - ``EvalEpisodeReturnWrapper`` : 记录最终的 evaluation reward（即马里奥中的 episode return），适配 DI-engine 的环境格式。
 
 
 .. note::
@@ -45,7 +45,9 @@ DI-engine 使用全局配置文件来控制环境和策略的所有变量，每�
 .. code-block:: python
 
     # use subprocess env manager to speed up collecting 
-    from ding.envs import DingEnvWrapper, BaseEnvManagerV2, SubprocessEnvManagerV2
+    from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
+    from ding.envs.env_wrappers import MaxAndSkipWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, FrameStackWrapper, \
+       EvalEpisodeReturnWrapper
     import gym_super_mario_bros
     from nes_py.wrappers import JoypadSpace
 
@@ -60,7 +62,7 @@ DI-engine 使用全局配置文件来控制环境和策略的所有变量，每�
                     lambda env: WarpFrameWrapper(env, size=84),
                     lambda env: ScaledFloatFrameWrapper(env),
                     lambda env: FrameStackWrapper(env, n_frames=4),
-                    lambda env: EvalEpisodeReturnEnv(env),
+                    lambda env: EvalEpisodeReturnWrapper(env),
                 ]
             }
         )

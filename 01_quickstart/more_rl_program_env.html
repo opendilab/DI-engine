@@ -102,6 +102,16 @@
                   <p>OpenDILab Decision AI Engine</p>
                 </a>
                 <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/LightZero" target="_blank">
+                  <span class="dropdown-title">LightZero </span>
+                  <p>OpenDILab Decision Monte Carlo Tree Search Framework</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GenerativeRL" target="_blank">
+                  <span class="dropdown-title">GenerativeRL </span>
+                  <p>OpenDILab Generative AI Framework</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
                   href="https://github.com/opendilab/DI-star" target="_blank">
                   <span class="dropdown-title">DI-star </span>
                   <p>OpenDILab Decision AI in StarCraftII</p>
@@ -324,7 +334,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">WarpFrameWrapper</span></code> : Transform original RGB image to grayscale image and resize it to standard size for DRL training.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code> : Normalize origin image from [0-255] to [0-1], which is beneficial to neural network training.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FrameStackWrapper</span></code> : Stack the consecutive frames. Due to we can’t infer some information like direction speed from a single frame, stacked frames can provide more necessary information.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">EvalEpisodeReturnEnv</span></code> : Record evaluation episode return (i.e., episode return in mario), which is adapted to DI-engine’s environment format.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EvalEpisodeReturnWrapper</span></code> : Record evaluation episode return (i.e., episode return in mario), which is adapted to DI-engine’s environment format.</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
@@ -332,7 +342,9 @@
 <p>If you can’t find proper env wrapper, you can define your own wrapper following <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code> format, or you can implement a subclass of DI-engine’s env format according to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/04_best_practice/ding_env.html">Customized Env doc</a>.</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># use subprocess env manager to speed up collecting</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span> <span class="nn">ding.envs.env_wrappers</span> <span class="kn">import</span> <span class="n">MaxAndSkipWrapper</span><span class="p">,</span> <span class="n">WarpFrameWrapper</span><span class="p">,</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">,</span> <span class="n">FrameStackWrapper</span><span class="p">,</span> \
+   <span class="n">EvalEpisodeReturnWrapper</span>
 <span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
 <span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
 
@@ -347,7 +359,7 @@
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">WarpFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">),</span>
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FrameStackWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">EvalEpisodeReturnEnv</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">EvalEpisodeReturnWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">)</span>

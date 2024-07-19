@@ -102,6 +102,16 @@
                   <p>OpenDILab Decision AI Engine</p>
                 </a>
                 <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/LightZero" target="_blank">
+                  <span class="dropdown-title">LightZero </span>
+                  <p>OpenDILab Decision Monte Carlo Tree Search Framework</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GenerativeRL" target="_blank">
+                  <span class="dropdown-title">GenerativeRL </span>
+                  <p>OpenDILab Generative AI Framework</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
                   href="https://github.com/opendilab/DI-star" target="_blank">
                   <span class="dropdown-title">DI-star </span>
                   <p>OpenDILab Decision AI in StarCraftII</p>
@@ -316,15 +326,15 @@
 </section>
 <section id="id4">
 <h2>初始化环境<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">超级马里奥兄弟</span></code> 是一个 <strong>图像输入</strong> 观察环境, 所以我们不只是通过 <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 封装原始的 gym 环境，而是需要添加一些额外的 Wrapper 在发送给DQN    Policy 之前对观测进行预处理。
+<p><code class="docutils literal notranslate"><span class="pre">超级马里奥兄弟</span></code> 是一个 <strong>图像输入</strong> 观察环境, 所以我们不只是通过 <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 封装原始的 gym 环境，而是需要添加一些额外的 Wrapper 在发送给 DQN Policy 之前对观测进行预处理。
 在本教程中，我们使用以下5个 Wrapper 来预处理数据并转换为 DI-engine 的环境格式，下列是一些基本描述，你可以在这里找到 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env_wrappers/env_wrappers.py">完整代码实现和注释</a></p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">MaxAndSkipWrapper</span></code> : 由于连续帧变化不大，我们可以跳过n个中间帧来简化它而不会损失太多信息。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">WarpFrameWrapper</span></code> : 将原始RGB图像转换为灰度图，并将其调整为标准大小以进行DRL训练。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WarpFrameWrapper</span></code> : 将原始 RGB 图像转换为灰度图，并将其调整为标准大小以进行 DRL 训练。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code> : 将原始图像从[0-255]归一化到[0-1]，有利于神经网络训练。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FrameStackWrapper</span></code> : 堆叠连续的帧。由于我们无法从单帧推断方向、速度等信息，堆叠帧可以提供更多的必要信息。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">EvalEpisodeReturnEnv</span></code> : 记录最终的evaluation reward（即马里奥中的episode return），适配DI-engine的环境格式。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EvalEpisodeReturnWrapper</span></code> : 记录最终的 evaluation reward（即马里奥中的 episode return），适配 DI-engine 的环境格式。</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
@@ -332,7 +342,9 @@
 <p>如果找不到合适的 Env Wrapper， 您可以按照 <code class="docutils literal notranslate"><span class="pre">gym.Wrapper</span></code> 格式定义自己的 Wrapper ，也可以根据 <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/04_best_practice/ding_env.html">Customized Env doc</a> 实现符合 DI-engine 的环境格式</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># use subprocess env manager to speed up collecting</span>
-<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">BaseEnvManagerV2</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">DingEnvWrapper</span><span class="p">,</span> <span class="n">SubprocessEnvManagerV2</span>
+<span class="kn">from</span> <span class="nn">ding.envs.env_wrappers</span> <span class="kn">import</span> <span class="n">MaxAndSkipWrapper</span><span class="p">,</span> <span class="n">WarpFrameWrapper</span><span class="p">,</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">,</span> <span class="n">FrameStackWrapper</span><span class="p">,</span> \
+   <span class="n">EvalEpisodeReturnWrapper</span>
 <span class="kn">import</span> <span class="nn">gym_super_mario_bros</span>
 <span class="kn">from</span> <span class="nn">nes_py.wrappers</span> <span class="kn">import</span> <span class="n">JoypadSpace</span>
 
@@ -347,7 +359,7 @@
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">WarpFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">),</span>
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
                 <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">FrameStackWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">EvalEpisodeReturnEnv</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
+                <span class="k">lambda</span> <span class="n">env</span><span class="p">:</span> <span class="n">EvalEpisodeReturnWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">}</span>
     <span class="p">)</span>

@@ -297,8 +297,11 @@ Q&A
 
 4. value-based， policy-based，actor-critic，三者分别是什么含义？
 
--  | value-based 就是学习值函数（或动作值函数），评价一个状态（状态动作对）的价值，policy-based 是指直接学习一个参数化的策略网络，一般通过策略梯度定理进行优化，而 actor-critic 是同时学习值网络和策略网络，是前面两者的结合，集成了值迭代和策略迭代范式，是解决实际问题时最常考虑的框架。
-   | 具体关系如下体所示：
+-  value-based 就是学习值函数（或动作值函数），评价一个状态（状态动作对）的价值，policy-based 是指直接学习一个参数化的策略网络，一般通过策略梯度定理进行优化，而 actor-critic 是同时学习值网络和策略网络，是前面两者的结合，集成了值迭代和策略迭代范式，是解决实际问题时最常考虑的框架。
+   具体关系如下图所示：
+
+.. image:: images/actor-critic.jpg
+   :scale: 30 %
 
 5. 什么是 on-policy 和 off-policy，两者区别是什么？
 
@@ -306,8 +309,7 @@ Q&A
 
 -  Off-policy 则是指在更新当前策略时可以用到之前旧的策略产生的样本，产生数据样本的策略和当前待评估和改进策略是不同的。
 
--  一般来讲，on-policy 很难平衡探索与利用的问题，容易学习到局部最优解，虽然对整体策略的更新更稳定但是降低了学习的效率。off-policy 的优势在于重复利用数据进行训练，但是收敛速度与稳定性不如 on-policy 的算法。值得注意的是, Soft
-   Actor Critic 提出的最大熵强化学习算法极大的提高了 off-policy 算法的稳定性和性能。
+-  一般来讲，on-policy 很难平衡探索与利用的问题，容易学习到局部最优解，虽然对整体策略的更新更稳定但是降低了学习的效率。off-policy 的优势在于重复利用数据进行训练，但是收敛速度与稳定性不如 on-policy 的算法。值得注意的是, Soft Actor Critic 提出的最大熵强化学习算法极大的提高了 off-policy 算法的稳定性和性能。
 
 6. 什么是 online training 和 offline training？我们通常如何实现 offline
    training？
@@ -316,7 +318,8 @@ Q&A
    Offline training 即是训练时智能体不与环境进行交互，而是直接在给定的固定数据集上进行训练，
    比如 behavior cloning 就是经典的 Offline training 算 法。
    我们通常在固定数据集上采样一个 batch 用于 RL 训练，因此 offline
-   RL 又称为 Batch RL。具体参考我们的 offline RL 文档 []。
+   RL 又称为 Batch RL。具体参考我们的 `offline RL 文档`_
+.. _offline RL 文档: https://di-engine-docs.readthedocs.io/zh-cn/latest/02_algo/offline_rl_zh.html
 
 7. 为什么要使用 replay buffer？ experience replay 作用在哪里？
 
