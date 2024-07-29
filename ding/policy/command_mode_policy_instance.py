@@ -321,9 +321,11 @@ class DREAMERCommandModePolicy(DREAMERPolicy, DummyCommandModePolicy):
 class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('iql_command')
 class IQLCommandModePolicy(IQLPolicy, DummyCommandModePolicy):
     pass
+
 
 @POLICY_REGISTRY.register('discrete_cql_command')
 class DiscreteCQLCommandModePolicy(DiscreteCQLPolicy, EpsCommandModePolicy):

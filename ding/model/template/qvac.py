@@ -34,7 +34,7 @@ class ContinuousQVAC(nn.Module):
         actor_head_layer_num: int = 1,
         critic_head_hidden_size: int = 64,
         critic_head_layer_num: int = 1,
-        activation: Optional[nn.Module] =  nn.SiLU(), #nn.ReLU(),
+        activation: Optional[nn.Module] = nn.SiLU(),  #nn.ReLU(),
         norm_type: Optional[str] = None,
         encoder_hidden_size_list: Optional[SequenceType] = None,
         share_encoder: Optional[bool] = False,

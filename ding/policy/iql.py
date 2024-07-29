@@ -18,7 +18,7 @@ from .common_utils import default_preprocess_learn
 
 
 def asymmetric_l2_loss(u, tau):
-    return torch.mean(torch.abs(tau - (u < 0).float()) * u**2)
+    return torch.mean(torch.abs(tau - (u < 0).float()) * u ** 2)
 
 
 @POLICY_REGISTRY.register('iql')
@@ -247,7 +247,7 @@ class IQLPolicy(Policy):
 
         self._tau = self._cfg.learn.tau
         self._beta = self._cfg.learn.beta
-        self._policy_start_training_counter=10000 #300000
+        self._policy_start_training_counter = 10000  #300000
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -296,13 +296,17 @@ class IQLPolicy(Policy):
 
         # 1. predict q and v value
         value = self._learn_model.forward(data, mode='compute_critic')
-        q_value, v_value= value['q_value'], value['v_value']
+        q_value, v_value = value['q_value'], value['v_value']
 
         # 2. predict target value
         with torch.no_grad():
             (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
-            next_obs_dist= TransformedDistribution(Independent(Normal(mu, sigma), 1), transforms=[TanhTransform(cache_size=1), AffineTransform(loc=0.0, scale=1.05)])
+            next_obs_dist = TransformedDistribution(
+                Independent(Normal(mu, sigma), 1),
+                transforms=[TanhTransform(cache_size=1),
+                            AffineTransform(loc=0.0, scale=1.05)]
+            )
             next_action = next_obs_dist.rsample()
             next_log_prob = next_obs_dist.log_prob(next_action)
 
@@ -346,7 +350,10 @@ class IQLPolicy(Policy):
         # 6. evaluate to get action distribution
         (mu, sigma) = self._learn_model.forward(data['obs'], mode='compute_actor')['logit']
 
-        dist= TransformedDistribution(Independent(Normal(mu, sigma), 1), transforms=[TanhTransform(cache_size=1), AffineTransform(loc=0.0, scale=1.05)])
+        dist = TransformedDistribution(
+            Independent(Normal(mu, sigma), 1),
+            transforms=[TanhTransform(cache_size=1), AffineTransform(loc=0.0, scale=1.05)]
+        )
         action = data['action']
         log_prob = dist.log_prob(action)
 
@@ -359,7 +366,7 @@ class IQLPolicy(Policy):
         new_advantage = new_q_value - new_v_value
 
         # 8. compute policy loss
-        policy_loss = (- log_prob * torch.exp(new_advantage.detach()/self._beta).clamp(max=20.0)).mean()
+        policy_loss = (-log_prob * torch.exp(new_advantage.detach() / self._beta).clamp(max=20.0)).mean()
         self._policy_start_training_counter -= 1
 
         loss_dict['policy_loss'] = policy_loss
@@ -583,7 +590,7 @@ class IQLPolicy(Policy):
         self._eval_model.eval()
         with torch.no_grad():
             (mu, sigma) = self._eval_model.forward(data, mode='compute_actor')['logit']
-            action = torch.tanh(mu)/1.05  # deterministic_eval
+            action = torch.tanh(mu) / 1.05  # deterministic_eval
             output = {'action': action}
         if self._cuda:
             output = to_device(output, 'cpu')
