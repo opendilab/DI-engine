@@ -491,7 +491,7 @@ We appreciate all the feedbacks and contributions to improve DI-engine, both alg
 ```latex
 @misc{ding,
     title={DI-engine: A Universal AI System/Engine for Decision Intelligence},
-    author={Yazhe Niu, Jingxin Xu, Yuan Pu, Yunpeng Nie, Jinouwen Zhang, Shuai Hu, Liangxuan Zhao, Ming Zhang, Yu Liu},
+    author={Niu, Yazhe and Xu, Jingxin and Pu, Yuan and Nie, Yunpeng and Zhang, Jinouwen and Hu, Shuai and Zhao, Liangxuan and Zhang,  Ming and Liu, Yu},
     publisher={GitHub},
     howpublished={\url{https://github.com/opendilab/DI-engine}},
     year={2021},
