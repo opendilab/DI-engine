@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.distributions import Normal, Independent, TransformedDistribution
-from torch.distributions.transforms import TanhTransform
+from torch.distributions.transforms import TanhTransform, AffineTransform
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
@@ -31,7 +31,7 @@ class IQLPolicy(Policy):
         == ====================  ========    =============  ================================= =======================
         ID Symbol                Type        Default Value  Description                       Other(Shape)
         == ====================  ========    =============  ================================= =======================
-        1  ``type``              str         cql            | RL policy register name, refer  | this arg is optional,
+        1  ``type``              str         iql            | RL policy register name, refer  | this arg is optional,
                                                             | to registry ``POLICY_REGISTRY`` | a placeholder
         2  ``cuda``              bool        True           | Whether to use cuda for network |
         3  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for
@@ -95,9 +95,11 @@ class IQLPolicy(Policy):
             # (str type) action_space: Use reparameterization trick for continous action
             action_space='reparameterization',
             # (int) Hidden size for actor network head.
-            actor_head_hidden_size=256,
+            actor_head_hidden_size=512,
+            actor_head_layer_num=3,
             # (int) Hidden size for critic network head.
-            critic_head_hidden_size=256,
+            critic_head_hidden_size=512,
+            critic_head_layer_num=2,
         ),
         # learn_mode config
         learn=dict(
@@ -208,8 +210,8 @@ class IQLPolicy(Policy):
         init_w = self._cfg.learn.init_w
         self._model.actor_head[-1].mu.weight.data.uniform_(-init_w, init_w)
         self._model.actor_head[-1].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor_head[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor_head[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        # self._model.actor_head[-1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        # self._model.actor_head[-1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
         if self._twin_critic:
             self._model.critic_q_head[0][-1].last.weight.data.uniform_(-init_w, init_w)
             self._model.critic_q_head[0][-1].last.bias.data.uniform_(-init_w, init_w)
@@ -245,7 +247,7 @@ class IQLPolicy(Policy):
 
         self._tau = self._cfg.learn.tau
         self._beta = self._cfg.learn.beta
-        self._policy_start_training_counter=300000
+        self._policy_start_training_counter=10000 #300000
 
     def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -259,7 +261,7 @@ class IQLPolicy(Policy):
                 value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
                 combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
                 dimension by some utility functions such as ``default_preprocess_learn``. \
-                For CQL, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
+                For IQL, each element in list is a dict containing at least the following keys: ``obs``, ``action``, \
                 ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys such as ``weight``.
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
@@ -300,14 +302,7 @@ class IQLPolicy(Policy):
         with torch.no_grad():
             (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
 
-            # dist = Independent(Normal(mu, sigma), 1)
-            # pred = dist.rsample()
-            # next_action = torch.tanh(pred)
-            # y = 1 - next_action.pow(2) + 1e-6
-            # next_log_prob = dist.log_prob(pred).unsqueeze(-1)
-            # next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
-
-            next_obs_dist= TransformedDistribution(Independent(Normal(mu, sigma), 1), transforms=[TanhTransform(cache_size=1)])
+            next_obs_dist= TransformedDistribution(Independent(Normal(mu, sigma), 1), transforms=[TanhTransform(cache_size=1), AffineTransform(loc=0.0, scale=1.05)])
             next_action = next_obs_dist.rsample()
             next_log_prob = next_obs_dist.log_prob(next_action)
 
@@ -350,15 +345,9 @@ class IQLPolicy(Policy):
 
         # 6. evaluate to get action distribution
         (mu, sigma) = self._learn_model.forward(data['obs'], mode='compute_actor')['logit']
-        # dist = Independent(Normal(mu, sigma), 1)
-        # pred = dist.rsample()
-        # action = torch.tanh(pred)
-        # y = 1 - action.pow(2) + 1e-6
-        # log_prob = dist.log_prob(pred).unsqueeze(-1)
-        # log_prob = log_prob - torch.log(y).sum(-1, keepdim=True)
 
-        dist= TransformedDistribution(Independent(Normal(mu, sigma), 1), transforms=[TanhTransform(cache_size=1)])
-        action = dist.rsample()
+        dist= TransformedDistribution(Independent(Normal(mu, sigma), 1), transforms=[TanhTransform(cache_size=1), AffineTransform(loc=0.0, scale=1.05)])
+        action = data['action']
         log_prob = dist.log_prob(action)
 
         eval_data = {'obs': obs, 'action': action}
@@ -370,16 +359,15 @@ class IQLPolicy(Policy):
         new_advantage = new_q_value - new_v_value
 
         # 8. compute policy loss
-        policy_loss = (- self._beta * log_prob * torch.exp(new_advantage.detach()).clamp(max=1000.0)).mean()
+        policy_loss = (- log_prob * torch.exp(new_advantage.detach()/self._beta).clamp(max=20.0)).mean()
         self._policy_start_training_counter -= 1
-        if self._policy_start_training_counter > 0:
-            policy_loss = policy_loss * 0.0
 
         loss_dict['policy_loss'] = policy_loss
 
         # 9. update policy network
         self._optimizer_policy.zero_grad()
-        loss_dict['policy_loss'].backward()
+        policy_loss.backward()
+        policy_grad_norm = torch.nn.utils.clip_grad_norm_(self._model.actor.parameters(), 1)
         self._optimizer_policy.step()
 
         loss_dict['total_loss'] = sum(loss_dict.values())
@@ -403,6 +391,7 @@ class IQLPolicy(Policy):
             'advantage_max': new_advantage.max().detach().item(),
             'new_q_value': new_q_value.detach().mean().item(),
             'new_v_value': new_v_value.detach().mean().item(),
+            'policy_grad_norm': policy_grad_norm,
         }
 
     def _get_policy_actions(self, data: Dict, num_actions: int = 10, epsilon: float = 1e-6) -> List:
@@ -594,7 +583,7 @@ class IQLPolicy(Policy):
         self._eval_model.eval()
         with torch.no_grad():
             (mu, sigma) = self._eval_model.forward(data, mode='compute_actor')['logit']
-            action = torch.tanh(mu)  # deterministic_eval
+            action = torch.tanh(mu)/1.05  # deterministic_eval
             output = {'action': action}
         if self._cuda:
             output = to_device(output, 'cpu')
@@ -625,6 +614,7 @@ class IQLPolicy(Policy):
             'next_v_value',
             'new_q_value',
             'new_v_value',
+            'policy_grad_norm',
         ] + twin_critic
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -655,194 +645,3 @@ class IQLPolicy(Policy):
         self._learn_model.load_state_dict(state_dict['model'])
         self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
         self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
-
-@POLICY_REGISTRY.register('discrete_iql')
-class DiscreteIQLPolicy(Policy):
-    """
-    Overview:
-        Policy class of discrete Implicit Q-Learning (IQL) algorithm in discrete action space environments.
-        Paper link: https://arxiv.org/abs/2110.06169.
-    """
-
-    config = dict(
-        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='discrete_cql',
-        # (bool) Whether to use cuda for policy.
-        cuda=False,
-        # (bool) Whether the RL algorithm is on-policy or off-policy.
-        on_policy=False,
-        # (bool) Whether use priority(priority sample, IS weight, update priority)
-        priority=False,
-        # (float) Reward's future discount factor, aka. gamma.
-        discount_factor=0.97,
-        # (int) N-step reward for target q_value estimation
-        nstep=1,
-        # learn_mode config
-        learn=dict(
-            # (int) How many updates (iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            update_per_collect=1,
-            # (int) Minibatch size for one gradient descent.
-            batch_size=64,
-            # (float) Learning rate for soft q network.
-            learning_rate=0.001,
-            # (int) Frequence of target network update.
-            target_update_freq=100,
-            # (bool) Whether ignore done(usually for max step termination env).
-            ignore_done=False,
-            # (float) Loss weight for conservative item.
-            min_q_weight=1.0,
-        ),
-        eval=dict(),  # for compatibility
-    )
-
-    def default_model(self) -> Tuple[str, List[str]]:
-        """
-        Overview:
-            Return this algorithm default neural network model setting for demonstration. ``__init__`` method will \
-            automatically call this method to get the default model setting and create model.
-
-        Returns:
-            - model_info (:obj:`Tuple[str, List[str]]`): The registered model name and model's import_names.
-        """
-        return 'discrete_qvac', ['ding.model.template.qvac']
-
-    def _init_learn(self) -> None:
-        """
-        Overview:
-            Initialize the learn mode of policy, including related attributes and modules. For DiscreteCQL, it mainly \
-            contains the optimizer, algorithm-specific arguments such as gamma, nstep and min_q_weight, main and \
-            target model. This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
-
-        .. note::
-            For the member variables that need to be saved and loaded, please refer to the ``_state_dict_learn`` \
-            and ``_load_state_dict_learn`` methods.
-
-        .. note::
-            For the member variables that need to be monitored, please refer to the ``_monitor_vars_learn`` method.
-
-        .. note::
-            If you want to set some spacial member variables in ``_init_learn`` method, you'd better name them \
-            with prefix ``_learn_`` to avoid conflict with other modes, such as ``self._learn_attr1``.
-        """
-        self._min_q_weight = self._cfg.learn.min_q_weight
-        self._priority = self._cfg.priority
-        # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-
-        self._gamma = self._cfg.discount_factor
-        self._nstep = self._cfg.nstep
-
-        # use wrapper instead of plugin
-        self._target_model = copy.deepcopy(self._model)
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='target',
-            update_type='assign',
-            update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        )
-        self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._learn_model.reset()
-        self._target_model.reset()
-
-    def _forward_learn(self, data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Overview:
-            Policy forward function of learn mode (training policy and updating parameters). Forward means \
-            that the policy inputs some training batch data from the offline dataset and then returns the output \
-            result, including various training information such as loss, action, priority.
-        Arguments:
-            - data (:obj:`List[Dict[int, Any]]`): The input data used for policy forward, including a batch of \
-                training samples. For each element in list, the key of the dict is the name of data items and the \
-                value is the corresponding data. Usually, the value is torch.Tensor or np.ndarray or there dict/list \
-                combinations. In the ``_forward_learn`` method, data often need to first be stacked in the batch \
-                dimension by some utility functions such as ``default_preprocess_learn``. \
-                For DiscreteCQL, each element in list is a dict containing at least the following keys: ``obs``, \
-                ``action``, ``reward``, ``next_obs``, ``done``. Sometimes, it also contains other keys like ``weight`` \
-                and ``value_gamma`` for nstep return computation.
-        Returns:
-            - info_dict (:obj:`Dict[str, Any]`): The information dict that indicated training result, which will be \
-                recorded in text log and tensorboard, values must be python scalar or a list of scalars. For the \
-                detailed definition of the dict, refer to the code of ``_monitor_vars_learn`` method.
-
-        .. note::
-            The input value can be torch.Tensor or dict/list combinations and current policy supports all of them. \
-            For the data type that not supported, the main reason is that the corresponding model does not support it. \
-            You can implement you own model rather than use the default model. For more information, please raise an \
-            issue in GitHub repo and we will continue to follow up.
-        """
-        data = default_preprocess_learn(
-            data, use_priority=self._priority, ignore_done=self._cfg.learn.ignore_done, use_nstep=True
-        )
-        if self._cuda:
-            data = to_device(data, self._device)
-        if data['action'].dim() == 2 and data['action'].shape[-1] == 1:
-            data['action'] = data['action'].squeeze(-1)
-        # ====================
-        # Q-learning forward
-        # ====================
-        self._learn_model.train()
-        self._target_model.train()
-        # Current q value (main model)
-        ret = self._learn_model.forward(data['obs'])
-        q_value, tau = ret['q'], ret['tau']
-        # Target q value
-        with torch.no_grad():
-            target_q_value = self._target_model.forward(data['next_obs'])['q']
-            # Max q value action (main model)
-            target_q_action = self._learn_model.forward(data['next_obs'])['action']
-
-        # add CQL
-        # 1. chose action and compute q in dataset.
-        # 2. compute value loss(negative_sampling - dataset_expec)
-        replay_action_one_hot = F.one_hot(data['action'], self._cfg.model.action_shape)
-        replay_chosen_q = (q_value.mean(-1) * replay_action_one_hot).sum(dim=1)
-
-        dataset_expec = replay_chosen_q.mean()
-
-        negative_sampling = torch.logsumexp(q_value.mean(-1), dim=1).mean()
-
-        min_q_loss = negative_sampling - dataset_expec
-
-        data_n = qrdqn_nstep_td_data(
-            q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], tau, data['weight']
-        )
-        value_gamma = data.get('value_gamma')
-        loss, td_error_per_sample = qrdqn_nstep_td_error(
-            data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
-        )
-
-        loss += self._min_q_weight * min_q_loss
-
-        # ====================
-        # Q-learning update
-        # ====================
-        self._optimizer.zero_grad()
-        loss.backward()
-        if self._cfg.multi_gpu:
-            self.sync_gradients(self._learn_model)
-        self._optimizer.step()
-
-        # =============
-        # after update
-        # =============
-        self._target_model.update(self._learn_model.state_dict())
-        return {
-            'cur_lr': self._optimizer.defaults['lr'],
-            'total_loss': loss.item(),
-            'priority': td_error_per_sample.abs().tolist(),
-            'q_target': target_q_value.mean().item(),
-            'q_value': q_value.mean().item(),
-            # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
-            # '[histogram]action_distribution': data['action'],
-        }
-
-    def _monitor_vars_learn(self) -> List[str]:
-        """
-        Overview:
-            Return the necessary keys for logging the return dict of ``self._forward_learn``. The logger module, such \
-            as text logger, tensorboard logger, will use these keys to save the corresponding data.
-        Returns:
-            - necessary_keys (:obj:`List[str]`): The list of the necessary keys to be logged.
-        """
-        return ['cur_lr', 'total_loss', 'q_target', 'q_value']

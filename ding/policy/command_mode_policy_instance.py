@@ -322,7 +322,7 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
     pass
 
 @POLICY_REGISTRY.register('iql_command')
-class CQLCommandModePolicy(IQLPolicy, DummyCommandModePolicy):
+class IQLCommandModePolicy(IQLPolicy, DummyCommandModePolicy):
     pass
 
 @POLICY_REGISTRY.register('discrete_cql_command')

@@ -18,6 +18,7 @@ main_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
+
         ),
         learn=dict(
             data_path=None,
@@ -25,7 +26,7 @@ main_config = dict(
             batch_size=4096,
             learning_rate_q=3e-4,
             learning_rate_policy=1e-4,
-            beta=1.0,
+            beta=0.05,
             tau=0.7,
         ),
         collect=dict(data_type='d4rl', ),
