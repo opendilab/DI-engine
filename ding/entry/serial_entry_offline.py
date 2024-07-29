@@ -62,7 +62,6 @@ def serial_pipeline_offline(
         sampler=sampler,
         collate_fn=lambda x: x,
         pin_memory=cfg.policy.cuda,
-        drop_last=True,
     )
     # Env, Policy
     try:
