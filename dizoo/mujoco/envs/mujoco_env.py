@@ -151,7 +151,6 @@ class MujocoEnv(BaseEnv):
     def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
         evaluator_cfg = copy.deepcopy(cfg)
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
-        evaluator_cfg.norm_reward.use_norm = False
         return [evaluator_cfg for _ in range(evaluator_env_num)]
 
     @property

@@ -5,13 +5,10 @@ ant_ppo_config = dict(
     exp_name="ant_onppo_seed0",
     env=dict(
         env_id='Ant-v3',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
         collector_env_num=10,
         evaluator_env_num=10,
         n_evaluator_episode=10,
         stop_value=6000,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
