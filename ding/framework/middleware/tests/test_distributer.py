@@ -246,18 +246,15 @@ def periodical_model_exchanger_main():
             task.use(train)
         else:
             y_pred1 = policy.predict(X)
-            print("y_pred1: ", y_pred1)
             stale = 1
 
             def pred(ctx):
                 nonlocal stale
                 y_pred2 = policy.predict(X)
-                print("y_pred2: ", y_pred2)
                 stale += 1
                 assert stale <= 3 or all(y_pred1 == y_pred2)
                 if any(y_pred1 != y_pred2):
                     stale = 1
-
                 sleep(0.3)
 
             task.use(pred)
