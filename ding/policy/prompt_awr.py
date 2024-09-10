@@ -201,8 +201,9 @@ class PromptAWRPolicy(Policy):
             # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             for ii in range(len(data['candidate_samples'])):
                 data['candidate_samples'][ii] = data['candidate_samples'][ii][0]
-            output = self._collect_model.forward(self._cfg.shot_number, data['train_sample'],
-                                                 data['candidate_samples'], mode="compute_actor_critic")
+            output = self._collect_model.forward(
+                self._cfg.shot_number, data['train_sample'], data['candidate_samples'], mode="compute_actor_critic"
+            )
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
