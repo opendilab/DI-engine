@@ -40,6 +40,8 @@ class LanguageTransformer(nn.Module):
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForTokenClassification.from_pretrained(model_name)
+        in_channel = 768 if not add_linear else embedding_size
+        self.value_head = nn.Linear(in_channel, 1)
 
         # Freeze transformer encoder and only train the linear layer
         if freeze_encoder:
@@ -72,7 +74,7 @@ class LanguageTransformer(nn.Module):
 
         return sentence_embedding
 
-    def forward(self, train_samples: List[str], candidate_samples: List[str]) -> Dict:
+    def forward(self, train_samples: List[str], candidate_samples: List[str], mode='compute_actor') -> Dict:
         """
         Overview:
             LanguageTransformer forward computation graph, input two lists of strings and predict their matching scores.
@@ -96,7 +98,15 @@ class LanguageTransformer(nn.Module):
             >>> scores = model(ctxt_list, cands_list)
             >>> assert scores.shape == (1, 3)
         """
+        assert mode in ['compute_actor', 'compute_critic', 'compute_actor_critic']
         prompt_embedding = self._calc_embedding(train_samples)
-        cands_embedding = self._calc_embedding(candidate_samples)
-        scores = torch.mm(prompt_embedding, cands_embedding.t())
-        return {'dist': torch.distributions.Categorical(logits=scores), 'logit': scores}
+
+        res_dict = {}
+        if mode in ['compute_actor', 'compute_actor_critic']:
+            cands_embedding = self._calc_embedding(candidate_samples)
+            scores = torch.mm(prompt_embedding, cands_embedding.t())
+            res_dict.update({'dist': torch.distributions.Categorical(logits=scores), 'logit': scores})
+        if mode in ['compute_critic', 'compute_actor_critic']:
+            value = self.value_head(prompt_embedding)
+            res_dict.update({'value': value})
+        return res_dict

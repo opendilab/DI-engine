@@ -98,6 +98,8 @@ class PromptPGPolicy(Policy):
 
             # calculate PG loss
             real_act = batch['action']  # shape: (B, shot_number)
+            if len(real_act.shape) == 1:
+                real_act = real_act.unsqueeze(-1)
             # Calculate loss.
             total_policy_loss, total_entropy_loss = 0, 0
             for ii in range(self._cfg.shot_number):

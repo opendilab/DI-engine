@@ -56,4 +56,5 @@ from .qgpo import QGPOPolicy
 # new-type policy
 from .ppof import PPOFPolicy
 from .prompt_pg import PromptPGPolicy
+from .prompt_awr import PromptAWRPolicy
 from .happo import HAPPOPolicy
