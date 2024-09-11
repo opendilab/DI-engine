@@ -866,10 +866,13 @@ class ActionNoiseWrapper(IModelWrapper):
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         if 'action' in output or 'action_args' in output:
             key = 'action' if 'action' in output else 'action_args'
-            action = output[key]
+            action = output[key]['action_args'] if isinstance(output[key], dict)  else output[key]
             assert isinstance(action, torch.Tensor)
             action = self.add_noise(action)
-            output[key] = action
+            if isinstance(output[key], dict):
+                output[key]['action_args'] = action
+            else:
+                output[key] = action
         return output
 
     def add_noise(self, action: torch.Tensor) -> torch.Tensor:
