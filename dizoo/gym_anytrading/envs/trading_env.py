@@ -252,7 +252,7 @@ class TradingEnv(BaseEnv):
         collector_env_num = cfg.pop('collector_env_num')
         collector_env_cfg = [copy.deepcopy(cfg) for _ in range(collector_env_num)]
         for i in range(collector_env_num):
-            collector_env_cfg[i]['env_id'] += ('-' + str(i) + 'e')
+            collector_env_cfg[i]['env_id'] += ('-' + str(i) + 'c')
         return collector_env_cfg
 
     # override
