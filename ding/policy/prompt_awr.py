@@ -17,7 +17,8 @@ class PromptAWRPolicy(Policy):
     Overview:
         Policy class of AWR (Advantage Weighted Regression) algorithm, proposed in https://arxiv.org/abs/1910.00177.
         Especially, this policy is designed for training a language model policy.
-        In this policy, the environment's observation includes the current context, a list of optional actions (strings). The final output of the policy is a set of optional actions with a size of ``shot_number``.
+        In this policy, the environment's observation includes the current context, a list of optional actions
+        (strings). The final output of the policy is a set of optional actions with a size of ``shot_number``.
     """
     config = dict(
         # (str) Name of the registered RL policy (refer to the "register_policy" function).

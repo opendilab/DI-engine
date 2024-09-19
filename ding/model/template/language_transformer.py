@@ -89,10 +89,10 @@ class LanguageTransformer(nn.Module):
         """
         Overview:
             LanguageTransformer forward computation graph, input two lists of strings and predict their matching scores.
-            Different ``mode`` will forward with different network modules to get different outputs and save computation.
+            Different ``mode`` will forward with different network modules to get different outputs.
         Arguments:
             - train_samples (:obj:`List[str]`): One list of strings.
-            - candidate_samples (:obj:`Optional[List[str]]`): The other list of strings to calculate the matching scores.
+            - candidate_samples (:obj:`Optional[List[str]]`): The other list of strings to calculate matching scores.
             - - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.
         Returns:
             - output (:obj:`Dict`): Output dict data, including the logit of matching scores and the \
