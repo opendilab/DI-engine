@@ -26,6 +26,8 @@ class PromptPGPolicy(Policy):
         on_policy=True,  # for pg strictly on policy algorithm, this line should not be modified by users
         # (bool) whether to use deterministic action for evaluation.
         deterministic_eval=True,
+        # (int) The number of actions that can be done simultaneously in one timestep.
+        shot_number=1,
         learn=dict(
             # (int) the number of samples for one update.
             batch_size=64,

@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 import torch
 from torch import nn
 
@@ -18,13 +18,16 @@ class LanguageTransformer(nn.Module):
     Interfaces:
         ``__init__``, ``forward``
     """
+    mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
     def __init__(
             self,
             model_name: str = "bert-base-uncased",
             add_linear: bool = False,
             embedding_size: int = 128,
-            freeze_encoder: bool = True
+            freeze_encoder: bool = True,
+            hidden_dim: int = 768,
+            norm_embedding: bool = False
     ) -> None:
         """
         Overview:
@@ -36,12 +39,16 @@ class LanguageTransformer(nn.Module):
             - embedding_size (:obj:`int`): The embedding size of the added linear layer, such as 128.
             - freeze_encoder (:obj:`bool`): Whether to freeze the encoder language model while training, \
             defaults to be ``True``.
+            - hidden_dim (:obj:`int`): The embedding dimension of the encoding model (e.g. BERT). This value should \
+            correspond to the model you use. For bert-base-uncased, this value is 768.
+            - norm_embedding (:obj:`bool`): Whether to normalize the embedding vectors. Default to be ``False``.
         """
         super().__init__()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForTokenClassification.from_pretrained(model_name)
-        in_channel = 768 if not add_linear else embedding_size
+        in_channel = hidden_dim if not add_linear else embedding_size
         self.value_head = nn.Linear(in_channel, 1)
+        self.norm = nn.Identity() if not norm_embedding else nn.LayerNorm(normalized_shape=in_channel)
 
         # Freeze transformer encoder and only train the linear layer
         if freeze_encoder:
@@ -51,9 +58,7 @@ class LanguageTransformer(nn.Module):
         if add_linear:
             # Add a small, adjustable linear layer on top of language model tuned through RL
             self.embedding_size = embedding_size
-            self.linear = nn.Linear(
-                self.model.config.hidden_size, embedding_size
-            )  # 768 for bert-base-uncased, distilbert-base-uncased
+            self.linear = nn.Linear(self.model.config.hidden_size, embedding_size)
         else:
             self.linear = None
 
@@ -68,19 +73,27 @@ class LanguageTransformer(nn.Module):
         last_hidden_states = output.hidden_states[-1]
         # Get [CLS] hidden states
         sentence_embedding = last_hidden_states[:, 0, :]  # len(input_list) x hidden_size
+        sentence_embedding = self.norm(sentence_embedding)
 
         if self.linear:
             sentence_embedding = self.linear(sentence_embedding)  # len(input_list) x embedding_size
 
         return sentence_embedding
 
-    def forward(self, train_samples: List[str], candidate_samples: List[str], mode='compute_actor') -> Dict:
+    def forward(
+            self,
+            train_samples: List[str],
+            candidate_samples: Optional[List[str]] = None,
+            mode: str = 'compute_actor'
+    ) -> Dict:
         """
         Overview:
             LanguageTransformer forward computation graph, input two lists of strings and predict their matching scores.
+            Different ``mode`` will forward with different network modules to get different outputs and save computation.
         Arguments:
             - train_samples (:obj:`List[str]`): One list of strings.
-            - candidate_samples (:obj:`List[str]`): The other list of strings to calculate the matching scores.
+            - candidate_samples (:obj:`Optional[List[str]]`): The other list of strings to calculate the matching scores.
+            - - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.
         Returns:
             - output (:obj:`Dict`): Output dict data, including the logit of matching scores and the \
             corresponding ``torch.distributions.Categorical`` object.
@@ -98,7 +111,7 @@ class LanguageTransformer(nn.Module):
             >>> scores = model(ctxt_list, cands_list)
             >>> assert scores.shape == (1, 3)
         """
-        assert mode in ['compute_actor', 'compute_critic', 'compute_actor_critic']
+        assert mode in self.mode
         prompt_embedding = self._calc_embedding(train_samples)
 
         res_dict = {}

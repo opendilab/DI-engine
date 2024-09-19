@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Union
 
 import torch
 
@@ -17,6 +17,7 @@ class PromptAWRPolicy(Policy):
     Overview:
         Policy class of AWR (Advantage Weighted Regression) algorithm, proposed in https://arxiv.org/abs/1910.00177.
         Especially, this policy is designed for training a language model policy.
+        In this policy, the environment's observation includes the current context, a list of optional actions (strings). The final output of the policy is a set of optional actions with a size of ``shot_number``.
     """
     config = dict(
         # (str) Name of the registered RL policy (refer to the "register_policy" function).
@@ -31,6 +32,8 @@ class PromptAWRPolicy(Policy):
         priority_IS_weight=False,
         # (str) Type of action space used in the policy, with valid options ['discrete', 'continuous'].
         action_space='discrete',
+        # (int) The number of actions that can be done simultaneously in one timestep.
+        shot_number=1,
         # learn_mode configuration
         learn=dict(
             # (int) Number of updates per data collection. A2C requires this to be set to 1.
@@ -41,17 +44,18 @@ class PromptAWRPolicy(Policy):
             learning_rate=0.001,
             # (Tuple[float, float]) Coefficients used for computing running averages of gradient and its square.
             betas=(0.9, 0.999),
-            beta=1.0,
             # (float) Term added to the denominator to improve numerical stability in optimizer.
             eps=1e-8,
             # (float) Maximum norm for gradients.
             grad_norm=0.5,
             # (float) Scaling factor for value network loss relative to policy network loss.
             value_weight=0.5,
+            # (float) Coefficient that controls the exp scale in awr algorithm.
+            beta=1.0,
             # (float) Weight of entropy regularization in the loss function.
             entropy_weight=0.01,
-            # (bool) Flag to enable normalization of advantages.
-            adv_norm=False,
+            # (Tuple[float, float]) The range of adv. Value that exceeds this range will be clipped.
+            adv_range=(-0.5, 0.5),
             # (bool) If set to True, the 'done' signals that indicate the end of an episode due to environment time
             # limits are disregarded. By default, this is set to False. This setting is particularly useful for tasks
             # that have a predetermined episode length, such as HalfCheetah and various other MuJoCo environments,
@@ -149,10 +153,13 @@ class PromptAWRPolicy(Policy):
             total_policy_loss, total_entropy_loss, total_value_loss = 0, 0, 0
             for ii in range(self._cfg.shot_number):
                 log_prob = output['dist'].log_prob(real_act[:, ii])
-                policy_loss = -(log_prob * torch.exp((return_ - batch['value']) / self._cfg.learn.beta)).mean()
-                value_loss = ((return_ - output['value']) ** 2).mean()
+                adv = torch.clamp(
+                    return_ - batch['value'], min=self._cfg.learn.norm_range[0], max=self._cfg.learn.norm_range[1]
+                )
+                policy_loss = -(log_prob * torch.exp(adv / self._cfg.learn.beta)).mean()
                 total_policy_loss += policy_loss
-                total_value_loss += value_loss
+            value_loss = ((return_ - output['value']) ** 2).mean()
+            total_value_loss += value_loss
             total_entropy_loss += -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
             total_loss = total_entropy_loss + total_policy_loss + total_value_loss
 
