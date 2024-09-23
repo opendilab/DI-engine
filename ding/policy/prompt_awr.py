@@ -54,7 +54,7 @@ class PromptAWRPolicy(Policy):
             # (float) Coefficient that controls the exp scale in awr algorithm.
             beta=1.0,
             # (float) Weight of entropy regularization in the loss function.
-            entropy_weight=0.01,
+            entropy_weight=0.001,
             # (Tuple[float, float]) The range of adv. Value that exceeds this range will be clipped.
             adv_range=(-0.5, 0.5),
             # (bool) If set to True, the 'done' signals that indicate the end of an episode due to environment time
@@ -82,7 +82,7 @@ class PromptAWRPolicy(Policy):
     def default_model(self) -> Tuple[str, List[str]]:
         """
         Overview:
-            Returns the default model configuration used by the A2C algorithm. ``__init__`` method will \
+            Returns the default model configuration used by the AWR algorithm. ``__init__`` method will \
             automatically call this method to get the default model setting and create model.
 
         Returns:
@@ -94,7 +94,7 @@ class PromptAWRPolicy(Policy):
     def _init_learn(self) -> None:
         """
         Overview:
-            Initialize the learn mode of policy, including related attributes and modules. For A2C, it mainly \
+            Initialize the learn mode of policy, including related attributes and modules. For AWR, it mainly \
             contains optimizer, algorithm-specific arguments such as value_weight, entropy_weight, adv_norm
             and grad_norm, and main model. \
             This method will be called in ``__init__`` method if ``learn`` field is in ``enable_field``.
@@ -141,26 +141,33 @@ class PromptAWRPolicy(Policy):
 
             # Prepare train_sample (the question to be answered) and the candidate_samples (the prompts to be selected)
             train_samples, cand_samples = batch["obs"]["train_sample"], batch["obs"]["candidate_samples"]
-            for ii in range(len(cand_samples)):
-                cand_samples[ii] = cand_samples[ii][0]
+            for cand_n in range(len(cand_samples)):
+                cand_samples[cand_n] = cand_samples[cand_n][0]
             output = self._learn_model.forward(train_samples, cand_samples, mode='compute_actor_critic')
             return_ = batch['return']
 
-            # calculate PG loss
-            real_act = batch['action']  # shape: (B, shot_number)
+            # Calculate AWR loss
+            real_act = batch['action']
+
+            # Ensure the shape of real_act is: (B, shot_number)
             if len(real_act.shape) == 1:
                 real_act = real_act.unsqueeze(-1)
-            # Calculate loss.
+
+            # Calculate different parts of loss.
             total_policy_loss, total_entropy_loss, total_value_loss = 0, 0, 0
-            for ii in range(self._cfg.shot_number):
-                log_prob = output['dist'].log_prob(real_act[:, ii])
+            for shot_n in range(self._cfg.shot_number):
+                log_prob = output['dist'].log_prob(real_act[:, shot_n])
+                # Clamp the adv for better stability.
                 adv = torch.clamp(
                     return_ - batch['value'], min=self._cfg.learn.norm_range[0], max=self._cfg.learn.norm_range[1]
                 )
+                # The policy loss for AWR algorithm.
                 policy_loss = -(log_prob * torch.exp(adv / self._cfg.learn.beta)).mean()
                 total_policy_loss += policy_loss
+            # The value loss for AWR algorithm.
             value_loss = ((return_ - output['value']) ** 2).mean()
             total_value_loss += value_loss
+            # The entropy loss for AWR algorithm.
             total_entropy_loss += -self._cfg.learn.entropy_weight * output['dist'].entropy().mean()
             total_loss = total_entropy_loss + total_policy_loss + total_value_loss
 

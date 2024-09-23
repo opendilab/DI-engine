@@ -15,6 +15,8 @@ class LanguageTransformer(nn.Module):
     """
     Overview:
         The LanguageTransformer network. Download a pre-trained language model and add head on it.
+        In the default case, we use BERT model as the text encoder, whose bi-directional character is good
+        for obtaining the embedding of the whole sentence.
     Interfaces:
         ``__init__``, ``forward``
     """
@@ -35,12 +37,12 @@ class LanguageTransformer(nn.Module):
         Arguments:
             - model_name (:obj:`str`): The base language model name in huggingface, such as "bert-base-uncased".
             - add_linear (:obj:`bool`): Whether to add a linear layer on the top of language model, defaults to be \
-            ``False``.
+                ``False``.
             - embedding_size (:obj:`int`): The embedding size of the added linear layer, such as 128.
             - freeze_encoder (:obj:`bool`): Whether to freeze the encoder language model while training, \
-            defaults to be ``True``.
+                defaults to be ``True``.
             - hidden_dim (:obj:`int`): The embedding dimension of the encoding model (e.g. BERT). This value should \
-            correspond to the model you use. For bert-base-uncased, this value is 768.
+                correspond to the model you use. For bert-base-uncased, this value is 768.
             - norm_embedding (:obj:`bool`): Whether to normalize the embedding vectors. Default to be ``False``.
         """
         super().__init__()

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-tabmwp_prompt_pg_config = dict(
-    exp_name='tabmwp_prompt_pg_seed0',
+tabmwp_prompt_awr_config = dict(
+    exp_name='tabmwp_prompt_awr_seed0',
     env=dict(
         collector_env_num=1,
         evaluator_env_num=1,
@@ -48,9 +48,9 @@ tabmwp_prompt_pg_config = dict(
         eval=dict(evaluator=dict(eval_freq=500, )),
     ),
 )
-main_config = EasyDict(tabmwp_prompt_pg_config)
+main_config = EasyDict(tabmwp_prompt_awr_config)
 
-tabmwp_prompt_pg_config = dict(
+tabmwp_prompt_awr_config = dict(
     env=dict(
         type='tabmwp',
         import_names=['dizoo.tabmwp.envs.tabmwp_env'],
@@ -59,7 +59,7 @@ tabmwp_prompt_pg_config = dict(
     policy=dict(type='prompt_awr'),
     replay_buffer=dict(type='naive'),
 )
-create_config = EasyDict(tabmwp_prompt_pg_config)
+create_config = EasyDict(tabmwp_prompt_awr_config)
 
 if __name__ == '__main__':
     from ding.entry import serial_pipeline_onpolicy
