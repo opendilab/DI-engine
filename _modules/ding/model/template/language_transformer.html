@@ -302,7 +302,7 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.model.template.language_transformer</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">nn</span>
 
@@ -319,16 +319,21 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        The LanguageTransformer network. Download a pre-trained language model and add head on it.</span>
+<span class="sd">        In the default case, we use BERT model as the text encoder, whose bi-directional character is good</span>
+<span class="sd">        for obtaining the embedding of the whole sentence.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="LanguageTransformer.__init__"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.LanguageTransformer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;bert-base-uncased&quot;</span><span class="p">,</span>
             <span class="n">add_linear</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">embedding_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
-            <span class="n">freeze_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">freeze_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">hidden_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">768</span><span class="p">,</span>
+            <span class="n">norm_embedding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -336,14 +341,22 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - model_name (:obj:`str`): The base language model name in huggingface, such as &quot;bert-base-uncased&quot;.</span>
 <span class="sd">            - add_linear (:obj:`bool`): Whether to add a linear layer on the top of language model, defaults to be \</span>
-<span class="sd">            ``False``.</span>
+<span class="sd">                ``False``.</span>
 <span class="sd">            - embedding_size (:obj:`int`): The embedding size of the added linear layer, such as 128.</span>
 <span class="sd">            - freeze_encoder (:obj:`bool`): Whether to freeze the encoder language model while training, \</span>
-<span class="sd">            defaults to be ``True``.</span>
+<span class="sd">                defaults to be ``True``.</span>
+<span class="sd">            - hidden_dim (:obj:`int`): The embedding dimension of the encoding model (e.g. BERT). This value should \</span>
+<span class="sd">                correspond to the model you use. For bert-base-uncased, this value is 768.</span>
+<span class="sd">            - norm_embedding (:obj:`bool`): Whether to normalize the embedding vectors. Default to be ``False``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForTokenClassification</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+        <span class="n">in_channel</span> <span class="o">=</span> <span class="n">hidden_dim</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">add_linear</span> <span class="k">else</span> <span class="n">embedding_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_channel</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">norm_embedding</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span>
+            <span class="n">normalized_shape</span><span class="o">=</span><span class="n">in_channel</span><span class="p">,</span> <span class="n">elementwise_affine</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
 
         <span class="c1"># Freeze transformer encoder and only train the linear layer</span>
         <span class="k">if</span> <span class="n">freeze_encoder</span><span class="p">:</span>
@@ -353,9 +366,7 @@
         <span class="k">if</span> <span class="n">add_linear</span><span class="p">:</span>
             <span class="c1"># Add a small, adjustable linear layer on top of language model tuned through RL</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">embedding_size</span> <span class="o">=</span> <span class="n">embedding_size</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">embedding_size</span>
-            <span class="p">)</span>  <span class="c1"># 768 for bert-base-uncased, distilbert-base-uncased</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span> <span class="kc">None</span></div>
 
@@ -370,19 +381,27 @@
         <span class="n">last_hidden_states</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">hidden_states</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># Get [CLS] hidden states</span>
         <span class="n">sentence_embedding</span> <span class="o">=</span> <span class="n">last_hidden_states</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># len(input_list) x hidden_size</span>
+        <span class="n">sentence_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">sentence_embedding</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">:</span>
             <span class="n">sentence_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">sentence_embedding</span><span class="p">)</span>  <span class="c1"># len(input_list) x embedding_size</span>
 
         <span class="k">return</span> <span class="n">sentence_embedding</span>
 
-<div class="viewcode-block" id="LanguageTransformer.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.LanguageTransformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">candidate_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="LanguageTransformer.forward"><a class="viewcode-back" href="../../../../05_api_doc/model.html#ding.model.LanguageTransformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">train_samples</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+            <span class="n">candidate_samples</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;compute_actor&#39;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            LanguageTransformer forward computation graph, input two lists of strings and predict their matching scores.</span>
+<span class="sd">            Different ``mode`` will forward with different network modules to get different outputs.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - train_samples (:obj:`List[str]`): One list of strings.</span>
-<span class="sd">            - candidate_samples (:obj:`List[str]`): The other list of strings to calculate the matching scores.</span>
+<span class="sd">            - candidate_samples (:obj:`Optional[List[str]]`): The other list of strings to calculate matching scores.</span>
+<span class="sd">            - - mode (:obj:`str`): The forward mode, all the modes are defined in the beginning of this class.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - output (:obj:`Dict`): Output dict data, including the logit of matching scores and the \</span>
 <span class="sd">            corresponding ``torch.distributions.Categorical`` object.</span>
@@ -400,10 +419,18 @@
 <span class="sd">            &gt;&gt;&gt; scores = model(ctxt_list, cands_list)</span>
 <span class="sd">            &gt;&gt;&gt; assert scores.shape == (1, 3)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span>
         <span class="n">prompt_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_embedding</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span>
-        <span class="n">cands_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_embedding</span><span class="p">(</span><span class="n">candidate_samples</span><span class="p">)</span>
-        <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">prompt_embedding</span><span class="p">,</span> <span class="n">cands_embedding</span><span class="o">.</span><span class="n">t</span><span class="p">())</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;dist&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">scores</span><span class="p">),</span> <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">scores</span><span class="p">}</span></div></div>
+
+        <span class="n">res_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">]:</span>
+            <span class="n">cands_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_embedding</span><span class="p">(</span><span class="n">candidate_samples</span><span class="p">)</span>
+            <span class="n">scores</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">prompt_embedding</span><span class="p">,</span> <span class="n">cands_embedding</span><span class="o">.</span><span class="n">t</span><span class="p">())</span>
+            <span class="n">res_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;dist&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">scores</span><span class="p">),</span> <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">scores</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">]:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value_head</span><span class="p">(</span><span class="n">prompt_embedding</span><span class="p">)</span>
+            <span class="n">res_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">res_dict</span></div></div>
 </pre></div>
 
               </article>
