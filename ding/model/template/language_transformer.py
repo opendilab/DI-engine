@@ -50,7 +50,9 @@ class LanguageTransformer(nn.Module):
         self.model = AutoModelForTokenClassification.from_pretrained(model_name)
         in_channel = hidden_dim if not add_linear else embedding_size
         self.value_head = nn.Linear(in_channel, 1)
-        self.norm = nn.Identity() if not norm_embedding else nn.LayerNorm(normalized_shape=in_channel)
+        self.norm = nn.Identity() if not norm_embedding else nn.LayerNorm(
+            normalized_shape=in_channel, elementwise_affine=False
+        )
 
         # Freeze transformer encoder and only train the linear layer
         if freeze_encoder:
