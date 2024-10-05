@@ -302,6 +302,19 @@ def wandb_online_logger(
                 "If you want to use wandb to visualize the result, please set plot_logger = True in the config."
             )
 
+        if hasattr(ctx, "evaluator_time"):
+            info_for_logging.update({"evaluator_time": ctx.evaluator_time})
+        if hasattr(ctx, "collector_time"):
+            info_for_logging.update({"collector_time": ctx.collector_time})
+        if hasattr(ctx, "learner_time"):
+            info_for_logging.update({"learner_time": ctx.learner_time})
+        if hasattr(ctx, "data_pusher_time"):
+            info_for_logging.update({"data_pusher_time": ctx.data_pusher_time})
+        if hasattr(ctx, "nstep_time"):
+            info_for_logging.update({"nstep_time": ctx.nstep_time})
+        if hasattr(ctx, "total_time"):
+            info_for_logging.update({"total_time": ctx.total_time})
+
         if ctx.eval_value != -np.inf:
             if hasattr(ctx, "eval_value_min"):
                 info_for_logging.update({
