@@ -1,55 +1,14 @@
-from typing import Any, List, Union, Optional, Dict
+from functools import reduce
+from typing import List, Optional, Dict
+
 import gymnasium as gym
 import numpy as np
-from functools import reduce
-
-from ding.envs import BaseEnv, BaseEnvTimestep, FrameStackWrapper
-from ding.torch_utils import to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
+from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
-from pettingzoo.utils.conversions import parallel_wrapper_fn
+from dizoo.petting_zoo.envs.petting_zoo_simple_spread_env import PTZRecordVideo
 from pettingzoo.butterfly import pistonball_v6
-
-
-# Custom wrapper for recording videos in PettingZoo environments
-class PTZRecordVideo(gym.wrappers.RecordVideo):
-    def step(self, action):
-        """
-        Custom step function for handling PettingZoo environments
-        with gymnasium's RecordVideo wrapper.
-        """
-        observations, rewards, terminateds, truncateds, infos = self.env.step(action)
-
-        # Check if any agent has terminated or truncated
-        if not (self.terminated is True or self.truncated is True):
-            self.step_id += 1
-            if not self.is_vector_env:
-                if terminateds or truncateds:
-                    self.episode_id += 1
-                    self.terminated = terminateds
-                    self.truncated = truncateds
-            elif terminateds[0] or truncateds[0]:
-                self.episode_id += 1
-                self.terminated = terminateds[0]
-                self.truncated = truncateds[0]
-
-            # Capture the video frame if recording
-            if self.recording:
-                assert self.video_recorder is not None
-                self.video_recorder.capture_frame()
-                self.recorded_frames += 1
-                if self.video_length > 0 and self.recorded_frames > self.video_length:
-                    self.close_video_recorder()
-                elif not self.is_vector_env:
-                    if terminateds is True or truncateds is True:
-                        self.close_video_recorder()
-                elif terminateds[0] or truncateds[0]:
-                    self.close_video_recorder()
-
-            elif self._video_enabled():
-                self.start_video_recorder()
-
-        return observations, rewards, terminateds, truncateds, infos
 
 
 @ENV_REGISTRY.register('petting_zoo_pistonball')
