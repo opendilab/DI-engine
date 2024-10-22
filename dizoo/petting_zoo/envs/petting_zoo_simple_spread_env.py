@@ -101,11 +101,11 @@ class PettingZooEnv(BaseEnv):
             self._agents = self._env.agents
 
             self._action_space = gym.spaces.Dict({agent: self._env.action_space(agent) for agent in self._agents})
-            single_agent_obs_space = self._env.action_space(self._agents[0])
-            if isinstance(single_agent_obs_space, gym.spaces.Box):
-                self._action_dim = single_agent_obs_space.shape
-            elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
-                self._action_dim = (single_agent_obs_space.n, )
+            single_agent_action_space = self._env.action_space(self._agents[0])
+            if isinstance(single_agent_action_space, gym.spaces.Box):
+                self._action_dim = single_agent_action_space.shape
+            elif isinstance(single_agent_action_space, gym.spaces.Discrete):
+                self._action_dim = (single_agent_action_space.n, )
             else:
                 raise Exception('Only support `Box` or `Discrete` obs space for single agent.')
 
