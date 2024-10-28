@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from functools import reduce
 from ding.utils import list_split, MODEL_REGISTRY
 from ding.torch_utils import fc_block, MLP
+from ..common import  ConvEncoder
 from .q_learning import DRQN
 
 
@@ -111,7 +112,7 @@ class QMix(nn.Module):
             self,
             agent_num: int,
             obs_shape: int,
-            global_obs_shape: int,
+            global_obs_shape: Union[int, List[int]],
             action_shape: int,
             hidden_size_list: list,
             mixer: bool = True,
@@ -146,8 +147,14 @@ class QMix(nn.Module):
         embedding_size = hidden_size_list[-1]
         self.mixer = mixer
         if self.mixer:
-            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
-            self._global_state_encoder = nn.Identity()
+            if len(global_obs_shape) == 1:
+                self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
+                self._global_state_encoder = nn.Identity()
+            elif len(global_obs_shape) == 3:
+                self._mixer = Mixer(agent_num, embedding_size, embedding_size, activation=activation)
+                self._global_state_encoder = ConvEncoder(global_obs_shape, hidden_size_list=hidden_size_list, activation=activation, norm_type='BN')
+            else:
+                raise ValueError("Not support global_obs_shape: {}".format(global_obs_shape))
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -183,7 +190,9 @@ class QMix(nn.Module):
             'prev_state']
         action = data.get('action', None)
         if single_step:
-            agent_state, global_state = agent_state.unsqueeze(0), global_state.unsqueeze(0)
+            agent_state = agent_state.unsqueeze(0)
+        if single_step and len(global_state.shape) == 2:
+            global_state = global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
         assert len(prev_state) == B and all(
             [len(p) == A for p in prev_state]
@@ -205,7 +214,10 @@ class QMix(nn.Module):
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         agent_q_act = agent_q_act.squeeze(-1)  # T, B, A
         if self.mixer:
-            global_state_embedding = self._global_state_encoder(global_state)
+            if len(global_state.shape) == 5:
+                global_state_embedding = self._global_state_encoder(global_state.reshape(-1, *global_state.shape[-3:])).reshape(global_state.shape[0], global_state.shape[1], -1)
+            else:
+                global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding)
         else:
             total_q = agent_q_act.sum(-1)
