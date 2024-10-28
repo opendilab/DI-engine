@@ -60,6 +60,15 @@ def serial_pipeline(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
+    # Load pretrained model if specified
+    if cfg.policy.load_path is not None:
+        logging.info(f'Loading model from {cfg.policy.load_path} begin...')
+        if cfg.policy.cuda and torch.cuda.is_available():
+            policy.learn_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cuda'))
+        else:
+            policy.learn_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cpu'))
+        logging.info(f'Loading model from {cfg.policy.load_path} end!')
+
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial')) if get_rank() == 0 else None
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
