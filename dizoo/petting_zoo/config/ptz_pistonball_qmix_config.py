@@ -17,10 +17,7 @@ main_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=1e6,
-        manager=dict(
-            shared_memory=False,
-            reset_timeout=6000,
-        ),
+        manager=dict(shared_memory=False,),
         max_env_step=3e6,
     ),
     policy=dict(
@@ -35,14 +32,14 @@ main_config = dict(
         ),
         learn=dict(
             update_per_collect=100,
-            batch_size=32,
+            batch_size=16,
             learning_rate=0.0005,
             target_update_theta=0.001,
             discount_factor=0.99,
             double_q=True,
         ),
         collect=dict(
-            n_sample=600,
+            n_sample=32,
             unroll_len=16,
             env_num=collector_env_num,
         ),
