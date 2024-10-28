@@ -5,15 +5,13 @@ hopper_onppo_config = dict(
     exp_name='hopper_onppo_seed0',
     env=dict(
         env_id='Hopper-v3',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
         collector_env_num=8,
         evaluator_env_num=10,
         n_evaluator_episode=10,
         stop_value=4000,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         recompute_adv=True,
         action_space='continuous',
         model=dict(

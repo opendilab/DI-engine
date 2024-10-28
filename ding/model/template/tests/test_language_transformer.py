@@ -17,9 +17,33 @@ class TestNLPPretrainedModel:
         cands_list = [problems[pid] for pid in cand_pids]
 
         model = LanguageTransformer(model_name="bert-base-uncased", add_linear=True, embedding_size=256)
-        scores = model(ctxt_list, cands_list)
-        assert scores.shape == (1, 3)
+        output = model(ctxt_list, cands_list, mode='compute_actor')
+        assert 'dist' in output.keys() and 'logit' in output.keys() and len(output.keys()) == 2
+        assert output['logit'].shape == (1, 3)
 
-        model = LanguageTransformer(model_name="bert-base-uncased", add_linear=False, embedding_size=256)
-        scores = model(ctxt_list, cands_list)
-        assert scores.shape == (1, 3)
+        output = model(ctxt_list, cands_list, mode='compute_critic')
+        assert 'value' in output.keys() and len(output.keys()) == 1
+        assert output['value'].shape == (1, )
+
+        output = model(ctxt_list, cands_list, mode='compute_critic')
+        assert 'value' in output.keys() and 'dist' in output.keys() and 'logit' in output.keys() and len(
+            output.keys()
+        ) == 3
+        assert output['value'].shape == (1, )
+        assert output['logit'].shape == (1, 3)
+
+        model = LanguageTransformer(model_name="bert-base-uncased", add_linear=False, norm_embedding=True)
+        output = model(ctxt_list, cands_list, mode='compute_actor')
+        assert 'dist' in output.keys() and 'logit' in output.keys() and len(output.keys()) == 2
+        assert output['logit'].shape == (1, 3)
+
+        output = model(ctxt_list, cands_list, mode='compute_critic')
+        assert 'value' in output.keys() and len(output.keys()) == 1
+        assert output['value'].shape == (1, )
+
+        output = model(ctxt_list, cands_list, mode='compute_critic')
+        assert 'value' in output.keys() and 'dist' in output.keys() and 'logit' in output.keys() and len(
+            output.keys()
+        ) == 3
+        assert output['value'].shape == (1, )
+        assert output['logit'].shape == (1, 3)
