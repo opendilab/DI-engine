@@ -21,6 +21,7 @@ main_config = dict(
             shared_memory=False,
             reset_timeout=6000,
         ),
+        max_env_step=3e6,
     ),
     policy=dict(
         cuda=True,
@@ -30,8 +31,7 @@ main_config = dict(
             global_obs_shape=(3, 560, 880),  # Global state shape
             action_shape=3,  # Discrete actions (0, 1, 2)
             hidden_size_list=[128, 128, 64],
-            # mixer=True,  # TODO: mixer is not supported image observation now
-            mixer=False,
+            mixer=True,
         ),
         learn=dict(
             update_per_collect=100,
@@ -73,4 +73,4 @@ ptz_pistonball_qmix_create_config = create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ptz_pistonball_qmix_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=main_config.env.max_env_step)
