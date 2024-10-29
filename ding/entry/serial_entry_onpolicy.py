@@ -45,7 +45,8 @@ def serial_pipeline_onpolicy(
         cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
-    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    resume_training = cfg.policy.learn.get('resume_training', False)
+    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, renew_dir=not resume_training)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -57,15 +58,6 @@ def serial_pipeline_onpolicy(
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
-
-    # Load pretrained model if specified
-    if cfg.policy.load_path is not None:
-        logging.info(f'Loading model from {cfg.policy.load_path} begin...')
-        if cfg.policy.cuda and torch.cuda.is_available():
-            policy.learn_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cuda'))
-        else:
-            policy.learn_mode.load_state_dict(torch.load(cfg.policy.load_path, map_location='cpu'))
-        logging.info(f'Loading model from {cfg.policy.load_path} end!')
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -89,6 +81,8 @@ def serial_pipeline_onpolicy(
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
+    if resume_training:
+        collector.envstep = learner.collector_envstep
 
     while True:
         collect_kwargs = commander.step()

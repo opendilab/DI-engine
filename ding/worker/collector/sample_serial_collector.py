@@ -189,6 +189,16 @@ class SampleSerialCollector(ISerialCollector):
         """
         return self._total_envstep_count
 
+    @envstep.setter
+    def envstep(self, value: int) -> None:
+        """
+        Overview:
+            Set the total envstep count.
+        Arguments:
+            - value (:obj:`int`): the total envstep count
+        """
+        self._total_envstep_count = value
+
     def close(self) -> None:
         """
         Overview:
