@@ -175,7 +175,7 @@ class BattleSampleSerialCollector(ISerialCollector):
         Overview:
             Print the total envstep count.
         Return:
-            - envstep (:obj:`int`): the total envstep count
+            - envstep (:obj:`int`): The total envstep count.
         """
         return self._total_envstep_count
 
@@ -185,7 +185,7 @@ class BattleSampleSerialCollector(ISerialCollector):
         Overview:
             Set the total envstep count.
         Arguments:
-            - value (:obj:`int`): the total envstep count
+            - value (:obj:`int`): The total envstep count.
         """
         self._total_envstep_count = value
 

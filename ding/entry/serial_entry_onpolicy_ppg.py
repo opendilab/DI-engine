@@ -45,8 +45,7 @@ def serial_pipeline_onpolicy_ppg(
         cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
-    resume_training = cfg.policy.learn.get('resume_training', False)
-    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, renew_dir=not resume_training)
+    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True, renew_dir=not cfg.policy.learn.resume_training)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -81,7 +80,7 @@ def serial_pipeline_onpolicy_ppg(
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
-    if resume_training:
+    if cfg.policy.learn.resume_training:
         collector.envstep = learner.collector_envstep
 
     while True:
