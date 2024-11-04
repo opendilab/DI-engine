@@ -37,7 +37,7 @@ def mbrl_entry_setup(
         auto=True,
         create_cfg=create_cfg,
         save_cfg=True,
-        renew_dir=not cfg.policy.learn.resume_training
+        renew_dir=not cfg.policy.learn.get('resume_training', False)
     )
 
     if env_setting is None:
@@ -79,8 +79,7 @@ def mbrl_entry_setup(
     )
 
     return (
-        cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger,
-        resume_training
+        cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger
     )
 
 
@@ -125,13 +124,13 @@ def serial_pipeline_dyna(
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
-    cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger, resume_training = \
+    cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger = \
         mbrl_entry_setup(input_cfg, seed, env_setting, model)
 
     img_buffer = create_img_buffer(cfg, input_cfg, world_model, tb_logger)
 
     learner.call_hook('before_run')
-    if cfg.policy.learn.resume_training:
+    if cfg.policy.learn.get('resume_training', False):
         collector.envstep = learner.collector_envstep
 
     if cfg.policy.get('random_collect_size', 0) > 0:
@@ -200,11 +199,11 @@ def serial_pipeline_dream(
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
-    cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger, resume_training = \
+    cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger = \
         mbrl_entry_setup(input_cfg, seed, env_setting, model)
 
     learner.call_hook('before_run')
-    if cfg.policy.learn.resume_training:
+    if cfg.policy.learn.get('resume_training', False):
         collector.envstep = learner.collector_envstep
 
     if cfg.policy.get('random_collect_size', 0) > 0:

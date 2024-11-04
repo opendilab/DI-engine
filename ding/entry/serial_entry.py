@@ -54,7 +54,7 @@ def serial_pipeline(
         auto=True,
         create_cfg=create_cfg,
         save_cfg=True,
-        renew_dir=not cfg.policy.learn.resume_training
+        renew_dir=not cfg.policy.learn.get('resume_training', False)
     )
     # Create main components: env, policy
     if env_setting is None:
@@ -94,7 +94,7 @@ def serial_pipeline(
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
-    if cfg.policy.learn.resume_training:
+    if cfg.policy.learn.get('resume_training', False):
         collector.envstep = learner.collector_envstep
 
     # Accumulate plenty of data at the beginning of training.

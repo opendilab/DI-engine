@@ -37,7 +37,6 @@ cartpole_ppo_stdim_config = dict(
             entropy_weight=0.01,
             clip_ratio=0.2,
             learner=dict(hook=dict(save_ckpt_after_iter=100)),
-            resume_training=False,
         ),
         collect=dict(
             n_sample=256,
