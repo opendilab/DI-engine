@@ -35,6 +35,7 @@ pendulum_ppo_config = dict(
             adv_norm=True,
             value_norm=True,
             ignore_done=True,
+            resume_training=False,
         ),
         collect=dict(
             n_sample=5000,

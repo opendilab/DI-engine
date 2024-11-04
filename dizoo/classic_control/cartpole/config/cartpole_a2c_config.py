@@ -21,6 +21,7 @@ cartpole_a2c_config = dict(
             learning_rate=0.001,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
+            resume_training=False,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times

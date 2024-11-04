@@ -53,6 +53,7 @@ main_config = dict(
             grad_clip_type='clip_norm',
             grad_clip_value=10,
             ignore_done=False,
+            resume_training=False,
         ),
         collect=dict(
             n_sample=3200,
