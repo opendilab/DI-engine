@@ -78,9 +78,7 @@ def mbrl_entry_setup(
         cfg.policy.other.commander, learner, collector, evaluator, env_buffer, policy.command_mode
     )
 
-    return (
-        cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger
-    )
+    return (cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger)
 
 
 def create_img_buffer(
