@@ -14,11 +14,8 @@ from ding.torch_utils import to_ndarray, to_list
 from .d4rl_wrappers import wrap_d4rl
 from ding.utils import ENV_REGISTRY
 
-MAZE_BOUNDS = {
-    'maze2d-umaze-v1': (0, 5, 0, 5),
-    'maze2d-medium-v1': (0, 8, 0, 8),
-    'maze2d-large-v1': (0, 9, 0, 12)
-}
+MAZE_BOUNDS = {'maze2d-umaze-v1': (0, 5, 0, 5), 'maze2d-medium-v1': (0, 8, 0, 8), 'maze2d-large-v1': (0, 9, 0, 12)}
+
 
 def plot2img(fig, remove_margins=True):
     # https://stackoverflow.com/a/35362787/2912349
@@ -34,10 +31,12 @@ def plot2img(fig, remove_margins=True):
     img_as_string, (width, height) = canvas.print_to_buffer()
     return np.fromstring(img_as_string, dtype='uint8').reshape((height, width, 4))
 
+
 def zipsafe(*args):
     length = len(args[0])
     assert all([len(a) == length for a in args])
     return zip(*args)
+
 
 def zipkw(*args, **kwargs):
     nargs = len(args)
@@ -48,6 +47,7 @@ def zipkw(*args, **kwargs):
         zipped_args = items[:nargs]
         zipped_kwargs = {k: v for k, v in zipsafe(keys, items[nargs:])}
         yield zipped_args, zipped_kwargs
+
 
 @ENV_REGISTRY.register('d4rl')
 class D4RLEnv(BaseEnv):
@@ -137,18 +137,17 @@ class D4RLEnv(BaseEnv):
         plt.clf()
         fig = plt.gcf()
         fig.set_size_inches(5, 5)
-        plt.imshow(self._background * .5,
-            extent=self._extent, cmap=plt.cm.binary, vmin=0, vmax=1)
+        plt.imshow(self._background * .5, extent=self._extent, cmap=plt.cm.binary, vmin=0, vmax=1)
 
         path_length = len(observations)
-        colors = plt.cm.jet(np.linspace(0,1,path_length))
-        plt.plot(observations[:,1], observations[:,0], c='black', zorder=10)
-        plt.scatter(observations[:,1], observations[:,0], c=colors, zorder=20)
+        colors = plt.cm.jet(np.linspace(0, 1, path_length))
+        plt.plot(observations[:, 1], observations[:, 0], c='black', zorder=10)
+        plt.scatter(observations[:, 1], observations[:, 0], c=colors, zorder=20)
         plt.axis('off')
         plt.title(title)
         img = plot2img(fig, remove_margins=self._remove_margins)
         return img
-    
+
     def composite(self, savepath, paths, ncol=5, **kwargs):
         assert len(paths) % ncol == 0, 'Number of paths must be divisible by number of columns'
 
@@ -159,8 +158,7 @@ class D4RLEnv(BaseEnv):
         images = np.stack(images, axis=0)
 
         nrow = len(images) // ncol
-        images = einops.rearrange(images,
-            '(nrow ncol) H W C -> (nrow H) (ncol W) C', nrow=nrow, ncol=ncol)
+        images = einops.rearrange(images, '(nrow ncol) H W C -> (nrow H) (ncol W) C', nrow=nrow, ncol=ncol)
         imageio.imsave(savepath, images)
         print(f'Saved {len(paths)} samples to: {savepath}')
 

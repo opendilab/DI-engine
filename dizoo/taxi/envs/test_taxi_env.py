@@ -3,16 +3,12 @@ import pytest
 from easydict import EasyDict
 from dizoo.taxi import TaxiEnv
 
+
 @pytest.mark.envtest
 class TestTaxiEnv:
-    
+
     def test_naive(self):
-        env = TaxiEnv(
-            EasyDict({
-                "env_id": "Taxi-v3",
-                "max_episode_steps": 300
-            })
-        )
+        env = TaxiEnv(EasyDict({"env_id": "Taxi-v3", "max_episode_steps": 300}))
         env.seed(314, dynamic_seed=False)
         assert env._seed == 314
         obs = env.reset()
@@ -38,4 +34,3 @@ class TestTaxiEnv:
                 assert timestep.reward <= env.reward_space.high
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()
-        

@@ -24,8 +24,8 @@ class CliffWalkingEnv(BaseEnv):
         self._replay_path = None
         self._observation_space = gym.spaces.Box(low=0, high=1, shape=(48, ), dtype=np.float32)
         self._env = gym.make(
-                "CliffWalking", render_mode=self._cfg.render_mode, max_episode_steps=self._cfg.max_episode_steps
-            )
+            "CliffWalking", render_mode=self._cfg.render_mode, max_episode_steps=self._cfg.max_episode_steps
+        )
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
             low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32

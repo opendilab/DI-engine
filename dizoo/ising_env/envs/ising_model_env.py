@@ -146,7 +146,7 @@ class IsingModelEnv(BaseEnv):
         # save the figure to buffer
         fig.canvas.draw()
         image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-        image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        image = image.reshape(fig.canvas.get_width_height()[::-1] + (3, ))
         plt.close(fig)
         return image
 
