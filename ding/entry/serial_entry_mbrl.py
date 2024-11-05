@@ -30,7 +30,15 @@ def mbrl_entry_setup(
         cfg, create_cfg = deepcopy(input_cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     env_fn = None if env_setting is None else env_setting[0]
-    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    cfg = compile_config(
+        cfg,
+        seed=seed,
+        env=env_fn,
+        auto=True,
+        create_cfg=create_cfg,
+        save_cfg=True,
+        renew_dir=not cfg.policy.learn.get('resume_training', False)
+    )
 
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -70,18 +78,7 @@ def mbrl_entry_setup(
         cfg.policy.other.commander, learner, collector, evaluator, env_buffer, policy.command_mode
     )
 
-    return (
-        cfg,
-        policy,
-        world_model,
-        env_buffer,
-        learner,
-        collector,
-        collector_env,
-        evaluator,
-        commander,
-        tb_logger,
-    )
+    return (cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger)
 
 
 def create_img_buffer(
@@ -131,6 +128,8 @@ def serial_pipeline_dyna(
     img_buffer = create_img_buffer(cfg, input_cfg, world_model, tb_logger)
 
     learner.call_hook('before_run')
+    if cfg.policy.learn.get('resume_training', False):
+        collector.envstep = learner.collector_envstep
 
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, env_buffer)
@@ -202,6 +201,8 @@ def serial_pipeline_dream(
         mbrl_entry_setup(input_cfg, seed, env_setting, model)
 
     learner.call_hook('before_run')
+    if cfg.policy.learn.get('resume_training', False):
+        collector.envstep = learner.collector_envstep
 
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, env_buffer)

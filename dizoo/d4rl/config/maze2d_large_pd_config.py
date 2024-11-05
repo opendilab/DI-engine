@@ -75,9 +75,7 @@ create_config = dict(
         import_names=['dizoo.d4rl.envs.d4rl_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='pd',
-    ),
+    policy=dict(type='pd', ),
     replay_buffer=dict(type='naive', ),
 )
 create_config = EasyDict(create_config)

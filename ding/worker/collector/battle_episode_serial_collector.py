@@ -162,9 +162,19 @@ class BattleEpisodeSerialCollector(ISerialCollector):
         Overview:
             Print the total envstep count.
         Return:
-            - envstep (:obj:`int`): the total envstep count
+            - envstep (:obj:`int`): The total envstep count.
         """
         return self._total_envstep_count
+
+    @envstep.setter
+    def envstep(self, value: int) -> None:
+        """
+        Overview:
+            Set the total envstep count.
+        Arguments:
+            - value (:obj:`int`): The total envstep count.
+        """
+        self._total_envstep_count = value
 
     def close(self) -> None:
         """
