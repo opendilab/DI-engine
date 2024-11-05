@@ -426,6 +426,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;before_run&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;before_iter&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;after_iter&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;after_run&#39;</span><span class="p">:</span> <span class="p">[]}</span>
         <span class="c1"># Last iteration. Used to record current iter.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_iter</span> <span class="o">=</span> <span class="n">CountVar</span><span class="p">(</span><span class="n">init_val</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Collector envstep. Used to record current envstep.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collector_envstep</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Setup time wrapper and hook.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup_wrapper</span><span class="p">()</span>
@@ -480,6 +482,26 @@
 <span class="sd">            - hook (:obj:`LearnerHook`): The hook to be addedr.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">add_learner_hook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span><span class="p">,</span> <span class="n">hook</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">collector_envstep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get current collector envstep.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - collector_envstep (:obj:`int`): Current collector envstep.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_collector_envstep</span>
+
+    <span class="nd">@collector_envstep</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">collector_envstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Set current collector envstep.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - value (:obj:`int`): Current collector envstep.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_collector_envstep</span> <span class="o">=</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="BaseLearner.train"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

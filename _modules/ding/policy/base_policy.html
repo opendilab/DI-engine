@@ -397,6 +397,10 @@
         <span class="n">traj_len_inf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># neural network model config</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="c1"># If resume_training is True, the environment step count (collector.envstep) and training iteration (train_iter)</span>
+        <span class="c1"># will be loaded from the pretrained checkpoint, allowing training to resume seamlessly</span>
+        <span class="c1"># from where the ckpt left off.</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">resume_training</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="Policy.__init__"><a class="viewcode-back" href="../../../05_api_doc/policy.html#ding.policy.Policy.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
