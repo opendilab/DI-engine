@@ -202,10 +202,11 @@ class LogShowHook(LearnerHook):
             - engine (:obj:`BaseLearner`): the BaseLearner
         """
         # Only show log for rank 0 learner
-        if engine.rank != 0:
-            for k in engine.log_buffer:
-                engine.log_buffer[k].clear()
-            return
+        # if engine.rank != 0:
+        #     for k in engine.log_buffer:
+        #         engine.log_buffer[k].clear()
+        #     return
+
         # For 'scalar' type variables: log_buffer -> tick_monitor -> monitor_time.step
         for k, v in engine.log_buffer['scalar'].items():
             setattr(engine.monitor, k, v)
@@ -287,7 +288,6 @@ class LogReduceHook(LearnerHook):
                         new_data[k] = aggregate(v)  # 对需要 reduce 的数据执行 allreduce
                     else:
                         new_data[k] = v  # 不需要 reduce 的数据直接保留
-
 
             elif isinstance(data, list) or isinstance(data, tuple):
                 new_data = [aggregate(t) for t in data]

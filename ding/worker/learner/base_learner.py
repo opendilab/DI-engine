@@ -436,8 +436,11 @@ class BaseLearner(object):
             Policy variable monitor is set alongside with policy, because variables are determined by specific policy.
         """
         self._policy = _policy
-        if self._rank == 0:
-            self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+        # if self._rank == 0:
+        #     self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+        
+        self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
+
         if self._cfg.log_policy:
             self.info(self._policy.info())
 
