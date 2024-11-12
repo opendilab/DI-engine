@@ -214,7 +214,10 @@ class QMix(nn.Module):
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         agent_q_act = agent_q_act.squeeze(-1)  # T, B, A
         if self.mixer:
-            global_state_embedding = self._global_state_encoder(global_state)
+            if len(global_state.shape) == 5:
+                global_state_embedding = self._global_state_encoder(global_state.reshape(-1, *global_state.shape[-3:])).reshape(global_state.shape[0], global_state.shape[1], -1)
+            else:
+                global_state_embedding = self._global_state_encoder(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding)
         else:
             total_q = agent_q_act.sum(-1)

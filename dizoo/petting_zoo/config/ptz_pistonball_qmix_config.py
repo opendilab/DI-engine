@@ -1,11 +1,12 @@
 from easydict import EasyDict
 
 n_pistons = 20
+# n_pistons = 2
 collector_env_num = 8
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name='ptz_pistonball_qmix_seed0',
+    exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_seed0',
     env=dict(
         env_family='butterfly',
         env_id='pistonball_v6',
@@ -17,10 +18,7 @@ main_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=1e6,
-        manager=dict(
-            shared_memory=False,
-            reset_timeout=6000,
-        ),
+        manager=dict(shared_memory=False,),
         max_env_step=3e6,
     ),
     policy=dict(
@@ -34,15 +32,16 @@ main_config = dict(
             mixer=True,
         ),
         learn=dict(
-            update_per_collect=100,
-            batch_size=32,
-            learning_rate=0.0005,
+            update_per_collect=20,
+            batch_size=16,
+            learning_rate=0.0001,
             target_update_theta=0.001,
             discount_factor=0.99,
             double_q=True,
+            clip_value=10,
         ),
         collect=dict(
-            n_sample=600,
+            n_sample=32,
             unroll_len=16,
             env_num=collector_env_num,
         ),
