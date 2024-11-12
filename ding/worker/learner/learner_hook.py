@@ -273,8 +273,22 @@ class LogReduceHook(LearnerHook):
             Returns:
                 - new_data (:obj:`dict`): data after reduce
             """
+            # if isinstance(data, dict):
+            #     new_data = {k: aggregate(v) for k, v in data.items()}
+            
+            def should_reduce(key):
+                # 检查 key 是否以 "noreduce_" 前缀开头
+                return not key.startswith("noreduce_")
+
             if isinstance(data, dict):
-                new_data = {k: aggregate(v) for k, v in data.items()}
+                new_data = {}
+                for k, v in data.items():
+                    if should_reduce(k):
+                        new_data[k] = aggregate(v)  # 对需要 reduce 的数据执行 allreduce
+                    else:
+                        new_data[k] = v  # 不需要 reduce 的数据直接保留
+
+
             elif isinstance(data, list) or isinstance(data, tuple):
                 new_data = [aggregate(t) for t in data]
             elif isinstance(data, torch.Tensor):

@@ -107,9 +107,9 @@ class BaseLearner(object):
             self._logger, _ = build_logger(
                 './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
             )
-            self._tb_logger = None
-
-            self._tb_logger = None
+            # self._tb_logger = None
+            # ========== TODO: unizero_multitask ddp_v2 ========
+            self._tb_logger = tb_logger
 
 
         self._log_buffer = {
