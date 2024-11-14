@@ -2,10 +2,10 @@ from easydict import EasyDict
 
 n_pistons = 20
 collector_env_num = 8
-evaluator_env_num = 8
+evaluator_env_num = 3
 
 main_config = dict(
-    exp_name='ptz_pistonball_qmix_seed0',
+    exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_nsample16_H5_rbs1e3_seed0',
     env=dict(
         env_family='butterfly',
         env_id='pistonball_v6',
@@ -42,17 +42,24 @@ main_config = dict(
             double_q=True,
         ),
         collect=dict(
-            n_sample=600,
-            unroll_len=16,
+            # n_sample=32,
+            # unroll_len=16,
+            n_sample=16,  # 减少采样数量
+            unroll_len=5,  # 确保合理的序列长度
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num),
-        other=dict(eps=dict(
-            type='exp',
-            start=1.0,
-            end=0.05,
-            decay=100000,
-        )),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=1,
+                end=0.05,
+                decay=100000,
+            ),
+            replay_buffer=dict(
+                replay_buffer_size=1000,
+            ),
+        ),
     ),
 )
 main_config = EasyDict(main_config)
