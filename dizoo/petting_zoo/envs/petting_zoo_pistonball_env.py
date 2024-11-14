@@ -147,21 +147,37 @@ class PettingZooPistonballEnv(BaseEnv):
         """
         Processes the observations into the required format.
         """
-        if self._channel_first:
-            obs = np.array([np.transpose(obs[agent], (2, 0, 1)) for agent in self._agents]).astype(np.uint8)
-        else:
-            obs = np.array([obs[agent] for agent in self._agents]).astype(np.uint8)
+        # Process agent observations, transpose if channel_first is True
+        obs = np.array(
+            [np.transpose(obs[agent], (2, 0, 1)) if self._channel_first else obs[agent]
+             for agent in self._agents],
+            dtype=np.uint8
+        )
+
+        # Return only agent observations if configured to do so
         if self._cfg.get('agent_obs_only', False):
             return obs
-        ret = {}
-        ret['agent_state'] = obs
+
+        # Initialize return dictionary
+        ret = {
+            'agent_state': (obs / 255.0).astype(np.float32)
+        }
+
+        # Obtain global state, transpose if channel_first is True
+        global_state = self._env.state()
         if self._channel_first:
-            ret['global_state'] = self._env.state().transpose(2, 0, 1)
-        else:
-            ret['global_state'] = self._env.state()
-        if self._agent_specific_global_state: # TODO: more elegant way to handle this
-            ret['global_state'] = np.repeat(np.expand_dims(ret['global_state'], axis=0), self._num_pistons, axis=0)
-        ret['action_mask'] = np.ones((self._num_pistons, *self._action_dim)).astype(np.float32)
+            global_state = global_state.transpose(2, 0, 1)
+        ret['global_state'] = (global_state / 255.0).astype(np.float32)
+
+        # Handle agent-specific global states by repeating the global state for each agent
+        if self._agent_specific_global_state:
+            ret['global_state'] = np.tile(
+                np.expand_dims(ret['global_state'], axis=0),
+                (self._num_pistons, 1, 1, 1)
+            )
+
+        # Set action mask for each agent
+        ret['action_mask'] = np.ones((self._num_pistons, *self._action_dim), dtype=np.float32)
 
         return ret
 
