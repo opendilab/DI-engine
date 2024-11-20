@@ -2,10 +2,10 @@ from easydict import EasyDict
 
 n_pistons = 20
 collector_env_num = 8
-evaluator_env_num = 3
+evaluator_env_num = 8
 
 main_config = dict(
-    exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_nsample16_H5_rbs1e3_seed0',
+    exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_reward-norm_nsample16_H5_rbs1e3_seed0',
     env=dict(
         env_family='butterfly',
         env_id='pistonball_v6',
@@ -27,13 +27,15 @@ main_config = dict(
             obs_shape=(3, 457, 120),  # RGB image observation shape for each piston agent
             global_obs_shape=(3, 560, 880),  # Global state shape
             action_shape=3,  # Discrete actions (0, 1, 2)
-            hidden_size_list=[128, 128, 64],
+            # hidden_size_list=[128, 128, 64],
+            hidden_size_list=[32, 64, 128, 256],
             mixer=True,
         ),
         learn=dict(
-            update_per_collect=100,
+            update_per_collect=50,
+            # update_per_collect=100,
             batch_size=16,
-            learning_rate=0.0005,
+            learning_rate=0.0001,
             target_update_theta=0.001,
             discount_factor=0.99,
             double_q=True,

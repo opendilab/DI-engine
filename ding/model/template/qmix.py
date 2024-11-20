@@ -155,7 +155,7 @@ class QMix(nn.Module):
             elif global_obs_shape_type == "image":
                 self._mixer = Mixer(agent_num, embedding_size, embedding_size, activation=activation)
                 self._global_state_encoder = ConvEncoder(
-                    global_obs_shape, hidden_size_list=hidden_size_list, activation=activation, norm_type='BN'
+                    global_obs_shape, hidden_size_list=hidden_size_list, stride=[8, 2, 1], activation=activation, norm_type='BN'
                 )
             else:
                 raise ValueError(f"Unsupported global_obs_shape: {global_obs_shape}")
