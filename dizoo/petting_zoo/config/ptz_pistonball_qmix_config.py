@@ -5,7 +5,7 @@ collector_env_num = 8
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_reward-norm_nsample16_H5_rbs1e3_seed0',
+    exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_nsample16_H5_reward-norm/20*50_grad-clip-20_upc20_bs32_rbs2e3_seed0',
     env=dict(
         env_family='butterfly',
         env_id='pistonball_v6',
@@ -32,10 +32,12 @@ main_config = dict(
             mixer=True,
         ),
         learn=dict(
-            update_per_collect=50,
+            update_per_collect=20,
             # update_per_collect=100,
-            batch_size=16,
+            # batch_size=16,
+            batch_size=32,
             learning_rate=0.0001,
+            clip_value=20,
             target_update_theta=0.001,
             discount_factor=0.99,
             double_q=True,
@@ -54,7 +56,8 @@ main_config = dict(
                 decay=100000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=1000,
+                replay_buffer_size=2000,
+                # replay_buffer_size=5000,
             ),
         ),
     ),

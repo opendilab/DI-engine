@@ -130,7 +130,8 @@ class PettingZooPistonballEnv(BaseEnv):
         rew_n = rew_n.astype(np.float32)
 
         if self.normalize_reward:
-            rew_n = rew_n / self._num_pistons
+            # TODO: more elegent scale factor
+            rew_n = rew_n / (self._num_pistons*50)
 
         self._eval_episode_return += rew_n.item()
 
