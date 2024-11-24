@@ -1,11 +1,13 @@
-from typing import Union, List
+from functools import reduce
+from typing import List, Union
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functools import reduce
-from ding.utils import list_split, MODEL_REGISTRY
-from ding.torch_utils import fc_block, MLP
-from ..common import  ConvEncoder
+from ding.torch_utils import MLP, fc_block
+from ding.utils import MODEL_REGISTRY, list_split
+
+from ..common import ConvEncoder
 from .q_learning import DRQN
 
 
@@ -155,7 +157,7 @@ class QMix(nn.Module):
             elif global_obs_shape_type == "image":
                 self._mixer = Mixer(agent_num, embedding_size, embedding_size, activation=activation)
                 self._global_state_encoder = ConvEncoder(
-                    global_obs_shape, hidden_size_list=hidden_size_list, stride=[8, 2, 1], activation=activation, norm_type='BN'
+                    global_obs_shape, hidden_size_list=hidden_size_list, activation=activation, norm_type='BN'
                 )
             else:
                 raise ValueError(f"Unsupported global_obs_shape: {global_obs_shape}")
@@ -164,10 +166,8 @@ class QMix(nn.Module):
         """
         Overview:
             Determine the type of global observation shape.
-
         Arguments:
             - global_obs_shape (:obj:`int` or :obj:`List[int]`): The global observation state.
-
         Returns:
             - str: 'flat' for 1D observation or 'image' for 3D observation.
         """
@@ -250,10 +250,11 @@ class QMix(nn.Module):
             'next_state': next_state,
             'action_mask': data['obs']['action_mask']
         }
+
     def _process_global_state(self, global_state: torch.Tensor) -> torch.Tensor:
         """
-        Process the global state to obtain an embedding.
-        
+        Overview:
+            Process the global state to obtain an embedding.
         Arguments:
             - global_state (:obj:`torch.Tensor`): The global state tensor.
 

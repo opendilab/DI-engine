@@ -1,5 +1,6 @@
+import copy
 from functools import reduce
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 import gymnasium as gym
 import numpy as np
@@ -9,7 +10,7 @@ from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 from dizoo.petting_zoo.envs.petting_zoo_simple_spread_env import PTZRecordVideo
 from pettingzoo.butterfly import pistonball_v6
-import copy
+
 
 @ENV_REGISTRY.register('petting_zoo_pistonball')
 class PettingZooPistonballEnv(BaseEnv):
@@ -130,7 +131,7 @@ class PettingZooPistonballEnv(BaseEnv):
         rew_n = rew_n.astype(np.float32)
 
         if self.normalize_reward:
-            # TODO: more elegent scale factor
+            # TODO: more elegant scale factor
             rew_n = rew_n / (self._num_pistons*50)
 
         self._eval_episode_return += rew_n.item()
