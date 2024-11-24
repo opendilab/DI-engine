@@ -9,6 +9,7 @@ from ding.policy import DQNPolicy, single_env_forward_wrapper
 from dizoo.taxi.config.taxi_dqn_config import create_config, main_config
 from dizoo.taxi.envs.taxi_env import TaxiEnv
 
+
 def main(main_config: EasyDict, create_config: EasyDict, ckpt_path: str) -> None:
     main_config.exp_name = f'taxi_dqn_seed0_deploy'
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
@@ -31,8 +32,4 @@ def main(main_config: EasyDict, create_config: EasyDict, ckpt_path: str) -> None
 
 
 if __name__ == "__main__":
-    main(
-        main_config=main_config,
-        create_config=create_config,
-        ckpt_path=f'./taxi_dqn_seed0/ckpt/ckpt_best.pth.tar'
-    )
+    main(main_config=main_config, create_config=create_config, ckpt_path=f'./taxi_dqn_seed0/ckpt/ckpt_best.pth.tar')
