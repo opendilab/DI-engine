@@ -1,5 +1,6 @@
+import copy
 from functools import reduce
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 import gymnasium as gym
 import numpy as np
@@ -31,6 +32,7 @@ class PettingZooPistonballEnv(BaseEnv):
         if self._act_scale:
             assert self._continuous_actions, 'Action scaling only applies to continuous action spaces.'
         self._channel_first = self._cfg.get('channel_first', True)
+        self.normalize_reward = self._cfg.normalize_reward
 
     def reset(self) -> np.ndarray:
         """
@@ -127,11 +129,17 @@ class PettingZooPistonballEnv(BaseEnv):
         obs_n = self._process_obs(obs)
         rew_n = np.array([sum([rew[agent] for agent in self._agents])])
         rew_n = rew_n.astype(np.float32)
+
+        if self.normalize_reward:
+            # TODO: more elegant scale factor
+            rew_n = rew_n / (self._num_pistons*50)
+
         self._eval_episode_return += rew_n.item()
 
         done_n = reduce(lambda x, y: x and y, done.values()) or self._step_count >= self._max_cycles
         if done_n:
             info['eval_episode_return'] = self._eval_episode_return
+        
 
         return BaseEnvTimestep(obs_n, rew_n, done_n, info)
 
@@ -202,9 +210,6 @@ class PettingZooPistonballEnv(BaseEnv):
                 random_action[k] = to_ndarray([random_action[k]], dtype=np.int64)
         return random_action
 
-    def __repr__(self) -> str:
-        return "DI-engine PettingZoo Pistonball Env"
-
     @property
     def agents(self) -> List[str]:
         return self._agents
@@ -220,3 +225,20 @@ class PettingZooPistonballEnv(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
+
+    @staticmethod
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.normalize_reward = True
+        return [cfg for _ in range(collector_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.normalize_reward = False
+        return [cfg for _ in range(evaluator_env_num)]
+    
+    def __repr__(self) -> str:
+        return "DI-engine PettingZoo Pistonball Env"
