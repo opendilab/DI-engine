@@ -117,6 +117,9 @@ class LoadCkptHook(LearnerHook):
         if 'last_iter' in state_dict:
             last_iter = state_dict.pop('last_iter')
             engine.last_iter.update(last_iter)
+        if 'last_step' in state_dict:
+            last_step = state_dict.pop('last_step')
+            engine._collector_envstep = last_step
         engine.policy.load_state_dict(state_dict)
         engine.info('{} load ckpt in {}'.format(engine.instance_name, path))
 
@@ -166,6 +169,7 @@ class SaveCkptHook(LearnerHook):
             path = os.path.join(dirname, ckpt_name)
             state_dict = engine.policy.state_dict()
             state_dict.update({'last_iter': engine.last_iter.val})
+            state_dict.update({'last_step': engine.collector_envstep})
             save_file(path, state_dict)
             engine.info('{} save ckpt in {}'.format(engine.instance_name, path))
 

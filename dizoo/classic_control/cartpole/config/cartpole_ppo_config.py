@@ -26,7 +26,15 @@ cartpole_ppo_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
-            learner=dict(hook=dict(save_ckpt_after_iter=100)),
+            # Path to the pretrained checkpoint (ckpt).
+            # If set to an empty string (''), no pretrained model will be loaded.
+            # To load a pretrained ckpt, specify the path like this:
+            # learner=dict(hook=dict(load_ckpt_before_run='/path/to/your/ckpt/iteration_100.pth.tar')),
+
+            # If True, the environment step count (collector.envstep) and training iteration (train_iter)
+            # will be loaded from the pretrained checkpoint, allowing training to resume seamlessly
+            # from where the ckpt left off.
+            resume_training=False,
         ),
         collect=dict(
             n_sample=256,

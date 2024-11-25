@@ -122,6 +122,8 @@ class BaseLearner(object):
         self._hooks = {'before_run': [], 'before_iter': [], 'after_iter': [], 'after_run': []}
         # Last iteration. Used to record current iter.
         self._last_iter = CountVar(init_val=0)
+        # Collector envstep. Used to record current envstep.
+        self._collector_envstep = 0
 
         # Setup time wrapper and hook.
         self._setup_wrapper()
@@ -176,6 +178,26 @@ class BaseLearner(object):
             - hook (:obj:`LearnerHook`): The hook to be addedr.
         """
         add_learner_hook(self._hooks, hook)
+
+    @property
+    def collector_envstep(self) -> int:
+        """
+        Overview:
+            Get current collector envstep.
+        Returns:
+            - collector_envstep (:obj:`int`): Current collector envstep.
+        """
+        return self._collector_envstep
+
+    @collector_envstep.setter
+    def collector_envstep(self, value: int) -> None:
+        """
+        Overview:
+            Set current collector envstep.
+        Arguments:
+            - value (:obj:`int`): Current collector envstep.
+        """
+        self._collector_envstep = value
 
     def train(self, data: dict, envstep: int = -1, policy_kwargs: Optional[dict] = None) -> None:
         """
