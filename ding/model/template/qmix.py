@@ -150,7 +150,7 @@ class QMix(nn.Module):
         self.mixer = mixer
         if self.mixer:
             global_obs_shape_type = self._get_global_obs_shape_type(global_obs_shape)
-            
+
             if global_obs_shape_type == "flat":
                 self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
                 self._global_state_encoder = nn.Identity()
