@@ -1,10 +1,13 @@
-from typing import Union, List
+from functools import reduce
+from typing import List, Union
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from functools import reduce
-from ding.utils import list_split, MODEL_REGISTRY
-from ding.torch_utils import fc_block, MLP
+from ding.torch_utils import MLP, fc_block
+from ding.utils import MODEL_REGISTRY, list_split
+
+from ..common import ConvEncoder
 from .q_learning import DRQN
 
 
@@ -111,7 +114,7 @@ class QMix(nn.Module):
             self,
             agent_num: int,
             obs_shape: int,
-            global_obs_shape: int,
+            global_obs_shape: Union[int, List[int]],
             action_shape: int,
             hidden_size_list: list,
             mixer: bool = True,
@@ -146,8 +149,34 @@ class QMix(nn.Module):
         embedding_size = hidden_size_list[-1]
         self.mixer = mixer
         if self.mixer:
-            self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
-            self._global_state_encoder = nn.Identity()
+            global_obs_shape_type = self._get_global_obs_shape_type(global_obs_shape)
+
+            if global_obs_shape_type == "flat":
+                self._mixer = Mixer(agent_num, global_obs_shape, embedding_size, activation=activation)
+                self._global_state_encoder = nn.Identity()
+            elif global_obs_shape_type == "image":
+                self._mixer = Mixer(agent_num, embedding_size, embedding_size, activation=activation)
+                self._global_state_encoder = ConvEncoder(
+                    global_obs_shape, hidden_size_list=hidden_size_list, activation=activation, norm_type='BN'
+                )
+            else:
+                raise ValueError(f"Unsupported global_obs_shape: {global_obs_shape}")
+
+    def _get_global_obs_shape_type(self, global_obs_shape: Union[int, List[int]]) -> str:
+        """
+        Overview:
+            Determine the type of global observation shape.
+        Arguments:
+            - global_obs_shape (:obj:`Union[int, List[int]]`): The global observation state.
+        Returns:
+            - obs_shape_type (:obj:`str`): 'flat' for 1D observation or 'image' for 3D observation.
+        """
+        if isinstance(global_obs_shape, int) or (isinstance(global_obs_shape, list) and len(global_obs_shape) == 1):
+            return "flat"
+        elif isinstance(global_obs_shape, list) and len(global_obs_shape) == 3:
+            return "image"
+        else:
+            raise ValueError(f"Unsupported global_obs_shape: {global_obs_shape}")
 
     def forward(self, data: dict, single_step: bool = True) -> dict:
         """
@@ -182,8 +211,16 @@ class QMix(nn.Module):
         agent_state, global_state, prev_state = data['obs']['agent_state'], data['obs']['global_state'], data[
             'prev_state']
         action = data.get('action', None)
+        # If single_step is True, add a new dimension at the front of agent_state
+        # This is necessary to maintain the expected input shape for the model,
+        # which requires a time step dimension even when processing a single step.
         if single_step:
-            agent_state, global_state = agent_state.unsqueeze(0), global_state.unsqueeze(0)
+            agent_state = agent_state.unsqueeze(0)
+        # If single_step is True and global_state has 2 dimensions, add a new dimension at the front of global_state
+        # This ensures that global_state has the same number of dimensions as agent_state,
+        # allowing for consistent processing in the forward computation.
+        if single_step and len(global_state.shape) == 2:
+            global_state = global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
         assert len(prev_state) == B and all(
             [len(p) == A for p in prev_state]
@@ -205,15 +242,38 @@ class QMix(nn.Module):
         agent_q_act = torch.gather(agent_q, dim=-1, index=action.unsqueeze(-1))
         agent_q_act = agent_q_act.squeeze(-1)  # T, B, A
         if self.mixer:
-            global_state_embedding = self._global_state_encoder(global_state)
+            global_state_embedding = self._process_global_state(global_state)
             total_q = self._mixer(agent_q_act, global_state_embedding)
         else:
-            total_q = agent_q_act.sum(-1)
+            total_q = agent_q_act.sum(dim=-1)
+
         if single_step:
             total_q, agent_q = total_q.squeeze(0), agent_q.squeeze(0)
+
         return {
             'total_q': total_q,
             'logit': agent_q,
             'next_state': next_state,
             'action_mask': data['obs']['action_mask']
         }
+
+    def _process_global_state(self, global_state: torch.Tensor) -> torch.Tensor:
+        """
+        Overview:
+            Process the global state to obtain an embedding.
+        Arguments:
+            - global_state (:obj:`torch.Tensor`): The global state tensor.
+
+        Returns:
+            - global_state_embedding (:obj:`torch.Tensor`): The processed global state embedding.
+        """
+        # If global_state has 5 dimensions, it's likely in the form [batch_size, time_steps, C, H, W]
+        if global_state.dim() == 5:
+            # Reshape and apply the global state encoder
+            batch_time_shape = global_state.shape[:2]  # [batch_size, time_steps]
+            reshaped_state = global_state.view(-1, *global_state.shape[-3:])  # Collapse batch and time dims
+            encoded_state = self._global_state_encoder(reshaped_state)
+            return encoded_state.view(*batch_time_shape, -1)  # Reshape back to [batch_size, time_steps, embedding_dim]
+        else:
+            # For lower-dimensional states, apply the encoder directly
+            return self._global_state_encoder(global_state)

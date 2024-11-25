@@ -43,3 +43,34 @@ def test_qmix():
         is_differentiable(loss, qmix_model)
         data.pop('action')
         output = qmix_model(data, single_step=False)
+
+
+@pytest.mark.unittest
+def test_qmix_process_global_state():
+    # Test the behavior of the _process_global_state method with different global_obs_shape types
+    agent_num, obs_dim, global_obs_dim, action_dim = 4, 32, 32 * 4, 9
+    embedding_dim = 64
+
+    # Case 1: Test "flat" type global_obs_shape
+    global_obs_shape = global_obs_dim  # Flat global_obs_shape
+    qmix_model_flat = QMix(agent_num, obs_dim, global_obs_shape, action_dim, [64, 128, embedding_dim], mixer=True)
+
+    # Simulate input for the "flat" type global_state
+    batch_size, time_steps = 3, 8
+    global_state_flat = torch.randn(batch_size, time_steps, global_obs_dim)
+    processed_flat = qmix_model_flat._process_global_state(global_state_flat)
+
+    # Ensure the output shape is correct [batch_size, time_steps, embedding_dim]
+    assert processed_flat.shape == (batch_size, time_steps, global_obs_dim)
+
+    # Case 2: Test "image" type global_obs_shape
+    global_obs_shape = [3, 64, 64]  # Image-shaped global_obs_shape (C, H, W)
+    qmix_model_image = QMix(agent_num, obs_dim, global_obs_shape, action_dim, [64, 128, embedding_dim], mixer=True)
+
+    # Simulate input for the "image" type global_state
+    C, H, W = global_obs_shape
+    global_state_image = torch.randn(batch_size, time_steps, C, H, W)
+    processed_image = qmix_model_image._process_global_state(global_state_image)
+
+    # Ensure the output shape is correct [batch_size, time_steps, embedding_dim]
+    assert processed_image.shape == (batch_size, time_steps, embedding_dim)

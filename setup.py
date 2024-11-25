@@ -75,7 +75,7 @@ setup(
         'responses',  # interaction
         'URLObject',  # interaction
         'pynng',  # parallel
-        'sniffio', # parallel
+        'sniffio',  # parallel
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
     ],
