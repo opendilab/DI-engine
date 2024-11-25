@@ -1,0 +1,579 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Loading Pre-trained Models and Resuming Training &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
+  <link rel="prev" title="Random Seed" href="random_seed.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/LightZero" target="_blank">
+                  <span class="dropdown-title">LightZero </span>
+                  <p>OpenDILab Decision Monte Carlo Tree Search Framework</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GenerativeRL" target="_blank">
+                  <span class="dropdown-title">GenerativeRL </span>
+                  <p>OpenDILab Generative AI Framework</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-sheep" target="_blank">
+                  <span class="dropdown-title">DI-sheep </span>
+                  <p>Deep Reinforcement Learning + 3 Tiles Game</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-decision-transformer" target="_blank">
+                  <span class="dropdown-title">awesome-decision-transformer </span>
+                  <p>A curated list of Decision Transformer resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-exploration-rl" target="_blank">
+                  <span class="dropdown-title">awesome-exploration-rl </span>
+                  <p>A curated list of awesome exploration RL resources (continually updated)</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-multi-modal-reinforcement-learning" target="_blank">
+                  <span class="dropdown-title">awesome-multi-modal-reinforcement-learning </span>
+                  <p>A curated list of Multi-Modal Reinforcement Learning resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Best Practice</a> &gt;</li>
+        
+      <li>Loading Pre-trained Models and Resuming Training</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/load_ckpt.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="loading-pre-trained-models-and-resuming-training">
+<h1>Loading Pre-trained Models and Resuming Training<a class="headerlink" href="#loading-pre-trained-models-and-resuming-training" title="Permalink to this heading">¶</a></h1>
+<p>In reinforcement learning experiments using DI-engine, loading a pre-trained <code class="docutils literal notranslate"><span class="pre">ckpt</span></code> file to resume training from a checkpoint is a common requirement. This article provides a detailed explanation of how to load a pre-trained model and resume training seamlessly using DI-engine, with <code class="docutils literal notranslate"><span class="pre">cartpole_ppo_config.py</span></code> as an example.</p>
+<section id="loading-a-pre-trained-model">
+<h2>Loading a Pre-trained Model<a class="headerlink" href="#loading-a-pre-trained-model" title="Permalink to this heading">¶</a></h2>
+<section id="configure-load-ckpt-before-run">
+<h3>Configure <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code><a class="headerlink" href="#configure-load-ckpt-before-run" title="Permalink to this heading">¶</a></h3>
+<p>To load a pre-trained model, you first need to specify the path to the pre-trained <code class="docutils literal notranslate"><span class="pre">ckpt</span></code> file in the configuration file. This path is configured using the <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code> field.</p>
+<p>Example code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">cartpole_ppo_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;cartpole_ppo_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">195</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>
+            <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+            <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="c1"># ======== Path to the pretrained checkpoint (ckpt) ========</span>
+            <span class="n">learner</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">hook</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">load_ckpt_before_run</span><span class="o">=</span><span class="s1">&#39;/path/to/your/ckpt/iteration_100.pth.tar&#39;</span><span class="p">)),</span>
+            <span class="n">resume_training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+            <span class="n">gae_lambda</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="p">),</span> <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_ppo_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_ppo_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">cartpole_ppo_config</span>
+</pre></div>
+</div>
+<p>In the above example, <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code> explicitly specifies the path to the pre-trained model <code class="docutils literal notranslate"><span class="pre">/path/to/your/ckpt/iteration_100.pth.tar</span></code>. When you run this code, DI-engine will automatically load the model weights from this path and continue training from there.</p>
+</section>
+<section id="model-loading-process">
+<h3>Model Loading Process<a class="headerlink" href="#model-loading-process" title="Permalink to this heading">¶</a></h3>
+<p>The model loading process mainly occurs in the main files under the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/">entry</a> path. Below, we take the <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/entry/serial_entry_onpolicy.py">serial_entry_onpolicy.py</a> file as an example to explain the process.</p>
+<p>The key operation of loading a pre-trained model is achieved through the DI-engine’s <code class="docutils literal notranslate"><span class="pre">hook</span></code> mechanism:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Learner&#39;s before_run hook.</span>
+<span class="n">learner</span><span class="o">.</span><span class="n">call_hook</span><span class="p">(</span><span class="s1">&#39;before_run&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resume_training&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">collector_envstep</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code> is not empty, DI-engine will automatically call the <code class="docutils literal notranslate"><span class="pre">learner</span></code>’s <code class="docutils literal notranslate"><span class="pre">before_run</span></code> hook function to load the pre-trained model from the specified path. The specific implementation can be found in DI-engine’s <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/worker/learner/learner_hook.py#L86">learner_hook.py</a>.</p>
+<p>The checkpoint saving and loading functionalities for the policy itself are implemented through the <code class="docutils literal notranslate"><span class="pre">_load_state_dict_learn</span></code> and <code class="docutils literal notranslate"><span class="pre">_state_dict_learn</span></code> methods. For example, in the PPO policy, the implementations can be found at the following locations:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py#L1827">PPO policy _load_state_dict_learn</a></p></li>
+<li><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/ppo.py#L1841">PPO policy _state_dict_learn</a></p></li>
+</ul>
+</section>
+</section>
+<section id="resuming-training-from-a-checkpoint">
+<h2>Resuming Training from a Checkpoint<a class="headerlink" href="#resuming-training-from-a-checkpoint" title="Permalink to this heading">¶</a></h2>
+<section id="managing-logs-and-tensorboard-paths-when-resuming">
+<h3>Managing Logs and TensorBoard Paths When Resuming<a class="headerlink" href="#managing-logs-and-tensorboard-paths-when-resuming" title="Permalink to this heading">¶</a></h3>
+<p>By default, DI-engine creates a new log path for each experiment to avoid overwriting previous training data and TensorBoard logs. However, if you want the logs and TensorBoard data to be saved in the same directory when resuming training, you can configure this by setting <code class="docutils literal notranslate"><span class="pre">resume_training=True</span></code> in the configuration file (its default value is False).</p>
+<p>Example code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+    <span class="o">...</span>  <span class="c1"># Other parts of the code</span>
+    <span class="n">learner</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">hook</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">load_ckpt_before_run</span><span class="o">=</span><span class="s1">&#39;/path/to/your/ckpt/iteration_100.pth.tar&#39;</span><span class="p">)),</span>
+    <span class="n">resume_training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">resume_training=True</span></code>, DI-engine will save the new logs and TensorBoard data in the original path.</p>
+<p>The key code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Note that the default value of renew_dir is True. When resume_training=True, renew_dir is set to False to ensure the consistency of log paths.</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env_fn</span><span class="p">,</span> <span class="n">auto</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">create_cfg</span><span class="o">=</span><span class="n">create_cfg</span><span class="p">,</span> <span class="n">save_cfg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">renew_dir</span><span class="o">=</span><span class="ow">not</span> <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resume_training&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>At the same time, the <code class="docutils literal notranslate"><span class="pre">train_iter</span></code> and <code class="docutils literal notranslate"><span class="pre">collector.envstep</span></code> from the loaded <code class="docutils literal notranslate"><span class="pre">ckpt</span></code> file will be restored, allowing training to seamlessly continue from the previous checkpoint.</p>
+</section>
+<section id="restoring-iteration-step-count-when-resuming">
+<h3>Restoring Iteration/Step Count When Resuming<a class="headerlink" href="#restoring-iteration-step-count-when-resuming" title="Permalink to this heading">¶</a></h3>
+<p>When resuming training from a checkpoint, both the training <code class="docutils literal notranslate"><span class="pre">iter</span></code> and <code class="docutils literal notranslate"><span class="pre">steps</span></code> will be restored from the last saved iteration and step count in the checkpoint. This ensures that the training process continues from the correct point, maintaining the integrity of the training progress.</p>
+<p>First Training (Pre-train) Results:</p>
+<p>The following figures show the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> results for the first training (pre-train), with <code class="docutils literal notranslate"><span class="pre">iter</span></code> and <code class="docutils literal notranslate"><span class="pre">steps</span></code> on the x-axis, respectively:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/cartpole_ppo_evaluator_iter_pretrain.png"><img alt="../_images/cartpole_ppo_evaluator_iter_pretrain.png" class="align-center" src="../_images/cartpole_ppo_evaluator_iter_pretrain.png" style="width: 413.6px; height: 134.8px;" /></a>
+<a class="reference internal image-reference" href="../_images/cartpole_ppo_evaluator_step_pretrain.png"><img alt="../_images/cartpole_ppo_evaluator_step_pretrain.png" class="align-center" src="../_images/cartpole_ppo_evaluator_step_pretrain.png" style="width: 413.20000000000005px; height: 132.8px;" /></a>
+</div></blockquote>
+<p>Second Training (Resume) Results:</p>
+<p>The following figures show the <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> results for the second training (resume), with <code class="docutils literal notranslate"><span class="pre">iter</span></code> and <code class="docutils literal notranslate"><span class="pre">steps</span></code> on the x-axis, respectively:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/cartpole_ppo_evaluator_iter_resume.png"><img alt="../_images/cartpole_ppo_evaluator_iter_resume.png" class="align-center" src="../_images/cartpole_ppo_evaluator_iter_resume.png" style="width: 411.6px; height: 135.20000000000002px;" /></a>
+<a class="reference internal image-reference" href="../_images/cartpole_ppo_evaluator_step_resume.png"><img alt="../_images/cartpole_ppo_evaluator_step_resume.png" class="align-center" src="../_images/cartpole_ppo_evaluator_step_resume.png" style="width: 410.8px; height: 135.6px;" /></a>
+</div></blockquote>
+<p>These graphs clearly demonstrate that training continues from where it left off after resuming, and the evaluation metrics show consistency at the same iterations/steps.</p>
+</section>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this heading">¶</a></h2>
+<p>When conducting reinforcement learning experiments with DI-engine, loading pre-trained models and resuming training from checkpoints is crucial for ensuring stable, long-term training. From the examples and explanations provided in this article, we can observe the following:</p>
+<ol class="arabic simple">
+<li><p><strong>Loading a pre-trained model</strong> is configured through the <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code> field and is automatically loaded before training through the <code class="docutils literal notranslate"><span class="pre">hook</span></code> mechanism.</p></li>
+<li><p><strong>Resuming training</strong> can be achieved by setting <code class="docutils literal notranslate"><span class="pre">resume_training=True</span></code>, ensuring seamless log management and training progress continuation.</p></li>
+<li><p>In practical experiments, proper management of log paths and checkpoint data can prevent redundant training and data loss, improving the efficiency and reproducibility of experiments.</p></li>
+</ol>
+<p>We hope this article provides a clear guide for your experiments using DI-engine.</p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="random_seed.html" class="btn btn-neutral" title="Random Seed" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Loading Pre-trained Models and Resuming Training</a><ul>
+<li><a class="reference internal" href="#loading-a-pre-trained-model">Loading a Pre-trained Model</a><ul>
+<li><a class="reference internal" href="#configure-load-ckpt-before-run">Configure <code class="docutils literal notranslate"><span class="pre">load_ckpt_before_run</span></code></a></li>
+<li><a class="reference internal" href="#model-loading-process">Model Loading Process</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#resuming-training-from-a-checkpoint">Resuming Training from a Checkpoint</a><ul>
+<li><a class="reference internal" href="#managing-logs-and-tensorboard-paths-when-resuming">Managing Logs and TensorBoard Paths When Resuming</a></li>
+<li><a class="reference internal" href="#restoring-iteration-step-count-when-resuming">Restoring Iteration/Step Count When Resuming</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script src="../_static/sphinx_highlight.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

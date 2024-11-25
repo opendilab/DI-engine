@@ -302,13 +302,16 @@
               <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
                 
   <h1>Source code for ding.model.template.qmix</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">list_split</span><span class="p">,</span> <span class="n">MODEL_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">fc_block</span><span class="p">,</span> <span class="n">MLP</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">MLP</span><span class="p">,</span> <span class="n">fc_block</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">MODEL_REGISTRY</span><span class="p">,</span> <span class="n">list_split</span>
+
+<span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">ConvEncoder</span>
 <span class="kn">from</span> <span class="nn">.q_learning</span> <span class="kn">import</span> <span class="n">DRQN</span>
 
 
@@ -415,7 +418,7 @@
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">agent_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-            <span class="n">global_obs_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">global_obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">hidden_size_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
             <span class="n">mixer</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -450,8 +453,34 @@
         <span class="n">embedding_size</span> <span class="o">=</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mixer</span> <span class="o">=</span> <span class="n">mixer</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mixer</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span></div>
+            <span class="n">global_obs_shape_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_global_obs_shape_type</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">global_obs_shape_type</span> <span class="o">==</span> <span class="s2">&quot;flat&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Identity</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">global_obs_shape_type</span> <span class="o">==</span> <span class="s2">&quot;image&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="n">agent_num</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">embedding_size</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span>
+                    <span class="n">global_obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="o">=</span><span class="n">hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="s1">&#39;BN&#39;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported global_obs_shape: </span><span class="si">{</span><span class="n">global_obs_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_global_obs_shape_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Determine the type of global observation shape.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - global_obs_shape (:obj:`Union[int, List[int]]`): The global observation state.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - obs_shape_type (:obj:`str`): &#39;flat&#39; for 1D observation or &#39;image&#39; for 3D observation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;flat&quot;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;image&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported global_obs_shape: </span><span class="si">{</span><span class="n">global_obs_shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="QMix.forward"><a class="viewcode-back" href="../../../../12_policies/qmix_zh.html#ding.model.QMix.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">single_step</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -486,8 +515,16 @@
         <span class="n">agent_state</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">prev_state</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;agent_state&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;global_state&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span>
             <span class="s1">&#39;prev_state&#39;</span><span class="p">]</span>
         <span class="n">action</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># If single_step is True, add a new dimension at the front of agent_state</span>
+        <span class="c1"># This is necessary to maintain the expected input shape for the model,</span>
+        <span class="c1"># which requires a time step dimension even when processing a single step.</span>
         <span class="k">if</span> <span class="n">single_step</span><span class="p">:</span>
-            <span class="n">agent_state</span><span class="p">,</span> <span class="n">global_state</span> <span class="o">=</span> <span class="n">agent_state</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">global_state</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">agent_state</span> <span class="o">=</span> <span class="n">agent_state</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># If single_step is True and global_state has 2 dimensions, add a new dimension at the front of global_state</span>
+        <span class="c1"># This ensures that global_state has the same number of dimensions as agent_state,</span>
+        <span class="c1"># allowing for consistent processing in the forward computation.</span>
+        <span class="k">if</span> <span class="n">single_step</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_state</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">global_state</span> <span class="o">=</span> <span class="n">global_state</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">T</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">agent_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">prev_state</span><span class="p">)</span> <span class="o">==</span> <span class="n">B</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
             <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="n">A</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prev_state</span><span class="p">]</span>
@@ -509,18 +546,41 @@
         <span class="n">agent_q_act</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">agent_q</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">agent_q_act</span> <span class="o">=</span> <span class="n">agent_q_act</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># T, B, A</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mixer</span><span class="p">:</span>
-            <span class="n">global_state_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span><span class="p">(</span><span class="n">global_state</span><span class="p">)</span>
+            <span class="n">global_state_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_global_state</span><span class="p">(</span><span class="n">global_state</span><span class="p">)</span>
             <span class="n">total_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixer</span><span class="p">(</span><span class="n">agent_q_act</span><span class="p">,</span> <span class="n">global_state_embedding</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">total_q</span> <span class="o">=</span> <span class="n">agent_q_act</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">total_q</span> <span class="o">=</span> <span class="n">agent_q_act</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">single_step</span><span class="p">:</span>
             <span class="n">total_q</span><span class="p">,</span> <span class="n">agent_q</span> <span class="o">=</span> <span class="n">total_q</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">agent_q</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="p">{</span>
             <span class="s1">&#39;total_q&#39;</span><span class="p">:</span> <span class="n">total_q</span><span class="p">,</span>
             <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">agent_q</span><span class="p">,</span>
             <span class="s1">&#39;next_state&#39;</span><span class="p">:</span> <span class="n">next_state</span><span class="p">,</span>
             <span class="s1">&#39;action_mask&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="s1">&#39;action_mask&#39;</span><span class="p">]</span>
-        <span class="p">}</span></div></div>
+        <span class="p">}</span></div>
+
+    <span class="k">def</span> <span class="nf">_process_global_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Process the global state to obtain an embedding.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - global_state (:obj:`torch.Tensor`): The global state tensor.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - global_state_embedding (:obj:`torch.Tensor`): The processed global state embedding.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If global_state has 5 dimensions, it&#39;s likely in the form [batch_size, time_steps, C, H, W]</span>
+        <span class="k">if</span> <span class="n">global_state</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="c1"># Reshape and apply the global state encoder</span>
+            <span class="n">batch_time_shape</span> <span class="o">=</span> <span class="n">global_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># [batch_size, time_steps]</span>
+            <span class="n">reshaped_state</span> <span class="o">=</span> <span class="n">global_state</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">global_state</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:])</span>  <span class="c1"># Collapse batch and time dims</span>
+            <span class="n">encoded_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span><span class="p">(</span><span class="n">reshaped_state</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">encoded_state</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="n">batch_time_shape</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Reshape back to [batch_size, time_steps, embedding_dim]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># For lower-dimensional states, apply the encoder directly</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_state_encoder</span><span class="p">(</span><span class="n">global_state</span><span class="p">)</span></div>
 </pre></div>
 
               </article>

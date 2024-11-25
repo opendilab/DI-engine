@@ -11,3 +11,4 @@ Best Practice
    buffer
    imitation_learning
    random_seed
+   load_ckpt

@@ -19,3 +19,4 @@
    training_generated_folders_zh
    registry_zh
    wandb_zh
+   load_ckpt_zh
