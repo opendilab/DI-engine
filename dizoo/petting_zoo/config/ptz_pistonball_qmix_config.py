@@ -3,6 +3,7 @@ from easydict import EasyDict
 n_pistons = 20
 collector_env_num = 8
 evaluator_env_num = 8
+max_env_step = 3e6
 
 main_config = dict(
     exp_name=f'data_pistonball/ptz_pistonball_n{n_pistons}_qmix_seed0',
@@ -18,7 +19,6 @@ main_config = dict(
         n_evaluator_episode=evaluator_env_num,
         stop_value=1e6,
         manager=dict(shared_memory=False,),
-        max_env_step=3e6,
     ),
     policy=dict(
         cuda=True,
@@ -76,4 +76,4 @@ ptz_pistonball_qmix_create_config = create_config
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c ptz_pistonball_qmix_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0, max_env_step=main_config.env.max_env_step)
+    serial_pipeline((main_config, create_config), seed=0, max_env_step=max_env_step)

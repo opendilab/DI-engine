@@ -167,9 +167,9 @@ class QMix(nn.Module):
         Overview:
             Determine the type of global observation shape.
         Arguments:
-            - global_obs_shape (:obj:`int` or :obj:`List[int]`): The global observation state.
+            - global_obs_shape (Union[:obj:`int`, :obj:`List[int]`]): The global observation state.
         Returns:
-            - str: 'flat' for 1D observation or 'image' for 3D observation.
+            - (:obj:`str`): 'flat' for 1D observation or 'image' for 3D observation.
         """
         if isinstance(global_obs_shape, int) or (isinstance(global_obs_shape, list) and len(global_obs_shape) == 1):
             return "flat"
@@ -211,8 +211,14 @@ class QMix(nn.Module):
         agent_state, global_state, prev_state = data['obs']['agent_state'], data['obs']['global_state'], data[
             'prev_state']
         action = data.get('action', None)
+        # If single_step is True, add a new dimension at the front of agent_state
+        # This is necessary to maintain the expected input shape for the model,
+        # which requires a time step dimension even when processing a single step.
         if single_step:
             agent_state = agent_state.unsqueeze(0)
+        # If single_step is True and global_state has 2 dimensions, add a new dimension at the front of global_state
+        # This ensures that global_state has the same number of dimensions as agent_state,
+        # allowing for consistent processing in the forward computation.
         if single_step and len(global_state.shape) == 2:
             global_state = global_state.unsqueeze(0)
         T, B, A = agent_state.shape[:3]
