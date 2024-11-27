@@ -9,7 +9,7 @@ try:
     import pyecharts
 except ImportError:
     import logging
-    logging.error("Please install pyecharts first, you can install it by running 'pip install pyecharts'")
+    logging.warning("Please install pyecharts first, you can install it by running 'pip install pyecharts'")
     pyecharts = None
 
 MegaByte = 1024 * 1024

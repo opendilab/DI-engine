@@ -150,12 +150,6 @@ You can simply install DI-engine from PyPI with the following command:
 pip install DI-engine
 ```
 
-If you use Anaconda or Miniconda, you can install DI-engine from conda-forge through the following command:
-
-```bash
-conda install -c opendilab di-engine
-```
-
 For more information about installation, you can refer to [installation](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/installation.html).
 
 And our dockerhub repo can be found [here](https://hub.docker.com/repository/docker/opendilab/ding)，we prepare `base image` and `env image` with common RL environments.
