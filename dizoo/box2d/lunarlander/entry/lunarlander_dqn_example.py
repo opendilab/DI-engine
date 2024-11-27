@@ -1,4 +1,5 @@
 import gym
+import torch
 from ditk import logging
 from ding.data.model_loader import FileModelLoader
 from ding.data.storage_loader import FileStorageLoader
@@ -15,7 +16,7 @@ from ding.framework.middleware import OffPolicyLearner, StepCollector, interacti
 from ding.utils import set_pkg_seed
 from dizoo.box2d.lunarlander.config.lunarlander_dqn_config import main_config, create_config
 
-import torch
+
 
 
 def main():
@@ -35,19 +36,14 @@ def main():
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        # 迁移模型到 GPU
+        # # Migrating models to the GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = DQN(**cfg.policy.model).to(device)
 
-         # 检查模型是否在 GPU
-        for param in model.parameters():
-            print("模型参数所在设备：", param.device)
-            break
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 
-        # 将模型传入 Policy
+        # Pass the model into Policy
         policy = DQNPolicy(cfg.policy, model=model)
-        print("日志保存路径：", cfg.exp_name)
 
 
         # Consider the case with multiple processes
