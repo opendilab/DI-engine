@@ -1,8 +1,10 @@
+
 import gym
 from ditk import logging
 from ding.data.model_loader import FileModelLoader
 from ding.data.storage_loader import FileStorageLoader
-from ding.model import DQN
+from ding.model.common.head import DuelingHead
+from ding.model.template.hpt import HPT
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.data import DequeBuffer
@@ -13,9 +15,10 @@ from ding.framework.middleware import OffPolicyLearner, StepCollector, interacti
     eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, termination_checker, \
     nstep_reward_enhancer
 from ding.utils import set_pkg_seed
-from dizoo.box2d.lunarlander.config.lunarlander_dqn_config import main_config, create_config
-
+from dizoo.box2d.lunarlander.config.lunarlander_hpt_config import main_config, create_config
 import torch
+import torch.nn as nn
+
 
 
 def main():
@@ -37,7 +40,11 @@ def main():
 
         # 迁移模型到 GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = DQN(**cfg.policy.model).to(device)
+
+        # model = DQN(**cfg.policy.model).to(device)
+        model = HPT(cfg.policy.model.obs_shape,cfg.policy.model.action_shape).to(device)
+
+
 
          # 检查模型是否在 GPU
         for param in model.parameters():
@@ -46,7 +53,7 @@ def main():
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 
         # 将模型传入 Policy
-        policy = DQNPolicy(cfg.policy, model=model)
+        policy = DQNPolicy(cfg.policy, model=model) 
         print("日志保存路径：", cfg.exp_name)
 
 
@@ -67,7 +74,7 @@ def main():
         
 
         # Here is the part of single process pipeline.
-        evaluator_env.enable_save_replay(replay_path='./video')
+        # evaluator_env.enable_save_replay(replay_path='./video')
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
