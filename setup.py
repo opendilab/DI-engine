@@ -78,6 +78,7 @@ setup(
         'sniffio',  # parallel
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
+        'einops=0.8.0'
     ],
     extras_require={
         'test': [
