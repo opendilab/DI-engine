@@ -17,8 +17,6 @@ from ding.utils import set_pkg_seed
 from dizoo.box2d.lunarlander.config.lunarlander_dqn_config import main_config, create_config
 
 
-
-
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True, save_cfg=task.router.node_id == 0)
@@ -45,7 +43,6 @@ def main():
         # Pass the model into Policy
         policy = DQNPolicy(cfg.policy, model=model)
 
-
         # Consider the case with multiple processes
         if task.router.is_active:
             # You can use labels to distinguish between workers with different roles,
@@ -60,7 +57,6 @@ def main():
             # Sync their context and model between each worker.
             task.use(ContextExchanger(skip_n_iter=1))
             task.use(ModelExchanger(model))
-        
 
         # Here is the part of single process pipeline.
         evaluator_env.enable_save_replay(replay_path='./video')

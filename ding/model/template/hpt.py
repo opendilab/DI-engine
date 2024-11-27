@@ -5,19 +5,21 @@ import torch.nn as nn
 from ding.model.common.head import DuelingHead
 from ding.utils.registry_factory import MODEL_REGISTRY
 
-
 INIT_CONST = 0.02
+
 
 @MODEL_REGISTRY.register('hpt')
 class HPT(nn.Module):
+
     def __init__(self, state_dim, action_dim):
         super(HPT, self).__init__()
         # Initialise Policy Stem
         self.policy_stem = PolicyStem()
         self.policy_stem.init_cross_attn()
-        
+
         # Dueling Head, input is 16*128, output is action dimension
-        self.head = DuelingHead(hidden_size=16*128, output_size=action_dim)
+        self.head = DuelingHead(hidden_size=16 * 128, output_size=action_dim)
+
     def forward(self, x):
         # Policy Stem Outputs [B, 16, 128]
         tokens = self.policy_stem.compute_latent(x)
@@ -28,13 +30,13 @@ class HPT(nn.Module):
         return q_values
 
 
-
 class PolicyStem(nn.Module):
     """policy stem
         Overview:
              The reference uses PolicyStem from
             <https://github.com/liruiw/HPT/blob/main/hpt/models/policy_stem.py>
     """
+
     def __init__(self, feature_dim: int = 8, token_dim: int = 128, **kwargs):
         super().__init__()
         # Initialise the feature extraction module
@@ -59,12 +61,13 @@ class PolicyStem(nn.Module):
             torch.Tensor: Latent tokens, shape [B, 16, 128].
         """
         # Using the Feature Extractor
-        stem_feat = self.feature_extractor(x)  
+        stem_feat = self.feature_extractor(x)
         stem_feat = stem_feat.reshape(stem_feat.shape[0], -1, stem_feat.shape[-1])  # (B, N, 128)
         # Calculating latent tokens using CrossAttention
         stem_tokens = self.tokens.repeat(len(stem_feat), 1, 1)  # (B, 16, 128)
         stem_tokens = self.cross_attention(stem_tokens, stem_feat)  # (B, 16, 128)
         return stem_tokens
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass to compute latent tokens.
@@ -76,7 +79,7 @@ class PolicyStem(nn.Module):
             torch.Tensor: Latent tokens tensor.
         """
         return self.compute_latent(x)
-        
+
     def freeze(self):
         for param in self.parameters():
             param.requires_grad = False
@@ -85,12 +88,13 @@ class PolicyStem(nn.Module):
         for param in self.parameters():
             param.requires_grad = True
 
-    def save(self, path : str):
+    def save(self, path: str):
         torch.save(self.state_dict(), path)
 
     @property
     def device(self):
         return next(self.parameters()).device
+
 
 class CrossAttention(nn.Module):
     """
@@ -107,7 +111,7 @@ class CrossAttention(nn.Module):
         super().__init__()
         inner_dim = dim_head * heads
         context_dim = query_dim
-        self.scale = dim_head**-0.5
+        self.scale = dim_head ** -0.5
         self.heads = heads
 
         self.to_q = nn.Linear(query_dim, inner_dim, bias=False)
@@ -116,8 +120,7 @@ class CrossAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor, context: torch.Tensor, 
-                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, context: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Forward pass of the CrossAttention module.
 

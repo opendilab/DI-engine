@@ -1,4 +1,3 @@
-
 import gym
 import torch
 import torch.nn as nn
@@ -20,8 +19,6 @@ from ding.utils import set_pkg_seed
 from dizoo.box2d.lunarlander.config.lunarlander_hpt_config import main_config, create_config
 
 
-
-
 def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True, save_cfg=task.router.node_id == 0)
@@ -41,11 +38,11 @@ def main():
 
         # Migrating models to the GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = HPT(cfg.policy.model.obs_shape,cfg.policy.model.action_shape).to(device)
+        model = HPT(cfg.policy.model.obs_shape, cfg.policy.model.action_shape).to(device)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 
         # Pass the model into Policy
-        policy = DQNPolicy(cfg.policy, model=model) 
+        policy = DQNPolicy(cfg.policy, model=model)
 
         # Consider the case with multiple processes
         if task.router.is_active:
@@ -61,7 +58,6 @@ def main():
             # Sync their context and model between each worker.
             task.use(ContextExchanger(skip_n_iter=1))
             task.use(ModelExchanger(model))
-        
 
         # Here is the part of single process pipeline.
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
