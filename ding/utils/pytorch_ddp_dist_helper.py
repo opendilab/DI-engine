@@ -171,7 +171,10 @@ def dist_init(backend: str = 'nccl',
         else:
             world_size = int(ntasks)
 
-    dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
+    # dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
+    # TODO： 
+    import datetime
+    dist.init_process_group(backend=backend, rank=rank, world_size=world_size, timeout=datetime.timedelta(seconds=60000))
 
     num_gpus = torch.cuda.device_count()
     torch.cuda.set_device(rank % num_gpus)
