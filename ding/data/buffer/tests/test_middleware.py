@@ -106,6 +106,7 @@ def test_priority():
     assert data[0].meta['priority'] == 3.0
     buffer.delete(data[0].index)
     assert buffer.count() == N + N - 1
+    assert len(buffer._middleware[0].buffer_idx) == N + N - 1
     buffer.clear()
     assert buffer.count() == 0
 
