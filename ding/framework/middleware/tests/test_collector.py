@@ -22,16 +22,19 @@ def test_inferencer():
 
 @pytest.mark.unittest
 def test_rolloutor():
+    N = 20
     ctx = OnlineRLContext()
     transitions = TransitionList(2)
     with patch("ding.policy.Policy", MockPolicy), patch("ding.envs.BaseEnvManagerV2", MockEnv):
         policy = MockPolicy()
         env = MockEnv()
-        for _ in range(10):
-            inferencer(0, policy, env)(ctx)
-            rolloutor(policy, env, transitions)(ctx)
-    assert ctx.env_episode == 20  # 10 * env_num
-    assert ctx.env_step == 20  # 10 * env_num
+        i = inferencer(0, policy, env)
+        r = rolloutor(policy, env, transitions)
+        for _ in range(N):
+            i(ctx)
+            r(ctx)
+    assert ctx.env_step == N * 2  # N * env_num
+    assert ctx.env_episode >= N // 10 * 2  # N * env_num
 
 
 @pytest.mark.unittest

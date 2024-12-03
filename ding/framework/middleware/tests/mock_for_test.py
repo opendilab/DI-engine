@@ -1,5 +1,6 @@
 from typing import Union, Any, List, Callable, Dict, Optional
 from collections import namedtuple
+import random
 import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
@@ -75,6 +76,7 @@ class MockEnv(Mock):
         self.obs_dim = obs_dim
         self.closed = False
         self._reward_grow_indicator = 1
+        self._steps = [0 for _ in range(self.env_num)]
 
     @property
     def ready_obs(self) -> tnp.array:
@@ -90,16 +92,26 @@ class MockEnv(Mock):
         return
 
     def reset(self, reset_param: Optional[Dict] = None) -> None:
-        return
+        self._steps = [0 for _ in range(self.env_num)]
 
     def step(self, actions: tnp.ndarray) -> List[tnp.ndarray]:
         timesteps = []
         for i in range(self.env_num):
+            if self._steps[i] < 5:
+                done = False
+            elif self._steps[i] < 10:
+                done = random.random() > 0.5
+            else:
+                done = True
+            if done:
+                self._steps[i] = 0
+            else:
+                self._steps[i] += 1
             timestep = dict(
                 obs=torch.rand(self.obs_dim),
                 reward=1.0,
-                done=True,
-                info={'eval_episode_return': self._reward_grow_indicator * 1.0},
+                done=done,
+                info={'eval_episode_return': self._reward_grow_indicator * 1.0} if done else {},
                 env_id=i,
             )
             timesteps.append(tnp.array(timestep))
