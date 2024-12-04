@@ -5,8 +5,8 @@ from ding.model.template.hpt import HPT
 from ding.torch_utils import is_differentiable
 
 T, B = 3, 4
-obs_shape = [4, (8, ), (4, 64, 64)]  # Example observation shapes
-act_shape = [3, (6, ), [2, 3, 6]]  # Example action shapes
+obs_shape = [4, (8, ), (4, 64, 64)]
+act_shape = [3, (6, ), [2, 3, 6]]
 args = list(product(*[obs_shape, act_shape]))
 
 
@@ -26,11 +26,21 @@ class TestHPT:
     def test_hpt(self, obs_shape, act_shape):
         if isinstance(obs_shape, int):
             inputs = torch.randn(B, obs_shape)
+            state_dim = obs_shape
         else:
             inputs = torch.randn(B, *obs_shape)
-        model = HPT(state_dim=obs_shape, action_dim=act_shape)
+            state_dim = obs_shape[0]
+
+        if isinstance(act_shape, int):
+            action_dim = act_shape
+        else:
+            action_dim = len(act_shape)
+
+        model = HPT(state_dim=state_dim, action_dim=action_dim)
         outputs = model(inputs)
+
         assert isinstance(outputs, torch.Tensor)
+
         if isinstance(act_shape, int):
             assert outputs.shape == (B, act_shape)
         elif len(act_shape) == 1:
@@ -38,4 +48,5 @@ class TestHPT:
         else:
             for i, s in enumerate(act_shape):
                 assert outputs[i].shape == (B, s)
+
         self.output_check(model, outputs)
