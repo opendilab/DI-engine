@@ -97,8 +97,7 @@ class PolicyStem(nn.Module):
         """Initialize cross-attention module and learnable tokens."""
         token_num = 16
         self.tokens = nn.Parameter(torch.randn(1, token_num, 128) * INIT_CONST)
-        self.cross_attention = CrossAttention(
-            128, heads=8, dim_head=64, dropout=0.1)
+        self.cross_attention = CrossAttention(128, heads=8, dim_head=64, dropout=0.1)
 
     def compute_latent(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -113,12 +112,10 @@ class PolicyStem(nn.Module):
         """
         # Using the Feature Extractor
         stem_feat = self.feature_extractor(x)
-        stem_feat = stem_feat.reshape(
-            stem_feat.shape[0], -1, stem_feat.shape[-1])  # (B, N, 128)
+        stem_feat = stem_feat.reshape(stem_feat.shape[0], -1, stem_feat.shape[-1])  # (B, N, 128)
         # Calculating latent tokens using CrossAttention
         stem_tokens = self.tokens.repeat(len(stem_feat), 1, 1)  # (B, 16, 128)
-        stem_tokens = self.cross_attention(
-            stem_tokens, stem_feat)  # (B, 16, 128)
+        stem_tokens = self.cross_attention(stem_tokens, stem_feat)  # (B, 16, 128)
         return stem_tokens
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -198,8 +195,7 @@ class CrossAttention(nn.Module):
         h = self.heads
         q = self.to_q(x)
         k, v = self.to_kv(context).chunk(2, dim=-1)
-        q, k, v = map(lambda t: rearrange(
-            t, "b n (h d) -> (b h) n d", h=h), (q, k, v))
+        q, k, v = map(lambda t: rearrange(t, "b n (h d) -> (b h) n d", h=h), (q, k, v))
         sim = torch.einsum("b i d, b j d -> b i j", q, k) * self.scale
 
         if mask is not None:
