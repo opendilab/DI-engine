@@ -12,8 +12,8 @@ INIT_CONST = 0.02
 class HPT(nn.Module):
     """
     Overview:
-        The HPT model for reinforcement learning, which consists of a Policy Stem and a Dueling Head. 
-        The Policy Stem utilizes cross-attention to process input data, 
+        The HPT model for reinforcement learning, which consists of a Policy Stem and a Dueling Head.
+        The Policy Stem utilizes cross-attention to process input data,
         and the Dueling Head computes Q-values for discrete action spaces.
 
     Interfaces:
