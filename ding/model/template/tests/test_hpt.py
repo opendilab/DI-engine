@@ -4,11 +4,11 @@ from itertools import product
 from ding.model.template.hpt import HPT
 from ding.torch_utils import is_differentiable
 
-
 T, B = 3, 4
-obs_shape = [4, (8,), (4, 64, 64)]  # Example observation shapes
-act_shape = [3, (6,), [2, 3, 6]]    # Example action shapes
+obs_shape = [4, (8, ), (4, 64, 64)]  # Example observation shapes
+act_shape = [3, (6, ), [2, 3, 6]]  # Example action shapes
 args = list(product(*[obs_shape, act_shape]))
+
 
 @pytest.mark.unittest
 class TestHPT:
@@ -39,4 +39,3 @@ class TestHPT:
             for i, s in enumerate(act_shape):
                 assert outputs[i].shape == (B, s)
         self.output_check(model, outputs)
-    
