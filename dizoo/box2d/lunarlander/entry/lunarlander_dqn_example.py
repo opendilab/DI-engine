@@ -34,7 +34,7 @@ def main():
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        # # Migrating models to the GPU
+        # Migrating models to the GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = DQN(**cfg.policy.model).to(device)
 

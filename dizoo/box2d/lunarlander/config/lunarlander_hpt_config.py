@@ -65,13 +65,12 @@ lunarlander_hpt_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
 lunarlander_hpt_create_config = EasyDict(lunarlander_hpt_create_config)
 create_config = lunarlander_hpt_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c lunarlander_dqn_config.py -s 0`
+    # or you can enter `ding -m serial -c lunarlander_hpt_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)
