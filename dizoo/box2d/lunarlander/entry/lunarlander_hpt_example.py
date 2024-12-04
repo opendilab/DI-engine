@@ -21,19 +21,16 @@ from dizoo.box2d.lunarlander.config.lunarlander_hpt_config import main_config, c
 
 def main():
     logging.getLogger().setLevel(logging.INFO)
-    cfg = compile_config(main_config, create_cfg=create_config,
-                         auto=True, save_cfg=task.router.node_id == 0)
+    cfg = compile_config(main_config, create_cfg=create_config, auto=True, save_cfg=task.router.node_id == 0)
     ding_init(cfg)
 
     with task.start(async_mode=False, ctx=OnlineRLContext()):
         collector_env = SubprocessEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(
-                gym.make("LunarLander-v2")) for _ in range(cfg.env.collector_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("LunarLander-v2")) for _ in range(cfg.env.collector_env_num)],
             cfg=cfg.env.manager
         )
         evaluator_env = SubprocessEnvManagerV2(
-            env_fn=[lambda: DingEnvWrapper(
-                gym.make("LunarLander-v2")) for _ in range(cfg.env.evaluator_env_num)],
+            env_fn=[lambda: DingEnvWrapper(gym.make("LunarLander-v2")) for _ in range(cfg.env.evaluator_env_num)],
             cfg=cfg.env.manager
         )
 
@@ -42,10 +39,8 @@ def main():
         # Migrating models to the GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # HPT introduces a Policy Stem module, which processes the input features using Cross-Attention.
-        model = HPT(cfg.policy.model.obs_shape,
-                    cfg.policy.model.action_shape).to(device)
-        buffer_ = DequeBuffer(
-            size=cfg.policy.other.replay_buffer.replay_buffer_size)
+        model = HPT(cfg.policy.model.obs_shape, cfg.policy.model.action_shape).to(device)
+        buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 
         # Pass the model into Policy
         policy = DQNPolicy(cfg.policy, model=model)
