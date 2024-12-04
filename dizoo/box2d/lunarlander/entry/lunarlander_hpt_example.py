@@ -38,7 +38,7 @@ def main():
 
         # Migrating models to the GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # HPT introduces a Policy Stem module, which processes the input features using Cross-Attention and generates a set of latent tokens.
+        # HPT introduces a Policy Stem module, which processes the input features using Cross-Attention.
         model = HPT(cfg.policy.model.obs_shape, cfg.policy.model.action_shape).to(device)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 

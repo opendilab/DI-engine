@@ -45,7 +45,8 @@ class HPT(nn.Module):
     def forward(self, x: torch.Tensor):
         """
         Overview:
-            Forward pass of the HPT model. Computes latent tokens from the input state and passes them through the Dueling Head.
+            Forward pass of the HPT model. 
+            Computes latent tokens from the input state and passes them through the Dueling Head.
 
         Arguments:
             - x (:obj:`torch.Tensor`): The input tensor representing the state.
@@ -65,7 +66,8 @@ class HPT(nn.Module):
 class PolicyStem(nn.Module):
     """
     Overview:
-        The Policy Stem module is responsible for processing input features and generating latent tokens using a cross-attention mechanism.
+        The Policy Stem module is responsible for processing input features
+        and generating latent tokens using a cross-attention mechanism.
         It extracts features from the input and then applies cross-attention to generate a set of latent tokens.
 
     Interfaces:
@@ -151,7 +153,8 @@ class PolicyStem(nn.Module):
 class CrossAttention(nn.Module):
     """
     Overview:
-        CrossAttention module used in the Perceiver IO model. It computes the attention between the query and context tensors,
+        CrossAttention module used in the Perceiver IO model. 
+        It computes the attention between the query and context tensors,
         and returns the output tensor after applying attention.
 
     Arguments:
@@ -177,7 +180,8 @@ class CrossAttention(nn.Module):
     def forward(self, x: torch.Tensor, context: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Overview:
-            Forward pass of the CrossAttention module. Computes the attention between the query and context tensors.
+            Forward pass of the CrossAttention module.
+            Computes the attention between the query and context tensors.
 
         Arguments:
             - x (:obj:`torch.Tensor`): The query input tensor.
