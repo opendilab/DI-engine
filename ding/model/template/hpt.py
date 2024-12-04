@@ -20,7 +20,7 @@ class HPT(nn.Module):
         __init__, forward
 
     .. note::
-        The model is designed to be flexible and can be adapted 
+        The model is designed to be flexible and can be adapted
         for different input dimensions and action spaces.
     """
 
@@ -34,7 +34,7 @@ class HPT(nn.Module):
             - action_dim (:obj:`int`): The dimension of the action space.
 
         .. note::
-            The Policy Stem is initialized with cross-attention, 
+            The Policy Stem is initialized with cross-attention,
             and the Dueling Head is set to process the resulting tokens.
         """
         super(HPT, self).__init__()
@@ -48,7 +48,7 @@ class HPT(nn.Module):
     def forward(self, x: torch.Tensor):
         """
         Overview:
-            Forward pass of the HPT model. 
+            Forward pass of the HPT model.
             Computes latent tokens from the input state and passes them through the Dueling Head.
 
         Arguments:
@@ -71,14 +71,14 @@ class PolicyStem(nn.Module):
     Overview:
         The Policy Stem module is responsible for processing input features
         and generating latent tokens using a cross-attention mechanism.
-        It extracts features from the input and then applies cross-attention 
+        It extracts features from the input and then applies cross-attention
         to generate a set of latent tokens.
 
     Interfaces:
         __init__, init_cross_attn, compute_latent, forward
 
     .. note::
-        This module is inspired by the implementation in the Perceiver IO model 
+        This module is inspired by the implementation in the Perceiver IO model
         and uses attention mechanisms for feature extraction.
     """
 
@@ -89,7 +89,7 @@ class PolicyStem(nn.Module):
 
         Arguments:
             - feature_dim (:obj:`int`): The dimension of the input features.
-            - token_dim (:obj:`int`): The dimension of the latent tokens generated 
+            - token_dim (:obj:`int`): The dimension of the latent tokens generated
             by the attention mechanism.
         """
         super().__init__()
@@ -102,12 +102,13 @@ class PolicyStem(nn.Module):
         """Initialize cross-attention module and learnable tokens."""
         token_num = 16
         self.tokens = nn.Parameter(torch.randn(1, token_num, 128) * INIT_CONST)
-        self.cross_attention = CrossAttention(128, heads=8, dim_head=64, dropout=0.1)
+        self.cross_attention = CrossAttention(
+            128, heads=8, dim_head=64, dropout=0.1)
 
     def compute_latent(self, x: torch.Tensor) -> torch.Tensor:
         """
         Overview:
-            Compute latent representations of the input data using 
+            Compute latent representations of the input data using
             the feature extractor and cross-attention.
 
         Arguments:
@@ -118,10 +119,12 @@ class PolicyStem(nn.Module):
         """
         # Using the Feature Extractor
         stem_feat = self.feature_extractor(x)
-        stem_feat = stem_feat.reshape(stem_feat.shape[0], -1, stem_feat.shape[-1])  # (B, N, 128)
+        stem_feat = stem_feat.reshape(
+            stem_feat.shape[0], -1, stem_feat.shape[-1])  # (B, N, 128)
         # Calculating latent tokens using CrossAttention
         stem_tokens = self.tokens.repeat(len(stem_feat), 1, 1)  # (B, 16, 128)
-        stem_tokens = self.cross_attention(stem_tokens, stem_feat)  # (B, 16, 128)
+        stem_tokens = self.cross_attention(
+            stem_tokens, stem_feat)  # (B, 16, 128)
         return stem_tokens
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -160,7 +163,7 @@ class PolicyStem(nn.Module):
 class CrossAttention(nn.Module):
     """
     Overview:
-        CrossAttention module used in the Perceiver IO model. 
+        CrossAttention module used in the Perceiver IO model.
         It computes the attention between the query and context tensors,
         and returns the output tensor after applying attention.
 
@@ -171,7 +174,8 @@ class CrossAttention(nn.Module):
         dropout (:obj:`float`, optional): The dropout probability. Defaults to 0.0.
     """
 
-    def __init__(self, query_dim: int, heads: int = 8, dim_head: int = 64, dropout: float = 0.0):
+    def __init__(self, query_dim: int, heads: int = 8,
+                 dim_head: int = 64, dropout: float = 0.0):
         super().__init__()
         inner_dim = dim_head * heads
         context_dim = query_dim
@@ -184,7 +188,8 @@ class CrossAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x: torch.Tensor, context: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, context: torch.Tensor,
+                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Overview:
             Forward pass of the CrossAttention module.
@@ -201,7 +206,8 @@ class CrossAttention(nn.Module):
         h = self.heads
         q = self.to_q(x)
         k, v = self.to_kv(context).chunk(2, dim=-1)
-        q, k, v = map(lambda t: rearrange(t, "b n (h d) -> (b h) n d", h=h), (q, k, v))
+        q, k, v = map(lambda t: rearrange(
+            t, "b n (h d) -> (b h) n d", h=h), (q, k, v))
         sim = torch.einsum("b i d, b j d -> b i j", q, k) * self.scale
 
         if mask is not None:
