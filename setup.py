@@ -95,7 +95,6 @@ setup(
             'h5py',
             'scipy',
             'scikit-learn',
-            'gym[box2d]==0.25.1',
             'pettingzoo<=1.22.3',
             'opencv-python',  # pypy incompatible
             'pyecharts',
