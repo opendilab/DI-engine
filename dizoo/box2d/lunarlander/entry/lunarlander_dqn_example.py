@@ -59,7 +59,6 @@ def main():
             task.use(ModelExchanger(model))
 
         # Here is the part of single process pipeline.
-        evaluator_env.enable_save_replay(replay_path='./video')
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))

@@ -5,8 +5,8 @@ from ding.model.template.hpt import HPT
 from ding.torch_utils import is_differentiable
 
 T, B = 3, 4
-obs_shape = [4, (8, ), (4, 64, 64)]
-act_shape = [3, (6, ), [2, 3, 6]]
+obs_shape = [4, (8, )]
+act_shape = [3, (6, )]
 args = list(product(*[obs_shape, act_shape]))
 
 

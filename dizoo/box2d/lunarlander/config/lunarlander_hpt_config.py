@@ -69,8 +69,10 @@ lunarlander_hpt_create_config = dict(
 )
 lunarlander_hpt_create_config = EasyDict(lunarlander_hpt_create_config)
 create_config = lunarlander_hpt_create_config
+"""
+This is a configuration file for LunarLander environment with HPT (Hindsight Policy Transformer).
+To run this config, please use the lunarlander_hpt_example.py script.
 
-if __name__ == "__main__":
-    # or you can enter `ding -m serial -c lunarlander_hpt_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+Example:
+    python lunarlander_hpt_example.py
+"""

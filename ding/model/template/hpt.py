@@ -5,8 +5,6 @@ import torch.nn as nn
 from ding.model.common.head import DuelingHead
 from ding.utils.registry_factory import MODEL_REGISTRY
 
-INIT_CONST = 0.02
-
 
 @MODEL_REGISTRY.register('hpt')
 class HPT(nn.Module):
@@ -17,11 +15,10 @@ class HPT(nn.Module):
         and the Dueling Head computes Q-values for discrete action spaces.
 
     Interfaces:
-        __init__, forward
+        ``__init__``, ``forward``
 
-    .. note::
-        The model is designed to be flexible and can be adapted
-        for different input dimensions and action spaces.
+    GitHub: [https://github.com/liruiw/HPT/blob/main/hpt/models/policy_stem.py]
+
     """
 
     def __init__(self, state_dim: int, action_dim: int):
@@ -75,14 +72,15 @@ class PolicyStem(nn.Module):
         to generate a set of latent tokens.
 
     Interfaces:
-        __init__, init_cross_attn, compute_latent, forward
+        ``__init__``, ``init_cross_attn``, ``compute_latent``, ``forward``
 
     .. note::
         This module is inspired by the implementation in the Perceiver IO model
         and uses attention mechanisms for feature extraction.
     """
+    INIT_CONST = 0.02
 
-    def __init__(self, feature_dim: int = 8, token_dim: int = 128, **kwargs):
+    def __init__(self, feature_dim: int = 8, token_dim: int = 128):
         """
         Overview:
             Initialize the Policy Stem module with a feature extractor and cross-attention mechanism.
@@ -101,7 +99,7 @@ class PolicyStem(nn.Module):
     def init_cross_attn(self):
         """Initialize cross-attention module and learnable tokens."""
         token_num = 16
-        self.tokens = nn.Parameter(torch.randn(1, token_num, 128) * INIT_CONST)
+        self.tokens = nn.Parameter(torch.randn(1, token_num, 128) * self.INIT_CONST)
         self.cross_attention = CrossAttention(128, heads=8, dim_head=64, dropout=0.1)
 
     def compute_latent(self, x: torch.Tensor) -> torch.Tensor:
@@ -137,44 +135,31 @@ class PolicyStem(nn.Module):
         """
         return self.compute_latent(x)
 
-    def freeze(self):
-        """Freeze the parameters of the model, preventing updates during training."""
-        for param in self.parameters():
-            param.requires_grad = False
-
-    def unfreeze(self):
-        """Unfreeze the parameters of the model, allowing updates during training."""
-        for param in self.parameters():
-            param.requires_grad = True
-
-    def save(self, path: str):
-        """Save the model state dictionary to a file."""
-        torch.save(self.state_dict(), path)
-
     @property
-    def device(self):
+    def device(self) -> torch.device:
         """Returns the device on which the model parameters are located."""
         return next(self.parameters()).device
 
 
 class CrossAttention(nn.Module):
-    """
-    Overview:
-        CrossAttention module used in the Perceiver IO model.
-        It computes the attention between the query and context tensors,
-        and returns the output tensor after applying attention.
-
-    Arguments:
-        query_dim (:obj:`int`): The dimension of the query input.
-        heads (:obj:`int`, optional): The number of attention heads. Defaults to 8.
-        dim_head (:obj:`int`, optional): The dimension of each attention head. Defaults to 64.
-        dropout (:obj:`float`, optional): The dropout probability. Defaults to 0.0.
-    """
 
     def __init__(self, query_dim: int, heads: int = 8, dim_head: int = 64, dropout: float = 0.0):
+        """
+        Overview:
+            CrossAttention module used in the Perceiver IO model.
+            It computes the attention between the query and context tensors,
+            and returns the output tensor after applying attention.
+
+        Arguments:
+            - query_dim (:obj:`int`): The dimension of the query input.
+            - heads (:obj:`int`, optional): The number of attention heads. Defaults to 8.
+            - dim_head (:obj:`int`, optional): The dimension of each attention head. Defaults to 64.
+            - dropout (:obj:`float`, optional): The dropout probability. Defaults to 0.0.
+        """
         super().__init__()
         inner_dim = dim_head * heads
         context_dim = query_dim
+        # Scaling factor for the attention logits to ensure stable gradients.
         self.scale = dim_head ** -0.5
         self.heads = heads
 
@@ -193,7 +178,7 @@ class CrossAttention(nn.Module):
         Arguments:
             - x (:obj:`torch.Tensor`): The query input tensor.
             - context (:obj:`torch.Tensor`): The context input tensor.
-            - mask (:obj:`torch.Tensor`, optional): The attention mask tensor. Defaults to None.
+            - mask (:obj:`Optional[torch.Tensor]`): The attention mask tensor. Defaults to None.
 
         Returns:
             - torch.Tensor: The output tensor after applying attention.
