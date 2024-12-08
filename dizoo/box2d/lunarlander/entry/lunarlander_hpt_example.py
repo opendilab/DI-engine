@@ -1,9 +1,11 @@
 import gym
 import torch
+import torch.nn as nn
 from ditk import logging
 from ding.data.model_loader import FileModelLoader
 from ding.data.storage_loader import FileStorageLoader
-from ding.model import DQN
+from ding.model.common.head import DuelingHead
+from ding.model.template.hpt import HPT
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.data import DequeBuffer
@@ -14,7 +16,7 @@ from ding.framework.middleware import OffPolicyLearner, StepCollector, interacti
     eps_greedy_handler, CkptSaver, ContextExchanger, ModelExchanger, online_logger, termination_checker, \
     nstep_reward_enhancer
 from ding.utils import set_pkg_seed
-from dizoo.box2d.lunarlander.config.lunarlander_dqn_config import main_config, create_config
+from dizoo.box2d.lunarlander.config.lunarlander_hpt_config import main_config, create_config
 
 
 def main():
@@ -36,8 +38,8 @@ def main():
 
         # Migrating models to the GPU
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model = DQN(**cfg.policy.model).to(device)
-
+        # HPT introduces a Policy Stem module, which processes the input features using Cross-Attention.
+        model = HPT(cfg.policy.model.obs_shape, cfg.policy.model.action_shape).to(device)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
 
         # Pass the model into Policy
