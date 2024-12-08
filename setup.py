@@ -97,6 +97,7 @@ setup(
             'scipy',
             'scikit-learn',
             'pettingzoo<=1.22.3',
+            'pygame',
             'opencv-python',  # pypy incompatible
             'pyecharts',
         ],
