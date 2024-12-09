@@ -71,9 +71,11 @@ class DingEnvWrapper(BaseEnv):
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._action_space.seed(0)  # default seed
-            self._reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
-            )
+            try:
+                low, high = self._env.reward_range
+            except:  # for compatibility with gymnasium high-version API
+                low, high = -1, 1
+            self._reward_space = gym.spaces.Box(low=low, high=high, shape=(1, ), dtype=np.float32)
             self._init_flag = True
         else:
             assert 'env_id' in self._cfg

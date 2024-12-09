@@ -3,7 +3,7 @@ from einops import rearrange, repeat
 import torch
 import torch.nn as nn
 from ding.model.common.head import DuelingHead
-from ding.utils.registry_factory import MODEL_REGISTRY
+from ding.utils import MODEL_REGISTRY, squeeze
 
 
 @MODEL_REGISTRY.register('hpt')
@@ -36,9 +36,10 @@ class HPT(nn.Module):
         """
         super(HPT, self).__init__()
         # Initialise Policy Stem
-        self.policy_stem = PolicyStem()
+        self.policy_stem = PolicyStem(state_dim, 128)
         self.policy_stem.init_cross_attn()
 
+        action_dim = squeeze(action_dim)
         # Dueling Head, input is 16*128, output is action dimension
         self.head = DuelingHead(hidden_size=16 * 128, output_size=action_dim)
 

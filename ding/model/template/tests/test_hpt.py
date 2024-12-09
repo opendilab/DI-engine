@@ -31,22 +31,17 @@ class TestHPT:
             inputs = torch.randn(B, *obs_shape)
             state_dim = obs_shape[0]
 
-        if isinstance(act_shape, int):
-            action_dim = act_shape
-        else:
-            action_dim = len(act_shape)
-
-        model = HPT(state_dim=state_dim, action_dim=action_dim)
+        model = HPT(state_dim=state_dim, action_dim=act_shape)
         outputs = model(inputs)
 
-        assert isinstance(outputs, torch.Tensor)
+        assert isinstance(outputs, dict)
 
         if isinstance(act_shape, int):
-            assert outputs.shape == (B, act_shape)
+            assert outputs['logit'].shape == (B, act_shape)
         elif len(act_shape) == 1:
-            assert outputs.shape == (B, *act_shape)
+            assert outputs['logit'].shape == (B, *act_shape)
         else:
             for i, s in enumerate(act_shape):
-                assert outputs[i].shape == (B, s)
+                assert outputs['logit'][i].shape == (B, s)
 
         self.output_check(model, outputs)
