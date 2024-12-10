@@ -1,7 +1,6 @@
 from easydict import EasyDict
 
-pong_onppo_config = dict(
-    exp_name='data_pong/pong_onppo_ddp_seed0',
+pong_ppo_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -12,7 +11,6 @@ pong_onppo_config = dict(
         frame_stack=4,
     ),
     policy=dict(
-        multi_gpu=True,
         cuda=True,
         recompute_adv=True,
         action_space='discrete',
@@ -48,12 +46,12 @@ pong_onppo_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=1000, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-main_config = EasyDict(pong_onppo_config)
+main_config = EasyDict(pong_ppo_config)
 
-pong_onppo_create_config = dict(
+pong_ppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -61,16 +59,9 @@ pong_onppo_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
-create_config = EasyDict(pong_onppo_create_config)
+create_config = EasyDict(pong_ppo_create_config)
 
 if __name__ == "__main__":
-    """
-    Overview:
-        This script should be executed with <nproc_per_node> GPUs.
-        Run the following command to launch the script:
-        python -m torch.distributed.launch --nproc_per_node=2 --master_port=29501 ./dizoo/atari/config/serial/pong/pong_onppo_ddp_config.py
-    """
-    from ding.utils import DDPContext
+    # or you can enter `ding -m serial_onpolicy -c pong_ppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-    with DDPContext():
-        serial_pipeline_onpolicy((main_config, create_config), seed=0, max_env_step=int(3e6))
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
