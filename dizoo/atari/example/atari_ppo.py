@@ -11,7 +11,7 @@ from ding.framework.middleware import multistep_trainer, StepCollector, interact
     gae_estimator, termination_checker
 from ding.utils import set_pkg_seed
 from dizoo.atari.envs.atari_env import AtariEnv
-from dizoo.atari.config.serial.pong.pong_onppo_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_ppo_config import main_config, create_config
 
 
 def main():
