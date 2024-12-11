@@ -7,9 +7,7 @@ main_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
     ),
-    dataset=dict(
-        env_id="halfcheetah-medium-expert-v2",
-    ),
+    dataset=dict(env_id="halfcheetah-medium-expert-v2", ),
     policy=dict(
         cuda=True,
         on_policy=False,
@@ -44,8 +42,6 @@ main_config = EasyDict(main_config)
 
 create_config = dict(
     env_manager=dict(type='base'),
-    policy=dict(
-        type='qgpo',
-    ),
+    policy=dict(type='qgpo', ),
 )
 create_config = EasyDict(create_config)

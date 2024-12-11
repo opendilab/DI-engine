@@ -26,6 +26,8 @@ class PromptPGPolicy(Policy):
         on_policy=True,  # for pg strictly on policy algorithm, this line should not be modified by users
         # (bool) whether to use deterministic action for evaluation.
         deterministic_eval=True,
+        # (int) The number of actions that can be done simultaneously in one timestep.
+        shot_number=1,
         learn=dict(
             # (int) the number of samples for one update.
             batch_size=64,
@@ -98,6 +100,8 @@ class PromptPGPolicy(Policy):
 
             # calculate PG loss
             real_act = batch['action']  # shape: (B, shot_number)
+            if len(real_act.shape) == 1:
+                real_act = real_act.unsqueeze(-1)
             # Calculate loss.
             total_policy_loss, total_entropy_loss = 0, 0
             for ii in range(self._cfg.shot_number):

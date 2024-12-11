@@ -239,9 +239,16 @@ class DequeBuffer(Buffer):
     def get(self, idx: int) -> BufferedData:
         """
         Overview:
-            The method that returns the BufferedData object given a specific index.
+            The method that returns the BufferedData object by subscript idx (int).
         """
         return self.storage[idx]
+
+    def get_by_index(self, index: str) -> BufferedData:
+        """
+        Overview:
+            The method that returns the BufferedData object given a specific index (str).
+        """
+        return self.storage[self.indices.get(index)]
 
     @apply_middleware("clear")
     def clear(self) -> None:

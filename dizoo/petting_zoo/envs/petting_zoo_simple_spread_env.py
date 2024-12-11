@@ -13,17 +13,13 @@ from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
 from pettingzoo.mpe.simple_spread.simple_spread import Scenario
 
 
+# Custom wrapper for recording videos in PettingZoo environments
 class PTZRecordVideo(gym.wrappers.RecordVideo):
+
     def step(self, action):
         """Steps through the environment using action, recording observations if :attr:`self.recording`."""
         # gymnasium==0.27.1
-        (
-            observations,
-            rewards,
-            terminateds,
-            truncateds,
-            infos,
-        ) = self.env.step(action)
+        observations, rewards, terminateds, truncateds, infos = self.env.step(action)
 
         # Because pettingzoo returns a dict of terminated and truncated, we need to check if any of the values are True
         if not (self.terminated is True or self.truncated is True):  # the first location for modifications
@@ -39,6 +35,7 @@ class PTZRecordVideo(gym.wrappers.RecordVideo):
                 self.terminated = terminateds[0]
                 self.truncated = truncateds[0]
 
+            # Capture the video frame if recording
             if self.recording:
                 assert self.video_recorder is not None
                 self.video_recorder.capture_frame()
@@ -101,11 +98,11 @@ class PettingZooEnv(BaseEnv):
             self._agents = self._env.agents
 
             self._action_space = gym.spaces.Dict({agent: self._env.action_space(agent) for agent in self._agents})
-            single_agent_obs_space = self._env.action_space(self._agents[0])
-            if isinstance(single_agent_obs_space, gym.spaces.Box):
-                self._action_dim = single_agent_obs_space.shape
-            elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
-                self._action_dim = (single_agent_obs_space.n, )
+            single_agent_action_space = self._env.action_space(self._agents[0])
+            if isinstance(single_agent_action_space, gym.spaces.Box):
+                self._action_dim = single_agent_action_space.shape
+            elif isinstance(single_agent_action_space, gym.spaces.Discrete):
+                self._action_dim = (single_agent_action_space.n, )
             else:
                 raise Exception('Only support `Box` or `Discrete` obs space for single agent.')
 
@@ -180,7 +177,9 @@ class PettingZooEnv(BaseEnv):
             )
             if self._replay_path is not None:
                 self._env.render_mode = 'rgb_array'
-                self._env = PTZRecordVideo(self._env, self._replay_path, name_prefix=f'rl-video-{id(self)}', disable_logger=True)
+                self._env = PTZRecordVideo(
+                    self._env, self._replay_path, name_prefix=f'rl-video-{id(self)}', disable_logger=True
+                )
             self._init_flag = True
         if hasattr(self, '_seed'):
             obs = self._env.reset(seed=self._seed)
@@ -400,9 +399,7 @@ class simple_spread_raw_env(SimpleEnv):
 
     def render(self):
         if self.render_mode is None:
-            gym.logger.warn(
-                "You are calling render method without specifying any render mode."
-            )
+            gym.logger.warn("You are calling render method without specifying any render mode.")
             return
         import pygame
 
@@ -412,8 +409,4 @@ class simple_spread_raw_env(SimpleEnv):
         observation = np.array(pygame.surfarray.pixels3d(self.screen))
         if self.render_mode == "human":
             pygame.display.flip()
-        return (
-            np.transpose(observation, axes=(1, 0, 2))
-            if self.render_mode == "rgb_array"
-            else None
-        )
+        return (np.transpose(observation, axes=(1, 0, 2)) if self.render_mode == "rgb_array" else None)

@@ -73,7 +73,9 @@ class IModelWrapper(ABC):
                 model wrappers often needs to maintain some stateful variables for each data trajectory, \
                 so we leave this ``data_id`` argument to reset the stateful variables of the indicated data.
         """
-        pass
+        # This is necessary when multiple model wrappers.
+        if hasattr(self._model, 'reset'):
+            return self._model.reset(data_id=data_id, **kwargs)
 
     def forward(self, *args, **kwargs) -> Any:
         """
@@ -866,10 +868,14 @@ class ActionNoiseWrapper(IModelWrapper):
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         if 'action' in output or 'action_args' in output:
             key = 'action' if 'action' in output else 'action_args'
-            action = output[key]
+            # handle hybrid action space by adding noise to continuous part of model output
+            action = output[key]['action_args'] if isinstance(output[key], dict) else output[key]
             assert isinstance(action, torch.Tensor)
             action = self.add_noise(action)
-            output[key] = action
+            if isinstance(output[key], dict):
+                output[key]['action_args'] = action
+            else:
+                output[key] = action
         return output
 
     def add_noise(self, action: torch.Tensor) -> torch.Tensor:

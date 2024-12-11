@@ -53,6 +53,7 @@ from .edac import EDACPolicy
 from .prompt_pg import PromptPGPolicy
 from .plan_diffuser import PDPolicy
 from .happo import HAPPOPolicy
+from .prompt_awr import PromptAWRPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -460,4 +461,9 @@ class BCCommandModePolicy(BehaviourCloningPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('prompt_pg_command')
 class PromptPGCommandModePolicy(PromptPGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('prompt_awr_command')
+class PromptAWRCommandModePolicy(PromptAWRPolicy, DummyCommandModePolicy):
     pass

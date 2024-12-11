@@ -93,6 +93,10 @@ class Policy(ABC):
         traj_len_inf=False,
         # neural network model config
         model=dict(),
+        # If resume_training is True, the environment step count (collector.envstep) and training iteration (train_iter)
+        # will be loaded from the pretrained checkpoint, allowing training to resume seamlessly
+        # from where the ckpt left off.
+        learn=dict(resume_training=False),
     )
 
     def __init__(

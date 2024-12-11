@@ -75,9 +75,10 @@ setup(
         'responses',  # interaction
         'URLObject',  # interaction
         'pynng',  # parallel
-        'sniffio', # parallel
+        'sniffio',  # parallel
         'redis',  # parallel
         'mpire>=2.3.5',  # parallel
+        'einops<=0.8.0',
     ],
     extras_require={
         'test': [
@@ -95,8 +96,8 @@ setup(
             'h5py',
             'scipy',
             'scikit-learn',
-            'gym[box2d]==0.25.1',
             'pettingzoo<=1.22.3',
+            'pygame',
             'opencv-python',  # pypy incompatible
             'pyecharts',
         ],

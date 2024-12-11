@@ -45,7 +45,7 @@ main_config = dict(
             value_model_cfg=dict(
                 model='TemporalValue',
                 model_cfg=dict(
-                    horizon = 256,
+                    horizon=256,
                     transition_dim=37,
                     dim=32,
                     dim_mults=[1, 2, 4, 8],
@@ -92,9 +92,7 @@ create_config = dict(
         import_names=['dizoo.d4rl.envs.d4rl_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='pd',
-    ),
+    policy=dict(type='pd', ),
     replay_buffer=dict(type='naive', ),
 )
 create_config = EasyDict(create_config)

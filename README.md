@@ -58,7 +58,7 @@ It provides **python-first** and **asynchronous-native** task and middleware abs
 - Offline RL algorithms: BCQ, CQL, TD3BC, Decision Transformer, EDAC, Diffuser, Decision Diffuser, SO2
 - Model-based RL algorithms: SVG, STEVE, MBPO, DDPPO, DreamerV3
 - Exploration algorithms: HER, RND, ICM, NGU
-- LLM + RL Algorithms: PPO-max, DPO, PromptPG
+- LLM + RL Algorithms: PPO-max, DPO, PromptPG, PromptAWR
 - Other algorithms: such as PER, PLR, PCGrad
 - MCTS + RL algorithms: AlphaZero, MuZero, please refer to [LightZero](https://github.com/opendilab/LightZero)
 - Generative Model + RL algorithms: Diffusion-QL, QGPO, SRPO, please refer to [GenerativeRL](https://github.com/opendilab/GenerativeRL)
@@ -148,12 +148,6 @@ You can simply install DI-engine from PyPI with the following command:
 
 ```bash
 pip install DI-engine
-```
-
-If you use Anaconda or Miniconda, you can install DI-engine from conda-forge through the following command:
-
-```bash
-conda install -c opendilab di-engine
 ```
 
 For more information about installation, you can refer to [installation](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/installation.html).
@@ -283,6 +277,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 | 54 |                                           [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)                                           |                                                            ![other](https://img.shields.io/badge/-other-lightgrey)                                                            |                                                                              [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py)                                                                              |                   ding -m serial -c cartpole_dqn_stdim_config.py -s 0                   |
 | 55 |                                             [PLR](https://arxiv.org/pdf/2010.03934.pdf)                                             |                                                            ![other](https://img.shields.io/badge/-other-lightgrey)                                                            |                                       [PLR doc](https://di-engine-docs.readthedocs.io/en/latest/12_policies/plr.html)<br>[data/level_replay/level_sampler](https://github.com/opendilab/DI-engine/blob/main/ding/data/level_replay/level_sampler.py)                                       |                          python3 -u bigfish_plr_config.py -s 0                          |
 | 56 |                                           [PCGrad](https://arxiv.org/pdf/2001.06782.pdf)                                           |                                                            ![other](https://img.shields.io/badge/-other-lightgrey)                                                            |                                                                             [torch_utils/optimizer_helper/PCGrad](https://github.com/opendilab/DI-engine/blob/main/ding/data/torch_utils/optimizer_helper.py)                                                                             |                        python3 -u multi_mnist_pcgrad_main.py -s 0                        |
+| 57 |                                           [AWR](https://arxiv.org/pdf/1910.00177)                                                   |                                                            ![discrete](https://img.shields.io/badge/-discrete-brightgreen)                                                    |                                                                             [policy/ibc](https://github.com/opendilab/DI-engine/blob/main/ding/policy/prompt_awr.py)                                                                                                                     |                        python3 -u tabmwp_awr_config.py                                   |
 
 </details>
 

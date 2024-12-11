@@ -195,6 +195,20 @@ class TempLSTM(torch.nn.Module):
         return {'output': output, 'next_state': next_state}
 
 
+class TempLSTMActor(torch.nn.Module):
+
+    def __init__(self):
+        super(TempLSTMActor, self).__init__()
+        self.model = get_lstm(lstm_type='pytorch', input_size=36, hidden_size=32, num_layers=2, norm_type=None)
+
+    def forward(self, data, tmp=0):
+        output, next_state = self.model(data['f'], data['prev_state'], list_next_state=True)
+        ret = {'logit': output, 'tmp': tmp, 'action': output + torch.rand_like(output), 'next_state': next_state}
+        if 'mask' in data:
+            ret['action_mask'] = data['mask']
+        return ret
+
+
 @pytest.fixture(scope='function')
 def setup_model():
     return torch.nn.Linear(3, 6)
@@ -576,3 +590,30 @@ class TestModelWrappers:
         output = model.forward(shot_number=shot_number, inputs=data)
         assert output['action'].shape == (4, shot_number)
         assert (output['action'] >= 0).all() and (output['action'] < 64).all()
+
+    def test_hidden_state_and_epsilon_greedy_wrapper(self):
+        model = model_wrap(TempLSTMActor(), wrapper_name='hidden_state', state_num=4, save_prev_state=True)
+        model = model_wrap(model, wrapper_name='eps_greedy_sample')
+        model.reset()
+        # Check that reset properly initializes all states to None
+        assert all([isinstance(s, type(None)) for s in model._state.values()])
+
+        data = {'f': torch.randn(2, 4, 36)}
+        output = model.forward(data, eps=0.8)
+        assert output['tmp'] == 0
+        assert 'logit' in output
+        assert output['logit'].shape == (2, 4, 32)
+        assert 'action' in output
+        assert output['action'].shape == (2, 4)
+        assert 'prev_state' in output
+        assert len(output['prev_state']) == 4
+        assert output['prev_state'][0]['h'].shape == (2, 1, 32)
+        assert output['prev_state'][0]['c'].shape == (2, 1, 32)
+
+        assert all([isinstance(s, dict) for s in model._state.values()])
+        # Check that reset with specific data_id works
+        model.reset(data_id=[0, 2])
+        assert isinstance(model._state[0], type(None))
+        assert isinstance(model._state[2], type(None))
+        assert isinstance(model._state[1], dict)
+        assert isinstance(model._state[3], dict)
