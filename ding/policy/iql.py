@@ -217,15 +217,11 @@ class IQLPolicy(Policy):
             self._model.critic_q_head[0][-1].last.bias.data.uniform_(-init_w, init_w)
             self._model.critic_q_head[1][-1].last.weight.data.uniform_(-init_w, init_w)
             self._model.critic_q_head[1][-1].last.bias.data.uniform_(-init_w, init_w)
-            self._model.critic_v_head[0][-1].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic_v_head[0][-1].last.bias.data.uniform_(-init_w, init_w)
-            self._model.critic_v_head[1][-1].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic_v_head[1][-1].last.bias.data.uniform_(-init_w, init_w)
         else:
             self._model.critic_q_head[2].last.weight.data.uniform_(-init_w, init_w)
             self._model.critic_q_head[-1].last.bias.data.uniform_(-init_w, init_w)
-            self._model.critic_v_head[2].last.weight.data.uniform_(-init_w, init_w)
-            self._model.critic_v_head[-1].last.bias.data.uniform_(-init_w, init_w)
+        self._model.critic_v_head[2].last.weight.data.uniform_(-init_w, init_w)
+        self._model.critic_v_head[-1].last.bias.data.uniform_(-init_w, init_w)
 
         # Optimizers
         self._optimizer_q = Adam(
@@ -321,16 +317,13 @@ class IQLPolicy(Policy):
         # 3. compute v loss
         if self._twin_critic:
             q_value_min = torch.min(q_value[0], q_value[1]).detach()
-            v_loss_0 = asymmetric_l2_loss(q_value_min - v_value[0], self._tau)
-            v_loss_1 = asymmetric_l2_loss(q_value_min - v_value[1], self._tau)
-            v_loss = (v_loss_0 + v_loss_1) / 2
+            v_loss = asymmetric_l2_loss(q_value_min - v_value, self._tau)
         else:
             advantage = q_value.detach() - v_value
             v_loss = asymmetric_l2_loss(advantage, self._tau)
 
         # 4. compute q loss
         if self._twin_critic:
-            next_v_value = torch.min(next_v_value[0], next_v_value[1])
             q_data0 = v_1step_td_data(q_value[0], next_v_value, reward, done, data['weight'])
             loss_dict['critic_q_loss'], td_error_per_sample0 = v_1step_td_error(q_data0, self._gamma)
             q_data1 = v_1step_td_data(q_value[1], next_v_value, reward, done, data['weight'])
@@ -362,7 +355,6 @@ class IQLPolicy(Policy):
         new_q_value, new_v_value = new_value['q_value'], new_value['v_value']
         if self._twin_critic:
             new_q_value = torch.min(new_q_value[0], new_q_value[1])
-            new_v_value = torch.min(new_v_value[0], new_v_value[1])
         new_advantage = new_q_value - new_v_value
 
         # 8. compute policy loss

@@ -179,19 +179,17 @@ class ContinuousQVAC(nn.Module):
                         )
                     )
                 )
-                self.critic_v_head.append(
-                    nn.Sequential(
-                        nn.Linear(critic_v_input_size, critic_head_hidden_size), activation,
-                        RegressionHead(
-                            critic_head_hidden_size,
-                            1,
-                            critic_head_layer_num,
-                            final_tanh=False,
-                            activation=activation,
-                            norm_type=norm_type
-                        )
-                    )
+            self.critic_v_head = nn.Sequential(
+                nn.Linear(critic_v_input_size, critic_head_hidden_size), activation,
+                RegressionHead(
+                    critic_head_hidden_size,
+                    1,
+                    critic_head_layer_num,
+                    final_tanh=False,
+                    activation=activation,
+                    norm_type=norm_type
                 )
+            )
         else:
             self.critic_q_head = nn.Sequential(
                 nn.Linear(critic_q_input_size, critic_head_hidden_size), activation,
@@ -356,7 +354,7 @@ class ContinuousQVAC(nn.Module):
             x = torch.cat([obs, action], dim=1)
         if self.twin_critic:
             x = [m(x)['pred'] for m in self.critic_q_head]
-            y = [m(obs)['pred'] for m in self.critic_v_head]
+            y = self.critic_v_head(obs)['pred']
         else:
             x = self.critic_q_head(x)['pred']
             y = self.critic_v_head(obs)['pred']
