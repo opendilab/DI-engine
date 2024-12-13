@@ -495,7 +495,7 @@ class RMSprop(torch.optim.RMSprop):
             # wait torch upgrad to 1.4, 1.3.1 didn't support memory format state['step'] = 0
         else:
             state['step'] = torch.zeros((1,), dtype=torch.float, device=p.device) \
-                if self.defaults['capturable'] else torch.tensor(0.)
+                if ('capturable' in self.defaults and self.defaults['capturable']) else torch.tensor(0.)
         state['thre_square_avg'] = torch.zeros_like(p.data, device=p.data.device)
         state['square_avg'] = torch.zeros_like(p.data, device=p.data.device)
         if momentum:
