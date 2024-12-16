@@ -45,9 +45,10 @@ def main():
                 task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(StepCollector(cfg, policy.collect_mode, collector_env))
             task.use(gae_estimator(cfg, policy.collect_mode))
-            task.use(multistep_trainer(cfg, policy.learn_mode))
+            task.use(multistep_trainer(policy.learn_mode))
             if rank == 0:
                 task.use(CkptSaver(policy, cfg.exp_name, train_freq=1000))
+                task.use(online_logger(record_train_iter=True))
             task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()
 
